@@ -44,6 +44,16 @@
       </div>
     </div>
   </div>
+<script>
+  window.addEventListener("error", (e) => {
+    const el = document.getElementById("auth-error");
+    if (el) el.textContent = "起動エラー: " + (e.message || e);
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    const el = document.getElementById("auth-error");
+    if (el) el.textContent = "起動エラー(Promise): " + (e.reason && e.reason.message ? e.reason.message : e.reason);
+  });
+</script>
 <script type="module" src="script.js"></script>
 </body>
 </html>
