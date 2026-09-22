@@ -53,7 +53,10 @@
     const el = document.getElementById("auth-error");
     if (el) el.textContent = "起動エラー(Promise): " + (e.reason && e.reason.message ? e.reason.message : e.reason);
   });
+  import("./script.js").catch((err) => {
+    const el = document.getElementById("auth-error");
+    if (el) el.textContent = "モジュール読み込み失敗: " + err.message;
+  });
 </script>
-<script type="module" src="script.js"></script>
 </body>
 </html>
