@@ -1,6 +1,6 @@
 {
   "name": "pokapoka-town",
-  "version": "1.0.0",
+  "version": "2.0.0-dev",
   "private": true,
   "description": "わんこ・がちゃん・ごじ の なかよし生活（スマホ向けブラウザゲーム）",
   "type": "module",
