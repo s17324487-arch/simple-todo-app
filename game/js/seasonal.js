@@ -1,0 +1,90 @@
+const Seasonal = {
+  override:null,
+  events:{
+    spring:{name:"さくらさんぽ",period:"3〜5がつ",color:"#F2B7CD",targets:[["town","town_fountain","タウンの ふんすい"],["heiwadai","heiwadai_fountain","平和台の こうえん"],["meadow","meadow_flowercart","はらっぱの はなワゴン"]]},
+    summer:{name:"ほしあかりまつり",period:"6〜8がつ",color:"#F0D48D",targets:[["town","town_wheel","タウンの すいしゃ"],["coast","coast_parasol","ビーチの パラソル"],["harbor","port_light","みなとの とうだい"]]},
+    autumn:{name:"どんぐりまつり",period:"9〜11がつ",color:"#DBA27D",targets:[["heiwadai","heiwadai_cart","平和台の はなワゴン"],["meadow","meadow_windmill","はらっぱの ふうしゃ"],["forest","forest_waterwheel","もりの すいしゃ"]]},
+    winter:{name:"ゆきあかりまつり",period:"12〜2がつ",color:"#B8D8E6",targets:[["town","town_fountain","タウンの ふんすい"],["heiwadai","heiwadai_clock","平和台の とけい"],["airport","airport_clock","くうこうの とけい"]]},
+  },
+  current(date=this.override || new Date()) {
+    const month=date.getMonth()+1, season=month>=3&&month<=5?"spring":month<=8&&month>=6?"summer":month>=9&&month<=11?"autumn":"winter";
+    const year=date.getFullYear()-(month<=2?1:0);
+    return {id:season,key:`${year}-${season}`,year,...this.events[season],items:SEASON_ITEMS[season]};
+  },
+  record(key,create=false) {
+    const records=Save.d.events.records;
+    if(create&&!records[key])records[key]={stamps:{},claimed:false};
+    return records[key]||{stamps:{},claimed:false};
+  },
+  state() {
+    const e=this.current(),r=this.record(e.key);
+    return {...e,stamps:{...r.stamps},claimed:r.claimed,count:e.targets.filter(t=>r.stamps[t[1]]).length,
+      targets:e.targets.map(([map,id,label])=>{const o=MAP_DEFS[map].objects.find(o=>o.id===id);return{map,id,label,x:o.x,y:o.y,w:o.w,h:o.h};})};
+  },
+  collect(map,object) {
+    const e=this.current();if(!e.targets.some(t=>t[0]===map&&t[1]===object.id))return null;
+    const r=this.record(e.key,true);if(r.stamps[object.id])return null;
+    r.stamps[object.id]=true;Save.mark();Save.write();
+    return `きせつの スタンプ！ ${Object.keys(r.stamps).length}/3\n「おまつり」ボタンで きねんひんを うけとろう！`;
+  },
+  claim(key) {
+    const e=this.current();if(e.key!==key)return false;
+    const r=this.record(key);if(r.claimed||!e.targets.every(t=>r.stamps[t[1]]))return false;
+    // 表示・演出より先に一度だけ確定する。連打・閉じ直し・再起動で増えない。
+    r.claimed=true;Save.d.wardrobe[e.items.wear]=true;
+    Save.d.furn[e.items.furn]=(Save.d.furn[e.items.furn]||0)+1;Save.addBag(e.items.food,3);
+    Save.mark();Save.write();return true;
+  },
+  open() {
+    UI.root.querySelector(".toasts")?.replaceChildren();
+    const body=U.el("div"),m=UI.modal({title:"きせつの おまつり",body,cls:"full"});
+    const render=()=>{
+      const s=this.state();body.innerHTML="";
+      body.append(U.el("h2",{text:s.name}),U.el("div",{class:"note",text:`${s.period}に かいさい ／ ${s.count}/3 スタンプ\n！のある めいしょを タップして あつめよう。`}),U.el("p",{class:"muted",text:"きねんひんは この きせつに もらえるよ。てにいれた ものは ずっと つかえる！ まいとし また さんかできるよ。"}));
+      for(const t of s.targets)body.append(U.el("div",{class:"festival-target",text:`${s.stamps[t.id]?"✓":"○"} ${t.label}\n${MAP_DEFS[t.map].name}：よこ ${t.x+1}・たて ${t.y+1}`}));
+      const reward=U.el("div",{class:"festival-rewards"});
+      for(const [kind,id,n] of [["wear",s.items.wear,1],["furn",s.items.furn,1],["bag",s.items.food,3]]) {
+        const it=kind==="wear"?ITEM_INDEX[id]:kind==="furn"?FURN_INDEX[id]:BAG_INDEX[id];
+        reward.append(U.el("div",{class:"festival-reward",html:`${UI.icon(kind,id,60)}<b>${it.name}</b><div>×${n}</div>`}));
+      }
+      body.append(reward);
+      const b=UI.btn(s.claimed?"きねんひんは うけとりずみ":"きねんひんを うけとる",()=>{
+        if(this.claim(s.key)){Sound.se("fanfare");UI.toast("きねんひんを てにいれた！ おうちで つかおう！","good");}
+        else if(this.current().key!==s.key)UI.toast("きせつが かわったよ。あたらしい おまつりを みよう！");
+        render();
+      },"yellow wide");b.disabled=s.claimed||s.count<3;body.append(b);
+      body.append(UI.btn("ぜんたい ちずを みる",()=>{m.close();WorldAtlas.open();},"wide"));
+      body.append(U.el("p",{class:"muted",text:"でんしゃ・ふね・ひこうきは むりょう。まものが いる ばしょは、HPと ごはんを じゅんびして いこう。"}));
+    };
+    render();return m;
+  },
+  mount(sc) {
+    sc.festivalButton=UI.btn("おまつり",()=>this.open(),"world-festival");UI.root.append(sc.festivalButton);this.refresh(sc,true);
+  },
+  refresh(sc,force=false) {
+    if(!force&&G.t<(sc.nextFestival||0))return;sc.nextFestival=G.t+1;
+    const s=this.state();if(sc.festivalButton){sc.festivalButton.textContent=`おまつり ${s.claimed?"✓":s.count+"/3"}`;sc.festivalButton.style.background=s.color;}
+  },
+  draw(ctx,sc,ox,oy) {
+    if(sc.map.baseGround==="cave")return;
+    const e=this.current();ctx.save();
+    // 地形を隠さない小さな花びら・蛍・落ち葉・雪。画面内だけを有限個描く。
+    for(let i=0;i<14;i++){
+      const x=(i*89+Math.sin(G.t*.4+i)*20-sc.cam.x*.15+4000)%G.W,y=(i*71+G.t*(e.id==="summer"?-5:11)-sc.cam.y*.1+4000)%G.H;
+      ctx.fillStyle=e.id==="winter"?"#FFFDF5":e.color;ctx.globalAlpha=e.id==="summer"?.3+Math.sin(G.t*2+i)**2*.45:.6;
+      ctx.beginPath();ctx.ellipse(x,y,e.id==="summer"?2:3.5,e.id==="winter"?3:1.7,G.t*.3+i,0,7);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    for(const o of sc.map.def.objects||[]) {
+      if(!e.targets.some(t=>t[0]===sc.mapId&&t[1]===o.id)&&!o.festival)continue;
+      const x=ox+(o.x+o.w/2)*TS,y=oy+(o.y+o.h)*TS+12;
+      if(x< -90||x>G.W+90||y< -20||y>G.H+30)continue;
+      ctx.strokeStyle="#A78F74";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-38,y);ctx.quadraticCurveTo(x,y+12,x+38,y);ctx.stroke();
+      for(let j=0;j<5;j++){ctx.fillStyle=j%2?"#FFF0CD":e.color;ctx.beginPath();ctx.moveTo(x-34+j*14,y+2);ctx.lineTo(x-24+j*14,y+3);ctx.lineTo(x-29+j*14,y+14);ctx.closePath();ctx.fill();}
+    }
+    ctx.restore();
+  },
+};
+
+WorldArt.festivalboard=()=>({w:32,h:52,svg:`<path d="M7,28 V50 M25,28 V50" ${OS(3)}/><rect x="1" y="4" width="30" height="34" rx="5" fill="#FFF2CE" ${OS()}/><path d="${starPath(16,18,10,5)}" fill="#E2AD90" ${OS(1.4)}/><path d="M8,32 H24" ${OS(2)}/>`});
+for(const [map,x,y] of [["town",8,21],["heiwadai",25,24],["city",14,24]])MAP_DEFS[map].objects.push({id:map+"_festivalboard",kind:"festivalboard",x,y,w:1,h:1,solid:true,festival:true,text:"きせつの おまつり"});

@@ -2,10 +2,11 @@
 const WorldScenery = {
   at(map, x, y) { return (map.def.objects || []).find(o => o.text && x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h); },
   activate(sc, o) {
+    if(o.festival){Seasonal.open();return;}
     sc.objectActive = { id: o.id, until: G.t + 5 };
     Sound.se(o.kind === "fountain" ? "heal" : "sparkle");
     sc.party.forEach(w => { w.hop = .35; sc.addFx("note", w); });
-    UI.toast(o.text, "good");
+    UI.toast(Seasonal.collect(sc.mapId,o)||o.text, "good");
   },
   draw(ctx, s, ox, oy) {
     const o=s.o; if(!o) return;

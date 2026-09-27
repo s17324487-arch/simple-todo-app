@@ -69,7 +69,7 @@ function helpers(page, name) {
       if (!SHOTS) return;
       // フォント/描画待ちでゲームの制限時間を消費しない。
       const previous = await H.dbg("pause", true);
-      try { await page.screenshot({ path: join(SHOT_DIR, `${name}_${label}.png`) }); }
+      try { await page.screenshot({ path: join(SHOT_DIR, `${name}_${label}.png`), animations: "disabled" }); }
       finally { await H.dbg("pause", previous); }
     },
     async open() {
@@ -545,6 +545,29 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.getByRole("heading",{name:"平和台（へいわだい）",exact:true}).scrollIntoViewIfNeeded();await H.shot("heiwadai-map");
   const overflow=await H.eval(()=>document.documentElement.scrollWidth>innerWidth);expect(!overflow,"小さい画面で横にはみ出す");
 },{viewport,full:true,timeout:120000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`季節のおまつり（${viewport.width}）`,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);
+  for(const date of ["2026-03-01","2026-06-01","2026-09-01","2026-12-01"]){
+    await H.dbg("calendar",date);
+    const initial=await H.dbg("festival");expect(initial.count===0&&!initial.claimed,"新しい季節の記録が不正");
+    for(const t of initial.targets){
+      await H.dbg("teleport",t.map,t.x-1,t.y);
+      await H.until(m=>PokaDebug.state().map===m&&PokaDebug.idle(),15000,t.map);
+      const o=(await H.dbg("world")).objects.find(o=>o.id===t.id);await H.tap(o.cx,o.cy);
+      await H.until(id=>!!PokaDebug.festival().stamps[id],10000,t.id);
+    }
+    await H.page.locator(".world-festival").click();await H.shot(initial.id+"-rewards");
+    await H.page.getByRole("button",{name:"きねんひんを うけとる",exact:true}).click();
+    const s=await H.dbg("festival");expect(s.count===3&&s.claimed&&s.inventory.wear&&s.inventory.furn===1&&s.inventory.food===3,"記念品がそろわない");
+    expect(await H.page.getByRole("button",{name:"きねんひんは うけとりずみ",exact:true}).isDisabled(),"連打で再受け取りできる");
+    expect(!(await H.eval(()=>document.documentElement.scrollWidth>innerWidth)),"おまつり画面がはみ出す");
+    await H.page.getByRole("button",{name:"とじる",exact:true}).click();await H.idle();
+  }
+  await H.dbg("save");await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.until(()=>PokaDebug.state().scene==="world"&&PokaDebug.idle());
+  await H.dbg("calendar","2027-01-01");const saved=await H.dbg("festival");expect(saved.key==="2026-winter"&&saved.claimed&&saved.inventory.furn===1,"冬の年越し・再開で記録が失われた");
+  await H.dbg("calendar","2027-03-01");const next=await H.dbg("festival");expect(next.count===0&&!next.claimed&&next.inventory.wear&&next.inventory.furn===1,"翌年への移行で取得済みの品が消えた");
+},{viewport,full:viewport.width===375,timeout:150000});
 
 await browser.close();
 server.close();
