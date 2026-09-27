@@ -245,6 +245,7 @@ html, body {
 .house-bar .btn svg { display: block; }
 .house-bar .btn span { line-height: 1.1; }
 .watch-exit { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); white-space: nowrap; min-height: 44px; }
+.home-shortcut { position: absolute; right: 8px; top: calc(8px + var(--safe-t)); min-height: 44px; z-index: 15; }
 .text-input { width: 100%; margin-top: 10px; font: inherit; font-weight: 800; font-size: 18px; color: var(--ink); background: #fff; border: 3px solid var(--ink); border-radius: 12px; padding: 8px 12px; user-select: text; -webkit-user-select: text; }
 .text-input:focus { outline: 3px solid var(--yellow); outline-offset: 1px; }
 .btn:focus-visible, .tab:focus-visible, .card:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }

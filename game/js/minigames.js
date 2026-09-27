@@ -87,10 +87,17 @@ class ShopScene {
     this.owner = SHOP_OWNERS[this.shopId];
     this.layout();
     await this.preload();
+    this.homeBtn = UI.btn("おうちへ", () => {
+      if (UI.busy || Game.trans || this.closed) return;
+      this.closed = true;
+      UI.toast("おてつだいを やめて かえるよ。コインは さいごまで あそぶと もらえるよ");
+      Game.goto("house");
+    }, "home-shortcut small");
+    document.getElementById("ui").append(this.homeBtn);
     Sound.bgm("shop");
     this.flow().catch((e) => { console.error(e); Game.goto("world", this.back); });
   }
-  exit() {}
+  exit() { this.closed = true; this.homeBtn?.remove(); }
   layout() {
     const W = G.W, H = G.H;
     this.viewH = Math.round(Math.min(H * 0.4, 330));
@@ -126,6 +133,7 @@ class ShopScene {
     const first = !this.st.plays;
     const lines = first ? HOWTO[this.shopId] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
+    if (this.closed) return;
     for (this.n = 0; this.n < this.total; this.n++) {
       this.cust = this.makeCustomer();
       this.phase = "enter";
@@ -140,11 +148,12 @@ class ShopScene {
       this.phase = "work";
       const score = await new Promise((res) => (this.finish = (sc) => { if (this.phase === "work") { this.phase = "judge"; res(sc); } }));
       await this.judge(Math.round(U.clamp(score, 0, 100)));
+      if (this.closed) return;
       this.phase = "leave";
       await this.tween(0.8, (k) => (this.cust.x = U.lerp(this.custX, G.W + 70, k)));
       this.task = null;
     }
-    await this.results();
+    if (!this.closed) await this.results();
   }
   timePenalty() {
     const used = 1 - this.timeLeft / this.timeLimit;
