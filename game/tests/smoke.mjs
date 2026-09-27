@@ -399,7 +399,8 @@ await scenario("新エリア・全体マップ・帰宅", async (H) => {
   await H.shot("city");
   await H.page.getByRole("button", { name: "メニュー", exact: true }).click();
   await H.page.getByRole("button", { name: "ちず", exact: true }).click();
-  expect(await H.page.getByRole("img", { name: "町とエリアのつながり" }).isVisible(), "全体マップがない");
+  expect(await H.page.getByRole("group", { name: "ぽかぽかの せかいの ちず", exact:true }).isVisible(), "全体マップがない");
+  expect(await H.page.locator('.atlas-marker.is-current').getAttribute('data-area') === "city", "入ったエリアが地図の現在地に反映されない");
   await H.shot("atlas"); await H.page.locator(".modal-wrap .close").last().click(); await H.wait(300);
   await H.dbg("teleport", "city", 34, 17); await H.until(() => PokaDebug.idle());
   await H.dbg("walkTo", 35, 17); await H.until(() => PokaDebug.state().map === "coast" && PokaDebug.idle());
