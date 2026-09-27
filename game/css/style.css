@@ -210,7 +210,14 @@ html, body {
 .edit-tools .btn { padding: 4px 9px; font-size: 12px; border-radius: 10px; }
 
 /* ---- バトル ---- */
-.battle-ui { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 8px calc(8px + var(--safe-b)); }
+.battle-ui { position: absolute; left: 0; right: 0; bottom: 0; height: calc(244px + var(--safe-b)); max-height: 44%; display: flex; flex-direction: column; gap: 4px; padding: 0 8px calc(8px + var(--safe-b)); }
+.battle-ui > div:last-child { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 4px; }
+.battle-ui .battle-msg { min-height: 38px; padding: 6px 10px; font-size: 13px; }
+.battle-ui .cmd-grid { gap: 5px; margin-top: 5px; }
+.battle-ui .cmd-grid .btn { min-height: 44px; padding: 5px 4px; font-size: 14px; }
+.battle-ui .cmd-head { margin-top: 0; font-size: 12px; }
+.battle-ui .cmd-head .who { padding: 0 8px; }
+.battle-ui .skill-list { margin-top: 2px; max-height: none; }
 .battle-msg { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 10px 14px; font-weight: 800; font-size: 15px; min-height: 52px; box-shadow: 0 3px 0 var(--ink); line-height: 1.45; }
 .cmd-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
 .cmd-grid .btn { font-size: 17px; padding: 12px 6px; border-radius: 16px; }

@@ -33,13 +33,14 @@ class BattleScene {
     Sound.bgm(this.boss ? "boss" : "battle");
     this.run().catch((e) => { console.error(e); UI.toast("バトルで エラーが おきました"); this.leave(); });
   }
-  exit() { if (this.ui) this.ui.remove(); }
+  exit() { this.layoutObserver?.disconnect(); if (this.ui) this.ui.remove(); }
   layout() {
     const W = G.W, H = G.H;
     // 画面の高さに合わせて大きさを決める（下のコマンド欄と重ならないように）
-    this.bs = U.clamp((H - 290) / 480, 0.68, 1.05);
+    const panelTop = this.ui ? (this.ui.getBoundingClientRect().top - G.canvas.getBoundingClientRect().top) / G.cssPerUnit : H - 250;
+    this.allyY = panelTop - 70;
+    this.bs = Math.min(1.05, (this.allyY - 32) / (this.boss ? 490 : 360));
     this.AS = ALLY_SIZE * this.bs; this.FS = (this.boss ? BOSS_SIZE : FOE_SIZE) * this.bs;
-    this.allyY = Math.max(H * 0.5, H - 300);
     this.foeY = this.allyY - (this.boss ? 262 : 228) * this.bs;
     const n = this.foes.length;
     const fx = n === 1 ? [0] : n === 2 ? [-72, 72] : [-114, 0, 114];
@@ -87,6 +88,9 @@ class BattleScene {
     this.cmd = U.el("div");
     this.ui.append(this.msgBox, this.cmd);
     document.getElementById("ui").append(this.ui);
+    this.layoutObserver = new ResizeObserver(() => this.layout());
+    this.layoutObserver.observe(this.ui);
+    this.layout();
   }
   msg(text, wait = 750) {
     this.msgBox.textContent = text;

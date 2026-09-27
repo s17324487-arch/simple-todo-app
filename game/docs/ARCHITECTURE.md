@@ -507,3 +507,6 @@ migrate(d) {
 - 実機（iPhone / Android）での確認は まだ少ない。自動テストは Chromium のみ。
 - 画面の向きは縦を想定（横向きでも動くが、最適化していない）。
 - Service Worker は https のときだけ登録する（`file://` と `http://localhost` では登録しない）。
+
+## ver2: 戦闘表示
+戦闘の下部メニューは高さを制限し、ResizeObserver で測った上端より上にHPカードを置く。技・道具一覧は枠内スクロール。PokaDebug.battleLayout() はカード下端とメニュー上端を CSS px で返す。

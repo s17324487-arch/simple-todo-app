@@ -321,6 +321,21 @@ await scenario("セーブ→つづきから", async (H) => {
   expect(st.coins >= 777 + 150, "コインが保存されていない");
 });
 
+for (const viewport of [{ width: 375, height: 667 }, { width: 390, height: 844 }]) await scenario(`戦闘メニューと体力（${viewport.width}）`, async (H) => {
+  await H.newGameFast();
+  await H.dbg("level", 24);
+  await H.dbg("battle", [{ kind: "king", lv: 18 }], "cave", true);
+  await H.page.getByRole("button", { name: "とくぎ", exact: true }).waitFor();
+  for (const label of [null, "とくぎ", "もどる", "どうぐ"]) {
+    if (label) await H.page.getByRole("button", { name: label, exact: true }).click();
+    await H.wait(100);
+    const bounds = await H.dbg("battleLayout");
+    expect(bounds.cardBottom < bounds.menuTop, `HPが隠れる: ${JSON.stringify(bounds)}`);
+    expect(bounds.enemyTop > 0, "敵が画面外");
+  }
+  await H.shot("menu-hp");
+}, { viewport, full: true });
+
 await scenario("小さい画面（375×667）", async (H) => {
   await H.newGameFast();
   await H.shot("se_house");
@@ -328,7 +343,8 @@ await scenario("小さい画面（375×667）", async (H) => {
   await H.until(() => G.sceneName === "battle" && !Game.trans, 10000);
   await H.wait(1500);
   await H.shot("se_battle");
-  const overlap = await H.eval(() => { const ui = document.querySelector(".battle-ui").getBoundingClientRect(); const sc = G.scene; const cardBottom = (sc.allyY + 58) * G.cssPerUnit; return cardBottom > ui.top + 60; });
+  const bounds = await H.dbg("battleLayout");
+  const overlap = bounds.cardBottom >= bounds.menuTop;
   expect(!overlap, "バトルの ステータス欄が コマンド欄と 大きく重なっている");
 }, { viewport: { width: 375, height: 667 }, full: true });
 

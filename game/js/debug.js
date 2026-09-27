@@ -41,6 +41,11 @@ const PokaDebug = {
     };
   },
   idle() { return !Game.trans && !UI.busy; },
+  battleLayout() {
+    if (G.sceneName !== "battle") return null;
+    const sc = G.scene, rect = G.canvas.getBoundingClientRect();
+    return { cardBottom: rect.top + (sc.allyY + 59.5) * G.cssPerUnit, menuTop: sc.ui.getBoundingClientRect().top, enemyTop: sc.foeY - sc.FS, active: sc.active?.id };
+  },
 
   newGame({ goji = "soft" } = {}) {
     Save.reset();
