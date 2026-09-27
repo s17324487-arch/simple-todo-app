@@ -1,0 +1,65 @@
+/* ⑥ 射撃場の 画面（css/style.css の さいごに 足す 見本）。いまの 変数（--ink / --paper / --yellow / --pink …）を つかう */
+.range-scene { position: absolute; inset: 0; z-index: 20; background: #2A2630; touch-action: none; }
+.range-scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.range-top { position: absolute; left: 8px; right: 8px; top: calc(8px + var(--safe-t)); display: flex; align-items: center; gap: 6px; pointer-events: none; }
+.range-top .pill { background: var(--paper); font-size: 14px; padding: 4px 10px; gap: 4px; }
+.range-top .grow { flex: 1; }
+.range-top .ammo { display: flex; gap: 2px; align-items: center; }
+.range-top .ammo i { width: 5px; height: 12px; border-radius: 3px; background: #F7C948; border: 1.5px solid var(--ink); }
+.range-top .ammo i.off { background: #D8D2C6; }
+.range-top .reload { color: #E35D5B; font-weight: 900; }
+.range-quit { pointer-events: auto; }
+.range-combo { position: absolute; left: 50%; top: calc(56px + var(--safe-t)); transform: translateX(-50%); background: var(--yellow); border: 3px solid var(--ink); border-radius: 12px; padding: 2px 12px; font-weight: 900; font-size: 15px; box-shadow: 0 3px 0 var(--ink); pointer-events: none; }
+.range-count { position: absolute; left: 0; right: 0; top: 38%; text-align: center; font-size: 34px; font-weight: 900; color: #FFFFFF; -webkit-text-stroke: 2px var(--ink); text-shadow: 0 4px 0 var(--ink); pointer-events: none; }
+/* うつ・スコープ（右した。ゆびで おしやすい 大きさ） */
+.range-ctrl { position: absolute; right: 12px; bottom: calc(14px + var(--safe-b)); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.range-fire { width: 92px; height: 92px; border-radius: 50%; background: var(--yellow); font-size: 22px; font-weight: 900; display: grid; place-items: center; padding: 0; }
+.range-fire.wait { background: #D8D2C6; }
+.range-scope { width: 64px; height: 64px; border-radius: 50%; background: var(--blue-l); font-size: 12px; font-weight: 900; line-height: 1.1; display: grid; place-items: center; padding: 0; }
+.range-scope.on { background: var(--blue); }
+.range-hint { position: absolute; left: 12px; right: 12px; top: calc(92px + var(--safe-t)); text-align: center; font-size: 13px; font-weight: 800; color: #FFFFFF; -webkit-text-stroke: 3px var(--ink); paint-order: stroke; pointer-events: none; }
+/* おうえんの 2人（ひだりした） */
+.range-cheer { position: absolute; left: 6px; bottom: calc(6px + var(--safe-b)); display: flex; align-items: flex-end; gap: 0; pointer-events: none; }
+.range-buddy { position: relative; width: 66px; height: 74px; }
+.range-buddy img { width: 100%; height: 100%; }
+.range-bubble { position: absolute; left: 4px; bottom: 78px; white-space: nowrap; background: var(--paper); border: 3px solid var(--ink); border-radius: 12px; padding: 2px 9px; font-weight: 800; font-size: 13px; box-shadow: 0 2px 0 var(--ink); }
+.range-bubble::after { content: ""; position: absolute; left: 18px; bottom: -9px; border: 5px solid transparent; border-top: 7px solid var(--ink); }
+/* だれが うつ？ */
+.rg-who { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.rg-who-card { font: inherit; color: var(--ink); background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 3px 0 var(--ink); padding: 6px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 150px; }
+.rg-who-card img { width: 78px; height: 88px; }
+.rg-who-card .nm { font-size: 15px; font-weight: 900; }
+.rg-who-card .ln { font-size: 11px; font-weight: 700; line-height: 1.3; text-align: center; }
+.rg-who-card.on { background: var(--yellow-l); outline: 3px solid var(--orange); outline-offset: -7px; }
+.rg-note { margin: 10px 2px 0; font-size: 12px; font-weight: 700; color: #8a7d6a; text-align: center; }
+/* じゅうを えらぶ */
+.rg-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.rg-tabs .tab { flex: 1; min-height: 44px; font-size: 13px; padding: 4px 2px; }
+.rg-tabs .tab.lock { opacity: 0.55; }
+.rg-guns { display: flex; flex-direction: column; gap: 8px; }
+.rg-gun { font: inherit; color: var(--ink); display: grid; grid-template-columns: 132px 1fr; align-items: center; gap: 8px; min-height: 76px; padding: 6px 10px 6px 6px; background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink); text-align: left; }
+.rg-gun .art { height: 60px; display: grid; place-items: center; background: linear-gradient(#EEF3F7, #DDE6EE); border: 2px solid var(--ink); border-radius: 10px; }
+.rg-gun .art svg { max-width: 122px; max-height: 52px; width: auto; height: auto; }
+.rg-gun .nm { font-size: 14px; font-weight: 900; line-height: 1.25; }
+.rg-gun .sub { font-size: 11px; font-weight: 700; color: #8a7d6a; line-height: 1.3; }
+.rg-gun .best { color: #E0A21E; font-size: 13px; letter-spacing: 1px; }
+.rg-gun.on { background: var(--yellow-l); outline: 3px solid var(--orange); outline-offset: -7px; }
+.rg-lock { text-align: center; padding: 18px 8px; font-weight: 800; font-size: 14px; background: #EFEAE0; border: 3px dashed #BFB4A2; border-radius: 14px; }
+/* じゅうの くわしい せつめい（えらんだ とき） */
+.rg-detail { margin-top: 10px; background: #FFF9EC; border: 2.5px solid var(--ink); border-radius: 14px; padding: 8px 10px; }
+.rg-detail .desc { font-size: 13px; font-weight: 700; line-height: 1.5; white-space: pre-line; }
+.rg-detail .fact { margin-top: 6px; background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 12px; padding: 5px 9px; font-size: 12px; font-weight: 700; line-height: 1.5; white-space: pre-line; }
+.rg-detail .fact b { display: block; font-size: 11px; color: #9a6a00; }
+.rg-stats { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; align-items: center; margin-top: 6px; font-size: 11px; font-weight: 800; }
+.rg-stats .bar { height: 9px; border: 2px solid var(--ink); border-radius: 6px; background: #FFF; overflow: hidden; }
+.rg-stats .bar i { display: block; height: 100%; background: #7EC8F0; }
+/* けっか */
+.rg-result { text-align: center; }
+.rg-result .stars { font-size: 38px; letter-spacing: 4px; color: #E0A21E; -webkit-text-stroke: 1.5px var(--ink); }
+.rg-result .stars .off { color: #D8D2C6; }
+.rg-result .score { font-size: 30px; font-weight: 900; }
+.rg-result .sub { font-size: 13px; font-weight: 800; color: #8a7d6a; }
+.rg-result .coins { display: inline-flex; align-items: center; gap: 4px; margin: 6px 0; font-size: 17px; font-weight: 900; color: #9a6a00; }
+.rg-result .says { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.rg-result .say { display: flex; align-items: center; gap: 6px; text-align: left; font-size: 13px; font-weight: 800; background: var(--paper); border: 2.5px solid var(--ink); border-radius: 12px; padding: 3px 8px 3px 3px; }
+.rg-result .say img { width: 40px; height: 44px; }
