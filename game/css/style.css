@@ -301,3 +301,10 @@ html, body {
 .festival-rewards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:16px 0; }
 .festival-reward { background:#FFF6E3; border-radius:12px; padding:8px 4px; text-align:center; font-size:12px; overflow-wrap:anywhere; }
 .festival-reward .ico { margin:auto; }
+.annual-invite { background:#D6E8D9; min-height:52px; font-size:14px; }
+.annual-hero { display:flex; align-items:center; gap:12px; padding:12px; margin-bottom:12px; border-radius:18px; background:var(--festival-color); }
+.annual-art { flex:0 0 80px; } .annual-art svg { width:80px; display:block; }
+.annual-hero h2 { font-size:20px; margin:6px 0; } .annual-hero p { font-size:13px; line-height:1.7; margin:0; }
+.annual-months { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.annual-months .btn { min-height:54px; font-size:12px; padding:8px 4px; }
+.annual-months .selected { background:#D6E8D9; }
