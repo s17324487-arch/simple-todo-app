@@ -72,6 +72,13 @@ const PokaDebug = {
     return { watching: !!G.scene.watching, quarrel: l.quarrel, bubbles: l.bubbles.map(b => ({ ...b })), room: Save.d.rooms.active, owned: { ...Save.d.rooms.owned }, coins: Save.d.coins, rare: Save.d.flags.rareChats || 0, furniture: { ...l.furniture }, chars: Object.fromEntries(Chara.IDS.map(id => [id, { ...Save.d.chars[id] }])) };
   },
   feed(id, food) { return Care.feed(id, food); },
+  family() {
+    if(G.sceneName!=="house")return null;
+    const sc=G.scene;
+    return {looks:{papa:ParentCare.look("papa"),mama:ParentCare.look("mama")},auto:Save.d.parents.auto,lastCare:{...Save.d.parents.lastCare},bag:{...Save.d.bag},
+      parents:sc.parents.map(p=>({...p})),bubbles:HomeLife.bubbleLayout(sc,G.ctx).map(b=>({id:b.id,text:b.text,x:b.x,y:b.y,w:b.w,h:b.h,anchor:b.anchor})),width:G.W,height:G.H};
+  },
+  needs(hunger,mood=70) { for(const c of Object.values(Save.d.chars)){c.hunger=U.clamp(hunger,0,100);c.mood=U.clamp(mood,0,100);}Save.mark();if(G.sceneName==="house")G.scene.updateCare(); },
   wins(n) { Save.d.stats.wins = Math.max(0, Math.floor(n)); Save.mark(); },
   homePoint(x, y) { const p = G.scene.toScreen(x, y), r = G.canvas.getBoundingClientRect(); return { x: r.left + p.x * G.cssPerUnit, y: r.top + p.y * G.cssPerUnit }; },
   battleLayout() {

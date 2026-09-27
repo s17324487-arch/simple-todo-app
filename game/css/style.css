@@ -247,6 +247,14 @@ html, body {
 .house-bar .btn svg { display: block; }
 .house-bar .btn span { line-height: 1.1; }
 .watch-exit { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); white-space: nowrap; min-height: 44px; }
+.parent-open { position:absolute; top:calc(145px + var(--safe-t)); right:8px; min-height:44px; font-size:12px; }
+.parent-open.watching { top:calc(60px + var(--safe-t)); }
+.parent-tabs { display:flex; gap:8px; }
+.parent-tabs .btn { flex:1; min-height:44px; }
+.parent-preview { text-align:center; margin:8px; background:#E9F1DF; border-radius:18px; }
+.parent-preview svg { height:155px; max-width:100%; display:block; margin:auto; }
+.parent-choice { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:8px 0; font-size:14px; font-weight:800; }
+.parent-choice select { width:68%; min-height:44px; font:inherit; color:var(--ink); border:2px solid #B9B69A; border-radius:10px; padding:6px; background:#FFFCF3; }
 .home-shortcut { position: absolute; right: 8px; top: calc(8px + var(--safe-t)); min-height: 44px; z-index: 15; }
 .world-atlas { margin:12px 0; color:#334D41; }
 .atlas-heading { display:flex; align-items:baseline; justify-content:space-between; gap:6px; margin:0 1px 8px; }

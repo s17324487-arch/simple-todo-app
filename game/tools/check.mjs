@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, ParentCare })`, ctx);
 
 // ---------- 3. バージョン ----------
 const pkg = JSON.parse(readFileSync(join(GAME, "package.json"), "utf8"));
@@ -132,6 +132,9 @@ ok(R.WALLPAPERS.some((w) => w.id === fresh.room.wall) && R.FLOORS.some((f) => f.
 ok(fresh.v === R.Save.SCHEMA, "Save.fresh().v と Save.SCHEMA がちがう");
 // 古いセーブ（キー欠け）の移行
 const old = JSON.parse(JSON.stringify(fresh));
+old.coins=987654;old.stats.coinsEarned=1234567;
+const legacyBag=JSON.stringify(old.bag),legacyWardrobe=JSON.stringify(old.wardrobe),legacyFurn=JSON.stringify(old.furn);
+delete old.parents;
 delete old.rooms;
 delete old.events;
 delete old.shops.link; delete old.shops.relay; delete old.settings.difficulty;
@@ -140,7 +143,9 @@ const oldRoom = JSON.stringify(old.room);
 delete old.shops.florist; delete old.flags; delete old.gameVersion; old.v = undefined;
 old.chars.wanko.name = "<b>ポチ</b>"; old.chars.gachan.name = "<>";
 const mig = R.Save.migrate(old);
-ok(mig.events && Object.keys(mig.events.records).length === 0 && mig.coins === fresh.coins, "旧セーブに季節の記録を補えない/コインが変化した");
+ok(mig.events && Object.keys(mig.events.records).length === 0 && mig.coins === 987654, "旧セーブに季節の記録を補えない/コインが変化した");
+ok(mig.parents.papa.accessory==="glasses"&&mig.parents.mama.hair==="bob"&&mig.stats.coinsEarned===1234567,"親の項目補完で進行データが変わった");
+ok(JSON.stringify(mig.bag)===legacyBag&&JSON.stringify(mig.wardrobe)===legacyWardrobe&&JSON.stringify(mig.furn)===legacyFurn,"移行で所持品が変わった");
 ok(mig.settings.difficulty === "normal" && mig.shops.link.lv === 1 && mig.shops.relay.lv === 1, "旧セーブに新作店と難易度を補えない");
 ok(mig.rooms.active === "main" && !mig.chars.goji.wantsDeza && JSON.stringify(mig.room) === oldRoom, "旧セーブの部屋・家具を保持して生活項目を補う");
 R.Save.d = mig;
@@ -234,6 +239,8 @@ const atlasRoads=new Set(R.AtlasArt.roads.map(([a,b])=>atlasPair(a,b)));
 for(const [a,b] of R.AtlasArt.roads) ok(R.MAP_DEFS[a]?.warps.some(w=>w.to===b)&&R.MAP_DEFS[b]?.warps.some(w=>w.to===a),`地図の道 ${a}↔${b} を歩けない`);
 for(const [id,d] of Object.entries(R.MAP_DEFS)) for(const w of d.warps||[]) ok(atlasRoads.has(atlasPair(id,w.to)),`全体地図に道 ${id}↔${w.to} がない`);
 const DIRS = ["down", "up", "left", "right"];
+for(const id of ["papa","mama"])for(const [outfit] of R.ParentCare.options.outfit)for(const [face] of R.ParentCare.options.face)for(const pose of ["idle","walk1","walk2","care","wave"])
+  svgOk(R.ParentCare.svg(id,{...fresh.parents[id],outfit,face},pose),`親 ${id} ${outfit} ${face} ${pose}`);
 const POSES = ["idle_01", "idle_02", "walk_01", "walk_02", "jump_01", "land_01"];
 for (const id of R.Chara.IDS) {
   const faces = new Set([...Object.keys(R.CHARA_DATA[id].faces), ...Object.keys(R.EMO)]);

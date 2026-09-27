@@ -538,6 +538,12 @@ migrate(d) {
 戦闘の下部メニューは高さを制限し、ResizeObserver で測った上端より上にHPカードを置く。技・道具一覧は枠内スクロール。PokaDebug.battleLayout() はカード下端とメニュー上端を CSS px で返す。
 
 ## ver2: おうちの生活
+`parent-care.js` を home-life.js の直前に読む。Save.fresh().parents に親ごとの outfit / color / face / hair / accessory / skin、自動お世話フラグauto、3人ごとのlastCareを追加。KEY/SCHEMA/coins/既存所持品は変えずmigrateで不足項目だけ補う。着せ替えは無料で都度保存。
+
+ParentCareはシーン内の親の位置とidle/walk/care・お世話順を持つ。親は13〜18秒ごとに順番に3人へ近づき、おなか70未満なら所持している普段のごはんを1個、なければなでなで。限定品・デザ・とっくん品・辛い食事を選ばずコインは使わない。3人をまとめてお世話する操作も可能。キャラごとに30秒の効果間隔を保存し、再起動による連続効果を防ぐ。メニュー中・他のお世話中・非表示タブでは進めない。外見とポーズの有限な組み合わせでSVGをキャッシュする。
+
+HomeLife.bubbleLayoutは話者の頭の位置に合わせ、文字を折り返し、3つまでの吹き出しの重なりを避けて配置。しっぽは話者の方向へ最大26px。ごはん・なでる・ひとりごと・遊びの発言を統一。PokaDebug.family()は外見・親の行動・食事数・吹き出し矩形の読み取り、needs(hunger,mood)はお世話検証の準備用。スマホ2サイズで自動お世話、3人分の食事消費、無料の外見変更、吹き出し、再開時のコイン987654維持を確認する。
+
 HomeLife はシーン内の会話・けんか・家具アニメーションを管理。HomeRooms は room を現在の部屋として保持し、rooms.stored に非表示の部屋を保存する（同じ家具は全室の配置数で管理）。Save.KEY と schema 1 を維持し、wantsDeza と rooms は migrate の補完で追加。home-catalog.js は art.js の後に読み、服22点・家具12点・壁紙4点・床3点・食べ物6点を追加。PokaDebug.homeLife(event)、feed(id,item)、wins(n)、homePoint(x,y) を生活テストに使用。
 
 ## ver2: 全体マップと新エリア
