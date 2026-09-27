@@ -87,6 +87,8 @@ const Sound = {
     if (!this.ctx || !Save.d || !Save.d.settings.se) return;
     const d = this.seGain, T = (o) => this.tone(d, o), N = (o) => this.noise(d, o);
     switch (name) {
+      case "gau": T({ f: 130, f2: 85, dur: 0.5, type: "triangle", vol: 0.23, vib: 18 }); break;
+      case "tummy": T({ f: 95, f2: 48, dur: 0.9, type: "sine", vol: 0.26, vib: 14 }); break;
       case "tap": T({ f: 880, dur: 0.035, type: "pulse", vol: 0.12 }); break;
       case "ok": T({ f: 660, dur: 0.05, type: "pulse", vol: 0.14 }); T({ f: 990, t: 0.05, dur: 0.07, type: "pulse", vol: 0.14 }); break;
       case "cancel": T({ f: 520, dur: 0.05, type: "pulse", vol: 0.12 }); T({ f: 390, t: 0.05, dur: 0.08, type: "pulse", vol: 0.12 }); break;
@@ -120,7 +122,7 @@ const Sound = {
       case "swish": N({ dur: 0.12, vol: 0.15, freq: 2500, f2: 1200, q: 2 }); break;
     }
   },
-  voice(id) { this.se(id === "wanko" ? "wan" : id === "gachan" ? "piyo" : "gao"); },
+  voice(id) { this.se(id === "wanko" ? "wan" : id === "gachan" ? "piyo" : Math.random() < 0.5 ? "gao" : "gau"); },
 
   // ---- BGM ----
   bgm(name) {

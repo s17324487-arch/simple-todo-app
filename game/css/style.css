@@ -193,7 +193,7 @@ html, body {
 /* ---- おうちのメニュー ---- */
 .house-bar {
   position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 8px calc(10px + var(--safe-b));
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px;
   background: linear-gradient(transparent, rgba(255, 247, 230, 0.0));
 }
 .house-bar .btn { padding: 6px 2px; font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 1px; border-radius: 16px; }
@@ -244,6 +244,7 @@ html, body {
 .hint { position: absolute; left: 50%; bottom: calc(18px + var(--safe-b)); transform: translateX(-50%); background: rgba(255, 253, 246, 0.92); border: 2.5px solid var(--ink); border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 800; pointer-events: none !important; white-space: nowrap; animation: fadeIn 0.4s; }
 .house-bar .btn svg { display: block; }
 .house-bar .btn span { line-height: 1.1; }
+.watch-exit { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); white-space: nowrap; min-height: 44px; }
 .text-input { width: 100%; margin-top: 10px; font: inherit; font-weight: 800; font-size: 18px; color: var(--ink); background: #fff; border: 3px solid var(--ink); border-radius: 12px; padding: 8px 12px; user-select: text; -webkit-user-select: text; }
 .text-input:focus { outline: 3px solid var(--yellow); outline-offset: 1px; }
 .btn:focus-visible, .tab:focus-visible, .card:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }

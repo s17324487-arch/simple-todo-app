@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room })`, ctx);
 
 // ---------- 3. バージョン ----------
 const pkg = JSON.parse(readFileSync(join(GAME, "package.json"), "utf8"));
@@ -132,9 +132,20 @@ ok(R.WALLPAPERS.some((w) => w.id === fresh.room.wall) && R.FLOORS.some((f) => f.
 ok(fresh.v === R.Save.SCHEMA, "Save.fresh().v と Save.SCHEMA がちがう");
 // 古いセーブ（キー欠け）の移行
 const old = JSON.parse(JSON.stringify(fresh));
+delete old.rooms;
+for (const c of Object.values(old.chars)) delete c.wantsDeza;
+const oldRoom = JSON.stringify(old.room);
 delete old.shops.florist; delete old.flags; delete old.gameVersion; old.v = undefined;
 old.chars.wanko.name = "<b>ポチ</b>"; old.chars.gachan.name = "<>";
 const mig = R.Save.migrate(old);
+ok(mig.rooms.active === "main" && !mig.chars.goji.wantsDeza && JSON.stringify(mig.room) === oldRoom, "旧セーブの部屋・家具を保持して生活項目を補う");
+R.Save.d = mig;
+const countBefore = R.Room.available("bed_simple");
+mig.rooms.owned.study = true;
+R.HomeRooms.switchTo("study");
+ok(R.Room.available("bed_simple") === countBefore && mig.room.items.length === 0, "別室にある家具が複製できてしまう");
+R.HomeRooms.switchTo("main");
+ok(JSON.stringify(mig.room) === oldRoom, "元の部屋の配置が変わった");
 ok(mig.shops.florist && mig.flags && mig.v === R.Save.SCHEMA, "Save.migrate() で足りないキーが補われない");
 ok(mig.chars.wanko.name === "bポチ/b" && mig.chars.gachan.name === fresh.chars.gachan.name, `Save.migrate() が名前の HTML 記号を取りのぞかない (${mig.chars.wanko.name} / ${mig.chars.gachan.name})`);
 

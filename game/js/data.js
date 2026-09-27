@@ -77,7 +77,7 @@ const CHARA_STATS = {
 const CHARA_INFO = {
   wanko: { role: "バランスタイプ", like: ["bone", "meat"], dislike: ["pepper"], desc: "げんきいっぱいの わんこ。みんなを ひっぱる リーダー。" },
   gachan: { role: "サポートタイプ", like: ["bread", "corn"], dislike: ["curry"], desc: "すばしっこい ひよこ。キズを なおすのが とくい。" },
-  goji: { role: "パワータイプ", like: ["fish", "curry"], dislike: ["candy"], desc: "おおきくて やさしい かいじゅう。ガオーッと ほえる。" },
+  goji: { role: "パワータイプ", like: ["fish", "pudding"], dislike: ["curry"], desc: "おおきくて やさしい かいじゅう。ガォー、ガゥーと おしゃべり。からいのは にがて。" },
 };
 
 // ---- とくぎ ----
@@ -120,7 +120,7 @@ const FOODS = [
   { id: "bone", name: "ほねっこクッキー", price: 35, hunger: 14, mood: 12, hp: 12, desc: "わんこの だいこうぶつ" },
   { id: "fish", name: "やきざかな", price: 45, hunger: 32, mood: 6, hp: 35, desc: "ごじの だいこうぶつ" },
   { id: "meat", name: "ほねつきにく", price: 60, hunger: 42, mood: 8, hp: 45, desc: "ボリューム まんてん" },
-  { id: "curry", name: "カレーライス", price: 80, hunger: 55, mood: 8, hp: 60, desc: "スパイシーで おなかいっぱい" },
+  { id: "curry", name: "カレーライス", price: 80, hunger: 55, mood: 8, hp: 60, spicy: true, desc: "からくて 3にんとも にがて" },
   { id: "pepper", name: "ピーマン", price: 12, hunger: 10, mood: -4, hp: 30, desc: "からだに いいけど にがい" },
   { id: "milk", name: "ぎゅうにゅう", price: 20, hunger: 8, mood: 5, sp: 8, desc: "げんき(SP)が すこし もどる" },
   { id: "juice", name: "オレンジジュース", price: 30, hunger: 6, mood: 8, sp: 15, desc: "げんき(SP)が もどる" },

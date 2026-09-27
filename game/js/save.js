@@ -14,7 +14,7 @@ const Save = {
       hunger: 70, mood: 75, bond: 5,
       outfit: { head: null, face: null, neck: null, body: null, back: null },
       boost: { hp: 0, sp: 0, atk: 0, def: 0, spd: 0 },
-      color: "soft", lastPet: 0,
+      color: "soft", lastPet: 0, wantsDeza: false,
     });
     return {
       v: 1,
@@ -39,6 +39,7 @@ const Save = {
         wallpapers: { wp_cream: true }, floors: { fl_wood: true },
         nextUid: 6,
       },
+      rooms: { active: "main", owned: { main: true }, stored: {} },
       shops: {
         crepe: { lv: 1, rep: 0, best: 0, plays: 0 },
         dentist: { lv: 1, rep: 0, best: 0, plays: 0 },
@@ -223,7 +224,7 @@ const Care = {
     if (!it || (!free && !Save.d.bag[itemId])) return null;
     if (!free) Save.addBag(itemId, -1);
     const info = CHARA_INFO[id];
-    const like = info.like.includes(itemId), dislike = info.dislike.includes(itemId);
+    const dislike = !!it.spicy || info.dislike.includes(itemId), like = !dislike && info.like.includes(itemId);
     const msgs = [];
     if (it.kind === "food") {
       let mood = it.mood || 0;
@@ -237,6 +238,9 @@ const Care = {
       else if (like) msgs.push("だいこうぶつ！ とっても うれしそう！");
       else if (dislike) msgs.push("にがてな あじ……ちょっと ふきげん。");
       else msgs.push("おいしそうに たべた！");
+      if (it.deza) { c.wantsDeza = false; msgs.push("デザは べつばら♪"); }
+      else if ((it.hunger || 0) >= 20 && !it.boost) { c.wantsDeza = true; msgs.push(id === "goji" ? "ガゥー！ デザ ほしいな" : "つぎは デザ ほしいな♪"); }
+      if (it.spicy) msgs[0] = "からいのは にがて……おみず ほしい！";
     }
     if (it.hp) {
       const mx = Stats.max(id, "hp");
