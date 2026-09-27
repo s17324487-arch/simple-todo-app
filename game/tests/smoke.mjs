@@ -690,7 +690,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
     await H.page.getByRole("button",{name:"1がつ　おしょうがつ",exact:true}).click();
     if(month!==1)expect(await H.page.getByRole("button",{name:"この おまつりに さんか",exact:true}).count()===0,"期間外でも参加できる");
     if(month===10){await H.page.locator(".annual-months").scrollIntoViewIfNeeded();await H.wait(2400);await H.shot("year-calendar");}
-    await H.page.getByRole("button",{name:"とじる",exact:true}).click();await H.idle();
+    // 切替前のモーダルは閉じる演出の180msだけDOMに残る。操作中の画面を選ぶ。
+    await H.page.locator(".modal-wrap:not(.out)").getByRole("button",{name:"とじる",exact:true}).click();await H.idle();
     expect((await H.dbg("state")).coins===money,"おまつりでおかねが変わった");
   }
   await H.dbg("save");await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
