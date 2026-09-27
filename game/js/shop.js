@@ -16,7 +16,7 @@ const BUY_SHOPS = {
     name: "スーパー", keeper: { sp: "pig", outfit: { body: "apron", head: "partyhat" } }, keeperName: "てんいんの ブーコ",
     hello: ["いらっしゃいませ〜 ブー！", "しんせんな たべもの そろってるよ！"],
     tabs: [["food", "たべもの"], ["tool", "どうぐ"], ["boost", "とくべつ"]],
-    items: (tab) => tab === "food" ? FOODS.filter((f) => !f.boost) : tab === "tool" ? TOOLS : FOODS.filter((f) => f.boost),
+    items: (tab) => tab === "food" ? FOODS.filter((f) => !f.boost && !f.rare) : tab === "tool" ? TOOLS : FOODS.filter((f) => f.boost),
   },
 };
 

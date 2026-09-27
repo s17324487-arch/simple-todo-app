@@ -2,6 +2,12 @@
 
 ## エリアの作り込み・交通（ver2）
 
+季節イベント：`seasonal-catalog.js` は home-catalog.js の直後、`seasonal.js` は transit.js の直後に読む。端末の現地日付で春（3〜5月）、夏（6〜8月）、秋（9〜11月）、冬（12〜2月）を決める。1〜2月は前年12月と同じ冬のIDにする。
+
+`Save.fresh().events.records` を追加。キーは `2026-autumn` など、値は `{stamps:{オブジェクトID:true},claimed:false}`。既存フィールドは変更しないのでSCHEMA 1のまま自動補完する。WorldScenery.activate から、今の季節の対象オブジェクトに限りスタンプを確定・保存。3つそろったら当年その季節に1回だけ衣装1点・家具1点・デザ3個を受領できる。claim は画面を開いた時のキーと現在キーを比較し、確定を保存してから演出。季節変更で記録や取得品を削除しない。限定品は rare とし通常販売しない。翌年は新しいスタンプ記録で再参加できる。
+
+WorldScene が季節ボタンを mount / exit で着脱、1秒ごとに表示を更新。春夏秋冬の軽い粒子と対象地の飾りはcanvas描画。PokaDebug.calendar('YYYY-MM-DD') で日付を固定し、nullで戻す（保存しない）。festival() はイベント・対象地点・スタンプ・取得品所持数の読み取り。静的検査で季節境界と受領の重複防止、ブラウザで4季節の実際のタップ・受領・再開・年越しを確かめる。
+
 `world-scenery.js` → `town-design.js` → `transit.js` を arcade.js のあと、debug.js の前に読む。WorldScenery は景観のSVGとcanvasアニメーション、town-design は既存6エリアの拡張と heiwadai / harbor / airport、Transit は8か所の乗り場を管理する。参考画像の平和台は地形構成のオマージュで、縮尺や実店舗の再現ではない。
 
 - マップの `v` は道路、`z` は横断歩道。objects の `solid:true` は全体に衝突判定。`id` と `text` があるものはタップ・決定キーで反応し、WorldScene.goObject が到達できる外周まで案内する。既存の泉の回復処理は維持。

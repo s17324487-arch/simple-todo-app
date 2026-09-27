@@ -74,14 +74,15 @@ class WorldScene {
     await this.preload();
     Sound.bgm(this.map.bgm);
     UI.showHud(true, this.map.name);
+    Seasonal.mount(this);
     this.saveWorld();
     if (p.after) setTimeout(() => p.after(this), 350);
     // はじめて来た場所の ヒント
     const f = Save.d.flags;
     const hint = { town: "「！」マークの ひとに はなしかけてみよう", meadow: "まものに ふれると バトル！ HPが へったら おうちで ねよう", forest: "もりの おくに いやしの いずみが あるよ", cave: "どうくつの おくに キングプルンが いる……" }[this.mapId];
-    if (hint && !f["visit_" + this.mapId]) { f["visit_" + this.mapId] = true; setTimeout(() => UI.toast(hint, "good"), 700); }
+    if (hint && !f["visit_" + this.mapId]) { f["visit_" + this.mapId] = true; setTimeout(() => { if(G.scene===this&&!UI.busy)UI.toast(hint, "good"); }, 700); }
   }
-  exit() { UI.showHud(false); }
+  exit() { this.festivalButton?.remove(); UI.showHud(false); }
   saveWorld() {
     const L = this.party[0];
     Save.d.world = { map: this.mapId, x: L.tx, y: L.ty, dir: L.dir };
@@ -328,6 +329,7 @@ class WorldScene {
     this.cam.y += (f.y - 10 - this.cam.y) * k;
     this.clampCam();
     UI.updateHud();
+    Seasonal.refresh(this);
   }
   decideStep(carry) {
     const L = this.party[0];
@@ -657,6 +659,7 @@ class WorldScene {
       ctx.restore();
     }
     this.renderFx(ctx, ox, oy);
+    Seasonal.draw(ctx, this, ox, oy);
     this.renderLight(ctx, ox, oy);
     this.renderJoy(ctx);
     if (this.hintT > 0 && !this.joy && !UI.busy) {

@@ -52,6 +52,19 @@ const PokaDebug = {
       active:sc.objectActive?.until>G.t?sc.objectActive.id:null};
   },
   travel() { return G.sceneName==="travel"?{...G.scene.trip,elapsed:G.scene.elapsed,party:[...Save.d.order]}:null; },
+  calendar(date) {
+    if(date==null)Seasonal.override=null;
+    else {
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw new Error("use YYYY-MM-DD");
+      const [y,m,d]=date.split("-").map(Number),value=new Date(y,m-1,d,12);
+      if(value.getFullYear()!==y||value.getMonth()!==m-1||value.getDate()!==d)throw new Error("invalid calendar date");
+      Seasonal.override=value;
+    }
+    if(G.sceneName==="world")Seasonal.refresh(G.scene,true);return Seasonal.state();
+  },
+  festival() {
+    const s=Seasonal.state();return {...s,inventory:{wear:!!Save.d.wardrobe[s.items.wear],furn:Save.d.furn[s.items.furn]||0,food:Save.d.bag[s.items.food]||0}};
+  },
   homeLife(event) {
     if (G.sceneName !== "house") return null;
     if (event) HomeLife.event(G.scene, event);

@@ -256,3 +256,8 @@ html, body {
 @media (prefers-reduced-motion: reduce) { .dialog, .toast, .panel, .modal-wrap { animation: none !important; } }
 .travel-controls { position:absolute; left:16px; right:16px; bottom:max(24px,env(safe-area-inset-bottom)); display:flex; justify-content:center; gap:12px; pointer-events:auto; }
 .travel-controls .btn { min-height:48px; min-width:120px; }
+.world-festival { position:absolute; left:10px; bottom:calc(62px + var(--safe-b)); min-height:44px; font-size:13px; padding:6px 13px; }
+.festival-target { border:2px solid #D8CBB7; border-radius:12px; padding:12px; margin:8px 0; white-space:pre-line; font-size:14px; }
+.festival-rewards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:16px 0; }
+.festival-reward { background:#FFF6E3; border-radius:12px; padding:8px 4px; text-align:center; font-size:12px; overflow-wrap:anywhere; }
+.festival-reward .ico { margin:auto; }

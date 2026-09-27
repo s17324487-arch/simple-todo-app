@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit, Seasonal, SEASON_ITEMS })`, ctx);
 
 // ---------- 3. バージョン ----------
 const pkg = JSON.parse(readFileSync(join(GAME, "package.json"), "utf8"));
@@ -133,12 +133,14 @@ ok(fresh.v === R.Save.SCHEMA, "Save.fresh().v と Save.SCHEMA がちがう");
 // 古いセーブ（キー欠け）の移行
 const old = JSON.parse(JSON.stringify(fresh));
 delete old.rooms;
+delete old.events;
 delete old.shops.link; delete old.shops.relay; delete old.settings.difficulty;
 for (const c of Object.values(old.chars)) delete c.wantsDeza;
 const oldRoom = JSON.stringify(old.room);
 delete old.shops.florist; delete old.flags; delete old.gameVersion; old.v = undefined;
 old.chars.wanko.name = "<b>ポチ</b>"; old.chars.gachan.name = "<>";
 const mig = R.Save.migrate(old);
+ok(mig.events && Object.keys(mig.events.records).length === 0 && mig.coins === fresh.coins, "旧セーブに季節の記録を補えない/コインが変化した");
 ok(mig.settings.difficulty === "normal" && mig.shops.link.lv === 1 && mig.shops.relay.lv === 1, "旧セーブに新作店と難易度を補えない");
 ok(mig.rooms.active === "main" && !mig.chars.goji.wantsDeza && JSON.stringify(mig.room) === oldRoom, "旧セーブの部屋・家具を保持して生活項目を補う");
 R.Save.d = mig;
@@ -243,6 +245,30 @@ for (const [id,d] of Object.entries(R.MAP_DEFS)) {
 }
 
 // ---------- 8. 遊びのロジック ----------
+// 季節境界・冬の年またぎ・記念品の二重受け取りと古いメニューの期限切れ。
+R.Save.reset();
+for(const [year,month,day,want] of [[2026,2,28,"2025-winter"],[2026,3,1,"2026-spring"],[2026,5,31,"2026-spring"],[2026,6,1,"2026-summer"],[2026,8,31,"2026-summer"],[2026,9,1,"2026-autumn"],[2026,11,30,"2026-autumn"],[2026,12,1,"2026-winter"],[2027,1,1,"2026-winter"],[2027,2,28,"2026-winter"],[2027,3,1,"2027-spring"]]) {
+  ok(R.Seasonal.current(new Date(year,month-1,day,12)).key===want,`季節境界 ${year}-${month}-${day} が不正`);
+}
+for(const [i,id] of ["spring","summer","autumn","winter"].entries()){
+  R.Seasonal.override=new Date(2026,2+i*3,1,12);
+  const e=R.Seasonal.current(),items=R.SEASON_ITEMS[id];
+  ok(!R.Seasonal.claim(e.key),`${id}: スタンプなしで受け取れる`);
+  for(const [map,objectId] of e.targets) {
+    const o=R.MAP_DEFS[map].objects.find(o=>o.id===objectId);
+    ok(!!o?.text,`${id}: スタンプのしかけ ${objectId} がない`);
+    if(o){R.Seasonal.collect(map,o);R.Seasonal.collect(map,o);}
+  }
+  ok(R.Seasonal.state().count===3,`${id}: スタンプの数が不正`);
+  ok(R.Seasonal.claim(e.key)&&!R.Seasonal.claim(e.key),`${id}: 受け取りが一度に制限されない`);
+  const reloaded=R.Save.migrate(JSON.parse(JSON.stringify(R.Save.d)));R.Save.d=reloaded;
+  ok(!R.Seasonal.claim(e.key)&&R.Save.d.furn[items.furn]===1&&R.Save.d.bag[items.food]===3&&R.Save.d.wardrobe[items.wear],`${id}: 再起動で記念品が増える/消える`);
+  ok(!R.BUY_SHOPS.market.items("food").some(it=>it.id===items.food)&&!R.BUY_SHOPS.furniture.items("floor").some(it=>it.id===items.furn),`${id}: 限定品が通常店舗で無料入手できる`);
+}
+R.Seasonal.override=new Date(2027,2,1,12);
+ok(R.Seasonal.state().count===0&&!R.Seasonal.claim("2026-winter"),"季節変更後も古い画面から受け取れてしまう");
+ok(Object.values(R.SEASON_ITEMS).every(it=>R.Save.d.wardrobe[it.wear]&&R.Save.d.furn[it.furn]===1),"季節をまたぐと限定品が消える");
+R.Seasonal.override=null;
 try {
   R.Save.reset();
   for (const id of R.Chara.IDS) for (const f of R.FOODS) { R.Save.addBag(f.id, 1); R.Care.feed(id, f.id); }
