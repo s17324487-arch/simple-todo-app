@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy })`, ctx);
 
 // ---------- 3. バージョン ----------
 const pkg = JSON.parse(readFileSync(join(GAME, "package.json"), "utf8"));
@@ -133,11 +133,13 @@ ok(fresh.v === R.Save.SCHEMA, "Save.fresh().v と Save.SCHEMA がちがう");
 // 古いセーブ（キー欠け）の移行
 const old = JSON.parse(JSON.stringify(fresh));
 delete old.rooms;
+delete old.shops.link; delete old.shops.relay; delete old.settings.difficulty;
 for (const c of Object.values(old.chars)) delete c.wantsDeza;
 const oldRoom = JSON.stringify(old.room);
 delete old.shops.florist; delete old.flags; delete old.gameVersion; old.v = undefined;
 old.chars.wanko.name = "<b>ポチ</b>"; old.chars.gachan.name = "<>";
 const mig = R.Save.migrate(old);
+ok(mig.settings.difficulty === "normal" && mig.shops.link.lv === 1 && mig.shops.relay.lv === 1, "旧セーブに新作店と難易度を補えない");
 ok(mig.rooms.active === "main" && !mig.chars.goji.wantsDeza && JSON.stringify(mig.room) === oldRoom, "旧セーブの部屋・家具を保持して生活項目を補う");
 R.Save.d = mig;
 const countBefore = R.Room.available("bed_simple");
@@ -248,11 +250,45 @@ for (const [shop, Task] of Object.entries(R.MG_TASKS)) for (let lv = 1; lv <= 5;
     if (shop === "florist") { t.picked = Object.entries(t.want).flatMap(([k, n]) => Array(n).fill(k)); t.chosen = t.ribbon; perfect = t.score(); }
     if (shop === "bakery") { t.pen = 0; perfect = t.score(); }
     if (shop === "dentist") { t.killed = t.nGerm; t.dirt.forEach((d) => (d.hp = 0)); t.cav.forEach((c) => (c.fixed = true)); perfect = t.score(); }
+    if (shop === "link") {
+      for (let n = 0; n < 40 && t.collected < t.target; n++) {
+        const chain = t.legalMove(); ok(!!chain, "つなげる場所がなくなる");
+        t.down({ ...t.point(chain[0]), id: 1 });
+        chain.slice(1).forEach(i => t.move({ ...t.point(i), id: 1 }));
+        t.up({ ...t.point(chain[2]), id: 1 });
+        t.tick(.5);
+      }
+      perfect = t.score();
+      const before = t.collected, chain = t.legalMove();
+      t.down({ ...t.point(chain[0]), id: 1 }); chain.slice(1).forEach(i => t.move({ ...t.point(i), id: 1 })); t.up({ id: 1 }, true);
+      ok(t.collected === before && t.chain.length === 0, "ドラッグ中断が得点になる");
+      t.penalty = 3;
+      ok(t.score() === 97, "目標を多く超えるとシャッフル減点が消えてしまう");
+    }
+    if (shop === "relay") {
+      for (let n = 0; n < t.target; n++) {
+        t.role = n % 3; t.lane = n % 3;
+        t.items = [{ lane: t.lane, role: t.role, y: t.trackBottom - .01, rock: false }]; t.tick(.02);
+      }
+      perfect = t.score();
+      t.items = [{ lane: t.lane, y: t.trackBottom - .01, rock: true }]; t.key("ok"); t.tick(.02);
+      ok(t.misses === 0, "まもるで岩を防げない");
+      t.invincible = 0; t.items = [{ lane: t.lane, y: t.trackBottom - .01, rock: true }]; t.tick(.02);
+      ok(t.misses === 1 && t.score() < 100, "岩に当たっても減点されない");
+    }
     ok(perfect === 100, `ミニゲーム ${shop} Lv${lv}: 正しい操作で 100点に ならない（${perfect}）`);
     const t2 = new Task(fakeScene(), lv); t2.layout(RECT);
     ok(t2.timeout() < 45, `ミニゲーム ${shop} Lv${lv}: 何もしないで 時間切れでも 点が高すぎる（${t2.timeout()}）`);
   } catch (e) { err(`ミニゲーム ${shop} Lv${lv} で例外: ${e.message}`); }
 }
+// 報酬: 放置に報酬を出さず、難易度・店のレベル・評価に応じて増える。
+for (const shop of Object.keys(R.SHOPS)) for (let lv = 1; lv <= 5; lv++) {
+  const pay = (rank, mode = "normal") => R.GameEconomy.pay(shop, lv, rank, mode);
+  ok(pay(0) === 0 && pay(1) < pay(2) && pay(2) < pay(3), `${shop}: 評価に対する報酬が不正`);
+  ok(pay(3, "easy") < pay(3) && pay(3) < pay(3, "hard"), `${shop}: 難易度で報酬が増えない`);
+}
+ok(R.GameEconomy.pay("link", 1, 3) > R.GameEconomy.pay("crepe", 1, 3) * 2, "高難度パズルの報酬が低い");
+for (const id of [...Object.keys(R.SHOPS), ...Object.keys(R.BUY_SHOPS)]) ok(!!R.SONGS["shop_" + id], `${id}: 専用BGMがない`);
 // BGM の音符
 for (const [name, song] of Object.entries(R.SONGS)) for (const tr of song.tracks) {
   const seq = R.Sound.parse(tr.notes);

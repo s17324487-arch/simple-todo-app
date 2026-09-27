@@ -134,6 +134,8 @@ html, body {
 .tabs::-webkit-scrollbar { display: none; }
 .tab { flex: 0 0 auto; font: inherit; font-weight: 800; font-size: 14px; border: 3px solid var(--ink); background: var(--paper); border-radius: 12px; padding: 6px 12px; box-shadow: 0 3px 0 var(--ink); color: var(--ink); }
 .tab.on { background: var(--yellow); transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.menu-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.menu-tabs .tab { min-width: 0; min-height: 44px; padding: 6px 1px; font-size: 11px; }
 
 /* ---- グリッド・カード ---- */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
@@ -246,6 +248,8 @@ html, body {
 .house-bar .btn span { line-height: 1.1; }
 .watch-exit { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); white-space: nowrap; min-height: 44px; }
 .home-shortcut { position: absolute; right: 8px; top: calc(8px + var(--safe-t)); min-height: 44px; z-index: 15; }
+.atlas-areas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.atlas-areas .btn { min-width: 0; min-height: 44px; font-size: 12px; }
 .text-input { width: 100%; margin-top: 10px; font: inherit; font-weight: 800; font-size: 18px; color: var(--ink); background: #fff; border: 3px solid var(--ink); border-radius: 12px; padding: 8px 12px; user-select: text; -webkit-user-select: text; }
 .text-input:focus { outline: 3px solid var(--yellow); outline-offset: 1px; }
 .btn:focus-visible, .tab:focus-visible, .card:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }

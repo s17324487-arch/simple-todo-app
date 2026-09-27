@@ -276,6 +276,62 @@ for (const shop of ["dentist", "bakery", "florist"]) {
   }, { full: true, timeout: 150000 });
 }
 
+for (const shop of ["link", "relay"]) for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario(`新ミニゲーム ${shop}（${viewport.width}）`, async (H) => {
+  await H.newGameFast();
+  const before = (await H.dbg("state")).coins;
+  await H.dbg("shop", shop, 2);
+  await H.until(() => PokaDebug.state().scene === "shop" && !PokaDebug.state().transitioning);
+  await H.dialogs();
+  await H.until(() => PokaDebug.mg()?.phase === "work");
+  await H.shot("start");
+  for (let round = 0; round < 3; round++) {
+    await H.until(() => PokaDebug.mg()?.phase === "work");
+    let st;
+    for (let n = 0; n < 900; n++) {
+      st = await H.dbg("mg");
+      if (st.phase !== "work") break;
+      if (shop === "link") {
+        const cells = st.order.legal.map(i => st.cells[i]);
+        await H.page.mouse.move(cells[0].cx, cells[0].cy); await H.page.mouse.down();
+        for (const p of cells.slice(1)) await H.page.mouse.move(p.cx, p.cy, { steps: 3 });
+        await H.page.mouse.up();
+      } else {
+        const next = st.order.items.filter(it => it.progress > .48).sort((a,b) => b.progress - a.progress)[0];
+        if (next) {
+          const lane = next.rock ? (next.lane + 1) % 3 : next.lane;
+          if (st.order.lane !== lane) await H.tapLabel(st.order.lane < lane ? "みぎ →" : "← ひだり");
+          if (!next.rock && st.order.role !== next.role) await H.tapLabel("3にん こうたい");
+        }
+        await H.wait(45);
+      }
+    }
+    expect(st.phase !== "work", "ミニゲームが終わらない");
+    await H.until(() => PokaDebug.mg().ranks.length > 0 && PokaDebug.mg().phase !== "judge", 8000);
+  }
+  await H.until(() => PokaDebug.mg()?.phase === "result", 12000);
+  const result = await H.dbg("mg");
+  expect(result.ranks.length === 3 && result.ranks.every(r => r >= 2), `新作の正しい操作で成功しない: ${result.ranks}`);
+  expect((await H.dbg("state")).coins > before, "報酬がない");
+  await H.shot("result");
+  await H.page.getByRole("button", { name: "まちに もどる", exact: true }).click();
+  await H.until(() => PokaDebug.state().scene === "world" && PokaDebug.idle());
+}, { full: true, viewport, timeout: 180000 });
+
+await scenario("難易度の設定と保存", async (H) => {
+  await H.newGameFast();
+  await H.page.getByRole("button", { name: "メニュー", exact: true }).click();
+  await H.page.getByRole("button", { name: "せってい", exact: true }).click();
+  await H.page.getByRole("button", { name: /むずかしい ／ コイン/ }).click();
+  await H.dbg("save"); await H.page.reload();
+  await H.until(() => PokaDebug.state().scene === "title" && PokaDebug.idle());
+  await H.page.locator(".title-ui .btn").first().click();
+  await H.idle(); await H.dbg("shop", "link", 1);
+  await H.until(() => PokaDebug.state().scene === "shop" && !PokaDebug.state().transitioning); await H.dialogs();
+  await H.until(() => PokaDebug.mg()?.phase === "work");
+  const st = await H.dbg("mg");
+  expect(st.difficulty === "hard" && st.timeLimit === 44, "保存した難易度が新ミニゲームに反映されない");
+}, { full: true });
+
 await scenario("おうちの生活・デザ・増築", async (H) => {
   await H.newGameFast();
   for (const id of ["wanko", "gachan", "goji"]) {

@@ -57,7 +57,7 @@ const WorldAtlas = {
     let svg=edges.map(([a,b])=>`<path d="M${nodes[a]} L${nodes[b]}" stroke="#BBA888" stroke-width="8" fill="none"/>`).join("");
     for(const [id,[x,y]] of Object.entries(nodes)) svg+=`<g><rect x="${x-62}" y="${y-24}" width="124" height="48" rx="14" fill="${id===current?"#FFE29C":"#FDF6E8"}" stroke="#544633" stroke-width="2"/><text x="${x}" y="${y-2}" text-anchor="middle" font-size="11" font-family="sans-serif">${MAP_DEFS[id].name}</text><text x="${x}" y="${y+14}" text-anchor="middle" font-size="10">${id===current?"★ いま ここ":AREAS[id]?`Lv.${AREAS[id].table[0][1]}〜` :"おみせ・おさんぽ"}</text></g>`;
     el.append(U.el("div",{html:`<svg viewBox="0 0 300 290" role="img" aria-label="町とエリアのつながり">${svg}</svg>`}));
-    const tabs=U.el("div",{class:"tabs"}), detail=U.el("div"); el.append(tabs,detail);
+    const tabs=U.el("div",{class:"atlas-areas"}), detail=U.el("div"); el.append(tabs,detail);
     const show=id=>{
       const d=MAP_DEFS[id], width=d.rows[0].length; let tiles="";
       d.rows.forEach((row,y)=>[...row].forEach((ch,x)=>{const col=ch==="~"?"#8AC8E2":ch==="#"?"#C89CAA":"TPABRhWF".includes(ch)?"#7FA18A":"=-pbD".includes(ch)?"#EEE4CF":ch==="s"?"#F0D7A0":"#BDD6A1";tiles+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${col}"/>`;}));

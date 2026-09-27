@@ -115,7 +115,7 @@ const PokaDebug = {
     const sc = G.scene, t = sc.task;
     const cv = G.canvas.getBoundingClientRect();
     const css = (x, y) => ({ cx: Math.round(cv.left + x * G.cssPerUnit), cy: Math.round(cv.top + y * G.cssPerUnit) });
-    const out = { shop: sc.shopId, lv: sc.lv, phase: sc.phase, n: sc.n, total: sc.total, ranks: [...sc.ranks], earn: sc.earn, tips: sc.tips, buttons: [], order: null, targets: [] };
+    const out = { shop: sc.shopId, lv: sc.lv, phase: sc.phase, n: sc.n, total: sc.total, ranks: [...sc.ranks], earn: sc.earn, tips: sc.tips, difficulty: sc.difficulty, timeLimit: sc.timeLimit, timeLeft: sc.timeLeft, buttons: [], order: null, targets: [] };
     if (!t) return out;
     out.buttons = t.btns.filter((b) => !b.disabled).map((b) => ({ label: b.label || "", ...css(b.x + b.w / 2, b.y + b.h / 2) }));
     if (sc.shopId === "crepe") out.order = { want: t.want.map((id) => CREPE_TOPS.find((x) => x.id === id).name) };
@@ -130,6 +130,11 @@ const PokaDebug = {
       for (const v of t.cav) if (!v.fixed) { const c = t.toothCenter(v.t); out.targets.push({ kind: "cavity", ...css(c.x, c.y) }); }
       out.order = { remaining: t.remaining() };
     }
+    if (sc.shopId === "link") {
+      out.order = { target: t.target, collected: t.collected, chain: [...t.chain], legal: t.legalMove(), shuffles: t.shuffles, fever: t.fever };
+      out.cells = t.board.map((value, i) => ({ i, value, ...css(t.point(i).x, t.point(i).y) }));
+    }
+    if (sc.shopId === "relay") out.order = { target: t.target, caught: t.caught, misses: t.misses, lane: t.lane, role: t.role, shield: t.shield, items: t.items.map(it => ({ ...it, progress: (it.y - t.trackTop) / (t.trackBottom - t.trackTop) })) };
     return out;
   },
   hour(h) {

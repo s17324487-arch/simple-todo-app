@@ -79,7 +79,8 @@ class ShopScene {
     this.shopId = p.shop; this.back = p.back;
     this.S = SHOPS[p.shop]; this.st = Save.d.shops[p.shop];
     this.lv = this.st.lv;
-    this.total = 3 + Math.min(4, this.lv);
+    this.total = this.S.rounds || 3 + Math.min(4, this.lv);
+    this.difficulty = Save.d.settings.difficulty;
     this.n = 0; this.earn = 0; this.tips = 0; this.rep = 0; this.ranks = [];
     this.phase = "intro";
     this.fxs = []; this.coinsFx = [];
@@ -94,7 +95,7 @@ class ShopScene {
       Game.goto("house");
     }, "home-shortcut small");
     document.getElementById("ui").append(this.homeBtn);
-    Sound.bgm("shop");
+    Sound.bgm("shop_" + this.shopId);
     this.flow().catch((e) => { console.error(e); Game.goto("world", this.back); });
   }
   exit() { this.closed = true; this.homeBtn?.remove(); }
@@ -141,7 +142,7 @@ class ShopScene {
       await this.tween(0.9, (k) => (this.cust.x = U.lerp(-60, this.custX, U.ease.outCubic(k))));
       this.task = new MG_TASKS[this.shopId](this, this.lv);
       this.task.layout(this.R);
-      this.timeLimit = this.task.timeLimit;
+      this.timeLimit = this.task.timeLimit * GameEconomy.mode(this.difficulty).time;
       this.timeLeft = this.timeLimit;
       this.orderT = 0;
       Sound.se("pop");
@@ -169,8 +170,9 @@ class ShopScene {
     ][rank];
     if (this.shopId === "dentist") R.line = ["まだ いたいよ〜……", "ちょっと すっきり", "ピカピカ！ ありがとう！", "ピカピカ〜！ いたくない！"][rank];
     if (this.shopId === "florist") R.line = ["ちゅうもんと ちがう……", "うーん、まあまあかな", "きれい！ ありがとう！", "すてき！ さいこうの はなたば！"][rank];
-    const base = { crepe: 20, dentist: 30, bakery: 25, florist: 25 }[this.shopId] * (1 + 0.28 * (this.lv - 1));
-    let pay = Math.round(base * R.mul);
+    if (["link", "relay"].includes(this.shopId)) R.line = ["つぎは いっしょに がんばろう！", "もうすこし！", "たくさん あつまったね！", "すごい！ だいせいこう！"][rank];
+    const base = GameEconomy.shopBase[this.shopId] * (1 + 0.28 * (this.lv - 1)) * GameEconomy.mode(this.difficulty).reward;
+    let pay = GameEconomy.pay(this.shopId, this.lv, rank, this.difficulty);
     let tip = 0;
     if (rank === 3 && this.timeLeft / this.timeLimit > 0.35) tip += Math.round(base * 0.5);
     let perkMul = 0;
@@ -217,6 +219,7 @@ class ShopScene {
       <div class="r"><span>もらった コイン</span><span><b>+${total}</b></span></div>
       <div class="r"><span>ひょうばん</span><span>+${this.rep}（${st.rep}${next ? " / " + next : ""}）</span></div>`;
     body.append(rows);
+    body.append(U.el("div", { class: "muted", text: `あそびかた: ${GameEconomy.mode(this.difficulty).name}` }));
     if (lvUp) body.append(U.el("div", { class: "note", html: `<b>おみせが レベル${st.lv}に なった！</b><br>おきゃくさんが ふえて、ちゅうもんが むずかしく なるよ。そのぶん コインも たくさん もらえる！` }));
     body.append(U.el("div", { class: "muted", style: "margin-top:8px", text: "はたらいたので おなかが すこし へった。" }));
     await new Promise((res) => {
@@ -229,8 +232,9 @@ class ShopScene {
   // ---- 入力 ----
   down(p) { if (this.phase === "work" && this.task) this.task.down(p); }
   move(p) { if (this.phase === "work" && this.task && this.task.move) this.task.move(p); }
-  up(p) { if (this.phase === "work" && this.task && this.task.up) this.task.up(p); }
-  key() {}
+  up(p, canceled = false) { if (this.phase === "work" && this.task && this.task.up) this.task.up(p, canceled); }
+  cancel(p) { this.up(p, true); }
+  key(k, down) { if (down && this.phase === "work" && this.task?.key) this.task.key(k); }
 
   tween(dur, fn) { return new Promise((res) => (this.tw = { t: 0, dur, fn, res })); }
   update(dt) {
@@ -315,9 +319,9 @@ class ShopScene {
       else if (this.shopId === "dentist") { ctx.fillStyle = "#FFFFFF"; U.rr(ctx, x - 8, y1 - 12, 16, 20, 6); ctx.fill(); ctx.stroke(); ctx.fillStyle = ["#7EC8F0", "#F48FB1", "#8BCB6B", "#FFD54F", "#B388FF"][i]; U.rr(ctx, x - 2, y2 - 22, 4, 26, 2); ctx.fill(); ctx.stroke(); }
     }
     // かんばん
-    ctx.fillStyle = "#FFF7E0"; U.rr(ctx, W * 0.56, 8, W * 0.38, 26, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#FFF7E0"; U.rr(ctx, 10, 8, W - 115, 26, 8); ctx.fill(); ctx.stroke();
     ctx.fillStyle = INK; ctx.font = "900 13px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(`${this.S.name} Lv.${this.lv}`, W * 0.75, 21.5);
+    ctx.fillText(`${this.S.name} Lv.${this.lv}`, 10 + (W - 115) / 2, 21.5, W - 130);
     // おきゃくさん（カウンターの向こう）
     if (this.cust) {
       const c = this.npcC({ sp: this.cust.sp, col: this.cust.col, outfit: this.cust.outfit, emo: this.cust.emo, dir: this.phase === "enter" || this.phase === "leave" ? "right" : "down", pose: (this.phase === "enter" || this.phase === "leave") && Math.floor(G.t * 8) % 2 ? "walk_01" : "idle_01" }, 112);
