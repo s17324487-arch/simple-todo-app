@@ -20,6 +20,24 @@ npm run design:features -- --only=townsfolk
 | `folk-ui.css` | ② ノート・交換カード・ボタンの CSS |
 | `build-townsfolk.mjs` | ② を ゲームの データと 照らして 検査し、20 の おねがいを 動かして たしかめ、`townsfolk-data.js`・JSON・一覧に する |
 | `townsfolk-mock.mjs` | ② ゲームを 動かして 画面の 見本を 撮る・文が 会話まどに おさまるか はかる |
+| `fish-data.mjs` | ③ 魚 50種（場所・季節・時間・天気・大きさ・説明・まめちしき・絵の 形）・釣り場・釣りざお |
+| `fish-art-ref.js` | ③ 魚の 絵（`FishArtRef`。classic script。`js/fish-art.js` に 移植する） |
+| `fishing-ref.js` | ③ 釣りの しくみと 画面（`FishingRef`） |
+| `fishing-ui.css` | ③ 釣りの 画面・つれた カード・ずかんの CSS |
+| `build-fishing.mjs` | ③ を 検査し（場所×季節×時間で 2しゅ いじょう・マップの 水べ）、`fishing-data.js`・JSON・`FISH_LIST.md` に する |
+| `fishing-mock.mjs` | ③ ゲームの 上に 重ねて 画面の 見本・魚の 一覧を 撮る |
+| `fossil-data.mjs` | ④ 恐竜 10種（骨格の 形・部品・時代・説明）・化石の 出る 場所・ピッケル |
+| `fossil-art-ref.js` | ④ 骨と 骨格の 絵（`FossilArtRef`） |
+| `fossils-ref.js` | ④ ほる しくみと 画面（`FossilRef`） |
+| `fossil-ui.css` | ④ ほる 画面・みつけた カード・ノートの CSS |
+| `build-fossils.mjs` | ④ を 検査し（せぼねの 番号・部品・場所）、`fossil-data.js`・JSON・`FOSSIL_LIST.md` に する |
+| `fossils-mock.mjs` | ④ 画面の 見本・骨格と 骨の 一覧を 撮る |
+| `museum-data.mjs` | ⑤ 2つの 館の へや・展示・人・案内・説明・ことば・BGM・町に たてる 場所 |
+| `museum-art-ref.js` | ⑤ 展示（水そう・骨格の 台・かざり）・建物の 外がわ・かんばんの 絵（`MuseumArtRef`） |
+| `museum-render.mjs` | ⑤ 館の 中を 描く 見本（床・かべ・y順） |
+| `museum-ui.css` | ⑤ 寄贈の 画面・かんせい・展示の 説明の CSS |
+| `build-museum.mjs` | ⑤ を 検査し（魚と 恐竜が 1回ずつ・どこにも 行ける・マスの 文字・町の 場所を ゲームの 地図で）、`museum-data.js`・JSON・`MUSEUM_LIST.md` に する |
+| `museum-mock.mjs` | ⑤ 全体図・スマホの 画面・寄贈の 画面・町に たてた ところを 撮る |
 | `build.mjs` | 上を まとめて 動かす（`npm run design:features`） |
 
 文を 直すときは 元データ（`*-lines.mjs` / `*-data.mjs`）を 直して 作りなおす。`docs/design/features/**/**-data.js` を 手で 直さない。
