@@ -802,6 +802,12 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.shot("autumn-wind");expect(await H.dbg("fps",1800)>=20,"葉の描画でFPSが低下");
   await H.dbg("teleport","cave",4,4);await H.idle();expect((await H.dbg("drift")).seasonal.length===0&&(await H.dbg("drift")).wind.length===0,"洞窟で葉が表示される");
   expect((await H.dbg("state")).coins===money,"演出でおかねが変わった");
+  if(viewport.width===390){
+    const preview=await H.page.context().newPage(),errors=[];preview.on("pageerror",e=>errors.push(e.message));
+    await preview.goto(url+"tools/preview.html");
+    await preview.getByRole("heading",{name:"風と落ち葉",exact:true}).waitFor();
+    expect(!errors.length,"素材プレビューでエラー: "+errors.join(";"));await preview.close();
+  }
 },{viewport,full:viewport.width===375,timeout:90000});
 
 await browser.close();
