@@ -53,6 +53,7 @@ const ShopUI = {
     });
   },
   kindOf(shopId, tab) {
+    if (BUY_SHOPS[shopId].kind) return BUY_SHOPS[shopId].kind;
     if (shopId === "clothes") return "wear";
     if (shopId === "market") return "bag";
     return tab === "wp" ? "wall" : tab === "fl" ? "floor" : "furn";
@@ -127,8 +128,10 @@ const ShopUI = {
     foot.append(U.el("div", { class: "spacer" }));
     const owned = single && this.owned(kind, it);
     const buy = UI.btn(owned ? "もってるよ" : "かう", async () => {
+      if (buy.disabled) return;
       const cost = it.price * qty;
       if (Save.d.coins < cost) { Sound.se("bad"); UI.toast("コインが たりないよ……"); return; }
+      buy.disabled = true;
       Save.addCoins(-cost);
       Sound.se("buy");
       if (kind === "wear") Save.d.wardrobe[it.id] = true;
@@ -137,6 +140,7 @@ const ShopUI = {
       else if (kind === "furn") Save.d.furn[it.id] = (Save.d.furn[it.id] || 0) + qty;
       else Save.addBag(it.id, qty);
       Save.mark();
+      Save.write();
       m.close();
       onBuy();
       if (kind === "wear") {

@@ -1,5 +1,17 @@
 # ぽかぽかタウン 設計書（ARCHITECTURE）
 
+## 歩いて入るおみせ
+
+`world → store ⇄ shop` の構成。建物の既存の `act.type=buy/work` と `act.shop` は変えず、`WorldScene.enterDoor` が `StoreScene` へ入口外の `back` を渡す。`arcade.js` の後に `store-interiors.js` → `scene-store.js` を読み、全9種類の内装・店員・10×12マスの床と衝突判定を登録する。
+
+- `STORE_INTERIORS` の展示は `[kind,x,y,w,d,label]`。描画は奥から足元順、当たり判定は床面の矩形。床タップと方向キーで3人が一緒に歩く。店員または「てんいんと はなす」でレジ前まで経路探索してから会話する。入店しただけでは商品画面を開かない。
+- `StoreArt` が各業種の壁・床・棚・作業設備のSVGを作る。部屋は店ID、展示は固定種類、店員は店IDでキャッシュする。蒸気と点灯の時間はCanvas描画だけに使う。
+- 商品UIは既存の `ShopUI` を再利用。洋服・家具・スーパーの品揃えと価格は維持し、クレープ・パン・花のお店は既存商品の専門棚を使う。`BUY_SHOPS.kind` がある場合は購入先（bag/furn）を指定する。購入直後に `Save.write()`。
+- おてつだい開始に `returnStore:true` を渡すと、報酬を保存して同じ店内に戻る。従来の `PokaDebug.shop()` など、指定しない入口は町へ戻る契約を維持する。空腹時には開始しない。
+- KEY/SCHEMA/保存項目の形は変えない。店内へ入る際に `world` に入口の外を保存するため、再読み込み後は同じ町の同じお店の外から再開。店内専用座標を町の座標として保存しない。部屋・アイテム・所持金・育成・お店の進行は共通。
+- 開発用API: `PokaDebug.store(id,map='town')`、`storeState()`（店員/出口の画面座標、全床の到達性、展示・パーティ・BGM）、`storeWalkTo(x,y)`。後者も実際に床を歩く。新シーンの操作テストはこのAPI経由。
+- 静的検査で全店舗の内装登録・展示範囲・通路の連結を確認。スモークの `walk-in-stores-390/375` と「店員から購入・保存・おてつだい」で、実際の入口、店員タップ、購入、空腹制限、報酬、退出、支店の再開と保存を検証する。
+
 ## 管理者用の隠しコマンド
 
 `menu.js` の設定画面下部のバージョン表示を7回連続タップ（間隔1.5秒以内・全体6秒以内）すると「かんりしゃ コマンド」が出る。カウンターと解除状態はその設定画面のDOMの寿命だけに保持し、タブ切替・メニューを閉じる・再読み込みで破棄。通常画面へ入口のヒントは追加しない。
@@ -89,12 +101,12 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
         title  ─→ house ⇄ world ⇄ battle
                           │ ↑
                           ↓ │
-                         shop（お店のおてつだいミニゲーム）
+                         store（歩ける店内）⇄ shop（おてつだいミニゲーム）
 ```
 
 - **world** は町（town）と外の世界（meadow → forest → cave）を同じクラスで扱う。マップは `params.map` で切り替える。
 - **house** は おうち（育成・着せ替え・もようがえ）。**battle** は3人パーティのターン制。**shop** は おみせっち風ミニゲーム。
-- 買い物（ようふくや・かぐや・スーパー）はシーンではなく、world の上に出す DOM のモーダル（`ShopUI`）。
+- 買い物は歩ける店内 `store` の店員から開く DOM のモーダル（`ShopUI`）。おてつだいも同じ店員から開始する。
 
 ---
 
@@ -194,7 +206,8 @@ SCENES.xxx = XxxScene;
 | `world` | `{ map, x, y, dir, grace }` — `grace` は着いてから敵に当たらない秒数 |
 | `house` | `{ intro?: true, msg?: "トーストの文" }` |
 | `battle` | `{ foes: [{ kind, lv }], area, boss, back: { map, x, y, dir }, spawnIdx }` |
-| `shop` | `{ shop: "crepe" など, back: { map, x, y, dir } }` |
+| `store` | `{ shop, back: { map, x, y, dir }, atCounter?: true }` |
+| `shop` | `{ shop: "crepe" など, back: { map, x, y, dir }, returnStore?: true }` |
 
 ### 入力
 

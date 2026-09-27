@@ -23,7 +23,7 @@ const Menu = {
     show(tab);
     // フィールドでは「まちに かえる」
     const sc = G.scene;
-    if (sc instanceof WorldScene) {
+    if (sc instanceof WorldScene || G.sceneName === "store") {
       const back = UI.btn("おうちへ", async () => {
         if (await UI.confirm("3にんで おうちに かえる？")) { m.close(); Game.goto("house", {}, "circle"); }
       }, "small");
