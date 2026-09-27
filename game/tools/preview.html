@@ -36,6 +36,7 @@
 <script src="../js/tiles.js"></script>
 <script src="../js/world-art.js"></script>
 <script src="../js/world-scenery.js"></script>
+<script src="../js/town-renewal-art.js"></script>
 <script src="../js/atlas-art.js"></script>
 <script src="../js/parent-care.js"></script>
 <script src="../js/annual-festivals.js"></script>
@@ -81,6 +82,8 @@
     h += "<h2>追加した敵の姿</h2>" + row(Object.keys(ENEMY_ART).filter(id => !Object.values(ENEMIES).some(e => e.art === id)).flatMap(id => ["normal", "hurt", "sleep"].map(emo => cell(Art.enemySvg(id, "#AACBC2", emo), 86, `${id} ${emo}`))));
     h += "<h2>たべもの・どうぐ・かべがみ・ゆか</h2>" + row([...FOODS, ...TOOLS].map((f) => cell(Art.iconSvg("bag", f.id), 44, f.name)).concat(WALLPAPERS.map((w) => cell(Art.iconSvg("wall", w.id), 44, w.name)), FLOORS.map((w) => cell(Art.iconSvg("floor", w.id), 44, w.name))));
     h += "<h2>まちのオブジェクト</h2>" + row(["fountain","windmill","waterwheel","swing","clocktower","signal","lighthouse","railway","flowercart","crane","sailboat","floatplane","telescope","windsock","controltower","parasol","glowstone","minecart"].map(k=>cell(Art.worldSvg(k).full,96,k)));
+    h += "<h2>町ごとの建物</h2>"+row(TownRenewalArt.styles.map(style=>cell(Art.worldSvg("building",{style,w:6,h:4,door:2}).full,176,style)));
+    h += "<h2>街区の小物</h2>"+row(TownRenewalArt.props.map(k=>cell(Art.worldSvg(k).full,72,k)));
     out.innerHTML = h;
   }
   render();

@@ -120,4 +120,7 @@ const Seasonal = {
 
 WorldArt.festivalboard=()=>({w:32,h:52,svg:`<path d="M7,28 V50 M25,28 V50" ${OS(3)}/><rect x="1" y="4" width="30" height="34" rx="5" fill="#FFF2CE" ${OS()}/><path d="${starPath(16,18,10,5)}" fill="#E2AD90" ${OS(1.4)}/><path d="M8,32 H24" ${OS(2)}/>`});
 // 素材プレビューは地図を読み込まず、葉の描画だけを共用する。
-if(typeof MAP_DEFS!=="undefined")for(const [map,x,y] of [["town",8,21],["heiwadai",25,24],["city",14,24]])MAP_DEFS[map].objects.push({id:map+"_festivalboard",kind:"festivalboard",x,y,w:1,h:1,solid:true,festival:true,text:"きせつの おまつり"});
+if(typeof MAP_DEFS!=="undefined")for(const [map,oldX,oldY] of [["town",8,21],["heiwadai",25,24],["city",14,24]]){
+  const [x,y]=MAP_DEFS[map].festivalBoard||[oldX,oldY];
+  MAP_DEFS[map].objects.push({id:map+"_festivalboard",kind:"festivalboard",x,y,w:1,h:1,solid:true,festival:true,text:"きせつの おまつり"});
+}

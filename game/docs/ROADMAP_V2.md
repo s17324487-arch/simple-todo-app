@@ -168,6 +168,10 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 
 ## M7. 町の 質（デザイン見本に 合わせる）
 
+### [x] TOWN-OTHER 4つの町のテーマ・道路・密度の改修
+- オーナーの A〜C のフィードバックに対応。各町に専用の建物2種以上・小物6種以上・目印、建物モデル30%以下、町に合った外周、つながる車道と歩道、店先/道路沿い/広場に分けた小物を用意。
+- 受け入れ条件: `audit:town -- --check town city harbor airport`、スマホ2サイズ、旧IDと987654コイン・所持品・部屋・進行の保持、入口・交通・再保存の検証。設計と画像は [4つの町の街区改修](design/towns/renewal/README.md)。平和台の TOWN-02〜05 とは別PR。
+
 見本と 作業指示: [`design/towns/heiwadai/CODEX_TASK.md`](design/towns/heiwadai/CODEX_TASK.md)（きまりは [`design/TOWN_GUIDE.md`](design/TOWN_GUIDE.md)）。上から 順に 1つずつ PR に する。
 
 ### [x] TOWN-01 道の ベクター描画（中心線＋幅・縁石・隅切り・横断歩道・停止線・矢印）

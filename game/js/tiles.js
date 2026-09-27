@@ -67,7 +67,8 @@ const Tiles = {
         break;
       }
       case "path": case "plaza": case "dirt": case "sand": case "cave": {
-        const col = { path: ["#EFE0B9", "#DCC89A"], plaza: ["#F2D3AE", "#E0B98E"], dirt: ["#DDBB8A", "#C9A372"], sand: ["#F6E7B3", "#E6D196"], cave: ["#A3968A", "#8E8175"] }[type];
+        const themed=map.def.renewal&&{city:["#D8D8CE","#C6C8BD"],harbor:["#D5CEC0","#C1BCB0"],airport:["#DCE0DA","#C5CFCB"]}[map.id];
+        const col = type==="plaza"&&themed?themed:{ path: ["#EFE0B9", "#DCC89A"], plaza: ["#F2D3AE", "#E0B98E"], dirt: ["#DDBB8A", "#C9A372"], sand: ["#F6E7B3", "#E6D196"], cave: ["#A3968A", "#8E8175"] }[type];
         // まわりが違う地面なら 草のふちどり
         const bg = type === "cave" ? "#6E6259" : map.baseGround === "forest" ? SeasonPalette.get().forest : SeasonPalette.get().grass;
         g.fillStyle = bg; g.fillRect(x, y, s, s);
@@ -99,6 +100,7 @@ const Tiles = {
         break;
       }
       case "water": {
+        if(map.def.renewal){g.fillStyle=map.id==="harbor"?"#87BCCA":"#98C5C7";g.fillRect(x,y,s,s);if(H(9)<.3){g.strokeStyle="#B6D9D8";g.lineWidth=u;g.beginPath();g.moveTo(x+8*u,y+19*u);g.quadraticCurveTo(x+13*u,y+16*u,x+19*u,y+19*u);g.stroke();}break;}
         g.fillStyle = "#A6D883";
         if (map.baseGround === "cave") g.fillStyle = "#6E6259";
         g.fillRect(x, y, s, s);
@@ -171,6 +173,7 @@ const Tiles = {
     if(TownRoads.enabled(map.def)) {
       // 毎チャンク同じ世界原点を使う。模様の位相や線の座標をチャンクでリセットしない。
       g.save();g.scale(s/TS,s/TS);g.translate(-cx*N*TS,-cy*N*TS);
+      TownRenewal.drawGround(g,map.def);
       const ready=TownRoads.draw(g,map.def);g.restore();
       if(!ready){const blank=document.createElement("canvas");blank.width=blank.height=s*N;blank.getContext("2d").drawImage(c,-pad,-pad);return blank;}
     }

@@ -1,0 +1,222 @@
+[
+  {
+    "id": "town",
+    "before": {
+      "id": "before-town",
+      "size": "36x32",
+      "buildings": 9,
+      "propsPer100": 4,
+      "propKinds": 8,
+      "emptyPct": 21.6,
+      "maxModelShare": 88.9,
+      "roadIslands": 3,
+      "jaggedCorners": 1,
+      "walk": 607,
+      "props": 24,
+      "phoneMissing": 188
+    },
+    "after": {
+      "id": "town",
+      "size": "48x44",
+      "buildings": 10,
+      "propsPer100": 12,
+      "propKinds": 28,
+      "emptyPct": 6,
+      "maxModelShare": 10,
+      "roadIslands": 1,
+      "jaggedCorners": 0,
+      "walk": 1226,
+      "props": 147,
+      "phoneMissing": 0
+    },
+    "views": [
+      [
+        14,
+        11
+      ],
+      [
+        13,
+        22
+      ],
+      [
+        42,
+        26
+      ]
+    ],
+    "phones": [
+      [
+        390,
+        844
+      ],
+      [
+        375,
+        667
+      ]
+    ]
+  },
+  {
+    "id": "city",
+    "before": {
+      "id": "before-city",
+      "size": "36x32",
+      "buildings": 7,
+      "propsPer100": 2.2,
+      "propKinds": 9,
+      "emptyPct": 18.4,
+      "maxModelShare": 28.6,
+      "roadIslands": 1,
+      "jaggedCorners": 0,
+      "walk": 690,
+      "props": 15,
+      "phoneMissing": 479
+    },
+    "after": {
+      "id": "city",
+      "size": "48x44",
+      "buildings": 11,
+      "propsPer100": 11.7,
+      "propKinds": 29,
+      "emptyPct": 5.8,
+      "maxModelShare": 18.2,
+      "roadIslands": 1,
+      "jaggedCorners": 0,
+      "walk": 1194,
+      "props": 140,
+      "phoneMissing": 0
+    },
+    "views": [
+      [
+        7,
+        13
+      ],
+      [
+        36,
+        24
+      ],
+      [
+        37,
+        39
+      ]
+    ],
+    "phones": [
+      [
+        390,
+        844
+      ],
+      [
+        375,
+        667
+      ]
+    ]
+  },
+  {
+    "id": "harbor",
+    "before": {
+      "id": "before-harbor",
+      "size": "40x34",
+      "buildings": 4,
+      "propsPer100": 0.8,
+      "propKinds": 5,
+      "emptyPct": 60.3,
+      "maxModelShare": 50,
+      "roadIslands": 1,
+      "jaggedCorners": 0,
+      "walk": 622,
+      "props": 5,
+      "phoneMissing": 578
+    },
+    "after": {
+      "id": "harbor",
+      "size": "44x40",
+      "buildings": 8,
+      "propsPer100": 12.4,
+      "propKinds": 25,
+      "emptyPct": 6.9,
+      "maxModelShare": 25,
+      "roadIslands": 1,
+      "jaggedCorners": 0,
+      "walk": 768,
+      "props": 95,
+      "phoneMissing": 0
+    },
+    "views": [
+      [
+        6,
+        11
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        36,
+        33
+      ]
+    ],
+    "phones": [
+      [
+        390,
+        844
+      ],
+      [
+        375,
+        667
+      ]
+    ]
+  },
+  {
+    "id": "airport",
+    "before": {
+      "id": "before-airport",
+      "size": "44x34",
+      "buildings": 2,
+      "propsPer100": 0.7,
+      "propKinds": 8,
+      "emptyPct": 56,
+      "maxModelShare": 50,
+      "roadIslands": 5,
+      "jaggedCorners": 0,
+      "walk": 1122,
+      "props": 8,
+      "phoneMissing": 929
+    },
+    "after": {
+      "id": "airport",
+      "size": "52x44",
+      "buildings": 6,
+      "propsPer100": 11.6,
+      "propKinds": 25,
+      "emptyPct": 7.6,
+      "maxModelShare": 16.7,
+      "roadIslands": 1,
+      "jaggedCorners": 0,
+      "walk": 831,
+      "props": 96,
+      "phoneMissing": 0
+    },
+    "views": [
+      [
+        25,
+        26
+      ],
+      [
+        44,
+        31
+      ],
+      [
+        50,
+        12
+      ]
+    ],
+    "phones": [
+      [
+        390,
+        844
+      ],
+      [
+        375,
+        667
+      ]
+    ]
+  }
+]

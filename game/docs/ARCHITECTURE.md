@@ -1,5 +1,15 @@
 # ぽかぽかタウン 設計書（ARCHITECTURE）
 
+## 4つの町の街区改修
+
+`town-design.js` の後、`transit.js` の前で `town-renewal-art.js` → `town-renewal.js` を読む。平和台の段階的移植から独立して、town / city / harbor / airport の街区を置き換える。基盤はTOWN-01のTownRoads。元の定義は旧ID・座標の検証用に `TownRenewal.originals` で保持する。
+
+- 建物の `style` は専用のSVGモデル、寸法とドア位置は配置から渡す。素材キャッシュはstyle・幅・高さ・doorだけで有限。小物も固定の種類キー。店舗の機能は既存のactを引き継ぐ。
+- 道の幅・交差点・入口・小物の置き場所を定義時に確定する。Tiles.chunkで桟橋・滑走路・誘導路・駐機場の地面を描き、道路を上に重ねる。TownRenewal.drawMovingは世界座標の飛行機を固定画像から描き、時刻を画像キーに使わない。
+- 外からのワープを新しい入口へ付け替える。TownRenewal.safePositionは公共の通行範囲をマップごとに一度探索して保持し、通れなくなった旧座標だけを最寄りの安全なマスへ戻す。おかね・所持品・保存形式は変更しない。家の出口も建物から導出する。
+- PokaDebug.townLayoutは配置の読み取り、townRoutesはNPC込みの実際の経路と現在地の通行判定。saveData / seedSaveは旧セーブ再開のテスト用。townPlanは本編と同じ地面・素材から全体図を生成し、プレイ状態は変えない。
+- 詳しい配置・検査・画像の再現手順は `docs/design/towns/renewal/README.md`。旧位置全件の救済と既存機能IDの維持を静的に検査し、ブラウザでは2画面サイズで再開・移動・入口・再保存を検査する。
+
 ## 道のベクター描画（TOWN-01）
 
 `road-patterns.js` → `town-roads.js` を tiles.js の後、maps.js の前に読み込む。`MAP_DEFS[id]` に見本JSONと同じ `roads / ring / fillets / crosswalks / marks / driveways` を任意で持てる。道路のない既存マップは以前の描画・衝突判定のまま。
