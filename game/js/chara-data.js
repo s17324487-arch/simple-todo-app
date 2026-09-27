@@ -240,8 +240,8 @@ const CHARA_DATA = {
    "cry": [
     "<ellipse cx=\"102\" cy=\"76\" rx=\"26\" ry=\"14\" fill=\"#FFFFFF\" stroke=\"#1F1D1B\" stroke-width=\"4.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
     "<polygon points=\"81.0,69.6 86.2,74.3 91.5,66.0 96.8,74.3 102.0,65.1 107.2,74.3 112.5,66.0 117.8,74.3 123.0,69.6 125.0,76.0 123.0,82.6 117.8,78.5 112.5,86.2 107.2,78.5 102.0,87.2 96.8,78.5 91.5,86.2 86.2,78.5 81.0,82.6 79.0,76.0\" fill=\"#E8262A\"/>",
-    "<path d=\"M72,80 C60,92 56,108 60,124\" stroke=\"#3A9EE4\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>",
-    "<path d=\"M132,80 C144,92 148,108 144,124\" stroke=\"#3A9EE4\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>"
+    "<path data-anchor=\"eye\" d=\"M58,57 C46,69 42,85 46,101\" stroke=\"#3A9EE4\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>",
+    "<path data-anchor=\"eye\" d=\"M146,57 C158,69 162,85 158,101\" stroke=\"#3A9EE4\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>"
    ],
    "love": [
     "<ellipse cx=\"102\" cy=\"76\" rx=\"30\" ry=\"16\" fill=\"#FFFFFF\" stroke=\"#1F1D1B\" stroke-width=\"4.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",

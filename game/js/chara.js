@@ -623,9 +623,11 @@ function buildCharaSvg(id, opts = {}) {
     if (id === "gachan") els.push(`<path d="M100,170 C111,175 113,188 100,197 C87,188 89,175 100,170 Z" fill="#FADA78" ${stroke()}/><path d="M100,177 L100,190" fill="none" ${stroke(3)}/>`);
     if (tailEl) els.push(`<g transform="translate(-24,-4)">${tailEl}</g>`);
   } else {
-    let face = D.faces[faceName].join("");
+    // ごじの目は頭の突起にあるため、涙は横向きでも口の移動に追従させない。
+    const eyeTears = id === "goji" ? D.faces[faceName].filter((el) => el.includes('data-anchor="eye"')) : [];
+    let face = D.faces[faceName].filter((el) => !eyeTears.includes(el)).join("");
     if (dx) face = `<g transform="translate(${dx},0)">${face}</g>`;
-    els.push(face);
+    els.push(face, ...eyeTears);
   }
   els.push(layers.top);
 
