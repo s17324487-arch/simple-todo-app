@@ -1,0 +1,17 @@
+{
+  "name": "ぽかぽかタウン ～わんこ・がちゃん・ごじの なかよし生活～",
+  "short_name": "ぽかぽかタウン",
+  "description": "3にんの なかまと くらす ほのぼの育成・着せ替え・冒険ゲーム",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#9fd27f",
+  "theme_color": "#9fd27f",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
