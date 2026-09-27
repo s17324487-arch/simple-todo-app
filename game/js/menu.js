@@ -59,10 +59,10 @@ const Menu = {
     });
     el.append(U.el("div", { class: "note", html: `コイン: <b>${U.fmt(d.coins)}</b>　／　バトル しょうり ${d.stats.wins}かい　／　おてつだい ${d.stats.shifts}かい` }));
   },
-  rename(id, el) {
+  async rename(id, el) {
     const c = Save.d.chars[id];
-    const n = prompt(`${c.name} の あたらしい なまえ（6もじまで）`, c.name);
-    if (n && n.trim()) { c.name = n.trim().slice(0, 6); Save.mark(); el.innerHTML = ""; this.status(el); }
+    const n = await UI.input(`${c.name} の あたらしい なまえ（6もじまで）`, c.name, { max: 6 });
+    if (n) { c.name = n.slice(0, 6); Save.mark(); el.innerHTML = ""; this.status(el); }
   },
   refreshScene() {
     const sc = G.scene;

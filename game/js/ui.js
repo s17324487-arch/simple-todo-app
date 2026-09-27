@@ -121,6 +121,24 @@ const UI = {
       this.root.append(shade);
     });
   },
+  // 文字入力（prompt() が使えない環境でも動くように画面内に出す）
+  input(text, value = "", { max = 6 } = {}) {
+    return new Promise((resolve) => {
+      this.layers++;
+      const shade = U.el("div", { class: "dlg-shade ask" });
+      const box = U.el("div", { class: "dialog" });
+      const inp = U.el("input", { class: "text-input", type: "text", id: "text-input", maxlength: String(max), autocomplete: "off" });
+      inp.value = value;
+      const done = (v) => { shade.remove(); this.layers--; resolve(v); };
+      const row = U.el("div", { class: "row", style: "margin-top:10px;justify-content:flex-end" });
+      row.append(UI.btn("やめる", () => { Sound.se("cancel"); done(null); }, "small"), UI.btn("けってい", () => { Sound.se("ok"); done(inp.value.trim()); }, "small yellow"));
+      inp.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") done(inp.value.trim()); });
+      box.append(U.el("div", { class: "dlg-text", text }), inp, row);
+      shade.append(box);
+      this.root.append(shade);
+      setTimeout(() => inp.focus(), 60);
+    });
+  },
   confirm(text, yes = "はい", no = "いいえ") {
     return this.ask(text, [yes, no]).then((i) => i === 0);
   },

@@ -177,6 +177,7 @@ const Game = {
 
     const KEYMAP = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right", W: "up", S: "down", A: "left", D: "right", z: "ok", Z: "ok", Enter: "ok", " ": "ok", x: "cancel", X: "cancel", Escape: "cancel" };
     window.addEventListener("keydown", (e) => {
+      if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
       const k = KEYMAP[e.key];
       if (!k) return;
       Sound.init();
