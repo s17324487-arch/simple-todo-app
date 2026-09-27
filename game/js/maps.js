@@ -296,7 +296,7 @@ class WorldMap {
       this.sprites.push({ kind: o.kind, x: o.x, y: o.y + o.h - 1, tw: o.w, bx: o.x, o });
       if (o.ground) for (let yy = o.y; yy < o.y + o.h; yy++) for (let xx = o.x; xx < o.x + o.w; xx++) this.groundOverride[xx + "," + yy] = o.ground;
       if (o.kind === "spring") this.solidGrid[o.y][o.x] = true;
-      if (o.kind === "fountain") for (let yy = o.y; yy < o.y + o.h; yy++) for (let xx = o.x; xx < o.x + o.w; xx++) this.solidGrid[yy][xx] = true;
+      if (o.kind === "fountain" || o.solid) for (let yy = o.y; yy < o.y + o.h; yy++) for (let xx = o.x; xx < o.x + o.w; xx++) this.solidGrid[yy][xx] = true;
     }
     this.signs = (d.signs || []).map((s) => ({ ...s }));
     for (const s of this.signs) { this.sprites.push({ kind: "sign", x: s.x, y: s.y, tw: 1 }); this.solidGrid[s.y][s.x] = true; }

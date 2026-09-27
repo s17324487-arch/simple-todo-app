@@ -1,5 +1,16 @@
 # ぽかぽかタウン 設計書（ARCHITECTURE）
 
+## エリアの作り込み・交通（ver2）
+
+`world-scenery.js` → `town-design.js` → `transit.js` を arcade.js のあと、debug.js の前に読む。WorldScenery は景観のSVGとcanvasアニメーション、town-design は既存6エリアの拡張と heiwadai / harbor / airport、Transit は8か所の乗り場を管理する。参考画像の平和台は地形構成のオマージュで、縮尺や実店舗の再現ではない。
+
+- マップの `v` は道路、`z` は横断歩道。objects の `solid:true` は全体に衝突判定。`id` と `text` があるものはタップ・決定キーで反応し、WorldScene.goObject が到達できる外周まで案内する。既存の泉の回復処理は維持。
+- 建物の `act:{type:"transit",stop}` は乗り場、`act:{type:"visit",text}` は休憩の会話。Transit.stops に map / label / kind を登録し、同じ kind の乗り場を接続。到着は対応するドアの1マス下。乗車取りやめでは移動・支払いなし。
+- travel シーンは3人が乗車する4秒の演出。到着を早めるボタンと帰宅ボタンがある。演出中は最後の乗り場がセーブ位置で、到着時に通常のworldセーブへ切り替える。新しい永続フィールドは不要。古いセーブが新設の建物と重なったときは既存の findFree で近隣へ移す。
+- WorldScenery の描画で時刻をSVGキャッシュキーに使わない。新しい姿は tools/preview.html の「まちのオブジェクト」で確認できる。
+- PokaDebug.world() は現在の party / objects / stops とクリック座標、active（動作中のしかけID）を返す。travel() は from / to / kind / elapsed / party。テストはこれを読み、実際のタップで乗車・中止・帰宅・噴水・セーブ再開を確認する。
+- 静的検査は交通の着地点と路線、すべてのしかけへの到達、追加SVGも検査する。
+
 ver1（v1.0.0）時点の設計のまとめ。作業ルールはリポジトリ直下の [`AGENTS.md`](../../AGENTS.md) を先に読むこと。
 コードを直したら、この文書の該当するところも直す。
 

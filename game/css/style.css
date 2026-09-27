@@ -254,3 +254,5 @@ html, body {
 .text-input:focus { outline: 3px solid var(--yellow); outline-offset: 1px; }
 .btn:focus-visible, .tab:focus-visible, .card:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .dialog, .toast, .panel, .modal-wrap { animation: none !important; } }
+.travel-controls { position:absolute; left:16px; right:16px; bottom:max(24px,env(safe-area-inset-bottom)); display:flex; justify-content:center; gap:12px; pointer-events:auto; }
+.travel-controls .btn { min-height:48px; min-width:120px; }

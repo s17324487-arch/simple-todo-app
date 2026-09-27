@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit })`, ctx);
 
 // ---------- 3. バージョン ----------
 const pkg = JSON.parse(readFileSync(join(GAME, "package.json"), "utf8"));
@@ -167,7 +167,11 @@ for (const id of Object.keys(R.MAP_DEFS)) {
   }
   for (const d of m.doors) {
     const a = d.b.act;
-    ok(a && (a.type === "house" || (a.type === "work" && R.SHOPS[a.shop]) || (a.type === "buy" && R.BUY_SHOPS[a.shop])), `マップ ${id}: 建物 ${d.b.id} の act が不正`);
+    ok(a && (a.type === "house" || (a.type === "work" && R.SHOPS[a.shop]) || (a.type === "buy" && R.BUY_SHOPS[a.shop]) || (a.type === "transit" && R.Transit.stops[a.stop]?.map === id) || (a.type === "visit" && typeof a.text === "string")), `マップ ${id}: 建物 ${d.b.id} の act が不正`);
+    if(a?.type === "transit") {
+      const arrival=R.Transit.arrival(a.stop);
+      ok(!m.isSolid(arrival.x,arrival.y)&&!m.warpAt(arrival.x,arrival.y)&&R.Transit.destinations(a.stop).length>0, `${id}: のりばの着地点・路線が不正`);
+    }
   }
   for (const n of m.def.npcs || []) {
     ok(R.SPECIES[n.sp], `マップ ${id}: NPC ${n.id} の種類 ${n.sp} がない`);
@@ -193,6 +197,11 @@ for (const id of Object.keys(R.MAP_DEFS)) {
   for (const d of m.doors) ok(near(d.x, d.y), `マップ ${id}: ${d.b.id} のドアに たどりつけない`);
   for (const n of m.def.npcs || []) ok(near(n.x, n.y), `マップ ${id}: NPC ${n.id} に たどりつけない`);
   for (const s of m.signs) ok(near(s.x, s.y), `マップ ${id}: かんばん (${s.x},${s.y}) に たどりつけない`);
+  for (const o of m.def.objects || []) if(o.text) {
+    let reachable=false;
+    for(let y=o.y;y<o.y+o.h;y++)for(let x=o.x;x<o.x+o.w;x++)if(near(x,y))reachable=true;
+    ok(reachable, `マップ ${id}: あそべる ${o.id} に たどりつけない`);
+  }
   for (const [x, y] of m.def.spawns || []) ok(seen.has(x + "," + y), `マップ ${id}: 敵の出現位置 (${x},${y}) が通れない/とどかない`);
   if (m.def.boss) ok(near(m.def.boss.x, m.def.boss.y), `マップ ${id}: ボスに たどりつけない`);
 }
@@ -228,6 +237,10 @@ for (const f of R.FURNITURE) { svgOk(R.Art.furnSvg(f.id), `家具 ${f.id}`); svg
 for (const id of bagIds) svgOk(R.Art.iconSvg("bag", id), `アイコン ${id}`);
 for (const w of R.WALLPAPERS) svgOk(R.Art.iconSvg("wall", w.id), `かべがみ ${w.id}`);
 for (const f of R.FLOORS) svgOk(R.Art.iconSvg("floor", f.id), `ゆか ${f.id}`);
+for (const [id,d] of Object.entries(R.MAP_DEFS)) {
+  for(const b of d.buildings||[])svgOk(R.Art.worldSvg("building",b).full, `${id}: 建物 ${b.id}`);
+  for(const o of d.objects||[])svgOk(R.Art.worldSvg(o.kind==="spring"?"well":o.kind).full, `${id}: オブジェクト ${o.kind}`);
+}
 
 // ---------- 8. 遊びのロジック ----------
 try {

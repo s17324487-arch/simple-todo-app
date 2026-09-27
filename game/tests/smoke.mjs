@@ -499,6 +499,53 @@ await scenario("夜の町", async (H) => {
   expect(fps >= 20, `FPS が低すぎる (${fps})`);
 }, { full: true });
 
+await scenario("交通（電車・船・飛行機・中止・セーブ）", async H=>{
+  await H.newGameFast(); await H.dbg("hour",12);
+  const board=async(map,x,y,stop,choice)=>{
+    await H.dbg("teleport",map,x,y,"up");
+    await H.until(m=>PokaDebug.state().map===m&&PokaDebug.idle(),15000,map);
+    const p=(await H.dbg("world")).stops.find(s=>s.id===stop);
+    await H.tap(p.cx,p.cy); await H.page.getByRole("button",{name:choice,exact:true}).click();
+  };
+  await board("town",32,4,"town_station","やめておく");
+  await H.idle();expect((await H.dbg("state")).map==="town","乗車中止で移動した");
+  for(const [map,x,y,stop,choice,destination,kind] of [
+    ["town",32,4,"town_station","平和台えきへ","heiwadai","train"],
+    ["coast",24,23,"coast_ferry","みなとの のりばへ","harbor","ferry"],
+    ["harbor",21,9,"harbor_air","そらいろくうこうへ","airport","plane"],
+  ]) {
+    await board(map,x,y,stop,choice);
+    await H.until(()=>PokaDebug.state().scene==="travel"&&PokaDebug.idle());
+    const trip=await H.dbg("travel");expect(trip.kind===kind&&trip.party.length===3,"3人で乗車できない");
+    await H.shot(kind); await H.page.getByRole("button",{name:"ついた！",exact:true}).click();
+    await H.until(m=>PokaDebug.state().map===m&&PokaDebug.idle(),15000,destination);
+    expect((await H.dbg("world")).party.length===3,"到着後の3人がいない");
+  }
+  const before=await H.dbg("state");await H.dbg("save");await H.page.reload();
+  await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.until(()=>PokaDebug.state().scene==="world"&&PokaDebug.idle());
+  const after=await H.dbg("state");expect(after.map==="airport"&&after.coins===before.coins,"交通の到着位置・コインのセーブに失敗");
+  await board("airport",6,22,"airport_station","ぽかぽかえきへ");
+  await H.until(()=>PokaDebug.state().scene==="travel"&&PokaDebug.idle());
+  await H.page.getByRole("button",{name:"おうちへ",exact:true}).click();
+  await H.until(()=>PokaDebug.state().scene==="house"&&PokaDebug.idle());
+}, {timeout:120000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`町の景観としかけ（${viewport.width}）`,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);
+  for(const [map,x,y] of [["heiwadai",27,14],["heiwadai",16,28],["town",12,16],["city",21,22],["harbor",19,23],["airport",25,20],["meadow",10,10],["forest",14,14],["cave",12,12]]){
+    await H.dbg("teleport",map,x,y);await H.until(m=>PokaDebug.state().map===m&&PokaDebug.idle(),15000,map);
+    await H.shot(`${map}-${x}`);
+  }
+  await H.dbg("teleport","heiwadai",16,28);await H.until(()=>PokaDebug.state().map==="heiwadai"&&PokaDebug.idle());
+  const o=(await H.dbg("world")).objects.find(o=>o.id==="heiwadai_fountain");
+  await H.tap(o.cx,o.cy);await H.until(()=>PokaDebug.world()?.active==="heiwadai_fountain",10000);
+  await H.shot("fountain-play");
+  await H.page.keyboard.press("Escape");await H.page.getByRole("button",{name:"ちず",exact:true}).click();
+  await H.page.getByRole("button",{name:"平和台（へいわだい）",exact:true}).click();
+  await H.page.getByRole("heading",{name:"平和台（へいわだい）",exact:true}).scrollIntoViewIfNeeded();await H.shot("heiwadai-map");
+  const overflow=await H.eval(()=>document.documentElement.scrollWidth>innerWidth);expect(!overflow,"小さい画面で横にはみ出す");
+},{viewport,full:true,timeout:120000});
+
 await browser.close();
 server.close();
 const bad = results.filter((r) => !r.ok);

@@ -3,6 +3,7 @@ const TS = 32; // タイルの論理サイズ
 
 const GROUND = {
   ".": "grass", ",": "flower", '"': "tall", "=": "path", "-": "dirt", "~": "water", s: "sand", p: "plaza", b: "bridge",
+  v: "road", z: "crosswalk",
   c: "cave", W: "cavewall", d: "forest", "#": "grass", T: "grass", P: "forest", A: "grass", B: "grass", R: "grass", F: "grass",
   L: "path", f: "grass", n: "plaza", x: "forest", m: "forest", k: "cave", r: "cave", h: "grass", g: "dirt", w: "grass",
 };
@@ -24,6 +25,17 @@ const Tiles = {
     };
     const u = s / 32;
     switch (type) {
+      case "road": case "crosswalk": {
+        g.fillStyle="#B7C5CE";g.fillRect(x,y,s,s);
+        g.strokeStyle="#E7EBE9";g.lineWidth=2*u;
+        if(type==="crosswalk"){g.fillStyle="#F7F3E7";for(let i=0;i<4;i++)g.fillRect(x+3*u,y+(i*8+1)*u,s-6*u,4*u);}
+        else {if(tx%3===0&&ty%3===0){g.beginPath();g.moveTo(x+10*u,y+s/2);g.lineTo(x+22*u,y+s/2);g.stroke();}}
+        for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1]]){
+          if(["road","crosswalk"].includes(map.groundAt(tx+dx,ty+dy)))continue;
+          g.fillStyle="#E1E5DC";g.fillRect(x+(dx===1?s-3*u:0),y+(dy===1?s-3*u:0),dx?3*u:s,dy?3*u:s);
+        }
+        break;
+      }
       case "grass": case "flower": case "tall": case "forest": case "fflower": {
         const fr = type === "forest" || type === "fflower";
         const base = fr ? "#86C46A" : "#A6D883";

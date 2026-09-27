@@ -230,7 +230,20 @@ class WorldScene {
     if (chest) return this.goInteract(tx, ty, { type: "chest", chest });
     const spring = (map.def.objects || []).find((o) => o.kind === "spring" && o.x === tx && o.y === ty);
     if (spring) return this.goInteract(tx, ty, { type: "spring" });
+    const object = WorldScenery.at(map, tx, ty);
+    if (object) return this.goObject(object);
     if (!map.isSolid(tx, ty)) return this.goTo(tx, ty, null);
+  }
+  goObject(o) {
+    const L=this.party[0], candidates=[];
+    for(let y=o.y;y<o.y+o.h;y++) for(let x=o.x;x<o.x+o.w;x++) {
+      if(x!==o.x&&x!==o.x+o.w-1&&y!==o.y&&y!==o.y+o.h-1)continue;
+      const path=this.findPath(L.tx,L.ty,x,y,true);
+      if(path)candidates.push({x,y,path});
+    }
+    candidates.sort((a,b)=>a.path.length-b.path.length);
+    if(candidates.length){const p=candidates[0];this.goInteract(p.x,p.y,{type:"scenery",object:o});}
+    else Sound.se("cancel");
   }
   buildingDoorAt(tx, ty) {
     for (const d of this.map.doors) { const b = d.b; if (tx >= b.x && tx < b.x + b.w && ty >= b.y - 1 && ty < b.y + b.h) return d; }
@@ -379,6 +392,12 @@ class WorldScene {
     const act = b.act;
     Sound.se("door");
     const out = { map: this.mapId, x: door.x, y: door.y + 1, dir: "down" };
+    if (act.type === "transit" || act.type === "visit") {
+      this.busy = true;
+      if (act.type === "transit" && await Transit.open(act.stop)) return;
+      if (act.type === "visit") await UI.say([{ name: b.label, text: act.text }]);
+      this.busy = false; this.stepOut(door); return;
+    }
     if (act.type === "house") { this.busy = true; Game.goto("house", {}, "circle"); return; }
     if (act.type === "buy") {
       this.busy = true;
@@ -421,12 +440,17 @@ class WorldScene {
     const chest = this.map.chests.find((c) => c.x === x && c.y === y);
     if (chest) return this.interact({ type: "chest", chest });
     if ((this.map.def.objects || []).some((o) => o.kind === "spring" && o.x === x && o.y === y)) return this.interact({ type: "spring" });
+    const object=WorldScenery.at(this.map,x,y);
+    if(object)return this.interact({type:"scenery",object});
     const boss = this.enemies.find((e) => e.boss && Math.abs(e.w.tx - x) <= 1 && e.w.ty === y);
     if (boss) return this.interact({ type: "boss", e: boss });
   }
   async interact(p) {
+    if (this.busy) return;
     const L = this.party[0];
-    if (p.type === "npc") {
+    if (p.type === "scenery") {
+      WorldScenery.activate(this,p.object);
+    } else if (p.type === "npc") {
       const n = p.npc;
       n.w.dir = dirOf(L.tx - n.w.tx, L.ty - n.w.ty) || n.w.dir;
       n.talking = true;
@@ -673,6 +697,12 @@ class WorldScene {
     let x = left + (tw * TS - a.w) / 2 - 2, y = bottom - a.h - 2;
     if (s.kind === "tree" || s.kind === "pine" || s.kind === "appletree") y += 2;
     ctx.drawImage(c, ox + x, oy + y, w, h);
+    WorldScenery.draw(ctx, s, ox, oy);
+    if(s.kind === "building" && s.spec.terminal) {
+      ctx.save();ctx.font="800 10px 'M PLUS Rounded 1c',sans-serif";ctx.textAlign="center";ctx.fillStyle=INK;
+      const label=s.spec.label, bw=Math.min(s.spec.w*TS-4,ctx.measureText(label).width+14);
+      U.rr(ctx,ox+left+(tw*TS-bw)/2,oy+bottom-8,bw,18,5);ctx.fillStyle="#FFF6DF";ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=1.4;ctx.stroke();ctx.fillStyle=INK;ctx.fillText(label,ox+left+tw*TS/2,oy+bottom+5);ctx.restore();
+    }
     if (s.kind === "gate" && s.o && s.o.text) {
       ctx.font = "800 9px 'M PLUS Rounded 1c', sans-serif"; ctx.fillStyle = INK; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillText(s.o.text, ox + left + (tw * TS) / 2, oy + y + 2 + 21);
