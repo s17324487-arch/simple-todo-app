@@ -67,14 +67,43 @@ const Seasonal = {
     if(!force&&G.t<(sc.nextFestival||0))return;sc.nextFestival=G.t+1;
     const s=this.state();if(sc.festivalButton){sc.festivalButton.textContent=`おまつり ${s.claimed?"✓":s.count+"/3"}`;sc.festivalButton.style.background=s.color;}
   },
+  particles(sc,time=G.t,kind=this.current().id,size={w:G.W,h:G.H}) {
+    if(sc.map.baseGround==="cave"||kind==="winter")return [];
+    // World-space cells move with the wind only. The camera chooses which cells to draw;
+    // it never enters a particle's path, seed, wrapping period or animation.
+    const step=208, wind=kind==="wind",dx=time*(wind?30:kind==="summer"?2:7),dy=time*(kind==="summer"?-4:wind?16:11);
+    const left=sc.cam.x-size.w/2,top=sc.cam.y-size.h/2,margin=28,particles=[];
+    const x0=Math.floor((left-dx-margin)/step),x1=Math.floor((left+size.w-dx+margin)/step);
+    const y0=Math.floor((top-dy-margin)/step),y1=Math.floor((top+size.h-dy+margin)/step);
+    for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++){
+      const seed=U.hash(cx+(wind?701:0),cy+311),phase=seed*Math.PI*2;
+      const wx=cx*step+U.hash(cx+41,cy+19)*step+dx+Math.sin(time*.9+phase)*9;
+      const wy=cy*step+U.hash(cx+79,cy+137)*step+dy+Math.cos(time*.6+phase)*6;
+      const x=wx-left,y=wy-top;
+      if(x< -margin||x>size.w+margin||y< -margin||y>size.h+margin)continue;
+      particles.push({id:`${kind}:${cx}:${cy}`,wx,wy,x,y,seed,angle:Math.sin(time*.7+phase)*.8+phase,fold:.35+Math.abs(Math.cos(time*1.1+phase))*.65});
+    }
+    return particles;
+  },
+  leaf(ctx,p,autumn=true) {
+    const colors=autumn?["#BA7548","#D49A4D","#B86E52","#AC9651"]:["#9BA96D","#A8B17D","#899B68"];
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle);const scale=.52+p.seed*.24;ctx.scale(scale*p.fold,scale);
+    ctx.fillStyle=colors[Math.floor(p.seed*colors.length)];ctx.strokeStyle=autumn?"#865D3C":"#677E50";ctx.lineWidth=1;ctx.lineJoin="round";
+    ctx.beginPath();
+    if(p.seed<.45){ctx.moveTo(0,-12);ctx.lineTo(3,-5);ctx.lineTo(8,-8);ctx.lineTo(7,-2);ctx.lineTo(12,-2);ctx.lineTo(8,3);ctx.lineTo(9,6);ctx.lineTo(3,6);ctx.lineTo(0,10);ctx.lineTo(-3,6);ctx.lineTo(-9,6);ctx.lineTo(-8,3);ctx.lineTo(-12,-2);ctx.lineTo(-7,-2);ctx.lineTo(-8,-8);ctx.lineTo(-3,-5);}
+    else {ctx.moveTo(0,-13);ctx.bezierCurveTo(12,-7,10,3,0,10);ctx.bezierCurveTo(-10,4,-9,-6,0,-13);}
+    ctx.closePath();ctx.fill();ctx.stroke();ctx.strokeStyle=autumn?"#F1C582":"#D7DDB3";ctx.lineWidth=.85;
+    ctx.beginPath();ctx.moveTo(0,-9);ctx.quadraticCurveTo(-1,0,0,10);ctx.moveTo(0,-3);ctx.lineTo(5,-6);ctx.moveTo(0,2);ctx.lineTo(6,-1);ctx.moveTo(0,-1);ctx.lineTo(-5,-5);ctx.moveTo(0,5);ctx.lineTo(-6,1);ctx.stroke();
+    ctx.strokeStyle=autumn?"#865D3C":"#677E50";ctx.beginPath();ctx.moveTo(0,9);ctx.quadraticCurveTo(0,12,2,14);ctx.stroke();ctx.restore();
+  },
   draw(ctx,sc,ox,oy) {
     if(sc.map.baseGround==="cave")return;
     const e=this.current();ctx.save();
-    // 地形を隠さない小さな花びら・蛍・落ち葉・雪。画面内だけを有限個描く。
-    for(let i=0;i<(e.id==="winter"?0:14);i++){
-      const x=(i*89+Math.sin(G.t*.4+i)*20-sc.cam.x*.15+4000)%G.W,y=(i*71+G.t*(e.id==="summer"?-5:11)-sc.cam.y*.1+4000)%G.H;
-      ctx.fillStyle=e.id==="winter"?"#FFFDF5":e.color;ctx.globalAlpha=e.id==="summer"?.3+Math.sin(G.t*2+i)**2*.45:.6;
-      ctx.beginPath();ctx.ellipse(x,y,e.id==="summer"?2:3.5,e.id==="winter"?3:1.7,G.t*.3+i,0,7);ctx.fill();
+    // 同じ地面に対して同じ軌道。秋は葉脈と葉柄のある2種類の落ち葉。
+    for(const p of this.particles(sc)){
+      ctx.globalAlpha=e.id==="summer"?.3+Math.sin(G.t*2+p.seed*9)**2*.45:.84;
+      if(e.id==="autumn")this.leaf(ctx,p,true);
+      else {ctx.fillStyle=e.color;ctx.beginPath();ctx.ellipse(p.x,p.y,e.id==="summer"?2:3.5,e.id==="summer"?2:1.7,p.angle,0,7);ctx.fill();}
     }
     ctx.globalAlpha=1;
     for(const o of sc.map.def.objects||[]) {
@@ -90,4 +119,5 @@ const Seasonal = {
 };
 
 WorldArt.festivalboard=()=>({w:32,h:52,svg:`<path d="M7,28 V50 M25,28 V50" ${OS(3)}/><rect x="1" y="4" width="30" height="34" rx="5" fill="#FFF2CE" ${OS()}/><path d="${starPath(16,18,10,5)}" fill="#E2AD90" ${OS(1.4)}/><path d="M8,32 H24" ${OS(2)}/>`});
-for(const [map,x,y] of [["town",8,21],["heiwadai",25,24],["city",14,24]])MAP_DEFS[map].objects.push({id:map+"_festivalboard",kind:"festivalboard",x,y,w:1,h:1,solid:true,festival:true,text:"きせつの おまつり"});
+// 素材プレビューは地図を読み込まず、葉の描画だけを共用する。
+if(typeof MAP_DEFS!=="undefined")for(const [map,x,y] of [["town",8,21],["heiwadai",25,24],["city",14,24]])MAP_DEFS[map].objects.push({id:map+"_festivalboard",kind:"festivalboard",x,y,w:1,h:1,solid:true,festival:true,text:"きせつの おまつり"});

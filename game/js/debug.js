@@ -85,6 +85,10 @@ const PokaDebug = {
     if(arguments.length){if(kind!==null&&!Weather.kinds[kind])throw new Error("unknown weather");Weather.override=kind;if(G.sceneName==="world")Weather.refresh(G.scene,true);}
     return {...Weather.state(),sky:Weather.sky(),palette:{...SeasonPalette.get()}};
   },
+  drift(time=G.t) {
+    if(G.sceneName!=="world")return null;
+    return {camera:{...G.scene.cam},seasonal:Seasonal.particles(G.scene,time),wind:Seasonal.particles(G.scene,time,"wind")};
+  },
   needs(hunger,mood=70) { for(const c of Object.values(Save.d.chars)){c.hunger=U.clamp(hunger,0,100);c.mood=U.clamp(mood,0,100);}Save.mark();if(G.sceneName==="house")G.scene.updateCare(); },
   wins(n) { Save.d.stats.wins = Math.max(0, Math.floor(n)); Save.mark(); },
   homePoint(x, y) { const p = G.scene.toScreen(x, y), r = G.canvas.getBoundingClientRect(); return { x: r.left + p.x * G.cssPerUnit, y: r.top + p.y * G.cssPerUnit }; },

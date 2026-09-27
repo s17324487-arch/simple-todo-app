@@ -278,6 +278,26 @@ for (const [id,d] of Object.entries(R.MAP_DEFS)) {
 }
 
 // ---------- 8. 遊びのロジック ----------
+// 葉の世界座標・揺れはカメラとは独立し、画面座標だけ地形と同じ量だけ動く。
+for(const kind of ["spring","summer","autumn","wind"]){
+  const sc={map:{baseGround:"grass"},cam:{x:800,y:800}},size={w:390,h:844};
+  const before=R.Seasonal.particles(sc,20,kind,size);
+  sc.cam={x:832,y:848};const after=R.Seasonal.particles(sc,20,kind,size);
+  const common=after.filter(p=>before.some(q=>p.id===q.id));
+  ok(common.length>2,`${kind}: カメラ移動で粒がすべて入れ替わる`);
+  for(const p of common){
+    const q=before.find(q=>p.id===q.id);
+    ok(p.wx===q.wx&&p.wy===q.wy&&p.angle===q.angle&&p.fold===q.fold,`${kind}: カメラが葉の軌道に影響する`);
+    ok(Math.abs(p.x-q.x+32)<1e-8&&Math.abs(p.y-q.y+48)<1e-8,`${kind}: 地形に対して葉が滑る`);
+  }
+  const later=R.Seasonal.particles(sc,21,kind,size),p=common[0],q=later.find(q=>q.id===p.id);
+  ok(q&&Math.hypot(q.wx-p.wx,q.wy-p.wy)>1,`${kind}: 停止中に葉が動かない`);
+  for(const time of [0,100,1e6]){
+    const ps=R.Seasonal.particles(sc,time,kind,size);
+    ok(ps.length<=48&&new Set(ps.map(p=>p.id)).size===ps.length&&ps.every(p=>[p.wx,p.wy,p.x,p.y].every(Number.isFinite)),`${kind}: 粒数・位置が不正`);
+  }
+}
+ok(R.Seasonal.particles({map:{baseGround:"cave"},cam:{x:0,y:0}},20,"autumn",{w:390,h:844}).length===0,"洞窟で落ち葉が舞う");
 // 季節境界・冬の年またぎ・記念品の二重受け取りと古いメニューの期限切れ。
 R.Save.reset();
 for(const [year,month,day,want] of [[2026,2,28,"2025-winter"],[2026,3,1,"2026-spring"],[2026,5,31,"2026-spring"],[2026,6,1,"2026-summer"],[2026,8,31,"2026-summer"],[2026,9,1,"2026-autumn"],[2026,11,30,"2026-autumn"],[2026,12,1,"2026-winter"],[2027,1,1,"2026-winter"],[2027,2,28,"2026-winter"],[2027,3,1,"2027-spring"]]) {
