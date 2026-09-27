@@ -523,3 +523,5 @@ economy.js の GameEconomy が報酬と難易度の値を管理する（[比較�
 arcade.js は world-expansion.js の後。LinkGardenTask / SkyRelayTask は既存の TaskBase を継承する。パズルは隣接・同種の3個以上をなぞり、重複不可・1個戻り可・pointercancelは破棄。7個で周囲消去、4コンボでフィーバー。配達は3列の移動・担当3人の交代・岩回避と6秒間隔の防御。左右キーで移動、上で交代、決定で防御も可能。
 
 PokaDebug.shop('link'|'relay', lv) で開始。mg() は difficulty/timeLimit/timeLeft、link の cells（i/value/cx/cy）と order（legal/chain/collected/target/shuffles/fever）、relay の order（lane/role/items/progress/caught/target/misses/shield）を返す。描画・入力のテストはこの公開情報で操作する。店別BGMは SONGS.shop_<id>。
+
+PokaDebug.pause(bool) は以前の停止状態を返す。テストで撮影する間だけ停止し、finally で戻す。外部フォントや描画待ちの時間をミニゲームの制限時間に含めないために使用する。

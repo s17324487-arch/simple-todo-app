@@ -41,6 +41,7 @@ const PokaDebug = {
     };
   },
   idle() { return !Game.trans && !UI.busy; },
+  pause(value) { const previous = !!Game.paused; Game.paused = !!value; return previous; },
   homeLife(event) {
     if (G.sceneName !== "house") return null;
     if (event) HomeLife.event(G.scene, event);

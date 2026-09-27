@@ -65,7 +65,13 @@ function helpers(page, name) {
     eval: (fn, arg) => page.evaluate(fn, arg),
     until: (fn, ms = 10000, arg) => page.waitForFunction(fn, arg, { timeout: ms, polling: 100 }),
     dbg: (method, ...args) => page.evaluate(([m, a]) => window.PokaDebug[m](...a), [method, args]),
-    async shot(label) { if (SHOTS) await page.screenshot({ path: join(SHOT_DIR, `${name}_${label}.png`) }); },
+    async shot(label) {
+      if (!SHOTS) return;
+      // フォント/描画待ちでゲームの制限時間を消費しない。
+      const previous = await H.dbg("pause", true);
+      try { await page.screenshot({ path: join(SHOT_DIR, `${name}_${label}.png`) }); }
+      finally { await H.dbg("pause", previous); }
+    },
     async open() {
       await page.goto(url + "index.html");
       await H.until(() => window.PokaDebug && typeof G !== "undefined" && G.sceneName === "title" && !Game.trans, 15000);
@@ -154,11 +160,19 @@ function helpers(page, name) {
         } else if (shop === "dentist") {
           for (let k = 0; k < 200; k++) {
             const m = await H.dbg("mg");
-            if (!m || m.phase !== "work") break;
+            if (!m || m.phase !== "work" || m.n !== st.n) break;
             const t = m.targets.find((x) => x.kind === "germ") || m.targets[0];
             if (!t) { await H.wait(120); continue; }
             if (t.kind === "germ") await H.tap(t.cx, t.cy);
-            else if (t.kind === "dirt") await H.drag(t.cx - 14, t.cy, t.cx + 14, t.cy, 260);
+            else if (t.kind === "dirt") {
+              // 指を離さず往復する。短い一方向ドラッグの繰り返しは操作待ちが長くなる。
+              await page.mouse.move(t.cx, t.cy); await page.mouse.down();
+              for (let stroke = 0; stroke < 12; stroke++) {
+                await page.mouse.move(t.cx + (stroke % 2 ? -16 : 16), t.cy, { steps: 2 });
+                await H.wait(15);
+              }
+              await page.mouse.up();
+            }
             else await H.hold(t.cx, t.cy, 1100);
           }
         }
