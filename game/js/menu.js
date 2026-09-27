@@ -31,7 +31,7 @@ const Menu = {
     }
   },
 
-  map(el) { el.append(UI.btn("きせつの おまつり",()=>Seasonal.open(),"wide")); WorldAtlas.render(el); },
+  map(el) { WorldAtlas.render(el); el.append(UI.btn("きせつの おまつり",()=>Seasonal.open(),"wide")); },
   status(el) {
     const d = Save.d;
     d.order.forEach((id, idx) => {

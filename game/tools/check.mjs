@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit, Seasonal, SEASON_ITEMS })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt })`, ctx);
 
 // ---------- 3. バージョン ----------
 const pkg = JSON.parse(readFileSync(join(GAME, "package.json"), "utf8"));
@@ -222,6 +222,17 @@ function svgOk(svg, what) {
   }
   for (const m of svg.matchAll(/url\(#([^)]+)\)/g)) if (!svg.includes(`id="${m[1]}"`)) { err(`${what}: url(#${m[1]}) の参照先がない`); return; }
 }
+// 全体地図が実際のエリア・徒歩の接続と食い違わないこと。
+const atlasSvg=R.AtlasArt.svg(), atlasAgain=R.AtlasArt.svg();
+svgOk(atlasSvg,"全体地図");
+const atlasIds=[...atlasSvg.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
+ok(atlasIds.every(id=>!atlasAgain.includes(`id="${id}"`)),"別の地図でSVGのIDが重複する");
+for(const id of Object.keys(R.MAP_DEFS)) ok(!!R.AtlasArt.places[id],`全体地図に ${id} がない`);
+for(const id of Object.keys(R.AtlasArt.places)) ok(!!R.MAP_DEFS[id],`全体地図の ${id} が実在しない`);
+const atlasPair=(a,b)=>[a,b].sort().join("/");
+const atlasRoads=new Set(R.AtlasArt.roads.map(([a,b])=>atlasPair(a,b)));
+for(const [a,b] of R.AtlasArt.roads) ok(R.MAP_DEFS[a]?.warps.some(w=>w.to===b)&&R.MAP_DEFS[b]?.warps.some(w=>w.to===a),`地図の道 ${a}↔${b} を歩けない`);
+for(const [id,d] of Object.entries(R.MAP_DEFS)) for(const w of d.warps||[]) ok(atlasRoads.has(atlasPair(id,w.to)),`全体地図に道 ${id}↔${w.to} がない`);
 const DIRS = ["down", "up", "left", "right"];
 const POSES = ["idle_01", "idle_02", "walk_01", "walk_02", "jump_01", "land_01"];
 for (const id of R.Chara.IDS) {

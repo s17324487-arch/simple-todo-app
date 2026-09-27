@@ -34,6 +34,7 @@
 <script src="../js/tiles.js"></script>
 <script src="../js/world-art.js"></script>
 <script src="../js/world-scenery.js"></script>
+<script src="../js/atlas-art.js"></script>
 <script>
   const out = document.getElementById("out");
   const ctrl = document.getElementById("ctrl");
@@ -54,7 +55,8 @@
   const cell = (svg, w, label) => `<div class="cell">${svg.replace("<svg ", `<svg width="${w}" `)}<div>${label}</div></div>`;
   const row = (items) => `<div class="row">${items.join("")}</div>`;
   function render() {
-    let h = "<h2>3人 × 向き（上の選択を反映）</h2>";
+    let h = '<h2>ぜんたい ちず（オリジナル地形）</h2><div style="max-width:800px">'+AtlasArt.svg()+'</div>';
+    h += "<h2>3人 × 向き（上の選択を反映）</h2>";
     h += row(Chara.IDS.flatMap((id) => ["down", "left", "right", "up"].map((dir) => cell(Chara.svg(id, { dir, pose, face, outfit, color }), size, `${id} ${dir}`))));
     h += "<h2>服をひとつずつ（3人・正面／後ろ）</h2>";
     for (const slot of Object.keys(SLOT_NAMES)) {

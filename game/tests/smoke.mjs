@@ -399,7 +399,8 @@ await scenario("新エリア・全体マップ・帰宅", async (H) => {
   await H.shot("city");
   await H.page.getByRole("button", { name: "メニュー", exact: true }).click();
   await H.page.getByRole("button", { name: "ちず", exact: true }).click();
-  expect(await H.page.getByRole("img", { name: "町とエリアのつながり" }).isVisible(), "全体マップがない");
+  expect(await H.page.getByRole("group", { name: "ぽかぽかの せかいの ちず", exact:true }).isVisible(), "全体マップがない");
+  expect(await H.page.locator('.atlas-marker.is-current').getAttribute('data-area') === "city", "入ったエリアが地図の現在地に反映されない");
   await H.shot("atlas"); await H.page.locator(".modal-wrap .close").last().click(); await H.wait(300);
   await H.dbg("teleport", "city", 34, 17); await H.until(() => PokaDebug.idle());
   await H.dbg("walkTo", 35, 17); await H.until(() => PokaDebug.state().map === "coast" && PokaDebug.idle());
@@ -568,6 +569,66 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("calendar","2027-01-01");const saved=await H.dbg("festival");expect(saved.key==="2026-winter"&&saved.claimed&&saved.inventory.furn===1,"冬の年越し・再開で記録が失われた");
   await H.dbg("calendar","2027-03-01");const next=await H.dbg("festival");expect(next.count===0&&!next.claimed&&next.inventory.wear&&next.inventory.furn===1,"翌年への移行で取得済みの品が消えた");
 },{viewport,full:viewport.width===375,timeout:150000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`地形の全体マップ（${viewport.width}）`,async H=>{
+  await H.newGameFast(); await H.dbg("hour",12);
+  await H.dbg("teleport","town",12,16); await H.idle();
+  const before=await H.dbg("state");
+  await H.page.keyboard.press("Escape");
+  await H.page.getByRole("button",{name:"ちず",exact:true}).click();
+  const atlas=H.page.locator(".world-atlas"), svg=atlas.locator(".atlas-svg");
+  expect(await atlas.locator(".atlas-marker").count()===9,"9エリアが表示されない");
+  expect(await atlas.locator(".atlas-marker.is-current").getAttribute("data-area")==="town","現在地が違う");
+  const touchBox=await atlas.locator('[data-area="town"] .atlas-hit').boundingBox();
+  expect(touchBox.width>=44&&touchBox.height>=44,"地点のタップ範囲が44pxより小さい");
+  await H.shot("overview");
+  for(const [id,label] of [["heiwadai","平和台（へいわだい）"],["airport","そらいろくうこう"],["coast","しおかぜビーチ"],["harbor","あおぞらポート"]]) {
+    await atlas.getByRole("button",{name:label,exact:true}).click();
+    expect(await atlas.getAttribute("data-selected")===id,`${label}のタップが反応しない`);
+    expect(await atlas.getByRole("heading",{name:label,exact:true}).count()===1,"詳細の見出しが変わらない");
+  }
+  await atlas.locator(".atlas-select").selectOption("forest");
+  expect(await atlas.getAttribute("data-selected")==="forest","エリア選択が反応しない");
+  const town=atlas.getByRole("button",{name:"ぽかぽかタウン",exact:true});
+  await town.focus(); await H.page.keyboard.press("Enter");
+  expect(await atlas.getAttribute("data-selected")==="town","キーボードで選択できない");
+  await atlas.getByRole("button",{name:"ちずを おおきく",exact:true}).click();
+  expect(+(await atlas.getAttribute("data-zoom"))>1,"拡大されない");
+  await svg.scrollIntoViewIfNeeded();
+  const box=await svg.boundingBox(), initial=await svg.getAttribute("viewBox");
+  await H.drag(box.x+box.width*.65,box.y+box.height*.6,box.x+box.width*.35,box.y+box.height*.45);
+  expect(await svg.getAttribute("viewBox")!==initial,"地図をなぞって移動できない");
+  expect(await atlas.getAttribute("data-selected")==="town","ドラッグが地点のタップになった");
+  await atlas.getByRole("button",{name:"いまの ばしょを みる",exact:true}).click();
+  expect(+(await atlas.getAttribute("data-zoom"))===2,"現在地へ拡大されない");
+  await svg.scrollIntoViewIfNeeded(); await H.shot("zoom-town");
+  // 実際の2本指入力で拡大・縮小。指を離したあとも通常のタップが使える。
+  const session=await H.page.context().newCDPSession(H.page), r=await svg.boundingBox();
+  const cx=r.x+r.width/2,cy=r.y+r.height/2;
+  const points=distance=>[{x:cx-distance,y:cy,id:1},{x:cx+distance,y:cy,id:2}];
+  await session.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:points(30)});
+  await session.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:points(55)});
+  await session.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+  expect(+(await atlas.getAttribute("data-zoom"))>2,"2本指で拡大できない");
+  await session.detach();
+  await atlas.getByRole("button",{name:"ちずを ぜんたいに もどす",exact:true}).click();
+  expect(await svg.getAttribute("viewBox")==="0 0 800 850","全体に戻らない");
+  const routes=atlas.getByRole("button",{name:"のりものの みち",exact:true});
+  await routes.click(); expect(!(await atlas.locator(".atlas-transit").isVisible()),"航路を隠せない");
+  await routes.click(); expect(await atlas.locator(".atlas-transit").isVisible(),"航路を戻せない");
+  await atlas.getByRole("button",{name:"平和台（へいわだい）",exact:true}).click();
+  await atlas.locator("summary").click();
+  expect(await atlas.getByRole("img",{name:"平和台（へいわだい）の詳細地図",exact:true}).isVisible(),"詳細マップを見られない");
+  await atlas.getByRole("heading",{name:"平和台（へいわだい）",exact:true}).scrollIntoViewIfNeeded();
+  await H.shot("local-heiwadai");
+  expect(!(await H.eval(()=>document.documentElement.scrollWidth>innerWidth)),"全体マップが画面をはみ出す");
+  const after=await H.dbg("state");
+  expect(after.map===before.map&&after.coins===before.coins&&JSON.stringify(after.pos)===JSON.stringify(before.pos),"地図閲覧でプレイ状態が変わった");
+  await H.page.getByRole("button",{name:"とじる",exact:true}).click(); await H.idle();
+  await H.dbg("teleport","heiwadai",16,28); await H.idle();
+  await H.page.keyboard.press("Escape"); await H.page.getByRole("button",{name:"ちず",exact:true}).click();
+  expect(await H.page.locator(".atlas-marker.is-current").getAttribute("data-area")==="heiwadai","再度開いた地図の現在地が古い");
+},{viewport,full:viewport.width===375,timeout:90000});
 
 await browser.close();
 server.close();
