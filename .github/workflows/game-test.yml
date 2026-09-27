@@ -1,0 +1,61 @@
+# ぽかぽかタウン（game/）の自動テスト。
+# PR を作ると自動で走り、静的チェック（npm run check）とブラウザでのスモークテスト（13シナリオ）を行う。
+# スクリーンショットは Actions の実行結果ページの「Artifacts」→ game-screenshots からダウンロードできる。
+name: game-test
+
+on:
+  pull_request:
+    paths:
+      - "game/**"
+      - "AGENTS.md"
+      - ".github/workflows/game-test.yml"
+  push:
+    branches: [main]
+    paths:
+      - "game/**"
+      - ".github/workflows/game-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: game-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: game
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: game/package-lock.json
+
+      - name: 依存を入れる
+        run: npm ci
+
+      - name: 静的チェック
+        run: npm run check
+
+      - name: Chromium を入れる
+        run: npx playwright install --with-deps chromium
+
+      - name: スモークテスト（全部・スクリーンショットつき）
+        run: node tests/smoke.mjs --full --shots
+
+      - name: スクリーンショットを保存
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: game-screenshots
+          path: game/tests/screenshots/
+          if-no-files-found: ignore
+          retention-days: 14
