@@ -1,0 +1,3984 @@
+{
+ "version": "0.2",
+ "W": 64,
+ "H": 68,
+ "tile": 32,
+ "ascii": [
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+  "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+  "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+  "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+  "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+  "................tttttttttttttttttttttttttttttttt................",
+  "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+  "Xtjtjtjtjtjtjtjt########################c##########.###########X",
+  "Xjjjjjjjjjjjjjjj########################c##########.###########X",
+  "Xtjjj######jjjjj########################c##########.###########X",
+  "Xjjjj######jtjjj########################c##########.###########X",
+  "Xtjjj######jjjtjpppppppp#######DD#######c####DD####.###########X",
+  "Xjjtj##DD##jjttjppppppppppptttppppptpptppppppppppppp###########X",
+  "XtjjjjtkktjjjttjppppptpppppppppppppptpptptttpptttpppwwwwwttwwwwX",
+  "Xjjjjjjkkjjjjjjjpppppppppppppppppttwt============wwwtttwwwwwwwwX",
+  "Xtjttjtkktjjjjttp####ppppppppppppppw==============ww,t,,,,ttctcX",
+  "Xjjttjjkkjjjjjjjp####ptpppppppptppp===oooooooooo===w,,tt,,,tctcX",
+  "Xtjjjjjkkjjttjtjp####pppppppppppptp==oooooooooooo==w,,,,,,,tctcX",
+  "Xjjjjjjkkjjjjttjp##D#tpttpppttppppp==oooooooooooo==w,tt,t,,,,,,X",
+  "Xtjjjjtkktjjjttjpppppppppppppptpppp==oooooooooooo==w.#########.X",
+  "Xjjjjjjkkjjjjtjjtttppppppptpppppppp==oooooooooooo==w.#########.X",
+  "Xtjtjjjkkjjjtjttppppppppttpttpppppp===oooooooooo===w.#########.X",
+  "Xjjjjjttttjjjjjjtttppppppppppppppppw==============ww.#########.X",
+  "Xtjjjjjkkjjjtjtjpppppppttpppttpppppww============www.#########.X",
+  "Xjjjjjjkkjjjjjtjttpppptpppppppptpppwwwwss====sstwwww.#########.X",
+  "XttttttkktttttttpppppppppppppppppppwtwwstzzzzsswwttwwwwwwwwttwwX",
+  "X.#####kk###############aa###########,,sszzzzsswwwwwtwwwwwwwwwwX",
+  "X.#####kk###############aa###########,,sszzzzstwwwwwwwwttwwwwtwX",
+  "X.##D##kk#D###D###D##D##aa#D###D##D##,tst====tswwwwwwwwwtttwwwwX",
+  "Xtaaaaaaataataattaattattaaaatttataaattass====stttwwwwwwwwwwwwwwX",
+  "X.aaaaaaaaaaaaaaaaaaaaaaaaaataaaaaaaaaast====ssqqttq######.....X",
+  "X.aaaaaaaaaatttaaaaaaaaaaaaaaattaaaaaaass====ssqqttq######.....X",
+  "X.ttatattaattttaataattataattatttaaatttast====tsqqttt######.....X",
+  "X.cc############cc######cc###########t,ss====ssqqqqt##DD##tt...X",
+  "X.cc############cc######cc###########,,ts====ttqqqqqqqqqqqttqqqX",
+  "X.cc############cc######cc###########,tsszzzzssqtqqqtqtqqqqqtqqX",
+  "X.cc##DD####DD##cc######cc##D########,,sszzzzssqtqqqtqtqqqqqtqqX",
+  "ssssssssstsssssttsssssstsssssstssssstssss====ssqqqqqqqqqqqqqqqqX",
+  "sssstssssssssssssssstsssssssssssstsssssss====ssqqqqqqqqqqqqqqqqX",
+  "=====================================zz======ssqqqqqqqqqqqqqqqqX",
+  "=====================================zz======ss,,,,,,,,,,,,,,,,X",
+  "sssssssstssssssssssssss==sstssstsssssssss====ss,t,,t,,t,,t,,t,,X",
+  "sssssstssssssssssstssss==stttssssssstttss====ss,,,,,,,,,,,,,,,,X",
+  "Xttttttttttddttttttttss==stt#####t,,tttsszzzzss,t,#########ccttX",
+  "Xtttttttt,tddttt,,,,tst==sst#####t,####sszzzzss,,,#########ccccX",
+  "Xttttttttpppppp,ttt,tss==sst#####tt####ts====st,,,#########ttccX",
+  "Xttttttttptttpp,ttt,tst==stt##D##tt##D#ss====ss,,,#########ttccX",
+  "Xttttttttttttttt,,,,tss==ssttt,,ttttt,tss====ss,,,#########ccccX",
+  "Xttttttttptttpp,,,,ttss==ssnnnnntnnnnntst=====ssnnnnnccccccccccX",
+  "Xt,t,,t,,pppppt,ttt,tss==ssnnnnnnnnnnnnnss====sssnnnn,,,,,,,,,,X",
+  "Xtdtttddddddddddtttddst==sst######c####tss=====sss,,,,,,#######X",
+  "Xtdtttdddddddddttddddss==sst######c####,tss=====sss,,,,,#######X",
+  "Xt,,tt,,,,,dd,,tt,,,tss==sst######c####,,tt======sss,,,,#######X",
+  "Xtdtttdttd,ddt,ttt,ttss==stt######c##D#tttts======tts,,,###D###X",
+  "Xtdtttdttd,dd,,ttt,ttss==ss,ttttttctt,,ttttss======tssccqtqqqtqX",
+  "Xtdtttdttd,dd,,ttt,,tst==ssnnnntttnnnntnnnnnss======ssscqtqqqtqX",
+  "Xtddddddddtddt,ttt,ttss==ssnnnnntttntnnnnnnnnss======sssqtqqqtqX",
+  "Xtdddddttd,ddddddddttss==sst#####tt,tt,cteeeeess======sss,,,,t,X",
+  "Xtdddddttd,dddddddddtss==sst#####,,####cettteeess======sts,,,,,X",
+  "Xtdtttdddd,dtttt###,tss==sst#####tt####cettteee,ss======ssttt,,X",
+  "Xtdtttdttt,dtttt###,tst==stt##D##tt##D#cettteee,,ss======sttt,,X",
+  "Xtdtttdttt,dd,,,###,tss==ssttt,tttttt,tctttttte,,,ss======sss,tX",
+  "Xtdtttddddtdd,,,,,,,tst==ssnnnnnntnnnntnnnnnnntnnnnss======ttstX",
+  "Xttttttttttttttttttttss==ssnnnnnnnnnnnnnnnnnnnnnnnnnss======tssX",
+  "XXXXXXXXXXXXXXXXXXXXXss==ssXXXXXXXXXXXXXXXXXXXXXXXXXXss======sss",
+  "XXXXXXXXXXXXXXXXXXXXXss==ssXXXXXXXXXXXXXXXXXXXXXXXXXXXss======ss"
+ ],
+ "ground": [
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+  "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+  "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+  "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+  "ggggggggggggggggMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMgggggggggggggggg",
+  "ggggggggggggggggMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMgggggggggggggggg",
+  "XSSSSSSSSSSSSSSSCCCCCCCCggggggggggggggggCggggggggggggggggggggggX",
+  "XSSSSSSSSSSSSSSSCCCCCCCCggggggggggggggggCggggggggggggggggggggggX",
+  "XSSSSSSSSSSSSSSSCCCCCCCCggggggggggggggggCggggggggggggggggggggggX",
+  "XSSSSSSSSSSSSSSSCCCCCCCCggggggggggggggggCggggggggggggggggggggggX",
+  "XSSSSSSSSSSSSSSSGGGGGGGGggggggggggggggggCggggggggggggggggggggggX",
+  "XSSSSSSSSSSSSSSSGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGgggggggggggX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVVVVVVVVVVVVX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVlllllllCCCCX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVlllllllCCCCX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVlllllllCCCCX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVlllllllllllX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVgggggggggggX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVgggggggggggX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVgggggggggggX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVgggggggggggX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVgggggggggggX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVgggggggggggX",
+  "XSSSSSSKKSSSSSSSGGGGGGGGGGGGGGGGGGGVVVVVVVVVVVVVVVVVVVVVVVVVVVVX",
+  "XggggggKKgggggggggggggggZZgggggggggggllggggggggVVVVVVVVVVVVVVVVX",
+  "XggggggKKgggggggggggggggZZgggggggggggllggggggggVVVVVVVVVVVVVVVVX",
+  "XggggggKKgggggggggggggggZZgggggggggggllggggggggVVVVVVVVVVVVVVVVX",
+  "XgZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZggggggggVVVVVVVVVVVVVVVVX",
+  "XgZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZggggggggPPPPPgggggggggggX",
+  "XgZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZggggggggPPPPPgggggggggggX",
+  "XgZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZggggggggPPPPPgggggggggggX",
+  "XgCCggggggggggggCCggggggCCgggggggggggllggggggggPPPPPgggggggggggX",
+  "XgCCggggggggggggCCggggggCCgggggggggggllggggggggPPPPPPPPPPPPPPPPX",
+  "XgCCggggggggggggCCggggggCCgggggggggggllggggggggPPPPPPPPPPPPPPPPX",
+  "XgCCggggggggggggCCggggggCCgggggggggggllggggggggPPPPPPPPPPPPPPPPX",
+  "XggggggggggggggggggggggggggggggggggggggggggggggPPPPPPPPPPPPPPPPX",
+  "XggggggggggggggggggggggggggggggggggggggggggggggPPPPPPPPPPPPPPPPX",
+  "XggggggggggggggggggggggggggggggggggggggggggggggPPPPPPPPPPPPPPPPX",
+  "XggggggggggggggggggggggggggggggggggggggggggggggllllllllllllllllX",
+  "XggggggggggggggggggggggggggggggggggggggggggggggllllllllllllllllX",
+  "XggggggggggggggggggggggggggggggggggggggggggggggllllllllllllllllX",
+  "XllllllllllDDllllllllggggggllllllllllllllllllllllllCCCCCCCCCCCCX",
+  "XllllllllllDDllllllllggggggllllllllllllllllllllllllCCCCCCCCCCCCX",
+  "XllllllllGGGGGGllllllggggggllllllCCllllllllllllllllCCCCCCCCCCCCX",
+  "XllllllllGGGGGGllllllggggggllllllCCllllllllllllllllCCCCCCCCCCCCX",
+  "XllllllllGGGGGGllllllggggggllllllCCllllllllllllllllCCCCCCCCCCCCX",
+  "XllllllllGGGGGGllllllggggggRRRRRRRRRRRRRRRRRRRRRRRRRRCCCCCCCCCCX",
+  "XllllllllGGGGGGllllllggggggRRRRRRRRRRRRRRRRRRRRRRRRRRllllllllllX",
+  "XlDDDDDDDDDDDDDDDDDDDgggggglllllllCllllllllllllllllllllllllllllX",
+  "XlDDDDDDDDDDDDDDDDDDDgggggglllllllCllllllllllllllllllllllllllllX",
+  "XllllllllllDDllllllllgggggglllllllCllllllllllllllllllllllllllllX",
+  "XlDDDDDDDDlDDllllllllgggggglllllllCllllllllllllllllllllllllllllX",
+  "XlDDDDDDDDlDDllllllllgggggglllllllClllllllllllllllllllCCPPPPPPPX",
+  "XlDDDDDDDDlDDllllllllggggggRRRRRRRRRRRRRRRRRRRRRRRRRRlCCPPPPPPPX",
+  "XlDDDDDDDDlDDllllllllggggggRRRRRRRRRRRRRRRRRRRRRRRRRRlCCPPPPPPPX",
+  "XlDDDDDDDDlDDDDDDDDDlggggggllllllllllllCOOOOOOOllllllllllllllllX",
+  "XlDDDDDDDDlDDDDDDDDDlggggggllllllllllllCOOOOOOOllllllllllllllllX",
+  "XlDDDDDDDDlDDllllllllggggggllllllCCllllCOOOOOOOllllllllllllllllX",
+  "XlDDDDDDDDlDDllllllllggggggllllllCCllllCOOOOOOOllllllllllllllllX",
+  "XlDDDDDDDDlDDllllllllggggggllllllCCllllCOOOOOOOllllllllllllllllX",
+  "XlDDDDDDDDlDDllllllllggggggRRRRRRRRRRRRRRRRRRRRRRRRRRllllllllllX",
+  "XllllllllllllllllllllggggggRRRRRRRRRRRRRRRRRRRRRRRRRRllllllllllX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+ ],
+ "roads": [
+  {
+   "id": "avenue",
+   "name": "へいわだい どおり（北は 駅前通り）",
+   "carriage": 4,
+   "side": 2,
+   "pieces": [
+    {
+     "t": "seg",
+     "a": [
+      43,
+      26
+     ],
+     "b": [
+      43,
+      48
+     ]
+    },
+    {
+     "t": "arc",
+     "c": [
+      51,
+      48
+     ],
+     "r": 8,
+     "a0": 3.141592653589793,
+     "a1": 2.356194490192345
+    },
+    {
+     "t": "seg",
+     "a": [
+      45.34314575050762,
+      53.65685424949238
+     ],
+     "b": [
+      65.34314575050762,
+      73.65685424949238
+     ]
+    }
+   ]
+  },
+  {
+   "id": "satsuki",
+   "name": "さつき通り",
+   "carriage": 2,
+   "side": 2,
+   "pieces": [
+    {
+     "t": "seg",
+     "a": [
+      -1.5,
+      42
+     ],
+     "b": [
+      43,
+      42
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exit",
+   "name": "南の出口通り（シティへ）",
+   "carriage": 2,
+   "side": 2,
+   "pieces": [
+    {
+     "t": "seg",
+     "a": [
+      24,
+      42
+     ],
+     "b": [
+      24,
+      69.5
+     ]
+    }
+   ]
+  }
+ ],
+ "ring": {
+  "x0": 36,
+  "y0": 17,
+  "x1": 50,
+  "y1": 25,
+  "r": 3,
+  "w": 2
+ },
+ "fillets": [
+  {
+   "at": [
+    41,
+    41
+   ],
+   "sx": -1,
+   "sy": -1,
+   "r": 1.5
+  },
+  {
+   "at": [
+    41,
+    43
+   ],
+   "sx": -1,
+   "sy": 1,
+   "r": 1.5
+  },
+  {
+   "at": [
+    23,
+    43
+   ],
+   "sx": -1,
+   "sy": 1,
+   "r": 1.5
+  },
+  {
+   "at": [
+    25,
+    43
+   ],
+   "sx": 1,
+   "sy": 1,
+   "r": 1.5
+  },
+  {
+   "at": [
+    41,
+    26
+   ],
+   "sx": -1,
+   "sy": 1,
+   "r": 1.5
+  },
+  {
+   "at": [
+    45,
+    26
+   ],
+   "sx": 1,
+   "sy": 1,
+   "r": 1.5
+  }
+ ],
+ "crosswalks": [
+  {
+   "id": "ring-mouth",
+   "x0": 41,
+   "x1": 45,
+   "y0": 27.6,
+   "y1": 29.6,
+   "bars": "v",
+   "signal": false
+  },
+  {
+   "id": "jct-north",
+   "x0": 41,
+   "x1": 45,
+   "y0": 37,
+   "y1": 39,
+   "bars": "v",
+   "signal": true
+  },
+  {
+   "id": "jct-south",
+   "x0": 41,
+   "x1": 45,
+   "y0": 45,
+   "y1": 47,
+   "bars": "v",
+   "signal": true
+  },
+  {
+   "id": "jct-west",
+   "x0": 37,
+   "x1": 39,
+   "y0": 41,
+   "y1": 43,
+   "bars": "h",
+   "signal": true
+  }
+ ],
+ "marks": [
+  {
+   "k": "stop",
+   "x0": 43,
+   "x1": 45,
+   "y": 36.1
+  },
+  {
+   "k": "stop",
+   "x0": 41,
+   "x1": 43,
+   "y": 47.9
+  },
+  {
+   "k": "stopv",
+   "x": 36.1,
+   "y0": 41,
+   "y1": 43
+  },
+  {
+   "k": "arrow",
+   "x": 42,
+   "y": 50.2,
+   "dir": "n",
+   "turn": "l"
+  },
+  {
+   "k": "arrow",
+   "x": 44,
+   "y": 33.6,
+   "dir": "s",
+   "turn": "r"
+  },
+  {
+   "k": "arrow",
+   "x": 33.2,
+   "y": 41.5,
+   "dir": "e",
+   "turn": "lr"
+  },
+  {
+   "k": "diamond",
+   "x": 42,
+   "y": 33.4
+  },
+  {
+   "k": "stop",
+   "x0": 23,
+   "x1": 25,
+   "y": 45.6
+  },
+  {
+   "k": "text",
+   "t": "止まれ",
+   "x": 24,
+   "y": 47.3,
+   "rot": 0
+  },
+  {
+   "k": "text",
+   "t": "30",
+   "x": 12,
+   "y": 42,
+   "rot": -90,
+   "size": 0.7
+  },
+  {
+   "k": "ringArrow",
+   "x": 44,
+   "y": 17,
+   "dir": "e"
+  },
+  {
+   "k": "ringArrow",
+   "x": 50,
+   "y": 21,
+   "dir": "s"
+  },
+  {
+   "k": "ringArrow",
+   "x": 38.2,
+   "y": 25,
+   "dir": "w"
+  },
+  {
+   "k": "ringArrow",
+   "x": 36,
+   "y": 18.6,
+   "dir": "n"
+  },
+  {
+   "k": "bay",
+   "x0": 35.9,
+   "x1": 40.3,
+   "y0": 16.1,
+   "y1": 17.2,
+   "label": ""
+  },
+  {
+   "k": "bay",
+   "x0": 40.6,
+   "x1": 49.1,
+   "y0": 16.1,
+   "y1": 17.9,
+   "label": "バス",
+   "c": "#F2C14E"
+  },
+  {
+   "k": "bay",
+   "x0": 35.1,
+   "x1": 36.1,
+   "y0": 19.4,
+   "y1": 23.6,
+   "label": ""
+  }
+ ],
+ "buildings": [
+  {
+   "asset": "bld.bikeshed",
+   "x": 16,
+   "y": 9
+  },
+  {
+   "asset": "bld.station",
+   "x": 24,
+   "y": 9,
+   "act": "transit",
+   "door": [
+    31,
+    32
+   ]
+  },
+  {
+   "asset": "bld.supermarket",
+   "x": 41,
+   "y": 9,
+   "act": "buy:market",
+   "door": [
+    45,
+    46
+   ]
+  },
+  {
+   "asset": "bld.mansion",
+   "x": 52,
+   "y": 9
+  },
+  {
+   "asset": "bld.shrine",
+   "x": 5,
+   "y": 11,
+   "act": "visit",
+   "door": [
+    7,
+    8
+   ]
+  },
+  {
+   "asset": "bld.koban",
+   "x": 17,
+   "y": 17,
+   "act": "visit",
+   "door": [
+    19
+   ]
+  },
+  {
+   "asset": "bld.shop.furniture",
+   "x": 2,
+   "y": 28,
+   "act": "buy:furniture",
+   "door": [
+    4
+   ]
+  },
+  {
+   "asset": "bld.shop.greengrocer",
+   "x": 9,
+   "y": 28,
+   "act": "visit",
+   "door": [
+    10
+   ]
+  },
+  {
+   "asset": "bld.shop.bakery",
+   "x": 13,
+   "y": 28,
+   "act": "work:bakery",
+   "door": [
+    14
+   ]
+  },
+  {
+   "asset": "bld.shop.florist",
+   "x": 17,
+   "y": 28,
+   "act": "visit",
+   "door": [
+    18
+   ]
+  },
+  {
+   "asset": "bld.shop.books",
+   "x": 20,
+   "y": 28,
+   "act": "visit",
+   "door": [
+    21
+   ]
+  },
+  {
+   "asset": "bld.shop.diner",
+   "x": 26,
+   "y": 28,
+   "act": "work:crepe",
+   "door": [
+    27
+   ]
+  },
+  {
+   "asset": "bld.shop.cafe",
+   "x": 30,
+   "y": 28,
+   "act": "visit",
+   "door": [
+    31
+   ]
+  },
+  {
+   "asset": "bld.shop.wagashi",
+   "x": 33,
+   "y": 28,
+   "act": "visit",
+   "door": [
+    34
+   ]
+  },
+  {
+   "asset": "bld.post",
+   "x": 4,
+   "y": 35,
+   "act": "visit",
+   "door": [
+    6,
+    7
+   ]
+  },
+  {
+   "asset": "bld.sento",
+   "x": 10,
+   "y": 35,
+   "act": "visit",
+   "door": [
+    12,
+    13
+   ]
+  },
+  {
+   "asset": "bld.apartment",
+   "x": 18,
+   "y": 35
+  },
+  {
+   "asset": "bld.nursery",
+   "x": 26,
+   "y": 35,
+   "act": "visit",
+   "door": [
+    28
+   ]
+  },
+  {
+   "asset": "bld.house.modern",
+   "x": 32,
+   "y": 35,
+   "opts": {
+    "roof": [
+     "p-kawara-brown",
+     "#8B5E48"
+    ],
+    "wall": "#FBF3E6"
+   }
+  },
+  {
+   "asset": "bld.office",
+   "x": 53,
+   "y": 21
+  },
+  {
+   "asset": "bld.conbini",
+   "x": 52,
+   "y": 32,
+   "door": [
+    54,
+    55
+   ]
+  },
+  {
+   "asset": "bld.gas",
+   "x": 50,
+   "y": 45
+  },
+  {
+   "asset": "bld.famires",
+   "x": 56,
+   "y": 52,
+   "door": [
+    59
+   ]
+  },
+  {
+   "asset": "bld.toilet",
+   "x": 16,
+   "y": 61
+  },
+  {
+   "asset": "bld.house.modern",
+   "x": 28,
+   "y": 45,
+   "opts": {
+    "roof": [
+     "p-slate",
+     "#5F6A72"
+    ]
+   },
+   "door": [
+    30
+   ]
+  },
+  {
+   "asset": "bld.house.hiraya",
+   "x": 35,
+   "y": 46,
+   "act": "visit",
+   "door": [
+    37
+   ]
+  },
+  {
+   "asset": "bld.apartment",
+   "x": 28,
+   "y": 52
+  },
+  {
+   "asset": "bld.house.old",
+   "x": 35,
+   "y": 52,
+   "act": "visit",
+   "door": [
+    37
+   ]
+  },
+  {
+   "asset": "bld.house.modern",
+   "x": 28,
+   "y": 59,
+   "opts": {
+    "roof": [
+     "p-metal-roof",
+     "#8FA1AE"
+    ],
+    "wall": "#EEF3E6",
+    "door": "#5C7C8C"
+   },
+   "door": [
+    30
+   ]
+  },
+  {
+   "asset": "bld.house.hiraya",
+   "x": 35,
+   "y": 60,
+   "door": [
+    37
+   ]
+  }
+ ],
+ "props": [
+  {
+   "asset": "bg.roofs",
+   "x": 0,
+   "y": 0,
+   "opts": {
+    "seed": 1
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 4,
+   "y": 0,
+   "opts": {
+    "seed": 2
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 8,
+   "y": 0,
+   "opts": {
+    "seed": 3
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 12,
+   "y": 0,
+   "opts": {
+    "seed": 4
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 16,
+   "y": 0,
+   "opts": {
+    "seed": 5
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 20,
+   "y": 0,
+   "opts": {
+    "seed": 6
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 24,
+   "y": 0,
+   "opts": {
+    "seed": 7
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 28,
+   "y": 0,
+   "opts": {
+    "seed": 8
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 32,
+   "y": 0,
+   "opts": {
+    "seed": 9
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 36,
+   "y": 0,
+   "opts": {
+    "seed": 10
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 40,
+   "y": 0,
+   "opts": {
+    "seed": 11
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 44,
+   "y": 0,
+   "opts": {
+    "seed": 12
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 48,
+   "y": 0,
+   "opts": {
+    "seed": 13
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 52,
+   "y": 0,
+   "opts": {
+    "seed": 14
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 56,
+   "y": 0,
+   "opts": {
+    "seed": 15
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 60,
+   "y": 0,
+   "opts": {
+    "seed": 16
+   },
+   "z": -1
+  },
+  {
+   "asset": "prop.wall",
+   "x": 0,
+   "y": 2,
+   "opts": {
+    "len": 64,
+    "kind": "fence"
+   },
+   "z": -1
+  },
+  {
+   "asset": "prop.wall",
+   "x": 0,
+   "y": 8,
+   "opts": {
+    "len": 16,
+    "kind": "fence"
+   }
+  },
+  {
+   "asset": "prop.wall",
+   "x": 48,
+   "y": 8,
+   "opts": {
+    "len": 16,
+    "kind": "fence"
+   }
+  },
+  {
+   "asset": "rail.pole",
+   "x": 3,
+   "y": 2
+  },
+  {
+   "asset": "rail.pole",
+   "x": 11,
+   "y": 2
+  },
+  {
+   "asset": "rail.pole",
+   "x": 19,
+   "y": 2
+  },
+  {
+   "asset": "rail.pole",
+   "x": 27,
+   "y": 2
+  },
+  {
+   "asset": "rail.pole",
+   "x": 35,
+   "y": 2
+  },
+  {
+   "asset": "rail.pole",
+   "x": 43,
+   "y": 2
+  },
+  {
+   "asset": "rail.pole",
+   "x": 51,
+   "y": 2
+  },
+  {
+   "asset": "rail.pole",
+   "x": 59,
+   "y": 2
+  },
+  {
+   "asset": "rail.train",
+   "x": 18,
+   "y": 5
+  },
+  {
+   "asset": "rail.canopy",
+   "x": 22,
+   "y": 7,
+   "over": true
+  },
+  {
+   "asset": "prop.bench",
+   "x": 17,
+   "y": 8,
+   "z": -0.5
+  },
+  {
+   "asset": "prop.bench",
+   "x": 43,
+   "y": 8,
+   "z": -0.5
+  },
+  {
+   "asset": "prop.vending",
+   "x": 46,
+   "y": 8,
+   "opts": {
+    "c": "#2E6DB4"
+   }
+  },
+  {
+   "asset": "prop.vending",
+   "x": 28,
+   "y": 14,
+   "opts": {
+    "c": "#D8433C"
+   }
+  },
+  {
+   "asset": "prop.vending",
+   "x": 29,
+   "y": 14,
+   "opts": {
+    "c": "#2E6DB4"
+   }
+  },
+  {
+   "asset": "prop.vending",
+   "x": 35,
+   "y": 14,
+   "opts": {
+    "c": "#F4F4F2"
+   }
+  },
+  {
+   "asset": "prop.phone",
+   "x": 38,
+   "y": 14
+  },
+  {
+   "asset": "prop.trash",
+   "x": 27,
+   "y": 14
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 21,
+   "y": 15
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 39,
+   "y": 15
+  },
+  {
+   "asset": "prop.mapboard",
+   "x": 33,
+   "y": 16
+  },
+  {
+   "asset": "park.clock",
+   "x": 26,
+   "y": 22
+  },
+  {
+   "asset": "prop.flowerbed",
+   "x": 24,
+   "y": 23
+  },
+  {
+   "asset": "prop.flowerbed",
+   "x": 27,
+   "y": 23
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 22,
+   "y": 18
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 31,
+   "y": 18
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 22,
+   "y": 26
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 31,
+   "y": 26
+  },
+  {
+   "asset": "prop.bench",
+   "x": 23,
+   "y": 20
+  },
+  {
+   "asset": "prop.bench",
+   "x": 28,
+   "y": 20
+  },
+  {
+   "asset": "prop.bench",
+   "x": 28,
+   "y": 25
+  },
+  {
+   "asset": "prop.bench",
+   "x": 23,
+   "y": 25
+  },
+  {
+   "asset": "prop.bikerack",
+   "x": 16,
+   "y": 22,
+   "opts": {}
+  },
+  {
+   "asset": "prop.bikerack",
+   "x": 16,
+   "y": 24,
+   "opts": {
+    "cols": [
+     "#8E24AA",
+     "#FDD835",
+     "#3E2723",
+     "#1E88E5"
+    ]
+   }
+  },
+  {
+   "asset": "prop.bicycle",
+   "x": 21,
+   "y": 20,
+   "opts": {}
+  },
+  {
+   "asset": "prop.planter",
+   "x": 16,
+   "y": 26
+  },
+  {
+   "asset": "prop.mailbox",
+   "x": 33,
+   "y": 19
+  },
+  {
+   "asset": "prop.trash",
+   "x": 30,
+   "y": 21
+  },
+  {
+   "asset": "prop.taxistand",
+   "x": 36,
+   "y": 15
+  },
+  {
+   "asset": "veh.taxi",
+   "x": 36,
+   "y": 16.05,
+   "opts": {
+    "dir": "e"
+   }
+  },
+  {
+   "asset": "veh.taxi",
+   "x": 38.1,
+   "y": 16.05,
+   "opts": {
+    "dir": "e"
+   }
+  },
+  {
+   "asset": "prop.busstop",
+   "x": 41,
+   "y": 15,
+   "opts": {
+    "no": "1"
+   }
+  },
+  {
+   "asset": "prop.busstop",
+   "x": 46,
+   "y": 15,
+   "opts": {
+    "no": "2"
+   }
+  },
+  {
+   "asset": "veh.bus",
+   "x": 41.2,
+   "y": 16.05,
+   "opts": {
+    "to": "くうこう"
+   }
+  },
+  {
+   "asset": "veh.car",
+   "x": 35.05,
+   "y": 20,
+   "opts": {
+    "c": "#F1F3F4",
+    "dir": "n"
+   }
+  },
+  {
+   "asset": "nat.tree.big",
+   "x": 42,
+   "y": 19.6,
+   "opts": {}
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 38,
+   "y": 19,
+   "opts": {
+    "flower": false
+   }
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 38,
+   "y": 22,
+   "opts": {
+    "flower": true
+   }
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 47.8,
+   "y": 19,
+   "opts": {
+    "flower": false
+   }
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 47.8,
+   "y": 22,
+   "opts": {
+    "flower": false
+   }
+  },
+  {
+   "asset": "prop.flowerbed",
+   "x": 39.2,
+   "y": 20.6
+  },
+  {
+   "asset": "prop.flowerbed",
+   "x": 45.2,
+   "y": 20.6
+  },
+  {
+   "asset": "park.sign",
+   "x": 44.8,
+   "y": 22.3,
+   "opts": {
+    "name": "ようこそ へいわだい"
+   }
+  },
+  {
+   "asset": "prop.sign.cross",
+   "x": 40,
+   "y": 27
+  },
+  {
+   "asset": "prop.sign.cross",
+   "x": 46,
+   "y": 29
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 47,
+   "y": 26
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 36,
+   "y": 27
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 53,
+   "y": 17
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 56,
+   "y": 20
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 58,
+   "y": 17
+  },
+  {
+   "asset": "park.spring",
+   "x": 54,
+   "y": 18,
+   "opts": {
+    "kind": "panda"
+   }
+  },
+  {
+   "asset": "park.spring",
+   "x": 55,
+   "y": 18,
+   "opts": {
+    "kind": "zou"
+   }
+  },
+  {
+   "asset": "prop.bench",
+   "x": 53,
+   "y": 20
+  },
+  {
+   "asset": "prop.garbage",
+   "x": 57,
+   "y": 15,
+   "opts": {}
+  },
+  {
+   "asset": "veh.car",
+   "x": 59,
+   "y": 17.2,
+   "opts": {
+    "c": "#3B78C4",
+    "dir": "s"
+   }
+  },
+  {
+   "asset": "veh.car",
+   "x": 61,
+   "y": 17.2,
+   "opts": {
+    "c": "#F1F3F4",
+    "dir": "s"
+   }
+  },
+  {
+   "asset": "prop.bikerack",
+   "x": 52,
+   "y": 16,
+   "opts": {}
+  },
+  {
+   "asset": "prop.busstop",
+   "x": 46,
+   "y": 31,
+   "opts": {
+    "no": "3"
+   }
+  },
+  {
+   "asset": "prop.planter",
+   "x": 49,
+   "y": 27
+  },
+  {
+   "asset": "prop.planter",
+   "x": 59,
+   "y": 27
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 52,
+   "y": 28
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 61,
+   "y": 29
+  },
+  {
+   "asset": "prop.bench",
+   "x": 55,
+   "y": 29
+  },
+  {
+   "asset": "prop.bikerack",
+   "x": 56,
+   "y": 30,
+   "opts": {}
+  },
+  {
+   "asset": "prop.wheelstop",
+   "x": 48,
+   "y": 36.2,
+   "z": -0.5
+  },
+  {
+   "asset": "prop.wheelstop",
+   "x": 50,
+   "y": 36.2,
+   "z": -0.5
+  },
+  {
+   "asset": "prop.wheelstop",
+   "x": 52,
+   "y": 36.2,
+   "z": -0.5
+  },
+  {
+   "asset": "prop.wheelstop",
+   "x": 54,
+   "y": 36.2,
+   "z": -0.5
+  },
+  {
+   "asset": "prop.wheelstop",
+   "x": 56,
+   "y": 36.2,
+   "z": -0.5
+  },
+  {
+   "asset": "prop.wheelstop",
+   "x": 58,
+   "y": 36.2,
+   "z": -0.5
+  },
+  {
+   "asset": "prop.wheelstop",
+   "x": 60,
+   "y": 36.2,
+   "z": -0.5
+  },
+  {
+   "asset": "veh.car",
+   "x": 48,
+   "y": 37,
+   "opts": {
+    "c": "#D8433C",
+    "dir": "n"
+   }
+  },
+  {
+   "asset": "veh.car",
+   "x": 52,
+   "y": 37,
+   "opts": {
+    "c": "#F1F3F4",
+    "dir": "n"
+   }
+  },
+  {
+   "asset": "veh.car",
+   "x": 54,
+   "y": 37,
+   "opts": {
+    "c": "#3A3F44",
+    "dir": "n"
+   }
+  },
+  {
+   "asset": "veh.car",
+   "x": 60,
+   "y": 37,
+   "opts": {
+    "c": "#8FC5E8",
+    "dir": "n"
+   }
+  },
+  {
+   "asset": "prop.trash",
+   "x": 58,
+   "y": 35.1
+  },
+  {
+   "asset": "prop.vending",
+   "x": 59,
+   "y": 35.1,
+   "opts": {
+    "c": "#2E6DB4"
+   }
+  },
+  {
+   "asset": "prop.nobori",
+   "x": 51,
+   "y": 34.8,
+   "opts": {
+    "c": "#3BAA6A",
+    "t": "おでん"
+   }
+  },
+  {
+   "asset": "veh.kei",
+   "x": 49.2,
+   "y": 32.2,
+   "opts": {
+    "dir": "s"
+   }
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 48,
+   "y": 43
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 51,
+   "y": 43
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 54,
+   "y": 43
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 57,
+   "y": 43
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 60,
+   "y": 43
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 40,
+   "y": 30
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 45,
+   "y": 30
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 40,
+   "y": 34
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 45,
+   "y": 34
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 40,
+   "y": 32
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 45,
+   "y": 36
+  },
+  {
+   "asset": "prop.signal",
+   "x": 39,
+   "y": 36,
+   "opts": {}
+  },
+  {
+   "asset": "prop.signal",
+   "x": 46,
+   "y": 36,
+   "opts": {
+    "flip": true
+   }
+  },
+  {
+   "asset": "prop.signal",
+   "x": 39,
+   "y": 47,
+   "opts": {}
+  },
+  {
+   "asset": "prop.signal",
+   "x": 46,
+   "y": 47,
+   "opts": {
+    "flip": true
+   }
+  },
+  {
+   "asset": "prop.signal",
+   "x": 36,
+   "y": 39,
+   "opts": {}
+  },
+  {
+   "asset": "prop.signal",
+   "x": 36,
+   "y": 44,
+   "opts": {}
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 40.2,
+   "y": 50
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 41.6,
+   "y": 54
+  },
+  {
+   "asset": "prop.sign.stop",
+   "x": 22,
+   "y": 46
+  },
+  {
+   "asset": "prop.hydrant",
+   "x": 38,
+   "y": 44
+  },
+  {
+   "asset": "veh.car",
+   "x": 41.55,
+   "y": 34.6,
+   "opts": {
+    "c": "#C9CED3",
+    "dir": "n"
+   },
+   "moving": true
+  },
+  {
+   "asset": "veh.car",
+   "x": 43.55,
+   "y": 40.6,
+   "opts": {
+    "c": "#6FAE7E",
+    "dir": "s"
+   },
+   "moving": true
+  },
+  {
+   "asset": "veh.car",
+   "x": 14,
+   "y": 41.08,
+   "opts": {
+    "c": "#E8D9B8",
+    "dir": "e"
+   },
+   "moving": true
+  },
+  {
+   "asset": "veh.car",
+   "x": 57,
+   "y": 56.3,
+   "opts": {
+    "c": "#3B78C4",
+    "dir": "n"
+   }
+  },
+  {
+   "asset": "veh.car",
+   "x": 61,
+   "y": 56.3,
+   "opts": {
+    "c": "#F1F3F4",
+    "dir": "n"
+   }
+  },
+  {
+   "asset": "shrine.torii",
+   "x": 6.5,
+   "y": 24
+  },
+  {
+   "asset": "shrine.lantern",
+   "x": 6,
+   "y": 17
+  },
+  {
+   "asset": "shrine.lantern",
+   "x": 9,
+   "y": 17
+  },
+  {
+   "asset": "shrine.lantern",
+   "x": 6,
+   "y": 21
+  },
+  {
+   "asset": "shrine.lantern",
+   "x": 9,
+   "y": 21
+  },
+  {
+   "asset": "shrine.komainu",
+   "x": 6,
+   "y": 15
+  },
+  {
+   "asset": "shrine.komainu",
+   "x": 9,
+   "y": 15,
+   "opts": {
+    "flip": true
+   }
+  },
+  {
+   "asset": "shrine.chozuya",
+   "x": 3,
+   "y": 17
+  },
+  {
+   "asset": "shrine.ema",
+   "x": 11,
+   "y": 19
+  },
+  {
+   "asset": "nat.tree.big",
+   "x": 11,
+   "y": 11,
+   "opts": {
+    "rope": true
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 1,
+   "y": 9,
+   "opts": {
+    "c": "#4E9A52",
+    "flip": true
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 3,
+   "y": 9,
+   "opts": {
+    "c": "#4E9A52",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 5,
+   "y": 9,
+   "opts": {
+    "c": "#4E9A52",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 7,
+   "y": 9,
+   "opts": {
+    "c": "#4E9A52",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 9,
+   "y": 9,
+   "opts": {
+    "c": "#4E9A52",
+    "flip": true
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 11,
+   "y": 9,
+   "opts": {
+    "c": "#4E9A52",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 13,
+   "y": 9,
+   "opts": {
+    "c": "#4E9A52",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 15,
+   "y": 9,
+   "opts": {
+    "c": "#4E9A52",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 1,
+   "y": 11,
+   "opts": {
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 1,
+   "y": 13,
+   "opts": {
+    "flip": true
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 14,
+   "y": 13.25,
+   "opts": {
+    "c": "#5E9E5A",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 1,
+   "y": 15,
+   "opts": {
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 13.7,
+   "y": 14.75,
+   "opts": {
+    "c": "#4E9A52",
+    "flip": true
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 1,
+   "y": 17,
+   "opts": {
+    "flip": true
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 14.3,
+   "y": 17,
+   "opts": {
+    "c": "#6AAE58",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 1,
+   "y": 19,
+   "opts": {
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 14,
+   "y": 19.25,
+   "opts": {
+    "c": "#5E9E5A",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 1,
+   "y": 21,
+   "opts": {
+    "flip": true
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 13.7,
+   "y": 20.75,
+   "opts": {
+    "c": "#4E9A52",
+    "flip": true
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 1,
+   "y": 23,
+   "opts": {
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 14.3,
+   "y": 23,
+   "opts": {
+    "c": "#6AAE58",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 1,
+   "y": 25,
+   "opts": {
+    "flip": true
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 14,
+   "y": 25.25,
+   "opts": {
+    "c": "#5E9E5A",
+    "flip": false
+   }
+  },
+  {
+   "asset": "nat.tree.big",
+   "x": 12.4,
+   "y": 21.4,
+   "opts": {
+    "c": "#4F8F57"
+   }
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 1,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 2,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 3,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 4,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 5,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 6,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 9,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 10,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 11,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 12,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 13,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 14,
+   "y": 27
+  },
+  {
+   "asset": "shrine.fence",
+   "x": 15,
+   "y": 27
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 3,
+   "y": 23
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 12,
+   "y": 23
+  },
+  {
+   "asset": "nat.tree.sakura",
+   "x": 2,
+   "y": 13
+  },
+  {
+   "asset": "prop.jizo",
+   "x": 12,
+   "y": 25
+  },
+  {
+   "asset": "prop.arcade_gate",
+   "x": 24,
+   "y": 28
+  },
+  {
+   "asset": "prop.arcade_sign",
+   "x": 38,
+   "y": 30
+  },
+  {
+   "asset": "prop.arcade_sign",
+   "x": 1,
+   "y": 31
+  },
+  {
+   "asset": "prop.suzuran",
+   "x": 5,
+   "y": 34,
+   "opts": {
+    "c": "#3D8FC6"
+   }
+  },
+  {
+   "asset": "prop.suzuran",
+   "x": 11,
+   "y": 34,
+   "opts": {
+    "c": "#3D8FC6"
+   }
+  },
+  {
+   "asset": "prop.suzuran",
+   "x": 17,
+   "y": 34,
+   "opts": {
+    "c": "#3D8FC6"
+   }
+  },
+  {
+   "asset": "prop.suzuran",
+   "x": 23,
+   "y": 34,
+   "opts": {
+    "c": "#3D8FC6"
+   }
+  },
+  {
+   "asset": "prop.suzuran",
+   "x": 29,
+   "y": 34,
+   "opts": {
+    "c": "#3D8FC6"
+   }
+  },
+  {
+   "asset": "prop.suzuran",
+   "x": 35,
+   "y": 34,
+   "opts": {
+    "c": "#3D8FC6"
+   }
+  },
+  {
+   "asset": "prop.nobori",
+   "x": 9,
+   "y": 31,
+   "opts": {
+    "c": "#E53935",
+    "t": "やさい"
+   }
+  },
+  {
+   "asset": "prop.nobori",
+   "x": 16,
+   "y": 31,
+   "opts": {
+    "c": "#F28C28",
+    "t": "やきたて"
+   }
+  },
+  {
+   "asset": "prop.nobori",
+   "x": 19.6,
+   "y": 31,
+   "opts": {
+    "c": "#D9607E",
+    "t": "はな"
+   }
+  },
+  {
+   "asset": "prop.nobori",
+   "x": 29.2,
+   "y": 31,
+   "opts": {
+    "c": "#E53935",
+    "t": "ランチ"
+   }
+  },
+  {
+   "asset": "prop.nobori",
+   "x": 36.4,
+   "y": 31,
+   "opts": {
+    "c": "#43A047",
+    "t": "だんご"
+   }
+  },
+  {
+   "asset": "prop.stall",
+   "x": 12.6,
+   "y": 33,
+   "opts": {
+    "label": "たこやき",
+    "c": "#E53935"
+   }
+  },
+  {
+   "asset": "prop.stall",
+   "x": 30,
+   "y": 33,
+   "opts": {
+    "label": "たいやき",
+    "c": "#1E88E5"
+   }
+  },
+  {
+   "asset": "prop.bench",
+   "x": 7,
+   "y": 34
+  },
+  {
+   "asset": "prop.bench",
+   "x": 20,
+   "y": 34
+  },
+  {
+   "asset": "prop.bench",
+   "x": 26,
+   "y": 34
+  },
+  {
+   "asset": "prop.planter",
+   "x": 2,
+   "y": 34
+  },
+  {
+   "asset": "prop.planter",
+   "x": 36,
+   "y": 34
+  },
+  {
+   "asset": "prop.aboard",
+   "x": 15,
+   "y": 31
+  },
+  {
+   "asset": "prop.aboard",
+   "x": 32,
+   "y": 31
+  },
+  {
+   "asset": "prop.gacha",
+   "x": 22.6,
+   "y": 31
+  },
+  {
+   "asset": "prop.bicycle",
+   "x": 12,
+   "y": 31
+  },
+  {
+   "asset": "prop.bicycle",
+   "x": 28,
+   "y": 31.2
+  },
+  {
+   "asset": "prop.pots",
+   "x": 37,
+   "y": 31,
+   "opts": {}
+  },
+  {
+   "asset": "prop.mailbox",
+   "x": 9,
+   "y": 39
+  },
+  {
+   "asset": "prop.bicycle",
+   "x": 15,
+   "y": 39
+  },
+  {
+   "asset": "prop.bicycle",
+   "x": 23,
+   "y": 39
+  },
+  {
+   "asset": "prop.vending",
+   "x": 16,
+   "y": 39,
+   "opts": {
+    "c": "#D8433C"
+   }
+  },
+  {
+   "asset": "prop.bicycle",
+   "x": 30,
+   "y": 39
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 4,
+   "y": 40
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 20,
+   "y": 40
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 33,
+   "y": 40
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 8,
+   "y": 43,
+   "opts": {
+    "c": "#6AAE58"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 27,
+   "y": 43,
+   "opts": {
+    "c": "#6AAE58"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 31,
+   "y": 43,
+   "opts": {
+    "c": "#6AAE58"
+   }
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 37,
+   "y": 35
+  },
+  {
+   "asset": "nat.shrub",
+   "x": 38,
+   "y": 37,
+   "opts": {
+    "flower": true
+   }
+  },
+  {
+   "asset": "nat.hedge",
+   "x": 1,
+   "y": 45,
+   "opts": {
+    "len": 10
+   }
+  },
+  {
+   "asset": "nat.hedge",
+   "x": 13,
+   "y": 45,
+   "opts": {
+    "len": 8
+   }
+  },
+  {
+   "asset": "nat.hedge",
+   "x": 20,
+   "y": 46,
+   "opts": {
+    "len": 6,
+    "dir": "v"
+   }
+  },
+  {
+   "asset": "nat.hedge",
+   "x": 20,
+   "y": 54,
+   "opts": {
+    "len": 11,
+    "dir": "v"
+   }
+  },
+  {
+   "asset": "nat.hedge",
+   "x": 1,
+   "y": 65,
+   "opts": {
+    "len": 20
+   }
+  },
+  {
+   "asset": "nat.hedge",
+   "x": 1,
+   "y": 46,
+   "opts": {
+    "len": 19,
+    "dir": "v"
+   }
+  },
+  {
+   "asset": "park.ubollard",
+   "x": 11,
+   "y": 45
+  },
+  {
+   "asset": "park.ubollard",
+   "x": 12,
+   "y": 45
+  },
+  {
+   "asset": "park.ubollard",
+   "x": 20,
+   "y": 52
+  },
+  {
+   "asset": "park.ubollard",
+   "x": 20,
+   "y": 53
+  },
+  {
+   "asset": "park.sign",
+   "x": 13.2,
+   "y": 46,
+   "opts": {
+    "name": "さつき こうえん"
+   }
+  },
+  {
+   "asset": "park.pond",
+   "x": 2.4,
+   "y": 46.4
+  },
+  {
+   "asset": "park.fountain",
+   "x": 10,
+   "y": 48
+  },
+  {
+   "asset": "park.clock",
+   "x": 14,
+   "y": 51
+  },
+  {
+   "asset": "park.fujidana",
+   "x": 16,
+   "y": 47
+  },
+  {
+   "asset": "park.swing",
+   "x": 3,
+   "y": 55.6
+  },
+  {
+   "asset": "park.slide",
+   "x": 7,
+   "y": 55
+  },
+  {
+   "asset": "park.sandbox",
+   "x": 3,
+   "y": 58.5
+  },
+  {
+   "asset": "park.jungle",
+   "x": 7,
+   "y": 59
+  },
+  {
+   "asset": "park.tetsubo",
+   "x": 3,
+   "y": 61.5
+  },
+  {
+   "asset": "park.spring",
+   "x": 7,
+   "y": 62.4,
+   "opts": {
+    "kind": "zou"
+   }
+  },
+  {
+   "asset": "park.spring",
+   "x": 8.4,
+   "y": 62.4,
+   "opts": {
+    "kind": "uma"
+   }
+  },
+  {
+   "asset": "park.tires",
+   "x": 3,
+   "y": 63.4
+  },
+  {
+   "asset": "park.seesaw",
+   "x": 12.9,
+   "y": 61.2
+  },
+  {
+   "asset": "park.azumaya",
+   "x": 15,
+   "y": 55.4
+  },
+  {
+   "asset": "park.drink",
+   "x": 13,
+   "y": 58
+  },
+  {
+   "asset": "prop.trash",
+   "x": 19,
+   "y": 58.2
+  },
+  {
+   "asset": "nat.tree.big",
+   "x": 18,
+   "y": 44.2,
+   "opts": {}
+  },
+  {
+   "asset": "nat.tree.big",
+   "x": 2,
+   "y": 50,
+   "opts": {}
+  },
+  {
+   "asset": "nat.tree.big",
+   "x": 18.2,
+   "y": 49.2,
+   "opts": {}
+  },
+  {
+   "asset": "nat.tree.big",
+   "x": 9.6,
+   "y": 63,
+   "opts": {}
+  },
+  {
+   "asset": "nat.tree.big",
+   "x": 18,
+   "y": 63.599999999999994,
+   "opts": {}
+  },
+  {
+   "asset": "nat.tree.sakura",
+   "x": 14.6,
+   "y": 48
+  },
+  {
+   "asset": "nat.tree.sakura",
+   "x": 5.6,
+   "y": 50.2
+  },
+  {
+   "asset": "nat.tree.sakura",
+   "x": 15.4,
+   "y": 51.8
+  },
+  {
+   "asset": "prop.bench",
+   "x": 9,
+   "y": 49
+  },
+  {
+   "asset": "prop.bench",
+   "x": 13,
+   "y": 49
+  },
+  {
+   "asset": "prop.bench",
+   "x": 4,
+   "y": 53.7
+  },
+  {
+   "asset": "prop.bench",
+   "x": 15,
+   "y": 53.7
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 10,
+   "y": 46
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 13,
+   "y": 55
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 10,
+   "y": 58
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 19,
+   "y": 55.5
+  },
+  {
+   "asset": "prop.flowerbed",
+   "x": 7,
+   "y": 46.2
+  },
+  {
+   "asset": "prop.flowerbed",
+   "x": 16.5,
+   "y": 51.6
+  },
+  {
+   "asset": "prop.flowerbed",
+   "x": 3.6,
+   "y": 52.1
+  },
+  {
+   "asset": "nat.tree.sakura",
+   "x": 21.1,
+   "y": 47
+  },
+  {
+   "asset": "nat.tree.sakura",
+   "x": 21.1,
+   "y": 51.4
+  },
+  {
+   "asset": "nat.tree.sakura",
+   "x": 21.1,
+   "y": 56
+  },
+  {
+   "asset": "nat.tree.sakura",
+   "x": 21.1,
+   "y": 60.6
+  },
+  {
+   "asset": "prop.lamp",
+   "x": 22,
+   "y": 64
+  },
+  {
+   "asset": "prop.gatepost",
+   "x": 29,
+   "y": 49,
+   "opts": {
+    "name": "たなか"
+   }
+  },
+  {
+   "asset": "prop.wall",
+   "x": 28,
+   "y": 49,
+   "opts": {
+    "len": 1,
+    "kind": "block"
+   }
+  },
+  {
+   "asset": "prop.wall",
+   "x": 32,
+   "y": 49,
+   "opts": {
+    "len": 1,
+    "kind": "block"
+   }
+  },
+  {
+   "asset": "prop.carport",
+   "x": 33,
+   "y": 47.4,
+   "opts": {
+    "car": "#D8433C",
+    "dir": "s"
+   }
+  },
+  {
+   "asset": "nat.hedge",
+   "x": 35,
+   "y": 49,
+   "opts": {
+    "len": 2
+   }
+  },
+  {
+   "asset": "prop.gatepost",
+   "x": 36,
+   "y": 49,
+   "opts": {
+    "name": "やまだ",
+    "c": "#CFC8BB"
+   }
+  },
+  {
+   "asset": "nat.hedge",
+   "x": 27,
+   "y": 45.3,
+   "opts": {
+    "len": 4,
+    "dir": "v"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 33,
+   "y": 45.4,
+   "opts": {
+    "c": "#6AAE58"
+   }
+  },
+  {
+   "asset": "prop.laundry",
+   "x": 36.6,
+   "y": 44.8,
+   "z": -0.5
+  },
+  {
+   "asset": "prop.pots",
+   "x": 34,
+   "y": 48.3,
+   "opts": {}
+  },
+  {
+   "asset": "prop.bikerack",
+   "x": 28.6,
+   "y": 56,
+   "opts": {
+    "cols": [
+     "#E53935",
+     "#FFFFFF",
+     "#1E88E5",
+     "#43A047"
+    ]
+   }
+  },
+  {
+   "asset": "prop.garbage",
+   "x": 31.6,
+   "y": 56.1,
+   "opts": {}
+  },
+  {
+   "asset": "prop.wall",
+   "x": 35,
+   "y": 56,
+   "opts": {
+    "len": 2,
+    "kind": "wood"
+   }
+  },
+  {
+   "asset": "prop.pots",
+   "x": 39,
+   "y": 55.4,
+   "opts": {}
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 40,
+   "y": 53,
+   "opts": {
+    "c": "#4F9A52"
+   }
+  },
+  {
+   "asset": "veh.kei",
+   "x": 40.2,
+   "y": 55.7,
+   "opts": {
+    "dir": "e"
+   }
+  },
+  {
+   "asset": "prop.wall",
+   "x": 27,
+   "y": 52,
+   "opts": {
+    "len": 4,
+    "dir": "v",
+    "kind": "fence"
+   }
+  },
+  {
+   "asset": "prop.gatepost",
+   "x": 29,
+   "y": 63,
+   "opts": {
+    "name": "すずき",
+    "c": "#E6E1D6"
+   }
+  },
+  {
+   "asset": "prop.wall",
+   "x": 28,
+   "y": 63,
+   "opts": {
+    "len": 1,
+    "kind": "fence"
+   }
+  },
+  {
+   "asset": "prop.wall",
+   "x": 31,
+   "y": 63,
+   "opts": {
+    "len": 2,
+    "kind": "fence"
+   }
+  },
+  {
+   "asset": "prop.carport",
+   "x": 33,
+   "y": 61.4,
+   "opts": {
+    "car": "#8FC5E8",
+    "dir": "s"
+   }
+  },
+  {
+   "asset": "nat.hedge",
+   "x": 35,
+   "y": 63,
+   "opts": {
+    "len": 2
+   }
+  },
+  {
+   "asset": "prop.gatepost",
+   "x": 38,
+   "y": 63,
+   "opts": {
+    "name": "さとう"
+   }
+  },
+  {
+   "asset": "nat.hedge",
+   "x": 27,
+   "y": 59.3,
+   "opts": {
+    "len": 4,
+    "dir": "v"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 36.2,
+   "y": 59.2,
+   "opts": {
+    "c": "#6AAE58"
+   }
+  },
+  {
+   "asset": "prop.laundry",
+   "x": 32.8,
+   "y": 58.9,
+   "z": -0.5
+  },
+  {
+   "asset": "prop.dokan",
+   "x": 41,
+   "y": 60.2
+  },
+  {
+   "asset": "prop.wall",
+   "x": 40,
+   "y": 63,
+   "opts": {
+    "len": 6,
+    "kind": "fence"
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 32,
+   "y": 50,
+   "opts": {
+    "trans": true
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 38,
+   "y": 50,
+   "opts": {
+    "trans": false
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 31,
+   "y": 57,
+   "opts": {
+    "trans": false
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 38,
+   "y": 57,
+   "opts": {
+    "trans": true
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 33,
+   "y": 64,
+   "opts": {
+    "trans": true
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 38,
+   "y": 64,
+   "opts": {
+    "trans": false
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 46,
+   "y": 64,
+   "opts": {
+    "trans": false
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 26,
+   "y": 48,
+   "opts": {
+    "trans": false
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 26,
+   "y": 55,
+   "opts": {
+    "trans": true
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 26,
+   "y": 62,
+   "opts": {
+    "trans": false
+   }
+  },
+  {
+   "asset": "prop.mirror",
+   "x": 27,
+   "y": 52.2
+  },
+  {
+   "asset": "prop.mirror",
+   "x": 27,
+   "y": 59.2
+  },
+  {
+   "asset": "prop.mirror",
+   "x": 40,
+   "y": 59
+  },
+  {
+   "asset": "prop.notice",
+   "x": 26.6,
+   "y": 44.7,
+   "opts": {}
+  },
+  {
+   "asset": "prop.jizo",
+   "x": 39,
+   "y": 52
+  },
+  {
+   "asset": "prop.vending",
+   "x": 38,
+   "y": 49,
+   "opts": {
+    "c": "#D8433C"
+   }
+  },
+  {
+   "asset": "prop.hydrant",
+   "x": 36,
+   "y": 58
+  },
+  {
+   "asset": "prop.pole",
+   "x": 26.4,
+   "y": 44.4,
+   "opts": {
+    "trans": true
+   }
+  },
+  {
+   "asset": "prop.pole",
+   "x": 18,
+   "y": 44.4
+  },
+  {
+   "asset": "prop.pole",
+   "x": 6,
+   "y": 44.4,
+   "opts": {
+    "trans": false
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 10,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 12,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 14,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 16,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 18,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 20,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 22,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 24,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 26,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 28,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 30,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 32,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 34,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 36,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 46,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 48,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 50,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 52,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 54,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 56,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 58,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 60,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 0,
+   "y": 62,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.pine",
+   "x": 0,
+   "y": 64,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 10,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 12,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 14,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 16,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 18,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 20,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 22,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 24,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 26,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 28,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 30,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 32,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 34,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 36,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 38,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 40,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 42,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 44,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 46,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 48,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 50,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 52,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 54,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 56,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 58,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 63,
+   "y": 60,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 0,
+   "y": 66,
+   "opts": {
+    "seed": 30
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 4,
+   "y": 66,
+   "opts": {
+    "seed": 34
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 8,
+   "y": 66,
+   "opts": {
+    "seed": 38
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 12,
+   "y": 66,
+   "opts": {
+    "seed": 42
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 16,
+   "y": 66,
+   "opts": {
+    "seed": 46
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 28,
+   "y": 66,
+   "opts": {
+    "seed": 58
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 32,
+   "y": 66,
+   "opts": {
+    "seed": 62
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 36,
+   "y": 66,
+   "opts": {
+    "seed": 66
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 40,
+   "y": 66,
+   "opts": {
+    "seed": 70
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 44,
+   "y": 66,
+   "opts": {
+    "seed": 74
+   },
+   "z": -1
+  },
+  {
+   "asset": "bg.roofs",
+   "x": 48,
+   "y": 66,
+   "opts": {
+    "seed": 78
+   },
+   "z": -1
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 20,
+   "y": 66
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 52,
+   "y": 66
+  },
+  {
+   "asset": "prop.guidesign",
+   "x": 50.6,
+   "y": 55.2,
+   "opts": {
+    "lines": [
+     [
+      "↑",
+      "へいわだい えき"
+     ],
+     [
+      "←",
+      "さつき どおり"
+     ]
+    ]
+   }
+  },
+  {
+   "asset": "park.sign",
+   "x": 58.6,
+   "y": 61.4,
+   "opts": {
+    "name": "ようこそ へいわだい"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 56,
+   "y": 60,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 61,
+   "y": 58.6,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 62,
+   "y": 63.4,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "nat.tree.street",
+   "x": 59.6,
+   "y": 64.8,
+   "opts": {
+    "c": "#5E9E5A"
+   }
+  },
+  {
+   "asset": "prop.nobori",
+   "x": 48,
+   "y": 45,
+   "opts": {
+    "c": "#D84A3F",
+    "t": "セルフ"
+   }
+  },
+  {
+   "asset": "prop.nobori",
+   "x": 61.4,
+   "y": 45,
+   "opts": {
+    "c": "#F2B23A",
+    "t": "せんしゃ"
+   }
+  },
+  {
+   "asset": "veh.car",
+   "x": 59,
+   "y": 47.6,
+   "opts": {
+    "c": "#3A3F44",
+    "dir": "w"
+   }
+  },
+  {
+   "asset": "prop.pigeons",
+   "x": 25,
+   "y": 16.6
+  },
+  {
+   "asset": "prop.pigeons",
+   "x": 29.5,
+   "y": 22.6,
+   "opts": {
+    "seed": 3
+   }
+  }
+ ],
+ "overhead": [
+  {
+   "asset": "prop.bunting",
+   "x": 5.5,
+   "y": 34,
+   "h": 2.35,
+   "opts": {
+    "len": 6,
+    "sag": 8
+   }
+  },
+  {
+   "asset": "prop.bunting",
+   "x": 11.5,
+   "y": 34,
+   "h": 2.35,
+   "opts": {
+    "len": 6,
+    "sag": 8
+   }
+  },
+  {
+   "asset": "prop.bunting",
+   "x": 17.5,
+   "y": 34,
+   "h": 2.35,
+   "opts": {
+    "len": 6,
+    "sag": 8
+   }
+  },
+  {
+   "asset": "prop.bunting",
+   "x": 23.5,
+   "y": 34,
+   "h": 2.35,
+   "opts": {
+    "len": 6,
+    "sag": 8
+   }
+  },
+  {
+   "asset": "prop.bunting",
+   "x": 29.5,
+   "y": 34,
+   "h": 2.35,
+   "opts": {
+    "len": 6,
+    "sag": 8
+   }
+  }
+ ],
+ "decals": [
+  {
+   "asset": "prop.manhole",
+   "x": 20,
+   "y": 24,
+   "opts": {}
+  },
+  {
+   "asset": "prop.manhole",
+   "x": 30,
+   "y": 17,
+   "opts": {}
+  },
+  {
+   "asset": "prop.manhole",
+   "x": 43,
+   "y": 31,
+   "opts": {
+    "plain": true
+   }
+  },
+  {
+   "asset": "prop.manhole",
+   "x": 42.5,
+   "y": 52,
+   "opts": {
+    "plain": true
+   }
+  },
+  {
+   "asset": "prop.manhole",
+   "x": 10,
+   "y": 32.5,
+   "opts": {}
+  },
+  {
+   "asset": "prop.manhole",
+   "x": 27,
+   "y": 32.4,
+   "opts": {}
+  },
+  {
+   "asset": "prop.manhole",
+   "x": 18,
+   "y": 41.5,
+   "opts": {
+    "plain": true
+   }
+  },
+  {
+   "asset": "prop.manhole",
+   "x": 12,
+   "y": 39.4,
+   "opts": {}
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 16,
+   "y": 49.4,
+   "opts": {
+    "kind": "dandelion",
+    "seed": 161
+   }
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 5,
+   "y": 50.7,
+   "opts": {
+    "kind": "clover",
+    "seed": 86
+   }
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 17,
+   "y": 57.6,
+   "opts": {
+    "kind": "grass",
+    "seed": 177
+   }
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 14,
+   "y": 62,
+   "opts": {
+    "kind": "dandelion",
+    "seed": 160
+   }
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 19,
+   "y": 49,
+   "opts": {
+    "kind": "grass",
+    "seed": 182
+   }
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 8.3,
+   "y": 52.1,
+   "opts": {
+    "kind": "clover",
+    "seed": 110
+   }
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 2.2,
+   "y": 54.1,
+   "opts": {
+    "kind": "grass",
+    "seed": 70
+   }
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 40.2,
+   "y": 59.6,
+   "opts": {
+    "kind": "grass",
+    "seed": 180
+   }
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 44.4,
+   "y": 60.6,
+   "opts": {
+    "kind": "grass",
+    "seed": 194
+   }
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 43.6,
+   "y": 62.4,
+   "opts": {
+    "kind": "stone",
+    "seed": 193
+   }
+  },
+  {
+   "asset": "nat.tuft",
+   "x": 40.4,
+   "y": 62.6,
+   "opts": {
+    "kind": "dandelion",
+    "seed": 184
+   }
+  }
+ ],
+ "wires": [
+  [
+   [
+    26.4,
+    44.4
+   ],
+   [
+    26,
+    48
+   ],
+   [
+    26,
+    55
+   ],
+   [
+    26,
+    62
+   ]
+  ],
+  [
+   [
+    26,
+    48
+   ],
+   [
+    32,
+    50
+   ],
+   [
+    38,
+    50
+   ]
+  ],
+  [
+   [
+    26,
+    55
+   ],
+   [
+    31,
+    57
+   ],
+   [
+    38,
+    57
+   ]
+  ],
+  [
+   [
+    26,
+    62
+   ],
+   [
+    33,
+    64
+   ],
+   [
+    38,
+    64
+   ],
+   [
+    46,
+    64
+   ]
+  ],
+  [
+   [
+    6,
+    44.4
+   ],
+   [
+    18,
+    44.4
+   ],
+   [
+    26.4,
+    44.4
+   ]
+  ]
+ ],
+ "driveways": [
+  {
+   "kind": "rect",
+   "x0": 45,
+   "x1": 47,
+   "y0": 32.4,
+   "y1": 35.2
+  },
+  {
+   "kind": "arc",
+   "a0": 2.7174776453551712,
+   "a1": 2.5132741228718345
+  },
+  {
+   "kind": "diag",
+   "t0": 7.6,
+   "t1": 9.8
+  },
+  {
+   "kind": "arcO",
+   "a0": 2.971946650295944,
+   "a1": 2.758318349851838
+  },
+  {
+   "kind": "diagSW",
+   "t0": 1.75,
+   "t1": 4.55
+  },
+  {
+   "kind": "diagSW",
+   "t0": 11.65,
+   "t1": 14.45
+  },
+  {
+   "kind": "rect",
+   "x0": 25,
+   "x1": 27,
+   "y0": 50,
+   "y1": 52
+  },
+  {
+   "kind": "rect",
+   "x0": 25,
+   "x1": 27,
+   "y0": 57,
+   "y1": 59
+  },
+  {
+   "kind": "rect",
+   "x0": 25,
+   "x1": 27,
+   "y0": 64,
+   "y1": 66
+  }
+ ],
+ "npcs": [
+  {
+   "name": "まちの ハル",
+   "x": 27,
+   "y": 18,
+   "sp": "cat",
+   "outfit": {
+    "body": "tshirt_blue"
+   }
+  },
+  {
+   "name": "おまわりさん",
+   "x": 19,
+   "y": 21,
+   "sp": "bear",
+   "outfit": {
+    "neck": "bowtie_blue",
+    "body": "sweater"
+   }
+  },
+  {
+   "name": "駅員さん",
+   "x": 33.6,
+   "y": 14.2,
+   "sp": "penguin",
+   "outfit": {
+    "neck": "bowtie_red"
+   }
+  },
+  {
+   "name": "やおやの おじさん",
+   "x": 11,
+   "y": 31,
+   "sp": "pig",
+   "outfit": {
+    "head": "hachimaki",
+    "body": "apron"
+   }
+  },
+  {
+   "name": "せんとうの おばあちゃん",
+   "x": 12,
+   "y": 39,
+   "sp": "sheep",
+   "outfit": {
+    "face": "glasses",
+    "neck": "muffler"
+   }
+  },
+  {
+   "name": "公園の こども",
+   "x": 10,
+   "y": 54,
+   "sp": "rabbit",
+   "outfit": {
+    "head": "strawhat",
+    "back": "backpack"
+   }
+  },
+  {
+   "name": "宮司さん",
+   "x": 8,
+   "y": 16,
+   "sp": "frog",
+   "outfit": {
+    "face": "mustache"
+   }
+  },
+  {
+   "name": "バスを まつ ひと",
+   "x": 44.4,
+   "y": 14.3,
+   "sp": "mouse",
+   "outfit": {
+    "head": "ribbon_pink",
+    "body": "dress"
+   }
+  }
+ ],
+ "warps": [
+  {
+   "to": "city",
+   "x": 21,
+   "y": 67,
+   "w": 6,
+   "h": 1
+  },
+  {
+   "to": "airport",
+   "x": 54,
+   "y": 67,
+   "w": 10,
+   "h": 1
+  }
+ ],
+ "labels": [
+  {
+   "text": "へいわだい どおり",
+   "x": 53.2,
+   "y": 61.4,
+   "rot": 45
+  },
+  {
+   "text": "駅前通り",
+   "x": 43,
+   "y": 43.6,
+   "rot": 90,
+   "small": true
+  },
+  {
+   "text": "さつき通り",
+   "x": 6,
+   "y": 42.35
+  },
+  {
+   "text": "へいわだい しょうてんがい",
+   "x": 20,
+   "y": 33.1
+  },
+  {
+   "text": "駅前 ロータリー（時計回り）",
+   "x": 43,
+   "y": 23.4
+  },
+  {
+   "text": "さつき こうえん",
+   "x": 10.5,
+   "y": 64.6
+  },
+  {
+   "text": "へいわだい じんじゃ",
+   "x": 8,
+   "y": 26.5
+  },
+  {
+   "text": "住宅地",
+   "x": 36,
+   "y": 50.9,
+   "small": true
+  },
+  {
+   "text": "シティへ",
+   "x": 24,
+   "y": 66.6
+  },
+  {
+   "text": "くうこうへ",
+   "x": 58.6,
+   "y": 66.2,
+   "rot": 45
+  }
+ ],
+ "metrics": {
+  "size": "64x68",
+  "buildings": 30,
+  "buildingKinds": 26,
+  "maxModelShare": 10,
+  "props": 220,
+  "propKinds": 72,
+  "walkTiles": 1689,
+  "propsPer100": 13,
+  "emptyPct": 2,
+  "reachable": 2120,
+  "unreachable": []
+ }
+}
