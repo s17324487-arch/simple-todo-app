@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#9fd27f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ぽかぽかタウン">
+<meta name="description" content="わんこ・がちゃん・ごじ の 3にんと くらす ほのぼの育成・着せ替え・冒険ゲーム">
+<title>ぽかぽかタウン</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="screen"></canvas>
+  <div id="ui"></div>
+</div>
+<script src="js/chara-data.js"></script>
+<script src="js/util.js"></script>
+<script src="js/data.js"></script>
+<script src="js/chara.js"></script>
+<script src="js/art.js"></script>
+<script src="js/tiles.js"></script>
+<script src="js/maps.js"></script>
+<script src="js/save.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+<script src="js/talk.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/dressup.js"></script>
+<script src="js/scene-title.js"></script>
+<script src="js/scene-world.js"></script>
+<script src="js/scene-house.js"></script>
+<script src="js/scene-battle.js"></script>
+<script src="js/minigames.js"></script>
+<script>
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  }
+</script>
+</body>
+</html>
