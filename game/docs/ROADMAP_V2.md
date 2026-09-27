@@ -11,7 +11,7 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 
 ## M0. 準備
 
-### [ ] V2-00 バージョンを 2.0.0-dev にする
+### [x] V2-00 バージョンを 2.0.0-dev にする（PR #4）
 
 - `js/version.js` の `GAME_VERSION` と `package.json` の `version` を `2.0.0-dev` に、`CHANGELOG.md` の先頭に `## [2.0.0-dev] - 開発中` の節を作る。
 - 受け入れ条件: タイトル画面と せってい画面の表示が `ver 2.0.0-dev`。`npm run check` ✓。セーブはそのまま引き継がれる（`Save.KEY` は変えない）。
