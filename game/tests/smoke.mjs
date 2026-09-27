@@ -276,6 +276,39 @@ for (const shop of ["dentist", "bakery", "florist"]) {
   }, { full: true, timeout: 150000 });
 }
 
+await scenario("おうちの生活・デザ・増築", async (H) => {
+  await H.newGameFast();
+  for (const id of ["wanko", "gachan", "goji"]) {
+    await H.dbg("give", "curry");
+    const spicy = await H.dbg("feed", id, "curry");
+    expect(spicy.dislike, `${id}が辛いものを好む`);
+    expect((await H.dbg("homeLife")).chars[id].wantsDeza, "食後のデザ希望がない");
+    await H.dbg("give", "pudding"); await H.dbg("feed", id, "pudding");
+    expect(!(await H.dbg("homeLife")).chars[id].wantsDeza, "デザ希望が消えない");
+  }
+  await H.page.getByRole("button", { name: "みまもる", exact: true }).click();
+  expect((await H.dbg("homeLife")).watching, "みまもりに入らない");
+  await H.dbg("homeLife", "quarrel");
+  const pt = await H.dbg("homePoint", 180, 390); await H.tap(pt.x, pt.y);
+  expect(!(await H.dbg("homeLife")).quarrel, "仲裁できない");
+  await H.dbg("homeLife", "rare");
+  expect((await H.dbg("homeLife")).rare === 1, "レア会話が記録されない");
+  await H.shot("watch-family");
+  await H.page.getByRole("button", { name: "みまもりを おわる" }).click();
+  await H.page.getByRole("button", { name: "おへや", exact: true }).click();
+  expect(await H.page.getByRole("button", { name: "おへやを かう" }).first().isDisabled(), "増築の条件がない");
+  await H.page.locator(".modal-wrap .close").last().click(); await H.wait(250);
+  await H.dbg("coins", 5000); await H.dbg("wins", 10);
+  await H.page.getByRole("button", { name: "おへや", exact: true }).click();
+  const before = (await H.dbg("homeLife")).coins;
+  await H.page.getByRole("button", { name: "おへやを かう" }).first().click(); await H.choose(0);
+  await H.wait(1000); await H.until(() => PokaDebug.idle());
+  const st = await H.dbg("homeLife"); expect(st.room === "study" && st.coins === before - 4500, "購入または部屋切替が不正");
+  await H.dbg("save"); await H.page.reload(); await H.page.locator(".title-ui .btn").first().click();
+  await H.until(() => PokaDebug.state().scene === "house" && PokaDebug.idle());
+  expect((await H.dbg("homeLife")).room === "study", "部屋が保存されない");
+}, { full: true });
+
 await scenario("バトルに勝つ", async (H) => {
   await H.newGameFast();
   await H.dbg("teleport", "meadow", 14, 5);

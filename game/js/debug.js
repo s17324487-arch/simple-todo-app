@@ -41,6 +41,15 @@ const PokaDebug = {
     };
   },
   idle() { return !Game.trans && !UI.busy; },
+  homeLife(event) {
+    if (G.sceneName !== "house") return null;
+    if (event) HomeLife.event(G.scene, event);
+    const l = G.scene.life;
+    return { watching: !!G.scene.watching, quarrel: l.quarrel, bubbles: l.bubbles.map(b => ({ ...b })), room: Save.d.rooms.active, owned: { ...Save.d.rooms.owned }, coins: Save.d.coins, rare: Save.d.flags.rareChats || 0, furniture: { ...l.furniture }, chars: Object.fromEntries(Chara.IDS.map(id => [id, { ...Save.d.chars[id] }])) };
+  },
+  feed(id, food) { return Care.feed(id, food); },
+  wins(n) { Save.d.stats.wins = Math.max(0, Math.floor(n)); Save.mark(); },
+  homePoint(x, y) { const p = G.scene.toScreen(x, y), r = G.canvas.getBoundingClientRect(); return { x: r.left + p.x * G.cssPerUnit, y: r.top + p.y * G.cssPerUnit }; },
   battleLayout() {
     if (G.sceneName !== "battle") return null;
     const sc = G.scene, rect = G.canvas.getBoundingClientRect();

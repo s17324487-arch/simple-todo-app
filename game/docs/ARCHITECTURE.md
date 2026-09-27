@@ -510,3 +510,6 @@ migrate(d) {
 
 ## ver2: 戦闘表示
 戦闘の下部メニューは高さを制限し、ResizeObserver で測った上端より上にHPカードを置く。技・道具一覧は枠内スクロール。PokaDebug.battleLayout() はカード下端とメニュー上端を CSS px で返す。
+
+## ver2: おうちの生活
+HomeLife はシーン内の会話・けんか・家具アニメーションを管理。HomeRooms は room を現在の部屋として保持し、rooms.stored に非表示の部屋を保存する（同じ家具は全室の配置数で管理）。Save.KEY と schema 1 を維持し、wantsDeza と rooms は migrate の補完で追加。home-catalog.js は art.js の後に読み、服22点・家具12点・壁紙4点・床3点・食べ物6点を追加。PokaDebug.homeLife(event)、feed(id,item)、wins(n)、homePoint(x,y) を生活テストに使用。
