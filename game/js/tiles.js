@@ -38,8 +38,9 @@ const Tiles = {
       }
       case "grass": case "flower": case "tall": case "forest": case "fflower": {
         const fr = type === "forest" || type === "fflower";
-        const base = fr ? "#86C46A" : "#A6D883";
-        const dark = fr ? "#6FAE55" : "#8CC56C";
+        const palette=SeasonPalette.get();
+        const base = fr ? palette.forest : palette.grass;
+        const dark = fr ? palette.forestDark : palette.dark;
         g.fillStyle = base; g.fillRect(x, y, s, s);
         // ちいさな くさ
         g.strokeStyle = dark; g.lineWidth = 1.6 * u; g.lineCap = "round";
@@ -59,7 +60,7 @@ const Tiles = {
           }
         }
         if (type === "tall") {
-          g.fillStyle = "#79BE5E";
+          g.fillStyle = palette.dark;
           g.fillRect(x, y + 4 * u, s, s - 4 * u);
           this.tallBlades(g, x, y, s, "#5FA74A", "#8FD06E");
         }
@@ -68,7 +69,7 @@ const Tiles = {
       case "path": case "plaza": case "dirt": case "sand": case "cave": {
         const col = { path: ["#EFE0B9", "#DCC89A"], plaza: ["#F2D3AE", "#E0B98E"], dirt: ["#DDBB8A", "#C9A372"], sand: ["#F6E7B3", "#E6D196"], cave: ["#A3968A", "#8E8175"] }[type];
         // まわりが違う地面なら 草のふちどり
-        const bg = type === "cave" ? "#6E6259" : map.baseGround === "forest" ? "#86C46A" : "#A6D883";
+        const bg = type === "cave" ? "#6E6259" : map.baseGround === "forest" ? SeasonPalette.get().forest : SeasonPalette.get().grass;
         g.fillStyle = bg; g.fillRect(x, y, s, s);
         const r = 7 * u;
         const L = same(-1, 0), R = same(1, 0), T = same(0, -1), B = same(0, 1);
@@ -134,10 +135,11 @@ const Tiles = {
         break;
       }
       default:
-        g.fillStyle = "#A6D883"; g.fillRect(x, y, s, s);
+        g.fillStyle = SeasonPalette.get().grass; g.fillRect(x, y, s, s);
     }
   },
   tallBlades(g, x, y, s, dark, light) {
+    const palette=SeasonPalette.get();dark=palette.forestDark;light=palette.dark;
     const u = s / 32;
     for (let i = 0; i < 4; i++) {
       const bx = x + (2 + i * 8) * u, by = y + s;
@@ -152,6 +154,7 @@ const Tiles = {
 
   // 8x8タイルのチャンクを端末ピクセルで描いてキャッシュ
   chunk(map, cx, cy) {
+    const season=SeasonPalette.id();if(this.season!==season){this.clear();this.season=season;}
     const key = map.id + ":" + cx + "," + cy + "@" + G.px;
     let c = this.chunks.get(key);
     if (c) return c;

@@ -696,6 +696,37 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect((await H.dbg("state")).coins===money,"再開でおかねが変わった");
 },{viewport,full:viewport.width===375,timeout:240000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`天気・四季・予報（${viewport.width}）`,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);await H.dbg("coins",987504);
+  await H.dbg("teleport","town",12,16);await H.idle();await H.wait(3200);
+  const money=(await H.dbg("state")).coins,palettes=[];
+  for(const [kind,date] of [["clear","2026-04-15"],["cloudy","2026-06-15"],["rain","2026-06-15"],["snow","2026-12-15"],["wind","2026-10-15"]]) {
+    await H.dbg("calendar",date);await H.dbg("weather",kind);await H.wait(400);
+    const w=await H.dbg("weather");palettes.push(w.palette.grass);
+    expect(w.kind===kind&&!w.indoors&&w.particles<=48,"天気の表示が不正");
+    const badge=H.page.getByRole("button",{name:"てんき："+w.name,exact:true}),box=await badge.boundingBox(),hud=await H.page.locator(".hud").boundingBox();
+    expect(box.height>=44&&box.y>=hud.y+hud.height&&box.x>=0&&box.x+box.width<=viewport.width,"天気ボタンがHUDと重なる/小さい");
+    await H.shot(kind+"-town");
+    if(kind==="rain") {
+      const fps=await H.dbg("fps",1800);expect(fps>=20,`雨のFPSが低い: ${fps}`);
+      await badge.click();expect(await H.page.locator(".weather-forecast div").count()===3,"予報が3枠ない");await H.shot("forecast");
+      expect(!(await H.eval(()=>document.documentElement.scrollWidth>innerWidth)),"天気予報が横にはみ出す");
+      await H.page.getByRole("button",{name:"とじる",exact:true}).click();await H.idle();
+    }
+  }
+  expect(new Set(palettes).size===4,"四季の地面の色が変わらない");
+  await H.dbg("weather","rain");await H.dbg("teleport","cave",4,4);await H.idle();
+  expect((await H.dbg("weather")).particles===0,"洞窟に雨が降る");
+  await H.dbg("house");await H.idle();expect((await H.dbg("weather")).indoors&&await H.page.locator(".world-weather").count()===0,"家に屋外ボタン/天気が残る");
+  await H.dbg("homeLife","weather");expect((await H.dbg("homeLife")).bubbles.some(b=>/あめ|しずく/.test(b.text)),"天気のひとことがない");
+  await H.dbg("teleport","town",12,16);await H.idle();expect((await H.dbg("weather")).particles===48,"外で雨が復帰しない");
+  await H.dbg("calendar",null);const natural=await H.dbg("weather",null);await H.dbg("save");
+  await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  const restored=await H.dbg("weather"),samePeriod=restored.forecast[0].day===natural.forecast[0].day&&restored.forecast[0].hour===natural.forecast[0].hour;
+  expect(!samePeriod||restored.kind===natural.kind,"再開で同じ時間帯の天気が変わった");
+  expect((await H.dbg("state")).coins===money,"天気や再開でおかねが変わった");
+},{viewport,full:viewport.width===375,timeout:90000});
+
 await browser.close();
 server.close();
 const bad = results.filter((r) => !r.ok);

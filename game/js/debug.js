@@ -60,7 +60,7 @@ const PokaDebug = {
       if(value.getFullYear()!==y||value.getMonth()!==m-1||value.getDate()!==d)throw new Error("invalid calendar date");
       Seasonal.override=value;
     }
-    if(G.sceneName==="world")Seasonal.refresh(G.scene,true);return Seasonal.state();
+    if(G.sceneName==="world"){Seasonal.refresh(G.scene,true);Weather.refresh(G.scene,true);}return Seasonal.state();
   },
   festival() {
     const s=Seasonal.state();return {...s,inventory:{wear:!!Save.d.wardrobe[s.items.wear],furn:Save.d.furn[s.items.furn]||0,food:Save.d.bag[s.items.food]||0}};
@@ -80,6 +80,10 @@ const PokaDebug = {
   },
   annual() {
     const s=AnnualFestivals.state();return {...s,events:ANNUAL_EVENTS.map(e=>({id:e.id,month:e.month,name:e.name})),inventory:{wear:!!Save.d.wardrobe[s.items.wear],furn:Save.d.furn[s.items.furn]||0,food:Save.d.bag[s.items.food]||0}};
+  },
+  weather(kind) {
+    if(arguments.length){if(kind!==null&&!Weather.kinds[kind])throw new Error("unknown weather");Weather.override=kind;if(G.sceneName==="world")Weather.refresh(G.scene,true);}
+    return {...Weather.state(),sky:Weather.sky(),palette:{...SeasonPalette.get()}};
   },
   needs(hunger,mood=70) { for(const c of Object.values(Save.d.chars)){c.hunger=U.clamp(hunger,0,100);c.mood=U.clamp(mood,0,100);}Save.mark();if(G.sceneName==="house")G.scene.updateCare(); },
   wins(n) { Save.d.stats.wins = Math.max(0, Math.floor(n)); Save.mark(); },

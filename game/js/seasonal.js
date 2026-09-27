@@ -71,7 +71,7 @@ const Seasonal = {
     if(sc.map.baseGround==="cave")return;
     const e=this.current();ctx.save();
     // 地形を隠さない小さな花びら・蛍・落ち葉・雪。画面内だけを有限個描く。
-    for(let i=0;i<14;i++){
+    for(let i=0;i<(e.id==="winter"?0:14);i++){
       const x=(i*89+Math.sin(G.t*.4+i)*20-sc.cam.x*.15+4000)%G.W,y=(i*71+G.t*(e.id==="summer"?-5:11)-sc.cam.y*.1+4000)%G.H;
       ctx.fillStyle=e.id==="winter"?"#FFFDF5":e.color;ctx.globalAlpha=e.id==="summer"?.3+Math.sin(G.t*2+i)**2*.45:.6;
       ctx.beginPath();ctx.ellipse(x,y,e.id==="summer"?2:3.5,e.id==="winter"?3:1.7,G.t*.3+i,0,7);ctx.fill();
