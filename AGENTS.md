@@ -26,7 +26,7 @@
 | キャラ素材 SVG から `js/chara-data.js` を作り直す | `npm run build:chara` | 数秒 |
 | 町の検査（小物の密度・何もない場所・道のつながり など） | `npm run audit:town`（`-- --check heiwadai` で めやす未満なら失敗） | 数秒 |
 | 町のデザイン見本を作り直す（`docs/design/towns/heiwadai/`） | `npm run design:heiwadai`（日本語フォントが必要） | 約20秒 |
-| 機能の見本 ①〜⑥ を作り直す（`docs/design/features/`） | `npm run design:features`（画像なしは `-- --no-mock`） | 約1分 |
+| 機能の見本 ①〜⑥ を作り直す（`docs/design/features/`） | `npm run design:features`（画像なしは `-- --no-mock`） | 約3分 |
 
 - すでに Chromium がある環境では `CHROMIUM_PATH=/path/to/chromium npm test` でも動く。
 - ブラウザが使えない環境では、最低限 `npm run check` を通し、そのことを PR に書く。
@@ -142,7 +142,7 @@
 - お店のミニゲームを足す → `minigames.js`（`TaskBase` を継承したクラス）＋ `MG_TASKS`・`SHOPS`・`SHOP_OWNERS`・`HOWTO` ＋ `maps.js` の建物 ＋ `Save.fresh().shops` ＋ `PokaDebug.mg()` ＋ スモークテスト
 - マップを変える → `maps.js`。`npm run check` が、ワープ先・宝箱・ドア・人・敵の出現位置に歩いて行けるかまで調べる
 - 町・建物・道を作る／直す → 先に [`game/docs/design/README.md`](game/docs/design/README.md) と `TOWN_GUIDE.md` を読む。見本がある町（平和台）は、見本の絵と配置のとおりに作る（`towns/<町>/CODEX_TASK.md`）
-- 見本がある機能（おうちの会話・町の人 など）→ [`game/docs/design/features/README.md`](game/docs/design/features/README.md) の `<機能>/CODEX_TASK.md` のとおりに作る。`docs/design/features/**/*-data.js` は自動生成なので、手で直さずにそのまま `js/` にコピーする
+- 見本がある機能（おうちの会話・町の人・釣り・化石ほり・水族館と博物館 など）→ [`game/docs/design/features/README.md`](game/docs/design/features/README.md) の `<機能>/CODEX_TASK.md` のとおりに作る。`docs/design/features/**/*-data.js` は自動生成なので、手で直さずにそのまま `js/` にコピーする
 
 ## Code Review Rules
 

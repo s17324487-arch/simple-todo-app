@@ -1,6 +1,6 @@
 // ① 吹き出しの 見本画像: 同じ 場面で「いま（before）」と「見本の 実装（after）」を 並べる。ゲームを 実際に 動かして 撮る。
 import { readFileSync } from "node:fs";
-import { launch } from "../town-design/paths.mjs";
+import { launch, TMP } from "../town-design/paths.mjs";
 const OUT = new URL("../../docs/design/features/home-talk/", import.meta.url).pathname;
 const GAME = new URL("../../index.html", import.meta.url).href;
 const REF = readFileSync(new URL("./home-bubble-ref.js", import.meta.url), "utf8");
@@ -41,7 +41,7 @@ for (const sc of SCENES) for (const mode of ["before", "after"]) {
     const boxes = __HB.layout(ctx, bubbles, heads, area); __HB.draw(ctx, boxes, now);
   }, { turns: sc.turns, ref: REF });
   await page.waitForTimeout(250);
-  const p = `/tmp/pokapoka-home-${sc.id}-${mode}.png`; await page.screenshot({ path: p }); shots[sc.id + mode] = p; await page.close();
+  const p = `${TMP}home-${sc.id}-${mode}.png`; await page.screenshot({ path: p }); shots[sc.id + mode] = p; await page.close();
 }
 // 並べた 図
 const b64 = (p) => "data:image/png;base64," + readFileSync(p).toString("base64");

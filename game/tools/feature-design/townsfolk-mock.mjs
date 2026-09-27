@@ -1,7 +1,7 @@
 // ② 町の人の 見本画像: ゲームを 実際に 動かし、いまの UI（UI.say / UI.ask / UI.modal）の 形で おねがい・こうかん・ノートを 出して 撮る。
 // あわせて、② の 文が ぜんぶ 375×667 の 会話まどに 4行いないで おさまるかを 本物の 画面で はかる（fit-check.json）。
 import { readFileSync, writeFileSync } from "node:fs";
-import { launch } from "../town-design/paths.mjs";
+import { launch, TMP } from "../town-design/paths.mjs";
 const OUT = new URL("../../docs/design/features/townsfolk/", import.meta.url).pathname, IMG = OUT + "img/";
 const GAME = new URL("../../index.html", import.meta.url).href;
 const REF = readFileSync(new URL("./folk-ref.js", import.meta.url), "utf8");
@@ -104,7 +104,7 @@ async function spots(page, n, seed, near) {
     return __TF.spots(G.scene.mapId, n, seed, walk, out, near);
   }, { n, seed, near });
 }
-const shot = async (page, name) => { await page.waitForTimeout(350); const p = `/tmp/pokapoka-folk-${name}.png`; await page.screenshot({ path: p }); return p; };
+const shot = async (page, name) => { await page.waitForTimeout(350); const p = `${TMP}folk-${name}.png`; await page.screenshot({ path: p }); return p; };
 const shots = {};
 
 // A. 町で: ことわった おねがいが まっている 人（！）と、おねがいの あいて（▼）、さがす ばしょ（きらきら）

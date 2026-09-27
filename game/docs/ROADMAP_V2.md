@@ -189,7 +189,7 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 
 ## M8. 機能の 見本（①〜⑥。デザイン見本に 合わせる）
 
-見本と 作業指示: [`design/features/README.md`](design/features/README.md)。上から 順に 1つずつ PR に する（③〜⑥ は 見本が できたら 足す）。
+見本と 作業指示: [`design/features/README.md`](design/features/README.md)。上から 順に 1つずつ PR に する（⑥ は 見本が できたら 足す）。
 
 ### [ ] FEAT-01 ① おうちの 吹き出しの 描きかた（話し手の 真上・短い しっぽ・名札の 色・形 6種・2つまで）
 - 受け入れ条件: [`home-talk/CODEX_TASK.md`](design/features/home-talk/CODEX_TASK.md)「PR の 分けかた」1。390×844・375×667 × ふつう／みまもり で `img/before-after.png` の 右と 同じ 見え方。
@@ -205,6 +205,33 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 
 ### [ ] FEAT-05 ② さがす・さわる・つれていく・しゃしん・物々交換 16種
 - 受け入れ条件: 同 3。スモークの 4 が ✓。きらきら・小物・こねこの 絵が `img/items.png` と 同じ。
+
+### [ ] FEAT-06 ③ 魚の データ・絵・ずかん（50種）
+- 受け入れ条件: [`fishing/CODEX_TASK.md`](design/features/fishing/CODEX_TASK.md)「PR の 分けかた」1。50種の 絵が `img/fish-sheet-1〜3.png` と 同じ。
+
+### [ ] FEAT-07 ③ 釣りざおと 釣りの 画面（3にんで 岸に いる・にげても なにも なくならない）
+- 受け入れ条件: 同 2。スモーク「釣り」が ✓。セーブは `Save.fresh().fish` を 足すだけ。
+
+### [ ] FEAT-08 ③ いけす・うる・りっぱな つりざお・② との つなぎ
+- 受け入れ条件: 同 3。
+
+### [ ] FEAT-09 ④ 骨の データ・絵・かせき ノート（恐竜 10種・骨 63こ）
+- 受け入れ条件: [`fossils/CODEX_TASK.md`](design/features/fossils/CODEX_TASK.md)「PR の 分けかた」1。骨格と 骨が `img/dino-sheet.png`・`img/bone-sheet-1〜2.png` と 同じ。
+
+### [ ] FEAT-10 ④ ピッケルと ほる（ひびの ある いわ・しっぱい なし）
+- 受け入れ条件: 同 2。スモーク「化石ほり」が ✓。セーブは `Save.fresh().fossil` を 足すだけ。
+
+### [ ] FEAT-11 ④ ② との つなぎ（おねがい・物々交換）
+- 受け入れ条件: 同 3。
+
+### [ ] FEAT-12 ⑤ 町の 建物と 館の 中（水族館 10へや・博物館 7へや・順路・案内・BGM）
+- 受け入れ条件: [`museum/CODEX_TASK.md`](design/features/museum/CODEX_TASK.md)「PR の 分けかた」1。③④ の FEAT-06・FEAT-09 の あと。`img/outside.png`・`img/aquarium-plan.png`・`img/museum-plan.png` と 同じ 配置。
+
+### [ ] FEAT-13 ⑤ 寄贈（魚が およぐ・骨格が そろう・かんせい）
+- 受け入れ条件: 同 2。スモーク「水族館と 博物館」が ✓。セーブは `Save.fresh().museum` を 足すだけ。
+
+### [ ] FEAT-14 ⑤ 展示を しらべる・③④② との つなぎ
+- 受け入れ条件: 同 3。
 
 ---
 
