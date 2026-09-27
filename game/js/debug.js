@@ -13,6 +13,8 @@ const PokaDebug = {
       "PokaDebug.teleport('meadow', 14, 3)   マップの (x, y) へ移動（town/city/coast/meadow/forest/cave）",
       "PokaDebug.house()                     おうちへ",
       "PokaDebug.battle([{ kind: 'purun', lv: 2 }], 'meadow')  バトル開始",
+      "PokaDebug.battleState()                属性・HP・状態・技・曲を読む",
+      "PokaDebug.battleFixture({ hp: 1, condition: 'fire' })  コマンド待ち中に戦闘の状態を再現",
       "PokaDebug.shop('crepe', 3)            お店ミニゲームを Lv3 で開始",
       "PokaDebug.coins(1000)                 コインを足す",
       "PokaDebug.level(16)                   3人のレベルを設定して全回復",
@@ -172,6 +174,23 @@ const PokaDebug = {
     if (G.sceneName !== "battle") return null;
     const sc = G.scene, rect = G.canvas.getBoundingClientRect();
     return { cardBottom: rect.top + (sc.allyY + 59.5) * G.cssPerUnit, menuTop: sc.ui.getBoundingClientRect().top, enemyTop: sc.foeY - sc.FS, active: sc.active?.id };
+  },
+  battleState() {
+    if (G.sceneName !== "battle") return null;
+    const sc = G.scene;
+    const unit = u => ({ id: u.id || u.kind, hp: sc.hp(u), maxHp: sc.mhp(u), alive: u.alive,
+      elements: BattleElements.affinity(u), condition: u.condition ? { ...u.condition } : null,
+      sp: u.side === "ally" ? Save.d.chars[u.id].sp : null });
+    return { music: sc.music, round: sc.round, active: sc.active?.id, allies: sc.allies.map(unit), foes: sc.foes.map(unit),
+      skills: Object.fromEntries(Chara.IDS.map(id => [id, Stats.skills(id)])) };
+  },
+  battleFixture({ hp, condition } = {}) {
+    if (G.sceneName !== "battle" || !G.scene.active || !G.scene.commandResolve) throw new Error("wait for a battle command");
+    // 戦闘画面の状態・敗北ルートを再現する開発用入口。実際の決着は通常のターン処理を使う。
+    for (const u of G.scene.allies) {
+      if (hp !== undefined) G.scene.setHp(u, hp);
+      if (condition) { BattleElements.clear(u); u.conditionGrace = 0; BattleElements.inflict(u, condition, 1, 0); }
+    }
   },
 
   newGame({ goji = "soft" } = {}) {

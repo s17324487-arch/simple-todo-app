@@ -31,17 +31,12 @@ class BattleScene {
     this.layout();
     await this.preload();
     this.buildUI();
-    this.homeBtn = UI.btn("おうちへ", () => {
-      if (UI.busy || Game.trans || this.homeRequested) return;
-      this.homeRequested = true; this.homeBtn.disabled = true;
-      if (this.commandResolve) this.commandResolve({ type: "home" });
-      else UI.toast("この こうどうが おわったら かえるよ");
-    }, "home-shortcut small");
-    document.getElementById("ui").append(this.homeBtn);
-    Sound.bgm(this.boss ? "boss" : "battle");
+    const partyLevel = this.allies.reduce((n, a) => n + Save.d.chars[a.id].lv, 0) / this.allies.length;
+    this.music = BattleElements.music(p.foes, this.boss, partyLevel);
+    Sound.bgm(this.music);
     this.run().catch((e) => { console.error(e); UI.toast("バトルで エラーが おきました"); this.leave(); });
   }
-  exit() { this.closed = true; this.homeBtn?.remove(); this.layoutObserver?.disconnect(); if (this.ui) this.ui.remove(); }
+  exit() { this.closed = true; this.commandResolve?.({ type: "cancel" }); this.layoutObserver?.disconnect(); if (this.ui) this.ui.remove(); }
   layout() {
     const W = G.W, H = G.H;
     // 画面の高さに合わせて大きさを決める（下のコマンド欄と重ならないように）
@@ -79,7 +74,7 @@ class BattleScene {
     let v = u.side === "ally" ? Stats.max(u.id, k) : u[k];
     if (u.buffs[k]) v *= u.buffs[k].m;
     if (u.side === "ally" && k === "atk" && u.hungry) v *= 0.8;
-    return v;
+    return v * BattleElements.stat(u, k);
   }
   hp(u) { return u.side === "ally" ? Save.d.chars[u.id].hp : u.hp; }
   mhp(u) { return u.side === "ally" ? Stats.max(u.id, "hp") : u.mhp; }
@@ -87,6 +82,7 @@ class BattleScene {
     v = Math.round(U.clamp(v, 0, this.mhp(u)));
     if (u.side === "ally") Save.d.chars[u.id].hp = v; else u.hp = v;
     u.alive = v > 0;
+    if (!u.alive) { BattleElements.clear(u); u.sleep = 0; }
   }
 
   // ---- UI ----
@@ -112,12 +108,13 @@ class BattleScene {
       const main = () => {
         this.cmd.innerHTML = "";
         const head = U.el("div", { class: "cmd-head", html: `<span class="who">${c.name}</span><span>どうする？</span>` });
+        head.append(UI.btn("ぞくせい・じょうたい", () => BattleElements.help(), "small element-help-button"));
         const grid = U.el("div", { class: "cmd-grid" });
         const B = (label, fn, cls = "") => { const b = UI.btn(label, () => { Sound.se("tap"); fn(); }, cls); grid.append(b); return b; };
         B("たたかう", () => this.pickTarget("enemy", u).then((t) => (t ? resolve({ type: "attack", target: t }) : main())), "pink");
         B("とくぎ", () => skills(), "blue");
         B("どうぐ", () => items(), "yellow");
-        B("ぼうぎょ", () => resolve({ type: "guard" }));
+        B(u.condition || u.sleep ? "ぼうぎょ・なおす" : "ぼうぎょ", () => resolve({ type: "guard" }));
         const row = U.el("div", { class: "cmd-grid", style: "grid-template-columns:1fr 1fr" });
         const flee = UI.btn(this.boss ? "にげられない！" : "にげる", () => { Sound.se("tap"); resolve({ type: "flee" }); }, "small");
         if (this.boss) flee.disabled = true;
@@ -133,7 +130,8 @@ class BattleScene {
         const list = U.el("div", { class: "skill-list" });
         for (const sk of Stats.skills(u.id)) {
           const S = SKILLS[sk];
-          const b = UI.btn(`<span>${S.name}<small>${S.desc}</small></span><span class="sp">SP ${S.sp}</span>`, async () => {
+          const badge = S.element ? `<b class="element-tag" style="background:${BattleElements.types[S.element].color}">${BattleElements.types[S.element].name}</b> ` : "";
+          const b = UI.btn(`<span>${badge}${S.name}<small>${S.desc}</small></span><span class="sp">SP ${S.sp}</span>`, async () => {
             if (c.sp < S.sp) { Sound.se("bad"); UI.toast("SPが たりないよ"); return; }
             if (S.target === "fallen" && !this.allies.some((a) => !a.alive)) { UI.toast("たおれている なかまが いないよ"); return; }
             Sound.se("tap");
@@ -141,6 +139,7 @@ class BattleScene {
             if (t === null) return skills();
             resolve({ type: "skill", skill: sk, target: t });
           });
+          b.dataset.skill = sk;
           if (c.sp < S.sp) b.style.opacity = 0.5;
           list.append(b);
         }
@@ -179,7 +178,7 @@ class BattleScene {
       const list = U.el("div", { class: "cmd-grid" });
       for (const t of cands) {
         const hpTxt = t.side === "ally" ? ` ${Math.max(0, this.hp(t))}/${this.mhp(t)}` : "";
-        list.append(UI.btn(t.name + hpTxt, () => { Sound.se("tap"); this.targeting = null; resolve(t); }, t.side === "foe" ? "pink" : "green"));
+        list.append(UI.btn(t.name + hpTxt + `<small>${BattleElements.label(BattleElements.affinity(t))}</small>`, () => { Sound.se("tap"); this.targeting = null; resolve(t); }, t.side === "foe" ? "pink" : "green"));
       }
       list.append(UI.btn("もどる", () => { Sound.se("cancel"); this.targeting = null; resolve(null); }, "small"));
       this.cmd.append(U.el("div", { class: "cmd-head", html: "<span>だれに？（タップでも えらべるよ）</span>" }), list);
@@ -204,15 +203,24 @@ class BattleScene {
     if (hungry.length) await this.msg(`${hungry.map((a) => a.name).join("と")}は おなかが すいて ちからが でない……`, 900);
     for (;;) {
       if (this.closed) return;
-      if (this.homeRequested) { Game.goto("house"); return; }
       this.round++;
       const order = [...this.allies, ...this.foes].filter((u) => u.alive).map((u) => ({ u, s: this.stat(u, "spd") * U.rand(0.85, 1.15) })).sort((a, b) => b.s - a.s).map((x) => x.u);
       for (const u of order) {
         if (this.isOver()) break;
         if (!u.alive) continue;
-        if (u.side === "ally") await this.allyTurn(u); else await this.foeTurn(u);
+        const condition = u.condition;
+        const effect = BattleElements.startTurn(u, this.mhp(u));
+        if (effect.damage) {
+          await this.msg(`${u.name}は ひりひり！`, 400);
+          await this.applyDamage(u, effect.damage, false, true);
+        }
+        if (u.alive && !this.isOver()) {
+          if (effect.skip) await this.msg(`${u.name}は びりびり！ ひとやすみ。`, 650);
+          else if (u.side === "ally") await this.allyTurn(u); else await this.foeTurn(u);
+        }
+        // ぼうぎょなどで治した直後の猶予はこの番には消費しない。
+        if (u.condition === condition) BattleElements.endTurn(u);
         if (this.closed) return;
-        if (this.homeRequested) { Game.goto("house"); return; }
         if (this.fled) return this.endFlee();
       }
       if (this.isOver()) break;
@@ -235,7 +243,7 @@ class BattleScene {
     const cmd = await this.chooseCommand(u);
     this.commandResolve = null;
     this.cmd.innerHTML = "";
-    if (cmd.type === "home" || this.closed) return;
+    if (this.closed) return;
     await this.execute(u, cmd);
     this.active = null;
   }
@@ -266,6 +274,7 @@ class BattleScene {
         const r = Care.feed(t.id, cmd.item);
         const after = Save.d.chars[t.id].hp;
         t.alive = after > 0;
+        BattleElements.clear(t); t.sleep = 0;
         Sound.se("heal");
         this.sparkle(t, "#8FE388");
         if (after > beforeHp) this.pop(t, `+${after - beforeHp}`, "#2E7D32");
@@ -274,9 +283,10 @@ class BattleScene {
       }
       case "guard":
         u.guard = true;
+        BattleElements.clear(u);
         c.sp = Math.min(Stats.max(u.id, "sp"), c.sp + 2);
         Sound.se("buff");
-        await this.msg(`${u.name}は みを まもっている。（SP+2）`, 700);
+        await this.msg(`${u.name}は じょうたいを なおして みを まもる！（SP+2）`, 700);
         break;
       case "flee": {
         const as = this.allies.filter((a) => a.alive).reduce((s, a) => s + this.stat(a, "spd"), 0) / Math.max(1, this.allies.filter((a) => a.alive).length);
@@ -294,12 +304,17 @@ class BattleScene {
     const alive = this.foes.filter((f) => f.alive);
     if (S.power) {
       const targets = S.target === "enemies" ? alive : [target];
-      if (S.fx === "fire" || S.fx === "wind" || S.fx === "roar" || S.fx === "bone") this.burst(S.fx, targets);
+      if (S.element || S.fx === "wind" || S.fx === "roar" || S.fx === "bone") this.burst(S.fx, targets);
       await this.lunge(u, targets.length === 1 ? targets[0] : null);
       for (const t of targets) {
-        await this.hit(u, t, S.power, { fx: S.fx, quick: targets.length > 1 });
+        const dealt = await this.hit(u, t, S.power, { fx: S.fx, quick: targets.length > 1, element: S.element, chance: S.chance });
+        if (S.drain && dealt > 0 && u.alive) {
+          const heal = Math.min(this.mhp(u) - this.hp(u), Math.round(dealt * S.drain));
+          if (heal > 0) { this.setHp(u, this.hp(u) + heal); this.pop(u, `+${heal}`, "#2E7D32"); }
+        }
         if (S.scare && t.alive && Math.random() < S.scare) { t.scared = true; await this.msg(`${t.name}は びくっと すくんだ！`, 500); }
       }
+      if (S.armor) { u.buffs.def = { m: 1.3, t: 3 }; this.sparkle(u, "#CAB399"); }
     }
     if (S.heal) {
       const targets = S.target === "party" ? this.allies.filter((a) => a.alive) : [target];
@@ -307,6 +322,7 @@ class BattleScene {
       for (const t of targets) {
         const amt = Math.round(this.mhp(t) * S.heal * U.rand(0.95, 1.1));
         this.setHp(t, this.hp(t) + amt);
+        BattleElements.clear(t); t.sleep = 0;
         this.pop(t, `+${amt}`, "#2E7D32");
         this.sparkle(t, "#8FE388");
       }
@@ -323,6 +339,7 @@ class BattleScene {
     if (S.revive) {
       const t = target;
       this.setHp(t, Math.round(this.mhp(t) * S.revive));
+      BattleElements.clear(t); t.sleep = 0;
       Sound.se("heal");
       this.sparkle(t, "#FFE066");
       await this.msg(`${t.name}が げんきに なった！`, 800);
@@ -347,7 +364,7 @@ class BattleScene {
     if (f.sleep > 0) { f.sleep--; await this.msg(f.sleep > 0 ? `${f.name}は ねむっている……` : `${f.name}は めを さました！`, 700); return; }
     const live = this.allies.filter((a) => a.alive);
     if (!live.length) return;
-    let skills = f.e.skills.map((k) => SKILLS[k]);
+    let skills = [...f.e.skills, `e_${BattleElements.enemies[f.kind]}_touch`].map((k) => SKILLS[k]);
     if (f.hp > f.mhp * 0.5) skills = skills.filter((s) => !s.heal);
     if (!skills.length) skills = [SKILLS.e_tackle];
     const S = U.pick(skills);
@@ -373,22 +390,23 @@ class BattleScene {
       return;
     }
     const targets = S.all ? live : [target];
-    if (S.all) this.burst(S.fx === "rock" ? "rock" : S.fx === "star" ? "star" : "wind", targets);
+    if (S.all || S.element) this.burst(S.fx, targets);
     await this.lunge(f, targets.length === 1 ? target : null);
-    for (const t of targets) await this.hit(f, t, S.power, { quick: targets.length > 1, canMiss: !S.all });
+    for (const t of targets) await this.hit(f, t, S.power, { fx: S.fx, element: S.element || BattleElements.enemies[f.kind], chance: S.chance, quick: targets.length > 1, canMiss: !S.all });
   }
 
   // ダメージ
-  calc(a, d, power) {
+  calc(a, d, power, element) {
     const atk = this.stat(a, "atk"), def = this.stat(d, "def");
     let dmg = atk * power * (100 / (100 + def * 2.2)) * U.rand(0.88, 1.08);
     let crit = false;
     const critRate = 0.06 + (a.side === "ally" && Save.d.chars[a.id].mood > 80 ? 0.05 : 0);
     if (Math.random() < critRate) { dmg *= 1.6; crit = true; }
     if (d.side === "ally" && d.guard) dmg *= 0.5;
-    return { dmg: Math.max(1, Math.round(dmg)), crit };
+    const affinity = BattleElements.multiplier(element, BattleElements.affinity(d));
+    return { dmg: Math.max(1, Math.round(dmg * affinity)), crit, affinity };
   }
-  async hit(a, d, power, { fx = "punch", quick = false, canMiss = false } = {}) {
+  async hit(a, d, power, { fx = "punch", quick = false, canMiss = false, element, chance = 0 } = {}) {
     if (!d.alive) return;
     if (canMiss && Math.random() < 0.04) {
       Sound.se("miss");
@@ -396,11 +414,18 @@ class BattleScene {
       await this.msg(`${d.name}は ひらりと かわした！`, 600);
       return;
     }
-    const { dmg, crit } = this.calc(a, d, power);
+    const { dmg, crit, affinity } = this.calc(a, d, power, element);
     if (crit) await this.msg("かいしんの いちげき！", 350);
+    if (affinity !== 1) await this.msg(affinity > 1 ? "あいしょう ばっちり！" : "あまり きかないみたい……", 300);
     this.impact(d, fx);
+    const before = this.hp(d);
     await this.applyDamage(d, dmg, crit, quick);
+    if (BattleElements.inflict(d, element, chance)) {
+      this.sparkle(d, BattleElements.types[element].color);
+      await this.msg(`${d.name}は ${BattleElements.types[element].status}！`, 450);
+    }
     if (a.side === "ally") this.gauge = Math.min(100, this.gauge + 7 * (0.6 + Save.avg("bond") / 100));
+    return before - this.hp(d);
   }
   async applyDamage(d, dmg, crit, quick) {
     Sound.se(crit ? "crit" : "hit");
@@ -444,12 +469,12 @@ class BattleScene {
     const y = u.y - (u.side === "foe" ? this.FS * 0.46 : this.AS * 0.5);
     for (let i = 0; i < 7; i++) {
       const a = (i / 7) * Math.PI * 2;
-      this.parts.push({ kind: fx === "fire" ? "fire" : "star", x: u.x, y, vx: Math.cos(a) * 140, vy: Math.sin(a) * 140, t: 0, dur: 0.4, color: fx === "wind" ? "#B3E5FC" : "#FFE066" });
+      this.parts.push({ kind: BattleElements.types[fx] ? fx : "star", x: u.x, y, vx: Math.cos(a) * 140, vy: Math.sin(a) * 140, t: 0, dur: 0.4, color: BattleElements.types[fx]?.color || (fx === "wind" ? "#B3E5FC" : "#FFE066") });
     }
   }
   burst(kind, targets) {
     for (const t of targets) for (let i = 0; i < 14; i++) {
-      this.parts.push({ kind: kind === "fire" ? "fire" : kind === "wind" ? "wind" : kind === "rock" ? "rock" : kind === "bone" ? "bone" : "star", x: t.x + U.rand(-40, 40), y: t.y - U.rand(0, 90), vx: U.rand(-60, 60), vy: U.rand(-90, 20), t: -Math.random() * 0.25, dur: 0.7, color: kind === "roar" ? "#FFFFFF" : "#FFE066" });
+      this.parts.push({ kind: BattleElements.types[kind] ? kind : kind === "wind" ? "wind" : kind === "bone" ? "bone" : "star", x: t.x + U.rand(-40, 40), y: t.y - U.rand(0, 90), vx: U.rand(-60, 60), vy: U.rand(-90, 20), t: -Math.random() * 0.25, dur: 0.7, color: BattleElements.types[kind]?.color || (kind === "roar" ? "#FFFFFF" : "#FFE066") });
     }
   }
 
@@ -518,6 +543,7 @@ class BattleScene {
     this.leave();
   }
   async defeat() {
+    this.defeated = true;
     Sound.stopBgm();
     Sound.se("bad");
     await this.msg("めのまえが まっくらに なった……", 1400);
@@ -608,6 +634,9 @@ class BattleScene {
       else if (p.kind === "wind") { ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y, 10 + k * 10, 0, 4); ctx.stroke(); }
       else if (p.kind === "rock") { ctx.fillStyle = "#A8A29A"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(p.x - 6, p.y + 5); ctx.lineTo(p.x - 3, p.y - 6); ctx.lineTo(p.x + 6, p.y - 3); ctx.lineTo(p.x + 5, p.y + 6); ctx.closePath(); ctx.fill(); ctx.stroke(); }
       else if (p.kind === "bone") { ctx.translate(p.x, p.y); ctx.rotate(p.t * 12); ctx.fillStyle = "#F6E3BF"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; U.rr(ctx, -9, -3, 18, 6, 3); ctx.fill(); ctx.stroke(); }
+      else if (p.kind === "water") { ctx.fillStyle = p.color; ctx.strokeStyle = "#FFF"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(p.x, p.y, 4, 7, .4, 0, 7); ctx.fill(); ctx.stroke(); }
+      else if (p.kind === "grass") { ctx.fillStyle = p.color; ctx.strokeStyle = "#4D834F"; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(p.x, p.y, 8, 3, p.t * 4, 0, 7); ctx.fill(); ctx.stroke(); }
+      else if (p.kind === "lightning") { ctx.strokeStyle = "#FFF"; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(p.x + 3, p.y - 9); ctx.lineTo(p.x - 3, p.y); ctx.lineTo(p.x + 3, p.y); ctx.lineTo(p.x - 3, p.y + 9); ctx.stroke(); ctx.strokeStyle = p.color; ctx.lineWidth = 3; ctx.stroke(); }
       ctx.restore();
     }
     for (const p of this.pops) {
@@ -632,13 +661,19 @@ class BattleScene {
     U.rr(ctx, x, y + 16, w, 8, 4); ctx.fillStyle = "#FFFFFF"; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.stroke();
     const k = f.hp / f.mhp;
     if (k > 0) { U.rr(ctx, x + 1.5, y + 17.5, (w - 3) * k, 5, 2.5); ctx.fillStyle = k > 0.5 ? "#6FCF6A" : k > 0.2 ? "#FFC23D" : "#F0605D"; ctx.fill(); }
-    if (f.scared) { ctx.fillText("すくみ", f.x, y + 38); }
+    ctx.font = "800 10px 'M PLUS Rounded 1c', sans-serif";
+    const status = f.scared ? "すくみ" : f.sleep ? "ねむり" : BattleElements.badge(f);
+    ctx.strokeText(status, f.x, y + 38); ctx.fillText(status, f.x, y + 38);
     ctx.restore();
   }
   drawAllyCard(ctx, a) {
     const c = Save.d.chars[a.id];
     const w = 104, h = 48, x = a.x - w / 2, y = a.y + 10;
     ctx.save();
+    ctx.textAlign = "center"; ctx.font = "800 10px 'M PLUS Rounded 1c', sans-serif";
+    ctx.fillStyle = INK; ctx.strokeStyle = "#FFFDF6"; ctx.lineWidth = 3;
+    const status = BattleElements.badge(a);
+    ctx.strokeText(status, a.x, y - 6); ctx.fillText(status, a.x, y - 6);
     U.rr(ctx, x, y, w, h, 10);
     ctx.fillStyle = this.active === a ? "#FFF3C4" : "rgba(255,253,246,0.95)"; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.stroke();
     ctx.fillStyle = INK; ctx.font = "800 11px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
@@ -658,7 +693,7 @@ class BattleScene {
     ctx.restore();
   }
   drawGauge(ctx) {
-    const w = 170, x = G.W / 2 - w / 2, y = Math.max(this.foeY + 52, (this.foeY + this.allyY) / 2 - 40);
+    const w = 170, x = G.W / 2 - w / 2, y = Math.max(this.foeY + 72, (this.foeY + this.allyY) / 2 - 40);
     ctx.save();
     ctx.font = "800 10px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = INK;
     ctx.lineWidth = 3; ctx.strokeStyle = "#FFFDF6";
