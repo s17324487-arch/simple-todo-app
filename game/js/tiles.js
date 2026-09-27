@@ -158,15 +158,23 @@ const Tiles = {
     const key = map.id + ":" + cx + "," + cy + "@" + G.px;
     let c = this.chunks.get(key);
     if (c) return c;
-    const s = Math.round(TS * G.px), N = 8;
+    const s = Math.round(TS * G.px), N = 8, pad=TownRoads.enabled(map.def)?2:0;
     c = document.createElement("canvas");
-    c.width = s * N; c.height = s * N;
+    c.width = s * N+pad*2; c.height = s * N+pad*2;
     const g = c.getContext("2d");
+    if(pad)g.translate(pad,pad);
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
       const tx = cx * N + i, ty = cy * N + j;
       if (tx >= map.w || ty >= map.h) continue;
       this.drawGround(g, map, tx, ty, i * s, j * s, s);
     }
+    if(TownRoads.enabled(map.def)) {
+      // 毎チャンク同じ世界原点を使う。模様の位相や線の座標をチャンクでリセットしない。
+      g.save();g.scale(s/TS,s/TS);g.translate(-cx*N*TS,-cy*N*TS);
+      const ready=TownRoads.draw(g,map.def);g.restore();
+      if(!ready){const blank=document.createElement("canvas");blank.width=blank.height=s*N;blank.getContext("2d").drawImage(c,-pad,-pad);return blank;}
+    }
+    if(pad){const cropped=document.createElement("canvas");cropped.width=cropped.height=s*N;cropped.getContext("2d").drawImage(c,-pad,-pad);c=cropped;}
     this.chunks.set(key, c);
     return c;
   },

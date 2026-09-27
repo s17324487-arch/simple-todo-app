@@ -269,8 +269,8 @@ MAP_DEFS.cave = genCave();
 
 // ---- 実行時のマップ ----
 class WorldMap {
-  constructor(id) {
-    const d = MAP_DEFS[id];
+  constructor(id, definition = MAP_DEFS[id]) {
+    const d = definition;
     this.id = id; this.def = d;
     this.name = d.name; this.bgm = d.bgm; this.area = d.area || null;
     this.baseGround = d.baseGround || "grass";
@@ -278,6 +278,11 @@ class WorldMap {
     this.h = d.rows.length; this.w = d.rows[0].length;
     d.rows.forEach((r, i) => { if (r.length !== this.w) throw new Error(`map ${id} row ${i} length ${r.length} != ${this.w}`); });
     this.solidGrid = Array.from({ length: this.h }, (_, y) => Array.from({ length: this.w }, (_, x) => SOLID_CH.has(d.rows[y][x])));
+    this.roadGrid = TownRoads.grid(d,this.w,this.h);
+    if(this.roadGrid)for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++) {
+      const kind=this.roadGrid[y][x];
+      if(kind==="island")this.solidGrid[y][x]=true;
+    }
     this.doors = [];
     this.sprites = []; // y順に並べる静的オブジェクト
     // 1文字オブジェクト

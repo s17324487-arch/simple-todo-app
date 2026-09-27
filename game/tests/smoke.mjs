@@ -5,9 +5,10 @@
 // Chromium の場所を指定したいときは 環境変数 CHROMIUM_PATH。
 // ゲーム内部の変数にはなるべく触らず、js/debug.js の PokaDebug と 実際のタップ操作で進める。
 import { chromium } from "playwright";
-import { mkdirSync, readdirSync, rmSync } from "node:fs";
+import { mkdirSync, readdirSync, rmSync, readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { serve } from "../tools/serve.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -809,6 +810,42 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
     expect(!errors.length,"素材プレビューでエラー: "+errors.join(";"));await preview.close();
   }
 },{viewport,full:viewport.width===375,timeout:90000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`vector-roads-${viewport.width}`,async H=>{
+  const def=runInNewContext(readFileSync(new URL("./fixtures/roads-v02.js",import.meta.url),"utf8")+";ROAD_FIXTURE");
+  await H.newGameFast();await H.dbg("coins",927);await H.dbg("teleport","heiwadai",16,28);await H.idle();
+  await H.dbg("pause",true);const state=await H.dbg("state"),world=await H.dbg("world");
+  const oldGround=await H.dbg("groundImage","town",1,1);
+  for(const [name,cx,cy]of [["station",43.2,27.4],["junction",43,45]]){
+    const r=await H.dbg("roadPreview",def,{...viewport,cx,cy});
+    expect(r.width===viewport.width&&r.height===viewport.height,"道路画像のサイズが不正");
+    for(const [x,y,kind]of [[43,28,"road"],[43,21,"island"],[40,34,"sidewalk"],[45,34,"driveway"],[40,42,"road"],[24,50,"road"],[45,53,"road"],[50,58,"road"]])expect(r.grid[y][x]===kind,`道路セル ${x},${y}: ${r.grid[y][x]} != ${kind}`);
+    expect(r.solid[21][43]&&!r.solid[28][43],"島と車道の当たり判定が不正");
+    // 本編の Tiles.chunk が描いた画像を、端末サイズそのままで記録。
+    await H.eval(url=>{const img=document.createElement("img");img.id="road-shot";img.src=url;img.style="position:fixed;inset:0;width:100vw;height:100vh;z-index:99999";document.body.append(img);return img.decode();},r.url);
+    await H.shot(name);await H.eval(()=>document.querySelector("#road-shot").remove());
+  }
+  for(const scale of viewport.width===390?[1,1.5,2.15625]:[2.09375]){
+    const r=await H.dbg("roadSeams",def,scale);console.log(`    road seams @${scale}: ${JSON.stringify(r)}`);
+    expect(r.flatSamples>1000&&r.flatMax<=3&&r.changed/r.channels<.001,"道路・模様がチャンク境界でずれる");
+  }
+  const blocked=structuredClone(def);blocked.objects=[{kind:"rock",x:43,y:28,w:1,h:1,solid:true}];
+  expect((await H.dbg("roadPreview",blocked,viewport)).solid[28][43],"道路が小物の当たり判定を消した");
+  expect(await H.dbg("groundImage","town",1,1)===oldGround,"道路のない町の地面が変わった");
+  const after=await H.dbg("state");expect(after.map===state.map&&after.pos.join()===state.pos.join()&&after.coins===state.coins,"道路プレビューでプレイ状態が変化");
+  expect(JSON.stringify((await H.dbg("world")).party)===JSON.stringify(world.party),"道路プレビューで3人が移動した");
+  await H.dbg("pause",false);await H.dbg("walkTo",18,30);await H.until(()=>PokaDebug.state().pos.join() === "18,30");
+  expect((await H.dbg("world")).party.length===3,"3人が一緒に歩かない");
+},{viewport,full:viewport.width===375,timeout:90000});
+
+await scenario("vector-roads-file",async H=>{
+  const def=runInNewContext(readFileSync(new URL("./fixtures/roads-v02.js",import.meta.url),"utf8")+";ROAD_FIXTURE");
+  await H.page.context().setOffline(true);
+  await H.page.goto(pathToFileURL(resolve(HERE,"../index.html")).href);
+  await H.until(()=>window.PokaDebug&&PokaDebug.state().scene==="title");
+  const image=await H.dbg("roadPreview",def,{width:375,height:667,cx:43,cy:45});
+  expect(image.url.startsWith("data:image/png;")&&image.grid[21][43]==="island","file:// で道路が描けない");
+},{full:true});
 
 await browser.close();
 server.close();

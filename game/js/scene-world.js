@@ -123,7 +123,7 @@ class WorldScene {
       const c = Save.d.chars[id];
       for (const dir of ["down", "up", "left", "right"]) for (const pose of poses) list.push([id, { pose, dir, outfit: c.outfit, color: c.color }]);
     }
-    const jobs = [Chara.preload(list, CHAR_SIZE)];
+    const jobs = [Chara.preload(list, CHAR_SIZE),TownRoads.preload(this.map.def)];
     const kinds = new Set(this.map.sprites.map((s) => (s.kind === "building" ? "b:" + s.spec.id : s.kind)));
     for (const s of this.map.sprites) jobs.push(this.spriteCanvas(s, true));
     for (const n of this.npcs) jobs.push(this.npcCanvas(n, n.w.dir, "idle_01", true));
