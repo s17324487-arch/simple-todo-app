@@ -42,6 +42,16 @@ const PokaDebug = {
   },
   idle() { return !Game.trans && !UI.busy; },
   pause(value) { const previous = !!Game.paused; Game.paused = !!value; return previous; },
+  world() {
+    if(G.sceneName!=="world")return null;
+    const sc=G.scene,r=G.canvas.getBoundingClientRect();
+    const point=(x,y)=>({cx:r.left+(x*TS+16-sc.cam.x+G.W/2)*G.cssPerUnit,cy:r.top+(y*TS+16-sc.cam.y+G.H/2)*G.cssPerUnit});
+    return {map:sc.mapId,party:sc.party.map((p,i)=>({id:Save.d.order[i],x:p.tx,y:p.ty})),
+      objects:(sc.map.def.objects||[]).map(o=>({...o,...point(o.x+(o.w-1)/2,o.y+(o.h-1)/2)})),
+      stops:sc.map.doors.filter(d=>d.b.act.type==="transit").map(d=>({id:d.b.act.stop,x:d.x,y:d.y,...point(d.x,d.y-1)})),
+      active:sc.objectActive?.until>G.t?sc.objectActive.id:null};
+  },
+  travel() { return G.sceneName==="travel"?{...G.scene.trip,elapsed:G.scene.elapsed,party:[...Save.d.order]}:null; },
   homeLife(event) {
     if (G.sceneName !== "house") return null;
     if (event) HomeLife.event(G.scene, event);

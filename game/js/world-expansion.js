@@ -52,18 +52,21 @@ const WorldAtlas = {
   open() { const body=U.el("div"); this.render(body); return UI.modal({title:"ぜんたい ちず",body,cls:"full"}); },
   render(el) {
     const current=G.sceneName === "world" ? G.scene.mapId : Save.d.world.map;
-    const nodes={town:[70,70],city:[225,70],coast:[225,160],meadow:[70,160],forest:[70,250],cave:[225,250]};
-    const edges=[["town","city"],["city","coast"],["town","meadow"],["meadow","forest"],["forest","cave"]];
+    const nodes={heiwadai:[70,50],airport:[225,50],town:[70,140],city:[225,140],meadow:[70,230],coast:[225,230],forest:[70,320],harbor:[225,320],cave:[70,410]};
+    const edges=[["town","city"],["city","coast"],["town","meadow"],["meadow","forest"],["forest","cave"],["city","heiwadai"],["heiwadai","airport"],["coast","harbor"]];
     let svg=edges.map(([a,b])=>`<path d="M${nodes[a]} L${nodes[b]}" stroke="#BBA888" stroke-width="8" fill="none"/>`).join("");
     for(const [id,[x,y]] of Object.entries(nodes)) svg+=`<g><rect x="${x-62}" y="${y-24}" width="124" height="48" rx="14" fill="${id===current?"#FFE29C":"#FDF6E8"}" stroke="#544633" stroke-width="2"/><text x="${x}" y="${y-2}" text-anchor="middle" font-size="11" font-family="sans-serif">${MAP_DEFS[id].name}</text><text x="${x}" y="${y+14}" text-anchor="middle" font-size="10">${id===current?"★ いま ここ":AREAS[id]?`Lv.${AREAS[id].table[0][1]}〜` :"おみせ・おさんぽ"}</text></g>`;
-    el.append(U.el("div",{html:`<svg viewBox="0 0 300 290" role="img" aria-label="町とエリアのつながり">${svg}</svg>`}));
+    el.append(U.el("div",{html:`<svg viewBox="0 0 300 450" role="img" aria-label="町とエリアのつながり">${svg}</svg>`}));
+    el.append(U.el("div",{class:"note",text:"でんしゃ：タウン・シティ・平和台・くうこう ／ ふね：ビーチ⇄みなと ／ ひこうき：くうこう⇄みなと。のりばから むりょうで いどうできるよ。"}));
     const tabs=U.el("div",{class:"atlas-areas"}), detail=U.el("div"); el.append(tabs,detail);
     const show=id=>{
       const d=MAP_DEFS[id], width=d.rows[0].length; let tiles="";
-      d.rows.forEach((row,y)=>[...row].forEach((ch,x)=>{const col=ch==="~"?"#8AC8E2":ch==="#"?"#C89CAA":"TPABRhWF".includes(ch)?"#7FA18A":"=-pbD".includes(ch)?"#EEE4CF":ch==="s"?"#F0D7A0":"#BDD6A1";tiles+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${col}"/>`;}));
+      d.rows.forEach((row,y)=>[...row].forEach((ch,x)=>{const col=ch==="~"?"#8AC8E2":ch==="#"?"#C89CAA":"TPABRhWF".includes(ch)?"#7FA18A":"vz".includes(ch)?"#AABACB":"=-pbD".includes(ch)?"#EEE4CF":ch==="s"?"#F0D7A0":"#BDD6A1";tiles+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${col}"/>`;}));
+      for(const o of d.objects||[])if(o.text)tiles+=`<circle cx="${o.x+o.w/2}" cy="${o.y+o.h/2}" r=".8" fill="#D69A55"/>`;
+      for(const b of d.buildings||[])if(b.act.type==="transit")tiles+=`<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="#70B6A7"/>`;
       if(id===current && G.sceneName==="world") {const p=G.scene.party[0];tiles+=`<circle cx="${p.tx+.5}" cy="${p.ty+.5}" r=".8" fill="#E45662" stroke="white" stroke-width=".3"/>`;}
       for(const warp of d.warps||[]) tiles+=`<rect x="${warp.x}" y="${warp.y}" width="${warp.w}" height="${warp.h}" fill="#BD87CF"/>`;
-      detail.innerHTML=`<h3>${d.name}</h3><svg viewBox="0 0 ${width} ${d.rows.length}" style="width:100%;max-height:360px" role="img" aria-label="${d.name}の詳細地図">${tiles}</svg><div class="note">あかい まる：いまの ばしょ ／ むらさき：つぎの エリア</div>`;
+      detail.innerHTML=`<h3>${d.name}</h3><svg viewBox="0 0 ${width} ${d.rows.length}" style="width:100%;max-height:360px" role="img" aria-label="${d.name}の詳細地図">${tiles}</svg><div class="note">あか：いまの ばしょ ／ むらさき：つぎの エリア ／ みどり：のりば ／ オレンジ：あそべる もの</div>`;
       for(const b of d.buildings||[]) detail.append(U.el("div",{class:"muted",text:`${b.label}：よこ ${b.x+b.door+1}・たて ${b.y+b.h}`}));
     };
     for(const id in nodes) tabs.append(UI.btn(MAP_DEFS[id].name,()=>show(id),"small")); show(nodes[current]?current:"town");
