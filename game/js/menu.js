@@ -5,7 +5,7 @@ const Menu = {
     const body = U.el("div");
     const tabs = U.el("div", { class: "tabs" });
     const content = U.el("div");
-    const T = [["status", "ようす"], ["bag", "もちもの"], ["dex", "ずかん"], ["settings", "せってい"]];
+    const T = [["status", "ようす"], ["map", "ちず"], ["bag", "もちもの"], ["dex", "ずかん"], ["settings", "せってい"]];
     const m = UI.modal({ title: "メニュー", body, cls: "full" });
     this.m = m;
     const show = (k) => {
@@ -23,14 +23,15 @@ const Menu = {
     show(tab);
     // フィールドでは「まちに かえる」
     const sc = G.scene;
-    if (sc instanceof WorldScene && sc.mapId !== "town") {
-      const back = UI.btn("🏠 まちに かえる", async () => {
-        if (await UI.confirm("まちに かえる？")) { m.close(); Game.goto("world", { map: "town", x: 12, y: 29, dir: "up" }, "circle"); }
+    if (sc instanceof WorldScene) {
+      const back = UI.btn("おうちへ", async () => {
+        if (await UI.confirm("3にんで おうちに かえる？")) { m.close(); Game.goto("house", {}, "circle"); }
       }, "small");
       m.el.querySelector(".panel-head").insertBefore(back, m.el.querySelector(".close"));
     }
   },
 
+  map(el) { WorldAtlas.render(el); },
   status(el) {
     const d = Save.d;
     d.order.forEach((id, idx) => {

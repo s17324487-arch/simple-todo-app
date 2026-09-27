@@ -309,6 +309,31 @@ await scenario("おうちの生活・デザ・増築", async (H) => {
   expect((await H.dbg("homeLife")).room === "study", "部屋が保存されない");
 }, { full: true });
 
+await scenario("新エリア・全体マップ・帰宅", async (H) => {
+  await H.newGameFast();
+  await H.dbg("teleport", "town", 34, 7);
+  await H.until(() => PokaDebug.idle()); await H.dbg("walkTo", 35, 7);
+  await H.until(() => PokaDebug.state().map === "city" && PokaDebug.idle());
+  await H.shot("city");
+  await H.page.getByRole("button", { name: "メニュー", exact: true }).click();
+  await H.page.getByRole("button", { name: "ちず", exact: true }).click();
+  expect(await H.page.getByRole("img", { name: "町とエリアのつながり" }).isVisible(), "全体マップがない");
+  await H.shot("atlas"); await H.page.locator(".modal-wrap .close").last().click(); await H.wait(300);
+  await H.dbg("teleport", "city", 34, 17); await H.until(() => PokaDebug.idle());
+  await H.dbg("walkTo", 35, 17); await H.until(() => PokaDebug.state().map === "coast" && PokaDebug.idle());
+  await H.shot("coast");
+  await H.dbg("level", 24); await H.dbg("battle", [{ kind:"crab",lv:16 }], "coast");
+  await H.page.getByRole("button", { name:"とくぎ",exact:true }).waitFor(); await H.shot("new-enemy");
+  await H.page.getByRole("button", { name:"おうちへ",exact:true }).click();
+  await H.until(() => PokaDebug.state().scene === "house" && PokaDebug.idle());
+  const coins=(await H.dbg("state")).coins;
+  await H.dbg("shop","crepe",1); await H.dialogs();
+  await H.until(() => PokaDebug.mg()?.phase === "work");
+  await H.page.getByRole("button", { name:"おうちへ",exact:true }).click();
+  await H.until(() => PokaDebug.state().scene === "house" && PokaDebug.idle());
+  await H.wait(2000); expect((await H.dbg("state")).coins===coins,"途中退出で報酬が発生");
+}, {full:true});
+
 await scenario("バトルに勝つ", async (H) => {
   await H.newGameFast();
   await H.dbg("teleport", "meadow", 14, 5);

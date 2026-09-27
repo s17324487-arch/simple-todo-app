@@ -30,10 +30,17 @@ class BattleScene {
     this.layout();
     await this.preload();
     this.buildUI();
+    this.homeBtn = UI.btn("おうちへ", () => {
+      if (UI.busy || Game.trans || this.homeRequested) return;
+      this.homeRequested = true; this.homeBtn.disabled = true;
+      if (this.commandResolve) this.commandResolve({ type: "home" });
+      else UI.toast("この こうどうが おわったら かえるよ");
+    }, "home-shortcut small");
+    document.getElementById("ui").append(this.homeBtn);
     Sound.bgm(this.boss ? "boss" : "battle");
     this.run().catch((e) => { console.error(e); UI.toast("バトルで エラーが おきました"); this.leave(); });
   }
-  exit() { this.layoutObserver?.disconnect(); if (this.ui) this.ui.remove(); }
+  exit() { this.closed = true; this.homeBtn?.remove(); this.layoutObserver?.disconnect(); if (this.ui) this.ui.remove(); }
   layout() {
     const W = G.W, H = G.H;
     // 画面の高さに合わせて大きさを決める（下のコマンド欄と重ならないように）
@@ -99,6 +106,7 @@ class BattleScene {
   // コマンド選択。Promise で結果を返す
   chooseCommand(u) {
     return new Promise((resolve) => {
+      this.commandResolve = resolve;
       const c = Save.d.chars[u.id];
       const main = () => {
         this.cmd.innerHTML = "";
@@ -194,12 +202,16 @@ class BattleScene {
     const hungry = this.allies.filter((a) => a.hungry);
     if (hungry.length) await this.msg(`${hungry.map((a) => a.name).join("と")}は おなかが すいて ちからが でない……`, 900);
     for (;;) {
+      if (this.closed) return;
+      if (this.homeRequested) { Game.goto("house"); return; }
       this.round++;
       const order = [...this.allies, ...this.foes].filter((u) => u.alive).map((u) => ({ u, s: this.stat(u, "spd") * U.rand(0.85, 1.15) })).sort((a, b) => b.s - a.s).map((x) => x.u);
       for (const u of order) {
         if (this.isOver()) break;
         if (!u.alive) continue;
         if (u.side === "ally") await this.allyTurn(u); else await this.foeTurn(u);
+        if (this.closed) return;
+        if (this.homeRequested) { Game.goto("house"); return; }
         if (this.fled) return this.endFlee();
       }
       if (this.isOver()) break;
@@ -220,7 +232,9 @@ class BattleScene {
     this.active = u;
     this.msgBox.textContent = `${u.name}の ばん！`;
     const cmd = await this.chooseCommand(u);
+    this.commandResolve = null;
     this.cmd.innerHTML = "";
+    if (cmd.type === "home" || this.closed) return;
     await this.execute(u, cmd);
     this.active = null;
   }
@@ -452,7 +466,7 @@ class BattleScene {
       exp += Math.round(f.e.exp * k);
       coins += Math.round(U.randi(f.e.coin[0], f.e.coin[1]) * k);
       Save.d.dex[f.kind].won = (Save.d.dex[f.kind].won || 0) + 1;
-      const tbl = { meadow: ["apple", "candy", "bandaid", "milk"], forest: ["corn", "drink", "juice", "bandaid"], cave: ["bigbandaid", "feather", "drink", "fish"] }[this.area];
+      const tbl = { meadow: ["apple", "candy", "bandaid", "milk"], forest: ["corn", "drink", "juice", "bandaid"], cave: ["bigbandaid", "feather", "drink", "fish"], coast: ["deza_ice", "bigbandaid", "fish"] }[this.area] || ["bandaid"];
       if (!f.e.boss && Math.random() < 0.22) drops.push({ bag: U.pick(tbl) });
       if (f.kind === "koumori" && Math.random() < 0.05 && !Save.d.wardrobe.batwings) drops.push({ wear: "batwings" });
     }
@@ -677,12 +691,18 @@ class BattleScene {
     }
     const gy = H * 0.26;
     const gg = ctx.createLinearGradient(0, gy, 0, H);
-    const gc = a === "cave" ? ["#6E6259", "#5A4E45"] : a === "forest" ? ["#86C46A", "#6FAE55"] : ["#A6D883", "#8CC56C"];
+    const gc = a === "coast" ? ["#F7DBA8", "#E7BD82"] : a === "cave" ? ["#6E6259", "#5A4E45"] : a === "forest" ? ["#86C46A", "#6FAE55"] : ["#A6D883", "#8CC56C"];
     gg.addColorStop(0, gc[0]); gg.addColorStop(1, gc[1]);
     ctx.fillStyle = gg; ctx.fillRect(0, gy, W, H - gy);
+    if (a === "coast") {
+      ctx.fillStyle = "#A9DFF1"; ctx.fillRect(0, 0, W, gy * 0.65);
+      ctx.fillStyle = "#72BED3"; ctx.fillRect(0, gy * 0.65, W, gy * 0.6);
+      ctx.strokeStyle = "#F5FAE8"; ctx.lineWidth = 3;
+      for (let i = 0; i < 4; i++) { const yy=gy*.78+i*8; ctx.beginPath(); ctx.moveTo(0,yy); ctx.bezierCurveTo(W*.3,yy-5,W*.7,yy+5,W,yy); ctx.stroke(); }
+    }
     // ステージの だえん
     const plat = (x, y, rx, ry) => {
-      ctx.fillStyle = a === "cave" ? "#8E8175" : a === "forest" ? "#9CD27D" : "#B9E39A";
+      ctx.fillStyle = a === "coast" ? "#F8E3BC" : a === "cave" ? "#8E8175" : a === "forest" ? "#9CD27D" : "#B9E39A";
       ctx.strokeStyle = "rgba(31,29,27,0.25)"; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 7); ctx.fill(); ctx.stroke();
     };

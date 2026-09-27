@@ -10,6 +10,7 @@ const FILES = [
   "./js/dressup.js", "./js/scene-title.js", "./js/scene-world.js", "./js/scene-house.js", "./js/scene-battle.js", "./js/minigames.js", "./js/debug.js",
   "./js/home-life.js",
   "./js/home-catalog.js",
+  "./js/world-art.js", "./js/world-expansion.js",
 ];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
