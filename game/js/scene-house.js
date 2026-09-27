@@ -150,6 +150,8 @@ class HouseScene {
     this.ui.append(this.care, this.bar);
     this.watchExit = UI.btn("みまもりを おわる", () => HomeLife.toggle(this), "watch-exit hidden yellow");
     this.ui.append(this.watchExit);
+    this.parentButton=UI.btn("ぱぱ・まま",()=>{if(!this.mode&&!UI.busy)ParentCare.open(this);},"parent-open small");
+    this.ui.append(this.parentButton);
     document.getElementById("ui").append(this.ui);
     this.updateCare();
   }
@@ -158,18 +160,16 @@ class HouseScene {
     this.care.innerHTML = Save.d.order.map((id) => {
       const c = Save.d.chars[id];
       return `<div class="mini"><div class="lbl"><span>${c.name}</span><span>Lv${c.lv}</span></div>
-        <div class="lbl" style="font-size:9px"><span>おなか</span></div>${UI.meter(c.hunger, 100, "hunger")}
+        <div class="lbl" style="font-size:9px"><span>${c.hunger>=90?(id==="gachan"?"はらぺん":"はらぱん"):"おなか"}</span></div>${UI.meter(c.hunger, 100, "hunger")}
         <div class="lbl" style="font-size:9px;margin-top:2px"><span>ごきげん</span></div>${UI.meter(c.mood, 100, "mood")}</div>`;
     }).join("");
   }
   showBar(on) { this.bar.classList.toggle("hidden", !on); this.care.classList.toggle("hidden", !on); }
 
   async intro() {
-    await UI.say([
-      { who: "wanko", emo: "happy", text: "ここが ぼくたちの おうち！\nちょっと せまいけど、すてきでしょ？" },
-      { who: "gachan", emo: "normal", text: "ぴよ……おなか すいちゃった。\nしたの「ごはん」ボタンで なにか たべたいな。" },
-      { who: "goji", emo: "happy", text: "へやを タップすると、ぼくたちを なでられるよ。\n「おでかけ」で まちに いこう。" },
-    ]);
+    HomeLife.say(this,"wanko","ここが ぼくたちの おうち！");
+    HomeLife.say(this,"gachan","ごはんボタンで ごはんを たべよう♪");
+    HomeLife.say(this,"goji","ぼくたちを タップして なでてね！");
   }
 
   // ---- ごはん ----
@@ -218,12 +218,11 @@ class HouseScene {
       c.food = null;
       if (!r) continue;
       res.push(`${Save.d.chars[id].name}: ${r.text.split("\n")[0]}`);
-      if (Save.d.chars[id].wantsDeza) HomeLife.say(this, id, id === "goji" ? "ガゥー、デザ ほしいな♪" : "デザ ほしいな♪");
+      HomeLife.say(this,id,r.dislike?"からいのは にがて……":(Save.d.chars[id].hunger>=90?Care.fullText(id):"おいしい！")+(Save.d.chars[id].wantsDeza?" デザ ほしいな♪":""));
       this.react(c, r.emo, r.dislike ? "anger" : "heart");
       if (r.like) Sound.voice(id);
     }
-    if (!Save.d.flags.fedOnce) { Save.d.flags.fedOnce = true; setTimeout(() => UI.say([{ who: ids[0], emo: "happy", text: "おいしかった〜！\nおなかが いっぱいに なると ごきげんも あがるよ。" }]), 900); }
-    UI.toast(res.join("<br>"), "good");
+    Save.d.flags.fedOnce = true;
     this.updateCare();
     await U.wait(400);
     this.mode = null;
@@ -251,7 +250,7 @@ class HouseScene {
     this.mode = "hide-wait";
     this.showBar(false);
     this.dark = 0;
-    await UI.say([{ who: "wanko", emo: "happy", text: "かくれんぼ しよう！\nぼくたちが かくれるから、さがしてね。\nもういいかい？" }]);
+    HomeLife.say(this,"wanko","かくれんぼ しよう！ ぼくたちを さがしてね。");await U.wait(1800);
     this.darkTarget = 0.92;
     await U.wait(700);
     const spots = this.hideSpots();
@@ -286,7 +285,8 @@ class HouseScene {
         Sound.voice(c.id);
         H.found++;
       }
-      UI.toast(`みつかった〜！（あと ${this.chars.filter((c) => c.hidden).length}にん）`);
+      for(const c of who)HomeLife.say(this,c.id,"みつかった〜！");
+      UI.toast(`あと ${this.chars.filter((c) => c.hidden).length}にん`);
     } else {
       Sound.se("miss");
       this.fx("puff", null, { x: best.x, y: best.y - 20 });
@@ -304,7 +304,7 @@ class HouseScene {
     const mood = 6 + found * 5;
     Save.careAll({ mood, bond: 2, hunger: -3 });
     await U.wait(500);
-    await UI.say([{ who: this.chars[0].id, emo: "happy", text: found === 3 ? `ぜんいん みつかっちゃった！ さがすの じょうずだね！\n（ごきげん +${mood}）` : `ここに かくれてたんだよ〜！\n（ごきげん +${mood}）` }]);
+    HomeLife.say(this,this.chars[0].id,found===3?"ぜんいん みつかっちゃった！ じょうずだね！":"ここに かくれてたんだよ〜！");UI.toast(`ごきげん +${mood}`,"good");
     this.updateCare();
     this.showBar(true);
     this.mode = null;
@@ -343,7 +343,7 @@ class HouseScene {
     const mood = Math.min(28, 4 + hits * 2);
     Save.careAll({ mood, bond: hits >= 6 ? 2 : 1, hunger: -3 });
     Sound.se(hits >= 10 ? "perfect" : "good");
-    await UI.say([{ who: "gachan", emo: hits >= 10 ? "love" : "happy", text: `ボールを ${hits}かい つないだよ！${hits >= 10 ? "\nすごい すごい！" : ""}\n（ごきげん +${mood}）` }]);
+    HomeLife.say(this,"gachan",`ボールを ${hits}かい つないだよ！`);UI.toast(`ごきげん +${mood}`,"good");
     this.updateCare();
     this.showBar(true);
     this.mode = null;
@@ -561,8 +561,8 @@ class HouseScene {
     if (this.mode === "hide") { this.hideTap(r.x, r.y); return; }
     if (this.mode) return;
     if (this.life.quarrel && HomeLife.settle(this)) return;
-    for (const [id, x] of [["papa", 75], ["mama", 285]]) if (Math.abs(r.x - x) < 26 && r.y < 284 && r.y > 195) {
-      UI.say([{ name: id === "papa" ? "ぱぱ" : "まま", text: U.pick(id === "papa" ? ["きょうも 3にん なかよしだね。", "つかれたら いつでも かえって おいで。", "ぱぱも いっしょに あそびたいな。"] : ["おかえり。ぎゅーっと しよう！", "ごはんの あとは デザに しようね。", "けんかしても なかなおり できるよ。"])}]); return;
+    for (const parent of this.parents) if (Math.abs(r.x-parent.x)<32 && r.y<parent.y+12 && r.y>parent.y-100) {
+      ParentCare.open(this,parent.id); return;
     }
     // キャラを なでる
     const c = [...this.chars].sort((a, b) => b.y - a.y).find((c) => Math.abs(r.x - c.x) < 32 && r.y < c.y + 6 && r.y > c.y - 86);
@@ -583,8 +583,7 @@ class HouseScene {
       gachan: ["ぴよぴよ〜♪", "ふわふわでしょ？", "えへへ、うれしい！"],
       goji: ["ガォー♪", "ガゥー♪", "ごろごろ……", "もっと〜"],
     }[c.id];
-    if (d.hunger < 25) UI.toast(`${d.name}「おなか すいた……」`);
-    else UI.toast(`${d.name}「${U.pick(lines)}」`);
+    HomeLife.say(this,c.id,d.hunger<25?"おなか すいた……":d.hunger>=90?Care.fullText(c.id):U.pick(lines));
   }
   key(k, down) {
     if (!down) return;
@@ -594,6 +593,7 @@ class HouseScene {
   // ---- 更新 ----
   update(dt) {
     HomeLife.update(this, dt);
+    ParentCare.update(this,dt);
     for (const c of this.chars) this.updateChar(c, dt);
     this.fxs = this.fxs.filter((f) => (f.t += dt) < f.dur);
     if (this.darkTarget != null) this.dark = (this.dark || 0) + (this.darkTarget - (this.dark || 0)) * Math.min(1, dt * 4);
@@ -619,6 +619,7 @@ class HouseScene {
         break;
       }
       case "idle":
+        if(this.parents.some(p=>p.target===c.id))break;
         c.t -= dt;
         if (c.t <= 0 && !this.mode) {
           const r = Math.random();
@@ -657,7 +658,7 @@ class HouseScene {
     const s = this.s;
     const list = [];
     const items = this.drawOrder();
-    if (this.mode !== "edit") for (const [id, x] of [["papa", 75], ["mama", 285]]) list.push({ z: 280, draw: () => HomeLife.parent(this, ctx, id, x, 280) });
+    if (this.mode !== "edit") for (const p of this.parents) list.push({ z:p.y,draw:()=>ParentCare.draw(this,ctx,p) });
     for (const it of items) {
       const f = FURN_INDEX[it.id];
       const z = f.kind === "wall" ? -2000 : f.kind === "rug" ? -1000 + it.y : it.y;

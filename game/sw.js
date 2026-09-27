@@ -8,7 +8,7 @@ const FILES = [
   "./js/version.js", "./js/chara-data.js", "./js/util.js", "./js/data.js", "./js/chara.js", "./js/art.js", "./js/tiles.js", "./js/maps.js",
   "./js/save.js", "./js/sound.js", "./js/ui.js", "./js/main.js", "./js/talk.js", "./js/menu.js", "./js/shop.js",
   "./js/dressup.js", "./js/scene-title.js", "./js/scene-world.js", "./js/scene-house.js", "./js/scene-battle.js", "./js/minigames.js", "./js/debug.js",
-  "./js/home-life.js",
+  "./js/home-life.js", "./js/parent-care.js",
   "./js/home-catalog.js",
   "./js/world-art.js", "./js/world-expansion.js",
   "./js/economy.js", "./js/arcade.js",

@@ -35,6 +35,7 @@
 <script src="../js/world-art.js"></script>
 <script src="../js/world-scenery.js"></script>
 <script src="../js/atlas-art.js"></script>
+<script src="../js/parent-care.js"></script>
 <script>
   const out = document.getElementById("out");
   const ctrl = document.getElementById("ctrl");
@@ -56,6 +57,7 @@
   const row = (items) => `<div class="row">${items.join("")}</div>`;
   function render() {
     let h = '<h2>ぜんたい ちず（オリジナル地形）</h2><div style="max-width:800px">'+AtlasArt.svg()+'</div>';
+    h += '<h2>ぱぱ・まま（ふく・かお・動き）</h2>'+row(["papa","mama"].flatMap(id=>ParentCare.options.outfit.flatMap(([outfit])=>ParentCare.options.face.map(([face],i)=>cell(ParentCare.svg(id,{outfit,face,color:["blue","pink","mint","yellow","purple"][i],hair:id==="papa"?"short":"bob",accessory:id==="papa"?"glasses":"flower",skin:"light"},["idle","walk1","walk2","care","wave"][i]),100,id+' '+outfit+' '+face)))));
     h += "<h2>3人 × 向き（上の選択を反映）</h2>";
     h += row(Chara.IDS.flatMap((id) => ["down", "left", "right", "up"].map((dir) => cell(Chara.svg(id, { dir, pose, face, outfit, color }), size, `${id} ${dir}`))));
     h += "<h2>服をひとつずつ（3人・正面／後ろ）</h2>";

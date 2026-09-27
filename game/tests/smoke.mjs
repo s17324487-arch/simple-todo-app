@@ -630,6 +630,37 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.page.locator(".atlas-marker.is-current").getAttribute("data-area")==="heiwadai","再度開いた地図の現在地が古い");
 },{viewport,full:viewport.width===375,timeout:90000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`ぱぱまま・吹き出し・セーブ（${viewport.width}）`,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);await H.dbg("coins",987504);await H.dbg("needs",20);
+  const money=(await H.dbg("state")).coins;
+  await H.until(()=>Object.values(PokaDebug.family().lastCare).some(n=>n>0),18000);
+  expect((await H.dbg("family")).bag.onigiri===2,"自動のお世話で手持ちのごはんを使わない");
+  await H.page.getByRole("button",{name:"ぱぱ・まま",exact:true}).click();
+  await H.page.getByRole("button",{name:"じどうの おせわ：する",exact:true}).click();
+  for(const [key,value] of [["ふく","apron"],["かお","wink"],["かみがた","curly"],["いろ","mint"],["こもの","cap"],["はだいろ","warm"]])await H.page.getByLabel(key,{exact:true}).selectOption(value);
+  await H.page.getByRole("button",{name:"まま",exact:true}).click();
+  await H.page.getByLabel("ふく",{exact:true}).selectOption("suit");await H.page.getByLabel("かお",{exact:true}).selectOption("round");
+  await H.shot("parent-customize");
+  const looks=(await H.dbg("family")).looks;
+  expect(looks.papa.outfit==="apron"&&looks.papa.face==="wink"&&looks.mama.outfit==="suit"&&looks.mama.face==="round","親の見た目が選べない");
+  await H.page.getByRole("button",{name:"3にんを おせわ",exact:true}).click();
+  await H.until(()=>Object.values(PokaDebug.family().lastCare).every(n=>n>0),20000);
+  expect(((await H.dbg("family")).bag.onigiri||0)===0,"3人のお世話で食事の数が合わない");
+  expect((await H.dbg("state")).coins===money,"お世話や着せ替えでおかねが減った");
+  await H.until(()=>PokaDebug.family().parents.every(p=>!p.target),10000);
+  await H.houseButton("みまもる");await H.dbg("homeLife","chat");await H.dbg("pause",true);
+  const f=await H.dbg("family");expect(f.bubbles.length===3,"3人の会話がない");
+  for(const b of f.bubbles){expect(b.x>=0&&b.y>=0&&b.x+b.w<=f.width&&b.y+b.h<=f.height,"吹き出しが画面からはみ出す");expect(Number.isFinite(b.anchor.x)&&Number.isFinite(b.anchor.y),"話者へ向くしっぽがない");}
+  for(let i=0;i<f.bubbles.length;i++)for(let j=i+1;j<f.bubbles.length;j++){const a=f.bubbles[i],b=f.bubbles[j];expect(!(a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y),"吹き出しが重なる");}
+  await H.shot("family-bubbles");await H.dbg("pause",false);
+  await H.dbg("needs",100);await H.dbg("give","onigiri",2);
+  expect(/はらぺん|はらぱん/.test((await H.dbg("feed","gachan","onigiri")).text),"満腹時のことばがない");
+  await H.dbg("save");await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  const restored=await H.dbg("family");expect(JSON.stringify(restored.looks)===JSON.stringify(looks)&&!restored.auto,"見た目や自動お世話の設定が保存されない");
+  expect((await H.dbg("state")).coins===money,"再開でおかねが変わった");
+  expect(!(await H.eval(()=>document.documentElement.scrollWidth>innerWidth)),"親の画面が横にはみ出す");
+},{viewport,full:viewport.width===375,timeout:90000});
+
 await browser.close();
 server.close();
 const bad = results.filter((r) => !r.ok);

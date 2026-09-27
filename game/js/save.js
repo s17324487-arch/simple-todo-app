@@ -24,6 +24,11 @@ const Save = {
       coins: 150,
       chars: { wanko: chara("wanko"), gachan: chara("gachan"), goji: chara("goji") },
       order: ["wanko", "gachan", "goji"],
+      parents: {
+        papa: { outfit:"casual",color:"blue",face:"smile",hair:"short",accessory:"glasses",skin:"light" },
+        mama: { outfit:"casual",color:"pink",face:"smile",hair:"bob",accessory:"flower",skin:"light" },
+        auto:true, lastCare:{wanko:0,gachan:0,goji:0},
+      },
       bag: { onigiri: 3, apple: 2, bandaid: 2 },
       wardrobe: { ribbon_pink: true, tshirt_red: true, scarf_green: true },
       furn: { bed_simple: 1, table_wood: 1, rug_round: 1, window: 1, plant: 1 },
@@ -220,6 +225,7 @@ const Stats = {
 
 // ごはん・どうぐを つかう（おうち・メニュー・バトル共通）
 const Care = {
+  fullText(id) { return (id==="goji"?"ガゥー♪ ":"")+U.pick(["はらぺん♪","はらぱん！"]); },
   // 食べ物の効果を計算して反映。返り値 { text, emo, like, dislike }
   feed(id, itemId, { free = false } = {}) {
     const it = BAG_INDEX[itemId];
@@ -237,7 +243,7 @@ const Care = {
       const full = c.hunger >= 96;
       Save.care(id, { hunger: it.hunger || 0, mood: full ? Math.min(mood, 2) : mood, bond: like ? 4 : dislike ? 0 : 2 });
       Save.d.stats.fed++;
-      if (full) msgs.push("もう おなか いっぱい……");
+      if (c.hunger >= 90) msgs.push(this.fullText(id));
       else if (like) msgs.push("だいこうぶつ！ とっても うれしそう！");
       else if (dislike) msgs.push("にがてな あじ……ちょっと ふきげん。");
       else msgs.push("おいしそうに たべた！");
