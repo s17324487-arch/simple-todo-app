@@ -8,7 +8,7 @@ const {server,url}=await serve({port:0,quiet:true});
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||undefined});
 try{
   const page=await browser.newPage();await page.route(/^https:\/\/fonts\./,route=>route.abort());
-  await page.goto(url+'index.html');await page.waitForFunction(()=>window.PokaDebug&&PokaDebug.idle());
+  await page.goto(url+'index.html?audio-preview=1');await page.waitForFunction(()=>window.PokaDebug&&PokaDebug.idle());
   const stats=[];
   for(const name of ['town','house','city','heiwadai','shop_crepe','battle_crown']){
     const {wav,...metrics}=await page.evaluate(async name=>PokaDebug.musicRender(name,8,true),name);

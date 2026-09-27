@@ -621,4 +621,6 @@ PokaDebug.pause(bool) は以前の停止状態を返す。テストで撮影す�
 Soundは曲ごとにバスを作り、切替時に80msでフェードして音源/接続を破棄する。タイマーが遅れた場合は過去の音符をまとめて鳴らさない。保存項目は追加・変換せずsettings.bgm/seを引き続き使う。効果音・キャラの声は従来の音源を維持する。
 
 PokaDebug.music(name|null)で試聴/停止、引数なしは再生状態。musicCatalog()は曲名・楽器・拍数。musicRender(name,秒数,wav=false)は同じ楽器・スケジューラでOfflineAudioContextへ合成しピーク/RMS/同時発音数を返す。wav=trueは試聴用16bitステレオWAVのbase64も返す。ブラウザ検査で全曲の無音・クリップ・発音上限、曲切替、設定保持を確認する。詳細・試聴は [MUSIC.md](MUSIC.md)。
+
+試聴専用の `?audio-preview=1` はDOMContentLoadedでSave.fresh()をメモリに用意するだけで、Game.bootを呼ばない。保存読込・自動保存・visibility/pagehide保存の登録をしない。PokaDebug.persistedSave()でlocalStorageの内容を読み、通常ゲームから試聴→21秒待機→閉じる前後で保存内容の完全一致を検証する。
 mg() の score は採点中の点数、歯医者の order.mistakes は誤操作数。テスト失敗時に残り秒数と合わせて表示する。動くばい菌はPokaDebugで座標を取得した同じフレーム内でDOMのPointerEventを送り、テスト環境の通信遅延をゲームの操作ミスにしない。

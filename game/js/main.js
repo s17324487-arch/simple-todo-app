@@ -211,6 +211,11 @@ const Game = {
 const SCENES = {};
 
 window.addEventListener("DOMContentLoaded", () => {
+  // 試聴室は音源だけを起動。実ゲームのセーブ読込・自動保存・pagehide保存を登録しない。
+  if (new URLSearchParams(location.search).get("audio-preview") === "1") {
+    Save.d = Save.fresh();
+    return;
+  }
   if (document.fonts && document.fonts.ready) {
     // フォントが来るのを少しだけ待つ（キャンバスの文字用）
     Promise.race([document.fonts.ready, U.wait(1500)]).then(() => Game.boot());

@@ -262,8 +262,12 @@ await scenario("起動とタイトル", async (H) => {
 });
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}]) await scenario(`BGM試聴室・${viewport.width}`,async H=>{
+  await H.newGameFast();await H.dbg('coins',76543);await H.dbg('save');
+  const coins=(await H.dbg('saveData')).coins;
   await H.page.goto(url+"tools/music-preview.html");
   const town=H.page.locator('[data-track="town"]');await town.waitFor();await town.click();
+  const stored=await H.eval(()=>JSON.stringify(document.getElementById('game').contentWindow.PokaDebug.persistedSave()));
+  expect(JSON.parse(stored).coins===coins,'試聴の開始でおかねが変わった');
   await H.until(()=>document.getElementById('game').contentWindow.PokaDebug.music().name==='town');
   expect(!(await H.eval(()=>document.documentElement.scrollWidth>innerWidth)),"試聴ページが横にはみ出す");
   if(SHOTS)await H.page.screenshot({path:join(SHOT_DIR,`music-preview-${viewport.width}.png`)});
@@ -271,6 +275,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}]) await sce
   expect(await H.eval(()=>document.getElementById('game').contentWindow.PokaDebug.music().jingles===1),"結果曲を試聴できない");
   await H.page.getByRole('button',{name:'停止',exact:true}).click();
   expect(await H.eval(()=>document.getElementById('game').contentWindow.PokaDebug.music().jingles===0),"結果曲を停止できない");
+  if(viewport.width===390)await H.wait(21000); // 本編の自動保存周期を超えても保存に触れない。
+  expect(await H.eval(()=>JSON.stringify(document.getElementById('game').contentWindow.PokaDebug.persistedSave()))===stored,'試聴中に保存データを書き換えた');
+  await H.open();
+  expect(JSON.stringify(await H.dbg('persistedSave'))===stored,'試聴を閉じたときに保存データを書き換えた');
 },{viewport,full:true});
 
 await scenario("はじめから→おうち→ごはん", async (H) => {

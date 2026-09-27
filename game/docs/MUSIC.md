@@ -17,6 +17,8 @@
 
 `npm start` → [試聴室](../tools/music-preview.html) 。曲を選ぶとゲームと同じWebAudio音源が鳴る。停止ボタンは結果ジングルも止める。実ゲームでも音をオンにして町やお店へ入れば更新後の曲が流れる。
 
+試聴室のiframeは `index.html?audio-preview=1` を使い、音源だけを起動する。通常のゲーム起動・既存セーブの読込・自動保存を行わない。試聴中も閉じたときも既存の保存内容が完全に同じであることを、実ブラウザで検証する。
+
 8秒の音声サンプル： [ぽかぽかタウン](audio/town.wav) / [おうち](audio/house.wav) / [シティ](audio/city.wav) / [平和台](audio/heiwadai.wav) / [クレープ店](audio/shop_crepe.wav) / [ボス戦](audio/battle_crown.wav)
 
 サンプルは `node tools/music-samples.mjs` で再生成できる。docs/audio以下は比較・レビュー用であり、ゲームはWAVを読み込まない。オフラインでも外部音源なしで演奏する。
