@@ -1,11 +1,13 @@
 // オフラインでも遊べるように、ゲームのファイルをキャッシュする
-const CACHE = "pokapoka-v1";
+// キャッシュ名は js/version.js の GAME_VERSION と連動（バージョンを上げると古いキャッシュが消える）
+importScripts("js/version.js");
+const CACHE = "pokapoka-" + GAME_VERSION;
 const FILES = [
   "./", "./index.html", "./manifest.webmanifest", "./css/style.css",
   "./icons/icon-192.png", "./icons/icon-512.png",
-  "./js/chara-data.js", "./js/util.js", "./js/data.js", "./js/chara.js", "./js/art.js", "./js/tiles.js", "./js/maps.js",
+  "./js/version.js", "./js/chara-data.js", "./js/util.js", "./js/data.js", "./js/chara.js", "./js/art.js", "./js/tiles.js", "./js/maps.js",
   "./js/save.js", "./js/sound.js", "./js/ui.js", "./js/main.js", "./js/talk.js", "./js/menu.js", "./js/shop.js",
-  "./js/dressup.js", "./js/scene-title.js", "./js/scene-world.js", "./js/scene-house.js", "./js/scene-battle.js", "./js/minigames.js",
+  "./js/dressup.js", "./js/scene-title.js", "./js/scene-world.js", "./js/scene-house.js", "./js/scene-battle.js", "./js/minigames.js", "./js/debug.js",
 ];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));

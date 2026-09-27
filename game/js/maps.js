@@ -164,7 +164,7 @@ function genMeadow() {
     npcs: [{ id: "traveler", sp: "sheep", x: 19, y: 25, dir: "left", name: "たびの ひつじ", outfit: { head: "strawhat", back: "backpack" }, talk: "traveler" }],
     warps: [
       { x: 13, y: 0, w: 3, h: 1, to: "town", tx: 12, ty: 30, dir: "up" },
-      { x: 14, y: 43, w: 2, h: 1, to: "forest", tx: 14, ty: 1, dir: "down" },
+      { x: 15, y: 43, w: 2, h: 1, to: "forest", tx: 14, ty: 1, dir: "down" },
     ],
     spawns: [[10, 3], [21, 9], [5, 13], [15, 15], [24, 20], [6, 27], [19, 32], [12, 37], [21, 38], [5, 20]],
     objects: [],
@@ -210,7 +210,7 @@ function genForest() {
     npcs: [{ id: "explorer", sp: "frog", x: 11, y: 22, dir: "down", name: "たんけんかの ケロスケ", col: "#6FB85A", outfit: { head: "helmet", back: "backpack" }, talk: "explorer" }],
     objects: [{ kind: "spring", x: 22, y: 31, w: 1, h: 1 }, { kind: "caveentrance", x: 21, y: 43, w: 2, h: 1 }],
     warps: [
-      { x: 14, y: 0, w: 2, h: 1, to: "meadow", tx: 14, ty: 42, dir: "up" },
+      { x: 14, y: 0, w: 2, h: 1, to: "meadow", tx: 15, ty: 42, dir: "up" },
       { x: 21, y: 43, w: 2, h: 1, to: "cave", tx: 12, ty: 2, dir: "down" },
     ],
     spawns: [[14, 12], [22, 13], [6, 16], [17, 20], [10, 30], [20, 35], [5, 34], [14, 40], [24, 8], [3, 22]],

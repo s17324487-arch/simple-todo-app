@@ -1,6 +1,9 @@
 // セーブデータと育成パラメータ（リアル時間で おなか・ごきげん が へる）
 const Save = {
+  // KEY は変えない（変えると プレイヤーのセーブが消えたように見える）
   KEY: "pokapoka-town-save-v1",
+  // セーブ形式の番号。形式を変えたら +1 して migrate() に変換を足す
+  SCHEMA: 1,
   d: null,
   dirty: false,
 
@@ -15,6 +18,7 @@ const Save = {
     });
     return {
       v: 1,
+      gameVersion: GAME_VERSION,
       created: Date.now(),
       last: Date.now(),
       coins: 150,
@@ -68,7 +72,10 @@ const Save = {
     return this.d;
   },
   migrate(d) {
-    // 足りないキーを補う（将来の項目追加に備える）
+    // 1) 形式の変換（SCHEMA を上げたときだけ、ここに1段ずつ足す）
+    //    例: if (d.v < 2) { d.newThing = convert(d.oldThing); delete d.oldThing; d.v = 2; }
+    if (!d.v) d.v = 1;
+    // 2) 足りないキーを fresh() から補う（新しい項目を足すだけなら 変換は不要）
     const f = this.fresh();
     const fill = (dst, src) => {
       for (const k in src) {
@@ -77,11 +84,18 @@ const Save = {
       }
     };
     fill(d, f);
+    // 3) 名前に HTML の記号が入っていたら取りのぞく（innerHTML で表示するため。v1.0.0 では入力できた）
+    for (const id in f.chars) {
+      const c = d.chars[id];
+      if (c && typeof c.name === "string") c.name = c.name.replace(/[<>&"'`]/g, "").slice(0, 6) || f.chars[id].name;
+    }
+    d.v = Math.max(d.v, this.SCHEMA);
     return d;
   },
   write() {
     if (!this.d) return;
     this.d.last = Date.now();
+    this.d.gameVersion = GAME_VERSION;
     try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) { /* 容量不足・プライベートモードなど */ }
     this.dirty = false;
   },

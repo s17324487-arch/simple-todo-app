@@ -25,7 +25,7 @@ class TitleScene {
     } else {
       this.ui.append(UI.btn("はじめる", () => { Sound.init(); Sound.se("ok"); this.start(true); }, "yellow"));
     }
-    this.ui.append(U.el("div", { class: "ver", text: "タップで おとが でます ♪" }));
+    this.ui.append(U.el("div", { class: "ver", text: `ver ${GAME_VERSION}　タップで おとが でます ♪` }));
     document.getElementById("ui").append(this.ui);
   }
   async start(fresh) {
