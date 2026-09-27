@@ -22,36 +22,48 @@ const HomeBubbleRef = {
   // bubbles: [{ id, name, text, kind, rare, born }]（古い 順）。heads: { id: { x, y, r } }（頭の てっぺんの 点と 顔の 半径）
   // area: { top, bottom, left, right }（HUD や ボタンに かからない はんい）
   layout(ctx, bubbles, heads, area) {
-    const S = this.S, boxes = [];
+    const S = this.S, list = bubbles.slice(-2).filter((b) => heads[b.id]);
     const faces = Object.entries(heads).map(([id, h]) => ({ id, x: h.x - h.r * 0.9, y: h.y + 2, w: h.r * 1.8, h: h.r * 1.5 }));
     const over = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) + S.gap) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) + S.gap);
+    // しっぽ（線分）が 箱を よこぎるか（10 点を しらべる）
+    const cross = (p, q, r) => { for (let i = 1; i < 10; i++) { const x = p.x + ((q.x - p.x) * i) / 10, y = p.y + ((q.y - p.y) * i) / 10; if (x > r.x - 3 && x < r.x + r.w + 3 && y > r.y - 3 && y < r.y + r.h + 3) return true; } return false; };
+    const tailOf = (r, side, hd, zig) => side === "top" ? [{ x: Math.max(r.x + 18, Math.min(r.x + r.w - 18, hd.x)), y: r.y + r.h - zig }, { x: hd.x, y: hd.y - 3 }]
+      : side === "left" ? [{ x: r.x + r.w - zig, y: Math.max(r.y + 12, Math.min(r.y + r.h - 12, hd.y + hd.r * 0.5)) }, { x: hd.x - hd.r + 2, y: hd.y + hd.r * 0.6 }]
+      : [{ x: r.x + zig, y: Math.max(r.y + 12, Math.min(r.y + r.h - 12, hd.y + hd.r * 0.5)) }, { x: hd.x + hd.r - 2, y: hd.y + hd.r * 0.6 }];
+    const speaking = new Set(list.map((b) => b.id));
     ctx.font = `700 ${S.font}px sans-serif`;
-    for (const b of bubbles.slice(-2)) {
-      const hd = heads[b.id]; if (!hd) continue;
-      const lines = this.wrap(ctx, b.text, S.maxW - S.padX * 2), zig = b.kind === "shout" ? 6 : 0;
+    // 1つの 吹き出しの 候補（頭の 真上 4段 × 左右 ±154px ＋ 頭の 左横・右横）と、ほかと かかわらない 点数
+    const candidates = (b) => {
+      const hd = heads[b.id], lines = this.wrap(ctx, b.text, S.maxW - S.padX * 2), zig = b.kind === "shout" ? 6 : 0;
       const w = Math.max(S.minW, Math.ceil(Math.max(...lines.map((l) => ctx.measureText(l).width)) + S.padX * 2) + zig * 2);
-      const h = S.padY * 2 + lines.length * S.lineH + 4 + zig * 2;
-      // 候補に 点数を つけて いちばん 小さい ものを えらぶ（ほかの 吹き出し・顔に かぶると 大きく 減点）
-      let best = null;
-      const tryAt = (x0, y0, side, base) => {
+      const h = S.padY * 2 + lines.length * S.lineH + 4 + zig * 2, out = [];
+      const at = (x0, y0, side, base) => {
         const x = Math.max(area.left, Math.min(area.right - w, x0)), y = Math.max(area.top, Math.min(area.bottom - h, y0)), r = { x, y, w, h };
         let score = base + Math.abs(x - x0) * 2 + Math.abs(y - y0) * 2;
-        for (const o of boxes) score += over(r, o) * 6;
-        for (const f of faces) score += over(r, f) * (f.id === b.id ? 6 : f.id === "papa" || f.id === "mama" ? (f.id === bubbles[bubbles.length - 1].id ? 4 : 0.8) : 4);   // 話していない ぱぱ・ままの 顔は 少し なら かかって よい
+        for (const f of faces) score += over(r, f) * (f.id === b.id ? 10 : (f.id === "papa" || f.id === "mama") && !speaking.has(f.id) ? 1.2 : 10); // 話して いない ぱぱ・ままの 顔は 少し なら かかって よい
         if (side === "top" && y + h > hd.y - 2) score += 4000;
-        if (!best || score < best.score) best = { ...r, side, score };
+        const [base0, tip] = tailOf(r, side, hd, zig), tl = Math.hypot(tip.x - base0.x, tip.y - base0.y);
+        for (const f of faces) if (f.id !== b.id && cross(base0, tip, f)) score += 300; // しっぽが ほかの 顔を よこぎらない
+        score += Math.max(0, tl - 18) * 1.5; // しっぽは みじかいほど よい
+        out.push({ ...b, ...r, side, score, lines, zig, base: base0, tip });
       };
-      for (const tier of [0, 1]) for (const dx of [0, -22, 22, -44, 44, -66, 66, -88, 88, -110, 110, -132, 132, -154, 154]) tryAt(hd.x - w / 2 + dx, hd.y - S.tail - h - tier * (h * 0.6 + 10), "top", Math.abs(dx) * 0.8 + tier * 60);
-      tryAt(hd.x - hd.r - S.tail - w, hd.y + hd.r * 0.5 - h / 2, "left", 70); tryAt(hd.x + hd.r + S.tail, hd.y + hd.r * 0.5 - h / 2, "right", 70);
-      const pick = best;
-      // しっぽ: 吹き出しの ふちで いちばん 頭に 近い 点から、頭の てっぺんへ（遠いときは 少し 長く）
-      let base, tip;
-      if (pick.side === "top") { base = { x: Math.max(pick.x + 18, Math.min(pick.x + w - 18, hd.x)), y: pick.y + h - zig }; tip = { x: hd.x + (hd.x - base.x) * 0.1, y: hd.y - 3 }; }
-      else if (pick.side === "left") { base = { x: pick.x + w - zig, y: Math.max(pick.y + 12, Math.min(pick.y + h - 12, hd.y + hd.r * 0.5)) }; tip = { x: hd.x - hd.r + 2, y: hd.y + hd.r * 0.6 }; }
-      else { base = { x: pick.x + zig, y: Math.max(pick.y + 12, Math.min(pick.y + h - 12, hd.y + hd.r * 0.5)) }; tip = { x: hd.x + hd.r - 2, y: hd.y + hd.r * 0.6 }; }
-      boxes.push({ ...b, ...pick, lines, base, tip, zig });
-    }
-    return boxes;
+      // 3人が ちかくに いる（へやを ひいて 見て いる）ときは、上の 段へ にげて しっぽを のばす（顔には かぶせない）
+      for (const tier of [0, 1, 2, 3]) for (const dx of [0, -22, 22, -44, 44, -66, 66, -88, 88, -110, 110, -132, 132, -154, 154]) at(hd.x - w / 2 + dx, hd.y - S.tail - h - tier * (h * 0.6 + 10), "top", Math.abs(dx) * 0.8 + tier * 60);
+      at(hd.x - hd.r - S.tail - w, hd.y + hd.r * 0.5 - h / 2, "left", 90); at(hd.x + hd.r + S.tail, hd.y + hd.r * 0.5 - h / 2, "right", 90);
+      return out.sort((p, q) => p.score - q.score);
+    };
+    // 2つの 吹き出しの あいだの 点数（重なり・しっぽが 相手を よこぎる・しっぽどうしが ×に なる）
+    const side = (p, q, r) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+    const tails = (a, b) => side(a.base, a.tip, b.base) * side(a.base, a.tip, b.tip) < 0 && side(b.base, b.tip, a.base) * side(b.base, b.tip, a.tip) < 0;
+    const pair = (a, b) => over(a, b) * 6 + (cross(a.base, a.tip, b) ? 2500 : 0) + (cross(b.base, b.tip, a) ? 2500 : 0) + (tails(a, b) ? 2500 : 0);
+    if (!list.length) return [];
+    const A = candidates(list[0]);
+    if (list.length === 1) return [A[0]];
+    // 2つ いっしょに えらぶ（さきに 出た ほうが いい 場所を とって しまわないように。候補は 62 × 62 とおり）
+    const B = candidates(list[1]);
+    let best = null;
+    for (const a of A) for (const b of B) { const t = a.score + b.score + pair(a, b); if (!best || t < best.t) best = { t, a, b }; }
+    return [best.a, best.b];
   },
   // 形（ふち）の 道すじ
   shape(ctx, b) {

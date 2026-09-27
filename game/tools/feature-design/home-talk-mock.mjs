@@ -8,13 +8,13 @@ const IMG = OUT + "img/";
 // 場面: [名前, 画面, 時刻, 天気, みまもり, 位置, セリフ]
 const SCENES = [
   { id: "a", title: "ふつうの かけあい（390×844・ひる）", vp: [390, 844], hour: 11, weather: "clear", watch: false,
-    pos: { wanko: [96, 352], gachan: [184, 380], goji: [270, 356] },
+    pos: { wanko: [170, 420], gachan: [250, 462], goji: [332, 424] },
     turns: [["wanko", "たんけん ごっこ しようよ", "say"], ["gachan", "ひとりに しないでね…", "say"], ["goji", "ガウっ！ ずっと いっしょ", "shout"]] },
   { id: "b", title: "みまもり・ぱぱ まま（390×844・ゆうがた）", vp: [390, 844], hour: 17, weather: "cloudy", watch: true,
-    pos: { wanko: [150, 360], gachan: [96, 388], goji: [258, 380] },
+    pos: { wanko: [236, 420], gachan: [150, 476], goji: [340, 470] },
     turns: [["wanko", "クンクン、クンクン…", "say"], ["mama", "わんこ！ また クンクン して… めっ", "shout"], ["wanko", "くぅん… ごめんなさい", "cry"]] },
   { id: "c", title: "よる・あめ（375×667 の 小さい スマホ）", vp: [375, 667], hour: 21, weather: "rain", watch: false,
-    pos: { wanko: [250, 356], gachan: [118, 360], goji: [190, 380] },
+    pos: { wanko: [336, 424], gachan: [172, 432], goji: [252, 474] },
     turns: [["mama", "だいじょうぶ、ここに いるよ", "say"], ["gachan", "かみなり… こわいよぉ… ままー たすけてー", "cry"], ["goji", "ねむい …ガゥ", "think"]] },
 ];
 const browser = await launch();
@@ -33,9 +33,10 @@ for (const sc of SCENES) for (const mode of ["before", "after"]) {
     const s = G.scene, cv = G.canvas, ov = document.createElement("canvas"), r = cv.getBoundingClientRect();
     ov.width = cv.width; ov.height = cv.height; Object.assign(ov.style, { position: "fixed", left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", pointerEvents: "none", zIndex: 5 });
     document.body.append(ov); const ctx = ov.getContext("2d"); ctx.scale(cv.width / G.W, cv.height / G.H);
-    const heads = {}; for (const c of [...s.chars, ...s.parents]) { if (c.hidden) continue; const kid = !!s.chars.includes(c); const p = s.toScreen(c.x, c.y - (kid ? 84 : 104)); heads[c.id] = { x: p.x, y: p.y, r: (kid ? 24 : 21) * s.s }; }
+    // 頭の てっぺん: 足もと（toScreen）から こども 84・おとな 104 × actorScale 上。半径は 24・21 × actorScale
+    const heads = {}; for (const c of [...s.chars, ...s.parents]) { if (c.hidden) continue; const kid = !!s.chars.includes(c), p = s.toScreen(c.x, c.y), k = s.actorScale; heads[c.id] = { x: p.x, y: p.y - (kid ? 84 : 104) * k, r: (kid ? 24 : 21) * k }; }
     const names = { wanko: Save.d.chars.wanko.name, gachan: Save.d.chars.gachan.name, goji: Save.d.chars.goji.name, papa: "ぱぱ", mama: "まま" };
-    const area = { top: s.watching ? 112 : 194, bottom: G.H - (s.watching ? 65 : 143), left: 8, right: G.W - 8 };
+    const area = { top: s.view.top, bottom: s.view.bottom, left: 8, right: G.W - 8 };
     const now = 10, bubbles = turns.map(([id, text, kind], i) => ({ id, name: names[id], text, kind, born: now - 1.2 + i * 0.4 }));
     const boxes = __HB.layout(ctx, bubbles, heads, area); __HB.draw(ctx, boxes, now);
   }, { turns: sc.turns, ref: REF });
