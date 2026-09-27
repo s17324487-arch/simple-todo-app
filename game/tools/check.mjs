@@ -288,6 +288,10 @@ for (const shop of Object.keys(R.SHOPS)) for (let lv = 1; lv <= 5; lv++) {
   ok(pay(3, "easy") < pay(3) && pay(3) < pay(3, "hard"), `${shop}: 難易度で報酬が増えない`);
 }
 ok(R.GameEconomy.pay("link", 1, 3) > R.GameEconomy.pay("crepe", 1, 3) * 2, "高難度パズルの報酬が低い");
+for (let lv = 1; lv <= 5; lv++) {
+  const shift = shop => R.GameEconomy.pay(shop, lv, 3) * (R.SHOPS[shop].rounds || 3 + Math.min(4, lv));
+  ok(shift("relay") > shift("link") && shift("link") > shift("dentist"), `Lv${lv}: 高難度新作の1回の総報酬が既存店より低い`);
+}
 for (const id of [...Object.keys(R.SHOPS), ...Object.keys(R.BUY_SHOPS)]) ok(!!R.SONGS["shop_" + id], `${id}: 専用BGMがない`);
 // BGM の音符
 for (const [name, song] of Object.entries(R.SONGS)) for (const tr of song.tracks) {
