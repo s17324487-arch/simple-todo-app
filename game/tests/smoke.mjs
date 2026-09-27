@@ -33,6 +33,8 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   if (full && !FULL) return;
   if (ONLY && !name.includes(ONLY)) return;
   const context = await browser.newContext({ viewport, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "ja-JP" });
+  // ゲームの検証は外部フォントの応答に依存させない（CIのload待ちを安定させる）。
+  await context.route(/^https:\/\/fonts\.(?:googleapis|gstatic)\.com\//, route => route.abort());
   const page = await context.newPage();
   page.setDefaultTimeout(8000);
   const problems = [];
