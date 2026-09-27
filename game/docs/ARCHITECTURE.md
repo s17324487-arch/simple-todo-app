@@ -613,4 +613,12 @@ arcade.js は world-expansion.js の後。LinkGardenTask / SkyRelayTask は既�
 PokaDebug.shop('link'|'relay', lv) で開始。mg() は difficulty/timeLimit/timeLeft、link の cells（i/value/cx/cy）と order（legal/chain/collected/target/shuffles/fever）、relay の order（lane/role/items/progress/caught/target/misses/shield）を返す。描画・入力のテストはこの公開情報で操作する。店別BGMは SONGS.shop_<id>。
 
 PokaDebug.pause(bool) は以前の停止状態を返す。テストで撮影する間だけ停止し、finally で戻す。外部フォントや描画待ちの時間をミニゲームの制限時間に含めないために使用する。
+
+## ver2: 現代的なBGM
+
+`modern-music.js` はsound.jsの後。ModernMusicが加算合成の楽器・ドラム・短い左右の残響・コンプレッサーとボイスの寿命を管理する。`music-arrangements.js` は各追加曲を定義するファイルの後、debug.jsの直前で読み、全32曲を編曲する。旋律以外に7th和音・ベース・パッド・ドラムを持つ8小節のループ（結果ジングルのみ短い一回再生）。音符の `+` は同時に鳴らす和音。
+
+Soundは曲ごとにバスを作り、切替時に80msでフェードして音源/接続を破棄する。タイマーが遅れた場合は過去の音符をまとめて鳴らさない。保存項目は追加・変換せずsettings.bgm/seを引き続き使う。効果音・キャラの声は従来の音源を維持する。
+
+PokaDebug.music(name|null)で試聴/停止、引数なしは再生状態。musicCatalog()は曲名・楽器・拍数。musicRender(name,秒数,wav=false)は同じ楽器・スケジューラでOfflineAudioContextへ合成しピーク/RMS/同時発音数を返す。wav=trueは試聴用16bitステレオWAVのbase64も返す。ブラウザ検査で全曲の無音・クリップ・発音上限、曲切替、設定保持を確認する。詳細・試聴は [MUSIC.md](MUSIC.md)。
 mg() の score は採点中の点数、歯医者の order.mistakes は誤操作数。テスト失敗時に残り秒数と合わせて表示する。動くばい菌はPokaDebugで座標を取得した同じフレーム内でDOMのPointerEventを送り、テスト環境の通信遅延をゲームの操作ミスにしない。

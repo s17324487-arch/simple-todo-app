@@ -15,6 +15,9 @@ const PokaDebug = {
       "PokaDebug.battle([{ kind: 'purun', lv: 2 }], 'meadow')  バトル開始",
       "PokaDebug.battleState()                属性・HP・状態・技・曲を読む",
       "PokaDebug.battleFixture({ hp: 1, condition: 'fire' })  コマンド待ち中に戦闘の状態を再現",
+      "PokaDebug.music('town' | null)          曲を試聴/停止。引数なしで音の状態",
+      "PokaDebug.musicCatalog()               曲名・楽器・小節数の一覧",
+      "await PokaDebug.musicRender('town', 8)  同じ音源でオフライン合成・音量/負荷を検証",
       "PokaDebug.shop('crepe', 3)            お店ミニゲームを Lv3 で開始",
       "PokaDebug.coins(1000)                 コインを足す",
       "PokaDebug.level(16)                   3人のレベルを設定して全回復",
@@ -183,6 +186,41 @@ const PokaDebug = {
       sp: u.side === "ally" ? Save.d.chars[u.id].sp : null });
     return { music: sc.music, round: sc.round, active: sc.active?.id, allies: sc.allies.map(unit), foes: sc.foes.map(unit),
       skills: Object.fromEntries(Chara.IDS.map(id => [id, Stats.skills(id)])) };
+  },
+  music(name) {
+    if (name !== undefined) Sound.stopJingles();
+    if (name === null) Sound.stopBgm();
+    else if (name !== undefined) {
+      if (!SONGS[name]) throw new Error("unknown music: " + name);
+      Sound.init(); Sound.applySettings();
+      if (SONGS[name].once) { Sound.stopBgm(); Sound.jingle(name); } else Sound.bgm(name);
+    }
+    return { name: Sound.cur?.name || null, pending: Sound.want || null, state: Sound.ctx?.state,
+      gain: Sound.bgmGain?.gain.value, voices: Sound.cur?.bus?.voices.size || 0, jingles: Sound.jingles.size, modern: !!Sound.cur?.song.modern };
+  },
+  musicCatalog() {
+    return Object.entries(SONGS).map(([id, song]) => ({ id, title: song.title, bpm: song.bpm, modern: !!song.modern, once: !!song.once,
+      steps: Math.max(...song.tracks.map(tr => Sound.parse(tr.notes).length)), instruments: [...new Set(song.tracks.map(tr => tr.drum ? "drums" : tr.instrument))] }));
+  },
+  async musicRender(name, seconds = 8, wav = false) {
+    const { audio, stats } = await ModernMusic.render(name, seconds);
+    if (!wav) return stats;
+    const bytes = new Uint8Array(44 + audio.length * 4), view = new DataView(bytes.buffer);
+    const text = (offset, s) => [...s].forEach((c, i) => view.setUint8(offset + i, c.charCodeAt(0)));
+    text(0, "RIFF"); view.setUint32(4, bytes.length - 8, true); text(8, "WAVEfmt "); view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); view.setUint16(22, 2, true); view.setUint32(24, audio.sampleRate, true);
+    view.setUint32(28, audio.sampleRate * 4, true); view.setUint16(32, 4, true); view.setUint16(34, 16, true);
+    text(36, "data"); view.setUint32(40, bytes.length - 44, true);
+    const left = audio.getChannelData(0), right = audio.getChannelData(1);
+    // 試聴ファイルの終端だけフェード。ゲームのループは切り詰めない。
+    for (let i = 0; i < audio.length; i++) {
+      const fade = Math.min(1, (audio.length - 1 - i) / (audio.sampleRate * .08));
+      view.setInt16(44 + i * 4, Math.round(U.clamp(left[i] * fade, -1, 1) * 32767), true);
+      view.setInt16(46 + i * 4, Math.round(U.clamp(right[i] * fade, -1, 1) * 32767), true);
+    }
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+    return { ...stats, wav: btoa(binary) };
   },
   battleFixture({ hp, condition } = {}) {
     if (G.sceneName !== "battle" || !G.scene.active || !G.scene.commandResolve) throw new Error("wait for a battle command");

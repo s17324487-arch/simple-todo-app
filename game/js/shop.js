@@ -24,9 +24,10 @@ const ShopUI = {
   open(shopId) {
     return new Promise((resolve) => {
       const S = BUY_SHOPS[shopId];
+      const previousMusic = Sound.cur?.name || Sound.want || (G.sceneName === "house" ? "house" : G.scene?.map?.bgm || "town");
       Sound.bgm("shop_" + shopId);
       const body = U.el("div");
-      const m = UI.modal({ title: S.name, body, cls: "full", onClose: () => { if (G.scene && G.scene.map) Sound.bgm(G.scene.map.bgm); resolve(); } });
+      const m = UI.modal({ title: S.name, body, cls: "full", onClose: () => { Sound.bgm(previousMusic); resolve(); } });
       const keeper = Art.npcSvg({ ...S.keeper, emo: "happy" });
       const greet = U.el("div", { class: "chara-card", style: "align-items:center" });
       greet.innerHTML = `<div class="portrait" style="width:64px;flex-basis:64px">${keeper}</div><div class="info"><div class="nm" style="font-size:14px">${S.keeperName}</div><div>${U.pick(S.hello)}</div></div>`;
