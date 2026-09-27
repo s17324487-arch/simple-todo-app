@@ -23,7 +23,7 @@
 - 時間帯で町の色が変わる（夜は街灯）。WebAudio の効果音と BGM。PWA（ホーム画面に追加・オフライン）。
 - 開発の仕組み: バージョンの一元管理（`js/version.js`）、セーブ形式の番号と移行（`Save.SCHEMA` / `migrate()`）、
   テスト用 API `PokaDebug`、静的チェック `npm run check`、Playwright のスモークテスト `npm test`、素材プレビュー `tools/preview.html`、
-  GitHub Actions の自動テスト（game-test）、引き継ぎ文書（`AGENTS.md`・`docs/`）。
+  GitHub Actions の自動テスト（game-test）と リリースの自動作成（release）、引き継ぎ文書（`AGENTS.md`・`docs/`）。
 
 ### 修正
 

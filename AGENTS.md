@@ -11,7 +11,7 @@
 - 公開先は GitHub Pages（main ブランチのルート）: https://s17324487-arch.github.io/simple-todo-app/game/
   **main にマージしたものが そのまま公開される**（1〜2分で反映）。
 - リポジトリ直下の `index.html` / `script.js` / `style.css` / `firebase-config.js` は**別の ToDo アプリ**。触らない。
-- ver1 の状態は git タグ `v1.0.0` に保存してある。
+- ver1 の状態は git タグ `v1.0.0`（GitHub の Releases ページ）に保存してある。
 
 ## 2. コマンド（すべて `game/` フォルダで実行）
 
@@ -58,7 +58,8 @@
 4. **バージョン**は `js/version.js` の `GAME_VERSION`・`package.json` の `version`・`CHANGELOG.md` のいちばん上の版の3か所をそろえる（`npm run check` が確認する）。
    - ver2 の開発中は `2.0.0-dev`。ver2 の最初の PR で 1.0.0 → 2.0.0-dev に変え、`CHANGELOG.md` の先頭に `## [2.0.0-dev] - 開発中` の節を作る。
    - PR ごとに、その節へ変更点を1〜数行ずつ追記する（番号は上げない）。
-   - ver2 を完成させるとき（オーナーが「リリースして」と言ったとき）に `2.0.0` にして日付を書き、タグ `v2.0.0` を付ける。
+   - ver2 を完成させるとき（オーナーが「リリースして」と言ったとき）に `2.0.0` にして日付を書く。
+     その PR が main にマージされると、GitHub Actions の `release` が タグ `v2.0.0` と Releases のページを自動で作る（タグを自分で push しなくてよい）。
      その後は 修正=2.0.1、機能追加=2.1.0 のように上げる。
 5. **画面の文言**:
    - 小さな子どもにも読める、ひらがな中心の やさしい言葉にする。文節ごとに半角スペースを入れる

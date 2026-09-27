@@ -158,7 +158,8 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 
 ### [ ] V2-20 ver2 リリース
 
-- `GAME_VERSION` などを `2.0.0` に、CHANGELOG に日付、README の説明を ver2 の内容に更新、`npm run test:full` ✓、タグ `v2.0.0`。
+- `GAME_VERSION` などを `2.0.0` に、CHANGELOG に日付、README の説明を ver2 の内容に更新、`npm run test:full` ✓。
+- 受け入れ条件: PR をマージすると、GitHub Actions の `release` が タグ `v2.0.0` と Releases ページを自動で作る（Actions の実行結果で確認する）。
 
 ---
 
