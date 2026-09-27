@@ -79,6 +79,7 @@ npm start          # http://localhost:8080/ で遊ぶ（素材プレビューは
 ```
 
 PR を作ると GitHub Actions（`.github/workflows/game-test.yml`）が同じテストを自動で実行する。
+`js/version.js` の版を `2.0.0` のような正式な版にして main にマージすると、`.github/workflows/release.yml` が タグと Releases ページを自動で作る。
 
 ## ファイル構成
 

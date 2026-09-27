@@ -413,6 +413,7 @@ class NewTask extends TaskBase {
 
 - オプション: `node tests/smoke.mjs --only=クレープ`（名前の一部で絞る）`--headed`（画面を出す）`--shots`（スクリーンショット）。
 - 失敗すると `tests/screenshots/FAIL_<シナリオ名>.png` が残る。
+- GitHub Actions: PR のたびに `game-test`（`npm run check` と全シナリオ。スクリーンショットは Artifacts の game-screenshots）、main で版が `x.y.z` になると `release`（タグと Releases ページ）。
 - シナリオの足し方: `scenario("名前", async (H) => { await H.open(); await H.newGameFast(); ... }, { full: true })`。
   `H.dbg("メソッド名", 引数...)` で PokaDebug を呼び、次のような道具を使う（smoke.mjs の `helpers()` を参照）:
   `H.tap(x, y)`（CSS px）・`H.tapLabel("ボタン名")`（ミニゲームのボタン）・`H.drag()`・`H.hold()`・`H.until(() => 条件)`・`H.idle()`・

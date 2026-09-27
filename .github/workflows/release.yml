@@ -1,0 +1,42 @@
+# リリース（git タグと GitHub の Releases ページ）を自動で作る。
+# main の game/js/version.js の GAME_VERSION が「2.0.0」のような正式な版になったとき、
+# タグ v2.0.0 と、CHANGELOG.md のその版の節を説明にしたリリースを作る。
+# 「2.0.0-dev」のような開発中の版と、すでにある版では何もしない。
+name: release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "game/js/version.js"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: 版を調べて、まだなければリリースを作る
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=$(sed -n 's/^const GAME_VERSION = "\([^"]*\)".*/\1/p' game/js/version.js)
+          echo "GAME_VERSION = $v"
+          if ! printf '%s' "$v" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "開発中の版（$v）なので、リリースは作らない"
+            exit 0
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$v" >/dev/null; then
+            echo "v$v は もうある"
+            exit 0
+          fi
+          # CHANGELOG.md の「## [x.y.z]」の節（次の「## [」の手前まで）をリリースの説明にする
+          awk -v v="$v" 'index($0, "## [" v "]") == 1 { on = 1; next } on && /^## \[/ { exit } on { print }' game/CHANGELOG.md > notes.md
+          gh release create "v$v" --target "$GITHUB_SHA" --title "ぽかぽかタウン ver $v" --notes-file notes.md
+          echo "v$v を作った"

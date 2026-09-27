@@ -14,8 +14,9 @@ AI に守らせる作業ルールは リポジトリ直下の [`AGENTS.md`](../.
 | --- | --- |
 | リポジトリ | https://github.com/s17324487-arch/simple-todo-app （ゲームは `game/` の中） |
 | 公開 URL | https://s17324487-arch.github.io/simple-todo-app/game/ （main ブランチがそのまま公開される） |
-| ver1 | 完成。git タグ **`v1.0.0`** に保存してある |
+| ver1 | 完成。git タグ **`v1.0.0`** に保存してある（リポジトリの「Releases」ページにも載る） |
 | 自動テスト | `npm run check`（静的チェック 約2400項目）、`npm test` / `npm run test:full`（ブラウザで13シナリオ）。PR を作ると GitHub Actions の **game-test** が自動で走る |
+| リリース | `game/js/version.js` の版を `2.0.0` のような正式な版にした PR をマージすると、GitHub Actions の **release** が タグと Releases ページを自動で作る（開発中の `2.0.0-dev` では作らない） |
 | 次にやること | [`ROADMAP_V2.md`](ROADMAP_V2.md) の上から順に（最初は V2-00） |
 | まだ やっていないこと | iPhone / Android の実機での確認（→ このファイルの §8 のチェックリスト） |
 
