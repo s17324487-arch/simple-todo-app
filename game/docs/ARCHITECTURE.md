@@ -549,6 +549,13 @@ HomeLife はシーン内の会話・けんか・家具アニメーションを�
 ## ver2: 全体マップと新エリア
 world-art.js は tiles.js の後、world-expansion.js は minigames.js の後に読む。川沿いの公園・city・coast を双方向ワープで接続。WorldAtlas が全体の接続図とタイル地図をメニュー内に表示する。戦闘の帰宅は現在の行動が完了した安全な境界で実行し報酬は付与しない。お店の帰宅は終了フラグで結果処理を止める。
 
+## ver2: 12か月のおまつり
+`annual-festivals.js`はseasonal.jsの後に読む。ANNUAL_EVENTSが12か月のテーマ・3つの活動・選択肢・限定品を定義。AnnualArtは家具と会場の飾りを共用し、12種類の有限なSVGを使う。通常のショップに限定品は並べない。
+
+「おまつり」から年間予定を開き、その月のイベントに参加する。会場3か所のしかけをタップし、好きな答えを選ぶと進行。開催期間は各月の1日〜月末。Save.events.activeAnnualを追加し、recordsは既存の`${year}-${season}`と別の`${year}-annual-${id}`キーにstamps/answers/claimedを保存。既存のコイン・所持品・四季記録を変換しない。キャンセル・期間外・重複回答は無効。受け取りは画面演出より先に保存するので連打や再起動で増えない。
+
+PokaDebug.calendar('YYYY-MM-DD')で日付を固定し、annual()で現在のイベント・目的地・選択肢・取得数を読む。390pxで全12種類、375pxで七夕とハロウィンを実際のタップで完了し、保存・再開・翌年の持ち越しを確認する。
+
 ## ver2: 新ミニゲーム・難易度
 economy.js の GameEconomy が報酬と難易度の値を管理する（[比較表](BALANCE.md)）。設定を開始時に保存するため途中変更は次回から反映。セーブには settings.difficulty と shops.link/relay を追加し、旧データは migrate が補完する。
 

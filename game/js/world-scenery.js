@@ -7,6 +7,7 @@ const WorldScenery = {
     Sound.se(o.kind === "fountain" ? "heal" : "sparkle");
     sc.party.forEach(w => { w.hop = .35; sc.addFx("note", w); });
     UI.toast(Seasonal.collect(sc.mapId,o)||o.text, "good");
+    AnnualFestivals.interact(sc,o);
   },
   draw(ctx, s, ox, oy) {
     const o=s.o; if(!o) return;

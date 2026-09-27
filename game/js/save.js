@@ -55,7 +55,7 @@ const Save = {
       },
       world: { map: "town", x: 7, y: 7, dir: "down" },
       flags: { intro: false, chests: {}, boss: false, talked: {} },
-      events: { records: {} },
+      events: { records: {}, activeAnnual: null },
       dex: {},
       stats: { battles: 0, wins: 0, coinsEarned: 0, shifts: 0, perfects: 0, fed: 0 },
       settings: { bgm: true, se: true, difficulty: "normal" },

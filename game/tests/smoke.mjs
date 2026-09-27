@@ -661,6 +661,41 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(!(await H.eval(()=>document.documentElement.scrollWidth>innerWidth)),"親の画面が横にはみ出す");
 },{viewport,full:viewport.width===375,timeout:90000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`12か月のおまつり（${viewport.width}）`,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);await H.dbg("coins",987504);
+  const money=(await H.dbg("state")).coins;
+  for(const month of viewport.width===390?Array.from({length:12},(_,i)=>i+1):[7,10]) {
+    await H.dbg("calendar",`2026-${String(month).padStart(2,"0")}-15`);
+    await H.dbg("teleport","town",12,16);await H.idle();
+    await H.page.locator(".world-festival").click();await H.page.locator(".annual-invite").click();
+    expect(await H.page.locator(".annual-months .btn").count()===12,"年間予定が12種類ない");
+    await H.page.getByRole("button",{name:"この おまつりに さんか",exact:true}).click();await H.idle();
+    const s=await H.dbg("annual");expect(s.joined&&!s.claimed,"おまつりに参加できない");
+    for(const t of s.targets) {
+      await H.dbg("teleport",t.map,t.x-1,t.y);await H.idle();
+      const o=(await H.dbg("world")).objects.find(o=>o.id===t.id);await H.tap(o.cx,o.cy);
+      await H.page.getByRole("button",{name:t.choices[month%2],exact:true}).click();
+      await H.until(id=>!!PokaDebug.annual().stamps[id],10000,t.id);
+    }
+    await H.page.locator(".world-festival").click();await H.page.locator(".annual-invite").click();
+    expect(await H.page.getByRole("heading",{name:s.name,exact:true}).count()===1,"イベント名が表示されない");
+    if(month===7||month===10)await H.shot(s.id+"-festival");
+    await H.page.getByRole("button",{name:"おまつりの きねんひんを うけとる",exact:true}).click();
+    const won=await H.dbg("annual");expect(won.count===3&&won.claimed&&won.inventory.wear&&won.inventory.furn===1&&won.inventory.food===3,"限定品がそろわない");
+    expect(await H.page.getByRole("button",{name:"おまつりの きねんひんは うけとりずみ",exact:true}).isDisabled(),"2回受け取れる");
+    expect(!(await H.eval(()=>document.documentElement.scrollWidth>innerWidth)),"おまつり画面がはみ出す");
+    await H.page.getByRole("button",{name:"1がつ　おしょうがつ",exact:true}).click();
+    if(month!==1)expect(await H.page.getByRole("button",{name:"この おまつりに さんか",exact:true}).count()===0,"期間外でも参加できる");
+    if(month===10){await H.page.locator(".annual-months").scrollIntoViewIfNeeded();await H.wait(2400);await H.shot("year-calendar");}
+    await H.page.getByRole("button",{name:"とじる",exact:true}).click();await H.idle();
+    expect((await H.dbg("state")).coins===money,"おまつりでおかねが変わった");
+  }
+  await H.dbg("save");await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  await H.dbg("calendar","2026-10-31");const saved=await H.dbg("annual");expect(saved.claimed&&saved.inventory.furn===1,"再開で記録が消えた");
+  await H.dbg("calendar","2027-10-01");const next=await H.dbg("annual");expect(!next.claimed&&next.count===0&&next.inventory.furn===1,"翌年に品が消えた");
+  expect((await H.dbg("state")).coins===money,"再開でおかねが変わった");
+},{viewport,full:viewport.width===375,timeout:240000});
+
 await browser.close();
 server.close();
 const bad = results.filter((r) => !r.ok);

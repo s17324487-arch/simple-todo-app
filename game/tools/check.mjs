@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, ParentCare })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals })`, ctx);
 
 // ---------- 3. バージョン ----------
 const pkg = JSON.parse(readFileSync(join(GAME, "package.json"), "utf8"));
@@ -286,6 +286,34 @@ for(const [i,id] of ["spring","summer","autumn","winter"].entries()){
 R.Seasonal.override=new Date(2027,2,1,12);
 ok(R.Seasonal.state().count===0&&!R.Seasonal.claim("2026-winter"),"季節変更後も古い画面から受け取れてしまう");
 ok(Object.values(R.SEASON_ITEMS).every(it=>R.Save.d.wardrobe[it.wear]&&R.Save.d.furn[it.furn]===1),"季節をまたぐと限定品が消える");
+R.Seasonal.override=null;
+// 月別イベントは既存の四季の記録・コインを保ち、年ごとに一度だけ受け取る。
+const seasonRecords=JSON.stringify(R.Save.d.events.records),annualCoins=R.Save.d.coins;
+ok(R.ANNUAL_EVENTS.length===12&&new Set(R.ANNUAL_EVENTS.map(e=>e.id)).size===12,"12種類のおまつりがない");
+for(let month=1;month<=12;month++) {
+  R.Seasonal.override=new Date(2026,month-1,1,12);
+  const e=R.AnnualFestivals.current(),s=R.AnnualFestivals.state();
+  ok(e.month===month&&R.AnnualFestivals.current(new Date(2026,month,0,23,59)).id===e.id,`${month}月: 開催期間が不正`);
+  svgOk(R.AnnualArt.svg(e),e.name);
+  ok(!R.AnnualFestivals.claim(e.key)&&!R.AnnualFestivals.start("2025-annual-"+e.id),`${e.id}: 期間外/未完了で受け取れる`);
+  const first=s.targets[0];
+  ok(!R.AnnualFestivals.complete(e.key,first.map,first.id,0),`${e.id}: 未参加でも進行する`);
+  ok(R.AnnualFestivals.start(e.key),`${e.id}: 参加できない`);
+  for(const t of s.targets) {
+    ok(!!R.MAP_DEFS[t.map].objects.find(o=>o.id===t.id)?.text,`${e.id}: 目的地 ${t.id} がない`);
+    ok(!R.AnnualFestivals.complete(e.key,t.map,t.id,-1)&&!R.AnnualFestivals.complete(e.key,t.map,t.id,2),`${e.id}: キャンセルや不正な答えで進む`);
+    ok(R.AnnualFestivals.complete(e.key,t.map,t.id,month%2)&&!R.AnnualFestivals.complete(e.key,t.map,t.id,0),`${e.id}: 一度だけ進行しない`);
+  }
+  ok(R.AnnualFestivals.state().count===3&&R.AnnualFestivals.claim(e.key)&&!R.AnnualFestivals.claim(e.key),`${e.id}: 重複受け取りを防げない`);
+  R.Save.d=R.Save.migrate(JSON.parse(JSON.stringify(R.Save.d)));
+  ok(!R.AnnualFestivals.claim(e.key)&&R.Save.d.furn[e.items.furn]===1&&R.Save.d.bag[e.items.food]===3&&R.Save.d.wardrobe[e.items.wear],`${e.id}: 再開で限定品が変わる`);
+  ok(!R.BUY_SHOPS.market.items("food").some(it=>it.id===e.items.food)&&!R.BUY_SHOPS.furniture.items("floor").some(it=>it.id===e.items.furn),`${e.id}: 限定品が通常店舗にある`);
+}
+R.Seasonal.override=new Date(2027,0,1,12);
+ok(!R.AnnualFestivals.state().claimed&&R.AnnualFestivals.state().count===0&&!R.AnnualFestivals.claim("2026-annual-christmas"),"月/年の変更後に前の画面で受け取れる");
+ok(R.ANNUAL_EVENTS.every(e=>R.Save.d.furn[e.items.furn]===1&&R.Save.d.wardrobe[e.items.wear]),"翌年に年間イベントの品が消える");
+ok(Object.entries(JSON.parse(seasonRecords)).every(([k,v])=>JSON.stringify(R.Save.d.events.records[k])===JSON.stringify(v)),"既存の四季の記録が変わった");
+ok(R.Save.d.coins===annualCoins,"年間イベントでコインが変わった");
 R.Seasonal.override=null;
 try {
   R.Save.reset();

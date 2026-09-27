@@ -40,6 +40,8 @@ const Seasonal = {
     const body=U.el("div"),m=UI.modal({title:"きせつの おまつり",body,cls:"full"});
     const render=()=>{
       const s=this.state();body.innerHTML="";
+      const monthly=AnnualFestivals.current();
+      body.append(UI.btn(`${monthly.month}がつ：${monthly.name}（ねんかん12しゅるい）`,()=>{m.close();AnnualFestivals.open();},"annual-invite wide"));
       body.append(U.el("h2",{text:s.name}),U.el("div",{class:"note",text:`${s.period}に かいさい ／ ${s.count}/3 スタンプ\n！のある めいしょを タップして あつめよう。`}),U.el("p",{class:"muted",text:"きねんひんは この きせつに もらえるよ。てにいれた ものは ずっと つかえる！ まいとし また さんかできるよ。"}));
       for(const t of s.targets)body.append(U.el("div",{class:"festival-target",text:`${s.stamps[t.id]?"✓":"○"} ${t.label}\n${MAP_DEFS[t.map].name}：よこ ${t.x+1}・たて ${t.y+1}`}));
       const reward=U.el("div",{class:"festival-rewards"});
@@ -83,6 +85,7 @@ const Seasonal = {
       for(let j=0;j<5;j++){ctx.fillStyle=j%2?"#FFF0CD":e.color;ctx.beginPath();ctx.moveTo(x-34+j*14,y+2);ctx.lineTo(x-24+j*14,y+3);ctx.lineTo(x-29+j*14,y+14);ctx.closePath();ctx.fill();}
     }
     ctx.restore();
+    AnnualFestivals.draw(ctx,sc,ox,oy);
   },
 };
 
