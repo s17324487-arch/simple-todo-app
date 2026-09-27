@@ -26,14 +26,15 @@ const HomeLife = {
       this.say(sc, "gachan", "おはなを みに いこう♪");
       this.say(sc, "goji", "ガゥー！ さんせい！");
       sc.chars.forEach(c => sc.react(c, "happy", "note"));
-    } else if (kind === "dance") {
+    } else if (kind === "weather") this.say(sc,c.id,Weather.comment(c.id));
+    else if (kind === "dance") {
       sc.chars.forEach(c => sc.react(c, "happy", "note"));
       this.say(sc, c.id, "みんなで いち、に、さん♪");
     } else if (d.hunger < 25 || kind === "hungry") {
       this.say(sc, c.id, "ぐぅー……おなか すいたよ"); Sound.se("tummy"); sc.fx("sweat", c);
     } else if (d.hunger >= 90) this.say(sc,c.id,Care.fullText(c.id)+(d.wantsDeza?" デザは べつばら♪":""));
     else if (d.wantsDeza) this.say(sc, c.id, c.id === "goji" ? "ガゥー、デザ たべたい！" : "ごはんの あとは デザ ほしいな♪");
-    else this.say(sc, c.id, U.pick(this.lines[c.id]));
+    else this.say(sc, c.id, U.chance(.16)?Weather.comment(c.id):U.pick(this.lines[c.id]));
   },
   settle(sc, tapped = true) {
     if (!sc.life.quarrel) return false;

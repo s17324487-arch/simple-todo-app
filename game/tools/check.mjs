@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals, Weather, SeasonPalette })`, ctx);
 
 // ---------- 3. バージョン ----------
 const pkg = JSON.parse(readFileSync(join(GAME, "package.json"), "utf8"));
@@ -289,6 +289,22 @@ ok(Object.values(R.SEASON_ITEMS).every(it=>R.Save.d.wardrobe[it.wear]&&R.Save.d.
 R.Seasonal.override=null;
 // 月別イベントは既存の四季の記録・コインを保ち、年ごとに一度だけ受け取る。
 const seasonRecords=JSON.stringify(R.Save.d.events.records),annualCoins=R.Save.d.coins;
+const beforeWeather=JSON.stringify(R.Save.d),weatherSeen=new Set();
+for(let month=0;month<12;month++)for(let day=1;day<=28;day++)for(let hour=0;hour<24;hour+=3) {
+  const date=new Date(2026,month,day,hour),kind=R.Weather.forDate(date);weatherSeen.add(kind);
+  ok(!!R.Weather.kinds[kind]&&kind===R.Weather.forDate(new Date(2026,month,day,hour+2,59)),"天気が3時間枠の途中で変わる");
+  if(month>1&&month<11)ok(kind!=="snow","冬以外に雪が降る");
+}
+ok(weatherSeen.size===5,"5種類の天気が自然発生しない");
+for(const kind of Object.keys(R.Weather.kinds)) {
+  R.Weather.override=kind;svgOk(R.Weather.svg(kind),"天気 "+kind);
+  ok(R.Weather.state("town").particles<=48&&R.Weather.state("cave").particles===0&&R.Weather.state(null).particles===0,kind+": 粒の上限や室内判定が不正");
+  ok(R.Weather.state("town").forecast.length===3,kind+": 予報がない");
+}
+R.Weather.override=null;
+for(const season of Object.keys(R.SeasonPalette.values))for(const kind of ["tree","pine","appletree","bush","hedge"])svgOk(R.SeasonPalette.object(kind,R.Art.worldSvg(kind),season).full,season+" "+kind);
+ok(new Set(Object.values(R.SeasonPalette.values).map(v=>v.grass)).size===4,"四季の地面の色が変わらない");
+ok(JSON.stringify(R.Save.d)===beforeWeather,"天気でセーブが変更された");
 ok(R.ANNUAL_EVENTS.length===12&&new Set(R.ANNUAL_EVENTS.map(e=>e.id)).size===12,"12種類のおまつりがない");
 for(let month=1;month<=12;month++) {
   R.Seasonal.override=new Date(2026,month-1,1,12);

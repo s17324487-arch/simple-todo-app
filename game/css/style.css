@@ -308,3 +308,10 @@ html, body {
 .annual-months { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
 .annual-months .btn { min-height:54px; font-size:12px; padding:8px 4px; }
 .annual-months .selected { background:#D6E8D9; }
+.world-weather { position:absolute; top:calc(60px + var(--safe-t)); left:10px; display:flex; align-items:center; gap:5px; min-height:44px; padding:4px 10px; font-size:12px; background:#FFF9E9; }
+.world-weather svg { width:26px; height:26px; }
+.weather-now { display:flex; align-items:center; justify-content:center; gap:18px; padding:16px; background:#E9EFE4; border-radius:18px; }
+.weather-now svg { width:86px; height:86px; } .weather-now h2 { font-size:24px; }
+.weather-forecast { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.weather-forecast div { display:grid; justify-items:center; gap:8px; border-radius:14px; background:#F6EDD8; padding:12px 4px; font-size:13px; }
+.weather-forecast svg { width:48px; height:48px; }

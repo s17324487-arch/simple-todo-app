@@ -85,7 +85,7 @@ class HouseScene {
   furnCanvas(it, ensure) {
     const f = FURN_INDEX[it.id];
     const opts = { flip: !!it.flip };
-    if (it.id === "window") opts.sky = DayTint.sky();
+    if (it.id === "window") opts.sky = Weather.sky();
     const key = "furn:" + it.id + ":" + JSON.stringify(opts);
     const pad = Art.FURN_PAD;
     const pw = Math.ceil((f.w + pad * 2) * this.s * G.px), ph = Math.ceil((f.h + pad * 2) * this.s * G.px);

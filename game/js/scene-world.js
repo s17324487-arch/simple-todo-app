@@ -75,6 +75,7 @@ class WorldScene {
     Sound.bgm(this.map.bgm);
     UI.showHud(true, this.map.name);
     Seasonal.mount(this);
+    Weather.mount(this);
     this.saveWorld();
     if (p.after) setTimeout(() => p.after(this), 350);
     // はじめて来た場所の ヒント
@@ -82,7 +83,7 @@ class WorldScene {
     const hint = { town: "「！」マークの ひとに はなしかけてみよう", meadow: "まものに ふれると バトル！ HPが へったら おうちで ねよう", forest: "もりの おくに いやしの いずみが あるよ", cave: "どうくつの おくに キングプルンが いる……" }[this.mapId];
     if (hint && !f["visit_" + this.mapId]) { f["visit_" + this.mapId] = true; setTimeout(() => { if(G.scene===this&&!UI.busy)UI.toast(hint, "good"); }, 700); }
   }
-  exit() { this.festivalButton?.remove(); UI.showHud(false); }
+  exit() { this.festivalButton?.remove(); this.weatherButton?.remove(); UI.showHud(false); }
   saveWorld() {
     const L = this.party[0];
     Save.d.world = { map: this.mapId, x: L.tx, y: L.ty, dir: L.dir };
@@ -133,8 +134,8 @@ class WorldScene {
 
   // ---- スプライト取得 ----
   objCanvas(kind, opt, ensure) {
-    const key = "w:" + kind + ":" + JSON.stringify(opt || {});
-    const a = Art.worldSvg(kind, opt);
+    const key = "w:" + kind + ":" + JSON.stringify(opt || {}) + (SeasonPalette.vegetation(kind)?":"+SeasonPalette.id():"");
+    const a = SeasonPalette.object(kind,Art.worldSvg(kind, opt));
     const pw = Math.ceil((a.w + 4) * G.px), ph = Math.ceil((a.h + 4) * G.px);
     if (ensure) return SvgCache.ensure(key, () => a.full, pw, ph);
     const c = SvgCache.get(key, () => a.full, pw, ph);
@@ -330,6 +331,7 @@ class WorldScene {
     this.clampCam();
     UI.updateHud();
     Seasonal.refresh(this);
+    Weather.refresh(this);
   }
   decideStep(carry) {
     const L = this.party[0];
@@ -661,6 +663,7 @@ class WorldScene {
     this.renderFx(ctx, ox, oy);
     Seasonal.draw(ctx, this, ox, oy);
     this.renderLight(ctx, ox, oy);
+    Weather.draw(ctx,this);
     this.renderJoy(ctx);
     if (this.hintT > 0 && !this.joy && !UI.busy) {
       ctx.save();
