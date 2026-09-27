@@ -45,12 +45,14 @@ const Save = {
         dentist: { lv: 1, rep: 0, best: 0, plays: 0 },
         bakery: { lv: 1, rep: 0, best: 0, plays: 0 },
         florist: { lv: 1, rep: 0, best: 0, plays: 0 },
+        link: { lv: 1, rep: 0, best: 0, plays: 0 },
+        relay: { lv: 1, rep: 0, best: 0, plays: 0 },
       },
       world: { map: "town", x: 7, y: 7, dir: "down" },
       flags: { intro: false, chests: {}, boss: false, talked: {} },
       dex: {},
       stats: { battles: 0, wins: 0, coinsEarned: 0, shifts: 0, perfects: 0, fed: 0 },
-      settings: { bgm: true, se: true },
+      settings: { bgm: true, se: true, difficulty: "normal" },
     };
   },
 

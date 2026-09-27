@@ -6,6 +6,7 @@ class BattleScene {
     this.p = p;
     this.area = p.area || "meadow";
     this.boss = !!p.boss;
+    this.difficulty = Save.d.settings.difficulty;
     this.tweens = []; this.pops = []; this.parts = [];
     this.gauge = Math.min(40, Save.avg("bond") * 0.4);
     this.round = 0;
@@ -17,7 +18,7 @@ class BattleScene {
       const e = ENEMIES[f.kind];
       const k = 1 + 0.13 * (f.lv - e.lv);
       const hp = Math.round(e.hp * (1 + 0.16 * (f.lv - e.lv)));
-      return { side: "foe", kind: f.kind, lv: f.lv, e, i, name: e.name, hp, mhp: hp, atk: Math.round(e.atk * k), def: Math.round(e.def * k), spd: Math.round(e.spd * (1 + 0.06 * (f.lv - e.lv))), alive: true, buffs: {}, sleep: 0, scared: false, ox: 0, oy: 0, shake: 0, flash: 0, alpha: 0, emo: "normal" };
+      return { side: "foe", kind: f.kind, lv: f.lv, e, i, name: e.name, hp, mhp: hp, atk: Math.max(1, Math.round(e.atk * k * GameEconomy.mode(this.difficulty).enemy)), def: Math.round(e.def * k), spd: Math.round(e.spd * (1 + 0.06 * (f.lv - e.lv))), alive: true, buffs: {}, sleep: 0, scared: false, ox: 0, oy: 0, shake: 0, flash: 0, alpha: 0, emo: "normal" };
     });
     // 同じ名前には A B C
     const cnt = {};
@@ -479,6 +480,7 @@ class BattleScene {
       } else coins = 300;
       Save.d.flags.bossDay = U.today();
     }
+    coins = GameEconomy.battle(coins, this.difficulty, this.foes.length);
     Save.addCoins(coins);
     Save.d.stats.wins++;
     const ups = [];

@@ -30,6 +30,8 @@
 <script src="../js/chara.js"></script>
 <script src="../js/art.js"></script>
 <script src="../js/home-catalog.js"></script>
+<script src="../js/tiles.js"></script>
+<script src="../js/world-art.js"></script>
 <script>
   const out = document.getElementById("out");
   const ctrl = document.getElementById("ctrl");
@@ -61,6 +63,7 @@
     h += "<h2>町の人（どうぶつ）</h2>" + row(Object.keys(SPECIES).flatMap((sp) => ["normal", "happy", "sad", "surprise"].map((emo) => cell(Art.npcSvg({ sp, emo }), 80, `${sp} ${emo}`))));
     h += "<h2>てき</h2>" + row(Object.entries(ENEMIES).flatMap(([k, e]) => ["normal", "hurt", "sleep"].map((emo) => cell(Art.enemySvg(e.art, e.col, emo), 86, `${e.name} ${emo}`))));
     h += "<h2>かぐ</h2>" + row(FURNITURE.map((f) => cell(Art.furnSvg(f.id), Math.round((f.w + 24) * 1.2), `${f.name}<br>${f.kind} ${f.w}×${f.h}`)));
+    h += "<h2>追加した敵の姿</h2>" + row(Object.keys(ENEMY_ART).filter(id => !Object.values(ENEMIES).some(e => e.art === id)).flatMap(id => ["normal", "hurt", "sleep"].map(emo => cell(Art.enemySvg(id, "#AACBC2", emo), 86, `${id} ${emo}`))));
     h += "<h2>たべもの・どうぐ・かべがみ・ゆか</h2>" + row([...FOODS, ...TOOLS].map((f) => cell(Art.iconSvg("bag", f.id), 44, f.name)).concat(WALLPAPERS.map((w) => cell(Art.iconSvg("wall", w.id), 44, w.name)), FLOORS.map((w) => cell(Art.iconSvg("floor", w.id), 44, w.name))));
     out.innerHTML = h;
   }

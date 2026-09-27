@@ -24,7 +24,7 @@ const ShopUI = {
   open(shopId) {
     return new Promise((resolve) => {
       const S = BUY_SHOPS[shopId];
-      Sound.bgm("shop");
+      Sound.bgm("shop_" + shopId);
       const body = U.el("div");
       const m = UI.modal({ title: S.name, body, cls: "full", onClose: () => { if (G.scene && G.scene.map) Sound.bgm(G.scene.map.bgm); resolve(); } });
       const keeper = Art.npcSvg({ ...S.keeper, emo: "happy" });

@@ -3,7 +3,7 @@ const Menu = {
   open(tab = "status") {
     Sound.se("ok");
     const body = U.el("div");
-    const tabs = U.el("div", { class: "tabs" });
+    const tabs = U.el("div", { class: "tabs menu-tabs" });
     const content = U.el("div");
     const T = [["status", "ようす"], ["map", "ちず"], ["bag", "もちもの"], ["dex", "ずかん"], ["settings", "せってい"]];
     const m = UI.modal({ title: "メニュー", body, cls: "full" });
@@ -120,6 +120,15 @@ const Menu = {
       return b;
     };
     el.append(row("BGM", "bgm"), row("こうかおん", "se"));
+    el.append(U.el("div", { class: "note", text: "あそびかた（つぎの バトル・おてつだいから）" }));
+    for (const [id, mode] of Object.entries(GameEconomy.modes)) {
+      const selected = s.difficulty === id;
+      const b = UI.btn(`${selected ? "✓ " : ""}${mode.name} ／ コイン ${Math.round(mode.reward * 100)}%`, () => {
+        s.difficulty = id; Save.mark(); Sound.se("ok"); el.innerHTML = ""; this.settings(el);
+      }, "wide" + (selected ? " yellow" : ""));
+      b.style.marginBottom = "8px"; el.append(b);
+    }
+    el.append(U.el("div", { class: "muted", text: "のんびり: じかん ながめ・てき よわめ。むずかしい: じかん みじかめ・てき つよめ。" }));
     el.append(UI.btn("いま セーブする", () => { Save.write(); Sound.se("ok"); UI.toast("セーブしました", "good"); }, "wide green"));
     el.append(U.el("div", { class: "note", html: "セーブは じどうでも されます。<br>ホーム画面に 追加すると アプリのように あそべます。" }));
     const del = UI.btn("データを けして はじめから", async () => {

@@ -65,7 +65,13 @@ function helpers(page, name) {
     eval: (fn, arg) => page.evaluate(fn, arg),
     until: (fn, ms = 10000, arg) => page.waitForFunction(fn, arg, { timeout: ms, polling: 100 }),
     dbg: (method, ...args) => page.evaluate(([m, a]) => window.PokaDebug[m](...a), [method, args]),
-    async shot(label) { if (SHOTS) await page.screenshot({ path: join(SHOT_DIR, `${name}_${label}.png`) }); },
+    async shot(label) {
+      if (!SHOTS) return;
+      // フォント/描画待ちでゲームの制限時間を消費しない。
+      const previous = await H.dbg("pause", true);
+      try { await page.screenshot({ path: join(SHOT_DIR, `${name}_${label}.png`) }); }
+      finally { await H.dbg("pause", previous); }
+    },
     async open() {
       await page.goto(url + "index.html");
       await H.until(() => window.PokaDebug && typeof G !== "undefined" && G.sceneName === "title" && !Game.trans, 15000);
@@ -124,6 +130,7 @@ function helpers(page, name) {
     },
     // お店を「正しい操作」で最後まで遊ぶ。ランクの配列を返す
     async playShop(shop, lv) {
+      H.shopGrades = [];
       await H.dbg("shop", shop, lv);
       await H.until(() => G.sceneName === "shop" && !Game.trans, 10000);
       await H.wait(300); await H.dialogs();
@@ -154,15 +161,34 @@ function helpers(page, name) {
         } else if (shop === "dentist") {
           for (let k = 0; k < 200; k++) {
             const m = await H.dbg("mg");
-            if (!m || m.phase !== "work") break;
+            if (!m || m.phase !== "work" || m.n !== st.n) break;
             const t = m.targets.find((x) => x.kind === "germ") || m.targets[0];
             if (!t) { await H.wait(120); continue; }
-            if (t.kind === "germ") await H.tap(t.cx, t.cy);
-            else if (t.kind === "dirt") await H.drag(t.cx - 14, t.cy, t.cx + 14, t.cy, 260);
+            if (t.kind === "germ") {
+              // 移動する対象は取得と入力を同じフレームで行い、通信待ちで古い座標を押さない。
+              await page.locator("#screen").evaluate(canvas => {
+                const target = PokaDebug.mg()?.targets.find(x => x.kind === "germ");
+                if (!target) return;
+                const event = { bubbles: true, pointerId: 99, pointerType: "touch", clientX: target.cx, clientY: target.cy };
+                canvas.dispatchEvent(new PointerEvent("pointerdown", event));
+                canvas.dispatchEvent(new PointerEvent("pointerup", event));
+              });
+            }
+            else if (t.kind === "dirt") {
+              // 指を離さず往復する。短い一方向ドラッグの繰り返しは操作待ちが長くなる。
+              await page.mouse.move(t.cx, t.cy); await page.mouse.down();
+              for (let stroke = 0; stroke < 12; stroke++) {
+                await page.mouse.move(t.cx + (stroke % 2 ? -16 : 16), t.cy, { steps: 2 });
+                await H.wait(15);
+              }
+              await page.mouse.up();
+            }
             else await H.hold(t.cx, t.cy, 1100);
           }
         }
         await H.until(() => { const m = PokaDebug.mg(); return m && m.phase !== "work"; }, 8000);
+        const grade = await H.dbg("mg");
+        H.shopGrades.push({ n: grade.n, score: grade.score, secondsLeft: grade.timeLeft, mistakes: grade.order?.mistakes });
         if (c === 0) { await H.wait(250); await H.shot(`${shop}_judge`); }
       }
       await H.until(() => !!document.querySelector(".modal-wrap .panel-foot .btn"), 15000);
@@ -272,9 +298,65 @@ for (const shop of ["dentist", "bakery", "florist"]) {
   await scenario(`${shop}（Lv3・正しく操作すれば ◎）`, async (H) => {
     await H.newGameFast();
     const ranks = await H.playShop(shop, 3);
-    expect(ranks.length >= 6 && ranks.every((r) => r === 3), `◎にならない客がいる: ${ranks}`);
+    expect(ranks.length >= 6 && ranks.every((r) => r === 3), `◎にならない客がいる: ${ranks}; ${JSON.stringify(H.shopGrades)}`);
   }, { full: true, timeout: 150000 });
 }
+
+for (const shop of ["link", "relay"]) for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario(`新ミニゲーム ${shop}（${viewport.width}）`, async (H) => {
+  await H.newGameFast();
+  const before = (await H.dbg("state")).coins;
+  await H.dbg("shop", shop, 2);
+  await H.until(() => PokaDebug.state().scene === "shop" && !PokaDebug.state().transitioning);
+  await H.dialogs();
+  await H.until(() => PokaDebug.mg()?.phase === "work");
+  await H.shot("start");
+  for (let round = 0; round < 3; round++) {
+    await H.until(() => PokaDebug.mg()?.phase === "work");
+    let st;
+    for (let n = 0; n < 900; n++) {
+      st = await H.dbg("mg");
+      if (st.phase !== "work") break;
+      if (shop === "link") {
+        const cells = st.order.legal.map(i => st.cells[i]);
+        await H.page.mouse.move(cells[0].cx, cells[0].cy); await H.page.mouse.down();
+        for (const p of cells.slice(1)) await H.page.mouse.move(p.cx, p.cy, { steps: 3 });
+        await H.page.mouse.up();
+      } else {
+        const next = st.order.items.filter(it => it.progress > .48).sort((a,b) => b.progress - a.progress)[0];
+        if (next) {
+          const lane = next.rock ? (next.lane + 1) % 3 : next.lane;
+          if (st.order.lane !== lane) await H.tapLabel(st.order.lane < lane ? "みぎ →" : "← ひだり");
+          if (!next.rock && st.order.role !== next.role) await H.tapLabel("3にん こうたい");
+        }
+        await H.wait(45);
+      }
+    }
+    expect(st.phase !== "work", "ミニゲームが終わらない");
+    await H.until(() => PokaDebug.mg().ranks.length > 0 && PokaDebug.mg().phase !== "judge", 8000);
+  }
+  await H.until(() => PokaDebug.mg()?.phase === "result", 12000);
+  const result = await H.dbg("mg");
+  expect(result.ranks.length === 3 && result.ranks.every(r => r >= 2), `新作の正しい操作で成功しない: ${result.ranks}`);
+  expect((await H.dbg("state")).coins > before, "報酬がない");
+  await H.shot("result");
+  await H.page.getByRole("button", { name: "まちに もどる", exact: true }).click();
+  await H.until(() => PokaDebug.state().scene === "world" && PokaDebug.idle());
+}, { full: true, viewport, timeout: 180000 });
+
+await scenario("難易度の設定と保存", async (H) => {
+  await H.newGameFast();
+  await H.page.getByRole("button", { name: "メニュー", exact: true }).click();
+  await H.page.getByRole("button", { name: "せってい", exact: true }).click();
+  await H.page.getByRole("button", { name: /むずかしい ／ コイン/ }).click();
+  await H.dbg("save"); await H.page.reload();
+  await H.until(() => PokaDebug.state().scene === "title" && PokaDebug.idle());
+  await H.page.locator(".title-ui .btn").first().click();
+  await H.idle(); await H.dbg("shop", "link", 1);
+  await H.until(() => PokaDebug.state().scene === "shop" && !PokaDebug.state().transitioning); await H.dialogs();
+  await H.until(() => PokaDebug.mg()?.phase === "work");
+  const st = await H.dbg("mg");
+  expect(st.difficulty === "hard" && st.timeLimit === 44, "保存した難易度が新ミニゲームに反映されない");
+}, { full: true });
 
 await scenario("おうちの生活・デザ・増築", async (H) => {
   await H.newGameFast();
