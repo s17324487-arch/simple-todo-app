@@ -208,7 +208,7 @@ html, body {
 .edit-bar .tray { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: none; }
 .edit-bar .tray::-webkit-scrollbar { display: none; }
 .edit-bar .card { flex: 0 0 84px; }
-.edit-tools { position: absolute; display: flex; gap: 6px; transform: translate(-50%, -100%); z-index: 5; }
+.edit-tools { position: absolute; display: flex; width: max-content; max-width: calc(100% - 16px); gap: 6px; transform: translate(-50%, -100%); z-index: 5; }
 .edit-tools .btn { padding: 4px 9px; font-size: 12px; border-radius: 10px; }
 
 /* ---- バトル ---- */
@@ -249,6 +249,10 @@ html, body {
 .watch-exit { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); white-space: nowrap; min-height: 44px; }
 .parent-open { position:absolute; top:calc(145px + var(--safe-t)); right:8px; min-height:44px; font-size:12px; }
 .parent-open.watching { top:calc(60px + var(--safe-t)); }
+.home-view-controls { position:absolute; top:calc(145px + var(--safe-t)); left:8px; display:flex; gap:5px; }
+.home-view-controls.raised { top:calc(60px + var(--safe-t)); }
+.home-view-controls .btn { min-width:44px; min-height:44px; padding:4px 9px; font-size:14px; background:#fffcf1; }
+.edit-tools .btn { min-height:44px; }
 .parent-tabs { display:flex; gap:8px; }
 .parent-tabs .btn { flex:1; min-height:44px; }
 .parent-preview { text-align:center; margin:8px; background:#E9F1DF; border-radius:18px; }
