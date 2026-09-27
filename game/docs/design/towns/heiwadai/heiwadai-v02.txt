@@ -1,0 +1,94 @@
+平和台 デザイン案 v0.2（64×68）
+
+ 0 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+ 1 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+ 2 tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
+ 3 tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
+ 4 tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
+ 5 tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
+ 6 tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
+ 7 ................tttttttttttttttttttttttttttttttt................
+ 8 tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
+ 9 Xtjtjtjtjtjtjtjt########################c##########.###########X
+10 Xjjjjjjjjjjjjjjj########################c##########.###########X
+11 Xtjjj######jjjjj########################c##########.###########X
+12 Xjjjj######jtjjj########################c##########.###########X
+13 Xtjjj######jjjtjpppppppp#######DD#######c####DD####.###########X
+14 Xjjtj##DD##jjttjppppppppppptttppppptpptppppppppppppp###########X
+15 XtjjjjtkktjjjttjppppptpppppppppppppptpptptttpptttpppwwwwwttwwwwX
+16 Xjjjjjjkkjjjjjjjpppppppppppppppppttwt============wwwtttwwwwwwwwX
+17 Xtjttjtkktjjjjttp####ppppppppppppppw==============ww,t,,,,ttctcX
+18 Xjjttjjkkjjjjjjjp####ptpppppppptppp===oooooooooo===w,,tt,,,tctcX
+19 Xtjjjjjkkjjttjtjp####pppppppppppptp==oooooooooooo==w,,,,,,,tctcX
+20 Xjjjjjjkkjjjjttjp##D#tpttpppttppppp==oooooooooooo==w,tt,t,,,,,,X
+21 Xtjjjjtkktjjjttjpppppppppppppptpppp==oooooooooooo==w.#########.X
+22 Xjjjjjjkkjjjjtjjtttppppppptpppppppp==oooooooooooo==w.#########.X
+23 Xtjtjjjkkjjjtjttppppppppttpttpppppp===oooooooooo===w.#########.X
+24 Xjjjjjttttjjjjjjtttppppppppppppppppw==============ww.#########.X
+25 Xtjjjjjkkjjjtjtjpppppppttpppttpppppww============www.#########.X
+26 Xjjjjjjkkjjjjjtjttpppptpppppppptpppwwwwss====sstwwww.#########.X
+27 XttttttkktttttttpppppppppppppppppppwtwwstzzzzsswwttwwwwwwwwttwwX
+28 X.#####kk###############aa###########,,sszzzzsswwwwwtwwwwwwwwwwX
+29 X.#####kk###############aa###########,,sszzzzstwwwwwwwwttwwwwtwX
+30 X.##D##kk#D###D###D##D##aa#D###D##D##,tst====tswwwwwwwwwtttwwwwX
+31 Xtaaaaaaataataattaattattaaaatttataaattass====stttwwwwwwwwwwwwwwX
+32 X.aaaaaaaaaaaaaaaaaaaaaaaaaataaaaaaaaaast====ssqqttq######.....X
+33 X.aaaaaaaaaatttaaaaaaaaaaaaaaattaaaaaaass====ssqqttq######.....X
+34 X.ttatattaattttaataattataattatttaaatttast====tsqqttt######.....X
+35 X.cc############cc######cc###########t,ss====ssqqqqt##DD##tt...X
+36 X.cc############cc######cc###########,,ts====ttqqqqqqqqqqqttqqqX
+37 X.cc############cc######cc###########,tsszzzzssqtqqqtqtqqqqqtqqX
+38 X.cc##DD####DD##cc######cc##D########,,sszzzzssqtqqqtqtqqqqqtqqX
+39 ssssssssstsssssttsssssstsssssstssssstssss====ssqqqqqqqqqqqqqqqqX
+40 sssstssssssssssssssstsssssssssssstsssssss====ssqqqqqqqqqqqqqqqqX
+41 =====================================zz======ssqqqqqqqqqqqqqqqqX
+42 =====================================zz======ss,,,,,,,,,,,,,,,,X
+43 sssssssstssssssssssssss==sstssstsssssssss====ss,t,,t,,t,,t,,t,,X
+44 sssssstssssssssssstssss==stttssssssstttss====ss,,,,,,,,,,,,,,,,X
+45 Xttttttttttddttttttttss==stt#####t,,tttsszzzzss,t,#########ccttX
+46 Xtttttttt,tddttt,,,,tst==sst#####t,####sszzzzss,,,#########ccccX
+47 Xttttttttpppppp,ttt,tss==sst#####tt####ts====st,,,#########ttccX
+48 Xttttttttptttpp,ttt,tst==stt##D##tt##D#ss====ss,,,#########ttccX
+49 Xttttttttttttttt,,,,tss==ssttt,,ttttt,tss====ss,,,#########ccccX
+50 Xttttttttptttpp,,,,ttss==ssnnnnntnnnnntst=====ssnnnnnccccccccccX
+51 Xt,t,,t,,pppppt,ttt,tss==ssnnnnnnnnnnnnnss====sssnnnn,,,,,,,,,,X
+52 Xtdtttddddddddddtttddst==sst######c####tss=====sss,,,,,,#######X
+53 Xtdtttdddddddddttddddss==sst######c####,tss=====sss,,,,,#######X
+54 Xt,,tt,,,,,dd,,tt,,,tss==sst######c####,,tt======sss,,,,#######X
+55 Xtdtttdttd,ddt,ttt,ttss==stt######c##D#tttts======tts,,,###D###X
+56 Xtdtttdttd,dd,,ttt,ttss==ss,ttttttctt,,ttttss======tssccqtqqqtqX
+57 Xtdtttdttd,dd,,ttt,,tst==ssnnnntttnnnntnnnnnss======ssscqtqqqtqX
+58 Xtddddddddtddt,ttt,ttss==ssnnnnntttntnnnnnnnnss======sssqtqqqtqX
+59 Xtdddddttd,ddddddddttss==sst#####tt,tt,cteeeeess======sss,,,,t,X
+60 Xtdddddttd,dddddddddtss==sst#####,,####cettteeess======sts,,,,,X
+61 Xtdtttdddd,dtttt###,tss==sst#####tt####cettteee,ss======ssttt,,X
+62 Xtdtttdttt,dtttt###,tst==stt##D##tt##D#cettteee,,ss======sttt,,X
+63 Xtdtttdttt,dd,,,###,tss==ssttt,tttttt,tctttttte,,,ss======sss,tX
+64 Xtdtttddddtdd,,,,,,,tst==ssnnnnnntnnnntnnnnnnntnnnnss======ttstX
+65 Xttttttttttttttttttttss==ssnnnnnnnnnnnnnnnnnnnnnnnnnss======tssX
+66 XXXXXXXXXXXXXXXXXXXXXss==ssXXXXXXXXXXXXXXXXXXXXXXXXXXss======sss
+67 XXXXXXXXXXXXXXXXXXXXXss==ssXXXXXXXXXXXXXXXXXXXXXXXXXXXss======ss
+
+凡例:
+  #  建物（通れない）
+  D  建物の 入口（下の はし）
+  =  車道（歩ける。ゲームでは 横断歩道へ 案内）
+  z  横断歩道
+  s  歩道
+  o  ロータリーの 島（入らない）
+  t  木・小物・へい（通れない）
+  X  へり（通れない）
+  .  芝
+  ,  手入れした芝・庭
+  p  広場の 御影石
+  w  敷石の 歩道・広場
+  a  商店街の 床
+  c  コンクリート（前庭・歩く道）
+  n  路地（アスファルト・側溝つき）
+  q  駐車場
+  j  玉砂利（神社）
+  k  参道の 石だたみ
+  d  土（公園の 道・遊び場）
+  e  空き地
+  r  線路
+  m  ホーム
