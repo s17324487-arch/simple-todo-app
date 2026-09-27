@@ -45,13 +45,19 @@ const Weather = {
     const s=sc.weather||this.state(sc.mapId);if(s.indoors)return;
     ctx.save();ctx.lineCap="round";
     if(s.kind!=="clear"){ctx.fillStyle={cloudy:"rgba(100,127,144,.035)",rain:"rgba(83,123,157,.08)",snow:"rgba(214,231,239,.07)",wind:"rgba(202,220,187,.025)"}[s.kind];ctx.fillRect(0,0,G.W,G.H);}
+    if(s.kind==="wind"){
+      for(const p of Seasonal.particles(sc,G.t,"wind")){
+        ctx.strokeStyle="rgba(249,250,220,.5)";ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(p.x-20,p.y);ctx.quadraticCurveTo(p.x,p.y-8,p.x+22,p.y-3);ctx.stroke();
+        Seasonal.leaf(ctx,p,Seasonal.current().id==="autumn");
+      }
+      ctx.restore();return;
+    }
     const mod=(n,d)=>((n%d)+d)%d;
     for(let i=0;i<s.particles;i++){
       const seed=i*97.3,t=G.t,x=mod(seed+(s.kind==="rain"?-t*36:s.kind==="wind"?t*55:t*6)+Math.sin(i+t*.5)*12-sc.cam.x*.08,G.W+50)-25;
       const y=mod(i*71+(s.kind==="rain"?t*260:s.kind==="snow"?t*23:0)-sc.cam.y*.07,G.H+50)-25;
       if(s.kind==="rain") {ctx.strokeStyle="rgba(217,240,251,.7)";ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3,y+12);ctx.stroke();if(i<8){const ripple=(t*.9+i*.13)%1;ctx.strokeStyle=`rgba(213,235,244,${(1-ripple)*.5})`;ctx.beginPath();ctx.ellipse(mod(seed,G.W),mod(i*83+70,G.H),2+ripple*8,1+ripple*3,0,0,7);ctx.stroke();}}
       else if(s.kind==="snow") {ctx.fillStyle="rgba(255,253,248,.88)";ctx.beginPath();ctx.arc(x,y,1.7+i%3*.6,0,7);ctx.fill();}
-      else if(s.kind==="wind") {ctx.strokeStyle="rgba(249,250,220,.55)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-20,y);ctx.quadraticCurveTo(x,y-10,x+28,y-3);ctx.stroke();ctx.fillStyle="#ADC092";ctx.beginPath();ctx.ellipse(x,y+4,4,1.8,t+i,0,7);ctx.fill();}
       else {ctx.fillStyle="rgba(87,110,130,.055)";ctx.beginPath();ctx.ellipse(mod(i*180+t*9,G.W+250)-100,110+i*200,110,32,.1,0,7);ctx.fill();}
     }ctx.restore();
   },

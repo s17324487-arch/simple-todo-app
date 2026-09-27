@@ -787,6 +787,23 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.houseButton("ねる");await H.wait(4000);await H.dialogs();await H.until(()=>PokaDebug.homeDesign().mode===null,8000);
 },{viewport,full:viewport.width===375,timeout:150000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`落ち葉・背景に固定（${viewport.width}）`,async H=>{
+  await H.newGameFast();await H.dbg("calendar","2026-10-15");await H.dbg("hour",12);await H.dbg("weather","wind");
+  await H.dbg("teleport","heiwadai",16,28);await H.idle();await H.wait(300);
+  const before=await H.dbg("drift",30),money=(await H.dbg("state")).coins;
+  expect(await H.dbg("walkTo",18,30),"公園の移動先に到達できない");
+  await H.until(()=>{const p=PokaDebug.state().pos;return p[0]===18&&p[1]===30;});await H.wait(600);
+  const after=await H.dbg("drift",30),dx=after.camera.x-before.camera.x,dy=after.camera.y-before.camera.y;
+  expect(Math.hypot(dx,dy)>20,"歩いてもカメラ移動が発生していない");
+  for(const kind of ["seasonal","wind"]){
+    const common=after[kind].filter(p=>before[kind].some(q=>p.id===q.id));expect(common.length>2,"移動で葉が全部入れ替わった");
+    for(const p of common){const q=before[kind].find(q=>q.id===p.id);expect(p.wx===q.wx&&p.wy===q.wy&&Math.abs(p.x-q.x+dx)<.001&&Math.abs(p.y-q.y+dy)<.001,"葉が背景と別の速さで動く");}
+  }
+  await H.shot("autumn-wind");expect(await H.dbg("fps",1800)>=20,"葉の描画でFPSが低下");
+  await H.dbg("teleport","cave",4,4);await H.idle();expect((await H.dbg("drift")).seasonal.length===0&&(await H.dbg("drift")).wind.length===0,"洞窟で葉が表示される");
+  expect((await H.dbg("state")).coins===money,"演出でおかねが変わった");
+},{viewport,full:viewport.width===375,timeout:90000});
+
 await browser.close();
 server.close();
 const bad = results.filter((r) => !r.ok);
