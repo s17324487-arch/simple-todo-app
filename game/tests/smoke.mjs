@@ -130,6 +130,7 @@ function helpers(page, name) {
     },
     // お店を「正しい操作」で最後まで遊ぶ。ランクの配列を返す
     async playShop(shop, lv) {
+      H.shopGrades = [];
       await H.dbg("shop", shop, lv);
       await H.until(() => G.sceneName === "shop" && !Game.trans, 10000);
       await H.wait(300); await H.dialogs();
@@ -163,7 +164,16 @@ function helpers(page, name) {
             if (!m || m.phase !== "work" || m.n !== st.n) break;
             const t = m.targets.find((x) => x.kind === "germ") || m.targets[0];
             if (!t) { await H.wait(120); continue; }
-            if (t.kind === "germ") await H.tap(t.cx, t.cy);
+            if (t.kind === "germ") {
+              // 移動する対象は取得と入力を同じフレームで行い、通信待ちで古い座標を押さない。
+              await page.locator("#screen").evaluate(canvas => {
+                const target = PokaDebug.mg()?.targets.find(x => x.kind === "germ");
+                if (!target) return;
+                const event = { bubbles: true, pointerId: 99, pointerType: "touch", clientX: target.cx, clientY: target.cy };
+                canvas.dispatchEvent(new PointerEvent("pointerdown", event));
+                canvas.dispatchEvent(new PointerEvent("pointerup", event));
+              });
+            }
             else if (t.kind === "dirt") {
               // 指を離さず往復する。短い一方向ドラッグの繰り返しは操作待ちが長くなる。
               await page.mouse.move(t.cx, t.cy); await page.mouse.down();
@@ -177,6 +187,8 @@ function helpers(page, name) {
           }
         }
         await H.until(() => { const m = PokaDebug.mg(); return m && m.phase !== "work"; }, 8000);
+        const grade = await H.dbg("mg");
+        H.shopGrades.push({ n: grade.n, score: grade.score, secondsLeft: grade.timeLeft, mistakes: grade.order?.mistakes });
         if (c === 0) { await H.wait(250); await H.shot(`${shop}_judge`); }
       }
       await H.until(() => !!document.querySelector(".modal-wrap .panel-foot .btn"), 15000);
@@ -286,7 +298,7 @@ for (const shop of ["dentist", "bakery", "florist"]) {
   await scenario(`${shop}（Lv3・正しく操作すれば ◎）`, async (H) => {
     await H.newGameFast();
     const ranks = await H.playShop(shop, 3);
-    expect(ranks.length >= 6 && ranks.every((r) => r === 3), `◎にならない客がいる: ${ranks}`);
+    expect(ranks.length >= 6 && ranks.every((r) => r === 3), `◎にならない客がいる: ${ranks}; ${JSON.stringify(H.shopGrades)}`);
   }, { full: true, timeout: 150000 });
 }
 

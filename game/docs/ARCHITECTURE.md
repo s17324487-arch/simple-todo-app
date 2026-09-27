@@ -525,3 +525,4 @@ arcade.js は world-expansion.js の後。LinkGardenTask / SkyRelayTask は既�
 PokaDebug.shop('link'|'relay', lv) で開始。mg() は difficulty/timeLimit/timeLeft、link の cells（i/value/cx/cy）と order（legal/chain/collected/target/shuffles/fever）、relay の order（lane/role/items/progress/caught/target/misses/shield）を返す。描画・入力のテストはこの公開情報で操作する。店別BGMは SONGS.shop_<id>。
 
 PokaDebug.pause(bool) は以前の停止状態を返す。テストで撮影する間だけ停止し、finally で戻す。外部フォントや描画待ちの時間をミニゲームの制限時間に含めないために使用する。
+mg() の score は採点中の点数、歯医者の order.mistakes は誤操作数。テスト失敗時に残り秒数と合わせて表示する。動くばい菌はPokaDebugで座標を取得した同じフレーム内でDOMのPointerEventを送り、テスト環境の通信遅延をゲームの操作ミスにしない。

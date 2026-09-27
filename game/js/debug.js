@@ -10,7 +10,7 @@ const PokaDebug = {
       "PokaDebug.state()                     いまのシーン・マップ・コインなど",
       "PokaDebug.idle()                      画面切り替え中・会話中でなければ true",
       "PokaDebug.newGame({ goji: 'soft' })   オープニングを飛ばして はじめから（おうちへ）",
-      "PokaDebug.teleport('meadow', 14, 3)   マップの (x, y) へ移動（town/meadow/forest/cave）",
+      "PokaDebug.teleport('meadow', 14, 3)   マップの (x, y) へ移動（town/city/coast/meadow/forest/cave）",
       "PokaDebug.house()                     おうちへ",
       "PokaDebug.battle([{ kind: 'purun', lv: 2 }], 'meadow')  バトル開始",
       "PokaDebug.shop('crepe', 3)            お店ミニゲームを Lv3 で開始",
@@ -117,6 +117,7 @@ const PokaDebug = {
     const cv = G.canvas.getBoundingClientRect();
     const css = (x, y) => ({ cx: Math.round(cv.left + x * G.cssPerUnit), cy: Math.round(cv.top + y * G.cssPerUnit) });
     const out = { shop: sc.shopId, lv: sc.lv, phase: sc.phase, n: sc.n, total: sc.total, ranks: [...sc.ranks], earn: sc.earn, tips: sc.tips, difficulty: sc.difficulty, timeLimit: sc.timeLimit, timeLeft: sc.timeLeft, buttons: [], order: null, targets: [] };
+    out.score = sc.stamp?.score ?? null;
     if (!t) return out;
     out.buttons = t.btns.filter((b) => !b.disabled).map((b) => ({ label: b.label || "", ...css(b.x + b.w / 2, b.y + b.h / 2) }));
     if (sc.shopId === "crepe") out.order = { want: t.want.map((id) => CREPE_TOPS.find((x) => x.id === id).name) };
@@ -129,7 +130,7 @@ const PokaDebug = {
       for (const g of t.germs) if (g.alive) { const c = t.toothCenter(g.t); out.targets.push({ kind: "germ", ...css(c.x, c.y + Math.sin(g.bob) * 3) }); }
       for (const d of t.dirt) if (d.hp > 0) { const c = t.toothCenter(d.t); out.targets.push({ kind: "dirt", ...css(c.x, c.y) }); }
       for (const v of t.cav) if (!v.fixed) { const c = t.toothCenter(v.t); out.targets.push({ kind: "cavity", ...css(c.x, c.y) }); }
-      out.order = { remaining: t.remaining() };
+      out.order = { remaining: t.remaining(), mistakes: t.mistakes };
     }
     if (sc.shopId === "link") {
       out.order = { target: t.target, collected: t.collected, chain: [...t.chain], legal: t.legalMove(), shuffles: t.shuffles, fever: t.fever };
