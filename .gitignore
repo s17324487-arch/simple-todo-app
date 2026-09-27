@@ -1,0 +1,10 @@
+# 開発用の依存（npm install で作られる）
+node_modules/
+
+# テストの出力（npm run test:full のスクリーンショット）
+game/tests/screenshots/
+
+# OS・エディタのゴミ
+.DS_Store
+Thumbs.db
+*.log

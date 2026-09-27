@@ -9,7 +9,7 @@
 
 - **スマホで遊ぶ（おすすめ）**: GitHub Pages などで公開し、`https://<ユーザー名>.github.io/<リポジトリ名>/game/` を開く。
   ブラウザの「ホーム画面に追加」でアプリのように全画面で遊べる（PWA・オフライン対応）。
-- **PCで試す**: リポジトリ直下で `npx http-server .` などを実行し、`http://localhost:8080/game/` を開く。
+- **PCで試す**: `game/` フォルダで `npm start` を実行し、`http://localhost:8080/` を開く（Node.js 18 以上）。
   `index.html` をダブルクリックして直接開いても遊べる（その場合はオフラインキャッシュのみ無効）。
 
 セーブはブラウザの localStorage に自動保存される（20秒ごと・画面を閉じたとき）。
@@ -56,18 +56,51 @@ node game/tools/build-chara.mjs
 
 町の人・敵・家具・アイコン・タイルは、素材と同じ線の色（#1F1D1B）と太さで描いたオリジナル。BGMと効果音は WebAudio でその場で合成している（音声ファイルなし）。
 
+## 開発
+
+ver1 は完成（git タグ `v1.0.0`）。ver2 を開発中。**開発に参加する人・AI は、まずリポジトリ直下の [`AGENTS.md`](../AGENTS.md) を読むこと。**
+
+| 文書 | 中身 |
+| --- | --- |
+| [`../AGENTS.md`](../AGENTS.md) | 作業ルール・コマンド・完了の条件（AI エージェントが自動で読む） |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | 設計書（しくみ・データの形・追加のしかた） |
+| [`docs/ROADMAP_V2.md`](docs/ROADMAP_V2.md) | ver2 でやること（優先順・受け入れ条件） |
+| [`docs/HANDOFF_CHATGPT.md`](docs/HANDOFF_CHATGPT.md) | ChatGPT（Codex）で開発を続ける手順 |
+| [`CHANGELOG.md`](CHANGELOG.md) | 変更履歴 |
+
+```sh
+cd game
+npm ci                                        # 初回だけ（テスト用の Playwright を入れる）
+npx playwright install --with-deps chromium   # 初回だけ（テスト用のブラウザ）
+npm run check      # 静的チェック（数秒・ブラウザ不要）
+npm test           # 静的チェック + ブラウザでのスモークテスト（約1分）
+npm run test:full  # 全シナリオ + スクリーンショット（約5分、tests/screenshots/）
+npm start          # http://localhost:8080/ で遊ぶ（素材プレビューは /tools/preview.html）
+```
+
+PR を作ると GitHub Actions（`.github/workflows/game-test.yml`）が同じテストを自動で実行する。
+
 ## ファイル構成
 
 ```
 game/
-  index.html            起動ページ
+  index.html            起動ページ（js の読み込み順はここで決まる）
   manifest.webmanifest  PWA設定
-  sw.js                 オフラインキャッシュ
+  sw.js                 オフラインキャッシュ（キャッシュ名は GAME_VERSION と連動）
+  package.json          開発用コマンド（npm run check / npm test など）
+  CHANGELOG.md          変更履歴
   css/style.css         UIのスタイル
   icons/                アプリアイコン
   assets/chara/         キャラ素材（SVGマスター）
-  tools/build-chara.mjs 素材SVG → js/chara-data.js 変換
+  docs/                 設計書・ver2ロードマップ・引き継ぎ手順
+  tools/
+    build-chara.mjs     素材SVG → js/chara-data.js 変換
+    check.mjs           静的チェック
+    serve.mjs           ローカルサーバー
+    preview.html        素材プレビュー（開発用）
+  tests/smoke.mjs       ブラウザでのスモークテスト（Playwright）
   js/
+    version.js     ゲームのバージョン（GAME_VERSION）
     chara-data.js  （自動生成）素材の構造データ
     chara.js       キャラ合成・着せ替えの描画
     art.js         町の人・敵・家具・アイコンの絵
@@ -80,6 +113,8 @@ game/
     scene-*.js     タイトル・町/フィールド・おうち・バトル
     minigames.js   お店のミニゲーム4種
     main.js        起動・ループ・入力・シーン切り替え
+    debug.js       テスト・開発用の PokaDebug
 ```
 
 アイテムや敵を増やすときは `js/data.js` に1行足せばよい（服は `wear` に `js/chara.js` の描画関数名を指定）。
+くわしい手順は [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) の「追加のしかた」。

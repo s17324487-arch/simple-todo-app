@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ぽかぽかタウン 素材プレビュー</title>
+<style>
+  :root { --ink: #1f1d1b; --bg: #eef6e4; --card: #fffdf6; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font: 13px/1.5 "Hiragino Maru Gothic ProN", "M PLUS Rounded 1c", sans-serif; }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+  h2 { font-size: 15px; margin: 22px 0 8px; border-bottom: 2px solid var(--ink); }
+  .ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--card); border: 2px solid var(--ink); border-radius: 12px; padding: 10px; position: sticky; top: 0; z-index: 2; }
+  select, button { font: inherit; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; }
+  .cell { background: var(--card); border: 1px solid #cfc6b3; border-radius: 8px; padding: 4px; text-align: center; font-size: 10px; }
+  .cell svg { display: block; }
+  .muted { color: #6b604f; }
+</style>
+</head>
+<body>
+<h1>ぽかぽかタウン 素材プレビュー</h1>
+<p class="muted">開発用のページ（ゲーム本編からは使わない）。服・NPC・敵・家具を足したら、ここで 3人×向き×ポーズ の見た目を確かめる。<br>
+表示: <code>npm start</code> してから <code>http://localhost:8080/tools/preview.html</code></p>
+<div class="ctrl" id="ctrl"></div>
+<div id="out"></div>
+<script src="../js/version.js"></script>
+<script src="../js/chara-data.js"></script>
+<script src="../js/util.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/chara.js"></script>
+<script src="../js/art.js"></script>
+<script>
+  const out = document.getElementById("out");
+  const ctrl = document.getElementById("ctrl");
+  const outfit = { head: null, face: null, neck: null, body: null, back: null };
+  let pose = "idle_01", face = "normal", size = 110, color = "soft";
+  const sel = (label, opts, value, onchange) => {
+    const s = document.createElement("select");
+    for (const [v, t] of opts) { const o = document.createElement("option"); o.value = v; o.textContent = t; if (v === value) o.selected = true; s.append(o); }
+    s.onchange = () => { onchange(s.value); render(); };
+    const l = document.createElement("label"); l.append(label + " ", s); ctrl.append(l);
+  };
+  for (const [slot, name] of Object.entries(SLOT_NAMES)) sel(name, [["", "なし"], ...WEAR_ITEMS.filter((w) => w.slot === slot).map((w) => [w.id, w.name])], "", (v) => (outfit[slot] = v || null));
+  sel("ポーズ", ["idle_01", "idle_02", "walk_01", "walk_02", "jump_01", "land_01"].map((p) => [p, p]), pose, (v) => (pose = v));
+  sel("表情", Object.keys(Chara.EMO).map((e) => [e, e]), face, (v) => (face = v));
+  sel("ごじの色", [["soft", "soft"], ["dark", "dark"]], color, (v) => (color = v));
+  sel("大きさ", [["80", "小"], ["110", "中"], ["160", "大"]], "110", (v) => (size = +v));
+
+  const cell = (svg, w, label) => `<div class="cell">${svg.replace("<svg ", `<svg width="${w}" `)}<div>${label}</div></div>`;
+  const row = (items) => `<div class="row">${items.join("")}</div>`;
+  function render() {
+    let h = "<h2>3人 × 向き（上の選択を反映）</h2>";
+    h += row(Chara.IDS.flatMap((id) => ["down", "left", "right", "up"].map((dir) => cell(Chara.svg(id, { dir, pose, face, outfit, color }), size, `${id} ${dir}`))));
+    h += "<h2>服をひとつずつ（3人・正面／後ろ）</h2>";
+    for (const slot of Object.keys(SLOT_NAMES)) {
+      h += `<div class="muted">${SLOT_NAMES[slot]}</div>`;
+      h += row(WEAR_ITEMS.filter((w) => w.slot === slot).flatMap((w) => Chara.IDS.map((id) => cell(Chara.svg(id, { outfit: { [w.slot]: w.id }, dir: slot === "back" ? "up" : "down", color }), 64, `${w.name}<br>${id}`))));
+    }
+    h += "<h2>アイコン（服）</h2>" + row(WEAR_ITEMS.map((w) => cell(Art.iconSvg("wear", w.id), 48, w.id)));
+    h += "<h2>町の人（どうぶつ）</h2>" + row(Object.keys(SPECIES).flatMap((sp) => ["normal", "happy", "sad", "surprise"].map((emo) => cell(Art.npcSvg({ sp, emo }), 80, `${sp} ${emo}`))));
+    h += "<h2>てき</h2>" + row(Object.entries(ENEMIES).flatMap(([k, e]) => ["normal", "hurt", "sleep"].map((emo) => cell(Art.enemySvg(e.art, e.col, emo), 86, `${e.name} ${emo}`))));
+    h += "<h2>かぐ</h2>" + row(FURNITURE.map((f) => cell(Art.furnSvg(f.id), Math.round((f.w + 24) * 1.2), `${f.name}<br>${f.kind} ${f.w}×${f.h}`)));
+    h += "<h2>たべもの・どうぐ・かべがみ・ゆか</h2>" + row([...FOODS, ...TOOLS].map((f) => cell(Art.iconSvg("bag", f.id), 44, f.name)).concat(WALLPAPERS.map((w) => cell(Art.iconSvg("wall", w.id), 44, w.name)), FLOORS.map((w) => cell(Art.iconSvg("floor", w.id), 44, w.name))));
+    out.innerHTML = h;
+  }
+  render();
+</script>
+</body>
+</html>

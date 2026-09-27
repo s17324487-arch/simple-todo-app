@@ -657,7 +657,7 @@ const Chara = {
   dims(size) { return { w: size, h: (size * VB.h) / VB.w }; },
   pxSize(size) {
     // 端末ピクセルに合わせ、8px単位に丸めて種類を減らす
-    return Math.max(8, Math.ceil((size * (window.G ? G.px : 2)) / 8) * 8);
+    return Math.max(8, Math.ceil((size * (typeof G !== "undefined" ? G.px : 2)) / 8) * 8);
   },
   // (x,y)=足元の論理座標。size=スプライト幅(論理px)
   draw(ctx, id, o, x, y, size, alpha = 1) {

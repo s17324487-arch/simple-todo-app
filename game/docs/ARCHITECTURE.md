@@ -1,0 +1,508 @@
+# ぽかぽかタウン 設計書（ARCHITECTURE）
+
+ver1（v1.0.0）時点の設計のまとめ。作業ルールはリポジトリ直下の [`AGENTS.md`](../../AGENTS.md) を先に読むこと。
+コードを直したら、この文書の該当するところも直す。
+
+---
+
+## 1. 全体像
+
+```
+index.html ─ <script> を順に読む（classic script・グローバル共有）
+   │
+   ├─ main.js    G（画面・時間）/ Game（ループ・入力・シーン切り替え）/ SCENES（シーンの登録表）
+   ├─ ui.js      UI（DOM の会話・選択肢・モーダル・HUD）
+   ├─ save.js    Save（セーブ）/ Stats（ステータス）/ Care（ごはん・どうぐ）
+   └─ シーン（1画面 = 1クラス）
+        title  ─→ house ⇄ world ⇄ battle
+                          │ ↑
+                          ↓ │
+                         shop（お店のおてつだいミニゲーム）
+```
+
+- **world** は町（town）と外の世界（meadow → forest → cave）を同じクラスで扱う。マップは `params.map` で切り替える。
+- **house** は おうち（育成・着せ替え・もようがえ）。**battle** は3人パーティのターン制。**shop** は おみせっち風ミニゲーム。
+- 買い物（ようふくや・かぐや・スーパー）はシーンではなく、world の上に出す DOM のモーダル（`ShopUI`）。
+
+---
+
+## 2. 読み込み順とグローバル名
+
+`index.html` の読み込み順（この順を守る。後ろのファイルは前のファイルの名前を使ってよい）:
+
+| # | ファイル | 主なトップレベル名 |
+| --- | --- | --- |
+| 1 | `version.js` | `GAME_VERSION` |
+| 2 | `chara-data.js` | `CHARA_DATA`（自動生成） |
+| 3 | `util.js` | `U`, `SvgCache` |
+| 4 | `data.js` | `WEAR_ITEMS`, `SLOT_NAMES`, `PERK_TEXT`, `ITEM_INDEX`, `CHARA_STATS`, `CHARA_INFO`, `SKILLS`, `FOODS`, `TOOLS`, `BAG_INDEX`, `FURNITURE`, `FURN_INDEX`, `WALLPAPERS`, `FLOORS`, `WALL_INDEX`, `FLOOR_INDEX`, `ENEMIES`, `AREAS`, `SHOPS`, `SHOP_LV_REP` |
+| 5 | `chara.js` | `INK`, `VB`, `FOOT`, `PROFILE`, `GOJI_COLORS`, `CHARA_IDS`, `EMO`, `WEAR`, `SLOT_ORDER`, `Chara`, 補助関数 `faceOf` `f2` `stroke` `shade` `heartPath` `starPath` `flowerSvg` `hatWrap` `eyeWrap` `neckWrap` `torsoClip` `garment` `sleeves` `t` `backWrap` `buildCharaSvg` `outfitKey` |
+| 6 | `art.js` | `Art`, `SK`, `outlineLine`, `vbChar`, `NPC_PROFILE`, `npcEyes`, `SPECIES`, `enemyFace`, `ENEMY_ART`, `FS`, `FURN_ART`, `IS`, `FOOD_ART` |
+| 7 | `tiles.js` | `TS`, `GROUND`, `SOLID_CH`, `OBJ_CH`, `Tiles`, `OS`, `WorldArt`, `SIGN_ICON` |
+| 8 | `maps.js` | `MAP_DEFS`, `FieldGen`, `genMeadow`, `genForest`, `genCave`, `WorldMap` |
+| 9 | `save.js` | `Save`, `Stats`, `Care` |
+| 10 | `sound.js` | `Sound`, `DR`, `SONGS` |
+| 11 | `ui.js` | `UI` |
+| 12 | `main.js` | `G`, `Game`, `SCENES` |
+| 13 | `talk.js` | `Loot`, `TALKS`, `Talk` |
+| 14 | `menu.js` | `Menu` |
+| 15 | `shop.js` | `BUY_SHOPS`, `ShopUI` |
+| 16 | `dressup.js` | `DressUp` |
+| 17 | `scene-title.js` | `TitleScene` |
+| 18 | `scene-world.js` | `DIRS`, `dirOf`, `WALK_DUR`, `RUN_DUR`, `CHAR_SIZE`, `Maps`, `FieldMemory`, `Walker`, `WorldScene`, `DayTint`, `FX` |
+| 19 | `scene-house.js` | `ROOM`, `HOUSE_SIZE`, `Room`, `HOUSE_ICONS`, `HouseScene` |
+| 20 | `scene-battle.js` | `ALLY_SIZE`, `FOE_SIZE`, `BOSS_SIZE`, `BattleScene` |
+| 21 | `minigames.js` | `MG_ART`, `CREPE_TOPS`, `BREADS`, `BREAD_TOPS`, `FLOWER_KINDS`, `RIBBONS`, `SHOP_OWNERS`, `HOWTO`, `CUST_*`, `ShopScene`, `TaskBase`, `CrepeTask`, `DentistTask`, `BakeryTask`, `FloristTask`, `MG_TASKS`, 補助関数 `breadSvg` `flowerIconSvg` `mgCanvas` `mgIcon` `topIcon` `mgBtn` `inBtn` `gridBtns` |
+| 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
+
+注意:
+
+- ここにある名前と同じトップレベル名を新しく作らない（`t`・`f2`・`FS`・`IS`・`OS`・`SK`・`TS`・`DR` のような短い名前もすでに使われている）。
+  新しいファイルでは、補助関数を オブジェクトの中や `(() => { ... })()` の中に入れると衝突しない。
+- ファイルの途中で定義する関数を、読み込み時（トップレベル）に 後ろのファイルから呼ばない。呼んでよいのは `Game.boot()` 以降。
+- `SCENES.xxx = クラス` の登録は各シーンのファイルの末尾で行う（例: `SCENES.shop = ShopScene;`）。
+
+---
+
+## 3. 画面サイズと座標
+
+- キャンバス（`#screen`）は画面いっぱい。**論理座標**で描く。横幅はほぼ 360（`G.W`）、高さ `G.H` は端末の縦横比で変わる（390×844 の端末で約 780）。
+- `Game.resize()` が、地面タイル（論理 32px）が端末ピクセルの整数になるように倍率 `G.px`（論理1 = 端末 G.px ピクセル）を決める。すき間の線が出ないため。
+- `G.cssPerUnit` = 論理1 が CSS で何 px か。CSS 変数 `--u` にも入っている（DOM の UI を論理座標に合わせたいときに使う）。
+- 端末の devicePixelRatio は最大 3 まで使う。
+
+| もの | 大きさ（論理 px） | 定義 |
+| --- | --- | --- |
+| マップの1マス | 32 | `TS`（tiles.js） |
+| 町・フィールドのキャラの幅 | 46 | `CHAR_SIZE`（scene-world.js） |
+| おうちのキャラの幅 | 84 | `HOUSE_SIZE`（scene-house.js） |
+| おうちの部屋 | 360×460（うち壁 230） | `ROOM`（scene-house.js）。画面に合わせて拡大縮小 |
+| バトルの味方／敵／ボス | 100 / 118 / 214 | `ALLY_SIZE` / `FOE_SIZE` / `BOSS_SIZE`（小さい画面では縮む） |
+| お店ミニゲームの作業エリア | 画面の下 約6割 | `ShopScene.layout()` の `R`（`{x, y, w, h}`） |
+
+キャラの SVG 座標系（素材と同じ）:
+
+- viewBox は `VB = { x: -10, y: -40, w: 220, h: 260 }`（素材の `-10 0 220 220` を、帽子のために上へ 40 広げたもの）。
+- 足元の基準点は `FOOT = (100, 210)`。`Chara.draw(ctx, id, opts, x, y, size)` の `(x, y)` は **足元** の位置。
+
+---
+
+## 4. ループ・シーン・入力（main.js）
+
+### ループ
+
+`requestAnimationFrame` ごとに `G.scene.update(dt)` → `G.scene.render(ctx)` → 画面切り替えの演出。`dt` は最大 0.05 秒。
+描画中に例外が出ると、`console.error` とトーストを1回だけ出して続ける。
+
+### シーンの約束（すべて任意。必要なものだけ書く）
+
+```js
+class XxxScene {
+  async enter(params) {}   // 始まるとき。await 中は画面切り替えの黒幕が出たまま（画像の先読みはここで）
+  exit() {}                // 終わるとき。setInterval や DOM を必ず片づける
+  update(dt) {}
+  render(ctx) {}           // 論理座標で描く
+  resize() {}              // 画面サイズが変わったとき
+  down(p) {} move(p) {} up(p, canceled) {} cancel(p) {} hover(p) {}  // p = { x, y, sx, sy, t0, dur, tap }（論理座標）
+  key(k, isDown) {}        // k = "up" | "down" | "left" | "right" | "ok" | "cancel"
+}
+SCENES.xxx = XxxScene;
+```
+
+### シーンの切り替え
+
+`Game.goto(name, params = {}, type = "fade")`。`type` は `"fade"`（黒）・`"circle"`（丸く閉じる）・`"battle"`（ちかちか→しましま）・`"white"`・`"none"`（演出なし）。
+切り替え中（`Game.trans`）と、DOM のモーダル・会話が開いている間（`UI.busy`）は、シーンに入力が届かない（`Game.inputLocked`）。
+
+各シーンの `params`:
+
+| シーン | params |
+| --- | --- |
+| `title` | `{}` |
+| `world` | `{ map, x, y, dir, grace }` — `grace` は着いてから敵に当たらない秒数 |
+| `house` | `{ intro?: true, msg?: "トーストの文" }` |
+| `battle` | `{ foes: [{ kind, lv }], area, boss, back: { map, x, y, dir }, spawnIdx }` |
+| `shop` | `{ shop: "crepe" など, back: { map, x, y, dir } }` |
+
+### 入力
+
+- タッチ・マウスは Pointer Events を論理座標に変換してシーンへ渡す。`p.tap` は「400ms 未満・10 以内の移動」。
+- キーボード: 矢印 / WASD = 移動、Z・Enter・Space = ok、X・Esc = cancel。INPUT / TEXTAREA に入力中は無視。
+- 会話中は ok キーで会話を送る。
+
+---
+
+## 5. DOM の UI（ui.js）
+
+| 関数 | 使い方 |
+| --- | --- |
+| `await UI.say(lines, opts)` | 会話ウィンドウ。`lines` は文字列 または `{ text, name?, face?(SVG), who?("wanko" など), emo? }` の配列。`who` を書くと そのキャラの顔と名前が出る |
+| `await UI.ask(text, options, { cancel, who })` | 選択肢。押した番号を返す（外をタップしてキャンセルなら -1） |
+| `await UI.confirm(text, yes, no)` | はい／いいえ → true / false |
+| `await UI.input(text, value, { max })` | 文字入力（`prompt()` の代わり）。やめたら null |
+| `UI.modal({ title, body, cls, onClose, closable, footer })` | 画面いっぱいのパネル。`{ el, body, close, setTitle }` を返す |
+| `UI.btn(label, onClick, cls)` | ボタン要素（`cls` に `"yellow"`・`"small"`・`"wide"` など） |
+| `UI.toast(msg, cls)` | 画面上の短いお知らせ |
+| `UI.showHud(on, place)` / `UI.updateHud()` | 上のコイン表示・場所名・メニューボタン |
+| `UI.icon(kind, id, size)` | アイテムのアイコン（HTML 文字列） |
+| `UI.busy` | 会話やモーダルが開いていれば true |
+
+注意: `html:` や `innerHTML` に入れる文字列に、プレイヤーが入力した文字（キャラの名前など）を入れるときは、HTML の記号を取りのぞく（`menu.js` の名前変更と `Save.migrate()` でそうしている）。新しい入力欄を作るときも同じにする。
+
+---
+
+## 6. 絵の仕組み
+
+### SvgCache（util.js）
+
+SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換して覚えておく。
+
+- `SvgCache.get(key, () => svg文字列, pw, ph)` … あれば canvas、なければ読み込みを始めて **null** を返す（次のフレーム以降に出る）。
+- `SvgCache.ensure(key, fn, pw, ph)` … 読み込み終わるまで待てる Promise。シーンの `enter()` での先読みに使う。
+- 700 個を超えると古いものから 150 個捨てる。**キーは有限個に**すること（ランダムな値・時刻を入れない）。
+- 画面の倍率が変わると全部捨てて作り直す。
+
+### キャラの合成（chara.js）
+
+- `tools/build-chara.mjs` が素材 SVG を解析して `CHARA_DATA[id] = { feet: [左足, 右足], base: [からだの要素...], poses: { idle_01: [左足の transform, 右足の transform, からだの transform], ... }, faces: { normal: [...], ... } }` を作る。
+  素材の全ポーズは idle_01 と同じ要素で transform だけが違い、表情は顔パーツだけが違う、という構造を利用している。
+- `buildCharaSvg(id, { pose, dir, face, outfit, color })` が、ポーズ×向き×表情×服 を1枚の SVG にする。
+  - `pose`: `idle_01` `idle_02` `walk_01` `walk_02` `jump_01` `land_01`
+  - `dir`: `down`（正面）・`up`（後ろ姿。顔を外し、しっぽ・背びれを描く）・`left`（顔を横にずらした 3/4 ビュー）・`right`（left を左右反転）
+  - `face`: 感情の名前（`EMO` の `normal` `happy` `love` `excited` `sad` `angry` `surprise` `sleep` `calm`）。キャラごとに持っている表情ファイルへ変換される
+  - `color`: ごじだけ `"soft"` / `"dark"`
+- `Chara.draw(ctx, id, opts, x, y, size)` が SvgCache を通して描く。まだ無ければ、同じ服の別ポーズなどで代わりに描く（ちらつき防止）。
+- `Chara.preload([[id, opts], ...], size)` で先読みする。
+
+### 服の描き方（WEAR）
+
+`WEAR_ITEMS` の `wear` に書いた名前の関数 `WEAR[名前](ctx)` が呼ばれ、次のレイヤーの SVG 断片を返す:
+
+| レイヤー | 描かれる位置 |
+| --- | --- |
+| `behind` | からだより後ろ（マント・はね を正面から見たとき） |
+| `sleeve` | うでの上（そで） |
+| `torso` | 胴体の上。`torsoClip()` で胴の形に切り抜くと、3人の体型に自動で合う |
+| `top` | いちばん上（帽子・めがね・首のもの・後ろ姿の背中のもの） |
+
+`ctx` = `{ p: PROFILE[id], a: 取り付け位置, view: "front" | "back" | "side", dx: 横向きの顔のずれ, col: アイテムの色の配列, uid: 一意な文字列 }`。
+取り付け位置 `a` はキャラごとに `PROFILE[id].a` にある（`hat` `eyes` `cheek` `mouth` `neck` `torso` `back`）。
+あたま・かお・くび・せなかは `hatWrap` / `eyeWrap` / `neckWrap` / `backWrap` が「幅100のローカル座標」に変換してくれるので、1つの絵で3人に合う。
+からだの服は `garment(ctx, すその高さ, 色)` と `sleeves(ctx, 色)` を使う。重ねる順番は `SLOT_ORDER`（back → body → neck → face → head）。
+
+### そのほかの絵（art.js・tiles.js）
+
+- `Art.npcSvg({ sp, col, stripe, outfit, emo })` … 町の人（`SPECIES` の cat / rabbit / bear / penguin / frog / sheep / mouse / pig）。服も着られる。
+- `Art.enemySvg(art, col, emo)` … 敵（`ENEMY_ART` の slime / slime_king / fluff / bee / mushroom / acorn / leaf / bat / rock / crystal）。`emo` は normal / hurt / sleep。
+- `Art.furnSvg(id, { flip })` … 家具（`FURN_ART[id]`、大きさは `FURNITURE` の w×h）。
+- `Art.iconSvg(kind, id)` … アイコン。`kind` は `"wear"` `"bag"`（食べ物・どうぐ = `FOOD_ART`）`"furn"` `"wall"` `"floor"`。
+- `Tiles` / `WorldArt`（tiles.js）… 地面は 8×8 マスのかたまり（チャンク）ごとに canvas に描いて使い回す。木・建物・街灯などは y 順に並べて描く。
+- 線はすべて `INK`（#1F1D1B）。キャラ座標系で線幅 4.5（家具・アイコンは `FS()` / `IS()` が同じ見た目の太さを返す）。
+
+---
+
+## 7. データ（data.js）
+
+| 表 | 1行の形 | メモ |
+| --- | --- | --- |
+| `WEAR_ITEMS` | `{ id, slot, wear, col?, name, price, st?, perk?, rare? }` | slot = head / face / neck / body / back。`st` = 能力の補正（hp sp atk def spd）。`rare` はお店に並ばない。`price: 0` は宝箱・ボスなどでもらうもの |
+| `PERK_TEXT` | `{ perk名: 説明 }` | 服の特別な効果（cook / florist / dentist / shop / sleep / eat / explore） |
+| `CHARA_STATS` | `{ hp: [Lv1の値, 1Lvごとの伸び], ... }` | |
+| `CHARA_INFO` | `{ role, like: [食べ物id], dislike: [...], desc }` | 好物・苦手 |
+| `SKILLS` | `{ user, lv, name, sp, target, power?, heal?, buff?, turns?, revive?, scare?, taunt?, fx, desc }` | target = enemy / enemies / ally / party / self / fallen。`e_` で始まるのは敵のわざ |
+| `FOODS` / `TOOLS` | `{ id, name, price, hunger?, mood?, hp?, sp?, boost?, revive?, escape?, desc }` | `boost` は能力がずっと上がる。`BAG_INDEX` に両方が入る |
+| `FURNITURE` | `{ id, name, price, kind, w, h, comfort, sleep?, rare? }` | kind = floor（床に置く）/ rug（床にしく）/ wall（かべにかける） |
+| `WALLPAPERS` / `FLOORS` | `{ id, name, price, base, c2, pat, comfort }` | `pat` は `Art.patternSvg` の模様名 |
+| `ENEMIES` | `{ name, art, col, lv, hp, atk, def, spd, exp, coin: [最小, 最大], skills, boss?, desc }` | 実際の強さはレベル差で伸びる（`BattleScene.enter`） |
+| `AREAS` | `{ name, bg, table: [[敵id, 最小Lv, 最大Lv, 重み], ...], group: [最小数, 最大数] }` | どのエリアに どの敵が出るか |
+| `SHOPS` | `{ name, color, desc, perk }` | おてつだいのお店。`SHOP_LV_REP` = 各レベルに必要な評判 |
+
+---
+
+## 8. セーブ（save.js）
+
+- localStorage のキー `pokapoka-town-save-v1` に JSON で保存。**このキーは変えない**。
+- 20秒ごと・画面を隠したとき・閉じるときに自動で保存（`Save.write()`）。値を変えたら `Save.mark()` を呼ぶ習慣にしている。
+- 読み込み時に `Save.migrate()` を通す:
+  1. `Save.SCHEMA` を上げたときの形式の変換（`if (d.v < N) { ... }` を1段ずつ足す）
+  2. `Save.fresh()` にあって古いセーブに無いキーを補う（**新しい項目は fresh() に足すだけでよい**）
+  3. 名前の HTML 記号を取りのぞく
+- ゲームを閉じていた時間の分だけ、おなか・ごきげんが減る（最大12時間分。`Save.applyElapsed()`）。
+
+`Save.fresh()` の形（ver1、SCHEMA 1）:
+
+```js
+{
+  v: 1, gameVersion: "1.0.0", created, last,        // last = 最後に保存した時刻（ms）
+  coins: 150,
+  chars: { wanko: キャラ, gachan: キャラ, goji: キャラ },
+  //   キャラ = { name, lv, exp, hp, sp, hunger(0-100), mood(0-100), bond(なかよし 0-100),
+  //              outfit: { head, face, neck, body, back }, boost: { hp, sp, atk, def, spd }, color: "soft"|"dark", lastPet }
+  order: ["wanko", "gachan", "goji"],              // ならび順（先頭が町でいちばん前を歩く）
+  bag: { 食べ物・どうぐのid: 個数 },
+  wardrobe: { 服のid: true },                       // 持っている服
+  furn: { 家具のid: 持っている数 },
+  room: { wall, floor, items: [{ uid, id, x, y, flip }], wallpapers: { id: true }, floors: { id: true }, nextUid },
+  shops: { crepe: { lv, rep, best, plays }, dentist: {...}, bakery: {...}, florist: {...} },
+  world: { map, x, y, dir, house? },                // つづきから の場所（house: true なら おうちから）
+  flags: { intro, chests: { 宝箱id: true | "開けた日" }, boss, talked: { NPCのid: true } },
+  //   あとから足されるもの: flags.bossDay（ボスを倒した日）、flags["gift_<NPCのid>"]（プレゼントをもらった）
+  dex: { 敵のid: { seen, won } },                   // ずかん
+  stats: { battles, wins, coinsEarned, shifts, perfects, fed },
+  settings: { bgm, se },
+}
+```
+
+よく使う関数: `Save.addCoins(n)` `Save.addBag(id, n)` `Save.care(id, { hunger, mood, bond })` `Save.careAll(...)` `Save.healAll()` `Save.avg(key)`、
+`Stats.max(id, "atk")`（レベル＋服＋とっくん）`Stats.gainExp(id, n)` `Stats.skills(id)` `Stats.perk(名前)`、`Care.feed(id, itemId)`。
+
+---
+
+## 9. 町と外の世界（maps.js・scene-world.js）
+
+### マップの定義（`MAP_DEFS[id]`）
+
+```js
+{
+  name, bgm, baseGround: "grass" | "forest" | "cave", area?: "meadow" など（敵が出るエリア）,
+  rows: ["TTTT...", ...],              // 1文字 = 1マス（記号は maps.js の先頭のコメント）
+  buildings: [{ id, x, y, w, h, door, roof, awning?, chimney?, flowers?, sign, label, act }],
+  //   act = { type: "house" } | { type: "buy", shop: "clothes" | "furniture" | "market" } | { type: "work", shop: "crepe" など }
+  objects: [{ kind: "fountain" | "gate" | "stairs" | "spring" ..., x, y, w, h, ground? }],
+  signs: [{ x, y, text }],
+  npcs: [{ id, sp, x, y, dir, name, col?, stripe?, outfit?, wander?: [x0, y0, x1, y1], talk: "TALKS のキー" }],
+  warps: [{ x, y, w, h, to: マップid, tx, ty, dir }],   // 踏むと to の (tx, ty) へ
+  chests: [{ id, x, y, loot: { coins } | { bag, n } | { wear } | { furn }, daily? }],  // daily = 1日1回また開けられる
+  spawns: [[x, y], ...],               // 敵のシンボルが出る場所
+  boss?: { x, y, enemy },
+}
+```
+
+- **町**は ASCII の手描き。**外の世界**は `FieldGen`（ブラシで道・池・木を置く）で作る。乱数は座標のハッシュなので、毎回同じ形になる。
+- `npm run check` が、スタート地点から ワープ・宝箱・ドア・人・看板・敵の出現位置・ボスに歩いて行けるかを調べる。マップを変えたら必ず実行する。
+- 建物は `rows` の `#` の場所に描かれ、`door` 列目の下の段がドア。ドアに入ると `act` の処理（`WorldScene.enterDoor()`）。
+
+### 歩き方
+
+- 1マスずつ動く（歩き 0.2 秒、遠くをタップしたとき・スティックを大きく倒したときは走り 0.13 秒）。タップした場所まで道を探して歩く（`goTo()`）。ドラッグでその場にスティック。
+- 3人は `Save.d.order` の順に並び、前の人がいたマスへ1マスずつついて行く（`WorldScene.stepParty()`・`Walker`）。壁や敵との当たり判定は先頭だけ。
+- 敵は `spawns` からシンボルとして出て、近づくと追いかけてくる。触れるとバトル。倒した敵は `FieldMemory` で覚え、別のマップへ行くまで出ない。にげた敵は少しのあいだ止まる。
+- ボスは `flags.bossDay` が今日でなければ出る（1日1回）。宝箱の `daily` は `flags.chests[id]` に開けた日付を入れて判定する。
+- 時間帯（`U.hourNow()`）で町の色が変わり、夜は街灯がともる（`DayTint`）。
+
+### 会話（talk.js）
+
+`TALKS[キー] = { first: [はじめての会話...], lines: [[会話...], ...], boss?: [ボスを倒した後...], gift?: loot }`。
+はじめて話すと `first`、2回目からは `lines` のどれか。`gift` は1回だけもらえる（`Loot.give()`）。
+
+---
+
+## 10. おうち（scene-house.js）
+
+- 部屋は 360×460 の座標（上 230 が壁）。家具の位置 `room.items[].x, y` もこの座標（家具の足元中央）。
+- 下のボタン: ごはん（好物だと大喜び・苦手だと不機嫌）／あそぶ（かくれんぼ・ボールあそび）／きがえ（`DressUp`）／もようがえ／ねる（HP・SP 全回復、ベッドが良いほど ごきげん↑）／おでかけ。
+- キャラをタップでなでる。「いごこち」（`Room.comfort()` = 壁紙＋床＋家具の comfort の合計）が高いほど ごきげんが減りにくい。
+- もようがえ: ドラッグで移動、タップで はんてん・しまう。壁の家具は壁の範囲、床の家具は床の範囲に収める（`clampItem`）。
+
+---
+
+## 11. バトル（scene-battle.js）
+
+- 3人 対 敵1〜3体（ボスは1体）のターン制。毎ラウンド すばやさ（±15% のゆらぎ）の順に行動。コマンドは たたかう・とくぎ（SP を使う）・どうぐ・ぼうぎょ・にげる。おなかが すいていると力が出ない。
+- なかよしゲージは こうげきを当てたり受けたりすると たまり、なかよし度が高いほど たまりやすい。満タンで3人とも元気なら「なかよしトリオアタック」。
+- ダメージは `calc(a, d, power)` = こうげき × 威力 × 100 /（100 + ぼうぎょ × 2.2）× ゆらぎ（0.88〜1.08）。会心 6%（ごきげん 80 超で +5%）で ×1.6、ぼうぎょ中は半分。
+- 勝つと経験値（3人で共有）とコイン。全滅すると おうちに戻って全回復（ごきげん −10。コインは減らない、やさしい仕様）。
+- ボス（キングプルン）を倒すと 王冠とトロフィー。`flags.boss` が立つ（1日1回再戦できる）。
+
+---
+
+## 12. お店のおてつだい（minigames.js）
+
+### 流れ（`ShopScene`）
+
+```
+intro（店主の説明）→ お客さん × total 人 { enter → work（Task）→ judge（◎○△×）→ leave } → result（コイン・評判・レベルアップ）
+```
+
+- お客さんの数 `total = 3 + min(4, お店のLv)`。
+- 採点（0〜100）→ ランク: **92以上 ◎ / 72以上 ○ / 45以上 △ / それ未満 ×**。
+- 代金 = お店の基本額 ×（1 + 0.28 ×（Lv−1））× ランクの倍率（×0.2 / ×0.6 / ×1 / ×1.5）。◎ で時間に余裕があればチップ。服の perk・ごきげんでチップが増える。
+- 評判がたまると お店のレベルが上がる（`SHOP_LV_REP`、最大 Lv5）。レベルが上がると 注文が難しくなり、報酬も増える。
+
+### Task（1人のお客さんの作業）の約束
+
+```js
+class NewTask extends TaskBase {
+  constructor(sc, lv) {
+    super(sc, lv);                 // sc = ShopScene, lv = お店のレベル（1〜5）
+    this.timeLimit = 20;           // 秒。時間の半分を過ぎると sc.timePenalty() で減点
+    this.hideAfter = 0;            // >0 なら その秒数で注文の吹き出しが消える（タップで少しのぞけるが減点）
+    this.title = "〇〇 ください！";  // 吹き出しの見出し
+  }
+  layout(R) { this.R = R; this.btns = [/* { x, y, w, h, label, fs, icon(ctx,x,y,s), color, cb, disabled, on, badge } */]; }
+  drawOrder(ctx, x, y, w, h) {}    // 吹き出しの中身（注文）
+  draw(ctx) {}                     // 作業エリア R の絵（ボタンは TaskBase.render が描く）
+  tick(dt) {}                      // 毎フレーム（任意）
+  downArea(p) {} move(p) {} up(p) {}  // ボタン以外への入力（任意。こする・長押し・ドラッグなど）
+  timeout() { return 点数; }       // 時間切れのときの点数
+  // できあがったら this.sc.finish(点数) を1回だけ呼ぶ。失敗の演出は this.sc.mistake("いたっ！")
+}
+```
+
+- ボタンの位置は `gridBtns(R, 個数, 列数, 上端, 高さ)` で並べると、画面の大きさに合う。
+- ボタンは作業エリア `R` の中に収める（`npm run check` が スマホ縦画面 相当の `R` で確かめる）。
+- 採点は「正しく操作すれば 100 点」になるようにする（check が各 Lv で確かめる）。
+
+---
+
+## 13. 音（sound.js）
+
+- `Sound.se(名前)` … 効果音: tap ok cancel coin buy hit crit miss heal buff debuff eat jump pop door good perfect bad encounter sparkle wan piyo gao germ fanfare levelup sleep whoosh bake ding swish
+- `Sound.bgm(名前)` / `Sound.stopBgm()` / `Sound.jingle(名前)` … 曲は `SONGS`: title town house meadow forest cave battle boss shop、ジングル victory（勝利・お店の結果）jingle_lv（レベルアップ）
+- 曲は `{ bpm, tracks: [{ wave, vol, notes: "C5 E5 . G5 ..." }] }` の形。`.` は休み、ドラムのトラックは k（キック）s（スネア）h（ハイハット）。
+- iOS では、最初に画面を触ったときに音が有効になる（`Sound.init()`）。
+
+---
+
+## 14. 開発・テスト用の API（debug.js の `PokaDebug`）
+
+ブラウザの開発者ツールで `PokaDebug.help()` と打つと一覧が出る。自動テストはこれを使う。
+
+| 関数 | 説明 |
+| --- | --- |
+| `state()` | `{ version, scene, map, pos, phase, busy, transitioning, coins }` |
+| `idle()` | 画面切り替え中・会話中でなければ true |
+| `newGame({ goji })` | オープニングを飛ばして はじめから（おうちへ） |
+| `teleport(map, x, y, dir)` / `house()` | 移動 |
+| `battle(foes, area, boss)` | バトル開始。例 `battle([{ kind: "purun", lv: 2 }], "meadow")` |
+| `shop(id, lv)` | お店ミニゲームを そのレベルで開始 |
+| `coins(n)` / `level(lv)` / `unlockAll()` / `give(id, n)` | お金・レベル・全アイテム・もちもの |
+| `save()` | すぐセーブ |
+| `walkTo(x, y)` | 町・フィールドでタップ移動と同じ道さがし |
+| `mg()` | お店ミニゲームの状態（注文・ボタンの画面上の位置など）。正解の操作をテストするため |
+| `hour(h)` | 時刻を固定（null で戻す） |
+| `fps(ms)` | 平均 FPS（Promise） |
+
+新しいお店を足したら `mg()` にそのお店の `order`（注文の中身）を足す。
+
+---
+
+## 15. テスト
+
+### `npm run check`（tools/check.mjs、ブラウザ不要・数秒）
+
+全スクリプトを index.html の順に Node の `vm` に読み込み（ブラウザの代わりに最小限の見せかけを用意）、次を調べる:
+
+1. ファイル構成: js の登録漏れ（index.html・sw.js）、`window.<トップレベル名>` の誤用、version.js が最初か
+2. 読み込み: 名前の重複・文法エラー
+3. バージョン: GAME_VERSION・package.json・CHANGELOG の一致、Save.KEY が変わっていないか、主要シーンの登録
+4. データの参照: 服の描画関数・slot・perk、id の重複、好物、家具の絵、敵の絵・わざ・エリア、お店の表のそろい方
+5. セーブ: 初期値の参照、SCHEMA、migrate（キーの補完・名前の記号除去）
+6. マップ: 行の長さ、ワープ先が歩ける場所か、宝箱の中身、建物の act、NPC、ボス、歩いて行けるか
+7. SVG: 3人×向き×ポーズ×表情×服、NPC、敵、家具、アイコンの SVG に NaN・undefined・タグの閉じ忘れ・存在しない `url(#id)` がないか
+8. ロジック: ごはん全種、Lv50 までの経験値、宝箱の中身の受け取り、ミニゲーム各 Lv（ボタンが作業エリアに収まるか・正解で 100 点か）、BGM の音符
+
+### `npm test` / `npm run test:full`（tests/smoke.mjs、Playwright + Chromium）
+
+390×844（スマホ相当・タッチ）で実際に起動し、PokaDebug とタップで遊んで確かめる。ブラウザのエラーが1つでも出たら失敗。
+
+| シナリオ | ふだん | full |
+| --- | --- | --- |
+| 起動とタイトル / はじめから→おうち→ごはん / きがえ と もようがえ / まちへ→お店の入口 / クレープやさん / バトルに勝つ / セーブ→つづきから | ✓ | ✓ |
+| はいしゃさん・パンやさん・おはなやさん（Lv3 を正しく操作して ◎） / ボスに勝つ / 小さい画面（375×667） / 夜の町 | | ✓ |
+
+- オプション: `node tests/smoke.mjs --only=クレープ`（名前の一部で絞る）`--headed`（画面を出す）`--shots`（スクリーンショット）。
+- 失敗すると `tests/screenshots/FAIL_<シナリオ名>.png` が残る。
+- シナリオの足し方: `scenario("名前", async (H) => { await H.open(); await H.newGameFast(); ... }, { full: true })`。
+  `H.dbg("メソッド名", 引数...)` で PokaDebug を呼び、次のような道具を使う（smoke.mjs の `helpers()` を参照）:
+  `H.tap(x, y)`（CSS px）・`H.tapLabel("ボタン名")`（ミニゲームのボタン）・`H.drag()`・`H.hold()`・`H.until(() => 条件)`・`H.idle()`・
+  `H.dialogs()`（会話を最後まで送る）・`H.choose(番号)`（選択肢）・`H.houseButton("ごはん")`・`H.playShop("crepe", 3)`・`H.fightToEnd()`・`H.shot("名前")`。
+
+---
+
+## 16. 追加のしかた（レシピ）
+
+### 服を1つ足す（既存の形の色ちがい）
+
+```js
+// data.js の WEAR_ITEMS に1行
+{ id: "tshirt_green", slot: "body", wear: "tshirt", col: ["#81C784"], name: "Tシャツ（みどり）", price: 100, st: { hp: 2 } },
+```
+
+### 新しい形の服を足す
+
+1. `chara.js` に描画関数を足す（あたまの例）:
+   ```js
+   WEAR.bunnyears = (ctx) => ({
+     top: hatWrap(ctx, (s) => `<path d="M-20,0 C-30,-60 -10,-70 -6,-4 Z" fill="${ctx.col[0]}" ${stroke(s)}/>
+       <path d="M20,0 C30,-60 10,-70 6,-4 Z" fill="${ctx.col[0]}" ${stroke(s)}/>`),
+   });
+   ```
+   - `hatWrap` の中は「つばの中心が (0,0)、頭の幅が 100」の座標。`s` は線幅（拡大縮小を打ち消した 4.5）。
+   - 後ろ姿（`ctx.view === "back"`）・横向き（`"side"`）で形を変えたいときは `ctx.view` で分ける。
+   - clipPath などの id には `ctx.uid` を付ける。
+2. `data.js` の `WEAR_ITEMS` に `wear: "bunnyears"` の行を足す。
+3. `npm run check` → `tools/preview.html` で3人×向きの見た目を確認。
+
+### 家具を足す
+
+1. `data.js` の `FURNITURE` に `{ id, name, price, kind, w, h, comfort }`。
+2. `art.js` の `FURN_ART[id] = () => \`<svg の中身>\``（座標は 0,0〜w,h。線は `FS()`）。
+3. お店（かぐやさん）には自動で並ぶ（`rare: true` や `price: 0` は並ばない）。
+
+### 食べ物を足す
+
+`data.js` の `FOODS` に1行、`art.js` の `FOOD_ART[id]`（viewBox 0 0 64 64、線は `IS()`）。好物にするなら `CHARA_INFO[id].like` に足す。
+
+### 敵を足す
+
+1. `data.js` の `ENEMIES` に1行（`art` は既存の形か、新しく作る `ENEMY_ART` の名前）。
+2. 出したいエリアの `AREAS[area].table` に `[id, 最小Lv, 最大Lv, 重み]` を足す。
+3. 新しい形なら `art.js` の `ENEMY_ART[名前] = (col, emo) => SVG断片`（キャラと同じ座標系 `vbChar`、足元 y≈206 に影、`enemyFace()` で顔。emo は normal / hurt / sleep）。
+
+### 町の人・会話を足す
+
+1. `maps.js` のマップの `npcs` に `{ id, sp, x, y, dir, name, outfit, talk: "newtalk" }`（歩ける場所に置く）。
+2. `talk.js` の `TALKS.newtalk = { first: [...], lines: [[...], [...]] }`。
+
+### 新しいお店（おてつだいミニゲーム）を足す
+
+1. `minigames.js` に `class XxxTask extends TaskBase`（§12 の約束どおり）、`MG_TASKS.xxx = XxxTask`。
+2. `SHOP_OWNERS.xxx`（店主の見た目）と `HOWTO.xxx`（はじめての説明3行ほど）。
+3. `data.js` の `SHOPS.xxx = { name, color, desc, perk }`。
+4. `save.js` の `Save.fresh().shops.xxx = { lv: 1, rep: 0, best: 0, plays: 0 }`（古いセーブには migrate が補う）。
+5. `maps.js` の町に建物 `{ ..., act: { type: "work", shop: "xxx" } }` を置く（町の空き地を広げる必要があれば rows を編集）。`tiles.js` の看板アイコン `SIGN_ICON` も足す。
+6. `debug.js` の `PokaDebug.mg()` に注文の情報を足し、`tests/smoke.mjs` にシナリオを足す。
+7. `npm run check`（Lv1〜5 でボタンが収まるか・正解で100点かを調べる）→ `npm run test:full`。
+
+### マップを広げる・新しいエリアを足す
+
+1. `maps.js` に `genXxx()`（`FieldGen` を使う）を書き、`MAP_DEFS.xxx = genXxx()`。
+2. つなぐマップの両方に `warps` を足す（行き先 `tx, ty` は歩けるマス）。
+3. `data.js` の `AREAS.xxx`、`sound.js` の `SONGS`（新しい曲なら）、バトル背景（`BattleScene.drawBg()` はエリア名で分岐していて、知らないエリアは どうくつの背景になる）。
+4. `npm run check` で到達性を確認。
+
+### セーブの形を変える（例: shops を配列に変える、など）
+
+```js
+// save.js
+SCHEMA: 2,
+migrate(d) {
+  if (!d.v) d.v = 1;
+  if (d.v < 2) { /* d の古い形 → 新しい形に変換 */ d.v = 2; }
+  // …（以下は既存のまま）
+}
+```
+
+`fresh()` の `v` も `this.SCHEMA` と同じにする（check が確かめる）。古い形のセーブを migrate に通すテストを check.mjs に足す。
+
+---
+
+## 17. 既知の制約・注意
+
+- 文言は日本語だけで、各ファイルに直接書いてある（多言語化の仕組みはない）。
+- 横向き・後ろ姿は素材に無いので、コードで作った簡易版。素材の正面ほどの完成度ではない。
+- セーブは端末のブラウザの中だけ（別の端末に引き継げない。ブラウザのデータを消すと消える）。
+- 実機（iPhone / Android）での確認は まだ少ない。自動テストは Chromium のみ。
+- 画面の向きは縦を想定（横向きでも動くが、最適化していない）。
+- Service Worker は https のときだけ登録する（`file://` と `http://localhost` では登録しない）。

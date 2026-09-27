@@ -62,7 +62,9 @@ const Menu = {
   async rename(id, el) {
     const c = Save.d.chars[id];
     const n = await UI.input(`${c.name} の あたらしい なまえ（6もじまで）`, c.name, { max: 6 });
-    if (n) { c.name = n.slice(0, 6); Save.mark(); el.innerHTML = ""; this.status(el); }
+    // 名前は あちこちで innerHTML に入るので、HTML の記号は取りのぞく
+    const name = (n || "").replace(/[<>&"'`]/g, "").trim().slice(0, 6);
+    if (name) { c.name = name; Save.mark(); el.innerHTML = ""; this.status(el); }
   },
   refreshScene() {
     const sc = G.scene;
@@ -126,6 +128,6 @@ const Menu = {
     }, "wide");
     del.style.marginTop = "18px"; del.style.background = "#FFD6D6";
     el.append(del);
-    el.append(U.el("div", { class: "muted", style: "margin-top:14px;text-align:center", html: "ぽかぽかタウン<br>キャラクター: わんこ・がちゃん・ごじ" }));
+    el.append(U.el("div", { class: "muted", style: "margin-top:14px;text-align:center", html: `ぽかぽかタウン ver ${GAME_VERSION}<br>キャラクター: わんこ・がちゃん・ごじ` }));
   },
 };
