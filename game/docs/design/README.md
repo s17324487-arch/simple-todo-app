@@ -12,6 +12,7 @@
 | `towns/heiwadai/asset-bbox.json` | 各部品の 描く範囲（足もとの 左上を 0,0 とした [x0,y0,x1,y1]） |
 | [`../../tools/town-design/`](../../tools/town-design/) | 見本を 作る コード（部品の SVG・道の 描きかた・配置）。**絵の 正解は ここの SVG** |
 | [`../../tools/town-audit.mjs`](../../tools/town-audit.mjs) | 町の 検査（`npm run audit:town`） |
+| [`features/README.md`](features/README.md) | **機能の 見本 ①〜⑥**（おうちの 会話・町の人・釣り・化石・水族館と 博物館・射撃場）と Codex への 依頼文 |
 
 ## 見本を 作り直す（見本を 変えたとき）
 

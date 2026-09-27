@@ -1,0 +1,4138 @@
+{
+ "version": 1,
+ "lines": [
+  {
+   "id": "tf0001",
+   "npc": "mayor",
+   "group": "line",
+   "text": "おはよう。はやおきは まちの じまんじゃ",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0002",
+   "npc": "mayor",
+   "group": "line",
+   "text": "ひるの まちは にぎやかで いいのう",
+   "when": {
+    "time": [
+     "day"
+    ]
+   }
+  },
+  {
+   "id": "tf0003",
+   "npc": "mayor",
+   "group": "line",
+   "text": "ゆうやけの まちも なかなか じゃろう？",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0004",
+   "npc": "mayor",
+   "group": "line",
+   "text": "よるは あかりが きれいじゃ。はやく おかえり",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0005",
+   "npc": "mayor",
+   "group": "line",
+   "text": "あめの ひは、みちが すべる。きを つけるんじゃぞ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0006",
+   "npc": "mayor",
+   "group": "line",
+   "text": "ゆきの ひは、わしが ゆきかきを するぞい",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0007",
+   "npc": "mayor",
+   "group": "line",
+   "text": "はるは さくら。まちじゅうが ももいろじゃ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0008",
+   "npc": "mayor",
+   "group": "line",
+   "text": "なつまつりの じゅんびで いそがしいのう",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0009",
+   "npc": "mayor",
+   "group": "line",
+   "text": "あきは みのりの きせつ。いもほりが たのしみじゃ",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0010",
+   "npc": "mayor",
+   "group": "line",
+   "text": "ふゆは こたつに かぎるのう",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0011",
+   "npc": "mayor",
+   "group": "line",
+   "text": "あけまして おめでとう。ことしも なかよくな",
+   "when": {
+    "festival": [
+     "newyear"
+    ]
+   }
+  },
+  {
+   "id": "tf0012",
+   "npc": "mayor",
+   "group": "line",
+   "text": "キングを たおすとは、まちの ほこりじゃ！",
+   "when": {
+    "event": [
+     "boss"
+    ]
+   }
+  },
+  {
+   "id": "tf0013",
+   "npc": "mayor",
+   "group": "line",
+   "text": "みなとに すいぞくかんが できたら、わしも いきたいのう",
+   "when": {
+    "feature": [
+     "!aquarium"
+    ]
+   }
+  },
+  {
+   "id": "tf0014",
+   "npc": "mayor",
+   "group": "line",
+   "text": "すいぞくかんの おおきな すいそう、みごとじゃった",
+   "when": {
+    "feature": [
+     "aquarium"
+    ]
+   }
+  },
+  {
+   "id": "tf0015",
+   "npc": "mayor",
+   "group": "line",
+   "text": "はくぶつかんの きょうりゅう、みたことが あるかの？",
+   "when": {
+    "feature": [
+     "museum"
+    ]
+   }
+  },
+  {
+   "id": "tf0016",
+   "npc": "mayor",
+   "group": "line",
+   "text": "なにか こまったら、まちの ひとに はなしかけて みるんじゃ",
+   "when": {}
+  },
+  {
+   "id": "tf0017",
+   "npc": "mayor",
+   "group": "bond",
+   "text": "きみたちが きてから、まちが あかるく なったのう",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0018",
+   "npc": "mayor",
+   "group": "bond",
+   "text": "わしの わかい ころの はなし… また こんど ゆっくりな",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0019",
+   "npc": "cat",
+   "group": "line",
+   "text": "にゃあ… あさは ねむいにゃ",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0020",
+   "npc": "cat",
+   "group": "line",
+   "text": "ひなたぼっこ、さいこうにゃ",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   }
+  },
+  {
+   "id": "tf0021",
+   "npc": "cat",
+   "group": "line",
+   "text": "あめは にがて… けが しめるにゃ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0022",
+   "npc": "cat",
+   "group": "line",
+   "text": "よるの まちは、ねこの じかん にゃ",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0023",
+   "npc": "cat",
+   "group": "line",
+   "text": "クレープの あたらしい あじ、しってる？",
+   "when": {}
+  },
+  {
+   "id": "tf0024",
+   "npc": "cat",
+   "group": "line",
+   "text": "うわさだと、いけに おおきな さかなが いるらしいにゃ",
+   "when": {}
+  },
+  {
+   "id": "tf0025",
+   "npc": "cat",
+   "group": "line",
+   "text": "つりざお、ほしいにゃ… おさかな…",
+   "when": {}
+  },
+  {
+   "id": "tf0026",
+   "npc": "cat",
+   "group": "line",
+   "text": "はるは ちょうちょを おいかけたく なるにゃ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0027",
+   "npc": "cat",
+   "group": "line",
+   "text": "なつは ひかげで おひるねにゃ",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0028",
+   "npc": "cat",
+   "group": "line",
+   "text": "あきの さんま、たべたいにゃ",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0029",
+   "npc": "cat",
+   "group": "line",
+   "text": "こたつの なかは ねこの ばしょにゃ",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0030",
+   "npc": "cat",
+   "group": "line",
+   "text": "ハロウィンの かそう、くろねこに するにゃ",
+   "when": {
+    "festival": [
+     "halloween"
+    ]
+   }
+  },
+  {
+   "id": "tf0031",
+   "npc": "cat",
+   "group": "line",
+   "text": "ボスを たおしたの？ まちで うわさにゃ！",
+   "when": {
+    "event": [
+     "boss"
+    ]
+   }
+  },
+  {
+   "id": "tf0032",
+   "npc": "cat",
+   "group": "bond",
+   "text": "とくべつに おしえるにゃ。ここが いちばんの ひなたにゃ",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0033",
+   "npc": "cat",
+   "group": "bond",
+   "text": "3にんとは、もう ともだち にゃ",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0034",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "おはよう。おはなに あさつゆが ついてるわ",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0035",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "おひさまを あびて、おはなも げんきよ",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   }
+  },
+  {
+   "id": "tf0036",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "あめは おはなの ごはん なの",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0037",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "かぜが つよいと、はなびらが とんで いっちゃう",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "tf0038",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "さくらの きせつね。いっしょに みに いきましょ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0039",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "あさがおが さいたわ。あおくて きれい",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0040",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "コスモスが ゆれてる… あきの おはなね",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0041",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "ふゆは パンジーが がんばってるの",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0042",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "あじさいの いろ、つちで かわるのよ",
+   "when": {
+    "festival": [
+     "hydrangea"
+    ]
+   }
+  },
+  {
+   "id": "tf0043",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "ひなまつりには、ももの はなを かざるの",
+   "when": {
+    "festival": [
+     "hina"
+    ]
+   }
+  },
+  {
+   "id": "tf0044",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "おはなやさんの おてつだい、たのしかった？",
+   "when": {}
+  },
+  {
+   "id": "tf0045",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "はなかんむり、にあってるわ",
+   "when": {}
+  },
+  {
+   "id": "tf0046",
+   "npc": "rabbit",
+   "group": "line",
+   "text": "ゆうがたの おはなも、すてきでしょ",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0047",
+   "npc": "rabbit",
+   "group": "bond",
+   "text": "いつも ありがとう。あなたたちが くると うれしいわ",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0048",
+   "npc": "rabbit",
+   "group": "bond",
+   "text": "こんど いっしょに おはなを うえましょ",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0049",
+   "npc": "penguin",
+   "group": "line",
+   "text": "ペンペン。あさの いけは しずかだね",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0050",
+   "npc": "penguin",
+   "group": "line",
+   "text": "いけの さかな、きょうは よく はねてる",
+   "when": {
+    "weather": [
+     "cloudy"
+    ]
+   }
+  },
+  {
+   "id": "tf0051",
+   "npc": "penguin",
+   "group": "line",
+   "text": "あめの ひは、さかなが よく つれるんだ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0052",
+   "npc": "penguin",
+   "group": "line",
+   "text": "ゆきの ひは… ぼくの てんき！",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0053",
+   "npc": "penguin",
+   "group": "line",
+   "text": "なつは あついね… こおり たべたい",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0054",
+   "npc": "penguin",
+   "group": "line",
+   "text": "つりは まつのが だいじ。あわてない、あわてない",
+   "when": {}
+  },
+  {
+   "id": "tf0055",
+   "npc": "penguin",
+   "group": "line",
+   "text": "この いけには、きんいろの コイが いるって うわさ",
+   "when": {}
+  },
+  {
+   "id": "tf0056",
+   "npc": "penguin",
+   "group": "line",
+   "text": "すいぞくかん、ぼくの なかまも いるかな",
+   "when": {}
+  },
+  {
+   "id": "tf0057",
+   "npc": "penguin",
+   "group": "line",
+   "text": "ペンペン。ふゆの いけは こおりそうだね",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0058",
+   "npc": "penguin",
+   "group": "line",
+   "text": "ゆうがたは、さかなが えさを さがす じかん",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0059",
+   "npc": "penguin",
+   "group": "line",
+   "text": "よるの いけ、ほしが うつって きれい",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0060",
+   "npc": "penguin",
+   "group": "line",
+   "text": "クリスマス、ペンギンの かざりを みたよ",
+   "when": {
+    "festival": [
+     "christmas"
+    ]
+   }
+  },
+  {
+   "id": "tf0061",
+   "npc": "penguin",
+   "group": "bond",
+   "text": "ペンペン。きみたちと いると たのしいな",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0062",
+   "npc": "penguin",
+   "group": "bond",
+   "text": "ぼくの ひみつの つりばしょ、こんど おしえるね",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0063",
+   "npc": "frog",
+   "group": "line",
+   "text": "ケロケロ！ あめだ、あめだ〜！",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0064",
+   "npc": "frog",
+   "group": "line",
+   "text": "ケロ〜。はれの ひは ひかげで ひとやすみ",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   }
+  },
+  {
+   "id": "tf0065",
+   "npc": "frog",
+   "group": "line",
+   "text": "あさの さんぽ、きもちいい ケロ",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0066",
+   "npc": "frog",
+   "group": "line",
+   "text": "よるの ひろば、しずかで すき ケロ",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0067",
+   "npc": "frog",
+   "group": "line",
+   "text": "つゆの じきは、ぼくの きせつ ケロ！",
+   "when": {
+    "festival": [
+     "hydrangea"
+    ]
+   }
+  },
+  {
+   "id": "tf0068",
+   "npc": "frog",
+   "group": "line",
+   "text": "なつの よるは、みんなで うたう ケロ",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0069",
+   "npc": "frog",
+   "group": "line",
+   "text": "ケロ… ふゆは ねむく なる…",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0070",
+   "npc": "frog",
+   "group": "line",
+   "text": "はるに なったら、おたまじゃくしが いっぱい",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0071",
+   "npc": "frog",
+   "group": "line",
+   "text": "はいしゃさん、こわく ないよ ケロ",
+   "when": {}
+  },
+  {
+   "id": "tf0072",
+   "npc": "frog",
+   "group": "line",
+   "text": "パンやさんの におい、ここまで する ケロ",
+   "when": {}
+  },
+  {
+   "id": "tf0073",
+   "npc": "frog",
+   "group": "line",
+   "text": "ぴょんと とんで、まちを いっしゅう！",
+   "when": {}
+  },
+  {
+   "id": "tf0074",
+   "npc": "frog",
+   "group": "line",
+   "text": "いしの したに むかしの ほねが ねむってるかも ケロ",
+   "when": {}
+  },
+  {
+   "id": "tf0075",
+   "npc": "frog",
+   "group": "bond",
+   "text": "ケロ！ きみたちの こと、うたに したよ",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0076",
+   "npc": "frog",
+   "group": "bond",
+   "text": "ケロケロ〜 なかよしの うた、いっしょに うたおう",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0077",
+   "npc": "sheep",
+   "group": "line",
+   "text": "メェ〜。きょうの ふく、すてきね",
+   "when": {}
+  },
+  {
+   "id": "tf0078",
+   "npc": "sheep",
+   "group": "line",
+   "text": "あさは なにを きようか まよっちゃう",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0079",
+   "npc": "sheep",
+   "group": "line",
+   "text": "あめの ひは、レインコートが いちばん",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0080",
+   "npc": "sheep",
+   "group": "line",
+   "text": "ゆきの ひは マフラーで おしゃれ しましょ",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0081",
+   "npc": "sheep",
+   "group": "line",
+   "text": "はるは パステルいろが かわいいの",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0082",
+   "npc": "sheep",
+   "group": "line",
+   "text": "なつは むぎわらぼうしが にあうわ",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0083",
+   "npc": "sheep",
+   "group": "line",
+   "text": "あきは セーターの きせつ ね",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0084",
+   "npc": "sheep",
+   "group": "line",
+   "text": "ふゆの けいとは、わたしの じまんよ メェ〜",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0085",
+   "npc": "sheep",
+   "group": "line",
+   "text": "3にん おそろいも かわいいわ",
+   "when": {}
+  },
+  {
+   "id": "tf0086",
+   "npc": "sheep",
+   "group": "line",
+   "text": "ハロウィンの かそう、もう きめた？",
+   "when": {
+    "festival": [
+     "halloween"
+    ]
+   }
+  },
+  {
+   "id": "tf0087",
+   "npc": "sheep",
+   "group": "line",
+   "text": "おしょうがつは はれぎを きたいわね",
+   "when": {
+    "festival": [
+     "newyear"
+    ]
+   }
+  },
+  {
+   "id": "tf0088",
+   "npc": "sheep",
+   "group": "line",
+   "text": "ゆうがたの ショーウィンドウ、きらきら",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0089",
+   "npc": "sheep",
+   "group": "bond",
+   "text": "3にんの ふく、わたしが えらんで みたいわ",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0090",
+   "npc": "sheep",
+   "group": "bond",
+   "text": "あなたたちは じまんの ともだちよ メェ〜",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0091",
+   "npc": "mouse",
+   "group": "line",
+   "text": "チュウ！ あさの はらっぱは つゆで ぬれてる",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0092",
+   "npc": "mouse",
+   "group": "line",
+   "text": "はらっぱの まもの、よるは すこし つよい チュウ",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0093",
+   "npc": "mouse",
+   "group": "line",
+   "text": "あめの ひは、どろに きを つけて",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0094",
+   "npc": "mouse",
+   "group": "line",
+   "text": "かぜが つよいと、くさむらが ざわざわ チュウ",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "tf0095",
+   "npc": "mouse",
+   "group": "line",
+   "text": "ポケットに おにぎり、いれて いくと あんしん",
+   "when": {}
+  },
+  {
+   "id": "tf0096",
+   "npc": "mouse",
+   "group": "line",
+   "text": "もりの おくで、へんな いしを みたんだ… ほね かな？",
+   "when": {}
+  },
+  {
+   "id": "tf0097",
+   "npc": "mouse",
+   "group": "line",
+   "text": "チュウ… ピッケルが あれば、いわを わって みたい",
+   "when": {}
+  },
+  {
+   "id": "tf0098",
+   "npc": "mouse",
+   "group": "line",
+   "text": "はるの はらっぱ、おはなが いっぱい",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0099",
+   "npc": "mouse",
+   "group": "line",
+   "text": "なつは むしが いっぱい チュウ",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0100",
+   "npc": "mouse",
+   "group": "line",
+   "text": "あきは どんぐりが おちてる よ",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0101",
+   "npc": "mouse",
+   "group": "line",
+   "text": "ふゆの はらっぱは まっしろ チュウ",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0102",
+   "npc": "mouse",
+   "group": "line",
+   "text": "キングを たおしたって？ すごい チュウ！",
+   "when": {
+    "event": [
+     "boss"
+    ]
+   }
+  },
+  {
+   "id": "tf0103",
+   "npc": "mouse",
+   "group": "bond",
+   "text": "チュウ！ たんけんの ひみつ、きみたちだけに おしえる",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0104",
+   "npc": "mouse",
+   "group": "bond",
+   "text": "いつか いっしょに たんけん しよう チュウ",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0105",
+   "npc": "pig",
+   "group": "line",
+   "text": "ブーブー！ あさごはん たべた？",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0106",
+   "npc": "pig",
+   "group": "line",
+   "text": "おひるは、カレーの きぶん ブー",
+   "when": {
+    "time": [
+     "day"
+    ]
+   }
+  },
+  {
+   "id": "tf0107",
+   "npc": "pig",
+   "group": "line",
+   "text": "ゆうごはんの かいもの、いそがなきゃ",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0108",
+   "npc": "pig",
+   "group": "line",
+   "text": "あめの ひは、あったかい スープが いいブー",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0109",
+   "npc": "pig",
+   "group": "line",
+   "text": "なつは スイカ！ まるごと ブー",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0110",
+   "npc": "pig",
+   "group": "line",
+   "text": "あきは おいもと くりの きせつ ブー！",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0111",
+   "npc": "pig",
+   "group": "line",
+   "text": "ふゆは おでん。だいこん すき ブー",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0112",
+   "npc": "pig",
+   "group": "line",
+   "text": "はるは たけのこごはん ブー",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0113",
+   "npc": "pig",
+   "group": "line",
+   "text": "はたけの とうもろこし、あまいよ",
+   "when": {}
+  },
+  {
+   "id": "tf0114",
+   "npc": "pig",
+   "group": "line",
+   "text": "スーパーの とくばい、みのがせない ブー",
+   "when": {}
+  },
+  {
+   "id": "tf0115",
+   "npc": "pig",
+   "group": "line",
+   "text": "おつきみだんご、10こ たべた ブー",
+   "when": {
+    "festival": [
+     "moon"
+    ]
+   }
+  },
+  {
+   "id": "tf0116",
+   "npc": "pig",
+   "group": "line",
+   "text": "おせち、ぜんぶ すき ブー",
+   "when": {
+    "festival": [
+     "newyear"
+    ]
+   }
+  },
+  {
+   "id": "tf0117",
+   "npc": "pig",
+   "group": "bond",
+   "text": "きみたちの ぶんも、おやつ とって おいた ブー",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0118",
+   "npc": "pig",
+   "group": "bond",
+   "text": "ブーの ひみつの レシピ、おしえて あげる",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0119",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "かわの おと、ずっと きいて いられるね",
+   "when": {}
+  },
+  {
+   "id": "tf0120",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "あさの さんぽは、かぜが すずしい",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0121",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "ゆうやけの かわも、いいもんだよ",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0122",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "あめの あとは、かわが にごるね",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0123",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "この かわ、アユが のぼって くるんだって",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0124",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "はしの したは、さかなの かくれが",
+   "when": {}
+  },
+  {
+   "id": "tf0125",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "はるは つくし、あきは すすき",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0126",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "ふゆの かわは、いきが しろい",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0127",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "つりを する なら、ゆうがたが いいよ",
+   "when": {}
+  },
+  {
+   "id": "tf0128",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "いしを ひっくりかえすと、むしが いるよ",
+   "when": {}
+  },
+  {
+   "id": "tf0129",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "おつきさま、かわに うつってる",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0130",
+   "npc": "parkcat",
+   "group": "line",
+   "text": "のんびり いこうよ。いそがない いそがない",
+   "when": {}
+  },
+  {
+   "id": "tf0131",
+   "npc": "parkcat",
+   "group": "bond",
+   "text": "きみたちと さんぽ すると、じかんを わすれるね",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0132",
+   "npc": "parkcat",
+   "group": "bond",
+   "text": "のんびりが いちばん。きみたちも そう おもう？",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0133",
+   "npc": "traveler",
+   "group": "line",
+   "text": "たびの とちゅうで、いろんな まちを みたよ",
+   "when": {}
+  },
+  {
+   "id": "tf0134",
+   "npc": "traveler",
+   "group": "line",
+   "text": "みなみの しまでは、あおい さかなが およいでた",
+   "when": {}
+  },
+  {
+   "id": "tf0135",
+   "npc": "traveler",
+   "group": "line",
+   "text": "きたの まちでは、ゆきで かまくらを つくったよ",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0136",
+   "npc": "traveler",
+   "group": "line",
+   "text": "もりの いずみ、もう みつけたかい？",
+   "when": {}
+  },
+  {
+   "id": "tf0137",
+   "npc": "traveler",
+   "group": "line",
+   "text": "あさの はらっぱは、とりの こえで いっぱい",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0138",
+   "npc": "traveler",
+   "group": "line",
+   "text": "よるの はらっぱは、ほしが ちかいんだ",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0139",
+   "npc": "traveler",
+   "group": "line",
+   "text": "あめの もりは、きのこが にょきにょき",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0140",
+   "npc": "traveler",
+   "group": "line",
+   "text": "とおくの はくぶつかんで、おおきな ほねを みたよ",
+   "when": {}
+  },
+  {
+   "id": "tf0141",
+   "npc": "traveler",
+   "group": "line",
+   "text": "はるの たびは、さくらを おいかける たび",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0142",
+   "npc": "traveler",
+   "group": "line",
+   "text": "あきの もりは、はっぱが じゅうたん みたい",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0143",
+   "npc": "traveler",
+   "group": "line",
+   "text": "たびの おともは、おにぎりと ゆうき",
+   "when": {}
+  },
+  {
+   "id": "tf0144",
+   "npc": "traveler",
+   "group": "line",
+   "text": "なつの もりは すずしくて いい",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0145",
+   "npc": "traveler",
+   "group": "bond",
+   "text": "きみたちの ことは、たびの にっきに かいて あるよ",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0146",
+   "npc": "traveler",
+   "group": "bond",
+   "text": "つぎの たびの おみやげ、なにが いい？",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0147",
+   "npc": "explorer",
+   "group": "line",
+   "text": "どうくつの おくには、むかしの ほねが ねむって いる！",
+   "when": {}
+  },
+  {
+   "id": "tf0148",
+   "npc": "explorer",
+   "group": "line",
+   "text": "ピッケルで ひびの ある いわを わって みな",
+   "when": {
+    "feature": [
+     "fossil"
+    ]
+   }
+  },
+  {
+   "id": "tf0149",
+   "npc": "explorer",
+   "group": "line",
+   "text": "かせきは きれいに すると、ほねの かたちが わかるぞ",
+   "when": {
+    "feature": [
+     "fossil"
+    ]
+   }
+  },
+  {
+   "id": "tf0150",
+   "npc": "explorer",
+   "group": "line",
+   "text": "きょうりゅうの ほね、ぜんぶ そろえたら すごいぞ",
+   "when": {}
+  },
+  {
+   "id": "tf0151",
+   "npc": "explorer",
+   "group": "line",
+   "text": "おなじ ほねが 2こ あったら、ぼくと こうかん しよう",
+   "when": {
+    "feature": [
+     "fossil"
+    ]
+   }
+  },
+  {
+   "id": "tf0152",
+   "npc": "explorer",
+   "group": "line",
+   "text": "あさの もりは、あしあとが よく みえる",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0153",
+   "npc": "explorer",
+   "group": "line",
+   "text": "あめの あとは、いわの ひびが みつけやすい",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0154",
+   "npc": "explorer",
+   "group": "line",
+   "text": "よるの どうくつは… まっくら。ランプを わすれずに",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0155",
+   "npc": "explorer",
+   "group": "line",
+   "text": "ふゆの もりは、しずかで たんけん びより",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0156",
+   "npc": "explorer",
+   "group": "line",
+   "text": "キングプルンを たおしたか！ たいした ものだ",
+   "when": {
+    "event": [
+     "boss"
+    ]
+   }
+  },
+  {
+   "id": "tf0157",
+   "npc": "explorer",
+   "group": "line",
+   "text": "はくぶつかんの はかせに、ほねを みせて ごらん",
+   "when": {
+    "feature": [
+     "museum"
+    ]
+   }
+  },
+  {
+   "id": "tf0158",
+   "npc": "explorer",
+   "group": "line",
+   "text": "なつの どうくつは、ひんやり して きもちいい",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0159",
+   "npc": "explorer",
+   "group": "bond",
+   "text": "きみたちは りっぱな たんけんたい だ！",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0160",
+   "npc": "explorer",
+   "group": "bond",
+   "text": "いつか いっしょに だいはっけん しような",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0161",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "ようこそ シティへ！ きょうも にぎやかだよ",
+   "when": {}
+  },
+  {
+   "id": "tf0162",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "あさの シティは、パンの においが するよ",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0163",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "よるの シティは、ネオンが きれい！",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0164",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "あめの ひは、デパートで あそぼう",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0165",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "シティの しゃてきじょう、もう あそんだ？ まとあて たのしいよ",
+   "when": {
+    "feature": [
+     "range"
+    ]
+   }
+  },
+  {
+   "id": "tf0166",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "しゃてきじょうでは、ゴーグルを わすれずに！",
+   "when": {
+    "feature": [
+     "range"
+    ]
+   }
+  },
+  {
+   "id": "tf0167",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "はくぶつかんで、きょうりゅうに あえるよ",
+   "when": {
+    "feature": [
+     "museum"
+    ]
+   }
+  },
+  {
+   "id": "tf0168",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "クリスマスの イルミネーション、みた？",
+   "when": {
+    "festival": [
+     "christmas"
+    ]
+   }
+  },
+  {
+   "id": "tf0169",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "なつの シティは、ふんすいが にんき",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0170",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "はるの こうえんで、おはなみ できるよ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0171",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "あきの シティは、おいしい もの フェア！",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0172",
+   "npc": "cityguide",
+   "group": "line",
+   "text": "ふゆの シティ、ホットココアが おすすめ",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0173",
+   "npc": "cityguide",
+   "group": "bond",
+   "text": "シティの ひみつの けしき、おしえて あげる！",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0174",
+   "npc": "cityguide",
+   "group": "bond",
+   "text": "3にんは シティの じまんの おきゃくさん！",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0175",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "なみの おと、きこえる？ ざざーん",
+   "when": {}
+  },
+  {
+   "id": "tf0176",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "あさの うみは、きらきら ひかる",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0177",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "ゆうがたの うみは、オレンジいろ",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0178",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "あめの うみは、なみが たかいから きを つけて",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0179",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "かぜの ひは、なみが おおきい ペン",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "tf0180",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "なつの うみ、みんなで およぎたいね",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0181",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "すなはまで かいがら さがし しよう！",
+   "when": {}
+  },
+  {
+   "id": "tf0182",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "つりざおが あれば、ていぼうで アジが つれるよ",
+   "when": {}
+  },
+  {
+   "id": "tf0183",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "よるの うみで、ひかる さかなを みたんだ",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0184",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "ふゆの うみは、つめたいけど きれい",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0185",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "はなびの よるは、うみが いちばん！",
+   "when": {
+    "festival": [
+     "fireworks"
+    ]
+   }
+  },
+  {
+   "id": "tf0186",
+   "npc": "beachpenguin",
+   "group": "line",
+   "text": "すいぞくかんの おおきな すいそう、みた？",
+   "when": {
+    "feature": [
+     "aquarium"
+    ]
+   }
+  },
+  {
+   "id": "tf0187",
+   "npc": "beachpenguin",
+   "group": "bond",
+   "text": "きみたちの ために、きれいな かいがらを とって おいたよ",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0188",
+   "npc": "beachpenguin",
+   "group": "bond",
+   "text": "ぼくの すきな うみ、ずっと いっしょに みようね",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0189",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "えきまえの とけい、まちの めじるし なんだ",
+   "when": {}
+  },
+  {
+   "id": "tf0190",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "しょうてんがいの たいやき、たべた？",
+   "when": {
+    "feature": [
+     "heiwadai2"
+    ]
+   }
+  },
+  {
+   "id": "tf0191",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "あさの えきまえは、つうきんの ひとで いっぱい",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0192",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "ゆうがたの しょうてんがい、いい においが するよ",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0193",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "あめの ひは、おみせの やねの したを あるこう",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0194",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "さくらの きせつ、こうえんが ももいろに なるよ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0195",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "なつまつりには、しょうてんがいに やたいが でるよ",
+   "when": {
+    "season": [
+     "summer"
+    ],
+    "feature": [
+     "heiwadai2"
+    ]
+   }
+  },
+  {
+   "id": "tf0196",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "あきの こうえん、どんぐりが いっぱい",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0197",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "ふゆの よる、えきまえが イルミネーションで きらきら",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0198",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "じんじゃの まつの き、とっても ふるいんだって",
+   "when": {
+    "feature": [
+     "heiwadai2"
+    ]
+   }
+  },
+  {
+   "id": "tf0199",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "ろじうらの おじぞうさん、まいにち おはなが かざって あるの",
+   "when": {
+    "feature": [
+     "heiwadai2"
+    ]
+   }
+  },
+  {
+   "id": "tf0200",
+   "npc": "heiwadai_local",
+   "group": "line",
+   "text": "せんとうの えんとつ、とおくからでも みえるよ",
+   "when": {
+    "feature": [
+     "heiwadai2"
+    ]
+   }
+  },
+  {
+   "id": "tf0201",
+   "npc": "heiwadai_local",
+   "group": "bond",
+   "text": "この まちの ことなら、なんでも きいてね",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0202",
+   "npc": "heiwadai_local",
+   "group": "bond",
+   "text": "3にんが くると、まちが にぎやかに なるね",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0203",
+   "npc": "portguide",
+   "group": "line",
+   "text": "ふねの きてき、ぼーっ！ げんきな おと でしょ",
+   "when": {}
+  },
+  {
+   "id": "tf0204",
+   "npc": "portguide",
+   "group": "line",
+   "text": "あさの みなとは、りょうしさんで にぎやか",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0205",
+   "npc": "portguide",
+   "group": "line",
+   "text": "ゆうがたの みなと、ふねが かえって くるよ",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0206",
+   "npc": "portguide",
+   "group": "line",
+   "text": "あめの ひは、ふねが ゆれるよ。きを つけて",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0207",
+   "npc": "portguide",
+   "group": "line",
+   "text": "かぜが つよい ひは、ふねが おやすみ",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "tf0208",
+   "npc": "portguide",
+   "group": "line",
+   "text": "ていぼうで サバや イワシが つれるよ",
+   "when": {}
+  },
+  {
+   "id": "tf0209",
+   "npc": "portguide",
+   "group": "line",
+   "text": "すいぞくかんは、みなとの となりに できる よてい！",
+   "when": {
+    "feature": [
+     "!aquarium"
+    ]
+   }
+  },
+  {
+   "id": "tf0210",
+   "npc": "portguide",
+   "group": "line",
+   "text": "つった さかなを すいぞくかんに あげると、よろこばれるよ",
+   "when": {
+    "feature": [
+     "aquarium"
+    ]
+   }
+  },
+  {
+   "id": "tf0211",
+   "npc": "portguide",
+   "group": "line",
+   "text": "なつの みなとは、カモメが いっぱい",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0212",
+   "npc": "portguide",
+   "group": "line",
+   "text": "ふゆの みなと、さむいけど さかなが おいしい",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0213",
+   "npc": "portguide",
+   "group": "line",
+   "text": "よるの みなと、とうだいの あかりが きれい",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0214",
+   "npc": "portguide",
+   "group": "line",
+   "text": "おしょうがつは、ふねに はたを かざるよ",
+   "when": {
+    "festival": [
+     "newyear"
+    ]
+   }
+  },
+  {
+   "id": "tf0215",
+   "npc": "portguide",
+   "group": "bond",
+   "text": "きみたちの ために きてきを ならすね！ ぼーっ！",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0216",
+   "npc": "portguide",
+   "group": "bond",
+   "text": "こんど ふねの そうじゅうせき、みせて あげる",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  },
+  {
+   "id": "tf0217",
+   "npc": "airguide",
+   "group": "line",
+   "text": "きょうの そら、とびやすそう！",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   }
+  },
+  {
+   "id": "tf0218",
+   "npc": "airguide",
+   "group": "line",
+   "text": "くもの うえは、いつも はれ なんだよ",
+   "when": {
+    "weather": [
+     "cloudy"
+    ]
+   }
+  },
+  {
+   "id": "tf0219",
+   "npc": "airguide",
+   "group": "line",
+   "text": "あめの ひは、ひこうきも しんちょうに とぶよ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0220",
+   "npc": "airguide",
+   "group": "line",
+   "text": "かぜが つよい ひは、ちゃくりくが むずかしい",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "tf0221",
+   "npc": "airguide",
+   "group": "line",
+   "text": "あさの くうこうは、いちばん いそがしい",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0222",
+   "npc": "airguide",
+   "group": "line",
+   "text": "よるの かっそうろ、ひかりの みち みたい",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0223",
+   "npc": "airguide",
+   "group": "line",
+   "text": "そらから みた まち、おもちゃ みたいに ちいさいよ",
+   "when": {}
+  },
+  {
+   "id": "tf0224",
+   "npc": "airguide",
+   "group": "line",
+   "text": "なつの そらは、にゅうどうぐもが おおきい",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0225",
+   "npc": "airguide",
+   "group": "line",
+   "text": "ふゆの そらは、とおくまで よく みえる",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0226",
+   "npc": "airguide",
+   "group": "line",
+   "text": "いつか 3にんも、そうじゅうせきに すわって みる？",
+   "when": {}
+  },
+  {
+   "id": "tf0227",
+   "npc": "airguide",
+   "group": "line",
+   "text": "はなびを そらから みたこと、ある？",
+   "when": {
+    "festival": [
+     "fireworks"
+    ]
+   }
+  },
+  {
+   "id": "tf0228",
+   "npc": "airguide",
+   "group": "line",
+   "text": "ゆうやけの そら、いちばん すきな いろ",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0229",
+   "npc": "airguide",
+   "group": "bond",
+   "text": "そらの うえでも、きみたちの こと おもいだすよ",
+   "when": {
+    "bond": [
+     "5"
+    ]
+   }
+  },
+  {
+   "id": "tf0230",
+   "npc": "airguide",
+   "group": "bond",
+   "text": "いつか 3にんで そらの たびに いこうね",
+   "when": {
+    "bond": [
+     "10"
+    ]
+   }
+  }
+ ],
+ "react": [
+  {
+   "id": "tr0231",
+   "who": "wanko",
+   "text": "クンクン… この ひと、やさしい においが する！",
+   "when": {}
+  },
+  {
+   "id": "tr0232",
+   "who": "wanko",
+   "text": "まかせて！ こまってる ひとは ほっとけない",
+   "when": {}
+  },
+  {
+   "id": "tr0233",
+   "who": "wanko",
+   "text": "ふむふむ… いい こと きいちゃった",
+   "when": {}
+  },
+  {
+   "id": "tr0234",
+   "who": "wanko",
+   "text": "クンクン… パンの におい！ ポケットに はいってる？",
+   "when": {
+    "person": [
+     "pig"
+    ]
+   }
+  },
+  {
+   "id": "tr0235",
+   "who": "wanko",
+   "text": "わうーん！ よろしくね！",
+   "when": {}
+  },
+  {
+   "id": "tr0236",
+   "who": "wanko",
+   "text": "おれいの コイン、はんぶん おやつに… なんてね",
+   "when": {}
+  },
+  {
+   "id": "tr0237",
+   "who": "wanko",
+   "text": "この まちの ひと、みんな やさしいね",
+   "when": {}
+  },
+  {
+   "id": "tr0238",
+   "who": "wanko",
+   "text": "あとで おふろで きょうの はなし しよう",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tr0239",
+   "who": "wanko",
+   "text": "クンクン… おはなの におい！",
+   "when": {
+    "person": [
+     "rabbit"
+    ]
+   }
+  },
+  {
+   "id": "tr0240",
+   "who": "wanko",
+   "text": "せいぎの みかた わんこ、しっかり おぼえた！",
+   "when": {}
+  },
+  {
+   "id": "tr0241",
+   "who": "wanko",
+   "text": "ねこさん、また ねむそう だね",
+   "when": {
+    "person": [
+     "cat"
+    ]
+   }
+  },
+  {
+   "id": "tr0242",
+   "who": "wanko",
+   "text": "たんけんの はなし、もっと ききたい！",
+   "when": {
+    "person": [
+     "explorer"
+    ]
+   }
+  },
+  {
+   "id": "tr0243",
+   "who": "gachan",
+   "text": "…ちょっと きんちょう しちゃった",
+   "when": {}
+  },
+  {
+   "id": "tr0244",
+   "who": "gachan",
+   "text": "やさしい ひとで よかった…",
+   "when": {}
+  },
+  {
+   "id": "tr0245",
+   "who": "gachan",
+   "text": "みんなが いるから、はなしかけられたよ",
+   "when": {}
+  },
+  {
+   "id": "tr0246",
+   "who": "gachan",
+   "text": "ぴよっ！ おぼえたよ！",
+   "when": {}
+  },
+  {
+   "id": "tr0247",
+   "who": "gachan",
+   "text": "おはな、きれい… わたしも そだてて みたいな",
+   "when": {
+    "person": [
+     "rabbit"
+    ]
+   }
+  },
+  {
+   "id": "tr0248",
+   "who": "gachan",
+   "text": "よるの そとは… こわいね。はやく かえろ？",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tr0249",
+   "who": "gachan",
+   "text": "おてつだい、わたしも がんばる… たぶん",
+   "when": {}
+  },
+  {
+   "id": "tr0250",
+   "who": "gachan",
+   "text": "くまさん、おおきくて… ちょっと びっくり",
+   "when": {
+    "person": [
+     "mayor"
+    ]
+   }
+  },
+  {
+   "id": "tr0251",
+   "who": "gachan",
+   "text": "あめ… かみなり なりませんように",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tr0252",
+   "who": "gachan",
+   "text": "ままにも おしえて あげよう",
+   "when": {}
+  },
+  {
+   "id": "tr0253",
+   "who": "gachan",
+   "text": "てを つないで いこうね。はぐれないように",
+   "when": {}
+  },
+  {
+   "id": "tr0254",
+   "who": "gachan",
+   "text": "ふふ、なかよく なれたかな",
+   "when": {}
+  },
+  {
+   "id": "tr0255",
+   "who": "goji",
+   "text": "ガウっ！（よろしく）",
+   "when": {}
+  },
+  {
+   "id": "tr0256",
+   "who": "goji",
+   "text": "……（こくり） …ガゥ",
+   "when": {}
+  },
+  {
+   "id": "tr0257",
+   "who": "goji",
+   "text": "ごじも おっきく なったら、たんけんかに なる",
+   "when": {
+    "person": [
+     "explorer"
+    ]
+   }
+  },
+  {
+   "id": "tr0258",
+   "who": "goji",
+   "text": "ひとりでも とどけられるよ。…でも みんなで いこ",
+   "when": {}
+  },
+  {
+   "id": "tr0259",
+   "who": "goji",
+   "text": "おさかな… おいしそう …ガゥ",
+   "when": {
+    "person": [
+     "penguin"
+    ]
+   }
+  },
+  {
+   "id": "tr0260",
+   "who": "goji",
+   "text": "ガウっ！ おなか すいた",
+   "when": {
+    "time": [
+     "day"
+    ]
+   }
+  },
+  {
+   "id": "tr0261",
+   "who": "goji",
+   "text": "ひこうき、ごじより おっきい？",
+   "when": {
+    "person": [
+     "airguide"
+    ]
+   }
+  },
+  {
+   "id": "tr0262",
+   "who": "goji",
+   "text": "ふね、ぼーっ！ ガウっ！",
+   "when": {
+    "person": [
+     "portguide"
+    ]
+   }
+  },
+  {
+   "id": "tr0263",
+   "who": "goji",
+   "text": "むずかしい はなし… でも わかった ふり …ガゥ",
+   "when": {}
+  },
+  {
+   "id": "tr0264",
+   "who": "goji",
+   "text": "ガウっ！ まかせて。ごじ、きようだから",
+   "when": {}
+  },
+  {
+   "id": "tr0265",
+   "who": "goji",
+   "text": "おっきく なる ひみつ、きけば よかった",
+   "when": {}
+  },
+  {
+   "id": "tr0266",
+   "who": "goji",
+   "text": "ねむい… …ガゥ",
+   "when": {
+    "time": [
+     "late"
+    ]
+   }
+  }
+ ],
+ "barter": [
+  {
+   "id": "bt-pig-corn",
+   "npc": "pig",
+   "give": {
+    "bag": "corn",
+    "n": 2
+   },
+   "get": {
+    "bag": "bread",
+    "n": 1
+   },
+   "text": "とうもろこし 2ほんと、メロンパン 1こ。こうかん しない ブー？",
+   "needs": []
+  },
+  {
+   "id": "bt-pig-pepper",
+   "npc": "pig",
+   "give": {
+    "bag": "pepper",
+    "n": 1
+   },
+   "get": {
+    "bag": "mild_curry",
+    "n": 1
+   },
+   "text": "ピーマン、ブーは だいすき！ あまくちカレーと こうかん ブー",
+   "needs": []
+  },
+  {
+   "id": "bt-rabbit-apple",
+   "npc": "rabbit",
+   "give": {
+    "bag": "apple",
+    "n": 2
+   },
+   "get": {
+    "bag": "deza_sakura",
+    "n": 1
+   },
+   "text": "りんごを 2こ くれたら、さくらもちを あげるわ",
+   "needs": []
+  },
+  {
+   "id": "bt-cat-milk",
+   "npc": "cat",
+   "give": {
+    "bag": "milk",
+    "n": 1
+   },
+   "get": {
+    "bag": "candy",
+    "n": 2
+   },
+   "text": "ぎゅうにゅう 1ぽんで、キャンディ 2こ にゃ。どう？",
+   "needs": []
+  },
+  {
+   "id": "bt-penguin-fish",
+   "npc": "penguin",
+   "give": {
+    "bag": "fish",
+    "n": 1
+   },
+   "get": {
+    "bag": "juice",
+    "n": 2
+   },
+   "text": "やきざかな 1こと、ジュース 2ほん。ペンペン？",
+   "needs": [
+    "fishing"
+   ]
+  },
+  {
+   "id": "bt-frog-onigiri",
+   "npc": "frog",
+   "give": {
+    "bag": "onigiri",
+    "n": 1
+   },
+   "get": {
+    "bag": "bandaid",
+    "n": 2
+   },
+   "text": "おにぎり ほしい ケロ… ばんそうこう 2まいと こうかん！",
+   "needs": []
+  },
+  {
+   "id": "bt-sheep-juice",
+   "npc": "sheep",
+   "give": {
+    "bag": "juice",
+    "n": 2
+   },
+   "get": {
+    "wear": "ribbon_blue"
+   },
+   "once": true,
+   "text": "ジュース 2ほんで、みずいろの リボンを あげる メェ〜",
+   "needs": []
+  },
+  {
+   "id": "bt-mouse-bread",
+   "npc": "mouse",
+   "give": {
+    "bag": "bread",
+    "n": 1
+   },
+   "get": {
+    "bag": "drink",
+    "n": 1
+   },
+   "text": "メロンパン 1こと、げんきドリンク 1ぽん。どう？ チュウ",
+   "needs": []
+  },
+  {
+   "id": "bt-mayor-apple",
+   "npc": "mayor",
+   "give": {
+    "bag": "apple",
+    "n": 3
+   },
+   "get": {
+    "furn": "clock"
+   },
+   "once": true,
+   "text": "りんご 3こで、はとどけいを ゆずろう。どうじゃ？",
+   "needs": []
+  },
+  {
+   "id": "bt-traveler-milk",
+   "npc": "traveler",
+   "give": {
+    "bag": "milk",
+    "n": 2
+   },
+   "get": {
+    "bag": "feather",
+    "n": 1
+   },
+   "text": "ぎゅうにゅう 2ほんで、ふっかつのはねを 1まい あげよう",
+   "needs": []
+  },
+  {
+   "id": "bt-explorer-bone",
+   "npc": "explorer",
+   "give": {
+    "bone": "dup",
+    "n": 1
+   },
+   "get": {
+    "bone": "missing-same-dino",
+    "n": 1
+   },
+   "repeat": true,
+   "text": "おなじ ほねが あるね！ まだ ない ほねと こうかん しよう",
+   "needs": [
+    "fossil"
+   ]
+  },
+  {
+   "id": "bt-beach-aji",
+   "npc": "beachpenguin",
+   "give": {
+    "fish": "aji",
+    "n": 2
+   },
+   "get": {
+    "bag": "deza_ice",
+    "n": 1
+   },
+   "text": "アジ 2ひきで、デザ・アイス！ つめたいよ ペン",
+   "needs": [
+    "fishing"
+   ]
+  },
+  {
+   "id": "bt-port-saba",
+   "npc": "portguide",
+   "give": {
+    "fish": "saba",
+    "n": 1
+   },
+   "get": {
+    "bag": "fish",
+    "n": 2
+   },
+   "text": "サバ 1ぴきと、やきざかな 2こ。やきたてだよ",
+   "needs": [
+    "fishing"
+   ]
+  },
+  {
+   "id": "bt-city-candy",
+   "npc": "cityguide",
+   "give": {
+    "bag": "candy",
+    "n": 2
+   },
+   "get": {
+    "bag": "deza_jelly",
+    "n": 1
+   },
+   "text": "キャンディ 2こで、デザ・ゼリー 1こ！ どう？",
+   "needs": []
+  },
+  {
+   "id": "bt-heiwa-bread",
+   "npc": "heiwadai_local",
+   "give": {
+    "bag": "bread",
+    "n": 1
+   },
+   "get": {
+    "bag": "sandwich",
+    "n": 1
+   },
+   "text": "メロンパンと、たまごサンド。こうかん しない？",
+   "needs": []
+  },
+  {
+   "id": "bt-air-juice",
+   "npc": "airguide",
+   "give": {
+    "bag": "juice",
+    "n": 1
+   },
+   "get": {
+    "bag": "deza_ice",
+    "n": 1
+   },
+   "text": "ジュース 1ぽんで、そらの アイス… じゃなくて デザ・アイス！",
+   "needs": []
+  }
+ ],
+ "events": [
+  {
+   "id": "ev-milk",
+   "kind": "buy",
+   "title": "ぎゅうにゅうを かって きて",
+   "giver": "sheep",
+   "map": "town",
+   "chance": 0.15,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "buy",
+     "item": "milk",
+     "n": 1
+    },
+    {
+     "do": "give",
+     "to": "sheep",
+     "item": "milk",
+     "n": 1
+    }
+   ],
+   "reward": {
+    "coins": 80
+   },
+   "lines": {
+    "offer": "メェ〜、ぎゅうにゅうを きらしちゃったの。\nマーケットで 1ぽん かって きて くれる？",
+    "remind": "ぎゅうにゅう、まってるわ メェ〜",
+    "done": "ありがとう！ おれいに コインを どうぞ"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "sheep"
+  },
+  {
+   "id": "ev-bread3",
+   "kind": "buy",
+   "title": "メロンパンを 3こ",
+   "giver": "penguin",
+   "map": "town",
+   "chance": 0.12,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "buy",
+     "item": "bread",
+     "n": 3
+    },
+    {
+     "do": "give",
+     "to": "penguin",
+     "item": "bread",
+     "n": 3
+    }
+   ],
+   "reward": {
+    "coins": 150
+   },
+   "lines": {
+    "offer": "ペンペン。みんなで おやつに したいんだ。\nメロンパンを 3こ、おねがい できる？",
+    "remind": "メロンパン 3こ だよ",
+    "done": "わあ、ふわふわ！ ありがとう"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "penguin"
+  },
+  {
+   "id": "ev-msg-flower",
+   "kind": "message",
+   "title": "ミミへの でんごん",
+   "giver": "cat",
+   "map": "town",
+   "chance": 0.18,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "talk",
+     "to": "rabbit",
+     "say": "ミケが『あした いっしょに おはなを みに いこう』って"
+    },
+    {
+     "do": "talk",
+     "to": "cat"
+    }
+   ],
+   "reward": {
+    "coins": 60,
+    "bond": {
+     "cat": 2,
+     "rabbit": 2
+    }
+   },
+   "lines": {
+    "offer": "にゃあ… ミミに でんごん、たのめる？\n『あした おはなを みに いこう』って",
+    "remind": "ミミは おはなやさんの ちかくに いるにゃ",
+    "done": "つたえて くれたにゃ？ ありがとにゃ！"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "cat"
+  },
+  {
+   "id": "ev-msg-poster",
+   "kind": "message",
+   "title": "おまつりの ポスター",
+   "giver": "mayor",
+   "map": "town",
+   "chance": 0.12,
+   "limit": "once",
+   "steps": [
+    {
+     "do": "talk",
+     "to": "cityguide",
+     "map": "city",
+     "say": "そんちょうが『おまつりの ポスターが できた』って"
+    },
+    {
+     "do": "talk",
+     "to": "mayor"
+    }
+   ],
+   "reward": {
+    "coins": 120
+   },
+   "lines": {
+    "offer": "シティの ルルに、おまつりの ポスターが\nできたと つたえて くれんかの？",
+    "remind": "ルルは シティの まんなかに おるぞ",
+    "done": "ごくろうさん！ たすかったわい"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "mayor"
+  },
+  {
+   "id": "ev-letter",
+   "kind": "deliver",
+   "title": "おてがみを みなとへ",
+   "giver": "mouse",
+   "map": "town",
+   "chance": 0.15,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "give",
+     "to": "portguide",
+     "map": "harbor",
+     "item": "letter",
+     "n": 1,
+     "carry": true
+    },
+    {
+     "do": "talk",
+     "to": "mouse"
+    }
+   ],
+   "reward": {
+    "coins": 100
+   },
+   "lines": {
+    "offer": "チュウ！ みなとの ペペに、この おてがみを\nとどけて くれない？",
+    "remind": "みなとの ペペだよ。ビーチの みなみから いけるよ",
+    "done": "とどいた？ ありがとう チュウ！"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "mouse"
+  },
+  {
+   "id": "ev-lunch-air",
+   "kind": "deliver",
+   "title": "おべんとうを くうこうへ",
+   "giver": "pig",
+   "map": "town",
+   "chance": 0.12,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "give",
+     "to": "airguide",
+     "map": "airport",
+     "item": "bento",
+     "n": 1,
+     "carry": true
+    }
+   ],
+   "reward": {
+    "coins": 130,
+    "bag": "onigiri",
+    "n": 1
+   },
+   "lines": {
+    "offer": "ブー！ パイロットの ソラに、おべんとうを\nとどけて ほしいんだ",
+    "remind": "ソラは くうこうに いるブー",
+    "done": "わあ、ブーの おべんとう！ ありがとう"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "airguide"
+  },
+  {
+   "id": "ev-lost-hat",
+   "kind": "find",
+   "title": "ぼうしを さがして",
+   "giver": "rabbit",
+   "map": "town",
+   "chance": 0.15,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "find",
+     "item": "hat",
+     "map": "meadow",
+     "spots": 3
+    },
+    {
+     "do": "give",
+     "to": "rabbit",
+     "item": "hat",
+     "n": 1
+    }
+   ],
+   "reward": {
+    "coins": 90,
+    "bond": {
+     "rabbit": 3
+    }
+   },
+   "lines": {
+    "offer": "はらっぱで ぼうしを おとしちゃったの…\nさがして くれる？ きいろい ぼうしよ",
+    "remind": "はらっぱの どこかに あると おもうの",
+    "done": "あった！ ありがとう、たいせつな ぼうしなの"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "rabbit"
+  },
+  {
+   "id": "ev-lost-map",
+   "kind": "find",
+   "title": "たんけんの ちず",
+   "giver": "explorer",
+   "map": "forest",
+   "chance": 0.12,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "find",
+     "item": "map",
+     "map": "forest",
+     "spots": 4
+    },
+    {
+     "do": "give",
+     "to": "explorer",
+     "item": "map",
+     "n": 1
+    }
+   ],
+   "reward": {
+    "coins": 150
+   },
+   "lines": {
+    "offer": "しまった、ちずを おとした！ もりの どこかに\nある はずなんだ。さがして くれ！",
+    "remind": "もりの きの ねもとを よく みて",
+    "done": "これだ！ おれいに コインを やろう"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "explorer"
+  },
+  {
+   "id": "ev-lost-kitten",
+   "kind": "follow",
+   "title": "まいごの こねこ",
+   "giver": "cat",
+   "map": "town",
+   "chance": 0.1,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "find",
+     "npc": "kitten",
+     "map": "town",
+     "spots": 3
+    },
+    {
+     "do": "follow",
+     "npc": "kitten",
+     "to": "cat"
+    }
+   ],
+   "reward": {
+    "coins": 120,
+    "bond": {
+     "cat": 4
+    }
+   },
+   "lines": {
+    "offer": "こねこが いなくなっちゃったにゃ…！\nまちの どこかに いるはず。つれて きて！",
+    "remind": "しげみの かげに かくれてるかも にゃ",
+    "done": "よかった〜！ ほんとに ありがとにゃ"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "cat"
+  },
+  {
+   "id": "ev-find-mint",
+   "kind": "find",
+   "title": "ミントを さがして",
+   "giver": "traveler",
+   "map": "meadow",
+   "chance": 0.1,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "talk",
+     "to": "parkcat",
+     "map": "town"
+    },
+    {
+     "do": "talk",
+     "to": "traveler"
+    }
+   ],
+   "reward": {
+    "coins": 80
+   },
+   "lines": {
+    "offer": "さんぽの ミントに あいたいんだけど、\nどこに いるか しらないかい？",
+    "remind": "まちの かわの ちかくが すきらしいよ",
+    "done": "おしえて くれて ありがとう"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "traveler"
+  },
+  {
+   "id": "ev-cleanup",
+   "kind": "tap",
+   "title": "こうえんの おそうじ",
+   "giver": "heiwadai_local",
+   "map": "heiwadai",
+   "chance": 0.15,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "tap",
+     "target": "litter",
+     "map": "heiwadai",
+     "n": 5
+    },
+    {
+     "do": "talk",
+     "to": "heiwadai_local"
+    }
+   ],
+   "reward": {
+    "coins": 100
+   },
+   "lines": {
+    "offer": "こうえんに ごみが おちてるの。\n5こ ひろって くれたら うれしいな",
+    "remind": "ベンチの ちかくを みてね",
+    "done": "ぴかぴか！ まちが よろこんでるよ"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "heiwadai_local"
+  },
+  {
+   "id": "ev-water",
+   "kind": "tap",
+   "title": "はなだんに みずやり",
+   "giver": "rabbit",
+   "map": "town",
+   "chance": 0.18,
+   "limit": "daily",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   },
+   "steps": [
+    {
+     "do": "tap",
+     "target": "flowerbed",
+     "map": "town",
+     "n": 3
+    },
+    {
+     "do": "talk",
+     "to": "rabbit"
+    }
+   ],
+   "reward": {
+    "coins": 70,
+    "bag": "apple",
+    "n": 1
+   },
+   "lines": {
+    "offer": "はれが つづいて、おはなが のどかわいてるの。\nはなだん 3かしょに おみず あげて くれる？",
+    "remind": "あと すこしよ",
+    "done": "おはなが にっこり！ ありがとう"
+   },
+   "needs": [],
+   "doneBy": "rabbit"
+  },
+  {
+   "id": "ev-harvest",
+   "kind": "tap",
+   "title": "とうもろこしの しゅうかく",
+   "giver": "pig",
+   "map": "town",
+   "chance": 0.15,
+   "limit": "daily",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   },
+   "steps": [
+    {
+     "do": "tap",
+     "target": "crop",
+     "map": "meadow",
+     "n": 3
+    },
+    {
+     "do": "talk",
+     "to": "pig"
+    }
+   ],
+   "reward": {
+    "bag": "corn",
+    "n": 3
+   },
+   "lines": {
+    "offer": "はらっぱの とうもろこし、とりきれない ブー！\n3ぼん とって きて くれる？",
+    "remind": "はらっぱに とうもろこしが 3ぼん はえてるよ",
+    "done": "ありがとう！ 3ぼん どうぞ ブー"
+   },
+   "needs": [],
+   "doneBy": "pig"
+  },
+  {
+   "id": "ev-acorns",
+   "kind": "tap",
+   "title": "どんぐり あつめ",
+   "giver": "traveler",
+   "map": "meadow",
+   "chance": 0.15,
+   "limit": "daily",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   },
+   "steps": [
+    {
+     "do": "tap",
+     "target": "acorn",
+     "map": "forest",
+     "n": 5
+    },
+    {
+     "do": "talk",
+     "to": "traveler"
+    }
+   ],
+   "reward": {
+    "coins": 90,
+    "bag": "annual_harvest_deza",
+    "n": 1
+   },
+   "lines": {
+    "offer": "どんぐりで かざりを つくりたいんだ。\n5こ ひろって きて くれるかい？",
+    "remind": "もりの きの したに おちてるよ",
+    "done": "ぴかぴかの どんぐり！ ありがとう"
+   },
+   "needs": [],
+   "doneBy": "traveler"
+  },
+  {
+   "id": "ev-fish-ayu",
+   "kind": "catch",
+   "title": "アユを 1ぴき",
+   "giver": "parkcat",
+   "map": "town",
+   "chance": 0.15,
+   "limit": "daily",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   },
+   "steps": [
+    {
+     "do": "catch",
+     "fish": "ayu",
+     "n": 1
+    },
+    {
+     "do": "give",
+     "to": "parkcat",
+     "fish": "ayu",
+     "n": 1
+    }
+   ],
+   "reward": {
+    "coins": 160
+   },
+   "lines": {
+    "offer": "かわの アユを 1ぴき、みて みたいなあ。\nつりざおで つって きて くれる？",
+    "remind": "アユは はらっぱの かわの、ながれの はやい ところ",
+    "done": "きれいな アユ！ かわの かおりが するね"
+   },
+   "needs": [
+    "fishing"
+   ],
+   "doneBy": "parkcat"
+  },
+  {
+   "id": "ev-bone-show",
+   "kind": "dig",
+   "title": "ほねを みせて",
+   "giver": "explorer",
+   "map": "forest",
+   "chance": 0.12,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "dig",
+     "n": 1
+    },
+    {
+     "do": "talk",
+     "to": "explorer"
+    }
+   ],
+   "reward": {
+    "coins": 150
+   },
+   "lines": {
+    "offer": "どうくつで ほねを ほったら、ぼくに みせて くれ！\nピッケルで ひびの いわを わるんだ",
+    "remind": "ひびの ある いわを さがして",
+    "done": "おお、これは りっぱな ほね！ はくぶつかんに もって いこう"
+   },
+   "when": {},
+   "needs": [
+    "fossil"
+   ],
+   "doneBy": "explorer"
+  },
+  {
+   "id": "ev-quiz",
+   "kind": "quiz",
+   "title": "チュウの なぞなぞ",
+   "giver": "mouse",
+   "map": "town",
+   "chance": 0.15,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "quiz",
+     "q": [
+      [
+       "パンは パンでも たべられない パンは？",
+       [
+        "フライパン",
+        "メロンパン",
+        "あんパン"
+       ],
+       0
+      ],
+      [
+       "あさは 4ほん、ひるは 2ほん。なあに？ …ヒント: ひと",
+       [
+        "いぬ",
+        "ひと",
+        "とり"
+       ],
+       1
+      ],
+      [
+       "うえは おおきく、したは ちいさく なる ふねは？",
+       [
+        "ほかけぶね",
+        "とうだい",
+        "ふうせん"
+       ],
+       0
+      ]
+     ]
+    }
+   ],
+   "reward": {
+    "coins": 80
+   },
+   "lines": {
+    "offer": "チュウ！ なぞなぞ だすよ。3もん ぜんぶ\nあてたら コインを あげる！",
+    "remind": "もう いっかい ちょうせん する？",
+    "done": "ぜんぶ せいかい！ あたまが いいね チュウ"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "mouse"
+  },
+  {
+   "id": "ev-photo",
+   "kind": "photo",
+   "title": "ふんすいの まえで しゃしん",
+   "giver": "cityguide",
+   "map": "city",
+   "chance": 0.12,
+   "limit": "daily",
+   "steps": [
+    {
+     "do": "photo",
+     "map": "city",
+     "near": "city_fountain",
+     "r": 2
+    },
+    {
+     "do": "talk",
+     "to": "cityguide"
+    }
+   ],
+   "reward": {
+    "coins": 100,
+    "first": {
+     "furn": "poster"
+    }
+   },
+   "lines": {
+    "offer": "シティの パンフレットに のせる しゃしんを\nとりたいの！ ふんすいの まえで ポーズ して！",
+    "remind": "ふんすいの まえに いって ね",
+    "done": "いい しゃしん！ ありがとう！"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "cityguide"
+  },
+  {
+   "id": "ev-umbrella",
+   "kind": "deliver",
+   "title": "かさを とどけて",
+   "giver": "frog",
+   "map": "town",
+   "chance": 0.2,
+   "limit": "daily",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   },
+   "steps": [
+    {
+     "do": "give",
+     "to": "heiwadai_local",
+     "map": "heiwadai",
+     "item": "umbrella",
+     "n": 1,
+     "carry": true
+    }
+   ],
+   "reward": {
+    "coins": 90
+   },
+   "lines": {
+    "offer": "ハルが かさを わすれて でかけたって ケロ！\nへいわだいまで とどけて あげて",
+    "remind": "ハルは へいわだいに いるよ ケロ",
+    "done": "かさ！ たすかった〜 ケロに ありがとうって つたえてね"
+   },
+   "needs": [],
+   "doneBy": "heiwadai_local"
+  },
+  {
+   "id": "ev-warashibe",
+   "kind": "trade",
+   "title": "わらしべ こうかん",
+   "giver": "traveler",
+   "map": "meadow",
+   "chance": 0.1,
+   "limit": "once",
+   "steps": [
+    {
+     "do": "trade",
+     "start": "straw",
+     "chain": [
+      [
+       "rabbit",
+       "seeds",
+       "わらしべ？ ちょうど ほしかったの！\nおはなの たねと こうかん しましょ"
+      ],
+      [
+       "pig",
+       "bigcorn",
+       "おはなの たね！ はたけに まきたい ブー。\nりっぱな とうもろこしと こうかん！"
+      ],
+      [
+       "mayor",
+       "cuckoo",
+       "おお、りっぱな とうもろこし！\nでは、この はとどけいを ゆずろう"
+      ]
+     ]
+    },
+    {
+     "do": "talk",
+     "to": "traveler"
+    }
+   ],
+   "reward": {
+    "furn": "clock",
+    "coins": 200
+   },
+   "lines": {
+    "offer": "むかしばなしの『わらしべちょうじゃ』を しってる？\nこの わらしべ 1ぽんで、こうかんの たびに でてごらん",
+    "remind": "わらしべ → ミミ → ブー → そんちょう の じゅんだよ",
+    "done": "わらしべが、はとどけいに なった！ すごい たびだ"
+   },
+   "when": {},
+   "needs": [],
+   "doneBy": "traveler"
+  }
+ ],
+ "items": {
+  "letter": {
+   "name": "おてがみ",
+   "art": "folk:letter"
+  },
+  "bento": {
+   "name": "おべんとう",
+   "art": "folk:bento"
+  },
+  "umbrella": {
+   "name": "かさ",
+   "art": "folk:umbrella"
+  },
+  "hat": {
+   "name": "きいろい ぼうし",
+   "art": "folk:hat"
+  },
+  "map": {
+   "name": "たんけんの ちず",
+   "art": "folk:map"
+  },
+  "straw": {
+   "name": "わらしべ",
+   "art": "folk:straw"
+  },
+  "seeds": {
+   "name": "おはなの たね",
+   "art": "folk:seeds"
+  },
+  "photo": {
+   "name": "しゃしん",
+   "art": "folk:photo"
+  },
+  "bigcorn": {
+   "name": "りっぱな とうもろこし",
+   "art": "bag:corn"
+  },
+  "cuckoo": {
+   "name": "はとどけい",
+   "art": "furn:clock"
+  }
+ },
+ "tipShare": 0.3,
+ "maxActive": 3,
+ "barterChance": 0.1,
+ "spotsExample": {
+  "ev-lost-hat": {
+   "map": "meadow",
+   "spots": [
+    [
+     6,
+     12
+    ],
+    [
+     5,
+     5
+    ],
+    [
+     26,
+     28
+    ]
+   ]
+  },
+  "ev-lost-map": {
+   "map": "forest",
+   "spots": [
+    [
+     15,
+     26
+    ],
+    [
+     8,
+     27
+    ],
+    [
+     10,
+     21
+    ],
+    [
+     9,
+     37
+    ]
+   ]
+  },
+  "ev-lost-kitten": {
+   "map": "town",
+   "spots": [
+    [
+     27,
+     3
+    ],
+    [
+     5,
+     8
+    ],
+    [
+     26,
+     16
+    ]
+   ]
+  },
+  "ev-cleanup": {
+   "map": "heiwadai",
+   "spots": [
+    [
+     34,
+     18
+    ],
+    [
+     24,
+     17
+    ],
+    [
+     17,
+     28
+    ],
+    [
+     19,
+     19
+    ],
+    [
+     28,
+     31
+    ]
+   ]
+  },
+  "ev-water": {
+   "map": "town",
+   "spots": [
+    [
+     5,
+     23
+    ],
+    [
+     16,
+     10
+    ],
+    [
+     9,
+     21
+    ]
+   ]
+  },
+  "ev-harvest": {
+   "map": "meadow",
+   "spots": [
+    [
+     6,
+     15
+    ],
+    [
+     27,
+     26
+    ],
+    [
+     3,
+     14
+    ]
+   ]
+  },
+  "ev-acorns": {
+   "map": "forest",
+   "spots": [
+    [
+     13,
+     4
+    ],
+    [
+     10,
+     19
+    ],
+    [
+     17,
+     6
+    ],
+    [
+     9,
+     39
+    ],
+    [
+     14,
+     39
+    ]
+   ]
+  }
+ },
+ "sim": [
+  {
+   "id": "ev-milk",
+   "log": [
+    "うける（もちもの: なし）",
+    "buy ok",
+    "give→sheep おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 80
+    }
+   ],
+   "bond": {
+    "sheep": 2
+   }
+  },
+  {
+   "id": "ev-bread3",
+   "log": [
+    "うける（もちもの: なし）",
+    "buy ok",
+    "give→penguin おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 150
+    }
+   ],
+   "bond": {
+    "penguin": 2
+   }
+  },
+  {
+   "id": "ev-msg-flower",
+   "log": [
+    "うける（もちもの: なし）",
+    "talk→rabbit ok",
+    "talk→cat おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 60
+    }
+   ],
+   "bond": {
+    "cat": 2,
+    "rabbit": 2
+   }
+  },
+  {
+   "id": "ev-msg-poster",
+   "log": [
+    "うける（もちもの: なし）",
+    "talk→cityguide ok",
+    "talk→mayor おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 120
+    }
+   ],
+   "bond": {
+    "mayor": 2
+   }
+  },
+  {
+   "id": "ev-letter",
+   "log": [
+    "うける（もちもの: letter）",
+    "give→portguide ok",
+    "talk→mouse おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 100
+    }
+   ],
+   "bond": {
+    "mouse": 2
+   }
+  },
+  {
+   "id": "ev-lunch-air",
+   "log": [
+    "うける（もちもの: bento）",
+    "give→airguide おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 130
+    },
+    {
+     "bag": "onigiri",
+     "n": 1
+    }
+   ],
+   "bond": {
+    "pig": 2
+   }
+  },
+  {
+   "id": "ev-lost-hat",
+   "log": [
+    "うける（もちもの: なし）",
+    "find ok",
+    "give→rabbit おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 90
+    }
+   ],
+   "bond": {
+    "rabbit": 3
+   }
+  },
+  {
+   "id": "ev-lost-map",
+   "log": [
+    "うける（もちもの: なし）",
+    "find ok",
+    "give→explorer おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 150
+    }
+   ],
+   "bond": {
+    "explorer": 2
+   }
+  },
+  {
+   "id": "ev-lost-kitten",
+   "log": [
+    "うける（もちもの: なし）",
+    "find ok",
+    "follow→cat おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 120
+    }
+   ],
+   "bond": {
+    "cat": 4
+   }
+  },
+  {
+   "id": "ev-find-mint",
+   "log": [
+    "うける（もちもの: なし）",
+    "talk→parkcat ok",
+    "talk→traveler おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 80
+    }
+   ],
+   "bond": {
+    "traveler": 2
+   }
+  },
+  {
+   "id": "ev-cleanup",
+   "log": [
+    "うける（もちもの: なし）",
+    "tap ok",
+    "talk→heiwadai_local おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 100
+    }
+   ],
+   "bond": {
+    "heiwadai_local": 2
+   }
+  },
+  {
+   "id": "ev-water",
+   "log": [
+    "うける（もちもの: なし）",
+    "tap ok",
+    "talk→rabbit おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 70
+    },
+    {
+     "bag": "apple",
+     "n": 1
+    }
+   ],
+   "bond": {
+    "rabbit": 2
+   }
+  },
+  {
+   "id": "ev-harvest",
+   "log": [
+    "うける（もちもの: なし）",
+    "tap ok",
+    "talk→pig おわり"
+   ],
+   "rewards": [
+    {
+     "bag": "corn",
+     "n": 3
+    }
+   ],
+   "bond": {
+    "pig": 2
+   }
+  },
+  {
+   "id": "ev-acorns",
+   "log": [
+    "うける（もちもの: なし）",
+    "tap ok",
+    "talk→traveler おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 90
+    },
+    {
+     "bag": "annual_harvest_deza",
+     "n": 1
+    }
+   ],
+   "bond": {
+    "traveler": 2
+   }
+  },
+  {
+   "id": "ev-fish-ayu",
+   "log": [
+    "うける（もちもの: なし）",
+    "catch ok",
+    "give→parkcat おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 160
+    }
+   ],
+   "bond": {
+    "parkcat": 2
+   }
+  },
+  {
+   "id": "ev-bone-show",
+   "log": [
+    "うける（もちもの: なし）",
+    "dig ok",
+    "talk→explorer おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 150
+    }
+   ],
+   "bond": {
+    "explorer": 2
+   }
+  },
+  {
+   "id": "ev-quiz",
+   "log": [
+    "うける（もちもの: なし）",
+    "quiz おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 80
+    }
+   ],
+   "bond": {
+    "mouse": 2
+   }
+  },
+  {
+   "id": "ev-photo",
+   "log": [
+    "うける（もちもの: なし）",
+    "photo ok",
+    "talk→cityguide おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 100
+    },
+    {
+     "furn": "poster"
+    }
+   ],
+   "bond": {
+    "cityguide": 2
+   }
+  },
+  {
+   "id": "ev-umbrella",
+   "log": [
+    "うける（もちもの: umbrella）",
+    "give→heiwadai_local おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 90
+    }
+   ],
+   "bond": {
+    "frog": 2
+   }
+  },
+  {
+   "id": "ev-warashibe",
+   "log": [
+    "うける（もちもの: straw）",
+    "trade ok",
+    "talk→traveler おわり"
+   ],
+   "rewards": [
+    {
+     "coins": 200
+    },
+    {
+     "furn": "clock"
+    }
+   ],
+   "bond": {
+    "traveler": 2
+   }
+  }
+ ]
+}
