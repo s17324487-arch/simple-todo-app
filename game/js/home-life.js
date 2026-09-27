@@ -67,11 +67,11 @@ const HomeLife = {
   },
   bubbleLayout(sc,ctx) {
     const boxes=[], top=sc.watching?112:194, bottom=G.H-(sc.watching?65:143);
-    const faces=[...sc.chars,...sc.parents].filter(c=>!c.hidden).map(c=>{const p=sc.toScreen(c.x,c.y);return{x:p.x-30*sc.s,y:p.y-86*sc.s,w:60*sc.s,h:54*sc.s};});
+    const faces=[...sc.chars,...sc.parents].filter(c=>!c.hidden).map(c=>{const p=sc.toScreen(c.x,c.y),s=sc.actorScale;return{x:p.x-30*s,y:p.y-86*s,w:60*s,h:54*s};});
     ctx.font="700 11px sans-serif";
     for(const b of sc.life.bubbles){
       const c=sc.chars.find(c=>c.id===b.id)||sc.parents.find(p=>p.id===b.id);if(!c||c.hidden)continue;
-      const anchor=sc.toScreen(c.x,c.y-(b.id==="papa"||b.id==="mama"?100:86));
+      const anchor=sc.toScreen(c.x,c.y,(b.id==="papa"||b.id==="mama"?100:86)*1.35);
       const w=Math.min(168,G.W-24),lines=[];let line="";
       for(const ch of b.text){if(ch==="\n"||ctx.measureText(line+ch).width>w-20){lines.push(line);line=ch==="\n"?"":ch;}else line+=ch;}
       if(line)lines.push(line);

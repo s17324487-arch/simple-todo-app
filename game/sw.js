@@ -10,6 +10,7 @@ const FILES = [
   "./js/dressup.js", "./js/scene-title.js", "./js/scene-world.js", "./js/scene-house.js", "./js/scene-battle.js", "./js/minigames.js", "./js/debug.js",
   "./js/home-life.js", "./js/parent-care.js",
   "./js/home-catalog.js",
+  "./js/home-design.js",
   "./js/world-art.js", "./js/world-expansion.js",
   "./js/economy.js", "./js/arcade.js",
   "./js/world-scenery.js", "./js/town-design.js", "./js/transit.js",

@@ -88,6 +88,24 @@ const PokaDebug = {
   needs(hunger,mood=70) { for(const c of Object.values(Save.d.chars)){c.hunger=U.clamp(hunger,0,100);c.mood=U.clamp(mood,0,100);}Save.mark();if(G.sceneName==="house")G.scene.updateCare(); },
   wins(n) { Save.d.stats.wins = Math.max(0, Math.floor(n)); Save.mark(); },
   homePoint(x, y) { const p = G.scene.toScreen(x, y), r = G.canvas.getBoundingClientRect(); return { x: r.left + p.x * G.cssPerUnit, y: r.top + p.y * G.cssPerUnit }; },
+  homeDesign() {
+    if(G.sceneName !== "house")return null;
+    const sc=G.scene, canvas=G.canvas.getBoundingClientRect(), point=p=>({x:canvas.left+p.x*G.cssPerUnit,y:canvas.top+p.y*G.cssPerUnit});
+    const rect=r=>({...point(r),w:r.w*G.cssPerUnit,h:r.h*G.cssPerUnit});
+    return {width:ROOM.W,depth:HomeDesign.D,zoom:sc.zoom,pan:{...sc.pan},mode:sc.mode,selected:sc.sel?.uid,
+      items:Save.d.room.items.map(it=>({...it,rect:rect(sc.itemRect(it)),anchor:FURN_INDEX[it.id].kind==="wall"?point(sc.wallPoint(it)):point(sc.toScreen(sc.anchor(it).x,sc.anchor(it).y))})),
+      actors:[...sc.chars,...sc.parents].map(c=>({id:c.id,state:c.state,rect:rect(sc.actorRect(c,sc.parents.includes(c)))})),
+      ball:sc.ball?{...point(sc.ballPoint(sc.ball)),hits:sc.ball.hits}:null,
+      hide:sc.hide?{...sc.hide,spots:sc.chars.filter(c=>c.hidden).map(c=>({id:c.id,rect:rect(c.spot.door?sc.doorRect():sc.itemRect(c.spot.it))}))}:null,
+      stored:JSON.parse(JSON.stringify(Save.d.rooms)),furn:{...Save.d.furn},wall:Save.d.room.wall,floor:Save.d.room.floor};
+  },
+  homeLayout(items,wall="wp_cream",floor="fl_wood") {
+    if(G.sceneName!=="house"||items.some(it=>!FURN_INDEX[it.id])||!WALL_INDEX[wall]||!FLOOR_INDEX[floor])throw new Error("invalid home fixture");
+    Save.d.room.items=items.map((it,i)=>({uid:i+1,flip:false,...it}));Save.d.room.nextUid=items.length+1;Save.d.room.wall=wall;Save.d.room.floor=floor;
+    Save.d.room.wallpapers[wall]=true;Save.d.room.floors[floor]=true;
+    for(const it of items)Save.d.furn[it.id]=Math.max(Save.d.furn[it.id]||0,Room.placed(it.id));
+    Save.mark();G.scene.preloadFurn();G.scene.buildBg();
+  },
   battleLayout() {
     if (G.sceneName !== "battle") return null;
     const sc = G.scene, rect = G.canvas.getBoundingClientRect();

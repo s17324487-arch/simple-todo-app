@@ -1,5 +1,5 @@
 // おうち（たまごっち風の へや）。ごはん・なでる・あそぶ・きがえ・もようがえ・ねる
-const ROOM = { W: 360, H: 460, WALL: 230 };
+const ROOM = { W: HomeDesign.W, H: HomeDesign.H + HomeDesign.D, WALL: HomeDesign.H };
 const HOUSE_SIZE = 84; // へやの中のキャラの大きさ
 
 const Room = {
@@ -31,9 +31,10 @@ const HOUSE_ICONS = {
 class HouseScene {
   async enter(p = {}) {
     this.mode = null;
+    this.zoom = 1; this.pan = { x: 0, y: 0 };
     this.fxs = [];
     HomeLife.init(this);
-    this.chars = Save.d.order.map((id, i) => ({ id, x: 120 + i * 62, y: 360 + (i % 2) * 24, dir: "down", state: "idle", t: U.rand(0.5, 2.5), anim: Math.random() * 2, emo: null, hidden: false, jumpT: -1 }));
+    this.chars = Save.d.order.map((id, i) => ({ id, x: 160 + i * 80, y: 430 + (i % 2) * 35, dir: "down", state: "idle", t: U.rand(0.5, 2.5), anim: Math.random() * 2, emo: null, hidden: false, jumpT: -1 }));
     this.layout();
     await Promise.all([this.preloadChars(), this.preloadFurn(), this.buildBg()]);
     Sound.bgm("house");
@@ -52,15 +53,48 @@ class HouseScene {
     UI.showHud(false);
   }
   layout() {
-    const top = 112, bottom = this.watching ? 40 : 138;
-    const availH = G.H - top - bottom;
-    this.s = Math.min(G.W / ROOM.W, Math.max(0.62, availH / ROOM.H));
-    this.ox = (G.W - ROOM.W * this.s) / 2;
-    this.oy = G.H - bottom + 8 - ROOM.H * this.s;
+    const b = HomeDesign.bounds(), editing = this.mode === "edit";
+    const top = editing || this.watching ? 112 : 194;
+    const bottom = editing ? Math.max(174, (this.editUI?.getBoundingClientRect().height || 0) / G.cssPerUnit + 8) : this.watching ? 65 : 142;
+    this.view = { top, bottom: G.H - bottom };
+    this.baseScale = Math.min((G.W - 18) / b.w, Math.max(80, G.H - top - bottom) / b.h);
+    this.s = this.baseScale * (this.zoom || 1);
+    this.actorScale = this.s * 1.35;
+    const maxX = Math.max(0, b.w * this.s - G.W + 36) / 2;
+    const maxY = Math.max(0, b.h * this.s - (G.H - top - bottom)) / 2;
+    this.pan.x = U.clamp(this.pan.x, -maxX, maxX); this.pan.y = U.clamp(this.pan.y, -maxY, maxY);
+    this.ox = (G.W - b.w * this.s) / 2 - b.x * this.s + this.pan.x;
+    this.oy = top + (G.H - top - bottom - b.h * this.s) / 2 - b.y * this.s + this.pan.y;
+    this.viewControls?.classList.toggle("raised", editing || this.watching);
+    this.parentButton?.classList.toggle("hidden", !!this.mode);
+    this.placeTools();
   }
-  resize() { this.layout(); this.buildBg(); }
-  toScreen(x, y) { return { x: this.ox + x * this.s, y: this.oy + y * this.s }; }
-  toRoom(sx, sy) { return { x: (sx - this.ox) / this.s, y: (sy - this.oy) / this.s }; }
+  resize() { this.layout(); }
+  setZoom(delta) {
+    const levels = [1, 1.25, 1.5, 1.75];
+    this.zoom = delta === 0 ? 1 : levels[U.clamp(levels.indexOf(this.zoom) + delta, 0, levels.length - 1)];
+    if (delta === 0) this.pan = { x: 0, y: 0 };
+    this.layout(); Sound.se("tap");
+  }
+  toScreen(x, y, z = 0) { const p = HomeDesign.project(x, y - ROOM.WALL, z); return { x: this.ox + p.x * this.s, y: this.oy + p.y * this.s }; }
+  toRoom(sx, sy) { const p = HomeDesign.inverse((sx - this.ox) / this.s, (sy - this.oy) / this.s); return { x: p.x, y: p.y + ROOM.WALL }; }
+  depth(p) { return p.x + p.y - ROOM.WALL; }
+  anchor(it) {
+    const m = HomeDesign.model(it.id, it);
+    return { x: U.clamp(it.x, m.footW / 2 + 6, ROOM.W - m.footW / 2 - 6), y: U.clamp(it.y, ROOM.WALL + m.footD + 6, ROOM.H - 6) };
+  }
+  wallPoint(it, x = it.x, y = it.y) {
+    return it.wallSide === "left" ? this.toScreen(0, ROOM.WALL + x, ROOM.WALL - y) : this.toScreen(x, ROOM.WALL, ROOM.WALL - y);
+  }
+  wallRoom(it, p) {
+    const sign = it.wallSide === "left" ? -1 : 1, u = (p.x - this.ox) / (sign * HomeDesign.A * this.s);
+    return { x: u, y: ROOM.WALL + (p.y - this.oy) / this.s - HomeDesign.B * u };
+  }
+  actorRect(c, parent = false) {
+    const p = this.toScreen(c.x, c.y), scale = this.actorScale;
+    return { x: p.x - Math.max(22, 34 * scale), y: p.y - (parent ? 105 : 86) * scale, w: Math.max(44, 68 * scale), h: (parent ? 116 : 94) * scale };
+  }
+  contains(r, p, pad = 0) { return p.x >= r.x - pad && p.x <= r.x + r.w + pad && p.y >= r.y - pad && p.y <= r.y + r.h + pad; }
 
   // ---- 読み込み ----
   charOpts(c, pose, dir, face) {
@@ -80,50 +114,23 @@ class HouseScene {
       for (const dir of ["down", "left", "right", "up"]) for (const pose of ["idle_01", "idle_02", "walk_01", "walk_02"]) list.push([c.id, this.charOpts(c, pose, dir, f)]);
       for (const pose of ["jump_01", "land_01", "idle_02"]) list.push([c.id, this.charOpts(c, pose, "down", "love")]);
     }
-    return Chara.preload(list, HOUSE_SIZE * this.s);
+    return Chara.preload(list, HOUSE_SIZE * this.actorScale);
   }
   furnCanvas(it, ensure) {
     const f = FURN_INDEX[it.id];
     const opts = { flip: !!it.flip };
     if (it.id === "window") opts.sky = Weather.sky();
     const key = "furn:" + it.id + ":" + JSON.stringify(opts);
-    const pad = Art.FURN_PAD;
-    const pw = Math.ceil((f.w + pad * 2) * this.s * G.px), ph = Math.ceil((f.h + pad * 2) * this.s * G.px);
+    const m = f.kind === "wall" ? { w: f.w + 24, h: f.h + 24 } : HomeDesign.model(it.id, opts);
+    // Fixed raster sizes keep zooming and dragging out of the cache key.
+    const pw = Math.ceil(m.w * 2), ph = Math.ceil(m.h * 2);
     const fn = () => Art.furnSvg(it.id, opts);
     return ensure ? SvgCache.ensure(key, fn, pw, ph) : SvgCache.get(key, fn, pw, ph);
   }
   preloadFurn() { return Promise.all(Save.d.room.items.map((it) => this.furnCanvas(it, true))); }
   buildBg() {
-    const r = Save.d.room;
-    const wp = WALL_INDEX[r.wall] || WALLPAPERS[0], fl = FLOOR_INDEX[r.floor] || FLOORS[0];
-    const W = G.W, H = G.H, s = this.s;
-    const wallY = this.oy + ROOM.WALL * s;
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${f2(W)} ${f2(H)}"><defs>
-      <pattern id="wp" width="64" height="64" patternUnits="userSpaceOnUse" patternTransform="translate(${f2(this.ox)},${f2(this.oy)}) scale(${f2(s)})">${Art.patternSvg(wp, 64, 64)}</pattern>
-      <pattern id="fl" width="64" height="64" patternUnits="userSpaceOnUse" patternTransform="translate(${f2(this.ox)},${f2(wallY)}) scale(${f2(s)})">${Art.patternSvg(fl, 64, 64)}</pattern>
-      <linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F1D1B" stop-opacity="0.18"/><stop offset="1" stop-color="#1F1D1B" stop-opacity="0"/></linearGradient>
-      </defs>
-      <rect x="0" y="0" width="${f2(W)}" height="${f2(wallY)}" fill="url(#wp)"/>
-      <rect x="0" y="${f2(wallY)}" width="${f2(W)}" height="${f2(H - wallY)}" fill="url(#fl)"/>
-      <rect x="0" y="${f2(wallY)}" width="${f2(W)}" height="${f2(26 * s)}" fill="url(#sh)"/>
-      <rect x="0" y="${f2(wallY - 8 * s)}" width="${f2(W)}" height="${f2(10 * s)}" fill="#FFFFFF" stroke="${INK}" stroke-width="${f2(2 * s)}"/>
-      <rect x="0" y="0" width="${f2(W)}" height="${f2(this.oy)}" fill="#EAD9BD"/>
-      ${Array.from({ length: Math.ceil(W / 40) + 1 }, (_, i) => `<path d="M${f2(i * 40)},0 L${f2(i * 40)},${f2(this.oy)}" stroke="#DCC7A6" stroke-width="2"/>`).join("")}
-      <rect x="0" y="${f2(this.oy - 10 * s)}" width="${f2(W)}" height="${f2(14 * s)}" fill="#C98A52" stroke="${INK}" stroke-width="${f2(2 * s)}"/>
-      <g transform="translate(${f2(this.ox + 290 * s)},${f2(this.oy + 4 * s)}) scale(${f2(s)})">
-        <path d="M0,0 L0,26" stroke="${INK}" stroke-width="2"/>
-        <path d="M-16,40 C-16,26 16,26 16,40 Z" fill="#FFE9A8" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"/>
-        <circle cx="0" cy="42" r="4" fill="#FFF6C8" stroke="${INK}" stroke-width="1.6"/>
-      </g>
-      <g transform="translate(${f2(this.ox + 8 * s)},${f2(wallY - 100 * s)}) scale(${f2(s)})">
-        <rect x="0" y="0" width="46" height="92" rx="4" fill="#C98A52" stroke="${INK}" stroke-width="2.2"/>
-        <rect x="6" y="8" width="34" height="30" rx="3" fill="#E2B982" stroke="${INK}" stroke-width="1.6"/>
-        <rect x="6" y="46" width="34" height="38" rx="3" fill="#E2B982" stroke="${INK}" stroke-width="1.6"/>
-        <circle cx="38" cy="44" r="3" fill="#F7C948" stroke="${INK}" stroke-width="1.4"/>
-      </g></svg>`;
-    this.bgKey = "housebg:" + r.wall + ":" + r.floor + ":" + f2(W) + "x" + f2(H) + ":" + f2(s) + ":" + f2(this.oy);
-    const pw = Math.round(W * G.px), ph = Math.round(H * G.px);
-    this.bgArgs = [this.bgKey, () => svg, pw, ph];
+    const r = Save.d.room, b = HomeDesign.bounds();
+    this.bgArgs = ["house-design:" + r.wall + ":" + r.floor, () => HomeDesign.roomSvg(r.wall, r.floor), Math.ceil(b.w * 2), Math.ceil(b.h * 2)];
     return SvgCache.ensure(...this.bgArgs);
   }
 
@@ -152,6 +159,11 @@ class HouseScene {
     this.ui.append(this.watchExit);
     this.parentButton=UI.btn("ぱぱ・まま",()=>{if(!this.mode&&!UI.busy)ParentCare.open(this);},"parent-open small");
     this.ui.append(this.parentButton);
+    this.viewControls = U.el("div", { class: "home-view-controls" });
+    for (const [label, title, delta] of [["−", "おへやを ちいさく", -1], ["＋", "おへやを おおきく", 1], ["全体", "おへやを ぜんたいに", 0]]) {
+      const b = UI.btn(label, () => this.setZoom(delta), "small"); b.setAttribute("aria-label", title); this.viewControls.append(b);
+    }
+    this.ui.append(this.viewControls);
     document.getElementById("ui").append(this.ui);
     this.updateCare();
   }
@@ -164,7 +176,7 @@ class HouseScene {
         <div class="lbl" style="font-size:9px;margin-top:2px"><span>ごきげん</span></div>${UI.meter(c.mood, 100, "mood")}</div>`;
     }).join("");
   }
-  showBar(on) { this.bar.classList.toggle("hidden", !on); this.care.classList.toggle("hidden", !on); }
+  showBar(on) { this.bar.classList.toggle("hidden", !on); this.care.classList.toggle("hidden", !on); this.parentButton.classList.toggle("hidden", !on); this.viewControls.classList.toggle("hidden", !on && this.mode !== "edit"); }
 
   async intro() {
     HomeLife.say(this,"wanko","ここが ぼくたちの おうち！");
@@ -199,10 +211,10 @@ class HouseScene {
   }
   async feed(ids, foodId) {
     this.mode = "feed";
-    const spots = ids.length === 1 ? [180] : [110, 180, 250];
+    const spots = ids.length === 1 ? [ROOM.W / 2] : [130, 240, 350];
     ids.forEach((id, k) => {
       const c = this.chars.find((x) => x.id === id);
-      c.state = "walk"; c.tx = spots[k]; c.ty = 410;
+      c.state = "walk"; c.tx = spots[k]; c.ty = ROOM.H - 90;
     });
     await U.wait(900);
     for (const id of ids) {
@@ -242,8 +254,8 @@ class HouseScene {
   }
   hideSpots() {
     const items = Save.d.room.items.filter((it) => { const f = FURN_INDEX[it.id]; return f && f.kind === "floor" && f.h >= 40; });
-    const spots = items.map((it) => ({ it, x: it.x, y: it.y }));
-    spots.push({ door: true, x: 31, y: ROOM.WALL - 4 });
+    const spots = items.map((it) => ({ it, ...this.anchor(it) }));
+    spots.push({ door: true, x: 0, y: ROOM.WALL + 62 });
     return U.shuffle(spots);
   }
   async startHide() {
@@ -268,10 +280,8 @@ class HouseScene {
     let best = null, bd = 1e9;
     const cands = this.hideSpots().concat();
     for (const sp of cands) {
-      const f = sp.door ? { w: 46, h: 92 } : FURN_INDEX[sp.it.id];
-      const cx = sp.x, cy = sp.y - f.h / 2;
-      const inside = Math.abs(rx - cx) < f.w / 2 + 8 && Math.abs(ry - cy) < f.h / 2 + 10;
-      const d = Math.hypot(rx - cx, ry - cy);
+      const r = sp.door ? this.doorRect() : this.itemRect(sp.it), p = this.toScreen(rx, ry);
+      const inside = this.contains(r, p, 8), d = Math.hypot(p.x - r.x - r.w / 2, p.y - r.y - r.h / 2);
       if (inside && d < bd) { bd = d; best = sp; }
     }
     if (!best) return;
@@ -280,7 +290,7 @@ class HouseScene {
     if (who.length) {
       for (const c of who) {
         c.hidden = false;
-        c.x = U.clamp(best.x + (best.door ? 40 : 30), 30, 330); c.y = Math.max(300, best.door ? 310 : best.y + 8);
+        c.x = U.clamp(best.x + (best.door ? 40 : 30), 30, ROOM.W - 30); c.y = Math.max(300, best.door ? 310 : best.y + 8);
         this.react(c, "happy", "heart");
         Sound.voice(c.id);
         H.found++;
@@ -299,7 +309,7 @@ class HouseScene {
     this.mode = "hide-end";
     const left = this.chars.filter((c) => c.hidden);
     await U.wait(700);
-    for (const c of left) { c.hidden = false; c.x = U.clamp(c.spot.x + 34, 30, 330); c.y = Math.max(310, c.spot.y + 6); this.react(c, "happy", "note"); }
+    for (const c of left) { c.hidden = false; c.x = U.clamp(c.spot.x + 34, 30, ROOM.W - 30); c.y = Math.max(310, c.spot.y + 6); this.react(c, "happy", "note"); }
     const found = this.hide.found;
     const mood = 6 + found * 5;
     Save.careAll({ mood, bond: 2, hunger: -3 });
@@ -312,27 +322,29 @@ class HouseScene {
   startBall() {
     this.mode = "ball";
     this.showBar(false);
-    this.ball = { x: 180, y: 300, vx: U.rand(-60, 60), vy: -440, t: 22, hits: 0, spin: 0 };
-    this.chars.forEach((c, i) => { c.state = "walk"; c.tx = 90 + i * 90; c.ty = 425; });
+    this.ball = { x: ROOM.W / 2, y: 300, vx: U.rand(-60, 60), vy: -440, t: 22, hits: 0, spin: 0 };
+    this.chars.forEach((c, i) => { c.state = "walk"; c.tx = 120 + i * 110; c.ty = ROOM.H - 100; });
     UI.toast("ボールを タップして おとさないように しよう！");
   }
   ballTap(rx, ry) {
     const b = this.ball;
-    if (Math.hypot(rx - b.x, ry - b.y) > 42) return;
-    b.vy = -U.rand(360, 430); b.vx = U.clamp((b.x - rx) * 6 + U.rand(-80, 80), -160, 160);
+    const p = this.toScreen(rx, ry), q = this.ballPoint(b);
+    if (Math.hypot(p.x - q.x, p.y - q.y) > Math.max(22, 24 * this.actorScale)) return;
+    b.vy = -U.rand(360, 430); b.vx = U.clamp((q.x - p.x) / this.s * 6 + U.rand(-80, 80), -160, 160);
     b.hits++;
     Sound.se("pop");
     const c = this.chars.reduce((a, x) => (Math.abs(x.x - b.x) < Math.abs(a.x - b.x) ? x : a));
     this.react(c, "happy", "note");
-    c.tx = U.clamp(b.x + U.rand(-30, 30), 40, 320);
+    c.tx = U.clamp(b.x + U.rand(-30, 30), 40, ROOM.W - 40);
   }
+  ballPoint(b) { return this.toScreen(b.x, ROOM.H - 100, 442 - b.y); }
   updateBall(dt) {
     const b = this.ball;
     b.vy += 520 * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.spin += b.vx * dt * 0.05; b.t -= dt;
     if (b.x < 16) { b.x = 16; b.vx = Math.abs(b.vx); }
     if (b.x > ROOM.W - 16) { b.x = ROOM.W - 16; b.vx = -Math.abs(b.vx); }
     if (b.y < 24) { b.y = 24; b.vy = Math.abs(b.vy) * 0.5; }
-    for (const c of this.chars) if (c.state !== "jump") { c.state = "walk"; c.tx = U.clamp(b.x + (c.id === "wanko" ? -50 : c.id === "gachan" ? 0 : 50), 40, 320); c.ty = 425; }
+    for (const c of this.chars) if (c.state !== "jump") { c.state = "walk"; c.tx = U.clamp(b.x + (c.id === "wanko" ? -50 : c.id === "gachan" ? 0 : 50), 40, ROOM.W - 40); c.ty = ROOM.H - 100; }
     if (b.y > 442 || b.t <= 0) this.endBall();
   }
   async endBall() {
@@ -365,8 +377,8 @@ class HouseScene {
     this.mode = "sleep";
     this.showBar(false);
     const bed = Room.bestBed();
-    const bx = bed ? bed.x : 180, by = bed ? bed.y + 16 : 380;
-    this.chars.forEach((c, i) => { c.state = "walk"; c.tx = U.clamp(bx + (i - 1) * 44, 40, 320); c.ty = U.clamp(by + (i % 2) * 10, 300, 444); });
+    const a = bed ? this.anchor(bed) : { x: ROOM.W / 2, y: ROOM.H - 120 }, bx = a.x, by = a.y + 16;
+    this.chars.forEach((c, i) => { c.state = "walk"; c.tx = U.clamp(bx + (i - 1) * 44, 40, ROOM.W - 40); c.ty = U.clamp(by + (i % 2) * 10, ROOM.WALL + 60, ROOM.H - 20); });
     this.darkTarget = 0.62;
     await U.wait(1100);
     this.chars.forEach((c) => { c.state = "sleep"; c.dir = "down"; c.x = c.tx; c.y = c.ty; });
@@ -440,16 +452,17 @@ class HouseScene {
       if (own.length <= 1) tray.append(U.el("div", { class: "note", text: "かぐやさんで あたらしい もようが かえるよ！" }));
     }
     e.append(head, info, tray);
+    this.layout();
   }
   async placeNew(id) {
     if (Room.available(id) <= 0 || Save.d.room.items.length >= 64) { UI.toast("おける かぐが ないよ（1へや 64こまで）"); return; }
     const f = FURN_INDEX[id];
     const r = Save.d.room;
-    const it = { uid: r.nextUid++, id, x: 180, y: f.kind === "wall" ? 110 : f.kind === "rug" ? 420 : 380, flip: false };
+    const it = { uid: r.nextUid++, id, x: ROOM.W / 2, y: f.kind === "wall" ? 110 : 440, flip: false };
     // なるべく ほかの家具と かさならない場所をさがす
     const same = r.items.filter((o) => (FURN_INDEX[o.id].kind === "wall") === (f.kind === "wall"));
     let best = null, bestScore = 1e9;
-    const ys = f.kind === "wall" ? [60, 110, 160] : f.kind === "rug" ? [400, 440] : [300, 340, 380, 420];
+    const ys = f.kind === "wall" ? [60, 110, 160] : f.kind === "rug" ? [430, 500, 560] : [320, 380, 440, 500, 560];
     for (const y of ys) for (let x = f.w / 2 + 6; x <= ROOM.W - f.w / 2 - 6; x += 24) {
       const cand = { ...it, x, y };
       this.clampItem(cand);
@@ -460,7 +473,7 @@ class HouseScene {
         const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x), h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
         if (w > 0 && h > 0) ov += w * h;
       }
-      const score = ov + Math.abs(x - 180) * 0.5;
+      const score = ov + Math.abs(x - ROOM.W / 2) * 0.5;
       if (score < bestScore) { bestScore = score; best = cand; }
     }
     if (best) { it.x = best.x; it.y = best.y; }
@@ -474,27 +487,43 @@ class HouseScene {
   }
   clampItem(it) {
     const f = FURN_INDEX[it.id];
-    it.x = U.clamp(it.x, f.w / 2, ROOM.W - f.w / 2);
-    if (f.kind === "wall") it.y = U.clamp(it.y, f.h / 2 + 4, ROOM.WALL - f.h / 2 - 12);
-    else it.y = U.clamp(it.y, ROOM.WALL + (f.kind === "rug" ? f.h - 4 : 20), ROOM.H + 6);
+    if (f.kind === "wall") {
+      it.x = U.clamp(it.x, f.w / 2 + 6, (it.wallSide === "left" ? HomeDesign.D : ROOM.W) - f.w / 2 - 6);
+      it.y = U.clamp(it.y, f.h / 2 + 8, ROOM.WALL - f.h / 2 - 20);
+    } else Object.assign(it, this.anchor(it));
   }
   itemRect(it) {
     const f = FURN_INDEX[it.id];
-    if (f.kind === "wall") return { x: it.x - f.w / 2, y: it.y - f.h / 2, w: f.w, h: f.h };
-    return { x: it.x - f.w / 2, y: it.y - f.h, w: f.w, h: f.h };
+    if (f.kind === "wall") {
+      const ps = [-1, 1].flatMap(x => [-1, 1].map(y => this.wallPoint(it, it.x + x * f.w / 2, it.y + y * f.h / 2)));
+      const x = Math.min(...ps.map(p => p.x)), y = Math.min(...ps.map(p => p.y));
+      return { x, y, w: Math.max(...ps.map(p => p.x)) - x, h: Math.max(...ps.map(p => p.y)) - y };
+    }
+    const a = this.anchor(it), p = this.toScreen(a.x, a.y), m = HomeDesign.model(it.id, it);
+    return { x: p.x + m.x * this.s, y: p.y + m.y * this.s, w: m.w * this.s, h: m.h * this.s };
+  }
+  doorRect() {
+    const a = this.wallPoint({ wallSide: "left" }, 94, ROOM.WALL - 145), b = this.wallPoint({ wallSide: "left" }, 30, ROOM.WALL);
+    return { x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y + 64 * HomeDesign.B * this.s };
   }
   hitItem(rx, ry) {
+    const p = this.toScreen(rx, ry);
     const order = this.drawOrder().reverse();
     for (const it of order) {
-      const r = this.itemRect(it);
-      if (rx >= r.x - 4 && rx <= r.x + r.w + 4 && ry >= r.y - 4 && ry <= r.y + r.h + 4) return it;
+      const f = FURN_INDEX[it.id], r = this.itemRect(it);
+      if (f.kind === "wall") {
+        const q = this.wallRoom(it, p);
+        if (Math.abs(q.x - it.x) <= f.w / 2 + 4 && Math.abs(q.y - it.y) <= f.h / 2 + 4) return it;
+      } else if (this.contains(r, p)) {
+        const img = this.furnCanvas(it, false);
+        if (!img || img.getContext("2d").getImageData(Math.min(img.width-1, Math.floor((p.x-r.x)/r.w*img.width)), Math.min(img.height-1, Math.floor((p.y-r.y)/r.h*img.height)), 1, 1).data[3] > 24) return it;
+      }
     }
-    return null;
+    return order.find(it => FURN_INDEX[it.id].kind !== "rug" && this.contains(this.itemRect(it), p, Math.max(3, (44-Math.min(this.itemRect(it).w,this.itemRect(it).h))/2))) || null;
   }
   drawOrder() {
-    const items = Save.d.room.items;
-    const kind = (it) => FURN_INDEX[it.id].kind;
-    return [...items.filter((i) => kind(i) === "wall"), ...items.filter((i) => kind(i) === "rug").sort((a, b) => a.y - b.y), ...items.filter((i) => kind(i) === "floor").sort((a, b) => a.y - b.y)];
+    const items = Save.d.room.items, kind = it => FURN_INDEX[it.id].kind;
+    return [...items.filter(i => kind(i) === "wall"), ...items.filter(i => kind(i) === "rug"), ...items.filter(i => kind(i) === "floor").sort((a, b) => this.depth(this.anchor(a)) - this.depth(this.anchor(b)))];
   }
   select(it) {
     this.sel = it;
@@ -503,21 +532,23 @@ class HouseScene {
     if (!it) return;
     this.tools = U.el("div", { class: "edit-tools" });
     this.tools.append(
-      UI.btn("はんてん", async () => { it.flip = !it.flip; Save.mark(); Sound.se("tap"); await this.furnCanvas(it, true); }, "small"),
+      UI.btn("はんてん", async () => { it.flip = !it.flip; this.clampItem(it); this.placeTools(); Save.mark(); Sound.se("tap"); await this.furnCanvas(it, true); }, "small"),
       UI.btn("しまう", () => {
         Save.d.room.items = Save.d.room.items.filter((x) => x !== it);
         Save.mark(); Sound.se("cancel"); this.select(null); this.renderEditBar();
       }, "small pink"),
     );
+    if (FURN_INDEX[it.id].kind === "wall") this.tools.append(UI.btn("かべを かえる", () => {
+      it.wallSide = it.wallSide === "left" ? "back" : "left"; this.clampItem(it); Save.mark(); this.placeTools(); Sound.se("tap");
+    }, "small"));
     document.getElementById("ui").append(this.tools);
     this.placeTools();
   }
   placeTools() {
     if (!this.tools || !this.sel) return;
-    const r = this.itemRect(this.sel);
-    const p = this.toScreen(r.x + r.w / 2, r.y);
-    this.tools.style.left = p.x * G.cssPerUnit + "px";
-    this.tools.style.top = Math.max(60, (p.y - 6) * G.cssPerUnit) + "px";
+    const r = this.itemRect(this.sel), width = (this.tools.getBoundingClientRect().width || 180) / G.cssPerUnit;
+    this.tools.style.left = U.clamp(r.x + r.w / 2, width / 2 + 8, G.W - width / 2 - 8) * G.cssPerUnit + "px";
+    this.tools.style.top = U.clamp(r.y - 8, 160, this.view.bottom - 8) * G.cssPerUnit + "px";
   }
   endEdit() {
     Sound.se("ok");
@@ -525,6 +556,7 @@ class HouseScene {
     this.editUI.remove(); this.editUI = null;
     this.mode = null;
     this.showBar(true);
+    this.layout();
     UI.toast(`いごこち ${"★".repeat(Room.stars())}（${Room.comfort()}）<br>いごこちが いいと ごきげんが へりにくいよ`, "good");
     this.chars.forEach((c) => { c.state = "idle"; c.t = 0.3; });
   }
@@ -532,44 +564,47 @@ class HouseScene {
   // ---- 入力 ----
   down(p) {
     const r = this.toRoom(p.x, p.y);
+    if (this.mode === "ball") { this.ballTap(r.x, r.y); return; }
     if (this.mode === "edit") {
       const it = this.hitItem(r.x, r.y);
-      if (it) { this.drag = { it, dx: r.x - it.x, dy: r.y - it.y, moved: false, sx: p.x, sy: p.y }; this.select(it); }
-      else this.select(null);
-      return;
+      this.select(it);
+      if (it) {
+        const q = FURN_INDEX[it.id].kind === "wall" ? this.wallRoom(it, p) : r;
+        const a = FURN_INDEX[it.id].kind === "wall" ? it : this.anchor(it);
+        this.drag = { it, dx: q.x - a.x, dy: q.y - a.y, moved: false, sx: p.x, sy: p.y }; return;
+      }
     }
-    if (this.mode === "ball") { this.ballTap(r.x, r.y); return; }
+    if (!this.mode || this.mode === "edit") this.panDrag = { sx: p.x, sy: p.y, x: this.pan.x, y: this.pan.y, moved: false };
   }
   move(p) {
+    if (this.panDrag) {
+      const d = this.panDrag;
+      if (Math.hypot(p.x - d.sx, p.y - d.sy) < 6 && !d.moved) return;
+      d.moved = true; this.pan = { x: d.x + p.x - d.sx, y: d.y + p.y - d.sy }; this.layout(); return;
+    }
     if (this.mode !== "edit" || !this.drag) return;
-    const r = this.toRoom(p.x, p.y);
-    const d = this.drag;
+    const d = this.drag, r = FURN_INDEX[d.it.id].kind === "wall" ? this.wallRoom(d.it, p) : this.toRoom(p.x, p.y);
     if (!d.moved && Math.hypot(p.x - d.sx, p.y - d.sy) < 6) return;
-    d.moved = true;
-    d.it.x = r.x - d.dx; d.it.y = r.y - d.dy;
-    this.clampItem(d.it);
-    this.placeTools();
+    d.moved = true; d.it.x = r.x - d.dx; d.it.y = r.y - d.dy;
+    this.clampItem(d.it); this.placeTools();
   }
   up(p) {
+    const panned = this.panDrag?.moved; this.panDrag = null;
     if (this.mode === "edit") {
-      if (this.drag && this.drag.moved) { Save.mark(); Sound.se("tap"); }
-      this.drag = null;
-      return;
+      if (this.drag?.moved) { Save.mark(); Sound.se("tap"); }
+      this.drag = null; return;
     }
-    if (!p.tap) return;
+    if (!p.tap || panned) return;
     const r = this.toRoom(p.x, p.y);
     if (this.mode === "hide") { this.hideTap(r.x, r.y); return; }
     if (this.mode) return;
     if (this.life.quarrel && HomeLife.settle(this)) return;
-    for (const parent of this.parents) if (Math.abs(r.x-parent.x)<32 && r.y<parent.y+12 && r.y>parent.y-100) {
-      ParentCare.open(this,parent.id); return;
-    }
-    // キャラを なでる
-    const c = [...this.chars].sort((a, b) => b.y - a.y).find((c) => Math.abs(r.x - c.x) < 32 && r.y < c.y + 6 && r.y > c.y - 86);
-    if (c) this.pet(c);
-    else {
-      const it = this.hitItem(r.x, r.y);
-      if (it && FURN_INDEX[it.id].interactive) { this.life.furniture[it.uid] = 6; Sound.se(it.id === "musicbox" || it.id === "piano" ? "fanfare" : "pop"); HomeLife.say(this, U.pick(this.chars).id, "わあ！ うごいた♪"); }
+    const actors = [...this.chars, ...this.parents].filter(c => !c.hidden).sort((a, b) => this.depth(b) - this.depth(a));
+    const c = actors.find(c => this.contains(this.actorRect(c, this.parents.includes(c)), p));
+    if (c) { if (this.parents.includes(c)) ParentCare.open(this, c.id); else this.pet(c); return; }
+    const it = this.hitItem(r.x, r.y);
+    if (it && FURN_INDEX[it.id].interactive) {
+      this.life.furniture[it.uid] = 6; Sound.se(it.id === "musicbox" || it.id === "piano" ? "fanfare" : "pop"); HomeLife.say(this, U.pick(this.chars).id, "わあ！ うごいた♪");
     }
   }
   pet(c) {
@@ -623,7 +658,7 @@ class HouseScene {
         c.t -= dt;
         if (c.t <= 0 && !this.mode) {
           const r = Math.random();
-          if (r < 0.58) { c.state = "walk"; c.tx = U.rand(50, 310); c.ty = U.rand(300, 440); }
+          if (r < 0.58) { c.state = "walk"; c.tx = U.rand(50, ROOM.W - 50); c.ty = U.rand(ROOM.WALL + 90, ROOM.H - 35); }
           else if (r < 0.72 && Save.d.chars[c.id].mood > 50) this.react(c, "happy", "note");
           else { c.t = U.rand(1.5, 3.5); c.dir = U.pick(["down", "down", "left", "right"]); }
         }
@@ -652,21 +687,25 @@ class HouseScene {
 
   // ---- 描画 ----
   render(ctx) {
-    const bg = SvgCache.get(...this.bgArgs);
-    if (bg) ctx.drawImage(bg, 0, 0, G.W, G.H);
-    else { ctx.fillStyle = "#FFF4DC"; ctx.fillRect(0, 0, G.W, G.H); }
+    ctx.fillStyle = "#E7E4D4"; ctx.fillRect(0, 0, G.W, G.H);
+    const bg = SvgCache.get(...this.bgArgs), b = HomeDesign.bounds();
+    if (bg) {
+      ctx.save(); ctx.shadowColor = "rgba(69,49,29,.22)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 10;
+      ctx.drawImage(bg, this.ox + b.x * this.s, this.oy + b.y * this.s, b.w * this.s, b.h * this.s); ctx.restore();
+    }
+    if (this.mode === "edit") this.drawEditOverlay(ctx);
     const s = this.s;
     const list = [];
     const items = this.drawOrder();
-    if (this.mode !== "edit") for (const p of this.parents) list.push({ z:p.y,draw:()=>ParentCare.draw(this,ctx,p) });
+    if (this.mode !== "edit") for (const p of this.parents) list.push({ z:this.depth(p),draw:()=>ParentCare.draw(this,ctx,p) });
     for (const it of items) {
       const f = FURN_INDEX[it.id];
-      const z = f.kind === "wall" ? -2000 : f.kind === "rug" ? -1000 + it.y : it.y;
+      const z = f.kind === "wall" ? -2000 : f.kind === "rug" ? -1000 : this.depth(this.anchor(it));
       list.push({ z, draw: () => this.drawFurn(ctx, it) });
     }
     for (const c of this.chars) {
       if (c.hidden) continue;
-      list.push({ z: c.y + 0.5, draw: () => this.drawChar(ctx, c) });
+      list.push({ z: this.depth(c) + 0.5, draw: () => this.drawChar(ctx, c) });
     }
     list.sort((a, b) => a.z - b.z);
     for (const x of list) x.draw();
@@ -680,35 +719,28 @@ class HouseScene {
       ctx.fillRect(0, 0, G.W, G.H);
       if (this.mode === "sleep") for (const c of this.chars) { const p = this.toScreen(c.x, c.y); this.zzz(ctx, p.x + 18 * s, p.y - 80 * s); }
     }
-    if (this.mode === "edit") this.drawEditOverlay(ctx);
     if (this.mode === "hide") this.drawHideHint(ctx);
     HomeLife.draw(this, ctx);
   }
   drawFurn(ctx, it) {
-    const f = FURN_INDEX[it.id];
-    const c = this.furnCanvas(it, false);
-    const s = this.s, pad = Art.FURN_PAD;
-    const r = this.itemRect(it);
-    const p = this.toScreen(r.x - pad, r.y - pad);
-    if (f.kind === "floor") {
-      ctx.fillStyle = "rgba(31,29,27,0.13)";
-      const b = this.toScreen(it.x, it.y);
-      ctx.beginPath(); ctx.ellipse(b.x, b.y - 2 * s, (f.w / 2) * s, 6 * s, 0, 0, 7); ctx.fill();
-    }
+    const f = FURN_INDEX[it.id], image = this.furnCanvas(it, false), r = this.itemRect(it), s = this.s;
     ctx.save();
     const moving = this.life.furniture[it.uid] > 0;
-    if (moving) { const q = this.toScreen(it.x, it.y); ctx.translate(q.x, q.y); ctx.rotate(Math.sin(G.t * 9) * 0.045); ctx.translate(-q.x, -q.y); }
-    if (c) ctx.drawImage(c, p.x, p.y, (f.w + pad * 2) * s, (f.h + pad * 2) * s);
-    if (moving) { FX.note(ctx, p.x + f.w * s / 2, p.y - 6); FX.star(ctx, p.x + f.w * s, p.y + 10, 5, "#FFE066"); }
+    if (moving) { const x = r.x + r.w / 2, y = r.y + r.h; ctx.translate(x, y); ctx.rotate(Math.sin(G.t * 9) * .025); ctx.translate(-x, -y); }
+    if (image && f.kind === "wall") {
+      const p = this.wallPoint(it, it.x - f.w / 2, it.y - f.h / 2), sign = it.wallSide === "left" ? -1 : 1, pad = Art.FURN_PAD;
+      ctx.transform(sign * HomeDesign.A * s, HomeDesign.B * s, 0, s, p.x, p.y);
+      ctx.drawImage(image, -pad, -pad, f.w + pad * 2, f.h + pad * 2);
+    } else if (image) ctx.drawImage(image, r.x, r.y, r.w, r.h);
     ctx.restore();
+    if (moving) { FX.note(ctx, r.x + r.w / 2, r.y - 6); FX.star(ctx, r.x + r.w, r.y + 10, 5, "#FFE066"); }
     if (this.mode === "edit" && this.sel === it) {
-      const q = this.toScreen(r.x, r.y);
-      ctx.save(); ctx.setLineDash([5, 4]); ctx.strokeStyle = "#F29A1F"; ctx.lineWidth = 2.5;
-      U.rr(ctx, q.x - 4, q.y - 4, r.w * s + 8, r.h * s + 8, 8); ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.setLineDash([5, 4]); ctx.strokeStyle = "#F29A1F"; ctx.lineWidth = 2;
+      U.rr(ctx, r.x - 3, r.y - 3, r.w + 6, r.h + 6, 6); ctx.stroke(); ctx.restore();
     }
   }
   drawChar(ctx, c) {
-    const s = this.s;
+    const s = this.actorScale;
     const [pose, dy] = this.pose(c);
     const p = this.toScreen(c.x, c.y);
     const face = c.state === "sleep" ? "sleep" : c.emo || this.baseFace(c);
@@ -727,10 +759,10 @@ class HouseScene {
     }
   }
   drawBall(ctx) {
-    const b = this.ball, s = this.s;
-    const p = this.toScreen(b.x, b.y);
+    const b = this.ball, s = this.actorScale;
+    const p = this.ballPoint(b);
     ctx.fillStyle = "rgba(31,29,27,0.14)";
-    const g = this.toScreen(b.x, 442);
+    const g = this.toScreen(b.x, ROOM.H - 100);
     ctx.beginPath(); ctx.ellipse(g.x, g.y, 14 * s, 4 * s, 0, 0, 7); ctx.fill();
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(b.spin);
     ctx.fillStyle = "#FFF"; ctx.strokeStyle = INK; ctx.lineWidth = 2.5;
@@ -741,10 +773,10 @@ class HouseScene {
     ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, 16 * s, 0, 7); ctx.stroke();
     ctx.restore();
     ctx.font = "900 20px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = INK;
-    ctx.fillText(`${b.hits} かい　のこり ${Math.ceil(b.t)}びょう`, G.W / 2, this.oy + 34);
+    ctx.fillText(`${b.hits} かい　のこり ${Math.ceil(b.t)}びょう`, G.W / 2, 94);
   }
   drawFx(ctx) {
-    const s = this.s;
+    const s = this.actorScale;
     for (const f of this.fxs) {
       const k = f.t / f.dur;
       const base = f.c ? this.toScreen(f.c.x, f.c.y) : this.toScreen(f.x, f.y);
@@ -773,9 +805,13 @@ class HouseScene {
   }
   drawEditOverlay(ctx) {
     ctx.save();
-    ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.setLineDash([6, 6]); ctx.lineWidth = 2;
-    const a = this.toScreen(0, ROOM.WALL);
-    ctx.beginPath(); ctx.moveTo(0, a.y); ctx.lineTo(G.W, a.y); ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.setLineDash([3, 5]); ctx.lineWidth = 1;
+    for (let x = 0; x <= ROOM.W; x += 60) {
+      const a = this.toScreen(x, ROOM.WALL), b = this.toScreen(x, ROOM.H); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
+    for (let y = ROOM.WALL; y <= ROOM.H; y += 60) {
+      const a = this.toScreen(0, y), b = this.toScreen(ROOM.W, y); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
     ctx.restore();
   }
   drawHideHint(ctx) {

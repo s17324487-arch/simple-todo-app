@@ -47,7 +47,7 @@ const ParentCare = {
     return s+'</svg>';
   },
   init(sc) {
-    sc.parents=[{id:"papa",x:75,y:280},{id:"mama",x:285,y:280}].map(p=>({...p,tx:p.x,ty:p.y,anim:0,state:"idle",time:0,target:null,queue:[]}));
+    sc.parents=[{id:"papa",x:90,y:350},{id:"mama",x:375,y:345}].map(p=>({...p,tx:p.x,ty:p.y,anim:0,state:"idle",time:0,target:null,queue:[]}));
     sc.parentTimer=8; sc.parentTurn=0; sc.careTurn=0;
   },
   request(sc,id,all=false) {
@@ -62,7 +62,7 @@ const ParentCare = {
     p.target=id;p.state="walk";
     const c=sc.chars.find(c=>c.id===id);
     c.state="idle";c.t=6;
-    p.tx=U.clamp(c.x+(p.id==="papa"?-38:38),38,322);p.ty=c.y-4;
+    p.tx=U.clamp(c.x+(p.id==="papa"?-38:38),38,ROOM.W-38);p.ty=c.y-4;
   },
   care(sc,p) {
     const id=p.target, c=sc.chars.find(c=>c.id===id), d=Save.d.chars[id], now=Date.now();
@@ -88,7 +88,7 @@ const ParentCare = {
     if((sc.parentTimer-=dt)<=0){
       const p=sc.parents[sc.parentTurn++%2];
       if(Save.d.parents.auto){if(sc.life.quarrel){HomeLife.settle(sc,false);HomeLife.say(sc,p.id,"みんなで じゅんばんこに しようね♪");}this.request(sc,p.id);}
-      else if(p.state==="idle"){p.tx=U.rand(55,305);p.ty=U.rand(278,315);p.state="walk";}
+      else if(p.state==="idle"){p.tx=U.rand(55,ROOM.W-55);p.ty=U.rand(ROOM.WALL+80,ROOM.H-50);p.state="walk";}
       sc.parentTimer=U.rand(13,18);
     }
     for(const p of sc.parents){
@@ -101,7 +101,7 @@ const ParentCare = {
     }
   },
   draw(sc,ctx,p) {
-    const pos=sc.toScreen(p.x,p.y),size=98.8*sc.s;
+    const pos=sc.toScreen(p.x,p.y),size=98.8*sc.actorScale;
     const pose=p.state==="walk"?(Math.floor(p.anim*7)%2?"walk1":"walk2"):p.state==="care"?"care":Math.floor(p.anim/4)%3===0?"wave":"idle";
     const look=this.look(p.id), key=`parent:${p.id}:${JSON.stringify(look)}:${pose}`;
     const img=SvgCache.get(key,()=>this.svg(p.id,look,pose),Math.ceil(size*G.px),Math.ceil(size*160/130*G.px));

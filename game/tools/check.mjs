@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals, Weather, SeasonPalette })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, HomeDesign, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals, Weather, SeasonPalette })`, ctx);
 
 // ---------- 3. バージョン ----------
 const pkg = JSON.parse(readFileSync(join(GAME, "package.json"), "utf8"));
@@ -254,6 +254,21 @@ for (const id of R.Chara.IDS) svgOk(R.Chara.svg(id, { outfit: everything }), `${
 for (const sp of Object.keys(R.SPECIES)) for (const dir of DIRS) for (const emo of ["normal", "happy", "sad", "surprise", "angry", "sleep"]) svgOk(R.Art.npcSvg({ sp, dir, emo, outfit: { head: "tophat", body: "stripe" } }), `NPC ${sp} ${dir} ${emo}`);
 for (const [k, e] of Object.entries(R.ENEMIES)) for (const emo of ["normal", "hurt", "sleep", "angry"]) svgOk(R.Art.enemySvg(e.art, e.col, emo), `敵 ${k} ${emo}`);
 for (const f of R.FURNITURE) { svgOk(R.Art.furnSvg(f.id), `家具 ${f.id}`); svgOk(R.Art.furnSvg(f.id, { flip: true }), `家具 ${f.id}(はんてん)`); }
+// 斜めの床での操作、保存した旧座標、家具の全向きと左右の壁。
+for(const x of [0,120,360,480])for(const y of [0,140,230,360]){
+  const p=R.HomeDesign.project(x,y),q=R.HomeDesign.inverse(p.x,p.y);
+  ok(Math.abs(q.x-x)<1e-8&&Math.abs(q.y-y)<1e-8,"おへやの床座標が往復しない");
+}
+for(const w of R.WALLPAPERS)for(const f of R.FLOORS)svgOk(R.HomeDesign.roomSvg(w.id,f.id),`部屋 ${w.id}/${f.id}`);
+for(const f of R.FURNITURE.filter(f=>f.kind!=="wall"))for(const flip of [false,true]){
+  const m=R.HomeDesign.model(f.id,{flip});
+  ok([m.x,m.y,m.w,m.h,m.footW,m.footD].every(Number.isFinite)&&m.w>0&&m.h>0,`家具の投影範囲 ${f.id}/${flip}`);
+}
+const oldHome=R.Save.fresh();oldHome.coins=987654;oldHome.room.items[2].x=19;oldHome.room.items[2].y=248;
+oldHome.rooms.owned.study=true;oldHome.rooms.stored.study=JSON.parse(JSON.stringify(oldHome.room));
+const oldHomeState=JSON.stringify([oldHome.coins,oldHome.furn,oldHome.room,oldHome.rooms]);
+const loadedHome=R.Save.migrate(JSON.parse(JSON.stringify(oldHome)));
+ok(JSON.stringify([loadedHome.coins,loadedHome.furn,loadedHome.room,loadedHome.rooms])===oldHomeState,"部屋の更新で旧所持品・配置・増築・おかねを変更した");
 for (const id of bagIds) svgOk(R.Art.iconSvg("bag", id), `アイコン ${id}`);
 for (const w of R.WALLPAPERS) svgOk(R.Art.iconSvg("wall", w.id), `かべがみ ${w.id}`);
 for (const f of R.FLOORS) svgOk(R.Art.iconSvg("floor", f.id), `ゆか ${f.id}`);

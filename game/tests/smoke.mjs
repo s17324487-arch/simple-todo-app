@@ -727,6 +727,66 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect((await H.dbg("state")).coins===money,"天気や再開でおかねが変わった");
 },{viewport,full:viewport.width===375,timeout:90000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`広いおうち・立体もようがえ（${viewport.width}）`,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);await H.dbg("pause",true);
+  await H.dbg("coins",987504);const original=await H.dbg("homeDesign"),money=(await H.dbg("state")).coins;
+  const raw=items=>items.map(({rect,anchor,...it})=>it);
+  await H.dbg("save");await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();await H.dbg("pause",true);await H.dbg("hour",12);
+  let d=await H.dbg("homeDesign");
+  expect(d.width===480&&d.depth===360,"床の面積が拡張されていない");
+  expect(JSON.stringify(raw(d.items))===JSON.stringify(raw(original.items))&&JSON.stringify(d.furn)===JSON.stringify(original.furn),"読み込みで旧家具・座標が変わった");
+  expect((await H.dbg("state")).coins===money,"おうちの更新でおかねが変わった");await H.shot("existing-save");
+  await H.dbg("unlockAll");
+  const layout=[
+    {id:"map_frame",x:180,y:85,wallSide:"left"},{id:"window",x:240,y:80},{id:"herb_frame",x:310,y:135},
+    {id:"rug_kilim",x:255,y:545},{id:"bed_simple",x:265,y:500},{id:"bookshelf",x:78,y:306},
+    {id:"wardrobe_oak",x:382,y:326},{id:"birdcage_brass",x:164,y:310},{id:"table_wood",x:124,y:418},
+    {id:"chair_wood",x:72,y:450},{id:"plant",x:54,y:538},{id:"teacart",x:364,y:557},{id:"stool_oak",x:420,y:495},
+  ];
+  await H.dbg("homeLayout",layout,"wp_sage_panel","fl_walnut");await H.wait(500);
+  await H.shot("furnished");await H.dbg("pause",false);await H.houseButton("もようがえ");
+  d=await H.dbg("homeDesign");const stool=d.items.find(it=>it.id==="stool_oak");
+  const start={x:stool.rect.x+stool.rect.w*.5,y:stool.rect.y+stool.rect.h*.2};
+  const a=await H.dbg("homePoint",stool.x,stool.y),b=await H.dbg("homePoint",stool.x-90,stool.y+30);
+  await H.page.mouse.move(start.x,start.y);await H.page.mouse.down();await H.page.mouse.move(start.x+b.x-a.x,start.y+b.y-a.y,{steps:12});await H.page.mouse.up();
+  d=await H.dbg("homeDesign");const moved=d.items.find(it=>it.uid===stool.uid);
+  expect(Math.abs(moved.x-(stool.x-90))<2&&Math.abs(moved.y-(stool.y+30))<2,"斜めの床で家具が指とずれる");
+  await H.page.getByRole("button",{name:"はんてん",exact:true}).click();expect((await H.dbg("homeDesign")).items.find(it=>it.uid===stool.uid).flip,"家具が回転しない");
+  const map=(await H.dbg("homeDesign")).items.find(it=>it.id==="map_frame");
+  await H.tap(map.rect.x+map.rect.w/2,map.rect.y+map.rect.h/2);
+  await H.page.getByRole("button",{name:"かべを かえる",exact:true}).click();
+  expect((await H.dbg("homeDesign")).items.find(it=>it.id==="map_frame").wallSide==="back","右の壁へ移せない");
+  await H.page.getByRole("button",{name:"かべを かえる",exact:true}).click();
+  for(const b of await H.page.locator(".home-view-controls button,.edit-tools button").all()){const r=await b.boundingBox();expect(r.height>=44&&r.x>=0&&r.x+r.width<=viewport.width,"操作ボタンが小さい/画面外");}
+  await H.page.getByRole("button",{name:"おへやを おおきく",exact:true}).click();expect((await H.dbg("homeDesign")).zoom===1.25,"拡大できない");
+  await H.page.mouse.move(20,120);await H.page.mouse.down();await H.page.mouse.move(55,150,{steps:10});await H.page.mouse.up();
+  expect(Math.abs((await H.dbg("homeDesign")).pan.x)>5,"拡大後に画面を動かせない");
+  await H.page.getByRole("button",{name:"おへやを ぜんたいに",exact:true}).click();d=await H.dbg("homeDesign");
+  expect(d.zoom===1&&d.pan.x===0&&d.pan.y===0,"全体表示に戻らない");await H.shot("editing");
+  await H.page.locator(".edit-bar .btn.yellow").click();await H.wait(100);
+  // 家具と話者のタップ判定は表示された位置を基準にする。
+  d=await H.dbg("homeDesign");const cage=d.items.find(it=>it.id==="birdcage_brass");
+  await H.tap(cage.rect.x+cage.rect.w*.5,cage.rect.y+cage.rect.h*.3);
+  expect((await H.dbg("homeLife")).furniture[cage.uid]>0,"とりかごがタップで動かない");
+  await H.houseButton("みまもる");await H.shot("watch");await H.page.getByRole("button",{name:"みまもりを おわる",exact:true}).click();
+  const final=await H.dbg("homeDesign");await H.dbg("save");await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  d=await H.dbg("homeDesign");expect(JSON.stringify(raw(d.items))===JSON.stringify(raw(final.items))&&d.wall===final.wall&&d.floor===final.floor,"新しい部屋の配置が保存されない");
+  expect((await H.dbg("state")).coins===money,"模様替えでおかねが変わった");
+  await H.houseButton("あそぶ");await H.choose(1);
+  await H.until(()=>PokaDebug.homeDesign().ball!==null);
+  const ball=(await H.dbg("homeDesign")).ball;await H.tap(ball.x,ball.y);
+  expect((await H.dbg("homeDesign")).ball.hits===1,"ボールの見た目とタップ位置がずれる");
+  await H.until(()=>PokaDebug.homeDesign().mode===null,10000);
+  await H.houseButton("あそぶ");await H.choose(0);await H.until(()=>PokaDebug.homeDesign().mode==="hide",10000);
+  for(let n=0;n<3;n++){
+    const sp=(await H.dbg("homeDesign")).hide.spots[0];if(!sp)break;
+    await H.tap(sp.rect.x+sp.rect.w/2,sp.rect.y+sp.rect.h/2);
+  }
+  expect((await H.dbg("homeDesign")).hide.found===3,"立体家具のかくれんぼで3人を見つけられない");
+  await H.until(()=>PokaDebug.homeDesign().mode===null,6000);
+  await H.houseButton("ねる");await H.wait(4000);await H.dialogs();await H.until(()=>PokaDebug.homeDesign().mode===null,8000);
+},{viewport,full:viewport.width===375,timeout:150000});
+
 await browser.close();
 server.close();
 const bad = results.filter((r) => !r.ok);
