@@ -113,13 +113,36 @@ const HomeLife = {
 
 const HomeRooms = {
   catalog: [{ id: "main", name: "いつもの おへや", price: 0, wins: 0 }, { id: "study", name: "ひだまりの アトリエ", price: 4500, wins: 10 }, { id: "garden", name: "そらの サンルーム", price: 9000, wins: 30 }],
+  expansionPrice: 6000,
   all() { return [Save.d.room, ...Object.values(Save.d.rooms.stored)]; },
+  expand(id) {
+    const rs = Save.d.rooms;
+    if (id !== rs.active || !this.catalog.some(r => r.id === id) || !rs.owned[id] || rs.expanded[id] || Save.d.coins < this.expansionPrice) return false;
+    Save.addCoins(-this.expansionPrice); rs.expanded[id] = true;
+    Save.mark(); Save.write(); return true;
+  },
   open(sc) {
-    const body = U.el("div"), m = UI.modal({ title: "おへやを ふやす", body });
+    const body = U.el("div"), m = UI.modal({ title: "おへや", body });
+    const id = Save.d.rooms.active, expanded = Save.d.rooms.expanded[id], price = this.expansionPrice;
+    const current = this.catalog.find(r => r.id === id), card = U.el("div", { class: "note room-expansion" });
+    card.append(U.el("strong", { text: "いまの おへやを ひろげる" }), U.el("div", { text: current.name }),
+      U.el("div", { text: expanded ? "ひろさ 2ばい（ひろげたよ）" : `ひろさ 1ばい → 2ばい：${price} コイン` }),
+      U.el("div", { text: "かぐの ばしょ・かべがみ・ゆかは そのまま。\nひとつの おへやに 1かいだけ。" }));
+    const expand = UI.btn(expanded ? "ひろげたよ" : "2ばいに ひろげる", async () => {
+      if (expand.disabled) return;
+      expand.disabled = true;
+      if (!await UI.confirm(`${price} コインで ${current.name}を 2ばいに ひろげる？\nかぐの ばしょは そのままだよ。`)) { expand.disabled = Save.d.coins < price; return; }
+      if (G.scene !== sc || !this.expand(id)) { UI.toast("いまは ひろげられないよ"); expand.disabled = !!Save.d.rooms.expanded[id] || Save.d.coins < price; return; }
+      m.close(); Game.goto("house", { msg: "おへやが 2ばいに ひろがったよ！" });
+    }, "wide yellow");
+    expand.disabled = !!expanded || Save.d.coins < price;
+    card.append(expand);
+    if (!expanded && Save.d.coins < price) card.append(U.el("div", { text: `あと ${price - Save.d.coins} コイン ためよう。` }));
+    body.append(card, U.el("strong", { text: "べつの おへや" }));
     for (const r of this.catalog) {
       const own = Save.d.rooms.owned[r.id];
-      const card = U.el("div", { class: "note" });
-      card.append(U.el("div", { text: r.name + (own ? "（もってる）" : `：${r.price} コイン・バトル ${r.wins}かい しょうり`) }));
+      const card = U.el("div", { class: "note", "data-room": r.id });
+      card.append(U.el("div", { text: r.name + (own ? `（もってる・ひろさ ${Save.d.rooms.expanded[r.id] ? 2 : 1}ばい）` : `：${r.price} コイン・バトル ${r.wins}かい しょうり`) }));
       const b = UI.btn(own ? "このへやへ" : "おへやを かう", async () => {
         if (!own) {
           if (Save.d.coins < r.price || Save.d.stats.wins < r.wins) { UI.toast("コインと しょうりすうが たりないよ"); return; }

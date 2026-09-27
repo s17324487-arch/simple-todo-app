@@ -1,5 +1,5 @@
 // おうち（たまごっち風の へや）。ごはん・なでる・あそぶ・きがえ・もようがえ・ねる
-const ROOM = { W: HomeDesign.W, H: HomeDesign.H + HomeDesign.D, WALL: HomeDesign.H };
+const ROOM = { get W() { return HomeDesign.W; }, get H() { return HomeDesign.H + HomeDesign.D; }, WALL: HomeDesign.H };
 const HOUSE_SIZE = 84; // へやの中のキャラの大きさ
 
 const Room = {
@@ -129,8 +129,8 @@ class HouseScene {
   }
   preloadFurn() { return Promise.all(Save.d.room.items.map((it) => this.furnCanvas(it, true))); }
   buildBg() {
-    const r = Save.d.room, b = HomeDesign.bounds();
-    this.bgArgs = ["house-design:" + r.wall + ":" + r.floor, () => HomeDesign.roomSvg(r.wall, r.floor), Math.ceil(b.w * 2), Math.ceil(b.h * 2)];
+    const r = Save.d.room, size = HomeDesign.size(), b = HomeDesign.bounds(size);
+    this.bgArgs = ["house-design:" + r.wall + ":" + r.floor + ":" + size.w + "x" + size.d, () => HomeDesign.roomSvg(r.wall, r.floor, size), Math.ceil(b.w * 2), Math.ceil(b.h * 2)];
     return SvgCache.ensure(...this.bgArgs);
   }
 
@@ -463,6 +463,7 @@ class HouseScene {
     const same = r.items.filter((o) => (FURN_INDEX[o.id].kind === "wall") === (f.kind === "wall"));
     let best = null, bestScore = 1e9;
     const ys = f.kind === "wall" ? [60, 110, 160] : f.kind === "rug" ? [430, 500, 560] : [320, 380, 440, 500, 560];
+    if (f.kind !== "wall") for (let y = 620; y <= ROOM.H - 30; y += 60) ys.push(y);
     for (const y of ys) for (let x = f.w / 2 + 6; x <= ROOM.W - f.w / 2 - 6; x += 24) {
       const cand = { ...it, x, y };
       this.clampItem(cand);
