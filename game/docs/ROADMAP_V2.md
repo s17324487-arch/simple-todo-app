@@ -164,6 +164,27 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 
 ---
 
+## M7. 町の 質（デザイン見本に 合わせる）
+
+見本と 作業指示: [`design/towns/heiwadai/CODEX_TASK.md`](design/towns/heiwadai/CODEX_TASK.md)（きまりは [`design/TOWN_GUIDE.md`](design/TOWN_GUIDE.md)）。上から 順に 1つずつ PR に する。
+
+### [ ] TOWN-01 道の ベクター描画（中心線＋幅・縁石・隅切り・横断歩道・停止線・矢印）
+- 受け入れ条件: CODEX_TASK.md「PR の 分けかた」1 の とおり。道の ない 町の 見た目は 変わらない。
+
+### [ ] TOWN-02 アセット 優先度 S を WorldArt へ（見本の SVG を そのまま）
+- 受け入れ条件: 部品の 一覧ページで `img/asset_sheet_*.png` と 同じ 形・色・細部。`SvgCache` の キーが 有限。
+
+### [ ] TOWN-03 アセット 優先度 A・B を WorldArt へ
+- 受け入れ条件: TOWN-02 と 同じ。
+
+### [ ] TOWN-04 平和台を v0.2 の 配置に（64×68）
+- 受け入れ条件: `npm run audit:town -- --check heiwadai` ✓。スマホ 2サイズの スクリーンショットが 見本 `img/phones.png` と 同じ 見え方。ID・ワープ・セーブ位置の 互換（CODEX_TASK.md の 2）。
+
+### [ ] TOWN-05 平和台の 仕上げ（町の人・動く 景観・夜の あかり）
+- 受け入れ条件: 見本に ある 人と 動きが そろう。FPS が 下がらない。
+
+---
+
 ## 技術的な宿題（手があいたら。機能と同じ PR に混ぜない）
 
 - [ ] T-01 `minigames.js`（約 860 行）を お店ごとのファイル（`js/mg-crepe.js` など）に分ける。index.html と sw.js の登録、読み込み順に注意。

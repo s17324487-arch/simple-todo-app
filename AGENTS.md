@@ -24,6 +24,8 @@
 | 手元で遊ぶ | `npm start` → http://localhost:8080/ | — |
 | 素材プレビュー（服・NPC・敵・家具を一覧表示） | `npm start` → http://localhost:8080/tools/preview.html | — |
 | キャラ素材 SVG から `js/chara-data.js` を作り直す | `npm run build:chara` | 数秒 |
+| 町の検査（小物の密度・何もない場所・道のつながり など） | `npm run audit:town`（`-- --check heiwadai` で めやす未満なら失敗） | 数秒 |
+| 町のデザイン見本を作り直す（`docs/design/towns/heiwadai/`） | `npm run design:heiwadai`（日本語フォントが必要） | 約20秒 |
 
 - すでに Chromium がある環境では `CHROMIUM_PATH=/path/to/chromium npm test` でも動く。
 - ブラウザが使えない環境では、最低限 `npm run check` を通し、そのことを PR に書く。
@@ -121,9 +123,12 @@
 | `tools/serve.mjs` | 依存なしのローカルサーバー |
 | `tools/build-chara.mjs` | 素材 SVG → `js/chara-data.js` |
 | `tools/preview.html` | 素材プレビュー（開発用） |
+| `tools/town-audit.mjs` | 町の検査（`npm run audit:town`） |
+| `tools/town-design/` | 町のデザイン見本を作る道具（部品の SVG・道の描き方・配置）。**見本の絵の正解はここの SVG** |
 | `tests/smoke.mjs` | Playwright のスモークテスト（13シナリオ） |
 | `assets/chara/` | キャラ素材（SVG マスター）。README.txt に素材の決まりごと |
 | `docs/` | 設計書・ロードマップ・引き継ぎ手順 |
+| `docs/design/` | デザイン見本（町づくりのきまり `TOWN_GUIDE.md`、町ごとの見本・部品リスト・作業指示） |
 
 ## 7. よくある作業の入口（詳しくは ARCHITECTURE.md の「追加のしかた」）
 
@@ -134,6 +139,7 @@
 - 町の人・会話 → `maps.js` の `npcs` ＋ `talk.js` の `TALKS`
 - お店のミニゲームを足す → `minigames.js`（`TaskBase` を継承したクラス）＋ `MG_TASKS`・`SHOPS`・`SHOP_OWNERS`・`HOWTO` ＋ `maps.js` の建物 ＋ `Save.fresh().shops` ＋ `PokaDebug.mg()` ＋ スモークテスト
 - マップを変える → `maps.js`。`npm run check` が、ワープ先・宝箱・ドア・人・敵の出現位置に歩いて行けるかまで調べる
+- 町・建物・道を作る／直す → 先に [`game/docs/design/README.md`](game/docs/design/README.md) と `TOWN_GUIDE.md` を読む。見本がある町（平和台）は、見本の絵と配置のとおりに作る（`towns/<町>/CODEX_TASK.md`）
 
 ## Code Review Rules
 
