@@ -748,6 +748,9 @@ Museum.at（walk でない展示のはんい）と canShow（fish／dino／info�
 ### 射撃場: あそぶ 画面（FEAT-16）
 ShootingRange に見本 RangeRef の rng・gauss・Game・SKILL・bot・view・proj・draw* を そのまま足した（range.js は見本と名前以外同じ）。RangeScene.start が ShootingRange.Game（W: G.W・H: G.H）を作り、update で input（.range-scene の ドラッグ・pointerdown の ボタン・キー・PokaDebug.rangeInput）→ game.update → game.take()（RANGE_DATA.sound。あたりは delay 秒あと）→ refresh（game.hud() を DOM に。かわった時だけ）。render は ShootingRange.draw(ctx, game, art) で #screen に描き、art.img は その しゅもくの 的（SvgCache「rt:…」はば 400px）と "fpv"（SvgCache「rg:じゅう:だれ:いろ」）。phase が end で finish: Save.d.range.plays・best（score の むき・ブルズアイは X）・GameEconomy.pay("range", 1, ★, difficulty)（shopBase.range = 60）→ .rg-result／.rg-sheet（もう いちど／えらびなおす／おわる）。✕ は UI.confirm で ロビーへ（コインなし）。
 
+### 射撃場: RO の 号令・おうえん・つなぎ（FEAT-17）
+RangeScene.ro（ready 0.8秒 → areYou 0.8秒 → null）の あいだは game.update を よびつつ standby の 時間を もどす（ねらう・のぞくは できる）。.range-cmd は cmdHtml（ro・phase standby・mode done）。finish は きろく・コイン・TownFolk.signal({ do: "range", stars }) の あと mode "done"（アンロード。ショウ クリア。1.2秒）→ showResult。events が あたり 3かいに 1かい hit・IPSC の A 4れんぞく／スチールの のこしなし combo、hurry は のこり 10秒（シリーズごと）で cheerSay（のこりの 2人の どちらか・.range-bubble 1.8秒・かおは RangeScene.CHEER_FACE）。
+
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。
 
