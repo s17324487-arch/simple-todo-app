@@ -55,6 +55,8 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   } catch (e) {
     results.push({ name, ok: false, error: e.message });
     console.log(`  ✗ ${name}\n      ${e.message}`);
+    console.log(e.stack);if(problems.length)console.log(problems);
+    console.log(await H.dbg("state").catch(()=>null));
     try { await page.screenshot({ path: join(SHOT_DIR, `FAIL_${name}.png`) }); } catch {}
   } finally {
     clearTimeout(timer);
@@ -685,13 +687,29 @@ await scenario("交通（電車・船・飛行機・中止・セーブ）", asyn
   await H.until(()=>PokaDebug.state().scene==="house"&&PokaDebug.idle());
 }, {timeout:120000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('heiwadai-layout-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',12);await H.dbg('calendar','2026-05-01');await H.dbg('weather','clear');
+  const fixture=await H.dbg('saveData');fixture.coins=987654;fixture.world={map:'heiwadai',x:27,y:11,dir:'down'};fixture.flags.chests.heiwadai_lane=true;
+  await H.dbg('seedSave',fixture);await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+  let state=await H.dbg('state');expect(state.coins===987654&&state.map==='heiwadai'&&state.pos[0]===27&&state.pos[1]===19,'古い位置から駅前へ安全に復帰できない');
+  expect((await H.dbg('saveData')).flags.chests.heiwadai_lane,'旧宝箱フラグが失われた');
+  const layout=await H.dbg('heiwadaiState');expect(layout.size[0]===64&&layout.size[1]===68,'v0.2の広さではない');
+  const market=layout.doors.find(d=>d.id==='heiwadai_market');await H.dbg('teleport','heiwadai',market.x,market.y+1);await H.idle();
+  expect(await H.dbg('walkTo',market.x,market.y),'駅前マーケットへ入れない');await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
+  expect((await H.dbg('storeState')).shop==='market','別の店へ入った');
+  await H.dbg('teleport','heiwadai',42,29,'right');await H.idle();await H.shot('station');
+  await H.dbg('teleport','heiwadai',9,50);await H.idle();const fountain=(await H.dbg('world')).objects.find(o=>o.id==='heiwadai_fountain');await H.tap(fountain.cx,fountain.cy);await H.until(()=>PokaDebug.world()?.active==='heiwadai_fountain');
+  expect((await H.dbg('world')).party.length===3,'なかまが欠ける');await H.dbg('save');
+  expect((await H.dbg('persistedSave')).coins===987654,'配置の更新でおかねが変わる');
+},{viewport,timeout:120000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`町の景観としかけ（${viewport.width}）`,async H=>{
   await H.newGameFast();await H.dbg("hour",12);
-  for(const [map,x,y] of [["heiwadai",27,14],["heiwadai",16,28],["town",12,16],["city",21,22],["harbor",19,23],["airport",25,20],["meadow",10,10],["forest",14,14],["cave",12,12]]){
+  for(const [map,x,y] of [["heiwadai",31,14],["heiwadai",9,50],["town",12,16],["city",21,22],["harbor",19,23],["airport",25,20],["meadow",10,10],["forest",14,14],["cave",12,12]]){
     await H.dbg("teleport",map,x,y);await H.until(m=>PokaDebug.state().map===m&&PokaDebug.idle(),15000,map);
     await H.shot(`${map}-${x}`);
   }
-  await H.dbg("teleport","heiwadai",16,28);await H.until(()=>PokaDebug.state().map==="heiwadai"&&PokaDebug.idle());
+  await H.dbg("teleport","heiwadai",9,50);await H.until(()=>PokaDebug.state().map==="heiwadai"&&PokaDebug.idle());
   const o=(await H.dbg("world")).objects.find(o=>o.id==="heiwadai_fountain");
   await H.tap(o.cx,o.cy);await H.until(()=>PokaDebug.world()?.active==="heiwadai_fountain",10000);
   await H.shot("fountain-play");
@@ -781,7 +799,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const after=await H.dbg("state");
   expect(after.map===before.map&&after.coins===before.coins&&JSON.stringify(after.pos)===JSON.stringify(before.pos),"地図閲覧でプレイ状態が変わった");
   await H.page.getByRole("button",{name:"とじる",exact:true}).click(); await H.idle();
-  await H.dbg("teleport","heiwadai",16,28); await H.idle();
+  await H.dbg("teleport","heiwadai",9,50); await H.idle();
   await H.page.keyboard.press("Escape"); await H.page.getByRole("button",{name:"ちず",exact:true}).click();
   expect(await H.page.locator(".atlas-marker.is-current").getAttribute("data-area")==="heiwadai","再度開いた地図の現在地が古い");
 },{viewport,full:viewport.width===375,timeout:90000});
@@ -990,10 +1008,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`落ち葉・背景に固定（${viewport.width}）`,async H=>{
   await H.newGameFast();await H.dbg("calendar","2026-10-15");await H.dbg("hour",12);await H.dbg("weather","wind");
-  await H.dbg("teleport","heiwadai",16,28);await H.idle();await H.wait(300);
+  await H.dbg("teleport","heiwadai",9,50);await H.idle();await H.wait(300);
   const before=await H.dbg("drift",30),money=(await H.dbg("state")).coins;
-  expect(await H.dbg("walkTo",18,30),"公園の移動先に到達できない");
-  await H.until(()=>{const p=PokaDebug.state().pos;return p[0]===18&&p[1]===30;});await H.wait(600);
+  expect(await H.dbg("walkTo",11,52),"公園の移動先に到達できない");
+  await H.until(()=>{const p=PokaDebug.state().pos;return p[0]===11&&p[1]===52;});await H.wait(600);
   const after=await H.dbg("drift",30),dx=after.camera.x-before.camera.x,dy=after.camera.y-before.camera.y;
   expect(Math.hypot(dx,dy)>20,"歩いてもカメラ移動が発生していない");
   for(const kind of ["seasonal","wind"]){
@@ -1013,7 +1031,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`vector-roads-${viewport.width}`,async H=>{
   const def=runInNewContext(readFileSync(new URL("./fixtures/roads-v02.js",import.meta.url),"utf8")+";ROAD_FIXTURE");
-  await H.newGameFast();await H.dbg("coins",927);await H.dbg("teleport","heiwadai",16,28);await H.idle();
+  await H.newGameFast();await H.dbg("coins",927);await H.dbg("teleport","heiwadai",9,50);await H.idle();
   await H.dbg("pause",true);const state=await H.dbg("state"),world=await H.dbg("world");
   const oldGround=await H.dbg("groundImage","meadow",1,1);
   for(const [name,cx,cy]of [["station",43.2,27.4],["junction",43,45]]){

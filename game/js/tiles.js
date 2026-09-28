@@ -174,7 +174,7 @@ const Tiles = {
       // 毎チャンク同じ世界原点を使う。模様の位相や線の座標をチャンクでリセットしない。
       g.save();g.scale(s/TS,s/TS);g.translate(-cx*N*TS,-cy*N*TS);
       TownRenewal.drawGround(g,map.def);
-      const ready=TownRoads.draw(g,map.def);g.restore();
+      const ready=map.def.heiwadai?(HeiwadaiGround.draw(g,[cx*N*TS-pad,cy*N*TS-pad,(cx+1)*N*TS+pad,(cy+1)*N*TS+pad]),true):TownRoads.draw(g,map.def);g.restore();
       if(!ready){const blank=document.createElement("canvas");blank.width=blank.height=s*N;blank.getContext("2d").drawImage(c,-pad,-pad);return blank;}
     }
     if(pad){const cropped=document.createElement("canvas");cropped.width=cropped.height=s*N;cropped.getContext("2d").drawImage(c,-pad,-pad);c=cropped;}

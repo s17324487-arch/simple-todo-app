@@ -54,7 +54,7 @@ class WorldScene {
     this.map = Maps.get(this.mapId);
     if (FieldMemory.map !== this.mapId) { FieldMemory.map = this.mapId; FieldMemory.defeated = new Set(); }
     let x = p.x != null ? p.x : w.x, y = p.y != null ? p.y : w.y;
-    const safe=TownRenewal.safePosition(this.map,x,y);
+    const safe=this.map.def.heiwadai&&this.map.isSolid(x,y)?this.map.def.safeSpawn:TownRenewal.safePosition(this.map,x,y);
     if(safe)[x,y]=safe;
     if (this.map.isSolid(x, y) && !this.map.doorAt(x, y)) { const f = this.findFree(x, y); x = f[0]; y = f[1]; }
     const dir = p.dir || w.dir || "down";
@@ -125,7 +125,8 @@ class WorldScene {
       const c = Save.d.chars[id];
       for (const dir of ["down", "up", "left", "right"]) for (const pose of poses) list.push([id, { pose, dir, outfit: c.outfit, color: c.color }]);
     }
-    const jobs = [Chara.preload(list, CHAR_SIZE),TownRoads.preload(this.map.def)];
+    const jobs = [Chara.preload(list, CHAR_SIZE),TownRoads.preload(this.map.def),HeiwadaiGround.preload(this.map.def)];
+    for(const it of [...(this.map.def.decals||[]),...(this.map.def.overhead||[])])jobs.push(HeiwadaiTown.canvas(this,it,true));
     const kinds = new Set(this.map.sprites.map((s) => (s.kind === "building" ? "b:" + s.spec.id : s.kind)));
     for (const s of this.map.sprites) jobs.push(this.spriteCanvas(s, true));
     for (const n of this.npcs) jobs.push(this.npcCanvas(n, n.w.dir, "idle_01", true));
@@ -145,6 +146,7 @@ class WorldScene {
     return c ? { c, a } : null;
   }
   spriteCanvas(s, ensure) {
+    if((s.spec||s.o)?.asset)return HeiwadaiTown.canvas(this,s.spec||s.o,ensure);
     if (s.kind === "building") return this.objCanvas("building", s.spec, ensure);
     if (s.kind === "gate") return this.objCanvas("gate", null, ensure);
     if (s.kind === "spring") return this.objCanvas("well", null, ensure);
@@ -241,8 +243,8 @@ class WorldScene {
   }
   goObject(o) {
     const L=this.party[0], candidates=[];
-    for(let y=o.y;y<o.y+o.h;y++) for(let x=o.x;x<o.x+o.w;x++) {
-      if(x!==o.x&&x!==o.x+o.w-1&&y!==o.y&&y!==o.y+o.h-1)continue;
+    for(let y=Math.floor(o.y);y<Math.ceil(o.y+o.h);y++) for(let x=Math.floor(o.x);x<Math.ceil(o.x+o.w);x++) {
+      if(x!==Math.floor(o.x)&&x!==Math.ceil(o.x+o.w)-1&&y!==Math.floor(o.y)&&y!==Math.ceil(o.y+o.h)-1)continue;
       const path=this.findPath(L.tx,L.ty,x,y,true);
       if(path)candidates.push({x,y,path});
     }
@@ -599,6 +601,7 @@ class WorldScene {
         const c = Tiles.chunk(map, cx, cy);
         ctx.drawImage(c, ox + cx * cs, oy + cy * cs, cs, cs);
       }
+    for(const it of map.def.decals||[])HeiwadaiTown.draw(ctx,this,it,ox,oy);
     this.renderWater(ctx, ox, oy);
     TownRenewal.drawMoving(ctx,this,ox,oy);
     if (this.tapMark) {
@@ -613,9 +616,10 @@ class WorldScene {
     const list = [];
     const vx0 = -ox - 64, vx1 = G.W - ox + 64, vy0 = -oy - 40, vy1 = G.H - oy + 140;
     for (const s of map.sprites) {
+      if(s.o?.over)continue;
       const wx = (s.bx != null ? s.bx : s.x) * TS, wy = (s.y + 1) * TS;
       if (wx > vx1 || wx + (s.tw || 1) * TS < vx0 || wy < vy0 || wy - 200 > vy1) continue;
-      list.push({ z: wy - 1, draw: () => this.drawStatic(ctx, s, ox, oy) });
+      list.push({ z: wy - 1+(s.o?.z||0)*.32, draw: () => this.drawStatic(ctx, s, ox, oy) });
     }
     for (const c of map.chests) {
       const opened = c.daily ? Save.d.flags.chests[c.id] === U.today() : !!Save.d.flags.chests[c.id];
@@ -637,6 +641,7 @@ class WorldScene {
     });
     list.sort((a, b) => a.z - b.z);
     for (const it of list) it.draw();
+    HeiwadaiTown.overhead(ctx,this,ox,oy);
     // くさむらの 足もと
     const tallOn = new Set();
     const mark = (w) => { const tx = Math.round(w.x), ty = Math.round(w.y); if (map.isTall(tx, ty)) tallOn.add(tx + "," + ty); };
@@ -682,6 +687,7 @@ class WorldScene {
     ctx.stroke();
   }
   drawStatic(ctx, s, ox, oy, bounds) {
+    if((s.spec||s.o)?.asset){HeiwadaiTown.draw(ctx,this,s.spec||s.o,ox,oy);return;}
     const r = this.spriteCanvas(s, false);
     if (!r) return;
     const { c, a } = r;
