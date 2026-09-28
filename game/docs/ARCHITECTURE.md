@@ -423,6 +423,10 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
 - 下のボタン: ごはん（好物だと大喜び・苦手だと不機嫌）／あそぶ（かくれんぼ・ボールあそび）／きがえ（`DressUp`）／もようがえ／ねる（HP・SP 全回復、ベッドが良いほど ごきげん↑）／おでかけ。
 - キャラをタップでなでる。「いごこち」（`Room.comfort()` = 壁紙＋床＋家具の comfort の合計）が高いほど ごきげんが減りにくい。
 - もようがえ: ドラッグで移動、タップで はんてん・しまう。壁の家具は壁の範囲、床の家具は床の範囲に収める（`clampItem`）。
+- `ParentWork`（parent-work.js）… ぱぱ・ままの おしごと（ART-04）。`U.hourNow()` が 9〜17 の あいだは 家に いない（`p.hidden`）。`ParentCare` の init・update・draw・open・request を つつむ（parent-care.js と scene-house.js は かえない）。
+  - `sc.work.phase`: home → leaving（ドアへ あるいて きえる・「いってきます」）→ away（おるすばん）→ arriving（ドアから 入る・「ただいま」「おかえり」・3人の ごきげん と なかよし +）→ home。`PokaDebug.hour` で 時こくを とばした ときは `snap`（えんしゅつ なし）。
+  - おるすばん: `ALONE`（1人ずつ・せいかく）・`TALKS`（かけあい）・`timely`（12じ・15じ・17じはん）。しぐさは `sc.react` / `sc.fx`、うごきは ドア・まど・3人で あつまる。テストで とめて いる 子（`c.t > 100`）は うごかさない。
+  - その日 はじめて おしごと ちゅうに 入ると ひとこと（`flags.workDay`）、18〜21じに はじめて 入ると「ただいま」（`flags.homeDay`）。PokaDebug は `parentWork(event)`。
 
 ---
 

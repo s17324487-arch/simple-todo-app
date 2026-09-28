@@ -23,6 +23,7 @@ const PokaDebug = {
       "PokaDebug.water('coast', 30, 10)   水の かたまりの しゅるい（川・海・湖）・岸・その マスの 色",
       "PokaDebug.cast('town_walker0')   町の人の 名前・種・見た目（id なしで 全員の ようす）",
       "PokaDebug.house()                     おうちへ",
+      "PokaDebug.parentWork('talk')          ぱぱ・ままの おしごと（9〜18じ）の ようす。'alone' / 'talk' で おるすばん、'arrive' / 'leave' で ただいま／いってきます",
       "PokaDebug.furnLive('lamp')            さわれる 家具の ようす（つく・チャンネル・きょく・はと など）と タップする 点",
       "PokaDebug.furnArt('piano', false)     家具の 立体モデル（作りなおしたか・床の 大きさ・絵の 大きさ・うごいて いるか）。id なしで 作りなおした 一覧",
       "PokaDebug.battle([{ kind: 'purun', lv: 2 }], 'meadow')  バトル開始",
@@ -247,6 +248,13 @@ const PokaDebug = {
       foot: !m || (m.footW === (flip ? dm.d : dm.w) && m.footD === (flip ? dm.w : dm.d)), w: m ? m.w : f.w, h: m ? m.h : f.h,
       kb: (m ? m.full.length : Art.furnSvg(id, { flip }).length) / 1024, loaded: [...SvgCache.map.keys()].some((k) => k.startsWith(key + "@")),
       moving: G.sceneName === "house" && Save.d.room.items.some((it) => it.id === id && G.scene.life.furniture[it.uid] > 0) };
+  },
+  // ぱぱ・ままの おしごと（ART-04）: いまの ようす。event を わたすと おるすばんの できごとを すぐ おこす（"alone" / "talk"）
+  parentWork(event) {
+    if (G.sceneName !== "house" || typeof ParentWork === "undefined") return null;
+    const sc = G.scene, w = sc.work || {};
+    const ran = event === "arrive" ? (ParentWork.arrive(sc), event) : event === "leave" ? (ParentWork.leave(sc), event) : event ? ParentWork.event(sc, event) : null;
+    return { away: ParentWork.away(), phase: w.phase, visible: sc.parents.filter((p) => !p.hidden).map((p) => p.id), fade: w.fade, left: ParentWork.minutesLeft(), label: sc.parentButton ? sc.parentButton.textContent : null, ran, queued: (w.queue || []).length };
   },
   // さわれる 家具の ようす（とけい・ライト・テレビ など）と、その 家具を タップできる 画面の 点
   furnLive(id) {
