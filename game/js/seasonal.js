@@ -25,7 +25,7 @@ const Seasonal = {
     const e=this.current();if(!e.targets.some(t=>t[0]===map&&t[1]===object.id))return null;
     const r=this.record(e.key,true);if(r.stamps[object.id])return null;
     r.stamps[object.id]=true;Save.mark();Save.write();
-    return `きせつの スタンプ！ ${Object.keys(r.stamps).length}/3\n「おまつり」ボタンで きねんひんを うけとろう！`;
+    return `きせつの スタンプ！ ${Object.keys(r.stamps).length}/3\nすまほの「スタンプラリー」で きねんひんを うけとろう！`;
   },
   claim(key) {
     const e=this.current();if(e.key!==key)return false;

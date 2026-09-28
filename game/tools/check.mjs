@@ -1220,6 +1220,66 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   ok(fa.fixed.length >= 20 && fa.fixed.every((id) => fa.foods.some((f) => f.id === id)), "FoodArtFix の 食べ物が ない か すくない " + fa.fixed.join());
 }
 
+// ---------- すまほ（js/smaho.js）: ≡ は せってい・あそびかた だけ。ちず・ようす・もちもの などは すまほの アプリ ----------
+{
+  const sm = vm.runInContext(`(()=>{
+    const apps = Smaho.APPS.map((a) => ({ id: a.id, name: a.name, icon: Smaho.ICON[a.id] || "", color: a.color }));
+    const d0 = Save.d, paused = Game.paused, out = {};
+    try {
+      Save.d = Save.fresh();
+      out.hints = Smaho.hints().map((h) => ({ icon: h.icon, text: h.text }));
+      const day = "2026-9-28"; // U.today() の 形
+      out.f1 = Smaho.fortune(day); out.f2 = Smaho.fortune(day);
+      out.lucks = [...new Set(Array.from({ length: 60 }, (_, i) => Smaho.fortune("2027-" + (1 + (i % 12)) + "-" + (1 + (i % 28))).luck))];
+      out.featured = typeof DailyPlay !== "undefined" ? DailyPlay.featured(day) : null;
+      // 町の「おまつり」ボタンは もう つくらない（すまほの ボタンだけ）
+      const mb = Smaho.mountButton; let mounts = 0; Smaho.mountButton = () => { mounts++; };
+      const sc = { festivalButton: "old" };
+      try { Seasonal.mount(sc); } finally { Smaho.mountButton = mb; }
+      out.mount = { mounts, festival: sc.festivalButton };
+      // Esc（Game.openMenu）は すまほを ひらく・とじる。うごけない ときは なにも しない
+      const tg = Smaho.toggle; let toggles = 0; Smaho.toggle = () => { toggles++; };
+      try { Game.paused = false; Game.openMenu(); Game.paused = true; Game.openMenu(); } finally { Smaho.toggle = tg; }
+      out.toggles = toggles;
+    } finally { Save.d = d0; Game.paused = paused; }
+    return { apps, LUCK: Smaho.LUCK.map((l) => l[0]), foods: FOODS.map((f) => f.id), places: Object.values(MAP_DEFS).map((m) => m.name), menu: Menu.open.toString(), help: Menu.help.toString(), fortuneSrc: Smaho.fortune.toString(), ...out };
+  })()`, ctx);
+  const kanji = /[\u4E00-\u9FFF]/;
+  const ids = sm.apps.map((a) => a.id);
+  ok(new Set(ids).size === ids.length, "すまほの アプリの id が かさなる");
+  for (const need of ["map", "status", "bag", "dex", "event", "rally", "hint", "fortune"]) ok(ids.includes(need), `すまほに アプリ ${need} が ない`);
+  for (const a of sm.apps) {
+    ok(a.name && !kanji.test(a.name) && a.name.length <= 7, `すまほの アプリ ${a.id}: なまえ「${a.name}」は ひらがな・カタカナで 7もじ まで`);
+    ok(a.icon, `すまほの アプリ ${a.id}: アイコンが ない`);
+    if (a.icon) svgOk(`<svg viewBox="0 0 44 44">${a.icon}</svg>`, `すまほの アイコン ${a.id}`);
+    ok(/^#[0-9A-Fa-f]{6}$/.test(a.color || ""), `すまほの アプリ ${a.id}: いろ が ない`);
+  }
+  // ≡（Menu.open）は メタな ものだけ
+  const tabs = [...((/const T = \[(.*?)\];/.exec(sm.menu) || [])[1] || "").matchAll(/\["(\w+)"/g)].map((m) => m[1]);
+  ok(tabs.join() === "settings,help", "≡ の タブは せってい・あそびかた だけ（ちず・ようす・もちもの・ずかんは すまほ）: " + tabs.join());
+  for (const t of sm.help.match(/"[^"]*"/g) || []) ok(!kanji.test(t), `あそびかたに 漢字が ある: ${t}`);
+  ok(sm.mount.mounts === 1 && sm.mount.festival === null, "町の「おまつり」ボタンが まだ ある（すまほの イベントへ まとめる）");
+  ok(sm.toggles === 1, "Esc（Game.openMenu）で すまほが ひらかない か うごけない ときも ひらく");
+  // ひんと
+  const proper = sm.places.flatMap((n) => [n, n.replace(/（.*$/, "")]).sort((a, b) => b.length - a.length);
+  ok(sm.hints.length >= 4, "ひんとが すくない");
+  for (const h of sm.hints) {
+    ok(sm.apps.some((a) => a.id === h.icon) || h.icon === "phone", `ひんとの アイコン ${h.icon} が ない`);
+    // ばしょの 名前（「平和台」など）は そのまま つかって よい
+    const plain = proper.reduce((t, n) => t.split(n).join(""), h.text || "");
+    ok(h.text && !kanji.test(plain), `ひんとに 漢字が ある: ${h.text}`);
+  }
+  // うらない: おなじ 日は おなじ けっか（Math.random・Date.now を つかわない）・日で かわる・ラッキーの もの は ほんとうに ある
+  ok(!/Math\.random|Date\.now|new Date/.test(sm.fortuneSrc), "うらないが その日の うちに かわる（Math.random・Date を つかって いる）");
+  ok(JSON.stringify(sm.f1) === JSON.stringify(sm.f2), "うらないが おなじ 日で ちがう");
+  ok(sm.lucks.length >= 3 && sm.lucks.every((l) => sm.LUCK.includes(l)), "うらないの けっかが 日で かわらない: " + sm.lucks.join());
+  ok(sm.foods.includes(sm.f1.food), `うらないの ラッキー たべもの ${sm.f1.food} が ない`);
+  ok(sm.places.includes(sm.f1.place), `うらないの ラッキー ばしょ ${sm.f1.place} が ない`);
+  ok(!sm.featured || sm.f1.shop === sm.featured, "うらないの ラッキー おみせが きょうの おすすめと ちがう（コインが ふえない）");
+  for (const t of [sm.f1.luck, sm.f1.message, ...Object.values(sm.f1.words)]) ok(!kanji.test(t), `うらないに 漢字が ある: ${t}`);
+  ok(["wanko", "gachan", "goji"].every((k) => sm.f1.words[k]), "うらないに 3にんの ひとことが ない");
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);
