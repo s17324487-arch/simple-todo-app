@@ -444,7 +444,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
     expect((await H.dbg('mg')).decorTier===lv,'おてつだいの飾りがレベルに対応しない');await H.shot('work-lv'+lv);
     await H.page.getByRole('button',{name:'おてつだいを やめる',exact:true}).click();await H.page.getByRole('button',{name:'ここで やめる',exact:true}).click();await H.page.getByRole('button',{name:'まちに もどる',exact:true}).click();await H.idle();
   }
-  const hd=(await H.dbg('townLayout','heiwadai')).doors.find(d=>d.act.shop==='crepe');await H.dbg('teleport','heiwadai',hd.x,hd.y+1);await H.idle(30000);await H.wait(300);await H.shot('heiwadai-lv5');
+  const data=await H.dbg('saveData');data.shops.burger.lv=5;await H.dbg('seedSave',data);const hd=(await H.dbg('townLayout','heiwadai')).doors.find(d=>d.act.shop==='burger');await H.dbg('teleport','heiwadai',hd.x,hd.y+1);await H.idle(30000);await H.wait(300);await H.shot('heiwadai-lv5');
   const keys=(await H.dbg('shopDecor','crepe')).keys;expect(keys.some(k=>k.startsWith('shop-decor:5:')),'平和台の原画に飾りを重ねられない');
   const after=await H.dbg('saveData');for(const k of ['coins','bag','wardrobe','furn','rooms'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'店の飾りで所持品が変わる: '+k);
 },{viewport,full:viewport.width===375,timeout:180000});
