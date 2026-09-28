@@ -23,6 +23,7 @@ const PokaDebug = {
       "PokaDebug.water('coast', 30, 10)   水の かたまりの しゅるい（川・海・湖）・岸・その マスの 色",
       "PokaDebug.cast('town_walker0')   町の人の 名前・種・見た目（id なしで 全員の ようす）",
       "PokaDebug.house()                     おうちへ",
+      "PokaDebug.furnArt('piano', false)     家具の 立体モデル（作りなおしたか・床の 大きさ・絵の 大きさ・うごいて いるか）。id なしで 作りなおした 一覧",
       "PokaDebug.battle([{ kind: 'purun', lv: 2 }], 'meadow')  バトル開始",
       "PokaDebug.battleState()                属性・HP・状態・技・曲を読む",
       "PokaDebug.battleFixture({ hp: 1, condition: 'fire' })  コマンド待ち中に戦闘の状態を再現",
@@ -233,6 +234,17 @@ const PokaDebug = {
       ball:sc.ball?{...point(sc.ballPoint(sc.ball)),hits:sc.ball.hits}:null,
       hide:sc.hide?{...sc.hide,spots:sc.chars.filter(c=>c.hidden).map(c=>({id:c.id,rect:rect(c.spot.door?sc.doorRect():sc.itemRect(c.spot.it))}))}:null,
       stored:JSON.parse(JSON.stringify(Save.d.rooms)),furn:{...Save.d.furn},wall:Save.d.room.wall,floor:Save.d.room.floor};
+  },
+  furnArt(id, flip = false) {
+    if (id == null) return { ids: typeof FurnModels !== "undefined" ? [...FurnModels.ids] : [] };
+    const f = FURN_INDEX[id];
+    if (!f) return null;
+    const dm = HomeDesign.dimensions(id), m = f.kind === "wall" ? null : HomeDesign.model(id, { flip }), fm = typeof FurnModels !== "undefined";
+    const key = "furn:" + id + ":" + JSON.stringify({ flip });
+    return { id, kind: f.kind, rebuilt: fm && FurnModels.ids.includes(id), art: fm && FurnModels.has(id), dims: dm,
+      foot: !m || (m.footW === (flip ? dm.d : dm.w) && m.footD === (flip ? dm.w : dm.d)), w: m ? m.w : f.w, h: m ? m.h : f.h,
+      kb: (m ? m.full.length : Art.furnSvg(id, { flip }).length) / 1024, loaded: [...SvgCache.map.keys()].some((k) => k.startsWith(key + "@")),
+      moving: G.sceneName === "house" && Save.d.room.items.some((it) => it.id === id && G.scene.life.furniture[it.uid] > 0) };
   },
   homeLayout(items,wall="wp_cream",floor="fl_wood") {
     if(G.sceneName!=="house"||items.some(it=>!FURN_INDEX[it.id])||!WALL_INDEX[wall]||!FLOOR_INDEX[floor])throw new Error("invalid home fixture");

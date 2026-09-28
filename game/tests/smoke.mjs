@@ -1862,6 +1862,37 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect((await H.dbg("state")).coins===money,"天気や再開でおかねが変わった");
 },{viewport,full:viewport.width===375,timeout:90000});
 
+// ART-03: 家具の 立体モデル（まるい ラグ・天がい・キッチン・ピアノ など）が 部屋に 出る。床の 大きさは かわらない
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('furniture-art-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);await H.dbg("pause",true);await H.dbg("unlockAll");
+  const rooms=[
+    [{id:"window",x:190,y:116},{id:"clock",x:330,y:90},{id:"poster",x:80,y:110},{id:"rug_round",x:220,y:430},{id:"bed_simple",x:80,y:330},{id:"table_wood",x:230,y:410},{id:"plant",x:420,y:290},{id:"lamp",x:160,y:285},{id:"bookshelf",x:330,y:280},{id:"toybox",x:390,y:480}],
+    [{id:"rug_star",x:240,y:450},{id:"bed_royal",x:90,y:350},{id:"vanity",x:250,y:290},{id:"piano",x:390,y:300},{id:"kotatsu",x:250,y:500},{id:"lamp",x:440,y:460,flip:true}],
+    [{id:"kitchen",x:90,y:300},{id:"teacart",x:210,y:300},{id:"aquarium",x:350,y:300},{id:"cloudsofa",x:330,y:500},{id:"train",x:120,y:510},{id:"tv",x:440,y:420,flip:true}],
+    [{id:"fireplace",x:240,y:285},{id:"tent",x:390,y:340},{id:"musicbox",x:100,y:320},{id:"desk",x:130,y:480},{id:"console_oak",x:320,y:500},{id:"plantshelf",x:440,y:520,flip:true},{id:"sofa",x:230,y:420}],
+  ];
+  const seen=new Set();
+  for(const [i,layout] of rooms.entries()){
+    await H.dbg("homeLayout",layout);await H.wait(600);
+    const d=await H.dbg("homeDesign");
+    expect(d.items.length===layout.length,"家具が 部屋に ならばない");
+    for(const it of d.items){
+      const a=await H.dbg("furnArt",it.id,!!it.flip);seen.add(it.id);
+      expect(a&&a.foot&&(a.kind==="wall"||a.art),`${it.id}: 立体モデルに なって いない／床の 大きさが かわった ${JSON.stringify(a)}`);
+      expect(a.kind==="wall"||a.loaded,`${it.id}: 部屋で 絵が 読みこまれて いない`);
+      expect([it.rect.x,it.rect.y,it.rect.w,it.rect.h].every(Number.isFinite)&&it.rect.w>8&&it.rect.h>8,`${it.id}: 部屋の 中の 絵の はんいが 不正 ${JSON.stringify(it.rect)}`);
+    }
+    await H.shot("room-"+(i+1));
+  }
+  const rebuilt=(await H.dbg("furnArt")).ids.filter(id=>!seen.has(id));
+  expect(rebuilt.length===0,"スモークで 見て いない 作りなおした 家具 "+rebuilt.join());
+  // さわれる 家具は これまでどおり タップで うごく
+  await H.dbg("pause",false);
+  const box=(await H.dbg("homeDesign")).items.find(it=>it.id==="musicbox");
+  await H.tap(box.rect.x+box.rect.w*.5,box.rect.y+box.rect.h*.62);await H.wait(250);
+  expect((await H.dbg("furnArt","musicbox")).moving,"オルゴールを タップしても うごかない");
+},{viewport,full:viewport.width===375,timeout:90000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`広いおうち・立体もようがえ（${viewport.width}）`,async H=>{
   await H.newGameFast();await H.dbg("hour",12);await H.dbg("pause",true);
   await H.dbg("coins",987504);const original=await H.dbg("homeDesign"),money=(await H.dbg("state")).coins;

@@ -1068,6 +1068,36 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   cast.svg.forEach((svg, i) => svgOk(svg, "町の人の 絵（もよう・かざり つき）" + i));
 }
 
+// ---------- 家具の 立体モデル（js/furniture-models.js。ART-03）----------
+{
+  const fm = vm.runInContext(`(()=>{
+    const out = [];
+    for (const f of FURNITURE) {
+      if (f.kind === "wall" || !FurnModels.has(f.id)) continue;
+      for (const flip of [false, true]) {
+        const m = HomeDesign.model(f.id, { flip }), dm = HomeDesign.dimensions(f.id), ids = [...m.full.matchAll(/ id="([^"]+)"/g)].map((x) => x[1]);
+        const corners = [[-dm.w / 2, -dm.d], [dm.w / 2, -dm.d], [dm.w / 2, 0], [-dm.w / 2, 0]].map(([x, y]) => (flip ? HomeDesign.project(y + dm.d / 2, x - dm.w / 2, 0) : HomeDesign.project(x, y, 0)));
+        out.push({ id: f.id, flip, rebuilt: FurnModels.ids.includes(f.id), foot: m.footW === (flip ? dm.d : dm.w) && m.footD === (flip ? dm.w : dm.d) && m.height === dm.h,
+          inside: corners.every((q) => q.x >= m.x - 0.01 && q.x <= m.x + m.w + 0.01 && q.y >= m.y - 0.01 && q.y <= m.y + m.h + 0.01), dup: ids.length !== new Set(ids).size, kb: m.full.length / 1024,
+          view: (m.full.match(/viewBox="([^"]+)"/) || [])[1] === [m.x, m.y, m.w, m.h].map((n) => f2(n)).join(" ") });
+      }
+    }
+    return { out, ids: FurnModels.ids, sky: FURN_ART.window().includes('fill="#A8DBFF" class="sky"'), poster: (FURN_ART.poster().match(/<svg /g) || []).length, clock: FURN_ART.clock({ live: true }).includes("M22,37 L22,31") };
+  })()`, ctx);
+  const need = ["rug_round", "rug_star", "bed_simple", "bed_royal", "table_wood", "desk", "console_oak", "teacart", "sofa", "cloudsofa", "bookshelf", "plantshelf", "kitchen", "vanity", "piano", "tv", "fireplace", "toybox", "aquarium", "musicbox", "train", "tent", "kotatsu", "lamp"];
+  ok(need.every((id) => fm.ids.includes(id)), "作りなおした 家具が たりない " + need.filter((id) => !fm.ids.includes(id)).join());
+  for (const r of fm.out) {
+    const w = `家具の 立体モデル ${r.id}${r.flip ? "（はんてん）" : ""}`;
+    ok(r.foot, `${w}: 床の 大きさ・高さが HomeDesign.dimensions と ちがう（おいた 場所が ずれる）`);
+    ok(r.inside, `${w}: 床の 四すみが 絵の はんいから はみ出す（あたり判定が ずれる）`);
+    ok(!r.dup, `${w}: SVG の id が かさなって いる`);
+    ok(r.view, `${w}: viewBox と x/y/w/h が ちがう`);
+    ok(r.kb < 64, `${w}: SVG が 大きすぎる（${r.kb.toFixed(1)}KB）`);
+  }
+  ok(fm.out.some((r) => !r.rebuilt), "2D の 絵の 家具が かげだけの モデルに ならない");
+  ok(fm.sky && fm.poster === 4 && !fm.clock, "かべの 家具: まどの 空の いろ・ポスターの 3にん・はとどけいの はり（live）が 不正");
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

@@ -10,7 +10,7 @@ const FILES = [
   "./js/dressup.js", "./js/scene-title.js", "./js/museum-data.js", "./js/museum-art.js", "./js/museum.js", "./js/range-data.js", "./js/gun-art.js", "./js/range.js", "./js/scene-world.js", "./js/scene-house.js", "./js/scene-battle.js", "./js/minigames.js", "./js/mg-crepe.js", "./js/mg-dentist.js", "./js/mg-bakery.js", "./js/mg-florist.js", "./js/mg-cake.js", "./js/mg-groom.js", "./js/mg-burger.js", "./js/shop-decor.js", "./js/daily-play.js", "./js/townsfolk-data.js", "./js/townsfolk-art.js", "./js/townsfolk.js", "./js/npc-cast.js", "./js/fishing-data.js", "./js/fish-art.js", "./js/fishing.js", "./js/fossil-data.js", "./js/fossil-art.js", "./js/fossils.js", "./js/scene-range.js", "./js/shop-rewards.js", "./js/slow-life-prices.js", "./js/debug.js",
   "./js/home-bubbles.js", "./js/home-talk-data.js", "./js/home-life.js", "./js/home-actions.js", "./js/parent-care.js",
   "./js/home-catalog.js",
-  "./js/home-design.js",
+  "./js/home-design.js", "./js/furniture-models.js",
   "./js/road-patterns.js", "./js/town-roads.js",
   "./js/heiwadai-art.js", "./js/heiwadai-assets-s.js", "./js/heiwadai-assets-ab.js",
   "./js/world-art.js", "./js/world-expansion.js",
