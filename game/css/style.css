@@ -514,3 +514,7 @@ html, body {
 .fossil-detail .desc { font-size: 14px; font-weight: 700; margin: 6px 4px; line-height: 1.5; white-space: pre-line; }
 .fossil-detail .fact { background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 12px; padding: 6px 10px; font-size: 13px; font-weight: 700; white-space: pre-line; text-align: left; }
 .fossil-detail .fact b { display: block; font-size: 12px; color: #9a6a00; }
+/* ⑤ 水族館・博物館: へやに はじめて 入った ときの 案内（見本 img/phones.png の ②④。HUD と てんきの 下の まんなか） */
+.museum-intro { position: absolute; left: 50%; top: calc(112px + var(--safe-t, 0px)); transform: translateX(-50%); max-width: 90%; width: max-content; background: #FFFDF6; border: 3px solid var(--ink); border-radius: 14px; padding: 6px 14px; font-weight: 800; font-size: 14px; line-height: 1.45; text-align: center; word-break: keep-all; box-shadow: 0 3px 0 var(--ink); pointer-events: none; z-index: 6; animation: museum-intro-in 0.25s ease-out; }
+.museum-intro .nm { font-size: 15px; font-weight: 900; }
+@keyframes museum-intro-in { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }

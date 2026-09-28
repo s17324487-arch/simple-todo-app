@@ -346,6 +346,21 @@ const PokaDebug = {
     for (const r of rocks) for (const [dir, [dx, dy]] of Object.entries(D)) { const x = r[0] - dx, y = r[1] - dy; if (!m.isSolid(x, y) && !m.warpAt(x, y) && !rocks.some(([a, b]) => a === x && b === y)) return { x, y, dir, rock: r }; }
     return null;
   },
+  // ⑤ 館（aquarium / museum）へ。room を わたすと その へやの まんなかの 手前（下の ほう）の 床に（展示の うしろに かくれない）
+  museumGo(id = "aquarium", room) {
+    const b = Museum.building(id); if (!b) throw new Error("unknown museum: " + id);
+    let x = b.arrive.x, y = b.arrive.y;
+    if (room) {
+      const r = b.rooms.find((q) => q.id === room); if (!r) throw new Error("unknown room: " + room);
+      const m = Maps.get(id), cx = r.x + Math.floor(r.w / 2), cy = r.y + r.h - 2; let best = null;
+      for (let yy = r.y; yy < r.y + r.h; yy++) for (let xx = r.x; xx < r.x + r.w; xx++) if (!m.isSolid(xx, yy) && !m.warpAt(xx, yy)) { const d = Math.abs(xx - cx) + Math.abs(yy - cy); if (!best || d < best[2]) best = [xx, yy, d]; }
+      if (best) [x, y] = best;
+    }
+    this.teleport(id, x, y, "up");
+    return { x, y };
+  },
+  // ⑤ 寄贈の きろく（2番で ふえる）と 入った へや
+  museumState() { const st = Save.d.museum; return { fish: Object.keys(st.fish).length, bones: Object.keys(st.bones).length, done: Object.keys(st.done), rooms: Object.keys(st.rooms), intro: document.querySelector(".museum-intro")?.innerText || null }; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
   rod(n = 1) { Save.d.fish.rod = n; Save.mark(); return n; },
   // 釣りの 画面を はじめる（fishId を わたすと その 魚が かかる）。もどり先は いまの 町の 場所

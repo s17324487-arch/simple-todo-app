@@ -90,12 +90,13 @@ class WorldScene {
     if (typeof TownFolk !== "undefined") TownFolk.mount(this);
     this.saveWorld();
     if (p.after) setTimeout(() => p.after(this), 350);
+    if (this.map.def.indoor && typeof Museum !== "undefined") setTimeout(() => { if (G.scene === this) Museum.arrived(this); }, 500); // ⑤ 入口の へやの 案内
     // はじめて来た場所の ヒント
     const f = Save.d.flags;
     const hint = { town: "「！」マークの ひとに はなしかけてみよう", meadow: "まものに ふれると バトル！ HPが へったら おうちで ねよう", forest: "もりの おくに いやしの いずみが あるよ", cave: "どうくつの おくに キングプルンが いる……" }[this.mapId];
     if (hint && !f["visit_" + this.mapId]) { f["visit_" + this.mapId] = true; setTimeout(() => { if(G.scene===this&&!UI.busy)UI.toast(hint, "good"); }, 700); }
   }
-  exit() { this.festivalButton?.remove(); this.weatherButton?.remove(); if (typeof TownFolk !== "undefined") TownFolk.unmount(); if (typeof Fishing !== "undefined") Fishing.hideButton(); if (typeof Fossils !== "undefined") Fossils.hideButton(); UI.showHud(false); }
+  exit() { this.festivalButton?.remove(); this.weatherButton?.remove(); if (typeof TownFolk !== "undefined") TownFolk.unmount(); if (typeof Fishing !== "undefined") Fishing.hideButton(); if (typeof Fossils !== "undefined") Fossils.hideButton(); if (typeof Museum !== "undefined") Museum.hideIntro(); UI.showHud(false); }
   saveWorld() {
     const L = this.party[0];
     Save.d.world = { map: this.mapId, x: L.tx, y: L.ty, dir: L.dir };
@@ -162,6 +163,7 @@ class WorldScene {
     if (s.kind === "building") return this.objCanvas("building", s.spec, ensure);
     if (s.kind === "gate") return this.objCanvas("gate", null, ensure);
     if (s.kind === "spring") return this.objCanvas("well", null, ensure);
+    if (s.kind === "exhibit") return this.objCanvas("exhibit", { id: s.o.id, bits: Museum.bits(s.o) }, ensure); // ⑤ 寄贈の ようすで 絵が かわる
     return this.objCanvas(s.kind, null, ensure);
   }
   npcCanvas(n, dir, pose, ensure) {
@@ -412,6 +414,7 @@ class WorldScene {
     const L = this.party[0];
     this.saveWorld();
     if (typeof TownFolk !== "undefined") TownFolk.arrived(this);
+    if (typeof Museum !== "undefined") Museum.arrived(this); // ⑤ はじめて 入った へやの 案内
     const warp = this.map.warpAt(L.tx, L.ty);
     if (warp) {
       this.busy = true;
@@ -436,6 +439,7 @@ class WorldScene {
       this.busy = false; this.stepOut(door); return;
     }
     if (act.type === "house") { this.busy = true; Game.goto("house", {}, "circle"); return; }
+    if (act.type === "indoor" && typeof Museum !== "undefined" && Museum.enter(this, act)) return; // ⑤ すいぞくかん・はくぶつかん
     if (act.type === "buy" || act.type === "work") {
       this.busy = true;
       Game.goto("store", { shop: act.shop, back: out }, "circle");
@@ -638,7 +642,7 @@ class WorldScene {
     const map = this.map;
     const ox = Math.round((G.W / 2 - this.cam.x) * G.px) / G.px;
     const oy = Math.round((G.H / 2 - this.cam.y) * G.px) / G.px;
-    ctx.fillStyle = map.baseGround === "cave" ? "#2B2320" : map.baseGround === "forest" ? "#3F8E4F" : "#5DAA4F";
+    ctx.fillStyle = map.def.indoor ? "#2A2630" : map.baseGround === "cave" ? "#2B2320" : map.baseGround === "forest" ? "#3F8E4F" : "#5DAA4F";
     ctx.fillRect(0, 0, G.W, G.H);
     // 地面チャンク
     const cs = 8 * TS;
@@ -662,11 +666,18 @@ class WorldScene {
     // y順に並べて描く
     const list = [];
     const vx0 = -ox - 64, vx1 = G.W - ox + 64, vy0 = -oy - 40, vy1 = G.H - oy + 140;
+    // ⑤ 館の 中: 上を 歩ける 展示（トンネル・矢印）は 床の 上に さきに、かべは 高さの ある ブロックとして y順に
+    const decal = (s) => s.kind === "exhibit" && s.o.walk && s.o.ex !== "escalator";
+    if (map.def.indoor) {
+      for (const s of map.sprites) if (decal(s)) this.drawStatic(ctx, s, ox, oy);
+      const x0 = Math.max(0, Math.floor(-ox / TS) - 1), x1 = Math.min(map.w - 1, Math.floor((G.W - ox) / TS) + 1), y0 = Math.max(0, Math.floor(-oy / TS) - 1), y1 = Math.min(map.h - 1, Math.floor((G.H - oy) / TS) + 2);
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (map.rows[y][x] === "X") list.push({ z: (y + 1) * TS - 0.5, draw: () => Museum.wall(ctx, map, x, y, ox, oy) });
+    }
     for (const s of map.sprites) {
-      if(s.o?.over)continue;
+      if(s.o?.over||decal(s))continue;
       const wx = (s.bx != null ? s.bx : s.x) * TS, wy = (s.y + 1) * TS;
       if (s.o?.asset!=="rail.train" && (wx > vx1 || wx + (s.tw || 1) * TS < vx0 || wy < vy0 || wy - 200 > vy1)) continue;
-      list.push({ z: wy - 1+(s.o?.z||0)*.32, draw: () => this.drawStatic(ctx, s, ox, oy) });
+      list.push({ z: wy - 1+(s.o?.z||0)*.32-(s.kind === "exhibit" && s.o.walk ? 39 : 0), draw: () => this.drawStatic(ctx, s, ox, oy) });
     }
     for (const c of map.chests) {
       const opened = c.daily ? Save.d.flags.chests[c.id] === U.today() : !!Save.d.flags.chests[c.id];
@@ -862,6 +873,7 @@ class WorldScene {
     }
   }
   renderLight(ctx, ox, oy) {
+    if (this.map.def.indoor) return; // ⑤ 館の 中は 夜でも あかるい
     const cave = this.map.baseGround === "cave";
     const L = this.party[0].feet();
     if (cave) {

@@ -1384,6 +1384,40 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.eval(()=>!TownFolk.canGive(TOWNSFOLK_DATA.barter.find(b=>b.id==='bt-explorer-bone').give)),'だぶりが ないのに こうかん できる');
 },{viewport,full:viewport.width===375,timeout:120000});
 
+// ⑤ 1番: すいぞくかん・はくぶつかんに 入って 出る（町の 入口 → 館の 入口と 案内 → へや → 出口 → 町の 入口の まえ）。3人いっしょ・敵なし・館の BGM
+async function museumVisit(H,{map,door,front,id,label,arrive,exit,room}){
+  await H.dbg('teleport',map,front[0],front[1],'up');await H.until(m=>G.sceneName==='world'&&G.scene.mapId===m&&PokaDebug.idle(),10000,map);
+  const b=await H.eval(i=>{const b=G.scene.map.def.buildings.find(b=>b.act?.map===i);return b&&{label:b.label,act:b.act,door:[b.x+b.door,b.y+b.h-1]};},id);
+  expect(b&&b.act.type==='indoor'&&b.label===label&&b.door.join()===door.join(),`${map}に ${label}が ない `+JSON.stringify(b));
+  await H.wait(600);await H.shot(id+'-outside');
+  expect(await H.dbg('walkTo',door[0],door[1]),label+'の 入口へ 歩けない');
+  await H.until(i=>G.sceneName==='world'&&G.scene.mapId===i&&PokaDebug.idle(),15000,id);await H.wait(1200);
+  const w=await H.dbg('world');
+  const inside=await H.eval(()=>{const r=document.querySelector('.museum-intro')?.getBoundingClientRect();return {bgm:Sound.cur?.name||Sound.want,enemies:G.scene.enemies.length,hud:document.querySelector('.hud').innerText,intro:document.querySelector('.museum-intro')?.innerText||'',introIn:!!r&&r.left>=0&&r.right<=innerWidth+1,
+    ex:G.scene.map.sprites.filter(s=>s.kind==='exhibit').length,ready:G.scene.map.sprites.filter(s=>s.kind==='exhibit'&&G.scene.spriteCanvas(s,false)).length,wide:document.documentElement.scrollWidth>innerWidth};});
+  expect(w.party.length===3&&w.party[0].x===arrive[0]&&w.party[0].y===arrive[1],label+'の 入口に 3人で 立たない '+JSON.stringify(w.party));
+  expect(inside.bgm===id&&inside.enemies===0&&inside.hud.includes(label)&&/いりぐち/.test(inside.intro)&&inside.introIn&&inside.ex>=10&&inside.ready===inside.ex&&!inside.wide,label+'の 中が 不正 '+JSON.stringify(inside));
+  await H.shot(id+'-entrance');
+  // へや（案内は 1かいだけ）
+  await H.dbg('museumGo',id,room);await H.until(i=>G.sceneName==='world'&&G.scene.mapId===i&&PokaDebug.idle(),10000,id);await H.wait(1200);
+  expect((await H.dbg('museumState')).rooms.includes(id+'.'+room),label+'の へやの 案内が 出ない');
+  await H.shot(id+'-'+room);
+  // 出口から 出ると 町の 入口の まえ
+  await H.dbg('museumGo',id);await H.until(i=>G.sceneName==='world'&&G.scene.mapId===i&&PokaDebug.idle(),10000,id);await H.wait(400);
+  expect(!(await H.dbg('museumState')).intro,'2かいめも 入口の 案内が 出る');
+  expect(await H.dbg('walkTo',exit[0],exit[1]),label+'の 出口へ 歩けない');
+  await H.until(m=>G.sceneName==='world'&&G.scene.mapId===m&&PokaDebug.idle(),15000,map);
+  const out=await H.dbg('world');expect(out.party[0].x===front[0]&&out.party[0].y===front[1],label+'から 出ると 入口の まえに もどらない '+JSON.stringify(out.party[0]));
+}
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('museum-visit-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
+  await museumVisit(H,{map:'harbor',door:[5,31],front:[5,32],id:'aquarium',label:'ぽかぽか すいぞくかん',arrive:[4,37],exit:[4,38],room:'river'});
+  await museumVisit(H,{map:'city',door:[6,19],front:[6,20],id:'museum',label:'きょうりゅう はくぶつかん',arrive:[17,32],exit:[17,33],room:'hall'});
+  // セーブして よみこんでも 入った へやの きろくは のこる
+  await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+  expect((await H.dbg('museumState')).rooms.length===4,'入った へやの きろくが きえる');
+},{viewport,full:viewport.width===375,timeout:180000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');

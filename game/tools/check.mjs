@@ -209,7 +209,7 @@ for (const id of Object.keys(R.MAP_DEFS)) {
   }
   for (const d of m.doors) {
     const a = d.b.act;
-    ok(a && (a.type === "house" || (a.type === "work" && R.SHOPS[a.shop]) || (a.type === "buy" && R.BUY_SHOPS[a.shop]) || (a.type === "transit" && R.Transit.stops[a.stop]?.map === id) || (a.type === "visit" && typeof a.text === "string")), `マップ ${id}: 建物 ${d.b.id} の act が不正`);
+    ok(a && (a.type === "house" || (a.type === "work" && R.SHOPS[a.shop]) || (a.type === "buy" && R.BUY_SHOPS[a.shop]) || (a.type === "transit" && R.Transit.stops[a.stop]?.map === id) || (a.type === "visit" && typeof a.text === "string") || (a.type === "indoor" && !!R.MAP_DEFS[a.map]?.indoor)), `マップ ${id}: 建物 ${d.b.id} の act が不正`);
     if(a?.type === "transit") {
       const arrival=R.Transit.arrival(a.stop);
       ok(!m.isSolid(arrival.x,arrival.y)&&!m.warpAt(arrival.x,arrival.y)&&R.Transit.destinations(a.stop).length>0, `${id}: のりばの着地点・路線が不正`);
@@ -276,12 +276,14 @@ const atlasSvg=R.AtlasArt.svg(), atlasAgain=R.AtlasArt.svg();
 svgOk(atlasSvg,"全体地図");
 const atlasIds=[...atlasSvg.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
 ok(atlasIds.every(id=>!atlasAgain.includes(`id="${id}"`)),"別の地図でSVGのIDが重複する");
-for(const id of Object.keys(R.MAP_DEFS)) ok(!!R.AtlasArt.places[id],`全体地図に ${id} がない`);
+// ⑤ 館の 中（indoor）は 町の 建物の 中なので 全体地図に のせない
+const outdoor=Object.keys(R.MAP_DEFS).filter(id=>!R.MAP_DEFS[id].indoor),indoorIds=new Set(Object.keys(R.MAP_DEFS).filter(id=>R.MAP_DEFS[id].indoor));
+for(const id of outdoor) ok(!!R.AtlasArt.places[id],`全体地図に ${id} がない`);
 for(const id of Object.keys(R.AtlasArt.places)) ok(!!R.MAP_DEFS[id],`全体地図の ${id} が実在しない`);
 const atlasPair=(a,b)=>[a,b].sort().join("/");
 const atlasRoads=new Set(R.AtlasArt.roads.map(([a,b])=>atlasPair(a,b)));
 for(const [a,b] of R.AtlasArt.roads) ok(R.MAP_DEFS[a]?.warps.some(w=>w.to===b)&&R.MAP_DEFS[b]?.warps.some(w=>w.to===a),`地図の道 ${a}↔${b} を歩けない`);
-for(const [id,d] of Object.entries(R.MAP_DEFS)) for(const w of d.warps||[]) ok(atlasRoads.has(atlasPair(id,w.to)),`全体地図に道 ${id}↔${w.to} がない`);
+for(const [id,d] of Object.entries(R.MAP_DEFS)) for(const w of d.warps||[]) if(!indoorIds.has(id)&&!indoorIds.has(w.to)) ok(atlasRoads.has(atlasPair(id,w.to)),`全体地図に道 ${id}↔${w.to} がない`);
 const DIRS = ["down", "up", "left", "right"];
 for(const id of ["papa","mama"])for(const [outfit] of R.ParentCare.options.outfit)for(const [face] of R.ParentCare.options.face)for(const pose of ["idle","walk1","walk2","care","wave"])
   svgOk(R.ParentCare.svg(id,{...fresh.parents[id],outfit,face},pose),`親 ${id} ${outfit} ${face} ${pose}`);
@@ -589,7 +591,8 @@ if (ok(!!HT, "HOME_TALK_DATA が ない（js/home-talk-data.js）")) {
 // ② 町の人の セリフ（TOWNSFOLK_DATA）: 町の人 みんなに セリフ・条件の キーと 値・会話まどに 入る 長さ・えらびかた
 const TF = vm.runInContext(`typeof TOWNSFOLK_DATA !== "undefined" ? TOWNSFOLK_DATA : null`, ctx);
 if (ok(!!TF, "TOWNSFOLK_DATA が ない（js/townsfolk-data.js）")) {
-  const npcIds = Object.values(R.MAP_DEFS).flatMap((d) => (d.npcs || []).map((n) => n.id)), npcSet = new Set(npcIds);
+  // ⑤ 館の 人（role: "donate"）は 館の ことば（MUSEUM_DATA.talk → TALKS）で 話す
+  const npcIds = Object.values(R.MAP_DEFS).flatMap((d) => (d.npcs || []).filter((n) => n.role !== "donate").map((n) => n.id)), npcSet = new Set(npcIds);
   const who = new Set(TF.lines.map((l) => l.npc)), roles = new Set(Object.values(TF.crowd));
   for (const id of npcIds) ok(who.has(TF.crowd[id] || id), `町の人 ${id} の セリフが ない（役 ${TF.crowd[id] || "-"}）`);
   for (const r of roles) ok(!!TF.crowdNames[r], `町の なかま ${r} の 名前が ない`);
@@ -852,6 +855,40 @@ if (ok(!!FO, "FOSSIL_DATA が ない（js/fossil-data.js）")) {
     const card=TownFolk.thingName(r.give)+"→"+TownFolk.thingName(r.get),art=TownFolk.thingArt(r.get).startsWith("<svg");Fossils.take("trex.skull");const after=!can()&&Save.d.fossil.bones["trex.skull"]===1;
     Save.d=old;return {none,full,t,card,art,yes,after};})()`, ctx);
   ok(trade.none && trade.full && trade.yes && trade.after && trade.t && trade.t.give === "trex.skull" && trade.t.get === "trex.chest" && trade.card === "ティラノサウルスの あたま→ティラノサウルスの むね" && trade.art, "だぶった 骨の 物々交換が 不正 " + JSON.stringify(trade));
+}
+
+// ⑤ 水族館と 博物館（MUSEUM_DATA・MuseumArt・Museum）: 館の マップ・床の 文字・展示（魚 50・恐竜 10 が 1かいずつ）・町の 建物と 出入り口・館の 人・BGM・絵
+const MU = vm.runInContext(`typeof MUSEUM_DATA !== "undefined" ? MUSEUM_DATA : null`, ctx);
+if (ok(!!MU, "MUSEUM_DATA が ない（js/museum-data.js）")) {
+  const mu = vm.runInContext(`(()=>{const out={},FI=new Set(),DI=new Set(),dupF=[],dupD=[];
+    for(const [id,b] of Object.entries(MUSEUM_DATA.buildings)){const d=MAP_DEFS[id],m=new WorldMap(id),o=b.outside,town=MAP_DEFS[o.map],tb=(town.buildings||[]).find(x=>x.id===o.id),tm=new WorldMap(o.map);
+      for(const x of b.objects){for(const f of x.fish||[]){if(FI.has(f))dupF.push(f);FI.add(f);}if(x.dino){if(DI.has(x.dino))dupD.push(x.dino);DI.add(x.dino);}}
+      const door=tb&&[tb.x+tb.door,tb.y+tb.h-1],front=door&&[door[0],door[1]+1];
+      out[id]={map:!!d&&d.indoor&&d.rows.join()===b.rows.join()&&d.bgm===id&&!d.spawns.length,
+        building:!!tb&&tb.x===o.x&&tb.y===o.y&&tb.w===o.w&&tb.h===o.h&&tb.act?.type==="indoor"&&tb.act.map===id&&tb.label===o.label,
+        front:!!front&&!tm.isSolid(front[0],front[1]),warps:b.warps.length>=2&&b.warps.every(w=>w.to===o.map&&front&&w.tx===front[0]&&w.ty===front[1]&&m.warpAt(w.x,w.y)),
+        arrive:!m.isSolid(b.arrive.x,b.arrive.y)&&!m.warpAt(b.arrive.x,b.arrive.y)&&Museum.roomAt(id,b.arrive.x,b.arrive.y)?.id==="entrance",
+        tiles:Object.entries(MUSEUM_DATA.tiles).every(([ch,t])=>GROUND[ch]===t.ground&&SOLID_CH.has(ch)===!!t.solid),
+        npcs:b.npcs.every(n=>TALKS[n.talk]&&TALKS[n.talk].first&&TALKS[n.talk].lines.length&&Object.values(n.outfit||{}).every(it=>!!ITEM_INDEX[it])),
+        intro:b.rooms.every(r=>r.intro&&r.name)&&b.route.every(r=>b.rooms.some(q=>q.id===r)),
+        walk:b.objects.every(x=>d.objects.find(y=>y.id===x.id)?.solid===!x.walk)};}
+    return {out,fish:FI.size===FISHING_DATA.fish.length&&!dupF.length,dinos:DI.size===FOSSIL_DATA.dinos.length&&!dupD.length,songs:!!(SONGS.aquarium?.modern&&SONGS.museum?.modern),
+      save:JSON.stringify(Save.fresh().museum)===JSON.stringify({fish:{},bones:{},done:{},rooms:{},all:{}})};})()`, ctx);
+  ok(mu.fish && mu.dinos, "水族館の 魚 50しゅ・博物館の 恐竜 10しゅが ちょうど 1かいずつで ない");
+  ok(mu.songs && mu.save, "館の BGM（modern）か Save.fresh().museum が 不正");
+  for (const [id, r] of Object.entries(mu.out)) ok(Object.values(r).every(Boolean), `館 ${id} が 不正 ${JSON.stringify(r)}`);
+  // 展示の 絵: 寄贈 0（水と かざりだけ・骨は 点線）と ぜんぶ（魚・骨格）。WorldArt.exhibit は 中身だけ（WorldArt と おなじ）
+  const exSvgs = vm.runInContext(`Object.values(MUSEUM_DATA.buildings).flatMap(b=>b.objects).flatMap(o=>{const n=o.fish?o.fish.length:o.dino?FOSSIL_DATA.dinos.find(d=>d.id===o.dino).art.parts.length:o.boneOf?1:0;
+    return [["展示 "+o.id+"（0）",Art.worldSvg("exhibit",{id:o.id,bits:"0".repeat(n)})],["展示 "+o.id+"（ぜんぶ）",Art.worldSvg("exhibit",{id:o.id,bits:"1".repeat(n)})]].map(([w,a])=>[w,a.full,a.svg.startsWith("<svg")]);})`, ctx);
+  ok(exSvgs.length >= 100 && exSvgs.every((x) => !x[2]), `展示の 絵の 数が ちがう／外がわの svg が のこる（${exSvgs.length}）`);
+  for (const [what, svg] of exSvgs) svgOk(svg, what);
+  for (const [what, svg] of vm.runInContext(`["aquarium","museum"].map(k=>["建物の 外がわ "+k,'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160">'+MuseumArt.facade200(k)+"</svg>"])`, ctx)) svgOk(svg, what);
+  // 寄贈の ようすの 文字（キーは 有限）: 寄贈 0 なら 0 だけ・長さは 魚の 数／部品の 数
+  const bits = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const os=Object.values(MUSEUM_DATA.buildings).flatMap(b=>b.objects);
+    const zero=os.every(o=>/^0*$/.test(Museum.bits(o))&&Museum.bits(o).length===(o.fish?o.fish.length:o.dino?Fossils.dino(o.dino).art.parts.length:o.boneOf?1:0));
+    Save.d.museum.fish.ayu="2026-9-28";Save.d.museum.bones["trex.skull"]="2026-9-28";const flow=os.find(o=>o.id==="aq_flow"),rex=os.find(o=>o.dino==="trex");
+    const one=Museum.bits(flow)==="1000000"&&Museum.bits(rex).startsWith("1")&&Museum.bits(rex).slice(1).indexOf("1")<0;Save.d=old;return {zero,one};})()`, ctx);
+  ok(bits.zero && bits.one, "展示の 寄贈の ようす（bits）が 不正 " + JSON.stringify(bits));
 }
 
 finish();

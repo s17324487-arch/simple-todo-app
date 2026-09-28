@@ -8,6 +8,8 @@
     Dm: ["D3+F3+A3+C4", "G2+Bb2+D3+F3", "C3+E3+G3+Bb3", "F2+A2+C3+E3", "Bb2+D3+F3+A3", "G2+Bb2+D3+F3", "E3+G3+Bb3+D4", "A2+C#3+E3+G3"],
     Em: ["E3+G3+B3+D4", "D3+F#3+A3+C4", "C3+E3+G3+B3", "B2+D#3+F#3+A3", "E3+G3+B3+D4", "D3+F#3+A3+B3", "C3+E3+G3+B3", "B2+D#3+F#3+A3"],
     Gm: ["G2+Bb2+D3+F3", "Eb3+G3+Bb3+D4", "C3+Eb3+G3+Bb3", "D3+F#3+A3+C4", "G2+Bb2+D3+F3", "Bb2+D3+F3+A3", "Eb3+G3+Bb3+D4", "D3+F#3+A3+C4"],
+    // ⑤ すいぞくかんの 曲（MUSEUM_DATA.songs.aquarium）は ニ長調
+    D: ["D3+F#3+A3+C#4", "B2+D3+F#3+A3", "G2+B2+D3+F#3", "A2+C#3+E3+G3", "F#3+A3+C#4+E4", "B2+D3+F#3+A3", "E3+G3+B3+D4", "A2+C#3+E3+G3"],
   };
   // name: [bpm, key, lead, groove, swing, display title]
   const profiles = {
@@ -44,6 +46,9 @@
     battle_crown: [160, "Dm", "piano", "drive", 0, "おうさまに ちょうせん"],
     battle: [146, "Am", "pluck", "drive", 0, "たたかう ゆうき"],
     boss: [154, "Em", "piano", "drive", 0, "おおきな ちょうせん"],
+    // ⑤ 館の 曲（js/museum.js が MUSEUM_DATA.songs を SONGS に 足す）
+    aquarium: [76, "D", "mallet", "quiet", .06, "すいそうの ひかり"],
+    museum: [96, "Am", "piano", "lounge", .06, "きょうりゅうの じだい"],
   };
   const lower = n => n.replace(/(\d)$/, d => String(Number(d) - 1));
   const tokens = notes => notes.trim().split(/\s+/).filter(n => n !== "|");

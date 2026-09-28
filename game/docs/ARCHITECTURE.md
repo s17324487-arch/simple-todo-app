@@ -475,6 +475,7 @@ class NewTask extends TaskBase {
 | `rod(n)` / `fishing(place, fishId)` / `fishState()` / `fishInput(kind)` / `fishSkip()` / `fishShore(map)` | ③ さおを もたせる／釣りの 画面を はじめる（その 魚が かかる）／いまの ようす／なげる・まく・はなす／まつ を とばす／歩いて 行ける 水べと 向き |
 | `fossilGive(key, n)` | ④ 骨を もたせる（`"trex.skull"` など）。もって いる 数を かえす |
 | `pick(n)` / `fossilRocks(map)` / `fossilSpot(map)` | ④ ピッケルを もたせる（0／1）／きょうの いわ `[[x, y], ...]`（ほった ものは のぞく）／いわの となりの 立てる マス `{ x, y, dir, rock }` |
+| `museumGo(id, room)` / `museumState()` | ⑤ 館（aquarium / museum）の 入口か へやの まんなかの 手前へ／`{ fish, bones, done, rooms, intro }` |
 | `fossilDig(site, key)` / `digTap(x, y)` / `digState()` / `fossilState()` | ④ ほる 画面を ひらく（key の 骨が 出る。いわとは むすばない）／マスを たたく（x 0〜6・y 0〜4）／`{ hp, area, taps, done, cols, rows }`／`{ pick, bones, dug }` の うつし |
 
 新しいお店を足したら `mg()` にそのお店の `order`（注文の中身）を足す。
@@ -724,6 +725,9 @@ Fossils に見本 FossilRef の rng・rocks・pick・Dig・drawDig・rockSvg・p
 
 ### ② との つなぎ・物々交換（FEAT-11）
 TownFolk.have().bone は Save.d.fossil.bones。データの give.bone:"dup"／get.bone:"missing-same-dino" は Fossils.dupTrade(own)（データ順で最初の「2こ以上の骨」と同じ恐竜のまだない骨）で決まった2つにする（TownFolk.resolve）。canGive は dupTrade がある時だけ true。こうかんで Fossils.take／Fossils.give → Fossils.card。tradeCard の絵は FossilArt.partSvg、名前は Fossils.boneName。
+
+### 水族館と 博物館: 町の 建物と 館の 中（FEAT-12）
+`museum-data.js`（MUSEUM_DATA・自動生成）・`museum-art.js`（MuseumArt。見本 MuseumArtRef と同じ）・`museum.js`（Museum）を scene-world.js の前に読む。museum.js が GROUND／SOLID_CH（かべ X）・MAP_DEFS.aquarium／museum（indoor）・TALKS（館の人）・SONGS（music-arrangements に aquarium／museum の profile と D の和音）・WorldArt.exhibit を足す。町は town-renewal.js の harbor_aquarium／city_museum（act: indoor）と town-renewal-art.js の facades。WorldScene: enterDoor の indoor → Museum.enter、drawGround の最初に Museum.floor、render は walk の展示を床の上に先に・かべ（Museum.wall）と展示を y順に、spriteCanvas の exhibit は objCanvas("exhibit", { id, bits })。館の中は天気・季節の葉・夜の色なし。へやの案内は Museum.arrived（onArrive）→ .museum-intro、Save.d.museum.rooms。
 
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。
