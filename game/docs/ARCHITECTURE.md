@@ -722,6 +722,9 @@ Fishing.KEEP_MAX（30）と keepCount()。Fishing.card は いけすへ／にが
 ### ピッケルと ほる（FEAT-10）
 Fossils に見本 FossilRef の rng・rocks・pick・Dig・drawDig・rockSvg・pickSvg をそのまま入れた。Talk.run は Fishing.talked の次に Fossils.talked（ケロスケが pick=1）。いわは Fossils.candidates(map)（入口から行ける・水いがいのかべのとなり・水のとなりでない・ワープ/人/宝箱などのまわりでない・ふさいでも道がきれない）から見本 rocks で日づけごとに選び、Save.d.fossil.dug.at[map] の分をのぞく（rocksOn）。WorldScene は this.rocks と rockAt(x, y) を持ち、walkable・enemyCan・町の人のさんぽで通れなくする（map.isSolid は変えない）。描画は SvgCache「fossil:rock」。タップ／ok／「ほる」ボタン（.act-btn.fossil-go-btn。Fishing.refreshButton の後の Fossils.refreshButton。「つる」が出ている間は出さない）→ interact({type:"rock"}) → Fossils.dig（UI.modal＋canvas の digModal → card か おまけ → dug に入れて this.rocks から消す → TownFolk.progress({do:"dig"})）。「つる」も .act-btn（下のまん中）に移した。
 
+### ② との つなぎ・物々交換（FEAT-11）
+TownFolk.have().bone は Save.d.fossil.bones。データの give.bone:"dup"／get.bone:"missing-same-dino" は Fossils.dupTrade(own)（データ順で最初の「2こ以上の骨」と同じ恐竜のまだない骨）で決まった2つにする（TownFolk.resolve）。canGive は dupTrade がある時だけ true。こうかんで Fossils.take／Fossils.give → Fossils.card。tradeCard の絵は FossilArt.partSvg、名前は Fossils.boneName。
+
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。
 

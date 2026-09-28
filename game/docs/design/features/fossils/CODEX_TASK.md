@@ -86,7 +86,7 @@ fossil: { pick: 0, bones: {}, dug: { day: "", at: {} } },
 
 1. ✅ **骨の データ・絵・かせき ノート**（済み: Claude Code。下の「実装メモ」）: `js/fossil-data.js`・`js/fossil-art.js`（index.html と sw.js の 両方）、ノート、`fossilGive` で 見られる。
 2. ✅ **ピッケルと ほる**（済み: Claude Code。下の「実装メモ」）: `Save.fossil`・ケロスケから もらう・いわ・「ほる」ボタン・ほる 画面・カード・PokaDebug・スモーク。
-3. **つなぎ**: ② の 物々交換（ケロスケ: だぶった 骨 → 同じ 恐竜の まだ ない 骨）。おねがい「ほねを みせて」は 2番で うごく（下の 実装メモ）。
+3. ✅ **つなぎ**（済み: Claude Code。下の「実装メモ」）: ② の 物々交換（ケロスケ: だぶった 骨 → 同じ 恐竜の まだ ない 骨）。おねがい「ほねを みせて」は 2番で うごく。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
 
@@ -108,7 +108,10 @@ fossil: { pick: 0, bones: {}, dug: { day: "", at: {} } },
 - みつけた カード: 見本 ④ の とおり（`.bone-card`）。はじめての 骨には「はじめて！」、2こめ いじょうは「おなじ ほねは これで Nこ」、そろったら「ぜんぶ そろった！」（はくぶつかんの ことは ⑤ まで 言わない）。おまけは コイン／キャンディを `Loot.give` して データの 文を 言う。
 - ほった あと: その いわを `dug.at[map]` に 入れて きえる（`dugToday()` が 日が かわったら けす）→ `TownFolk.progress({ do: "dig" })`（② の「ほねを みせて」が ほる → ケロスケに 話す で おわる）。
 - テストの 入口（2番）: `pick(n)`・`fossilDig(site, key)`（いわと むすばない）・`digTap(x, y)`・`digState()`（`{ hp, area, taps, done, cols, rows }`）・`fossilState()`・`fossilRocks(map)`・`fossilSpot(map)`（いわの となりの 立てる マスと 向き）。スモーク `fossil-dig-390`・`-375`。
-- **3番に のこした こと**: `TownFolk.have().bone` は まだ `{}`（物々交換「だぶった 骨」を 出さない）。3番で `Save.d.fossil.bones` に して、`TownFolk.barter` で `give.bone: "dup"`（2こ いじょうの 骨を 1こ へらす）と `get.bone: "missing-same-dino"`（同じ 恐竜の まだ ない 骨を `Fossils.give`）を あつかう。
+- 2番の あとに のこした こと（3番で やった）: `TownFolk.have().bone` と だぶった 骨の 物々交換。
+- 3番: `TownFolk.have().bone` を `Save.d.fossil.bones` に した。データの `give: { bone: "dup" }`・`get: { bone: "missing-same-dino" }` は、`Fossils.dupTrade(own)`（**データの じゅんで さいしょに 見つかる「2こ いじょう ある 骨」と、その 恐竜の まだ ない 骨**。そろった 恐竜の だぶりは つかわない）で きまった 2つに する（`TownFolk.resolve(bt)`）。`canGive({ bone: "dup" })` は `dupTrade` が ある ときだけ true なので、こうかん できる ものが ない ときは もちかけない。
+- こうかん: カード（`tradeCard`）の 絵は `FossilArt.partSvg`、なまえは `Fossils.boneName(key)`（「ティラノサウルスの あたま」。ながいので `.folk-trade` の はばを 42% までに して ことばの きれめで おりかえす）。「こうかん する」で `Fossils.take(give)`・`Fossils.give(get)` → もらった 骨の カード（`Fossils.card`・はじめて！）。テストは スモーク `fossil-trade-390`・`-375` と check.mjs。
+- これで ④ は おわり。⑤ の 寄贈は `Save.d.fossil.bones` の 骨を はくぶつかんに わたす（`museum` に 足す）。
 
 ## 9. やらないこと
 

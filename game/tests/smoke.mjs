@@ -1363,6 +1363,27 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const after=await H.dbg('saveData');expect(after.fossil.pick===1&&after.fossil.bones['trex.skull']===had+1&&after.fossil.dug.at.cave.includes(spot.rock.join(',')),'セーブで 化石の きろくが きえる');
 },{viewport,full:viewport.width===375,timeout:180000});
 
+// ④ 3番: ケロスケの 物々交換（だぶった 骨 → 同じ 恐竜の まだ ない 骨）。カードは はみ出さない・もらった 骨は カードと ノートに
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('fossil-trade-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
+  await H.dbg('pick',1);await H.dbg('fossilGive','trex.skull',2);await H.dbg('fossilGive','trex.tail1');
+  await H.dbg('folkOffer','bt-explorer-bone');await folkTalk(H,'explorer');await H.dialogs();
+  await H.page.waitForSelector('.choices .btn',{timeout:8000});await H.wait(200);
+  const card=await H.eval(()=>{const e=document.querySelector('.folk-trade'),b=e.getBoundingClientRect(),p=document.querySelector('.dlg-box,.dlg')?.getBoundingClientRect();return {text:e.innerText,inside:b.left>=0&&b.right<=innerWidth+1&&b.top>=0,svgs:e.querySelectorAll('svg').length,wide:document.documentElement.scrollWidth>innerWidth};});
+  expect(/ティラノサウルスの あたま/.test(card.text)&&/ティラノサウルスの くび/.test(card.text)&&card.inside&&card.svgs===2&&!card.wide,'こうかんの カードが 不正 '+JSON.stringify(card));
+  await H.shot('offer');
+  await H.choose(0);
+  await H.page.locator('.bone-card').waitFor({timeout:6000});await H.wait(300);
+  const got=await H.eval(()=>{const e=document.querySelector('.bone-card'),b=e.getBoundingClientRect();return {text:e.innerText,first:!!e.querySelector('.badge'),inside:b.left>=0&&b.right<=innerWidth+1};});
+  expect(/ティラノサウルスの くび/.test(got.text)&&got.text.includes('3/8')&&got.first&&got.inside,'もらった 骨の カードが 不正 '+JSON.stringify(got));
+  await H.shot('card');
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.dialogs();await H.idle();
+  const d=await H.dbg('saveData');
+  expect(d.fossil.bones['trex.skull']===1&&d.fossil.bones['trex.neck']===1&&d.folk.barter['bt-explorer-bone']===1,'こうかんで 骨が かわらない '+JSON.stringify(d.fossil.bones));
+  // だぶりが なくなったら もう もちかけない
+  expect(await H.eval(()=>!TownFolk.canGive(TOWNSFOLK_DATA.barter.find(b=>b.id==='bt-explorer-bone').give)),'だぶりが ないのに こうかん できる');
+},{viewport,full:viewport.width===375,timeout:120000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');
