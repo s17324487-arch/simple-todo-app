@@ -6184,10 +6184,10 @@
   "harbor/winter/late": 4
  },
  "spotTiles": {
-  "town": 72,
+  "town": 42,
   "meadow": 19,
   "forest": 46,
   "coast": 42,
-  "harbor": 80
+  "harbor": 86
  }
 }

@@ -18,15 +18,15 @@
 | `img/aquarium-plan.png` / `img/museum-plan.png` | 館の 全体図（寄贈が ぜんぶ そろった ところ・へやの 名前つき） | 配置と 絵の 正解 |
 | `img/phones.png` | スマホの 画面 ①〜⑩（館内 5・寄贈 3・展示の 説明 2） | 見た目の 正解 |
 | `img/small-phone.png` | 375×667 の 寄贈の 画面 | 見た目の 正解 |
-| `img/outside.png` | 町に たてた ところ（ゲームの 町に さしこんで 撮影） | 外がわの 正解 |
-| `../../../../tools/feature-design/museum-art-ref.js` | `MuseumArtRef.prop(kind, o)`（展示）・`facade(sp)`（建物の 外がわ）・`signIcon`（かんばん） | `js/museum-art.js` に 移植（ゲームでの 名前は `MuseumArt`） |
+| `img/outside.png` | 町に たてた ところ（いまの 町の 建物を おきかえて 撮影） | 外がわの 正解 |
+| `../../../../tools/feature-design/museum-art-ref.js` | `MuseumArtRef.prop(kind, o)`（展示）・`facade200(kind)`（建物の 外がわ。town-renewal-art.js と 同じ 200×160）・`signIcon`（かんばん） | `js/museum-art.js` に 移植（ゲームでの 名前は `MuseumArt`） |
 | `../../../../tools/feature-design/museum-render.mjs` | 見本の 描きかた（床の もよう `floorTile`・かべ `wallSprite`・y順） | 床と かべの 絵の 正解（`tiles.js` に 移す） |
 | `../../../../tools/feature-design/museum-ui.css` | 寄贈の 画面・かんせい・展示の 説明の CSS（`dn-*`・`ex-*`） | `css/style.css` の さいごに 足す |
 | `../../../../tools/feature-design/museum-data.mjs` | 元データ（へや・展示・人・ことば・BGM） | 直すときは ここを 直して `npm run design:features` |
 
 ## 1. 受け入れ条件
 
-- [ ] あおぞらポート（`harbor`）の (14, 1) に「ぽかぽか すいぞくかん」、きらめきシティ（`city`）の (28, 9) に「きょうりゅう はくぶつかん」（どちらも 7×4 マス）。外がわは `facade`（ガラスの ドーム／はしらと ブラキオサウルスの 像）。`img/outside.png` の とおり。
+- [ ] あおぞらポート（`harbor`）の「みなとの しりょうかん」（(2, 29)・7×3 マス）を「ぽかぽか すいぞくかん」に、きらめきシティ（`city`）の「まちの ギャラリー」（(15, 16)・6×4 マス）を「きょうりゅう はくぶつかん」に おきかえる（同じ 場所・大きさ。どちらも 町の 作り直しで できた 見学だけの 建物）。外がわは `facade200`（ガラスの ドーム／はしらと ブラキオサウルスの 像）。`img/outside.png` の とおり。
 - [ ] 入口に 入ると 館の マップ（`MAP_DEFS.aquarium` / `MAP_DEFS.museum`）へ。**3にん いっしょに** 歩いて まわれる。出入り口（2か所）から 出ると 町の 入口の まえに もどる。
 - [ ] 順路が ある: 水族館は「アクアトンネル → エスカレーターで 上へ → やまの さわ → さとの かわ → いけと たんぼ → 大水槽の まわりを ぐるっと → いその ひろば → よるの うみ・しんかい → おみやげ」、博物館は「エスカレーターで 下へ → かせきの みち → きょうりゅうの せかい（ホール）→ けんきゅうしつ → たまごの へや → おみやげ」。床の 矢印と 案内板つき。へやに はじめて 入ると 案内（`intro`）が 出る。
 - [ ] 水族館の かんちょう（マリン）に 話すと 寄贈: いけす（`Save.d.fish.keep`）の 魚から えらぶ → いけすから 1ぴき へる → その 魚の 水そうに 入る（1しゅ 1回）。
@@ -40,7 +40,7 @@
 ## 2. データの 形（`MUSEUM_DATA`）
 
 ```js
-{ version: 1,
+{ version: 2,
   tiles: { X: { name, ground: "museum_wall", solid: true, color }, E: { ground: "museum_mat" }, 0: { ground: "museum_tile" }, ... },
   buildings: {
     aquarium: {
@@ -49,9 +49,9 @@
       objects: [{ id, kind, x, y, w, h, label?, fish?: [魚 id], dino?, theme?, depth?, walk?, info?, fossil?, boneOf?, text?, col?, dir? }],
       npcs: [{ id, talk, name, sp, outfit, x, y, role: "donate" }],
       exits: [{ x, y, w, to, role: "in" | "out" }], route: [へやの id],
-      outside: { map: "harbor", id: "harbor_aquarium", x: 14, y: 1, w: 7, h: 4, label, roof, facility: "aquarium", door: 3, doorAt: [17, 4], front: [17, 5] },
+      outside: { map: "harbor", id: "harbor_aquarium", replace: "harbor_customs", x: 2, y: 29, w: 7, h: 3, label, roof, facility: "aquarium", style: "harbor_aquarium", door: 3, doorAt: [5, 31], front: [5, 32] },
       arrive: { x: 4, y: 37, dir: "up" },                   // 館に 入った ときに 立つ マス
-      warps: [{ x, y, w, h: 1, to: "harbor", tx: 17, ty: 5, dir: "down" }, ...] },
+      warps: [{ x, y, w, h: 1, to: "harbor", tx: 5, ty: 32, dir: "down" }, ...] },
     museum: { ... } },
   info: { ammonite: { name, text }, ... },                  // かざりの 説明
   talk: { aq_curator: { first, ask, thanks, none, all, lines }, mu_doctor: { ..., done } },
@@ -63,15 +63,20 @@
 
 ## 3. 町に たてる・館の マップ
 
-**町の 建物**（`town-design.js` の `port`（harbor）と `patch("city", …)` の 中）:
+**町の 建物**（`js/town-renewal.js`。いまの 見学だけの 建物の 行を おきかえる）:
 
 ```js
-house(port.g, port.d, "harbor_aquarium", 14, 1, 7, 4, "ぽかぽか すいぞくかん", "#7EC8E0", { type: "indoor", map: "aquarium" }, { facility: "aquarium", sign: "aquarium" });
-house(g, d, "city_museum", 28, 9, 7, 4, "きょうりゅう はくぶつかん", "#D9B47A", { type: "indoor", map: "museum" }, { facility: "museum", sign: "museum" });  // patch("city", (g, d) => { … }) の 中
+// 港（begin("harbor", …)）: b.building("harbor_customs", 2, 29, 7, 3, "harbor_customs", { label: "みなとの しりょうかん", … }) を
+b.building("harbor_aquarium", 2, 29, 7, 3, "harbor_aquarium", { label: "ぽかぽか すいぞくかん", act: { type: "indoor", map: "aquarium" } });
+// シティ（begin("city", …)）: b.building("city_gallery", 15, 16, 6, 4, "city_gallery", { label: "まちの ギャラリー" }) を
+b.building("city_museum", 15, 16, 6, 4, "city_museum", { label: "きょうりゅう はくぶつかん", act: { type: "indoor", map: "museum" } });
+// js/town-renewal-art.js の facades に 2つ（MuseumArt.facade200 の 中身を そのまま。入口は つつむ 関数が 描く）
+harbor_aquarium: () => MuseumArt.facade200("aquarium"), city_museum: () => MuseumArt.facade200("museum"),
 ```
 
-- 場所は `MUSEUM_DATA.buildings.<館>.outside` の とおり（あいた 地面で、たてた あとも 町の 入口から ほかの ドア・ワープ・人・宝箱に 行ける ことを `build-museum.mjs` が ゲームの 地図で たしかめた）。
-- 外がわの 絵: `WorldArt.building` を つつむ（`world-art.js` の `tower` と 同じ やりかた）。`sp.facility` が ある ときだけ `MuseumArt.facade(sp)`。かんばんは `SIGN_ICON.aquarium` / `SIGN_ICON.museum` に `MuseumArt.signIcon.*` を 入れる。
+- 場所は `MUSEUM_DATA.buildings.<館>.outside` の とおり。`build-museum.mjs` が ゲームの 地図で たしかめた: おきかえる 建物が 同じ 場所・大きさで `act: visit`・もとの 町（作り直す まえ）には ない（`tools/town-check.mjs` の「もとの 建物を なくさない・お店や のりものを かえない」に ふれない）・入口の まえが 通れる。
+- 建物の まえの 小物（`town-renewal.js` の 建物ごとの 小物の 表 `city_gallery: [...]` など）は、新しい id（`city_museum` / `harbor_aquarium`）に うつして よい。
+- かんばんの アイコンは `SIGN_ICON.aquarium` / `SIGN_ICON.museum` に `MuseumArt.signIcon.*`（店内の 見出しなどで つかう とき）。
 - `scene-world.js` の `enterDoor`: `act.type === "indoor"` → `Game.goto("world", { map: act.map, x: arrive.x, y: arrive.y, dir: "up" }, "circle")`（`Sound.se("door")`）。
 
 **館の マップ**（`js/museum.js`。`museum-data.js`・`museum-art.js` の あと、`scene-world.js` より まえ）:
