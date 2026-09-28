@@ -79,6 +79,7 @@ class WorldScene {
     UI.showHud(true, this.map.name);
     Seasonal.mount(this);
     Weather.mount(this);
+    if (typeof TownFolk !== "undefined") TownFolk.mount(this);
     this.saveWorld();
     if (p.after) setTimeout(() => p.after(this), 350);
     // はじめて来た場所の ヒント
@@ -86,7 +87,7 @@ class WorldScene {
     const hint = { town: "「！」マークの ひとに はなしかけてみよう", meadow: "まものに ふれると バトル！ HPが へったら おうちで ねよう", forest: "もりの おくに いやしの いずみが あるよ", cave: "どうくつの おくに キングプルンが いる……" }[this.mapId];
     if (hint && !f["visit_" + this.mapId]) { f["visit_" + this.mapId] = true; setTimeout(() => { if(G.scene===this&&!UI.busy)UI.toast(hint, "good"); }, 700); }
   }
-  exit() { this.festivalButton?.remove(); this.weatherButton?.remove(); UI.showHud(false); }
+  exit() { this.festivalButton?.remove(); this.weatherButton?.remove(); if (typeof TownFolk !== "undefined") TownFolk.unmount(); UI.showHud(false); }
   saveWorld() {
     const L = this.party[0];
     Save.d.world = { map: this.mapId, x: L.tx, y: L.ty, dir: L.dir };
@@ -744,6 +745,10 @@ class WorldScene {
     if (Talk.hasNew(n)) {
       const bob = Math.sin(G.t * 4) * 2;
       this.bubble(ctx, ox + f.x + 12, oy + f.y - 46 + bob, "!");
+    } else if (typeof TownFolk !== "undefined") {
+      // ② おねがいの しるし: ▼ あいて ／ ！ ことわった おねがいが まって いる
+      const mark = TownFolk.markerOf(n.id, this.mapId);
+      if (mark) TownFolkArt.marker(ctx, mark, ox + f.x + 12, oy + f.y - 50, G.t);
     }
   }
   drawEnemy(ctx, e, ox, oy) {

@@ -95,7 +95,8 @@ const UI = {
   },
 
   // 選択肢。options: 文字列の配列。キャンセル時は -1
-  ask(text, options, { cancel = true, who = null } = {}) {
+  // face・name: 町の人の 顔（SVG）と 名前。extra: 文の 下に 出す 部品（こうかんの カードなど）
+  ask(text, options, { cancel = true, who = null, face = null, name = null, extra = null } = {}) {
     return new Promise((resolve) => {
       this.layers++;
       const shade = U.el("div", { class: "dlg-shade ask" });
@@ -103,8 +104,13 @@ const UI = {
       if (who) {
         box.classList.add("with-face");
         box.append(U.el("div", { class: "dlg-face", html: Chara.svg(who, { color: Save.d.chars[who].color, outfit: Save.d.chars[who].outfit }) }));
+      } else if (face) {
+        box.classList.add("with-face");
+        box.append(U.el("div", { class: "dlg-face", html: face }));
       }
+      if (name) box.append(U.el("div", { class: "dlg-name", text: name }));
       box.append(U.el("div", { class: "dlg-text", text }));
+      if (extra) box.append(extra);
       const list = U.el("div", { class: "choices" });
       const done = (i) => {
         shade.remove();

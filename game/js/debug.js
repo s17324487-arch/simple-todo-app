@@ -301,6 +301,18 @@ const PokaDebug = {
   },
   // さいごに 話した 人と、出た セリフ・ひとことの id（TOWNSFOLK_DATA）
   folkLast() { return typeof TownFolk !== "undefined" && TownFolk.last ? { ...TownFolk.last } : null; },
+  // ② おねがい: いまの きろく（うつし）
+  folk() { return Save.d.folk ? JSON.parse(JSON.stringify(Save.d.folk)) : null; },
+  // いまの マップの 町の人の しるし（{ npcId: "target" | "offer" }）
+  folkMarks() { if (G.sceneName !== "world") return null; const out = {}; for (const n of G.scene.npcs) { const m = TownFolk.markerOf(n.id, G.scene.mapId); if (m) out[n.id] = m; } return out; },
+  // つぎに その人と 話した とき、かならず その おねがいを もちかける
+  folkOffer(id) { const ev = TownFolk.event(id); if (!ev) throw new Error("unknown folk event: " + id); TownFolk.forced = { npc: ev.giver, id }; return ev.giver; },
+  // TownFolk.signal を よぶ（アイテムを へらす・ごほうび などの 会話も 出す。会話は またない）。すすんだ 手順を かえす
+  folkSignal(sig) {
+    const before = { ...Save.d.folk.done }, moved = TownFolk.signal(sig);
+    TownFolk.effects(moved, { name: "", face: "" }, before);
+    return moved.map(m => ({ id: m.ev.id, step: m.step.do, stepDone: m.stepDone, done: m.done }));
+  },
   // TOWNSFOLK_DATA の セリフ／ひとこと 1つ（テストで 条件を たしかめる）
   folkLine(id) { const D = typeof TOWNSFOLK_DATA !== "undefined" ? TOWNSFOLK_DATA : null; return D ? JSON.parse(JSON.stringify(D.lines.find(l => l.id === id) || D.react.find(l => l.id === id) || null)) : null; },
   battle(foes = [{ kind: "purun", lv: 1 }], area = "meadow", boss = false) {

@@ -93,28 +93,39 @@ const Talk = {
     if (!t) return;
     Sound.se("tap");
     const face = Art.npcSvg({ sp: n.sp, col: n.col, stripe: n.stripe, outfit: n.outfit, emo: "happy" });
-    const f = Save.d.flags, name = typeof TownFolk !== "undefined" ? TownFolk.name(n) : n.name;
-    let lines, line = null;
-    if (!f.talked[n.id] && t.first) {
-      lines = t.first;
+    const folk = typeof TownFolk !== "undefined" ? TownFolk : null;
+    const f = Save.d.flags, name = folk ? folk.name(n) : n.name, who = { name, face };
+    const first = !f.talked[n.id] && !!t.first;
+    if (folk) folk.last = { npc: n.id, line: null, react: null };
+    // 1. はじめての 会話は いまの まま
+    if (first) {
       f.talked[n.id] = true;
       Save.mark();
-    } else if (t.boss && Save.d.flags.boss && U.chance(0.4)) lines = t.boss;
-    else {
-      // 3わりは あそびかたの ヒント（TALKS）、7わりは 町の人の セリフ（TOWNSFOLK_DATA。時間・天気・季節・おまつり・ボスの あと で えらぶ）
-      line = typeof TownFolk !== "undefined" && !U.chance(TownFolk.TIP_SHARE) ? TownFolk.line(n) : null;
-      lines = line ? [line.text] : U.pick(t.lines);
+      await UI.say(t.first.map((text) => ({ name, face, text })));
     }
-    if (typeof TownFolk !== "undefined") TownFolk.last = { npc: n.id, line: line && line.id, react: null };
-    await UI.say(lines.map((text) => ({ name, face, text })));
     if (t.gift && !f["gift_" + n.id]) {
       f["gift_" + n.id] = true;
       const msg = Loot.give(t.gift);
       await UI.say([{ name: n.name, face, text: msg }]);
     }
+    // 2. おねがいを すすめる（でんごん・わたす・わらしべ・おわり）
+    const moved = folk ? await folk.talked(n, scene, who) : false;
+    if (!first && !moved) {
+      // 3. ふつうの セリフ: 3わりは あそびかたの ヒント（TALKS）、7わりは 町の人の セリフ（TOWNSFOLK_DATA。時間・天気・季節・おまつり・ボスの あと で えらぶ）
+      let lines, line = null;
+      if (t.boss && Save.d.flags.boss && U.chance(0.4)) lines = t.boss;
+      else {
+        line = folk && !U.chance(folk.TIP_SHARE) ? folk.line(n) : null;
+        lines = line ? [line.text] : U.pick(t.lines);
+      }
+      if (folk) folk.last.line = line && line.id;
+      await UI.say(lines.map((text) => ({ name, face, text })));
+      // 4. おねがいを もちかける（10〜20%）
+      if (folk) await folk.propose(n, who);
+    }
     // ときどき なかまが ひとこと（3人の 性格に あう もの。話した あいてで かわる ものも ある）
-    if (U.chance(typeof TownFolk !== "undefined" ? TownFolk.REACT_CHANCE : 0.35)) {
-      const r = typeof TownFolk !== "undefined" ? TownFolk.react(n) : null;
+    if (U.chance(folk ? folk.REACT_CHANCE : 0.35)) {
+      const r = folk ? folk.react(n) : null;
       if (r) { TownFolk.last.react = r.id; await UI.say([{ who: r.who, emo: "happy", text: r.text }]); }
       else {
         const id = U.pick(Chara.IDS);
