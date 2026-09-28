@@ -763,6 +763,13 @@ if (ok(!!FD, "FISHING_DATA が ない（js/fishing-data.js）")) {
     const noRod=!Fishing.spotAt(sc(at.dir));Save.d.fish.rod=1;const yes=!!Fishing.spotAt(sc(at.dir)),away=!Fishing.spotAt(sc(back))||(d.rows[at.y+D[back][1]]||"")[at.x+D[back][0]]==="~";
     const city=!Fishing.spotAt({mapId:"city",map:new WorldMap("city"),party:[{tx:at.x,ty:at.y,dir:at.dir,moving:false}]});Save.d=old;return {noRod,yes,away,city};})()`, ctx);
   ok(btn.noRod && btn.yes && btn.away && btn.city, "「つる」ボタンの 出る ときが 不正 " + JSON.stringify(btn));
+  // 3番: いけすは 30ぴき・りっぱな つりざおは みなとの マルシェ（rods[1].get.shop の 建物）だけ
+  const pro = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const p=Fishing.proShop();Save.d.fish.rod=1;
+    const harbor=!!Fishing.proChoice({shopId:"market",back:{map:"harbor"}}),city=!Fishing.proChoice({shopId:"market",back:{map:"city"}}),town=!Fishing.proChoice({shopId:"market",back:{map:"town"}});
+    Save.d.fish.rod=2;const owned=!Fishing.proChoice({shopId:"market",back:{map:"harbor"}});Save.d.fish.keep={a:12,b:18};const count=Fishing.keepCount();
+    Save.d=old;return {map:p&&p.map,shop:p&&p.shop,price:p&&p.price,harbor,city,town,owned,count,max:Fishing.KEEP_MAX};})()`, ctx);
+  ok(pro.map === "harbor" && pro.shop === "market" && pro.price === 1200 && pro.harbor && pro.city && pro.town && pro.owned, "りっぱな つりざおの お店が 不正 " + JSON.stringify(pro));
+  ok(pro.count === 30 && pro.max === 30, "いけすの かずが 不正");
 }
 
 finish();

@@ -91,7 +91,7 @@ fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
 
 1. ✅ **魚の データ・絵・ずかん**（済み: Claude Code。下の「実装メモ」）: `js/fishing-data.js`・`js/fish-art.js`（index.html と sw.js の 両方）、ずかんの「さかな」タブ、`fishGive` で 見られる。
 2. ✅ **釣りざおと 釣りの 画面**（済み: Claude Code。下の「実装メモ」）: `Save.fish`・ペンから もらう・「つる」ボタン・`FishingScene`・PokaDebug・スモーク。
-3. **いけす・うる・つなぎ**: いけすの 上限・うる・りっぱな つりざお（みなとの マルシェ）・② との つなぎ。
+3. ✅ **いけす・うる・つなぎ**（済み: Claude Code。下の「実装メモ」）: いけすの 上限・うる・りっぱな つりざお（みなとの マルシェ）・② との つなぎ。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
 
@@ -112,7 +112,10 @@ fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
 - 魚の かげ: 見本は `Image` の 大きさ（Chromium だと ぜんぶ 300 はば）に たよって いて どの 魚も おなじ 大きさ だった。ゲームでは viewBox の 1.2 ばいで `SvgCache`「`fishshadow:<kind>`」に して、`draw` には `px: G.px / 2` を わたす（S〜XL で 大きさが かわる）。
 - つれた: `Fishing.card(f, cm, first)`（見本 ⑤。いけすへ／にがす。✕ で とじたら いけすへ。1かい だけ きまる）→ `Fishing.record(id, cm, { keep })` → `TownFolk.progress({ do: "catch", fish })`。にげたら 1.3びょう ことばを 出して また なげられる（なにも へらない）。
 - ② との つなぎ（さおが もらえると アユの おねがい・アジ／サバの 物々交換が 出るので 2番で 入れた）: `TownFolk.have().fish` は `Save.d.fish.keep`、おねがいで わたす・物々交換の さかなは いけすから へらす。名前は `TownFolk.fishName(id)`、交換カードの 絵は `Fishing.svg`。
-- 3番で のこって いる こと: いけすの 上限（30ぴき）と「いけすが いっぱい」、カードの「うる」、みなとの マルシェの りっぱな つりざお。
+- 3番: いけすは `Fishing.KEEP_MAX`（30）と `keepCount()`。つれた カードは いけすへ／にがす／うる（`sell` コインを `Save.addCoins`。いけすには 入れず ずかんには のる）。いっぱいの ときは いけすへ の かわりに おせない「いけすが いっぱい」（✕ で とじたら にがす）。ボタンの 文字は `word-break: keep-all`（ことばの とちゅうで おりかえさない）。
+- ずかんの 上に「いけすに いる さかな N / 30 ぴき」（`.fish-keep`）。いけすを へらすのは ⑤ の 寄贈と ② の おねがい・物々交換（いけすの 一覧から うる・にがす 画面は つくって いない）。
+- りっぱな つりざお: `Fishing.proShop()` が `rods[1].get.shop`（`harbor_market`）の 建物を さがして `{ map: "harbor", shop: "market", price }`。`StoreScene.talk` の えらぶ ことばに、その マップの その お店で `rod < 2` の ときだけ `Fishing.proChoice(store)`（「りっぱな つりざお（1200コイン）」）を 足し、`Fishing.buyPro(owner)` で たしかめて かう（たりない ときは そう いう）。シティ・タウン・平和台の マーケットには 出ない。
+- テストの 入口（3番）: 新しい 関数は ない（`fishGive(id, 30)` で いけすを いっぱいに、`store("market", "harbor")` で マルシェへ）。
 - テストの 入口（2番）: `rod(n)`・`fishing(place, fishId)`・`fishState()`（`phase`・`tension`・`prog`・`fish`・`place`・`busy`・`msg`）・`fishInput("tap"|"hold"|"release")`・`fishSkip()`・`fishShore(map)`（歩いて 行ける 水べと 向き）。スモークでは 釣りの ボタンを `force` で おす（「つる！」は ぷるぷる うごき、その あいだの スクリーンショットの あとは Playwright が もどした アニメーションが のこる）。その まえに カードの まく（`.modal-wrap`）が きえるのを まつ。
 
 ## 10. やらないこと

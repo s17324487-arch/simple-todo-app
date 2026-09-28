@@ -165,7 +165,7 @@ const Fishing = {
     for (const [k, label] of [["all", "ぜんぶ"], ...Object.entries(this.PLACES)]) {
       const b = U.el("button", { class: "tab" + (k === tab ? " on" : ""), text: label });
       b.dataset.k = k;
-      b.addEventListener("click", () => { Sound.se("tap"); for (const n of [head, tabs, grid]) n.remove(); this.dex(el, k); });
+      b.addEventListener("click", () => { Sound.se("tap"); for (const n of [head, keep, tabs, grid]) n.remove(); this.dex(el, k); });
       tabs.append(b);
     }
     const grid = U.el("div", { class: "fish-dex" });
@@ -177,7 +177,8 @@ const Fishing = {
       if (c) cell.addEventListener("click", () => { Sound.se("tap"); this.detail(f.id); });
       grid.append(cell);
     });
-    el.append(head, tabs, grid);
+    const keep = U.el("div", { class: "fish-keep", text: `いけすに いる さかな ${this.keepCount()} / ${this.KEEP_MAX} ぴき` });
+    el.append(head, keep, tabs, grid);
   },
   // くわしい ページ（⑦）: すむ 場所・季節・時間・大きさ・いちばん 大きい 記録・つった 数・説明・まめちしき
   detail(id) {
@@ -195,8 +196,32 @@ const Fishing = {
   FACES: ["normal", "surprise", "excited", "love"],
   DANGER_FACES: { wanko: "surprise", gachan: "cry", goji: "shout" },
 
+  // ---- 3番: いけす（ぜんぶで 30ぴきまで。⑤ の 寄贈・② の 物々交換で へる）----
+  KEEP_MAX: 30,
+  keepCount() { return Object.values(this.st().keep).reduce((a, n) => a + (n || 0), 0); },
+
   // ---- 2番: つりざお（だいじな もの）----
   rod() { const n = (Save.d.fish || {}).rod || 0; return n > 0 ? this.data().rods[n - 1] : null; },
+  // 3番: りっぱな つりざおの お店（rods[1].get.shop の 建物が ある マップと、その 建物の お店）
+  proShop() {
+    const g = this.data().rods[1].get;
+    for (const [map, d] of Object.entries(MAP_DEFS)) { const b = (d.buildings || []).find((x) => x.id === g.shop); if (b && b.act) return { map, shop: b.act.shop, price: g.price }; }
+    return null;
+  },
+  // StoreScene.talk の えらぶ ことば（みなとの マルシェで、まだ りっぱな さおが ない とき）
+  proChoice(store) {
+    const p = this.data() && this.proShop();
+    return p && store.shopId === p.shop && store.back && store.back.map === p.map && this.st().rod < 2 ? `${this.data().rods[1].name}（${p.price}コイン）` : null;
+  },
+  async buyPro(owner) {
+    const r = this.data().rods[1], p = this.proShop(), face = Art.npcSvg({ ...owner, emo: "happy" });
+    if (Save.d.coins < p.price) { await UI.say([{ name: owner.name, face, text: `${r.name}は ${p.price}コインだよ。\nコインを ためて また きてね。` }]); return false; }
+    if (await UI.ask(`${r.name}を ${p.price}コインで かう？\n${r.note}よ。`, ["かう", "やめておく"], { face, name: owner.name }) !== 0) return false;
+    Save.addCoins(-p.price); this.st().rod = 2; Save.mark(); Save.write();
+    Sound.se("fanfare"); UI.toast(`<span class="fish-got">${this.rodSvg()}「${r.name}」を てにいれた！</span>`, "good");
+    await UI.say([{ text: `だいじな もの「${r.name}」を てにいれた！\n${r.note}よ。` }]);
+    return true;
+  },
   rodSvg() {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M10,56 C22,40 36,24 54,8" fill="none" stroke="${INK}" stroke-width="6.4" stroke-linecap="round"/><path d="M10,56 C22,40 36,24 54,8" fill="none" stroke="#C98A52" stroke-width="3" stroke-linecap="round"/>`
       + `<circle cx="19" cy="45" r="6.5" fill="#8FD0F0" stroke="${INK}" stroke-width="2.6"/><circle cx="19" cy="45" r="2" fill="${INK}"/><path d="M54,8 C57,24 58,36 56,44" fill="none" stroke="${INK}" stroke-width="1.6" stroke-linecap="round"/>`
@@ -235,18 +260,20 @@ const Fishing = {
     Game.goto("fishing", { place: sp.place, name: sp.name, back: { map: sc.mapId, x: L.tx, y: L.ty, dir: L.dir } });
   },
 
-  // ---- 2番: つれた！ カード（見本 ⑤）。いけすへ／にがす（うるは 3番）----
+  // ---- つれた！ カード（見本 ⑤）。いけすへ／にがす／うる。いけすが いっぱいなら いけすへ の かわりに「いけすが いっぱい」----
   card(f, cm, first) {
     return new Promise((done) => {
       const body = U.el("div", { class: "fish-card" });
       body.innerHTML = `<div class="art">${first ? '<span class="badge">はじめて！</span>' : ""}${this.svg(f, "c" + f.id)}</div><div class="nm"></div>`
         + `<div class="sz">${cm}cm <span class="star">${this.stars(f)}</span></div><div class="desc"></div><div class="fact"><b>まめちしき</b><span></span></div><div class="acts"></div>`;
       body.querySelector(".nm").textContent = f.name; body.querySelector(".desc").textContent = f.desc; body.querySelector(".fact span").textContent = f.fact;
-      // 1かい だけ きめる（✕ で とじた ときは いけすへ）
+      // 1かい だけ きめる（✕ で とじた ときは いけすへ。いっぱいなら にがす）
       let m = null, settled = false;
       const pick = (v) => { if (settled) return; settled = true; const mm = m; m = null; if (mm) mm.close(); done(v); };
-      body.querySelector(".acts").append(UI.btn("いけすへ", () => { Sound.se("coin"); pick("keep"); }, "yellow"), UI.btn("にがす", () => { Sound.se("tap"); pick("release"); }));
-      m = UI.modal({ title: "つれた！", body, onClose: () => pick("keep") });
+      const full = this.keepCount() >= this.KEEP_MAX, keep = UI.btn(full ? "いけすが いっぱい" : "いけすへ", () => { Sound.se("coin"); pick("keep"); }, "yellow");
+      if (full) keep.disabled = true;
+      body.querySelector(".acts").append(keep, UI.btn("にがす", () => { Sound.se("tap"); pick("release"); }), UI.btn(`うる ${f.sell}`, () => { Sound.se("coin"); pick("sell"); }));
+      m = UI.modal({ title: "つれた！", body, onClose: () => pick(full ? "release" : "keep") });
     });
   },
 };
@@ -378,7 +405,8 @@ class FishingScene {
     await U.wait(500);
     const how = await Fishing.card(f, cm, first);
     Fishing.record(f.id, cm, { keep: how === "keep" });
-    if (how === "keep") UI.toast(`${f.name}を いけすに いれたよ`);
+    if (how === "keep") UI.toast(`${f.name}を いけすに いれたよ（${Fishing.keepCount()} / ${Fishing.KEEP_MAX}）`);
+    if (how === "sell") { Save.addCoins(f.sell); UI.updateHud(); UI.toast(`${f.name}を うって コイン +${f.sell}`, "good"); }
     // ② 町の人の おねがい（つる → わたす）
     if (typeof TownFolk !== "undefined") await TownFolk.progress({ do: "catch", fish: f.id }, { name: "", face: "" });
     Save.write();
