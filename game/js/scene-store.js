@@ -76,11 +76,14 @@ class StoreScene {
       const retail=BUY_SHOPS[this.shopId],work=SHOPS[this.shopId];
       // ③ みなとの マルシェでは りっぱな つりざおも かえる
       const pro=typeof Fishing!=="undefined"&&Fishing.proChoice(this);
-      const choices=[...(retail?["かいものを する"]:[]),...(pro?[pro]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
+      // ③ スーパーでは いけすの さかなを うれる（つった ときには うらない）
+      const sell=typeof Fishing!=="undefined"&&Fishing.sellChoice(this);
+      const choices=[...(retail?["かいものを する"]:[]),...(sell?[sell]:[]),...(pro?[pro]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
       const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${ShopRewards.level(Save.d.shops[this.shopId])}`;
       const answer=await UI.ask(`${this.owner.name}\n${text}`,choices),picked=choices[answer];
       if(this.closed)return;
       if(retail&&picked==="かいものを する"){await ShopUI.open(this.shopId);Save.write();}
+      else if(sell&&picked===sell){await Fishing.sell();Save.write();}
       else if(pro&&picked===pro){await Fishing.buyPro(this.owner);Save.write();}
       else if(work&&picked==="おてつだいする"){
         if(Chara.IDS.some(id=>Save.d.chars[id].hunger<8))await UI.say([{who:"wanko",emo:"sad",text:"おなかが ぺこぺこだよ〜。\nごはんを たべてから おてつだい しよう。"}]);

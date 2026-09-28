@@ -72,7 +72,7 @@ const Menu = {
     // ③ だいじな もの（つりざお）
     const rod = typeof Fishing !== "undefined" && Fishing.rod();
     if (rod) {
-      const key = U.el("div", { class: "key-item", html: `${Fishing.rodSvg()}<div><div class="nm"></div><div class="muted">みずべで みずの ほうを むくと「つる」が でるよ</div></div>` });
+      const key = U.el("div", { class: "key-item", html: `${Fishing.rodSvg()}<div><div class="nm"></div><div class="muted">みずを ながおしで なげる。うきが しずんだら「つる」</div></div>` });
       key.querySelector(".nm").textContent = `だいじな もの：${rod.name}`;
       el.append(key);
     }
