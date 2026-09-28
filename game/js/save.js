@@ -46,6 +46,7 @@ const Save = {
       },
       rooms: { active: "main", owned: { main: true }, stored: {}, expanded: {} },
       shops: {
+        burger:{lv:1,rep:0,best:0,plays:0},
         groom: {lv:1,rep:0,best:0,plays:0},
         cake: { lv: 1, rep: 0, best: 0, plays: 0 },
         crepe: { lv: 1, rep: 0, best: 0, plays: 0 },
