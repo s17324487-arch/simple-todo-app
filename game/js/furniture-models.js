@@ -752,9 +752,9 @@ const FurnModels = (() => {
     return { s: s + g, box: [q.x - f.w / 2 - 12, q.y - f.h - 12, q.x + f.w / 2 + 12, q.y + 8] };
   };
   const ART_LIVE = new Set(["rockinghorse"]);
-  // 板の 上に 置いていた 家具（HomeDesign の さいごの わけ方と おなじ）
+  // 板の 上に 置いていた 家具（HomeDesign の さいごの わけ方と おなじ）。じぶんの モデルを もつ 家具（パズル・お店の 景品・池袋の cityItem）は のぞく
   const OLD_OWN = new Set(["bed_simple", "bed_royal", "table_wood", "desk", "stool_oak", "chair_wood", "teacart", "console_oak", "sofa", "cloudsofa", "bookshelf", "wardrobe_oak", "kitchen", "vanity", "piano", "tv", "fireplace", "toybox", "plantshelf", "birdcage_brass"]);
-  const onPlate = (f) => f && f.kind === "floor" && !OLD_OWN.has(f.id) && !M[f.id] && !f.puzzlePrize && !f.shopPrize && typeof FURN_ART[f.id] === "function";
+  const onPlate = (f) => f && f.kind === "floor" && !OLD_OWN.has(f.id) && !M[f.id] && !f.puzzlePrize && !f.shopPrize && !f.cityItem && typeof FURN_ART[f.id] === "function";
 
   return {
     ids: Object.keys(M),
