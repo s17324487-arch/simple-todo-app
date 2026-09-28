@@ -651,3 +651,5 @@ mg() の score は採点中の点数、歯医者の order.mistakes は誤操作�
 ## 平和台の見本SVG
 
 `heiwadai-art.js` と `heiwadai-assets-s.js` は WorldArt のあとに読み込み、見本の26種類・61パターンを登録する。元のSVGはtoolsから生成し、実行時はclassic scriptのデータを読むだけ。`HeiwadaiArt.model()` の originX/originY は元の足もとからの描画位置、footW/footHは地面の占有寸法。通常のviewBoxは asset-bbox.json を使用。座標・時刻をキーに含めない。素材の優先度とID対応は ASSET_KINDS.md、比較の再現は node tools/heiwadai-asset-screenshots.mjs。
+
+TOWN-03で `heiwadai-assets-ab.js` を追加し、107種類・236パターンを登録済み。A・Bの比較は `node tools/heiwadai-asset-screenshots.mjs --ab`、スマホ一覧は `tools/heiwadai-preview.html?priority=AB`。
