@@ -25,7 +25,7 @@ const TownFolk = {
   },
   // 町の なかま（town_walker0 など）は 役（town_walker）の セリフと 名前を つかう
   role(npcId) { return ((this.data() || {}).crowd || {})[npcId] || null; },
-  name(n) { const r = this.role(n.id); return (r && this.data().crowdNames[r]) || n.name; },
+  name(n) { if (n.given) return n.name; const r = this.role(n.id); return (r && this.data().crowdNames[r]) || n.name; }, // given: NpcCast が つけた 1人ずつの 名前
   // その人の セリフを 1つ（なければ null）
   line(n) {
     const D = this.data(); if (!D) return null;
@@ -66,7 +66,7 @@ const TownFolk = {
   isDone(ev, today = this.today()) { const d = this.st().done[ev.id]; return ev.limit === "once" ? !!d : d === today; },
   npcDef(id) { for (const [map, d] of Object.entries(MAP_DEFS)) { const n = (d.npcs || []).find((x) => x.id === id); if (n) return { ...n, map }; } return null; },
   short(id) { const n = this.npcDef(id), nm = n ? this.name(n) : id; return nm.split(" ").pop(); },
-  face(id) { const n = this.npcDef(id); return n ? Art.npcSvg({ sp: n.sp, col: n.col, stripe: n.stripe, outfit: n.outfit, emo: "happy" }) : ""; },
+  face(id) { const n = this.npcDef(id); return n ? Art.npcSvg({ sp: n.sp, col: n.col, col2: n.col2, stripe: n.stripe, outfit: n.outfit, look: n.look, emo: "happy" }) : ""; },
   itemName(id) { const D = this.data(); return (D.items[id] || {}).name || (BAG_INDEX[id] || {}).name || id; },
   itemArt(id) { const it = this.data().items[id]; if (!it) return BAG_INDEX[id] ? Art.iconSvg("bag", id) : ""; const [k, v] = it.art.split(":"); return k === "folk" ? TownFolkArt.item(v) : Art.iconSvg(k, v); },
   // 話しかけた とき、おねがいを もちかけるか きめる。ことわった ものは その日の うちなら もう一度。1人 1日 1回まで

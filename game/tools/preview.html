@@ -30,6 +30,7 @@
 <script src="../js/data.js"></script>
 <script src="../js/chara.js"></script>
 <script src="../js/art.js"></script>
+<script src="../js/npc-art.js"></script>
 <script src="../js/home-catalog.js"></script>
 <script src="../js/seasonal-catalog.js"></script>
 <script src="../js/home-design.js"></script>
@@ -89,6 +90,7 @@
     }
     h += "<h2>アイコン（服）</h2>" + row(WEAR_ITEMS.map((w) => cell(Art.iconSvg("wear", w.id), 48, w.id)));
     h += "<h2>町の人（どうぶつ）</h2>" + row(Object.keys(SPECIES).flatMap((sp) => ["normal", "happy", "sad", "surprise"].map((emo) => cell(Art.npcSvg({ sp, emo }), 80, `${sp} ${emo}`))));
+    h += "<h2>町の人の 顔の ぶひん（NpcArt）</h2>" + row([...NpcArt.EYE.map((eye) => cell(Art.npcSvg({ sp: "dog", look: { eye } }), 80, "eye " + eye)), ...NpcArt.PATTERN.map((pattern) => cell(Art.npcSvg({ sp: "cat", look: { pattern } }), 80, "pattern " + pattern)), ...NpcArt.TUFT.map((tuft) => cell(Art.npcSvg({ sp: "bear", look: { tuft } }), 80, "tuft " + tuft))]);
     h += "<h2>てき</h2>" + row(Object.entries(ENEMIES).flatMap(([k, e]) => ["normal", "hurt", "sleep"].map((emo) => cell(Art.enemySvg(e.art, e.col, emo), 86, `${e.name} ${emo}`))));
     h += "<h2>かぐ</h2>" + row(FURNITURE.map((f) => cell(Art.furnSvg(f.id), Math.round((f.w + 24) * 1.2), `${f.name}<br>${f.kind} ${f.w}×${f.h}`)));
     h += "<h2>追加した敵の姿</h2>" + row(Object.keys(ENEMY_ART).filter(id => !Object.values(ENEMIES).some(e => e.art === id)).flatMap(id => ["normal", "hurt", "sleep"].map(emo => cell(Art.enemySvg(id, "#AACBC2", emo), 86, `${id} ${emo}`))));

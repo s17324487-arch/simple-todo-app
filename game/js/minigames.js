@@ -135,6 +135,7 @@ class ShopScene {
     return SvgCache.get(key, () => Art.npcSvg(spec), pw, ph);
   }
   makeCustomer() {
+    if (typeof NpcCast !== "undefined" && NpcCast.customers.length) return { ...NpcCast.customer(), x: -60, emo: "normal" }; // 町の人と おなじ 絵の きまった 60人から（1人ずつ ちがう）
     const sp = U.pick(CUST_SP);
     const outfit = {};
     const hat = U.pick(CUST_HATS); if (hat) outfit.head = hat;

@@ -21,6 +21,7 @@ const PokaDebug = {
       "PokaDebug.newGame({ goji: 'soft' })   オープニングを飛ばして はじめから（おうちへ）",
       "PokaDebug.teleport('meadow', 14, 3)   マップの (x, y) へ移動（town/city/coast/meadow/forest/cave）",
       "PokaDebug.water('coast', 30, 10)   水の かたまりの しゅるい（川・海・湖）・岸・その マスの 色",
+      "PokaDebug.cast('town_walker0')   町の人の 名前・種・見た目（id なしで 全員の ようす）",
       "PokaDebug.house()                     おうちへ",
       "PokaDebug.battle([{ kind: 'purun', lv: 2 }], 'meadow')  バトル開始",
       "PokaDebug.battleState()                属性・HP・状態・技・曲を読む",
@@ -304,6 +305,12 @@ const PokaDebug = {
     Save.write();
     Game.trans = null;
     Game.goto("house", {}, "none");
+  },
+  // 町の人の 見た目（NpcCast）。id を わたすと その人の 名前・種・look、なければ 全員の ようす（おなじ 見た目・名前の ペア）
+  cast(id) {
+    if (id == null) return { ...NpcCast.report(), customers: NpcCast.customers.length, species: Object.keys(NpcArt.SP).length, used: NpcCast.report().species };
+    for (const d of Object.values(MAP_DEFS)) { const n = (d.npcs || []).find((x) => x.id === id); if (n) return { id, name: TownFolk.name(n), sp: n.sp, col: n.col, look: n.look || null, outfit: n.outfit || {}, given: !!n.given }; }
+    return null;
   },
   // 水の 絵（川・海・湖）の ようす（WaterArt.info）。x, y を わたすと その マスの まんなかの チャンクの 色 px も かえす
   water(map = G.sceneName === "world" ? G.scene.mapId : "town", x, y) {

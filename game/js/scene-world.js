@@ -169,7 +169,7 @@ class WorldScene {
     return this.objCanvas(s.kind, null, ensure);
   }
   npcCanvas(n, dir, pose, ensure) {
-    const spec = { sp: n.sp, col: n.col, col2: n.col2, stripe: n.stripe, outfit: n.outfit, dir, pose, emo: n.emo || "normal" };
+    const spec = { sp: n.sp, col: n.col, col2: n.col2, stripe: n.stripe, outfit: n.outfit, look: n.look, dir, pose, emo: n.emo || "normal" };
     const key = "npc:" + JSON.stringify(spec);
     const pw = Chara.pxSize(CHAR_SIZE), ph = Math.round((pw * VB.h) / VB.w);
     if (ensure) return SvgCache.ensure(key, () => Art.npcSvg(spec), pw, ph);
