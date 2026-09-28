@@ -396,16 +396,18 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
   await H.dbg("seedSave",fixture);await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
   const preserved=d=>JSON.stringify({bag:d.bag,wardrobe:d.wardrobe,furn:d.furn,room:d.room,rooms:d.rooms,flags:d.flags,events:d.events,stats:d.stats,order:d.order,settings:d.settings,chars:Object.fromEntries(Object.entries(d.chars).map(([id,c])=>[id,{lv:c.lv,exp:c.exp,boost:c.boost,outfit:c.outfit,name:c.name,color:c.color}]))});
   const openSettings=async()=>{await H.page.getByRole("button",{name:"メニュー",exact:true}).click();await H.page.getByRole("button",{name:"せってい",exact:true}).click();};
-  const tapVersion=async n=>{for(let i=0;i<n;i++)await H.page.getByRole("button",{name:/ぽかぽかタウン ver/}).tap();};
+  const tapVersion=async n=>{await H.page.getByRole("button",{name:/ぽかぽかタウン ver/}).click({clickCount:n,delay:50});};
   const entry=H.page.getByRole("button",{name:"かんりしゃ コマンド",exact:true});
   await openSettings();expect(await entry.count()===0,"通常の設定に管理者コマンドが出ている");
   await H.page.locator(".menu-version").scrollIntoViewIfNeeded();await H.shot("locked");
   await tapVersion(6);expect(await entry.count()===0,"6回で隠しコマンドが開いた");
   await H.wait(1650);await tapVersion(1);expect(await entry.count()===0,"間を空けた操作が連続タップに数えられた");
-  await tapVersion(6);expect(await entry.count()===1,"7回で入口が出ない");
+  await H.wait(1650);await tapVersion(7);expect(await entry.count()===1,"7回で入口が出ない");
   await tapVersion(2);expect(await entry.count()===1,"入口が重複する");await H.shot("unlocked");
   await entry.tap();const admin=H.page.locator(".admin-commands"),money=admin.getByRole("button",{name:"おかねを 99,999にする",exact:true});
-  for(const b of await admin.getByRole("button").all()){const box=await b.boundingBox();expect(box.height>=44&&box.x>=0&&box.x+box.width<=viewport.width,"管理者ボタンが小さい/画面外");}
+  // 拡大表示のアニメーションが終わってから実寸を測る。
+  await admin.evaluate(el=>Promise.all(el.getAnimations({subtree:true}).map(a=>a.finished)));
+  for(const b of await admin.getByRole("button").all()){const box=await b.boundingBox();expect(box.height>=44&&box.x>=0&&box.x+box.width<=viewport.width,"管理者ボタンが小さい/画面外: "+JSON.stringify(box));}
   await H.shot("commands");let before=await H.dbg("saveData");
   await money.tap();expect(await money.isDisabled(),"確認中にコマンドが連打できる");await H.choose(1);
   expect((await H.dbg("state")).coins===before.coins&&preserved(await H.dbg("saveData"))===preserved(before),"キャンセルでデータが変わった");
