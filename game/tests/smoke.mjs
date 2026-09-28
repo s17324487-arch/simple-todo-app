@@ -1653,6 +1653,41 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   }
 },{viewport,full:viewport.width===375,timeout:150000});
 
+// ⑥ 3番: RO の 号令と 2人の おうえん。メイク レディ → アー ユー レディ？ → スタンバイ…（ブザーまで）→ ブザーで きえる。あたりと のこしの ない ストリングで ひとこと。
+// おわると アンロード。ショウ クリア。→ けっか・② に signal（do: "range"）。ブルズアイで のこり 10びょう → いそいで
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('range-ro-'+viewport.width,async H=>{
+  await H.newGameFast();
+  await H.eval(()=>{window.__rangeSig=[];const o=TownFolk.signal.bind(TownFolk);TownFolk.signal=(s)=>{window.__rangeSig.push(s);return o(s);};});
+  const cmd=()=>H.eval(()=>{const e=document.querySelector('.range-cmd');return e&&e.style.display!=='none'?e.innerText:'';});
+  await H.dbg('range','steel','auto','wanko','ro1');await rangePlaying(H,'steel');
+  expect(/メイク レディ/.test(await cmd()),'はじめに メイク レディ が 出ない '+await cmd());await H.shot('make-ready');
+  await H.until(()=>/アー ユー レディ/.test(document.querySelector('.range-cmd').innerText),4000);
+  await H.until(()=>/スタンバイ/.test(document.querySelector('.range-cmd').innerText),4000);
+  expect(/ブザー/.test(await cmd())&&(await H.dbg('rangeState')).phase==='standby','スタンバイの ことばが 不正');await H.shot('standby');
+  await H.until(()=>PokaDebug.rangeState().phase==='play',6000);await H.wait(150);
+  expect(!(await cmd()),'ブザーの あとも 号令が のこる');
+  // スチールの 1ストリング: あたり 3かいで ひとこと・のこしの ない ストリングで combo（おうえんは えらんで いない 2人）
+  let s=await H.dbg('rangeAuto',6,'good');
+  const cheers=await H.eval(()=>RANGE_DATA.talk.cheer);
+  expect(s.hits>=3&&s.bubble&&['gachan','goji'].includes(s.bubble.who)&&cheers[s.bubble.who][s.bubble.kind].includes(s.bubble.text)&&!/ゾーン/.test(s.bubble.text),'おうえんが 出ない／ことばが ちがう '+JSON.stringify(s.bubble));
+  let v=await H.eval(()=>{const b=document.querySelector('.range-bubble'),r=b&&b.getBoundingClientRect();return {text:b?.innerText||'',inView:!!r&&r.left>=0&&r.right<=innerWidth+0.5&&r.top>=0};});
+  expect(v.text===s.bubble.text&&v.inView,'ふきだしが 画面に 出ない '+JSON.stringify(v));
+  await H.shot('cheer');
+  // すぐ おわらせる → アンロード。ショウ クリア。→ けっか（とちゅうの スチールは ★ なし）→ ② に signal
+  await H.dbg('rangeEnd');await H.wait(100);
+  expect(/アンロード/.test(await cmd())&&!(await H.eval(()=>document.querySelector('.rg-result'))),'おわりに アンロード の 号令が 出ない');await H.shot('unload');
+  await H.page.locator('.rg-result').waitFor({timeout:6000});
+  v=await H.eval(()=>({sig:window.__rangeSig,best:Save.d.range.best['steel:auto']||null}));
+  expect(v.sig.length===1&&v.sig[0].do==='range'&&v.sig[0].stars===0&&!v.best,'けっかの あとの signal／とちゅうの きろくが 不正 '+JSON.stringify(v));
+  await H.page.getByRole('button',{name:'おわる',exact:true}).click();await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),15000);
+  // ブルズアイ（1シリーズ 2ふん）: うたずに 111びょう → のこり 10びょう いかで「いそいで」
+  await H.dbg('range','bullseye','classic','goji','ro2');await rangePlaying(H,'bullseye');await H.until(()=>PokaDebug.rangeState().phase==='play',8000);
+  await H.dbg('rangeAuto',111,{tol:0});
+  await H.until(()=>PokaDebug.rangeState().bubble?.kind==='hurry',3000);
+  s=await H.dbg('rangeState');expect(s.left<=10&&cheers[s.bubble.who].hurry.includes(s.bubble.text)&&['wanko','gachan'].includes(s.bubble.who),'のこり 10びょうで いそいで が 出ない '+JSON.stringify(s));
+  await H.shot('hurry');
+},{viewport,full:viewport.width===375,timeout:150000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');
