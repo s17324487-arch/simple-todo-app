@@ -50,12 +50,13 @@ const Fossils = {
     el.append(grid);
   },
   // くわしい ページ: 骨格・じだい・ばしょ・おおきさ・たべもの・あつまりぐあい・説明・まめちしき
-  detail(id) {
+  // ⑤ はくぶつかんの 台から（opts.museum）は 寄贈した 骨（opts.have）で。骨が なくても ひらく
+  detail(id, opts = {}) {
     const d = this.dino(id); if (!d) return null;
-    const h = this.have(d); if (!h.length) return null;
+    const h = opts.have || this.have(d); if (!h.length && !opts.museum) return null;
     const body = U.el("div", { class: "bone-card fossil-detail" });
     body.innerHTML = `<div class="art">${FossilArt.svg(d, { have: h })}</div><div class="nm"></div><div class="dn"></div>`
-      + `<div class="facts"><span>いた じだい</span><span></span><span>みつかった ところ</span><span></span><span>おおきさ</span><span>${d.len}m</span><span>たべもの</span><span></span><span>ほね</span><span>${h.length} / ${d.art.parts.length}</span></div>`
+      + `<div class="facts"><span>いた じだい</span><span></span><span>みつかった ところ</span><span></span><span>おおきさ</span><span>${d.len}m</span><span>たべもの</span><span></span><span>${opts.museum ? "きふされた ほね" : "ほね"}</span><span>${h.length} / ${d.art.parts.length}</span></div>`
       + `<div class="desc"></div><div class="fact"><b>まめちしき</b><span></span></div>`;
     const cells = body.querySelectorAll(".facts span");
     body.querySelector(".nm").textContent = d.name; body.querySelector(".dn").textContent = d.ago;

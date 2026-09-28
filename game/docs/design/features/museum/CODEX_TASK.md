@@ -176,7 +176,7 @@ museum: { fish: {}, bones: {}, done: {}, rooms: {}, all: {} },
 
 1. ✅ **町の 建物と 館の 中**（済み: Claude Code。下の「実装メモ」）: `js/museum-data.js`・`js/museum-art.js`・`js/museum.js`（index.html と sw.js の 両方）、外がわ・かんばん・`indoor` の ドア・床と かべ・展示（寄贈 0 の すがた）・順路の 矢印・案内・BGM・`museumGo`・スモーク（入って 出る）。
 2. ✅ **寄贈**（済み: Claude Code。下の「実装メモ」）: `Save.museum`・館の 人・寄贈の 画面・かんせい・展示に 反映（魚が およぐ・骨格）・PokaDebug・スモーク。
-3. **しらべる と つなぎ**: 展示の 説明・③ の ずかん・④ の ノート・② の `signal`。
+3. ✅ **しらべる と つなぎ**（済み: Claude Code。下の「実装メモ」）: 展示の 説明・③ の ずかん・④ の ノート・② の `signal`。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
 
@@ -200,7 +200,13 @@ museum: { fish: {}, bones: {}, done: {}, rooms: {}, all: {} },
 - 魚が およぐ: 水そうの 絵は `swim: true`（魚なし）で、`slots`・`water` を `WorldScene.drawStatic` の あとの `Museum.drawFish` が 毎フレーム 描く（見本 4 の うごき。魚の 絵は `"mfish:" + id + ":" + はば`、左むきの 絵を 右へ うごく ときに 左右を かえす、`f.flip` の 魚は そのまま）。**見本の 大きさは「いる 魚の 数」で わるので 1ぴきだけだと 水そうの 半分に なる。ゲームでは「その 水そうの 魚が ぜんぶ いる とき」の 大きさまでに した**（ふえても 大きさが かわらない）。シーラカンスの 台（pedestal）は 絵に 入った まま。
 - ④ との つなぎ（2番で 入れた）: `Fossils.owned()`（もって いる ＋ 寄贈した 骨）を ノート・くわしい ページ・みつけた カード・ほる ときの「まだ ない 骨」・物々交換の「まだ ない 骨」に つかう（寄贈しても へらない）。物々交換で わたすのは 寄贈して いない ぶんだけ。
 - テストの 入口（2番）: `museumGive(kind, key)`（"all" で ぜんぶ。骨が そろうと done）・`museumDonate()`（館の 人に 話しかける。会話は テストが すすめる）・`museumPick(key)`・`museumConfirm()`（ありがとうの 会話は またない）。スモーク `museum-donate-390`・`-375`。
-- **3番に のこした こと**: 展示を しらべる（`Museum.at`・`Museum.show`・`.ex-card` の CSS）・③ の ずかんの「すいぞくかんに いるよ」・② の `TownFolk.signal({ do: "donate" })`。
+- 2番の あとに のこした こと（3番で やった）: 展示を しらべる・③ の ずかんの しるし・② の `signal`。
+- 3番: `Museum.at(map, x, y)`（上を 歩ける もの いがいの 展示の はんい）・`Museum.canShow(o)`（`fish`・`dino`・`info` の ある もの）。`WorldScene.interactFront` の `WorldScenery.at` より まえ、`tapAt` の いわの あと（`goObject(o, "exhibit")` で いちばん ちかい となりへ）→ `interact({ type: "exhibit" })` → `Museum.show(scene, o)`。
+- 水そう（⑨）: `.ex-card`・部屋の 名前の ふだ・「nしゅの うち mしゅが きふされて いるよ」（0 の ときは きふを すすめる 文）・`.ex-list`（寄贈した 魚は 名前で ③ の `Fishing.detail`、まだは「？？？」で おせない）。**絵は 町と おなじ 魚の いない 水そう（`Museum.art`）に 町と おなじ 大きさで 魚を 入れた `Museum.tankSvg`**（見本の まま だと 1ぴきが 大きすぎる。入れ子の `<svg>` は `.ex-card .art svg` の CSS が かかるので `g` の transform で 入れる）。シーラカンスの 台は 見本の 絵の まま。
+- 骨格の 台: `Fossils.detail(id, { have: 寄贈した 部品, museum: true })`（寄贈 0 でも ひらく・「きふされた ほね n / 全部」）。かざり（⑩）: `.ex-card.rock` ＋ `MUSEUM_DATA.info[o.info]`（タイトルは 名前）。
+- ③: `Fishing.detail` に 寄贈した 魚は「すいぞくかんに いるよ」（`.aq-mark`）。②: 寄贈で `TownFolk.signal({ do: "donate", fish })` ／ `{ do: "donate", bone }`（いまの おねがいに donate の 手順は ない ので うごきは かわらない。足す ときは `STEPS` と `match` に 足す）。④: ノートなどは 2番の `Fossils.owned()`。
+- テストの 入口（3番）: `PokaDebug.museumShow(objId)`。スモーク `museum-show-390`・`-375`（ok キー・ほんとうの タップ・`museumShow`）。**これで ⑤ は おわり。**
+- 素材プレビュー（`tools/preview.html`）は 町の 建物の 外がわを ぜんぶ 描くので、1番の あとから `museum-art.js` も 読む（読まないと `MuseumArt` が なくて 止まり、スモーク「落ち葉・背景に固定」が おちる）。
 
 ## 12. やらないこと
 

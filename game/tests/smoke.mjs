@@ -1470,6 +1470,42 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const after=await H.dbg('museumState');expect(after.fish===1&&after.bones===2&&after.done.join()==='compso','セーブで 寄贈が きえる');
 },{viewport,full:viewport.width===375,timeout:180000});
 
+// ⑤ 3番: 展示を しらべる。水そう（ok キーで）→ 中の 魚（まだは ？？？）→ ③ の ずかん（すいぞくかんに いるよ）・化石の かべ → 説明・骨格の 台 → ④ の くわしい ページ
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('museum-show-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
+  await H.dbg('fishGive','ayu');await H.dbg('museumGive','fish','ayu');await H.dbg('museumGive','bone','trex.skull');
+  // かわの ながれ（aq_flow: 13〜23, 1〜2）の まえで 上を むいて ok
+  await H.dbg('teleport','aquarium',18,3,'up');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='aquarium'&&PokaDebug.idle(),10000);await H.wait(800);
+  await H.page.keyboard.press('Enter');await H.page.locator('.ex-card').waitFor({timeout:6000});await H.wait(300);
+  let v=await H.eval(()=>{const e=document.querySelector('.ex-card'),b=e.getBoundingClientRect(),fish=[...e.querySelectorAll('.ex-fish')];return {say:e.querySelector('.say').innerText,plate:e.querySelector('.plate').innerText,fish:fish.map(x=>[x.dataset.key,x.innerText,x.disabled]),inside:b.left>=0&&b.right<=innerWidth+1,tall:fish.every(x=>x.getBoundingClientRect().height>=43.5),svg:!!e.querySelector('.art svg')};});
+  expect(/7しゅの うち 1しゅ/.test(v.say)&&v.plate==='さとの かわ'&&v.fish.length===7&&v.fish[0][1]==='アユ'&&!v.fish[0][2]&&v.fish.slice(1).every(x=>x[1]==='？？？'&&x[2])&&v.inside&&v.tall&&v.svg,'水そうの 説明が 不正 '+JSON.stringify(v));
+  await H.shot('tank');
+  await H.page.locator('.ex-fish[data-key="ayu"]').click();await H.page.locator('.fish-detail').waitFor({timeout:6000});await H.wait(300);
+  expect(/すいぞくかんに いるよ/.test(await H.eval(()=>document.querySelector('.fish-detail').innerText)),'ずかんに「すいぞくかんに いるよ」が ない');
+  await H.shot('dex');
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(250);await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.idle();
+  // 展示を タップ（ほんとうの タップ）→ となりまで 歩いて 説明（かわの そこ aq_bed）
+  const bed=(await H.dbg('world')).objects.find(o=>o.id==='aq_bed');await H.tap(bed.cx,bed.cy);
+  await H.page.locator('.ex-card').waitFor({timeout:10000});await H.wait(300);
+  expect(/かわの そこ/.test(await H.eval(()=>document.querySelector('.modal-wrap:not(.out) .panel-title').innerText)),'タップした 展示の 説明が 出ない');
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.idle();
+  // はくぶつかん: 化石の かべ（説明）・ティラノサウルスの 台（寄贈した 骨 1 / 8）
+  await H.dbg('museumGo','museum');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='museum'&&PokaDebug.idle(),10000);await H.wait(600);
+  expect(await H.dbg('museumShow','mu_f1'),'化石の かべを しらべられない');await H.page.locator('.ex-card.rock').waitFor({timeout:6000});await H.wait(300);
+  v=await H.eval(()=>{const e=document.querySelector('.ex-card.rock'),b=e.getBoundingClientRect();return {title:document.querySelector('.modal-wrap:not(.out) .panel-title').innerText,say:e.querySelector('.say').innerText,inside:b.left>=0&&b.right<=innerWidth+1};});
+  expect(v.say.length>10&&v.title.length>1&&v.inside,'化石の かべの 説明が 不正 '+JSON.stringify(v));
+  await H.shot('info');
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);
+  expect(await H.dbg('museumShow','mu_trex'),'骨格の 台を しらべられない');await H.page.locator('.fossil-detail').waitFor({timeout:6000});await H.wait(300);
+  v=await H.eval(()=>document.querySelector('.fossil-detail').innerText);
+  expect(/ティラノサウルス/.test(v)&&/きふされた ほね/.test(v)&&/1 \/ 8/.test(v),'骨格の 台の 説明が 不正 '+v);
+  await H.shot('stand');
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);
+  // まだ 寄贈が ない 台も しらべられる（0 / n）
+  expect(await H.dbg('museumShow','mu_stego'),'寄贈 0 の 台を しらべられない');await H.page.locator('.fossil-detail').waitFor({timeout:6000});
+  expect(/0 \/ 8/.test(await H.eval(()=>document.querySelector('.fossil-detail').innerText)),'寄贈 0 の 台の 数が 不正');
+},{viewport,full:viewport.width===375,timeout:150000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');

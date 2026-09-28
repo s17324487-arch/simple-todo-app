@@ -906,6 +906,14 @@ if (ok(!!MU, "MUSEUM_DATA が ない（js/museum-data.js）")) {
       out.push({id:o.id,ok:none.slots.length===0&&one.slots.length===1&&one.slots[0].id===o.fish[0]&&all.slots.length===o.fish.length&&one.slots[0].w<=Math.max(...all.slots.map(s=>s.w))+0.01&&inside&&!/<image|mfish/.test(all.svg)});}
     return out;})()`, ctx);
   for (const r of swim) ok(r.ok, `水そう ${r.id}: およぐ 魚の 場所が 不正`);
+  // 3番: 展示を しらべる: 展示の マスで 見つかる（上を 歩ける ものは のぞく）・水そう／骨格の 台／説明の ある かざりだけ・説明が ある・水そうの 説明の 絵（魚 ぜんぶ）
+  const show = vm.runInContext(`(()=>{const bad=[];let n=0;for(const [id,b] of Object.entries(MUSEUM_DATA.buildings)){const m=Maps.get(id);
+      for(const o of b.objects){const hit=Museum.at(m,o.x,o.y);if(o.walk?hit&&hit.id===o.id:!hit||hit.id!==o.id)bad.push("at "+o.id);
+        const can=Museum.canShow(o);if(can!==!!(o.fish||o.dino||o.info))bad.push("can "+o.id);if(o.info&&!MUSEUM_DATA.info[o.info])bad.push("info "+o.id);if(can)n++;}}
+    const tanks=Object.values(MUSEUM_DATA.buildings).flatMap(b=>b.objects).filter(o=>o.fish&&o.kind!=="pedestal").map(o=>["しらべる 水そう "+o.id,Museum.tankSvg(o,"1".repeat(o.fish.length))]);
+    return {bad,n,tanks};})()`, ctx);
+  ok(!show.bad.length && show.n >= 30, `展示を しらべる はんいが 不正（${show.n}）${show.bad.slice(0, 4).join("・")}`);
+  for (const [what, svg] of show.tanks) svgOk(svg, what);
 }
 
 finish();

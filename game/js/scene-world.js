@@ -243,6 +243,9 @@ class WorldScene {
     // ④ ひびの ある いわ → となりまで 行って ほる
     const rock = this.rockAt(tx, ty);
     if (rock) return this.goInteract(tx, ty, { type: "rock", rock });
+    // ⑤ 館の 展示 → いちばん ちかい となりまで 行って しらべる
+    const ex = typeof Museum !== "undefined" && Museum.at(this.map, tx, ty);
+    if (ex && Museum.canShow(ex)) return this.goObject(ex, "exhibit");
     const npc = this.npcs.find((n) => hitBody(n.w,n.artOffset));
     if (npc) return this.goInteract(npc.w.tx, npc.w.ty, { type: "npc", npc });
     const en = this.enemies.find((e) => e.boss && Math.abs(wx - e.w.feet().x) < 40 && wy < e.w.feet().y + 4 && wy > e.w.feet().y - 80);
@@ -263,7 +266,7 @@ class WorldScene {
     if (object) return this.goObject(object);
     if (!map.isSolid(tx, ty)) return this.goTo(tx, ty, null);
   }
-  goObject(o) {
+  goObject(o, type = "scenery") {
     const L=this.party[0], candidates=[];
     for(let y=Math.floor(o.y);y<Math.ceil(o.y+o.h);y++) for(let x=Math.floor(o.x);x<Math.ceil(o.x+o.w);x++) {
       if(x!==Math.floor(o.x)&&x!==Math.ceil(o.x+o.w)-1&&y!==Math.floor(o.y)&&y!==Math.ceil(o.y+o.h)-1)continue;
@@ -271,7 +274,7 @@ class WorldScene {
       if(path)candidates.push({x,y,path});
     }
     candidates.sort((a,b)=>a.path.length-b.path.length);
-    if(candidates.length){const p=candidates[0];this.goInteract(p.x,p.y,{type:"scenery",object:o});}
+    if(candidates.length){const p=candidates[0];this.goInteract(p.x,p.y,{type,object:o});}
     else Sound.se("cancel");
   }
   buildingDoorAt(tx, ty) {
@@ -471,6 +474,8 @@ class WorldScene {
     const chest = this.map.chests.find((c) => c.x === x && c.y === y);
     if (chest) return this.interact({ type: "chest", chest });
     if ((this.map.def.objects || []).some((o) => o.kind === "spring" && o.x === x && o.y === y)) return this.interact({ type: "spring" });
+    const ex = typeof Museum !== "undefined" && Museum.at(this.map, x, y); // ⑤ 館の 展示
+    if (ex && Museum.canShow(ex)) return this.interact({ type: "exhibit", object: ex });
     const object=WorldScenery.at(this.map,x,y);
     if(object)return this.interact({type:"scenery",object});
     const boss = this.enemies.find((e) => e.boss && Math.abs(e.w.tx - x) <= 1 && e.w.ty === y);
@@ -481,6 +486,8 @@ class WorldScene {
     const L = this.party[0];
     if (p.type === "scenery") {
       WorldScenery.activate(this,p.object);
+    } else if (p.type === "exhibit") {
+      Sound.se("tap"); Museum.show(this, p.object);
     } else if (p.type === "npc") {
       const n = p.npc;
       n.w.dir = dirOf(L.tx - n.w.tx, L.ty - n.w.ty) || n.w.dir;

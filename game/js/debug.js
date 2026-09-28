@@ -377,6 +377,8 @@ const PokaDebug = {
   museumPick(key) { return Museum.picking ? Museum.picking.pick(key) : false; },
   // きふする（ありがとうの 会話は テストが すすめる ので またない）
   museumConfirm() { if (!Museum.picking || !Museum.picking.sel()) return false; Museum.picking.confirm(); return true; },
+  // ⑤ 展示の 説明を ひらく（objId は "aq_flow"・"mu_trex"・"mu_f1" など）
+  museumShow(objId) { const o = Museum.object(objId); if (!o) throw new Error("unknown exhibit: " + objId); return !!Museum.show(G.sceneName === "world" ? G.scene : null, o); },
   // ⑤ 寄贈の きろく（2番で ふえる）と 入った へや
   museumState() { const st = Save.d.museum; return { fish: Object.keys(st.fish).length, bones: Object.keys(st.bones).length, done: Object.keys(st.done), rooms: Object.keys(st.rooms), intro: document.querySelector(".museum-intro")?.innerText || null }; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
