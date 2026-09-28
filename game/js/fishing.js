@@ -184,7 +184,8 @@ const Fishing = {
   detail(id) {
     const f = this.fish(id), rec = this.st().dex[id]; if (!f || !rec) return null;
     const body = U.el("div", { class: "fish-card fish-detail" });
-    body.innerHTML = `<div class="art">${this.svg(f, "x" + f.id)}</div><div class="nm"></div><div class="star">${this.stars(f)}</div>`
+    const aq = typeof Museum !== "undefined" && Museum.data() && Museum.gaveFish(f.id); // ⑤ 寄贈した 魚
+    body.innerHTML = `<div class="art">${this.svg(f, "x" + f.id)}</div><div class="nm"></div><div class="star">${this.stars(f)}</div>${aq ? '<div class="aq-mark">すいぞくかんに いるよ</div>' : ""}`
       + `<div class="facts"><span>すんで いる ところ</span><span>${this.where(f)}</span><span>つれる きせつ</span><span>${this.when(f.season, this.SEASONS)}</span>`
       + `<span>つれる じかん</span><span>${this.when(f.time, this.TIMES)}</span><span>おおきさ</span><span>${f.size[0]}〜${f.size[1]}cm</span>`
       + `<span>いちばん おおきい</span><span>${rec.max}cm（${rec.n}ひき つった）</span></div><div class="desc"></div><div class="fact"><b>まめちしき</b><span></span></div>`;

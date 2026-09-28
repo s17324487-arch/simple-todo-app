@@ -27,8 +27,8 @@ Claude Code が 見本を 作り、Codex が それを ゲームに 入れる（
 | ② 町の人 | ✅ セリフ（Claude Code） | ✅ おねがいの しくみ（Claude Code） | ✅ さがす・さわる・物々交換（Claude Code） |
 | ③ 釣り | ✅ 魚の データ・絵・ずかん（Claude Code） | ✅ 釣りざおと 釣りの 画面（Claude Code） | ✅ いけす・うる・つなぎ（Claude Code） |
 | ④ 化石ほり | ✅ 骨の データ・絵・かせき ノート（Claude Code） | ✅ ピッケルと ほる（Claude Code） | ✅ ② との つなぎ（物々交換。Claude Code） |
-| ⑤ 水族館と 恐竜博物館 | ✅ 町の 建物と 館の 中（Claude Code） | ✅ 寄贈（Claude Code） | **つぎ**: しらべる と つなぎ |
-| ⑥ 射撃場 | まだ | まだ | まだ |
+| ⑤ 水族館と 恐竜博物館 | ✅ 町の 建物と 館の 中（Claude Code） | ✅ 寄贈（Claude Code） | ✅ しらべる と つなぎ（Claude Code） |
+| ⑥ 射撃場 | **つぎ**: じゅうの 絵・射撃場・ロビー | まだ | まだ |
 
 ## たのむ 順番（おすすめ）
 
