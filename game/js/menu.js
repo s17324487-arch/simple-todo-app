@@ -170,7 +170,7 @@ const Menu = {
     }, "wide");
     del.style.marginTop = "18px"; del.style.background = "#FFD6D6";
     el.append(del);
-    const version = U.el("button", { type: "button", class: "menu-version muted", html: `ぽかぽかタウン ver ${GAME_VERSION}<br>キャラクター: わんこ・がちゃん・ごじ` });
+    const version = U.el("button", { type: "button", class: "menu-version muted", html: `ネリカスタウン ver ${GAME_VERSION}<br>キャラクター: わんこ・がちゃん・ごじ` });
     const hidden = U.el("div");
     let taps = 0, first = 0, last = 0, unlocked = false;
     version.addEventListener("click", () => {

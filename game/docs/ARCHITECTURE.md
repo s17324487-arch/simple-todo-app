@@ -772,3 +772,7 @@ CIは両ブラウザの全シナリオを4分割し、各シナリオ終了時�
 ### おてつだいのレベル報酬
 `shop-rewards.js` の ShopRewards が8店舗×Lv5/10/15/30の非売品家具32種を登録する。SHOP_LV_REPは旧Lv1〜5の値を保ち、Lv6〜30の必要評判を追加。ShopSceneの表示・育成はLv30まで、workLv（注文と報酬）はLv5まで。ShopRewardArtは4種の立体モデルと8種の店舗モチーフを有限キャッシュで描く。
 Save.fresh().shopRewardsは受け取った家具IDの真偽値。結果画面で到達した節目を自動配布し、メニュー→ようす→おみせの ごほうびで既存プレイヤーも過去の評判に応じた報酬を受け取れる。家具と受取記録を同時保存し、コインには触れない。Save.KEY/SCHEMAは維持。PokaDebug.shopRewards(shop)/shopRewardClaim(shop)/shopRewardOpen(shop)とshop(shop,30)、mg().workLvで検証する。
+
+## ネリカスタウン・池袋の交通
+
+district-travel.js は全体地図の後に読み込み、町IDを変えずに名称・接続・地図の配置を更新する。池袋の屋外徒歩ワープはなく、館から町へ戻る室内出口は維持する。Transit.fare/payは池袋への電車だけ500コインを保存し、中止・残高不足では変更しない。帰路は無料。PokaDebug.districtTravel/station/atlas と2画面のスモークで確認。

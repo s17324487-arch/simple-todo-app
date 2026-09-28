@@ -4,6 +4,9 @@
 // ここの関数名と引数は「約束」なので、変えるときは tests/smoke.mjs と docs も直すこと。
 const PokaDebug = {
   version: GAME_VERSION,
+  districtTravel() { return {names:{town:MAP_DEFS.town.name,city:MAP_DEFS.city.name},places:AtlasArt.places,walkIns:Object.values(MAP_DEFS).filter(d=>!d.indoor).flatMap(d=>(d.warps||[]).filter(w=>w.to==='city')),coins:Save.d.coins}; },
+  atlas() {WorldAtlas.open();return true;},
+  station(id) { if(!Transit.stops[id]||UI.busy)return false;Transit.open(id);return true; },
 
   help() {
     const lines = [

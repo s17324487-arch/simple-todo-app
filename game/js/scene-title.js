@@ -48,7 +48,7 @@ class TitleScene {
   }
   async opening() {
     await UI.say([
-      { name: "ナレーション", text: "ここは ぽかぽかタウン。\nのんびりした どうぶつたちが くらす ちいさな まち。" },
+      { name: "ナレーション", text: "ここは ネリカスタウン。\nのんびりした どうぶつたちが くらす ちいさな まち。" },
       { who: "wanko", emo: "happy", text: "ワン！ ぼく わんこ！\nきょうから この まちで くらすんだ！" },
       { who: "gachan", emo: "love", text: "ぴよっ！ がちゃんだよ。\n3にん いっしょの おうち、たのしみだね！" },
       { who: "goji", emo: "happy", text: "ガオー。……ごじ です。\nふたりと いっしょなら、どこでも へいき。" },
@@ -91,7 +91,7 @@ class TitleScene {
     ctx.save();
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.font = "900 44px 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', sans-serif";
-    const title = "ぽかぽかタウン";
+    const title = "ネリカスタウン";
     const wob = Math.sin(this.t * 2) * 2;
     ctx.lineJoin = "round";
     ctx.lineWidth = 12; ctx.strokeStyle = INK; ctx.strokeText(title, W / 2, ly + wob);
