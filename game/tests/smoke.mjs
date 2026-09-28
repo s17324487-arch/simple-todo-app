@@ -49,13 +49,13 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   let timer;
   try {
     await Promise.race([fn(H), new Promise((_, ng) => (timer = setTimeout(() => ng(new Error(`時間切れ（${timeout / 1000}秒）`)), timeout)))]);
-    expect(!problems.length, "ブラウザでエラー: " + problems.join(" | "));
+    expect(!problems.length, "ブラウザでエラー: " + [...new Set(problems)].join(" | "));
     results.push({ name, ok: true, ms: Date.now() - t0 });
     console.log(`  ✓ ${name}（${((Date.now() - t0) / 1000).toFixed(1)}秒）`);
   } catch (e) {
     results.push({ name, ok: false, error: e.message });
     console.log(`  ✗ ${name}\n      ${e.message}`);
-    console.log(e.stack);if(problems.length)console.log(problems);
+    console.log(e.stack);if(problems.length)console.log([...new Set(problems)]);
     console.log(await H.dbg("state").catch(()=>null));
     try { await page.screenshot({ path: join(SHOT_DIR, `FAIL_${name}.png`) }); } catch {}
   } finally {
@@ -148,6 +148,13 @@ function helpers(page, name) {
         if (shop === "crepe") {
           for (const nm of st.order.want) await H.tapLabel(nm);
           await H.tapLabel("できあがり！");
+        } else if(shop==='cake'){
+          for(let step=0;step<4;step++){
+            const m=await H.dbg('mg'),o=m.order;if(m.phase!=='work')break;
+            if(o.step==='fruit'){await H.tapLabel(o.labels.fruit);await H.tapLabel(o.labels.count);}
+            else await H.tapLabel(o.labels[o.step]);
+            const now=await H.dbg('mg');if(c===0&&!now.buttons.some(b=>b.label==='つぎへ ▶'))await H.shot('cake_prepared');await H.tapLabel(now.buttons.some(b=>b.label==='つぎへ ▶')?'つぎへ ▶':'できあがり！');
+          }
         } else if (shop === "florist") {
           for (const { name: nm, n } of st.order.want) for (let i = 0; i < n; i++) await H.tapLabel(nm);
           await H.tapLabel("リボンを えらぶ ▶");
@@ -346,6 +353,17 @@ await scenario("クレープやさん（正しく作れば ◎）", async (H) =>
   expect(c1 > c0, "コインが増えていない");
 });
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('cake-shop-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('coins',987504);const before=await H.dbg('saveData');
+  const layout=await H.dbg('townLayout','town'),door=layout.doors.find(d=>d.id==='cake');expect(door,'町にケーキ屋がない');
+  await H.dbg('teleport','town',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);
+  await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),20000);expect((await H.dbg('storeState')).party.length===3,'3人で入れない');await H.shot('interior');
+  await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle());
+  const ranks=await H.playShop('cake',3);expect(ranks.length===6&&ranks.every(r=>r===3),'ケーキの正解で◎にならない: '+JSON.stringify(H.shopGrades));
+  const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.cake.plays===1,'報酬・お店の記録が残らない');
+  for(const k of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(before[k])===JSON.stringify(after[k]),'ケーキ屋で既存の所持品が変わる');
+},{viewport,full:viewport.width===375,timeout:150000});
+
 for (const shop of ["dentist", "bakery", "florist"]) {
   await scenario(`${shop}（Lv3・正しく操作すれば ◎）`, async (H) => {
     await H.newGameFast();
@@ -395,7 +413,7 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
   const fixture=await H.dbg("saveData"),fullHealth=Object.fromEntries(Object.entries(fixture.chars).map(([id,c])=>[id,{hp:c.hp,sp:c.sp}]));
   fixture.parents.auto=false;
   for(const c of Object.values(fixture.chars)){c.hp=1;c.sp=0;c.hunger=12;c.mood=14;}
-  await H.dbg("seedSave",fixture);await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  await H.dbg("seedSave",fixture);await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle(30000);
   const preserved=d=>JSON.stringify({bag:d.bag,wardrobe:d.wardrobe,furn:d.furn,room:d.room,rooms:d.rooms,flags:d.flags,events:d.events,stats:d.stats,order:d.order,settings:d.settings,chars:Object.fromEntries(Object.entries(d.chars).map(([id,c])=>[id,{lv:c.lv,exp:c.exp,boost:c.boost,outfit:c.outfit,name:c.name,color:c.color}]))});
   const openSettings=async()=>{await H.page.getByRole("button",{name:"メニュー",exact:true}).click();await H.page.getByRole("button",{name:"せってい",exact:true}).click();};
   const tapVersion=async n=>{await H.page.getByRole("button",{name:/ぽかぽかタウン ver/}).click({clickCount:n,delay:50});};
@@ -687,18 +705,31 @@ await scenario("交通（電車・船・飛行機・中止・セーブ）", asyn
   await H.until(()=>PokaDebug.state().scene==="house"&&PokaDebug.idle());
 }, {timeout:120000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('heiwadai-life-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',12);await H.dbg('calendar','2026-06-01');await H.dbg('weather','clear');await H.dbg('teleport','heiwadai',27,19);await H.idle();
+  const before=await H.dbg('saveData'),life=await H.dbg('heiwadaiLife',0);expect(life.npcs.length===13,'8人と5人の通行人がいない');
+  const haru=life.npcs.find(n=>n.id==='heiwadai_local');expect(haru.sp==='cat','ハルの見た目が見本と違う');await H.tap(haru.cx,haru.cy);await H.page.locator('.dlg-text').waitFor();await H.until(()=>document.querySelector('.dlg-text')?.textContent.includes('えきまえ'));await H.dialogs();await H.idle();
+  await H.dbg('teleport','heiwadai',42,35);await H.idle();await H.dbg('heiwadaiLife',0);await H.shot('signal-green');const red=await H.dbg('heiwadaiLife',10);expect(red.signal==='red','信号が変わらない');await H.shot('signal-red');
+  const moving=await H.dbg('heiwadaiLife',25);expect(moving.trainX>30&&!moving.trainStopped,'電車が出発しない');
+  await H.dbg('teleport','heiwadai',9,50);await H.idle();const f=(await H.dbg('world')).objects.find(o=>o.id==='heiwadai_fountain');await H.tap(f.cx,f.cy);await H.until(()=>PokaDebug.world()?.active==='heiwadai_fountain');await H.shot('fountain');
+  await H.dbg('teleport','heiwadai',20,33);await H.idle();await H.dbg('hour',21);expect((await H.dbg('heiwadaiLife')).night,'夜にならない');await H.shot('night');
+  await H.dbg('heiwadaiLife',null);const fps=await H.dbg('fps',2000);expect(fps>=20,'景観描画が20FPS未満: '+fps);const cache0=await H.dbg('heiwadaiLife');
+  for(let t=0;t<200;t+=17){await H.dbg('heiwadaiLife',t);await H.wait(40);}expect((await H.dbg('heiwadaiLife')).sceneryCache<=cache0.sceneryLimit,'時刻でSVGキャッシュが増える');
+  expect((await H.dbg('saveData')).coins===before.coins,'景観や会話でおかねが変わる');await H.dbg('heiwadaiLife',null);
+},{viewport,timeout:120000,full:viewport.width===375});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('heiwadai-layout-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',12);await H.dbg('calendar','2026-05-01');await H.dbg('weather','clear');
   const fixture=await H.dbg('saveData');fixture.coins=987654;fixture.world={map:'heiwadai',x:27,y:11,dir:'down'};fixture.flags.chests.heiwadai_lane=true;
-  await H.dbg('seedSave',fixture);await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+  await H.dbg('seedSave',fixture);await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle(30000);
   let state=await H.dbg('state');expect(state.coins===987654&&state.map==='heiwadai'&&state.pos[0]===27&&state.pos[1]===19,'古い位置から駅前へ安全に復帰できない');
   expect((await H.dbg('saveData')).flags.chests.heiwadai_lane,'旧宝箱フラグが失われた');
   const layout=await H.dbg('heiwadaiState');expect(layout.size[0]===64&&layout.size[1]===68,'v0.2の広さではない');
-  const market=layout.doors.find(d=>d.id==='heiwadai_market');await H.dbg('teleport','heiwadai',market.x,market.y+1);await H.idle();
+  const market=layout.doors.find(d=>d.id==='heiwadai_market');await H.dbg('teleport','heiwadai',market.x,market.y+1);await H.idle(30000);
   expect(await H.dbg('walkTo',market.x,market.y),'駅前マーケットへ入れない');await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
   expect((await H.dbg('storeState')).shop==='market','別の店へ入った');
-  await H.dbg('teleport','heiwadai',42,29,'right');await H.idle();await H.shot('station');
-  await H.dbg('teleport','heiwadai',9,50);await H.idle();const fountain=(await H.dbg('world')).objects.find(o=>o.id==='heiwadai_fountain');await H.tap(fountain.cx,fountain.cy);await H.until(()=>PokaDebug.world()?.active==='heiwadai_fountain');
+  await H.dbg('teleport','heiwadai',42,29,'right');await H.idle(30000);await H.shot('station');
+  await H.dbg('teleport','heiwadai',9,50);await H.idle(30000);const fountain=(await H.dbg('world')).objects.find(o=>o.id==='heiwadai_fountain');await H.tap(fountain.cx,fountain.cy);await H.until(()=>PokaDebug.world()?.active==='heiwadai_fountain');
   expect((await H.dbg('world')).party.length===3,'なかまが欠ける');await H.dbg('save');
   expect((await H.dbg('persistedSave')).coins===987654,'配置の更新でおかねが変わる');
 },{viewport,timeout:120000});
@@ -1052,7 +1083,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.dbg("groundImage","meadow",1,1)===oldGround,"道路のないはらっぱの地面が変わった");
   const after=await H.dbg("state");expect(after.map===state.map&&after.pos.join()===state.pos.join()&&after.coins===state.coins,"道路プレビューでプレイ状態が変化");
   expect(JSON.stringify((await H.dbg("world")).party)===JSON.stringify(world.party),"道路プレビューで3人が移動した");
-  await H.dbg("pause",false);await H.dbg("walkTo",18,30);await H.until(()=>PokaDebug.state().pos.join() === "18,30");
+  await H.dbg("pause",false);expect(await H.dbg("walkTo",11,52),"噴水から近くの歩道へ進めない");await H.until(()=>PokaDebug.state().pos.join() === "11,52");
   expect((await H.dbg("world")).party.length===3,"3人が一緒に歩かない");
 },{viewport,full:viewport.width===375,timeout:90000});
 

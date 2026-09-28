@@ -20,3 +20,11 @@ for(const id of ['city','airport']){const incoming=R.MAP_DEFS[id].warps.find(w=>
 const saved=R.Save.fresh();saved.coins=987654;saved.world={map:'heiwadai',x:27,y:11,dir:'down'};saved.flags.chests.heiwadai_lane=true;
 const migrated=R.Save.migrate(saved);assert.equal(migrated.coins,987654);assert(migrated.flags.chests.heiwadai_lane);assert.equal(R.Save.KEY,'pokapoka-town-save-v1');assert.equal(R.Save.SCHEMA,1);
 console.log('Heiwadai: exact placement / entrances / legacy IDs / routes / save compatibility OK');
+
+assert.equal(d.npcs.filter(n=>!n.wander).length,8);assert.equal(d.npcs.filter(n=>n.wander).length,5);
+assert.equal(d.npcs.find(n=>n.id==='heiwadai_local').sp,'cat');
+for(const [i,n]of ref.npcs.entries()){const actual=d.npcs[i];assert.equal(actual.x+actual.artOffset[0],n.x);assert(Math.abs(actual.y+actual.artOffset[1]-n.y-.00625)<.0001);}
+assert.equal(R.HeiwadaiLife.swingParts().svg.length,3);
+assert.equal(R.HeiwadaiLife.state(0).trainX,18);assert.equal(R.HeiwadaiLife.state(17).trainX,18);assert(R.HeiwadaiLife.state(25).trainX>30);assert(R.HeiwadaiLife.state(42).trainX<0);
+assert.equal(R.HeiwadaiLife.state(0).signal,'green');assert.equal(R.HeiwadaiLife.state(8).signal,'amber');assert.equal(R.HeiwadaiLife.state(10).signal,'red');
+console.log('Heiwadai life: 8 residents, 5 walkers, original swing parts and animation cycles OK');

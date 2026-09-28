@@ -222,6 +222,7 @@ const AREAS = {
 
 // ---- おてつだいの お店（ミニゲーム） ----
 const SHOPS = {
+  cake: { name: "ケーキやさん", color: "#EDBAC6", desc: "きねんびの ケーキを ちゅうもんどおりに", perk: "cook" },
   crepe: { name: "クレープやさん", color: "#F8A5C2", desc: "ちゅうもんどおりの クレープを つくろう", perk: "cook" },
   dentist: { name: "はいしゃさん", color: "#8FD3F4", desc: "ばいきんを やっつけて はを ピカピカに", perk: "dentist" },
   bakery: { name: "パンやさん", color: "#F2C27B", desc: "ちょうどいい やきかげんで パンを やこう", perk: "cook" },

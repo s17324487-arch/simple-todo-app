@@ -3,7 +3,7 @@ import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {chromium} from 'playwright';
 import {serve} from './serve.mjs';
-const root=fileURLToPath(new URL('..',import.meta.url)),out=join(root,'docs/screenshots/heiwadai-layout');mkdirSync(out,{recursive:true});
+const root=fileURLToPath(new URL('..',import.meta.url)),out=join(root,process.argv.includes('--life')?'docs/screenshots/heiwadai-life':'docs/screenshots/heiwadai-layout');mkdirSync(out,{recursive:true});
 const {server,url}=await serve({port:0,quiet:true}),browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||undefined});
 const views=[['station',43.2,27.4,390,844],['junction',43,45,390,844],['shotengai',20.5,34,390,844],['residential',28.2,55.5,390,844],['plaza',27.5,20.2,375,667]];
 try{
@@ -13,7 +13,7 @@ try{
  await page.evaluate(()=>PokaDebug.newGame());await page.waitForFunction(()=>PokaDebug.state().scene==='house'&&PokaDebug.idle());
  await page.evaluate(()=>{PokaDebug.hour(12);PokaDebug.calendar('2026-05-01');PokaDebug.weather('clear');PokaDebug.teleport('heiwadai',42,29,'right');});
  await page.waitForFunction(()=>PokaDebug.state().map==='heiwadai'&&PokaDebug.idle(),null,{timeout:60000});
- await page.evaluate(()=>PokaDebug.pause(true));
+ await page.evaluate(()=>{PokaDebug.heiwadaiLife?.(0);PokaDebug.pause(true);});
  const images=[];
  for(const [id,cx,cy,width,height]of views){const png=await page.evaluate(v=>PokaDebug.heiwadaiView(v),{cx,cy,width,height});writeFileSync(join(out,id+'.png'),Buffer.from(png.split(',')[1],'base64'));images.push(png);}
  await page.screenshot({path:join(out,'play-390.png')});await page.setViewportSize({width:375,height:667});await page.evaluate(()=>PokaDebug.pause(false));await page.waitForTimeout(400);await page.screenshot({path:join(out,'play-375.png')});
