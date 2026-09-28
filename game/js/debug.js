@@ -23,6 +23,9 @@ const PokaDebug = {
       "PokaDebug.water('coast', 30, 10)   水の かたまりの しゅるい（川・海・湖）・岸・その マスの 色",
       "PokaDebug.cast('town_walker0')   町の人の 名前・種・見た目（id なしで 全員の ようす）",
       "PokaDebug.house()                     おうちへ",
+      "PokaDebug.smaho('map')                すまほを ひらく（アプリ id: map・status・bag・dex・event・rally・hint・fortune・rewards・music。なしで ホーム・null で とじる）",
+      "PokaDebug.smahoState()                すまほの ようす（ひらいて いるか・アプリ・ボタンの ばしょ・しるし）",
+      "PokaDebug.fortune('2026-9-28')        その日の うらない（日づけ なしで きょう）",
       "PokaDebug.discs()                     あつめた ディスク・音楽プレイヤー・いま ながれて いる きょく",
       "PokaDebug.discDrop('shop', 'crepe')   ディスクを かならず 手に入れる（'shop' / 'chest' と お店・マップ）",
       "PokaDebug.discLuck(true)              おてつだい・たからばこで ディスクが かならず 出る（false で もとに もどす）",
@@ -252,6 +255,20 @@ const PokaDebug = {
       kb: (m ? m.full.length : Art.furnSvg(id, { flip }).length) / 1024, loaded: [...SvgCache.map.keys()].some((k) => k.startsWith(key + "@")),
       moving: G.sceneName === "house" && Save.d.room.items.some((it) => it.id === id && G.scene.life.furniture[it.uid] > 0) };
   },
+  // すまほ: app を わたすと その アプリ、なしで ホーム、null で とじる
+  smaho(app) {
+    if (typeof Smaho === "undefined") return null;
+    if (app === null) { Smaho.close(); return this.smahoState(); }
+    if (app) Smaho.show(app); else if (!Smaho.view) Smaho.open(); else Smaho.home();
+    return this.smahoState();
+  },
+  smahoState() {
+    if (typeof Smaho === "undefined") return null;
+    const b = Smaho.button, r = b && !b.classList.contains("hidden") ? b.getBoundingClientRect() : null;
+    const v = Smaho.view, ph = v ? v.phone.getBoundingClientRect() : null;
+    return { open: !!v, app: v ? v.app : null, apps: Smaho.apps().map((a) => a.name), button: r ? { x: r.x, y: r.y, w: r.width, h: r.height } : null, phone: ph ? { x: ph.x, y: ph.y, w: ph.width, h: ph.height } : null, dot: !!b && !b.querySelector(".smaho-dot").classList.contains("hidden"), hints: Smaho.hints().length };
+  },
+  fortune(day) { return typeof Smaho === "undefined" ? null : Smaho.fortune(day || U.today()); },
   // ART-05: ディスクと 音楽プレイヤー。discDrop("shop", "crepe") / discDrop("chest", "forest") は かならず 出る ときの 手に入れかた
   discs() {
     if (typeof MusicDiscs === "undefined") return null;

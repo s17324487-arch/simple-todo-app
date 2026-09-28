@@ -73,7 +73,7 @@ PokaDebug.drift(time) は現在のカメラと、指定時刻の季節/風の葉
 
 ## 地形のある全体マップ（ver2）
 
-`atlas-art.js` → `world-atlas.js` を seasonal.js のあと、debug.js の前に読む。従来の WorldAtlas を world-expansion.js から移し、メニューの「ちず」と季節イベントの「ぜんたい ちずを みる」から共通利用する。参照画像からは地形・境界・目印の見せ方を参考にし、島の形・配置・図案はオリジナル。
+`atlas-art.js` → `world-atlas.js` を seasonal.js のあと、debug.js の前に読む。従来の WorldAtlas を world-expansion.js から移し、すまほの「ちず」と季節イベントの「ぜんたい ちずを みる」から共通利用する。参照画像からは地形・境界・目印の見せ方を参考にし、島の形・配置・図案はオリジナル。
 
 - AtlasArt.places は9エリアの地図上の位置・目印・短い説明、roads は実在する徒歩接続のみ。SVGの800×850座標で海岸線・起伏・植生・水系・街区を描く。素材プレビューに全体図を追加。模様は固定数・決定的な値、SVGのclipPath/patternには描画ごとの一意IDを付け、SvgCacheは使わない。
 - WorldAtlas は開いたDOM内に拡大率（1〜3倍）・表示範囲・選択地点を持つ。Pointer Eventsでドラッグと2本指ズーム、44px以上のボタンで拡大縮小・全体・現在地・交通線切り替え。地点はキーボードのEnter/Spaceでも選べ、selectでも全エリアにアクセスできる。イベントは要素にのみ登録し、グローバルリスナーやタイマーを残さない。
@@ -244,6 +244,14 @@ SCENES.xxx = XxxScene;
 | `UI.showHud(on, place)` / `UI.updateHud()` | 上のコイン表示・場所名・メニューボタン |
 | `UI.icon(kind, id, size)` | アイテムのアイコン（HTML 文字列） |
 | `UI.busy` | 会話やモーダルが開いていれば true |
+
+### すまほ（smaho.js・UI-01）
+
+- `Smaho` … ひだり したの「すまほ」ボタン（`.smaho-btn`。町・フィールド・おみせ・おうちの 下の ボタンの 上）と スマホの 画面（`.modal-wrap.smaho-wrap` の 中の `.smaho`）。`Game.openMenu`（Esc・cancel キー）は `Smaho.toggle()`。≡（`UI.hudMenu`）は `Menu.open()` で、タブは せってい・あそびかた（`Menu.help`）だけ。
+- `APPS` … `{ id, name, color, when?, render(el, ph) }`。ちず（`WorldAtlas.render`＋町・おみせでは「おうちへ かえる」）・ようす（`Menu.status`）・もちもの（`Menu.bag`）・ずかん（`Menu.dex`）・イベント（`AnnualFestivals.open`）・スタンプラリー（`Seasonal.open` と `DailyPlay.open` の タブ）・ひんと（`hints()`）・うらない（`fortune(day)`）・ごほうび（`ShopRewards.open`）・おんがく（`MusicDiscs` が ある とき）。
+- `ph.embed(fn)` … `UI.modal` を 1かいだけ かりて、`fn()` が つくる まどの `body`・`footer` を アプリの 画面に 入れる。かえす `close()` は すまほを とじる（「さんか」「ちずを みる」の あとは あそびに もどる）。
+- `fortune(day)` … 日づけの 文字（`U.today()` の 形）から きめる うらない（Math.random・Date を つかわない）。ラッキーの おみせは `DailyPlay.featured(day)`（ほんとうに コイン 1.2ばい）。ひいた 日は `Save.d.flags.fortuneDay`（あたらしい セーブ項目は ない）。
+- `Seasonal.mount` は すまほの ボタンだけ つける（町の「おまつり」ボタン `.world-festival` は もう 出さない）。PokaDebug は `smaho(app)`・`smahoState()`・`fortune(day)`。
 
 注意: `html:` や `innerHTML` に入れる文字列に、プレイヤーが入力した文字（キャラの名前など）を入れるときは、HTML の記号を取りのぞく（`menu.js` の名前変更と `Save.migrate()` でそうしている）。新しい入力欄を作るときも同じにする。
 
@@ -516,6 +524,7 @@ class NewTask extends TaskBase {
 | `folkTalk(id)` / `folkLast()` / `folkLine(id)` | 町の人の となりへ 行って 話しかける（会話は H.dialogs で すすめる）／さいごの セリフと ひとことの id／データの セリフ 1つ |
 | `folk()` / `folkOffer(id)` / `folkSignal(sig)` / `folkMarks()` | おねがいの きろく／つぎに かならず もちかける／手順を すすめる（会話は またない）／いまの マップの しるし |
 | `folkSpots(map)` / `folkKitten()` / `folkPhotoTile(map)` | さがす きらきら・さわる 小物（となりの 立てる マス `stand`・画面の 位置 `cx`/`cy`）／ついて くる こねこ／しゃしんが とれる マス。`folkOffer` は 物々交換の id（`bt-…`）も うけとる |
+| `smaho(app)` / `smahoState()` / `fortune(day)` | すまほを ひらく（app なしで ホーム・null で とじる）／`{ open, app, apps, button, phone, dot, hints }`／その日の うらない |
 | `fishGive(id, n)` | ③ 魚を いけすに 入れる（ずかんにも のる。大きさは `Fishing.size`）。ずかんの きろくを かえす |
 | `rod(n)` / `fishing(place, fishId)` / `fishState()` / `fishInput(kind)` / `fishSkip()` / `fishShore(map)` | ③ さおを もたせる／釣りの 画面を はじめる（その 魚が かかる）／いまの ようす／なげる・まく・はなす／まつ を とばす／歩いて 行ける 水べと 向き |
 | `fossilGive(key, n)` | ④ 骨を もたせる（`"trex.skull"` など）。もって いる 数を かえす |
@@ -680,7 +689,7 @@ SeasonPaletteは四季4通りの草と木の色。季節が変わるとTilesの�
 ## ver2: 12か月のおまつり
 `annual-festivals.js`はseasonal.jsの後に読む。ANNUAL_EVENTSが12か月のテーマ・3つの活動・選択肢・限定品を定義。AnnualArtは家具と会場の飾りを共用し、12種類の有限なSVGを使う。通常のショップに限定品は並べない。
 
-「おまつり」から年間予定を開き、その月のイベントに参加する。会場3か所のしかけをタップし、好きな答えを選ぶと進行。開催期間は各月の1日〜月末。Save.events.activeAnnualを追加し、recordsは既存の`${year}-${season}`と別の`${year}-annual-${id}`キーにstamps/answers/claimedを保存。既存のコイン・所持品・四季記録を変換しない。キャンセル・期間外・重複回答は無効。受け取りは画面演出より先に保存するので連打や再起動で増えない。
+すまほの「イベント」から年間予定を開き、その月のイベントに参加する（UI-01 までは 町の「おまつり」ボタン）。会場3か所のしかけをタップし、好きな答えを選ぶと進行。開催期間は各月の1日〜月末。Save.events.activeAnnualを追加し、recordsは既存の`${year}-${season}`と別の`${year}-annual-${id}`キーにstamps/answers/claimedを保存。既存のコイン・所持品・四季記録を変換しない。キャンセル・期間外・重複回答は無効。受け取りは画面演出より先に保存するので連打や再起動で増えない。
 
 PokaDebug.calendar('YYYY-MM-DD')で日付を固定し、annual()で現在のイベント・目的地・選択肢・取得数を読む。390pxで全12種類、375pxで七夕とハロウィンを実際のタップで完了し、保存・再開・翌年の持ち越しを確認する。
 

@@ -274,6 +274,8 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - `js/music-discs.js`（`MusicDiscs`）。プレイヤーは ふつうの 家具（`FurnModels.register`・`FurnLive.register`）、ディスクは `Save.d.discs`。`ShopScene.results` と `Loot.give`・`WorldScene.openChest` を 外から つつむ（minigames.js・talk.js・scene-world.js は かえない）。受け入れ条件: ディスクの きょくが ぜんぶ ながせる・おみせと たからばこの マップが ある・プレイヤーは レアで ねだん 0（check）。スモーク「music-disc-390 / 375」（ほんとうの おてつだいと たからばこで 手に入る・えらんで きける・とめる・セーブ）。
 ### [x] ART-06 食べ物の 名前と 絵を そろえる（20しゅ） ✅
 - `js/food-art.js`（`FoodArtFix`）で `FOOD_ART` を 上がき。受け入れ条件: 食べ物ごとに じぶんの 絵が ある・ほかの 食べ物の 絵を かりない（check）。見本は `docs/screenshots/food-art/before-after.png`。
+### [x] UI-01 すまほ（「おまつり」ボタンの かわり。ちず・ようす・もちもの などを アプリに まとめる。≡ は せってい だけ） ✅
+- `js/smaho.js`（`Smaho`）。どうぶつの森の スマホの ように ホーム画面の アプリを タップして ひらく。アプリ: ちず・ようす・もちもの・ずかん・イベント・スタンプラリー・ひんと・うらない・ごほうび・おんがく。いままでの まど（おまつり・スタンプ・ごほうび）は `UI.modal` を 1かい かりて 中みを すまほに 入れる（annual-festivals.js・seasonal.js・daily-play.js・shop-rewards.js は かえない）。受け入れ条件: ≡ の タブは せってい・あそびかた だけ・町に おまつりボタンが ない・アプリの なまえは ひらがな・うらないは その日 ずっと おなじ（check）。スモーク「smaho-390 / 375」（ボタンの ばしょ・アプリ 10こ・44px・はみ出さない・Esc・おうちへ かえる）。見本は `docs/screenshots/smaho/`。
 
 ---
 

@@ -80,6 +80,62 @@ html, body {
 .coin-ico::after { content: ""; position: absolute; left: 4px; top: 2px; width: 3px; height: 8px; background: #fff6c8; border-radius: 2px; }
 .menu-btn { display: flex; flex-direction: column; gap: 3px; background: var(--pink); }
 .menu-btn span { display: block; width: 18px; height: 3px; background: var(--ink); border-radius: 2px; }
+/* すまほ（ぽかぽかフォン・js/smaho.js）。モーダルと おなじ かさね（z 30）で、中の まど（ちず・カード）や かいわは その うえに でる */
+.smaho-btn { position:absolute; left:10px; bottom:calc(62px + var(--safe-b)); min-height:48px; display:flex; align-items:center; gap:4px; padding:4px 14px 4px 6px; font-size:14px; background:#FFF4C2; z-index:5; }
+.smaho-btn svg { width:32px; height:32px; }
+.smaho-dot { position:absolute; top:-3px; right:-3px; width:14px; height:14px; border-radius:50%; background:#E35D5B; border:2.5px solid var(--ink); }
+.smaho-dot.hidden { display:none; }
+.modal-wrap.smaho-wrap { align-items:center; padding:calc(8px + var(--safe-t)) 4px calc(8px + var(--safe-b)); }
+.smaho { position:relative; width:min(380px, 100%); height:min(780px, 100%); background:#FFE39A; border:4px solid var(--ink); border-radius:40px; padding:14px 6px 6px; box-shadow:0 6px 0 var(--ink); display:flex; flex-direction:column; animation:smahoUp .24s ease-out; }
+@keyframes smahoUp { from { transform:translateY(40px) scale(.96); opacity:0; } to { transform:none; opacity:1; } }
+.smaho::before { content:""; position:absolute; top:5px; left:50%; width:54px; height:5px; margin-left:-27px; border-radius:3px; background:#C9A45A; }
+.smaho-close { position:absolute; top:-14px; right:-8px; z-index:2; }
+.smaho-screen { flex:1; min-height:0; border:3px solid var(--ink); border-radius:30px; overflow:hidden; display:flex; flex-direction:column; background:linear-gradient(180deg,#BFE6F5 0%,#E9F6EC 55%,#FFF3D6 100%); }
+.smaho-status { flex:none; height:30px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; font-size:13px; font-weight:800; }
+.smaho-brand { font-size:11px; color:#6E6A63; }
+.smaho-page { flex:1; min-height:0; display:flex; flex-direction:column; }
+.smaho-home { overflow-y:auto; padding:0 12px 10px; overscroll-behavior:contain; }
+.smaho-clock { text-align:center; font-size:44px; font-weight:900; line-height:1.1; margin-top:4px; }
+.smaho-date { text-align:center; font-size:14px; font-weight:800; margin-bottom:12px; }
+.smaho-apps { display:grid; grid-template-columns:repeat(3,1fr); gap:12px 4px; }
+.smaho-app { background:none; border:0; padding:0; display:flex; flex-direction:column; align-items:center; gap:4px; min-height:44px; font:inherit; font-size:12.5px; font-weight:800; color:var(--ink); cursor:pointer; }
+.smaho-app .ico { position:relative; width:62px; height:62px; border-radius:20px; border:3px solid var(--ink); display:grid; place-items:center; box-shadow:0 3px 0 var(--ink); }
+.smaho-app:active .ico { transform:translateY(2px); box-shadow:0 1px 0 var(--ink); }
+.smaho-app .nm { line-height:1.15; text-align:center; }
+.smaho-app-view { background:#FFFDF6; }
+.smaho-bar { flex:none; display:flex; align-items:center; gap:8px; padding:4px 8px; background:var(--app-color,#FFE39A); border-bottom:3px solid var(--ink); }
+.smaho-back { min-width:44px; min-height:44px; padding:4px 10px; font-size:14px; }
+.smaho-title { display:flex; align-items:center; gap:6px; font-size:17px; font-weight:900; }
+.smaho-body { flex:1; min-height:0; overflow-y:auto; padding:10px 10px 14px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+.smaho-body .btn.wide { margin-bottom:8px; }
+.smaho-body.app-map { padding:6px 3px 14px; } /* ちずの 地点は 44px いじょう（よこはばを ぜんぶ つかう） */
+.smaho-foot { display:flex; gap:8px; margin-top:10px; }
+.smaho-homebar { flex:none; height:28px; background:none; border:0; display:grid; place-items:center; cursor:pointer; }
+.smaho-homebar::after { content:""; width:120px; height:6px; border-radius:3px; background:var(--ink); }
+.smaho-tabs { display:grid; grid-template-columns:1fr 1fr; margin-bottom:10px; }
+.smaho-hint { display:flex; gap:8px; align-items:flex-start; background:#FFFFFF; border:2.5px solid var(--ink); border-radius:14px; padding:8px 10px; margin-bottom:8px; font-size:14px; font-weight:700; line-height:1.45; }
+.smaho-hint .ico { flex:none; width:34px; height:34px; border-radius:10px; background:#F3F7EA; display:grid; place-items:center; }
+.smaho-fortune { text-align:center; }
+.smaho-ball { display:inline-block; margin:6px 0 4px; }
+.smaho-ball.shake { animation:smahoShake .15s infinite alternate; }
+@keyframes smahoShake { from { transform:rotate(-8deg) translateY(0); } to { transform:rotate(8deg) translateY(-4px); } }
+.smaho-omikuji { display:none; text-align:left; background:#FFFFFF; border:3px solid var(--ink); border-radius:16px; padding:10px 12px; margin:6px 0 10px; }
+.smaho-omikuji.show { display:block; animation:smahoUp .3s ease-out; }
+.smaho-omikuji .luck { font-size:30px; font-weight:900; text-align:center; color:var(--luck); -webkit-text-stroke:1px var(--ink); }
+.smaho-omikuji .msg { text-align:center; font-weight:800; margin:2px 0 8px; }
+.smaho-omikuji .rows > div { display:flex; align-items:center; gap:6px; min-height:34px; border-top:2px dashed #EADFC6; font-size:14px; }
+.smaho-omikuji .rows b { flex:none; width:112px; font-size:12px; }
+.smaho-omikuji .swatch { width:22px; height:22px; border-radius:50%; border:2px solid var(--ink); }
+.smaho-omikuji .kid { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; margin-top:6px; }
+.smaho-omikuji .kid .face { flex:none; width:34px; height:34px; border-radius:10px; overflow:hidden; background:var(--blue-l); border:2px solid var(--ink); }
+.smaho-omikuji .kid .face svg { width:100%; height:auto; transform:scale(1.3) translateY(4%); transform-origin:50% 20%; }
+.smaho-discs { display:grid; gap:6px; }
+.smaho-disc { display:flex; align-items:center; gap:8px; background:#FFFFFF; border:2.5px solid var(--ink); border-radius:12px; padding:5px 8px; }
+.smaho-disc b { display:block; font-size:14px; }
+.smaho-disc small { color:#7A746A; font-size:11px; font-weight:700; }
+.smaho-disc.lock svg { filter:grayscale(1) opacity(.45); }
+.help-row { background:#FFFFFF; border:2.5px solid var(--ink); border-radius:14px; padding:8px 12px; margin-bottom:8px; }
+.help-row b { font-size:15px; } .help-row p { margin:2px 0 0; font-size:14px; line-height:1.5; }
 
 /* ---- トースト ---- */
 .toasts { position: absolute; top: calc(64px + var(--safe-t)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none !important; z-index: 50; }
@@ -137,8 +193,8 @@ html, body {
 .tabs::-webkit-scrollbar { display: none; }
 .tab { flex: 0 0 auto; font: inherit; font-weight: 800; font-size: 14px; border: 3px solid var(--ink); background: var(--paper); border-radius: 12px; padding: 6px 12px; box-shadow: 0 3px 0 var(--ink); color: var(--ink); }
 .tab.on { background: var(--yellow); transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
-.menu-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
-.menu-tabs .tab { min-width: 0; min-height: 44px; padding: 6px 1px; font-size: 11px; }
+.menu-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.menu-tabs .tab { min-width: 0; min-height: 44px; padding: 6px 4px; font-size: 15px; }
 
 /* ---- グリッド・カード ---- */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }

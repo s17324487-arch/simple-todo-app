@@ -22,7 +22,7 @@ const FILES = [
   "./js/seasonal-catalog.js", "./js/seasonal.js",
   "./js/annual-festivals.js", "./js/food-art.js",
   "./js/weather.js", "./js/battle-elements.js",
-  "./js/modern-music.js", "./js/music-arrangements.js", "./js/music-discs.js",
+  "./js/modern-music.js", "./js/music-arrangements.js", "./js/music-discs.js", "./js/smaho.js",
   "./js/atlas-art.js", "./js/world-atlas.js", "./js/district-travel.js", "./js/mac-kitchen.js", "./js/venue-hall-art.js", "./js/venue-hall.js", "./js/nerikasu-neighborhood.js",
 ];
 self.addEventListener("install", (e) => {

@@ -9,7 +9,7 @@ const UI = {
     this.hudCoins = U.el("div", { class: "pill coins" });
     this.hudPlace = U.el("div", { class: "pill place" });
     this.hudMenu = U.el("button", { class: "btn round menu-btn", "aria-label": "メニュー", html: "<span></span><span></span><span></span>" });
-    this.hudMenu.addEventListener("click", () => { Sound.se("tap"); Game.openMenu(); });
+    this.hudMenu.addEventListener("click", () => { Sound.se("tap"); if (!Game.inputLocked) Menu.open(); });
     this.hud.append(this.hudCoins, this.hudPlace, this.hudMenu);
     this.root.append(this.hud);
     this.toastBox = U.el("div", { class: "toasts" });

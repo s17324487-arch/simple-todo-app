@@ -115,6 +115,7 @@
 | `js/parent-work.js` | ぱぱ・ままの おしごと（ほんとうの 時こくで 9〜18じは いない）と 3人の おるすばん（ことば・しぐさ）・いってきます／ただいま |
 | `js/music-discs.js` | レアの 音楽プレイヤー 3しゅ（ラジカセ・ちくおんき・ジュークボックス）と ディスク 22まい（おてつだい・たからばこで 手に入る・へやで きける）。ディスクだけの きょくは パブリックドメインの 名曲（出典つき） |
 | `js/food-art.js` | 食べ物の 絵の なおし（名前と 絵を そろえる 20しゅ。`FOOD_ART` を 上がき） |
+| `js/smaho.js` | すまほ（`Smaho`）。ひだり したの ボタンで ひらく スマホの 画面。ちず・ようす・もちもの・ずかん・イベント・スタンプラリー・ひんと・うらない・ごほうび・おんがく の アプリ。≡ は せってい・あそびかた だけ |
 | `js/furniture-live.js` | さわれる 家具（ライト・テレビ・ピアノ・とけい・魚・だんろ・きしゃ など 16しゅ。うごく ぶぶんを canvas に 描く） |
 | `js/furniture-models.js` | 家具の 立体モデル（まるい ラグ・天がいの ベッド・キッチン・ピアノ など 24しゅ。床の 大きさは かえない） |
 | `js/water-art.js` | 水の 絵（川・海・湖。なめらかな 岸・ふかさ・ながれ・波。マスの 形は かえない） |
@@ -125,7 +126,7 @@
 | `js/ui.js` | 会話・選択肢・入力・モーダル・トースト・HUD（`UI`） |
 | `js/main.js` | 起動・画面サイズ・ループ・入力・シーン切り替え（`G`・`Game`・`SCENES`） |
 | `js/talk.js` | 町の人の会話（`TALKS`）とアイテムの受け取り（`Loot`） |
-| `js/menu.js` / `js/shop.js` / `js/dressup.js` | メニュー、買い物のお店、着せ替え画面 |
+| `js/menu.js` / `js/shop.js` / `js/dressup.js` | メニュー（≡ は せってい・あそびかた。ようす・もちもの・ずかん・ちず の 中みは すまほの アプリが よぶ）、買い物のお店、着せ替え画面 |
 | `js/scene-title.js` / `scene-world.js` / `scene-house.js` / `scene-battle.js` | タイトル／町・フィールド／おうち／バトル |
 | `js/minigames.js` | お店のおてつだいミニゲーム（`ShopScene`、`TaskBase` と4つのお店） |
 | `js/debug.js` | テスト・開発用の `PokaDebug`（ゲーム本編からは使わない） |
@@ -148,6 +149,7 @@
 - 食べ物・どうぐ → `data.js` の `FOODS` / `TOOLS` ＋ `art.js` の `FOOD_ART`
 - 敵を足す → `data.js` の `ENEMIES` と `AREAS` ＋ `art.js` の `ENEMY_ART`
 - 町の人・会話 → `maps.js` の `npcs` ＋ `talk.js` の `TALKS`
+- すまほに アプリを 足す → `smaho.js` の `APPS` に 1行（`id`・`name` は ひらがな・カタカナ 7もじ まで・`color`・`render(el, ph)`）＋ `ICON[id]` ＋ スモーク「smaho」の `checks`。ゲームの 画面は ≡ ではなく すまほに 足す
 - お店のミニゲームを足す → `minigames.js`（`TaskBase` を継承したクラス）＋ `MG_TASKS`・`SHOPS`・`SHOP_OWNERS`・`HOWTO` ＋ `maps.js` の建物 ＋ `Save.fresh().shops` ＋ `PokaDebug.mg()` ＋ スモークテスト
 - マップを変える → `maps.js`。`npm run check` が、ワープ先・宝箱・ドア・人・敵の出現位置に歩いて行けるかまで調べる
 - 町・建物・道を作る／直す → 先に [`game/docs/design/README.md`](game/docs/design/README.md) と `TOWN_GUIDE.md` を読む。見本がある町（平和台）は、見本の絵と配置のとおりに作る（`towns/<町>/CODEX_TASK.md`）

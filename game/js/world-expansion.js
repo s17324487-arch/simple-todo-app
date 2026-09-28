@@ -24,7 +24,7 @@
   ];
   for (const b of buildings) { for(let y=b.y;y<b.y+b.h;y++) for(let x=b.x;x<b.x+b.w;x++) city.force(x,y,"#"); city.force(b.x+b.door,b.y+b.h-1,"D"); }
   MAP_DEFS.city = { name:"池袋",bgm:"city",baseGround:"plaza",rows:city.rows(),buildings,objects:[],npcs:[{id:"cityguide",sp:"rabbit",x:19,y:16,dir:"down",name:"あんないの ルル",talk:"cityguide"}],signs:[{x:31,y:18,text:"ひがしは しおかぜビーチ\nてきの めやす Lv.16〜22"}],chests:[{id:"city_welcome",x:30,y:29,loot:{coins:150}}],spawns:[],warps:[{x:0,y:16,w:1,h:3,to:"town",tx:34,ty:7,dir:"left"},{x:35,y:16,w:1,h:3,to:"coast",tx:1,ty:9,dir:"right"}] };
-  TALKS.cityguide={first:["ようこそ！ ここは 池袋。\nデパートや こうえんで あそんでね。"],lines:[["つかれたら メニューから おうちへ かえれるよ。"],["うみべは つよい てきが いるよ。Lv.16 くらいから おすすめ！"]]};
+  TALKS.cityguide={first:["ようこそ！ ここは 池袋。\nデパートや こうえんで あそんでね。"],lines:[["つかれたら すまほの「ちず」から おうちへ かえれるよ。"],["うみべは つよい てきが いるよ。Lv.16 くらいから おすすめ！"]]};
   const beach=new FieldGen("coast",38,30,"s"); beach.border("R",1,0);
   for(let y=1;y<29;y++) for(let x=27;x<37;x++) beach.force(x,y,"~");
   beach.path([[0,9],[11,9],[14,17],[20,23],[31,23]],2,"s"); beach.path([[24,23],[35,23]],2,"b");
