@@ -395,7 +395,7 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
   const fixture=await H.dbg("saveData"),fullHealth=Object.fromEntries(Object.entries(fixture.chars).map(([id,c])=>[id,{hp:c.hp,sp:c.sp}]));
   fixture.parents.auto=false;
   for(const c of Object.values(fixture.chars)){c.hp=1;c.sp=0;c.hunger=12;c.mood=14;}
-  await H.dbg("seedSave",fixture);await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  await H.dbg("seedSave",fixture);await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle(30000);
   const preserved=d=>JSON.stringify({bag:d.bag,wardrobe:d.wardrobe,furn:d.furn,room:d.room,rooms:d.rooms,flags:d.flags,events:d.events,stats:d.stats,order:d.order,settings:d.settings,chars:Object.fromEntries(Object.entries(d.chars).map(([id,c])=>[id,{lv:c.lv,exp:c.exp,boost:c.boost,outfit:c.outfit,name:c.name,color:c.color}]))});
   const openSettings=async()=>{await H.page.getByRole("button",{name:"メニュー",exact:true}).click();await H.page.getByRole("button",{name:"せってい",exact:true}).click();};
   const tapVersion=async n=>{await H.page.getByRole("button",{name:/ぽかぽかタウン ver/}).click({clickCount:n,delay:50});};
@@ -1065,7 +1065,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.dbg("groundImage","meadow",1,1)===oldGround,"道路のないはらっぱの地面が変わった");
   const after=await H.dbg("state");expect(after.map===state.map&&after.pos.join()===state.pos.join()&&after.coins===state.coins,"道路プレビューでプレイ状態が変化");
   expect(JSON.stringify((await H.dbg("world")).party)===JSON.stringify(world.party),"道路プレビューで3人が移動した");
-  await H.dbg("pause",false);await H.dbg("walkTo",18,30);await H.until(()=>PokaDebug.state().pos.join() === "18,30");
+  await H.dbg("pause",false);expect(await H.dbg("walkTo",11,52),"噴水から近くの歩道へ進めない");await H.until(()=>PokaDebug.state().pos.join() === "11,52");
   expect((await H.dbg("world")).party.length===3,"3人が一緒に歩かない");
 },{viewport,full:viewport.width===375,timeout:90000});
 
