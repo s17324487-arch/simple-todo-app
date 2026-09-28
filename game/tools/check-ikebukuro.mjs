@@ -9,6 +9,7 @@ for(const id of R.IkebukuroCatalog.groups.luxury)assert(R.FURN_INDEX[id].price>=
 for(const shop of ['clothes','furniture','market'])for(const [tab]of R.BUY_SHOPS[shop].tabs)assert(!R.BUY_SHOPS[shop].items(tab).some(i=>i.exclusive));
 assert.equal(R.PrizeArcade.machines.length,8);
 for(const id of ['prize_uma','prize_pie','prize_cookie',...R.IkebukuroCatalog.groups.marche])assert.equal(R.BAG_INDEX[id].kind,'food',id+' must be edible');
+for(const food of R.FOODS.filter(f=>f.exclusive==='ikebukuro')){const svg=R.Art.iconSvg('bag',food.id);assert(!/=>|\$\{|undefined/.test(svg),food.id+' must register SVG markup, not a renderer function');assert(/<(path|rect|circle)\b/.test(svg),food.id+' must have visible artwork');}
 for(const type of ['claw','sweet','tripod','ring']){
  assert.equal(R.PrizeArcade.machines.filter(m=>m.type===type).length,2);
  const r=new R.PrizeMachineRound(type,()=>0);r.move(10,-10);assert.equal(r.x,.92);assert.equal(r.y,.08);r.x=r.target.x;r.y=r.target.y;r.time=0;
