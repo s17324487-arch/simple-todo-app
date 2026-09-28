@@ -56,7 +56,6 @@ jobs:
       - name: スモークテスト（全部・スクリーンショットつき）
         env:
           DEBUG: pw:browser
-          WEBKIT_DISABLE_DMABUF_RENDERER: "1"
         run: node tests/smoke.mjs --browser=${{ matrix.browser }} --full --shots --shard=${{ matrix.shard }}/4
 
       - name: スクリーンショットを保存

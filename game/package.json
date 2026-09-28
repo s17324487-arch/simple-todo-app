@@ -18,7 +18,7 @@
     "test:webkit:full": "npm run check && node tests/smoke.mjs --browser=webkit --full --shots"
   },
   "devDependencies": {
-    "playwright": "1.56.1"
+    "playwright": "1.63.0"
   },
   "engines": {
     "node": ">=18"
