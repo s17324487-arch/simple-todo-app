@@ -175,7 +175,7 @@ museum: { fish: {}, bones: {}, done: {}, rooms: {}, all: {} },
 ## 11. PR の 分けかた
 
 1. ✅ **町の 建物と 館の 中**（済み: Claude Code。下の「実装メモ」）: `js/museum-data.js`・`js/museum-art.js`・`js/museum.js`（index.html と sw.js の 両方）、外がわ・かんばん・`indoor` の ドア・床と かべ・展示（寄贈 0 の すがた）・順路の 矢印・案内・BGM・`museumGo`・スモーク（入って 出る）。
-2. **寄贈**: `Save.museum`・館の 人・寄贈の 画面・かんせい・展示に 反映（魚が およぐ・骨格）・PokaDebug・スモーク。
+2. ✅ **寄贈**（済み: Claude Code。下の「実装メモ」）: `Save.museum`・館の 人・寄贈の 画面・かんせい・展示に 反映（魚が およぐ・骨格）・PokaDebug・スモーク。
 3. **しらべる と つなぎ**: 展示の 説明・③ の ずかん・④ の ノート・② の `signal`。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
@@ -194,6 +194,13 @@ museum: { fish: {}, bones: {}, done: {}, rooms: {}, all: {} },
 - `tools/check.mjs`: 館の マップ（indoor）は 全体地図の 検査から はずし、館の 人（`role: "donate"`）は 町の人の セリフの 検査から はずした。建物の `act` に `indoor` を みとめる。館の 検査（魚 50・恐竜 10 が 1かいずつ・町の 建物と 出入り口・入口の へや・床の 文字・館の 人・曲・セーブ・展示の 絵 140まい・寄贈の ようすの 文字）を 足した。
 - `tools/feature-design/build-museum.mjs`: ゲームに 館が 入った あと（`MUSEUM_DATA` が ある）でも 見本を 作りなおせる ように、おきかえた あとの 建物（`outside.id`・`act: indoor`）を しらべ、マスの 文字と 曲の なまえは 館いがいと くらべる ように した。
 - テストの 入口（1番）: `PokaDebug.museumGo(id, room)`（へやの まんなかの 手前の 床）・`museumState()`（`{ fish, bones, done, rooms, intro }`）。スモーク `museum-visit-390`・`-375`（CODEX_TASK の 10 に ある 町の 座標は 古いので、いまは みなと (5, 32)・シティ (6, 20)）。
+- 2番: `Talk.run` の さいしょで `role: "donate"` の 人は `Museum.talk(n, scene)`（見本 5 の 1〜4 の じゅん。はじめて → `first`／ぜんぶ → `all`（はじめての ときだけ トーストと fanfare・`Save.d.museum.all[館]`）→ `lines` から 1つ／寄贈できる ものが ない → `none` ＋ `lines`／ある → `ask` → 寄贈の 画面）。
+- 寄贈の 画面: `UI.modal`（タイトルは 見本の とおり「🐟 かんちょうの マリン」「🦴 くまの はかせ ドン」）。水族館は `.dn-grid`（いけすに いる 魚を `FISHING_DATA` の じゅんに。寄贈ずみは「きふずみ」で おせない）、博物館は `.dn-list`（もって いて まだ 寄贈して いない 骨。恐竜ごとの 寄贈ずみ／ぜんぶ）。えらぶまで 下の ボタンは おせない（「さかなを えらんでね」）。きふすると `Save.d.fish.keep` ／ `Save.d.fossil.bones` を 1 へらし、`Save.d.museum.fish[id]` ／ `.bones[key]` に 日づけ・`sparkle`・`thanks`（会話まどは 画面の 上に 出るので 画面は とじない）。骨が そろったら `done[恐竜]` と かんせいの 画面（`.dn-done`・「ホールで みる」で とじる）→ `talk.done`（`{dino}` を 名前に）・fanfare。寄贈できる ものが なくなったら 画面を とじる。
+- 展示に 反映: `WorldScene.exBits`（`Museum.shown`）に いま 描いて いる 寄贈の ようすを もち、寄贈の あと `Museum.refresh(scene)` が 新しい 絵を `SvgCache.ensure` してから きりかえる（いっしゅん 消えない）。`Museum.art` は id と bits で おぼえる（毎フレーム よばれるため）。
+- 魚が およぐ: 水そうの 絵は `swim: true`（魚なし）で、`slots`・`water` を `WorldScene.drawStatic` の あとの `Museum.drawFish` が 毎フレーム 描く（見本 4 の うごき。魚の 絵は `"mfish:" + id + ":" + はば`、左むきの 絵を 右へ うごく ときに 左右を かえす、`f.flip` の 魚は そのまま）。**見本の 大きさは「いる 魚の 数」で わるので 1ぴきだけだと 水そうの 半分に なる。ゲームでは「その 水そうの 魚が ぜんぶ いる とき」の 大きさまでに した**（ふえても 大きさが かわらない）。シーラカンスの 台（pedestal）は 絵に 入った まま。
+- ④ との つなぎ（2番で 入れた）: `Fossils.owned()`（もって いる ＋ 寄贈した 骨）を ノート・くわしい ページ・みつけた カード・ほる ときの「まだ ない 骨」・物々交換の「まだ ない 骨」に つかう（寄贈しても へらない）。物々交換で わたすのは 寄贈して いない ぶんだけ。
+- テストの 入口（2番）: `museumGive(kind, key)`（"all" で ぜんぶ。骨が そろうと done）・`museumDonate()`（館の 人に 話しかける。会話は テストが すすめる）・`museumPick(key)`・`museumConfirm()`（ありがとうの 会話は またない）。スモーク `museum-donate-390`・`-375`。
+- **3番に のこした こと**: 展示を しらべる（`Museum.at`・`Museum.show`・`.ex-card` の CSS）・③ の ずかんの「すいぞくかんに いるよ」・② の `TownFolk.signal({ do: "donate" })`。
 
 ## 12. やらないこと
 

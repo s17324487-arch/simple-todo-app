@@ -1,6 +1,7 @@
 // ⑤ 水族館と 恐竜博物館（docs/design/features/museum の 見本。絵は MuseumArt、床と かべは 見本 tools/feature-design/museum-render.mjs と おなじ）。
 // 1番: 町の 建物から 入る 館の マップ（MAP_DEFS.aquarium / MAP_DEFS.museum）・床と かべ・展示（寄贈の ようすで 絵が かわる）・順路の 矢印・へやの 案内・BGM。
-// 寄贈（2番）・展示の 説明（3番）は あとで 足す。データは MUSEUM_DATA（自動生成）、セーブは Save.d.museum。
+// 2番: 館の 人に 寄贈（いけすの 魚・もって いる 骨）・かんせい・寄贈した 魚が 水そうで およぐ。展示の 説明（3番）は あとで 足す。
+// データは MUSEUM_DATA（自動生成）、セーブは Save.d.museum（{ fish, bones, done, rooms, all }）。
 const Museum = {
   data() { return typeof MUSEUM_DATA !== "undefined" ? MUSEUM_DATA : null; },
   building(mapId) { return ((this.data() || {}).buildings || {})[mapId] || null; },
@@ -18,9 +19,13 @@ const Museum = {
     return "";
   },
   // 展示の 絵（WorldArt.exhibit から。見本 museum-render.mjs の propOf と おなじ）。{ w, h, svg }（svg は WorldArt と おなじ 中身だけ）
+  // 2番: 水そうは 魚を 描かずに（swim）、魚の いる 場所（slots）と 水の 四角（water）を かえす。魚は drawFish が うごかして 描く。
+  // 毎フレーム よばれるので id と bits で おぼえて おく（有限）
+  artCache: {},
   art({ id, bits = "" }) {
+    const ck = id + ":" + bits; if (this.artCache[ck]) return this.artCache[ck];
     const o = this.object(id); if (!o) return { w: 32, h: 32, svg: "" };
-    const opts = { ...o };
+    const opts = { ...o, swim: !!o.fish };
     if (o.fish) opts.fish = o.fish.map((fid, i) => {
       const f = typeof Fishing !== "undefined" && Fishing.fish(fid);
       return f ? { id: fid, svg: FishArt.svg(f.art, { uid: "m" + fid, flip: !!f.flip }), have: bits[i] === "1", scale: Math.min(1.8, 0.7 + f.size[1] / 120), big: f.size[1] > 90, noflip: !!f.flip } : { id: fid, svg: "", have: false };
@@ -31,7 +36,49 @@ const Museum = {
     }
     if (o.boneOf) { const b = typeof Fossils !== "undefined" && Fossils.bone(o.boneOf); if (b) opts.bone = FossilArt.partSvg(b.dino, b.part.id); }
     const p = MuseumArt.prop(o.kind, opts);
-    return { w: p.w, h: p.h, svg: p.svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "") };
+    // 見本は いる 魚の 数で わって 大きさを きめるので、1ぴき だけだと 水そうの 半分に なる。ゲームでは「ぜんぶ いる とき」の 大きさまでに する（ふえても 大きさが かわらない）
+    const slots = (p.slots || []).map((sl) => {
+      const f = Fishing.fish(sl.id), k = f ? Math.min(1.8, 0.7 + f.size[1] / 120) : 1, cap = Math.min(p.water[2] * 0.5, Math.max(22, (p.water[2] / Math.max(2, o.fish.length)) * 1.1) * k);
+      return sl.w <= cap ? sl : { ...sl, x: sl.x + (sl.w - cap) / 2, y: sl.y + (sl.h - cap / 2) / 2, w: cap, h: cap / 2 };
+    });
+    return (this.artCache[ck] = { w: p.w, h: p.h, svg: p.svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, ""), slots: p.slots ? slots : null, water: p.water || null });
+  },
+  // いま 描いて いる 寄贈の ようす（寄贈した あと、新しい 絵を よみこんでから きりかえる。いっしゅん 消えない ように）
+  shown(sc, o) { const m = sc.exBits || (sc.exBits = {}); return m[o.id] != null ? m[o.id] : (m[o.id] = this.bits(o)); },
+  async refresh(sc) {
+    if (!sc || !sc.map || !sc.map.def.indoor) return;
+    for (const s of sc.map.sprites) {
+      if (s.kind !== "exhibit") continue;
+      const nb = this.bits(s.o); if (this.shown(sc, s.o) === nb) continue;
+      await sc.objCanvas("exhibit", { id: s.o.id, bits: nb }, true);
+      await Promise.all(this.fishJobs(this.art({ id: s.o.id, bits: nb })));
+      sc.exBits[s.o.id] = nb;
+    }
+  },
+  // ---- 2番: 水そうで およぐ 魚（寄贈した 魚だけ。キーは "mfish:" + 魚 + ":" + はば。有限）----
+  fishImg(slot, ensure) {
+    const f = typeof Fishing !== "undefined" && Fishing.fish(slot.id); if (!f) return null;
+    const w = Math.round(slot.w), svg = () => FishArt.svg(f.art, { uid: "mf" + f.id, flip: false }), vb = (svg().match(/viewBox="([^"]+)"/) || [0, "0 0 2 1"])[1].split(" ").map(Number);
+    const h = Math.max(4, Math.round((w * vb[3]) / vb[2])), pw = Math.ceil(w * G.px), ph = Math.ceil(h * G.px), key = "mfish:" + f.id + ":" + w;
+    if (ensure) return SvgCache.ensure(key, svg, pw, ph);
+    const c = SvgCache.get(key, svg, pw, ph); return c ? { c, w, h, noflip: !!f.flip } : null;
+  },
+  fishJobs(a) { return (a && a.slots || []).map((sl) => this.fishImg(sl, true)).filter(Boolean); },
+  preload(sc) { const jobs = []; for (const s of sc.map.sprites) if (s.kind === "exhibit" && s.o.fish) jobs.push(...this.fishJobs(this.art({ id: s.o.id, bits: this.shown(sc, s.o) }))); return jobs; },
+  // x0, y0 は 展示の 絵の 左上（WorldScene.drawStatic から）。見本 CODEX_TASK.md の 4 の うごき: よこに ゆれて、うごく 向きを むく・上下に ±1.5px・水の 四角で clip
+  drawFish(ctx, a, x0, y0) {
+    if (!a.slots || !a.slots.length || !a.water) return;
+    const [wx, wy, ww, wh] = a.water;
+    ctx.save(); ctx.beginPath(); ctx.rect(x0 + wx, y0 + wy, ww, wh); ctx.clip();
+    a.slots.forEach((sl, i) => {
+      const img = this.fishImg(sl, false); if (!img) return;
+      const sp = 0.6 + this.hash(sl.id.length, sl.id.charCodeAt(0), 3) * 0.4, amp = Math.min(10, Math.max(0, (ww - sl.w) / 4)), t = G.t * sp + i;
+      const x = x0 + sl.x + Math.sin(t) * amp, y = y0 + sl.y + (sl.h - img.h) / 2 + Math.sin(G.t * 1.3 + i * 2) * 1.5, right = Math.cos(t) > 0;
+      // 魚の 絵は 左むき。右へ うごく ときは 左右を かえす（flip の 魚は そのまま）
+      if (right && !img.noflip) { ctx.save(); ctx.translate(x + img.w, y); ctx.scale(-1, 1); ctx.drawImage(img.c, 0, 0, img.w, img.h); ctx.restore(); }
+      else ctx.drawImage(img.c, x, y, img.w, img.h);
+    });
+    ctx.restore();
   },
 
   // ---- 床と かべ（見本 museum-render.mjs の floorTile・wallSprite を canvas に）----
@@ -85,6 +132,114 @@ const Museum = {
     this.introTimer = setTimeout(() => this.hideIntro(), 4500);
   },
   hideIntro() { clearTimeout(this.introTimer); if (this.intro) this.intro.remove(); this.intro = null; },
+  // ---- 2番: 寄贈（館の 人。Talk.run の さいしょから）----
+  talk_(n) { return MUSEUM_DATA.talk[n.talk]; },
+  fishCount() { return Object.keys(this.st().fish).length; },
+  doneCount() { return Object.keys(this.st().done).length; },
+  dinoDone(d) { return d.art.parts.every((p) => this.gaveBone(d.id + "." + p.id)); },
+  complete(bid) { return bid === "aquarium" ? FISHING_DATA.fish.every((f) => this.gaveFish(f.id)) : FOSSIL_DATA.dinos.every((d) => this.dinoDone(d)); },
+  // 寄贈できる もの: 水族館は いけすに いて まだ 寄贈して いない 魚、博物館は もって いて まだ 寄贈して いない 骨（1しゅ・1部品 1かい）
+  donatable(bid) {
+    if (bid === "aquarium") return FISHING_DATA.fish.filter((f) => (Save.d.fish.keep[f.id] || 0) > 0 && !this.gaveFish(f.id)).map((f) => f.id);
+    return FOSSIL_DATA.dinos.flatMap((d) => d.art.parts.map((p) => d.id + "." + p.id)).filter((k) => (Save.d.fossil.bones[k] || 0) > 0 && !this.gaveBone(k));
+  },
+  async talk(n, sc) {
+    const bid = sc.mapId, T = this.talk_(n), face = Art.npcSvg({ sp: n.sp, col: n.col, outfit: n.outfit, emo: "happy" }), f = Save.d.flags;
+    const say = (text) => UI.say([{ name: n.name, face, text }]);
+    if (!f.talked[n.id]) { f.talked[n.id] = true; Save.mark(); await say(T.first); }
+    if (this.complete(bid)) {
+      if (!this.st().all[bid]) { this.st().all[bid] = true; Save.mark(); Save.write(); Sound.se("fanfare"); UI.toast("ぜんぶ そろった！", "good"); }
+      await say(T.all); await say(U.pick(T.lines)); return true;
+    }
+    if (!this.donatable(bid).length) { await say(T.none); await say(U.pick(T.lines)); return true; }
+    await say(T.ask);
+    await this.donate(sc, n, face);
+    return true;
+  },
+  // 寄贈の 画面（見本 img/phones.png の ⑥⑦・img/small-phone.png）。えらんで 下の ボタンで きふする。とじるまで つづけて えらべる
+  donate(sc, n, face) {
+    const bid = sc.mapId, fish = bid === "aquarium", T = this.talk_(n);
+    return new Promise((done) => {
+      let sel = null, busy = false, m = null;
+      const body = U.el("div"), foot = U.el("div", { class: "dn-foot" }), go = UI.btn("", () => confirm(), "yellow wide");
+      foot.append(go);
+      const render = () => {
+        body.innerHTML = "";
+        const head = U.el("div", { class: "dn-head" });
+        head.append(U.el("span", { class: "cnt", text: fish ? `きふした さかな ${this.fishCount()} / ${FISHING_DATA.fish.length}` : `くみたてた きょうりゅう ${this.doneCount()} / ${FOSSIL_DATA.dinos.length}` }), U.el("span", { class: "muted", text: fish ? "いけすの さかなを えらんでね" : "もって いる ほね" }));
+        body.append(head);
+        if (fish) {
+          const grid = U.el("div", { class: "dn-grid" });
+          for (const f of FISHING_DATA.fish) {
+            const k = Save.d.fish.keep[f.id] || 0; if (!k) continue;
+            const gave = this.gaveFish(f.id), c = U.el("button", { class: "dn-cell" + (gave ? " done" : "") + (sel === f.id ? " sel" : "") });
+            c.dataset.key = f.id;
+            c.innerHTML = `${Fishing.svg(f, "dn" + f.id)}<span class="nm"></span><span class="n">×${k}</span>` + (gave ? '<span class="tag">きふずみ</span>' : '<span class="tag new">はじめて！</span>');
+            c.querySelector(".nm").textContent = f.name;
+            if (gave) c.disabled = true; else c.addEventListener("click", () => pick(f.id));
+            grid.append(c);
+          }
+          body.append(grid);
+        } else {
+          const list = U.el("div", { class: "dn-list" });
+          for (const key of this.donatable(bid)) {
+            const { dino: d, part: p } = Fossils.bone(key), got = d.art.parts.filter((q) => this.gaveBone(d.id + "." + q.id)).length, total = d.art.parts.length;
+            const row = U.el("button", { class: "dn-row" + (sel === key ? " sel" : "") });
+            row.dataset.key = key;
+            row.innerHTML = `<span class="ic">${FossilArt.partSvg(d, p.id)}</span><span class="tx"><b></b><span class="pr"><span class="bar"><i style="width:${Math.round((got / total) * 100)}%"></i></span>${got}/${total}</span></span><span class="n">×${Save.d.fossil.bones[key]}</span>`;
+            row.querySelector("b").textContent = `${d.name}の ${p.name}`;
+            row.addEventListener("click", () => pick(key));
+            list.append(row);
+          }
+          body.append(list);
+        }
+        go.textContent = !sel ? (fish ? "さかなを えらんでね" : "ほねを えらんでね") : fish ? `${Fishing.fish(sel).name}を きふする` : "えらんだ ほねを きふする";
+        go.disabled = !sel;
+      };
+      const pick = (key) => { if (busy || !this.donatable(bid).includes(key)) return false; Sound.se("tap"); sel = key; render(); return true; };
+      const confirm = async () => {
+        if (!sel || busy) return false;
+        busy = true; const key = sel; sel = null;
+        const r = fish ? this.giveFish(key) : this.giveBone(key);
+        Sound.se("sparkle"); render();
+        await this.refresh(sc);
+        await UI.say([{ name: n.name, face, text: T.thanks }]);
+        if (r.done) await this.doneCard(r.done, n, face, T);
+        busy = false;
+        if (!this.donatable(bid).length) { if (m) m.close(); } else render();
+        return true;
+      };
+      this.picking = { pick, confirm, sel: () => sel };
+      render();
+      m = UI.modal({ title: `${fish ? "🐟" : "🦴"} ${n.name}`, body, footer: foot, onClose: () => { this.picking = null; m = null; done(); } });
+    });
+  },
+  // 寄贈する（いけす −1 ／ 骨 −1。ずかん・ノートには のこる）。骨が そろったら { done: 恐竜 }
+  giveFish(id) {
+    const k = Save.d.fish.keep; k[id] = Math.max(0, (k[id] || 0) - 1);
+    this.st().fish[id] = U.today(); Save.mark(); Save.write(); return {};
+  },
+  giveBone(key) {
+    const b = Save.d.fossil.bones; b[key] = Math.max(0, (b[key] || 0) - 1);
+    this.st().bones[key] = U.today();
+    const d = Fossils.bone(key).dino, done = this.dinoDone(d) && !this.st().done[d.id];
+    if (done) this.st().done[d.id] = U.today();
+    Save.mark(); Save.write(); return done ? { done: d } : {};
+  },
+  // 骨格が そろった ときの 画面（見本 ⑧ dn-done）→ はかせの ことば（talk.done）
+  doneCard(d, n, face, T) {
+    return new Promise((done) => {
+      const body = U.el("div", { class: "dn-done" });
+      body.innerHTML = `<div class="art">${FossilArt.svg(d, { have: d.art.parts.map((p) => p.id) })}</div><div class="nm"></div><div class="dn"></div><div class="fact"><b>まめちしき</b><span></span></div>`;
+      body.querySelector(".nm").textContent = `${d.name}の がいこつが かんせい！`;
+      body.querySelector(".dn").textContent = `${d.era}・${d.where}・${d.len}m`;
+      body.querySelector(".fact span").textContent = d.fact;
+      Sound.se("fanfare");
+      let m = null;
+      const btn = UI.btn("ホールで みる", () => m && m.close(), "yellow wide");
+      m = UI.modal({ title: "🎉 かんせい！", body, footer: btn, onClose: async () => { m = null; await UI.say([{ name: n.name, face, text: (T.done || "").replace("{dino}", d.name) }]); done(); } });
+    });
+  },
   // 町の 入口（act.type === "indoor"）→ 館の 入口
   enter(sc, act) {
     const b = this.building(act.map); if (!b) return false;

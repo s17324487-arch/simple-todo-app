@@ -359,6 +359,24 @@ const PokaDebug = {
     this.teleport(id, x, y, "up");
     return { x, y };
   },
+  // ⑤ 寄贈した ことに する（kind: "fish" / "bone"。key は 魚 id か "trex.skull"、"all" で ぜんぶ。骨が そろった 恐竜は done も）
+  museumGive(kind = "fish", key = "all") {
+    const st = Save.d.museum, day = U.today();
+    if (kind === "fish") for (const f of FISHING_DATA.fish) { if (key === "all" || key === f.id) st.fish[f.id] = day; }
+    else for (const d of FOSSIL_DATA.dinos) { for (const p of d.art.parts) if (key === "all" || key === d.id + "." + p.id) st.bones[d.id + "." + p.id] = day; if (Museum.dinoDone(d) && !st.done[d.id]) st.done[d.id] = day; }
+    Save.mark(); if (G.sceneName === "world") Museum.refresh(G.scene);
+    return this.museumState();
+  },
+  // ⑤ 館の 人に 話しかけて 寄贈の 画面へ（会話は テストが すすめる）。museumPick(key) → museumConfirm()
+  museumDonate() {
+    const sc = G.sceneName === "world" ? G.scene : null, n = sc && sc.map.def.indoor && sc.npcs.find((x) => x.role === "donate");
+    if (!n || sc.busy) return false;
+    sc.interact({ type: "npc", npc: n });
+    return true;
+  },
+  museumPick(key) { return Museum.picking ? Museum.picking.pick(key) : false; },
+  // きふする（ありがとうの 会話は テストが すすめる ので またない）
+  museumConfirm() { if (!Museum.picking || !Museum.picking.sel()) return false; Museum.picking.confirm(); return true; },
   // ⑤ 寄贈の きろく（2番で ふえる）と 入った へや
   museumState() { const st = Save.d.museum; return { fish: Object.keys(st.fish).length, bones: Object.keys(st.bones).length, done: Object.keys(st.done), rooms: Object.keys(st.rooms), intro: document.querySelector(".museum-intro")?.innerText || null }; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）

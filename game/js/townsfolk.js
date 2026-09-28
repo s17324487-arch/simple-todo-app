@@ -332,7 +332,7 @@ const TownFolk = {
       const loot = this.lootOf(bt.get), msg = loot ? Loot.give(loot) : "";
       Sound.se("coin"); UI.toast("こうかん した！", "good");
       if (msg) await UI.say([{ text: msg }]);
-      if (bt.get.bone) { const first = !Fossils.st().bones[bt.get.bone]; Fossils.give(bt.get.bone); Save.write(); await Fossils.card({ ...Fossils.bone(bt.get.bone), key: bt.get.bone }, first); }
+      if (bt.get.bone) { const first = !Fossils.owned()[bt.get.bone]; Fossils.give(bt.get.bone); Save.write(); await Fossils.card({ ...Fossils.bone(bt.get.bone), key: bt.get.bone }, first); }
       this.signal({ do: "have" }); this.refresh(); // かう おねがいが すすむ ことも ある
     }
     Save.write();

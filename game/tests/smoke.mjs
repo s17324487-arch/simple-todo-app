@@ -1418,6 +1418,58 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect((await H.dbg('museumState')).rooms.length===4,'入った へやの きろくが きえる');
 },{viewport,full:viewport.width===375,timeout:180000});
 
+// ⑤ 2番: 寄贈。いけすの アユを かんちょうに → 水そうで およぐ・いけすから へる。コンプソグナトゥスの 骨 2つを はかせに → かんせい。寄贈しても ノートは そろった まま
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('museum-donate-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
+  await H.dbg('fishGive','ayu',2);await H.dbg('fishGive','magoi');
+  await H.dbg('museumGo','aquarium');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='aquarium'&&PokaDebug.idle(),10000);await H.wait(800);
+  expect(await H.dbg('museumDonate'),'かんちょうに 話しかけられない');await H.dialogs();
+  await H.page.locator('.dn-grid').waitFor({timeout:8000});await H.wait(300);
+  let v=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),cells=[...document.querySelectorAll('.dn-cell')],go=document.querySelector('.dn-foot .btn');
+    return {cells:cells.map(c=>[c.dataset.key,c.querySelector('.tag').textContent,c.disabled]),tall:cells.every(c=>r(c).height>=43.5)&&r(go).height>=43.5,inside:cells.every(c=>r(c).left>=0&&r(c).right<=innerWidth+1),go:go.textContent,off:go.disabled,head:document.querySelector('.dn-head').innerText};});
+  expect(v.cells.length===2&&v.cells.every(c=>c[1]==='はじめて！'&&!c[2])&&v.tall&&v.inside&&v.off&&/0 \/ 50/.test(v.head),'寄贈の 画面が 不正 '+JSON.stringify(v));
+  expect(await H.dbg('museumPick','ayu'),'アユを えらべない');await H.wait(200);
+  expect((await H.eval(()=>document.querySelector('.dn-foot .btn').textContent))==='アユを きふする','きふする ボタンの ことばが 不正');
+  await H.shot('pick-fish');
+  expect(await H.dbg('museumConfirm'),'きふ できない');await H.wait(300);await H.dialogs();await H.wait(300);
+  let d=await H.dbg('saveData');expect(d.museum.fish.ayu&&d.fish.keep.ayu===1&&d.fish.dex.ayu.n===2,'アユの 寄贈が 不正 '+JSON.stringify({m:d.museum.fish,k:d.fish.keep}));
+  v=await H.eval(()=>[...document.querySelectorAll('.dn-cell')].map(c=>[c.dataset.key,c.querySelector('.tag').textContent,c.disabled]));
+  expect(v.find(c=>c[0]==='ayu')[1]==='きふずみ'&&v.find(c=>c[0]==='ayu')[2],'寄贈した 魚が「きふずみ」に ならない '+JSON.stringify(v));
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.idle();
+  // 水そう（かわの ながれ）に アユが およぐ
+  const swim=await H.eval(()=>{const s=G.scene.map.sprites.find(x=>x.o?.id==='aq_flow'),a=Museum.art({id:'aq_flow',bits:Museum.shown(G.scene,s.o)});return {bits:Museum.shown(G.scene,s.o),slots:(a.slots||[]).map(x=>x.id),img:!!(a.slots&&a.slots[0]&&Museum.fishImg(a.slots[0],false))};});
+  expect(swim.bits==='1000000'&&swim.slots.join()==='ayu'&&swim.img,'水そうに アユが いない '+JSON.stringify(swim));
+  await H.dbg('museumGo','aquarium','river');await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);await H.wait(1200);await H.shot('swim');
+  // はかせ: コンプソグナトゥスの あたまと からだ → かんせい
+  await H.dbg('fossilGive','compso.head');await H.dbg('fossilGive','compso.body');
+  await H.dbg('museumGo','museum');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='museum'&&PokaDebug.idle(),10000);await H.wait(800);
+  expect(await H.dbg('museumDonate'),'はかせに 話しかけられない');await H.dialogs();
+  await H.page.locator('.dn-list').waitFor({timeout:8000});await H.wait(300);
+  v=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),rows=[...document.querySelectorAll('.dn-row')];return {rows:rows.map(x=>[x.dataset.key,x.innerText]),inside:rows.every(x=>r(x).left>=0&&r(x).right<=innerWidth+1&&r(x).height>=43.5)};});
+  expect(v.rows.length===2&&/コンプソグナトゥスの あたまと くび/.test(v.rows[0][1])&&v.inside,'骨の 寄贈の 画面が 不正 '+JSON.stringify(v));
+  await H.dbg('museumPick','compso.head');await H.wait(200);await H.shot('pick-bone');
+  await H.dbg('museumConfirm');await H.wait(300);await H.dialogs();await H.wait(300);
+  await H.dbg('museumPick','compso.body');await H.dbg('museumConfirm');await H.wait(300);await H.dialogs();
+  await H.page.locator('.dn-done').waitFor({timeout:8000});await H.wait(300);
+  v=await H.eval(()=>{const e=document.querySelector('.dn-done'),b=e.getBoundingClientRect();return {text:e.innerText,inside:b.left>=0&&b.right<=innerWidth+1};});
+  expect(/コンプソグナトゥスの がいこつが かんせい！/.test(v.text)&&/まめちしき/.test(v.text)&&v.inside,'かんせいの 画面が 不正 '+JSON.stringify(v));
+  await H.shot('done');
+  await H.page.getByRole('button',{name:'ホールで みる',exact:true}).click();await H.wait(300);await H.dialogs();await H.idle();
+  d=await H.dbg('saveData');expect(d.museum.done.compso&&d.museum.bones['compso.head']&&!d.fossil.bones['compso.head']&&!d.fossil.bones['compso.body'],'骨の 寄贈・かんせいが 不正');
+  const st=await H.dbg('museumState');expect(st.fish===1&&st.bones===2&&st.done.join()==='compso','museumState が 不正 '+JSON.stringify(st));
+  // 寄贈しても ノートは そろった まま（寄贈した 骨も 数える）
+  await H.page.locator('.menu-btn').click();await H.wait(300);await H.page.locator('.menu-tabs .tab',{hasText:'ずかん'}).click();await H.wait(200);
+  await H.page.locator('.dex-kinds .tab[data-k="fossil"]').click();await H.wait(400);
+  expect((await H.eval(()=>document.querySelector('.fossil-cell[data-id="compso"] .cnt').textContent))==='そろった！','寄贈すると ノートから 骨が きえる');
+  await H.page.keyboard.press('Escape');await H.wait(300);
+  // 骨格の 台に コンプソグナトゥス（ぜんぶ 骨の 色）
+  expect(await H.eval(()=>Museum.shown(G.scene,G.scene.map.sprites.find(x=>x.o?.dino==='compso').o))==='11','骨格の 台に 反映されない');
+  await H.dbg('teleport','museum',9,14,'left');await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);await H.wait(1200);await H.shot('hall');
+  // セーブして よみこんでも 寄贈は のこる
+  await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+  const after=await H.dbg('museumState');expect(after.fish===1&&after.bones===2&&after.done.join()==='compso','セーブで 寄贈が きえる');
+},{viewport,full:viewport.width===375,timeout:180000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');
