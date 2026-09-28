@@ -1,0 +1,703 @@
+[
+  {
+    "id": "quiz26",
+    "level": 1,
+    "topic": "歴史",
+    "prompt": "ロゼッタ・ストーンには ヒエログリフ、デモティックと、もう1種類の文字が 刻まれている。それは？",
+    "choices": [
+      "ラテン文字",
+      "ギリシャ文字",
+      "アラビア文字",
+      "キリル文字"
+    ],
+    "answer": 1,
+    "explanation": "答えは ギリシャ文字。同じ勅令を 3種類の文字で記した碑文が、ヒエログリフ解読の手がかりになった。",
+    "sources": [
+      {
+        "title": "大英博物館：The Rosetta Stone",
+        "url": "https://www.britishmuseum.org/collection/object/Y_EA24",
+        "evidence": "勅令はヒエログリフ、デモティック、ギリシャ文字で3回刻まれている。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "大英博物館：Egyptian hieroglyphs decipherment timeline",
+        "url": "https://www.britishmuseum.org/exhibitions/hieroglyphs-unlocking-ancient-egypt/egyptian-hieroglyphs-decipherment-timeline",
+        "evidence": "ロゼッタ石の3種の文字をヒエログリフ、デモティック、ギリシャ文字と説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz27",
+    "level": 1,
+    "topic": "地理",
+    "prompt": "インカ文明の遺跡 マチュ・ピチュが ある国は？",
+    "choices": [
+      "ボリビア",
+      "メキシコ",
+      "ペルー",
+      "チリ"
+    ],
+    "answer": 2,
+    "explanation": "答えは ペルー。アンデス山中に築かれた、インカ文明の遺跡だ。",
+    "sources": [
+      {
+        "title": "UNESCO：Historic Sanctuary of Machu Picchu",
+        "url": "https://whc.unesco.org/en/list/274",
+        "evidence": "所在地はペルーで、ペルーのアンデスとアマゾン盆地が出会う地域にあるインカ文明の遺産。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ペルー政府観光局：Machupicchu",
+        "url": "https://www.peru.travel/attractions/machu-picchu",
+        "evidence": "ペルーのクスコ地方にあるインカ都市として紹介。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz28",
+    "level": 1,
+    "topic": "建築",
+    "prompt": "白い漆喰の外観から「白鷺城（しらさぎじょう）」とも 呼ばれる城は？",
+    "choices": [
+      "松本城",
+      "犬山城",
+      "彦根城",
+      "姫路城"
+    ],
+    "answer": 3,
+    "explanation": "答えは 姫路城。白い漆喰の壁で統一された姿が、白鷺城という呼び名につながっている。",
+    "sources": [
+      {
+        "title": "UNESCO：Himeji-jo",
+        "url": "https://whc.unesco.org/en/list/661",
+        "evidence": "白い漆喰壁で統一された外観がShirasagi-jo（White Heron Castle）の名の由来と記載。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "姫路市：姫路城の顕著な普遍的価値",
+        "url": "https://www.city.himeji.lg.jp/kanko/cmsfiles/contents/0000030/30274/chapter11.pdf",
+        "evidence": "白色の漆喰塗り土壁と『白鷺城』の呼称を説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz29",
+    "level": 1,
+    "topic": "芸術",
+    "prompt": "絵画『真珠の耳飾りの少女』を 描いた画家は？",
+    "choices": [
+      "レンブラント",
+      "フェルメール",
+      "フランス・ハルス"
+    ],
+    "answer": 1,
+    "explanation": "答えは フェルメール。青いターバンと 大きな耳飾りが印象的な作品だ。",
+    "sources": [
+      {
+        "title": "マウリッツハイス美術館：Girl with a Pearl Earring",
+        "url": "https://www.mauritshuis.nl/en/our-collection/artworks/670-girl-with-a-pearl-earring/",
+        "evidence": "作品の作者をJohannes Vermeerと記載し、ターバンと耳飾りを説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "アムステルダム国立美術館：Vermeer exhibition texts",
+        "url": "https://www.rijksmuseum.nl/en/whats-on/exhibitions/past/vermeer/vermeer-exhibition-text",
+        "evidence": "フェルメールの制作作品としてGirl with a Pearl Earringを挙げている。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz30",
+    "level": 1,
+    "topic": "音楽",
+    "prompt": "ヴィヴァルディ『四季』の原曲で、独奏を担当する 楽器は？",
+    "choices": [
+      "フルート",
+      "チェロ",
+      "ヴァイオリン",
+      "ピアノ"
+    ],
+    "answer": 2,
+    "explanation": "答えは ヴァイオリン。春・夏・秋・冬を表す 4つの協奏曲が『四季』として知られている。",
+    "sources": [
+      {
+        "title": "ロサンゼルス・フィル：The Four Seasons",
+        "url": "https://www.laphil.com/works/the-four-seasons",
+        "evidence": "原編成は鍵盤楽器、弦楽器、独奏ヴァイオリン。最初の4曲が春夏秋冬。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ノースブルック交響楽団：The Four Seasons program notes",
+        "url": "https://www.northbrooksymphony.org/program-notes/february-22-2026-the-four-seasons",
+        "evidence": "『四季』を独奏ヴァイオリンと管弦楽のための4つの協奏曲と説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz31",
+    "level": 1,
+    "topic": "文学",
+    "prompt": "光源氏を中心に 宮廷の人びとを描いた『源氏物語』の作者は？",
+    "choices": [
+      "紫式部",
+      "清少納言",
+      "和泉式部",
+      "菅原孝標女"
+    ],
+    "answer": 0,
+    "explanation": "答えは 紫式部。平安時代の貴族社会を描いた、全54帖の長い物語だ。",
+    "sources": [
+      {
+        "title": "国立国会図書館：源氏物語と源氏絵",
+        "url": "https://www.ndl.go.jp/gallery/exhibitions/202401",
+        "evidence": "宮廷女房の紫式部が『源氏物語』を著し、光源氏を主人公に貴族の生活を描いたと説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "宇治市：源氏物語・歴史公園",
+        "url": "https://www.city.uji.kyoto.jp/site/ijuteiju/19830.html",
+        "evidence": "作者は紫式部、全54帖で、平安時代の貴族社会を題材とすることを説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz32",
+    "level": 1,
+    "topic": "地理",
+    "prompt": "エジプトの スエズ運河が 直接結んでいる 海の組み合わせは？",
+    "choices": [
+      "地中海と 黒海",
+      "紅海と ペルシャ湾",
+      "太平洋と 大西洋",
+      "地中海と 紅海"
+    ],
+    "answer": 3,
+    "explanation": "答えは 地中海と紅海。エジプトの スエズ地峡を通る人工の水路だ。",
+    "sources": [
+      {
+        "title": "スエズ運河庁：About Suez Canal",
+        "url": "https://www.suezcanal.gov.eg/English/About/SuezCanal/Pages/AboutSuezCanal.aspx",
+        "evidence": "エジプトのスエズ地峡を南北に通り、地中海と紅海を結ぶ人工水路と説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "エジプト国家情報庁：Yacht Tourism",
+        "url": "https://sis.gov.eg/en/egyptians-abroad-portal/discover-egypt/yacht-tourism/",
+        "evidence": "スエズ運河が地中海と紅海を結ぶことを説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz33",
+    "level": 1,
+    "topic": "芸術",
+    "prompt": "モネの『印象・日の出』に 描かれた フランスの港は？",
+    "choices": [
+      "マルセイユ",
+      "ル・アーヴル",
+      "ニース",
+      "ボルドー"
+    ],
+    "answer": 1,
+    "explanation": "答えは ル・アーヴル。モネは 港に面したホテルから、朝の光のなかの風景を描いた。",
+    "sources": [
+      {
+        "title": "マルモッタン・モネ美術館：Impression, soleil levant",
+        "url": "https://www.marmottan.fr/notice/4014/",
+        "evidence": "ル・アーヴルのホテル滞在で作品の題材を得たと説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ル・アーヴル近代美術館：Impression(s), soleil",
+        "url": "https://muma-lehavre.fr/fr/expositions/impressions-soleil",
+        "evidence": "1872年にホテルの部屋から描いたル・アーヴル港の早朝の眺めと説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz34",
+    "level": 2,
+    "topic": "芸術",
+    "prompt": "葛飾北斎の『神奈川沖浪裏（かながわおきなみうら）』が 含まれる連作は？",
+    "choices": [
+      "東海道五十三次",
+      "名所江戸百景",
+      "冨嶽三十六景",
+      "富嶽百景"
+    ],
+    "answer": 2,
+    "explanation": "答えは 冨嶽三十六景。大きな波の向こうに 小さな富士山を見せる構図が特徴だ。",
+    "sources": [
+      {
+        "title": "メトロポリタン美術館：Under the Wave off Kanagawa",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "evidence": "作品をThirty-six Views of Mount Fujiの一図とし、波の間に小さく見せた富士山の構図を説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "サントリー美術館：北斎 大英博物館展 出品目録",
+        "url": "https://www.suntory.com/sma/exhibition/visual/2022_2/list_EN.pdf",
+        "evidence": "作品22をUnder the wave off Kanagawa、連作Thirty-six Views of Mt Fujiと記載。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz35",
+    "level": 2,
+    "topic": "音楽",
+    "prompt": "ベートーヴェンの 交響曲第9番で使われた詩『歓喜に寄す』の 作者は？",
+    "choices": [
+      "シラー",
+      "ゲーテ",
+      "ハイネ",
+      "リルケ"
+    ],
+    "answer": 0,
+    "explanation": "答えは シラー。ベートーヴェンは 詩の一部を選び、順序も変えて 終楽章に取り入れた。",
+    "sources": [
+      {
+        "title": "ベートーヴェン・ハウス：Sinfonie Nr. 9 op. 125",
+        "url": "https://www.beethoven.de/de/work/view/5556714292117504/Sinfonie%20Nr.%209%20%26",
+        "evidence": "終楽章の詩をSchillers Ode An die Freude、詞の作者をFriedrich Schillerと記載。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ロサンゼルス・フィル：Symphony No. 9 in D minor, Op. 125",
+        "url": "https://www.laphil.com/works/symphony-no-9-in-d-minor-op-125",
+        "evidence": "シラーのOde to Joyを作曲者が切り取り並べ替えて用いたと説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz36",
+    "level": 2,
+    "topic": "歴史",
+    "prompt": "タージ・マハルを 妻ムムターズ・マハルのために 建てさせた皇帝は？",
+    "choices": [
+      "アクバル",
+      "アウラングゼーブ",
+      "バーブル",
+      "シャー・ジャハーン"
+    ],
+    "answer": 3,
+    "explanation": "答えは シャー・ジャハーン。タージ・マハルは 妻をしのんで アグラに建てられた霊廟だ。",
+    "sources": [
+      {
+        "title": "UNESCO：Taj Mahal",
+        "url": "https://whc.unesco.org/en/list/252",
+        "evidence": "ムガル皇帝シャー・ジャハーンが妻ムムターズ・マハルの記念に建てたと説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ウッタル・プラデーシュ州政府：Mumtaz Mahal",
+        "url": "https://tajmahal.gov.in/about-mumtaz-mahal.aspx",
+        "evidence": "妻の埋葬直後、シャー・ジャハーンと宮廷がアグラの霊廟と庭園の計画を始めたと記載。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz37",
+    "level": 2,
+    "topic": "地理",
+    "prompt": "6世紀に建てられた 大きなドームで知られる アヤソフィアが ある都市は？",
+    "choices": [
+      "アテネ",
+      "イスタンブール",
+      "カイロ",
+      "ローマ"
+    ],
+    "answer": 1,
+    "explanation": "答えは イスタンブール。現在見られる建物は、ユスティニアヌス帝の時代の 537年に完成した。",
+    "sources": [
+      {
+        "title": "UNESCO：Historic Areas of Istanbul",
+        "url": "https://whc.unesco.org/en/list/356",
+        "evidence": "イスタンブール歴史地域の建造物としてアヤソフィアを挙げ、532〜537年の建築と説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "トルコ文化観光省：Ayasofya (Hagia Sophia)",
+        "url": "https://www.ktb.gov.tr/EN-113776/ayasofya-hagia-sophia.html",
+        "evidence": "イスタンブールにあり、ユスティニアヌスが命じた現在の建物が537年に開かれたと説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz38",
+    "level": 2,
+    "topic": "音楽",
+    "prompt": "モーツァルトの オペラ『魔笛』。原作の台本が 書かれた言語は？",
+    "choices": [
+      "イタリア語",
+      "フランス語",
+      "ドイツ語"
+    ],
+    "answer": 2,
+    "explanation": "答えは ドイツ語。シカネーダーは 当時のオペラで一般的だったイタリア語ではなく、自分の母語で台本を書いた。",
+    "sources": [
+      {
+        "title": "メトロポリタン歌劇場：Die Zauberflöte at the Met",
+        "url": "https://www.metopera.org/discover/archives/notes-from-the-archives/die-zauberflote-at-the-met/",
+        "evidence": "原作のドイツ語版と、のちのイタリア語版・英語版を区別して説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "イングリッシュ・ナショナル・オペラ：The Magic Flute — The Context",
+        "url": "https://www.eno.org/engage/eno-the-magic-flute-the-context/",
+        "evidence": "シカネーダーが母語のドイツ語を台本に選んだことを明記。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz39",
+    "level": 2,
+    "topic": "歴史",
+    "prompt": "1215年の マグナ・カルタを 受け入れた イングランド王は？",
+    "choices": [
+      "ジョン王",
+      "ヘンリー8世",
+      "エドワード1世",
+      "リチャード3世"
+    ],
+    "answer": 0,
+    "explanation": "答えは ジョン王。ラニーミードで 諸侯との合意を受け入れ、王の印章が付けられた。",
+    "sources": [
+      {
+        "title": "英国国立公文書館：Magna Carta",
+        "url": "https://www.nationalarchives.gov.uk/explore-the-collection/explore-by-time-period/medieval/magna-carta/",
+        "evidence": "ジョン王と諸侯が1215年6月15日にラニーミードで合意したと説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "英国議会：Magna Carta and Parliament",
+        "url": "https://www.parliament.uk/globalassets/documents/magna-carta-and-parliament-booklet.pdf",
+        "evidence": "1215年にジョン王がマグナ・カルタを承認したことを説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz40",
+    "level": 2,
+    "topic": "地理",
+    "prompt": "仏教遺跡 ボロブドゥールが ある インドネシアの島は？",
+    "choices": [
+      "バリ島",
+      "スマトラ島",
+      "スラウェシ島",
+      "ジャワ島"
+    ],
+    "answer": 3,
+    "explanation": "答えは ジャワ島。島の中部にあり、8〜9世紀の仏教建築を伝えている。",
+    "sources": [
+      {
+        "title": "UNESCO：Borobudur Temple Compounds",
+        "url": "https://whc.unesco.org/en/list/592",
+        "evidence": "8〜9世紀の仏教寺院で、ジャワ中部に位置すると記載。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "インドネシア観光省：Borobudur Temple Compounds",
+        "url": "https://www.indonesia.travel/uk/en/destination/java/central-java/borobudur-trail-of-civilization",
+        "evidence": "所在地をMagelang Regency, Central Java, Indonesiaと記載。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz41",
+    "level": 2,
+    "topic": "地理",
+    "prompt": "ヴェネツィアの リアルト橋が またいでいる 大運河の名前は？",
+    "choices": [
+      "ジュデッカ運河",
+      "カナル・グランデ",
+      "コリントス運河",
+      "ミディ運河"
+    ],
+    "answer": 1,
+    "explanation": "答えは カナル・グランデ。英語では Grand Canalと呼ばれ、リアルト橋は その両岸を結んでいる。",
+    "sources": [
+      {
+        "title": "ヴェネツィア市公式観光サイト：Rialto Bridge",
+        "url": "https://www.veneziaunica.it/en/things-to-do-in-venice/monuments-and-theatres/rialto-bridge",
+        "evidence": "リアルト橋がGrand Canalを渡る橋であると明記。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "スコットランド国立美術館：The Rialto, Venice",
+        "url": "https://www.nationalgalleries.org/art-and-artists/19230",
+        "evidence": "ターナー訪問時、リアルト橋がGrand Canalを徒歩で渡る唯一の橋だったと説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz42",
+    "level": 2,
+    "topic": "文化",
+    "prompt": "グーテンベルクの代表的な聖書は、紙面の行数にちなみ「何行聖書」と 呼ばれる？",
+    "choices": [
+      "24行",
+      "36行",
+      "42行",
+      "60行"
+    ],
+    "answer": 2,
+    "explanation": "答えは 42行聖書。グーテンベルクの印刷術を代表する、15世紀の印刷本だ。",
+    "sources": [
+      {
+        "title": "米国議会図書館：The Gutenberg Bible — A Resource Guide",
+        "url": "https://guides.loc.gov/gutenberg",
+        "evidence": "グーテンベルク聖書の別名を42-line Bibleと説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "マインツ市・グーテンベルク公式サイト：Gutenberg Bible",
+        "url": "https://www.gutenberg.de/en/bibel/",
+        "evidence": "グーテンベルクの代表作を42-line Bible（B42）と説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz43",
+    "level": 3,
+    "topic": "芸術",
+    "prompt": "『ラス・メニーナス』の画家 ベラスケスが 宮廷画家として仕えた スペイン王は？",
+    "choices": [
+      "フェリペ2世",
+      "フェリペ3世",
+      "フェリペ4世",
+      "フェリペ5世",
+      "カルロス3世"
+    ],
+    "answer": 2,
+    "explanation": "答えは フェリペ4世。ベラスケスは 1623年に王の画家となり、長く宮廷で活動した。",
+    "sources": [
+      {
+        "title": "ロンドン・ナショナル・ギャラリー：Philip IV of Spain",
+        "url": "https://www.nationalgallery.org.uk/paintings/diego-velazquez-philip-iv-of-spain",
+        "evidence": "ベラスケスが1623年からフェリペ4世の宮廷画家を務めたことを説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "米国ナショナル・ギャラリー：Diego Velázquez",
+        "url": "https://www.nga.gov/artists/1950-diego-velazquez",
+        "evidence": "1623年にフェリペ4世の画家に任命され、その後マドリードの宮廷に仕えたと記載。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz44",
+    "level": 3,
+    "topic": "芸術",
+    "prompt": "ラファエロの『アテナイの学堂』が 描かれている、ヴァチカン宮殿の部屋は？",
+    "choices": [
+      "署名の間",
+      "ヘリオドロスの間",
+      "ボルゴの火災の間",
+      "コンスタンティヌスの間"
+    ],
+    "answer": 0,
+    "explanation": "答えは 署名の間。神学・哲学・詩・法などを表す壁画のうち、『アテナイの学堂』は 哲学を担っている。",
+    "sources": [
+      {
+        "title": "ヴァチカン美術館：School of Athens",
+        "url": "https://www.museivaticani.va/content/museivaticani/en/collezioni/musei/stanze-di-raffaello/stanza-della-segnatura/scuola-di-atene.html",
+        "evidence": "作品の所属室をRoom of the Segnaturaと明示し、古代の哲学者を描くことを説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ヴァチカン美術館：Dante Itinerary — Images of Dante",
+        "url": "https://www.museivaticani.va/content/dam/museivaticani/pdf/eventi_novita/iniziative/mostre/2021/26_dante_effigie_en.pdf",
+        "evidence": "署名の間の壁画の主題を説明し、School of Athensが哲学を表すと記載。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz45",
+    "level": 3,
+    "topic": "音楽",
+    "prompt": "バッハの『ゴルトベルク変奏曲』。最初と最後のアリアを除くと、変奏は 全部でいくつ？",
+    "choices": [
+      "24",
+      "32",
+      "48",
+      "30"
+    ],
+    "answer": 3,
+    "explanation": "答えは 30。最初のアリアのあとに 30の変奏が続き、最後にアリアへ戻る。",
+    "sources": [
+      {
+        "title": "オランダ・バッハ協会：Goldberg Variations BWV 988",
+        "url": "https://www.bachvereniging.nl/en/bwv/bwv-988",
+        "evidence": "構造説明で30変奏と明記し、曲目をアリア・変奏1〜30・アリアの順で列挙。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "コンセルトヘボウ・ブルッヘ：Thibaut Garcia & Antoine Morinière",
+        "url": "https://www.concertgebouw.be/en/thibaut-garcia-antoine-moriniere",
+        "evidence": "作品をAria mit 30 Veränderungenとし、バッハの30変奏と説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz46",
+    "level": 3,
+    "topic": "歴史",
+    "prompt": "ハンムラビ法典の石碑上部に、王と向かい合う姿で 彫られた神は？",
+    "choices": [
+      "シャマシュ",
+      "アヌ",
+      "イシュタル",
+      "ネルガル",
+      "エンキ"
+    ],
+    "answer": 0,
+    "explanation": "答えは 太陽神シャマシュ。石碑上部では、正義をつかさどる神として 王と向かい合っている。",
+    "sources": [
+      {
+        "title": "ルーヴル美術館：The Code of Hammurabi",
+        "url": "https://www.louvre.fr/en/the-code-of-hammurabi",
+        "evidence": "石碑上部の人物をハンムラビと太陽神シャマシュと説明し、シャマシュは正義の守護神とも記載。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "メトロポリタン美術館：The Isin-Larsa and Old Babylonian Periods",
+        "url": "https://www.metmuseum.org/fr/essays/the-isin-larsa-and-old-babylonian-periods-2004-1595-b-c",
+        "evidence": "石碑上部に王と太陽・正義の神シャマシュが彫られたと説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz47",
+    "level": 3,
+    "topic": "歴史",
+    "prompt": "フランスの ラスコー洞窟で、4人の少年が 壁画を発見した年は？",
+    "choices": [
+      "1879年",
+      "1901年",
+      "1922年",
+      "1940年",
+      "1994年"
+    ],
+    "answer": 3,
+    "explanation": "答えは 1940年。9月12日、4人の少年が 洞窟の壁画を見つけた。",
+    "sources": [
+      {
+        "title": "フランス文化省：Lascaux — The discovery",
+        "url": "https://archeologie.culture.gouv.fr/lascaux/en/discovery",
+        "evidence": "ラスコーの発見を1940年と説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ラスコー国際壁画芸術センター：History of Lascaux",
+        "url": "https://lascaux.fr/en/history-of-lascaux/",
+        "evidence": "1940年9月12日に4人の少年が発見したと記載。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz48",
+    "level": 3,
+    "topic": "建築",
+    "prompt": "1053年に 平等院鳳凰堂を 建てた人物は？",
+    "choices": [
+      "藤原道長",
+      "藤原頼通",
+      "藤原基経",
+      "藤原秀衡"
+    ],
+    "answer": 1,
+    "explanation": "答えは 藤原頼通。天喜元年に建てた阿弥陀堂が、いまの鳳凰堂だ。",
+    "sources": [
+      {
+        "title": "平等院公式：建築",
+        "url": "https://www.byodoin.or.jp/learn/architecture/",
+        "evidence": "鳳凰堂は天喜元年（1053）に関白藤原頼通が建立した阿弥陀堂と説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "文化庁：文化遺産データベース 平等院鳳凰堂壁扉画",
+        "url": "https://online.bunka.go.jp/db/heritages/detail/177782",
+        "evidence": "鳳凰堂は藤原頼通により1053年3月に完成・供養されたと説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz49",
+    "level": 3,
+    "topic": "文学",
+    "prompt": "『枕草子』の「香炉峰の雪」の段で、清少納言と やり取りする中宮は？",
+    "choices": [
+      "彰子（しょうし）",
+      "定子（ていし）",
+      "威子（いし）",
+      "賢子（けんし）"
+    ],
+    "answer": 1,
+    "explanation": "答えは 定子。清少納言は 定子に仕え、そのやり取りを『枕草子』に残した。",
+    "sources": [
+      {
+        "title": "国立公文書館：枕草子",
+        "url": "https://www.archives.go.jp/exhibition/digital/rekishihouko/h27contents/27_1030.html",
+        "evidence": "香炉峰の雪の段は中宮定子と清少納言のやり取りを記すと明記。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "京都市観光協会：源氏物語ゆかりのスポット",
+        "url": "https://plus.kyoto.travel/entry/specialopeningwinter2024",
+        "evidence": "清少納言を『枕草子』の作者、一条天皇の皇后・藤原定子に仕えた女房と説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz50",
+    "level": 3,
+    "topic": "歴史",
+    "prompt": "ヨルダンの 岩を掘って造られた都市 ペトラを、王国の都として発展させた人びとは？",
+    "choices": [
+      "フェニキア人",
+      "ヒッタイト人",
+      "ナバタイ人",
+      "エトルリア人"
+    ],
+    "answer": 2,
+    "explanation": "答えは ナバタイ人。ペトラは 隊商交易の要地として栄え、岩を彫った建築や給水設備が残る。",
+    "sources": [
+      {
+        "title": "UNESCO：Petra",
+        "url": "https://whc.unesco.org/en/list/326",
+        "evidence": "ナバタイ人の都で、隊商交易の中心。岩を彫った建築と水管理設備を説明。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "アメリカ自然史博物館：Petra",
+        "url": "https://www.amnh.org/explore/ology/ology-cards/223-petra",
+        "evidence": "ペトラをナバタイ王国の都として建設された都市と説明。",
+        "checked": "2026-09-29"
+      }
+    ]
+  }
+]

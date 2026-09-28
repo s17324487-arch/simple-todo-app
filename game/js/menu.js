@@ -1,11 +1,12 @@
-// メニュー（ようす・もちもの・ずかん・せってい）
+// メニュー（≡）: せってい・あそびかた の メタな ものだけ。
+// ようす・ちず・もちもの・ずかん は すまほ（js/smaho.js）の アプリから この status / map / bag / dex を よぶ。
 const Menu = {
-  open(tab = "status") {
+  open(tab = "settings") {
     Sound.se("ok");
     const body = U.el("div");
     const tabs = U.el("div", { class: "tabs menu-tabs" });
     const content = U.el("div");
-    const T = [["status", "ようす"], ["map", "ちず"], ["bag", "もちもの"], ["dex", "ずかん"], ["settings", "せってい"]];
+    const T = [["settings", "せってい"], ["help", "あそびかた"]];
     const m = UI.modal({ title: "メニュー", body, cls: "full" });
     this.m = m;
     const show = (k) => {
@@ -20,22 +21,14 @@ const Menu = {
       tabs.append(b);
     }
     body.append(tabs, content);
-    show(tab);
-    // フィールドでは「まちに かえる」
-    const sc = G.scene;
-    if (sc instanceof WorldScene || G.sceneName === "store") {
-      const back = UI.btn("おうちへ", async () => {
-        if (await UI.confirm("3にんで おうちに かえる？")) { m.close(); Game.goto("house", {}, "circle"); }
-      }, "small");
-      m.el.querySelector(".panel-head").insertBefore(back, m.el.querySelector(".close"));
-    }
+    show(T.some(([k]) => k === tab) ? tab : "settings");
   },
 
-  map(el) { WorldAtlas.render(el); el.append(UI.btn("きせつの おまつり",()=>Seasonal.open(),"wide")); },
+  // すまほの「ちず」（おうちへ かえる は すまほが 足す）
+  map(el) { WorldAtlas.render(el); },
+  // すまほの「ようす」（まいにち スタンプ は スタンプラリー、おみせの ごほうび は ごほうび アプリへ）
   status(el) {
     const d = Save.d;
-    el.append(UI.btn("まいにち スタンプ",()=>DailyPlay.open(),"wide yellow"));
-    el.append(UI.btn("おみせの ごほうび",()=>ShopRewards.open(),"wide"));
     d.order.forEach((id, idx) => {
       const c = d.chars[id];
       const card = U.el("div", { class: "chara-card" });
@@ -79,7 +72,7 @@ const Menu = {
     // ③ だいじな もの（つりざお）
     const rod = typeof Fishing !== "undefined" && Fishing.rod();
     if (rod) {
-      const key = U.el("div", { class: "key-item", html: `${Fishing.rodSvg()}<div><div class="nm"></div><div class="muted">みずべで みずの ほうを むくと「つる」が でるよ</div></div>` });
+      const key = U.el("div", { class: "key-item", html: `${Fishing.rodSvg()}<div><div class="nm"></div><div class="muted">みずを ながおしで なげる。うきが しずんだら「つる」</div></div>` });
       key.querySelector(".nm").textContent = `だいじな もの：${rod.name}`;
       el.append(key);
     }
@@ -111,11 +104,12 @@ const Menu = {
   },
 
   dex(el, m, kind = this.dexKind || "enemy") {
-    // ③④ まもの／さかな／かせき（さかな ずかんは Fishing.dex、かせき ノートは Fossils.note）
-    const kinds = [["enemy", "まもの"], ...(typeof Fishing !== "undefined" && Fishing.data() ? [["fish", "さかな"]] : []), ...(typeof Fossils !== "undefined" && Fossils.data() ? [["fossil", "かせき"]] : [])];
+    // まもの・さかな・かせきに、家具と服のコレクションを並べる。
+    const kinds = [["enemy", "まもの"], ...(typeof Fishing !== "undefined" && Fishing.data() ? [["fish", "さかな"]] : []), ...(typeof Fossils !== "undefined" && Fossils.data() ? [["fossil", "かせき"]] : []), ["furn", "かぐ"], ["wear", "ふく"]];
+    if (!kinds.some(([key]) => key === kind)) kind = "enemy";
     if (kinds.length > 1) {
       const sw = U.el("div", { class: "tabs dex-kinds" });
-      sw.style.gridTemplateColumns = `repeat(${kinds.length}, 1fr)`;
+      sw.style.gridTemplateColumns = `repeat(${kinds.length}, minmax(0, 1fr))`;
       for (const [k, label] of kinds) {
         const b = U.el("button", { class: "tab" + (k === kind ? " on" : ""), text: label });
         b.dataset.k = k;
@@ -125,6 +119,7 @@ const Menu = {
       el.append(sw);
       if (kind === "fish") return Fishing.dex(el);
       if (kind === "fossil") return Fossils.note(el);
+      if (kind === "furn" || kind === "wear") return ItemDex.render(el, kind);
     }
     const d = Save.d;
     const all = Object.keys(ENEMIES);
@@ -140,6 +135,19 @@ const Menu = {
       grid.append(card);
     }
     el.append(grid);
+  },
+
+  // ≡ の「あそびかた」
+  help(el) {
+    const rows = [
+      ["すまほ", "ひだり したの「すまほ」（キーボードは Esc）で ちず・ようす・もちもの・ずかん・イベント・スタンプラリー・ひんと・うらない が ひらけるよ。"],
+      ["いどう", "タップした ところへ 3にんで あるくよ。ドラッグすると スティックに なるよ。"],
+      ["はなす", "「！」の ある ひとの となりで タップ。キーボードは z か Enter。"],
+      ["おてつだい", "おみせで おてつだいすると コインが もらえるよ。○ が おおいと ディスクも みつかるかも。"],
+      ["おうち", "ごはん・あそぶ・きがえ・もようがえ。ぱぱと ままは 9じ〜18じ おしごと だよ。"],
+      ["バトル", "まものに ふれると バトル。HPが へったら おうちで ねよう。"],
+    ];
+    for (const [h, text] of rows) { const r = U.el("div", { class: "help-row" }); r.append(U.el("b", { text: h }), U.el("p", { text })); el.append(r); }
   },
 
   settings(el, menu = this.m) {

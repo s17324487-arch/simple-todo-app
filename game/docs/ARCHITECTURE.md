@@ -73,7 +73,7 @@ PokaDebug.drift(time) は現在のカメラと、指定時刻の季節/風の葉
 
 ## 地形のある全体マップ（ver2）
 
-`atlas-art.js` → `world-atlas.js` を seasonal.js のあと、debug.js の前に読む。従来の WorldAtlas を world-expansion.js から移し、メニューの「ちず」と季節イベントの「ぜんたい ちずを みる」から共通利用する。参照画像からは地形・境界・目印の見せ方を参考にし、島の形・配置・図案はオリジナル。
+`atlas-art.js` → `world-atlas.js` を seasonal.js のあと、debug.js の前に読む。従来の WorldAtlas を world-expansion.js から移し、すまほの「ちず」と季節イベントの「ぜんたい ちずを みる」から共通利用する。参照画像からは地形・境界・目印の見せ方を参考にし、島の形・配置・図案はオリジナル。
 
 - AtlasArt.places は9エリアの地図上の位置・目印・短い説明、roads は実在する徒歩接続のみ。SVGの800×850座標で海岸線・起伏・植生・水系・街区を描く。素材プレビューに全体図を追加。模様は固定数・決定的な値、SVGのclipPath/patternには描画ごとの一意IDを付け、SvgCacheは使わない。
 - WorldAtlas は開いたDOM内に拡大率（1〜3倍）・表示範囲・選択地点を持つ。Pointer Eventsでドラッグと2本指ズーム、44px以上のボタンで拡大縮小・全体・現在地・交通線切り替え。地点はキーボードのEnter/Spaceでも選べ、selectでも全エリアにアクセスできる。イベントは要素にのみ登録し、グローバルリスナーやタイマーを残さない。
@@ -245,7 +245,21 @@ SCENES.xxx = XxxScene;
 | `UI.icon(kind, id, size)` | アイテムのアイコン（HTML 文字列） |
 | `UI.busy` | 会話やモーダルが開いていれば true |
 
+### すまほ（smaho.js・UI-01）
+
+- `Smaho` … ひだり したの「すまほ」ボタン（`.smaho-btn`。町・フィールド・おみせ・おうちの 下の ボタンの 上）と スマホの 画面（`.modal-wrap.smaho-wrap` の 中の `.smaho`）。`Game.openMenu`（Esc・cancel キー）は `Smaho.toggle()`。≡（`UI.hudMenu`）は `Menu.open()` で、タブは せってい・あそびかた（`Menu.help`）だけ。
+- `APPS` … `{ id, name, color, when?, render(el, ph) }`。ちず（`WorldAtlas.render`＋町・おみせでは「おうちへ かえる」）・ようす（`Menu.status`）・もちもの（`Menu.bag`）・ずかん（`Menu.dex`）・イベント（`AnnualFestivals.open`）・スタンプラリー（`Seasonal.open` と `DailyPlay.open` の タブ）・ひんと（`hints()`）・うらない（`fortune(day)`）・ごほうび（`ShopRewards.open`）・おんがく（`MusicDiscs` が ある とき）。
+- `ph.embed(fn)` … `UI.modal` を 1かいだけ かりて、`fn()` が つくる まどの `body`・`footer` を アプリの 画面に 入れる。かえす `close()` は すまほを とじる（「さんか」「ちずを みる」の あとは あそびに もどる）。
+- `fortune(day)` … 日づけの 文字（`U.today()` の 形）から きめる うらない（Math.random・Date を つかわない）。ラッキーの おみせは `DailyPlay.featured(day)`（ほんとうに コイン 1.2ばい）。ひいた 日は `Save.d.flags.fortuneDay`（あたらしい セーブ項目は ない）。
+- `Seasonal.mount` は すまほの ボタンだけ つける（町の「おまつり」ボタン `.world-festival` は もう 出さない）。PokaDebug は `smaho(app)`・`smahoState()`・`fortune(day)`。
+
 注意: `html:` や `innerHTML` に入れる文字列に、プレイヤーが入力した文字（キャラの名前など）を入れるときは、HTML の記号を取りのぞく（`menu.js` の名前変更と `Save.migrate()` でそうしている）。新しい入力欄を作るときも同じにする。
+
+### 家具・服の図鑑（V2-14）
+
+- `item-dex.js` の `ItemDex` と `item-dex-sources.js` の `ItemDexSources`。`Menu.dex` の5タブから `ItemDex.render(el, 'furn' | 'wear')` を呼ぶ。`catalog` は実行時の `FURNITURE` / `WEAR_ITEMS` をIDで重複排除し、レア品や後から追加する景品も含む。入手ヒントは配布元の表から読む。
+- `Save.fresh().itemDex = { furn: {}, wear: {}, claimed: { furn: {}, wear: {} } }` を追加。`Save.KEY`・SCHEMA・既存の敵 `dex` は維持。`Save.write` と図鑑を開くときの `ItemDex.sync` が所持品を収集記録へ足す。家具総数には設置中を含むので足し算せず、現在の部屋と別室の配置数を下限にする。服は `wardrobe` と3人の `outfit` を見る。無料の親の見た目は対象外。閲覧・プレビューは所持品・装備・配置・コインを変えない。
+- 各図鑑の10種類ごとに100コイン。`claim(kind, threshold)` は手動受取だけで、受領記録とコインを同時保存する。保存失敗時は両方を戻す。`PokaDebug.itemDex(kind)` は進捗/一覧、`itemDexClaim(kind, threshold)` は受領の入口。静的検査 `tools/check-item-dex.mjs`、スマホ検査 `tests/item-dex-smoke.mjs`（390×844 / 375×667）。
 
 ---
 
@@ -293,6 +307,7 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
 - `Art.npcSvg({ sp, col, stripe, outfit, emo })` … 町の人（`SPECIES` の cat / rabbit / bear / penguin / frog / sheep / mouse / pig）。服も着られる。
 - `Art.enemySvg(art, col, emo)` … 敵（`ENEMY_ART` の slime / slime_king / fluff / bee / mushroom / acorn / leaf / bat / rock / crystal）。`emo` は normal / hurt / sleep。
 - `Art.furnSvg(id, { flip })` … 家具（`FURN_ART[id]`、大きさは `FURNITURE` の w×h）。
+- `FoodArtFix`（food-art.js）… 食べ物の 絵を 名前に あわせる（ART-06）。`home-catalog.js` が ほかの 食べ物の 絵を かりて いた もの・`annual-festivals.js` の おまつりの しるしの デザ・ピーマン・やきざかな の `FOOD_ART` を 上がきする（その あとに 読む）。check は 食べ物ごとに 絵が ちがう ことを 見る。
 - `FurnModels`（furniture-models.js）… 家具の 立体モデル（ART-03）。`HomeDesign.model()` の さいしょに `FurnModels.build(id, opts)` を よび、作りなおした 24しゅ（`FurnModels.ids`）と、2D の 絵の 家具（植木・くま・きせつの かざり など。大きな 板を やめて かげだけ）を かえす。ほかは これまでの 絵。
   - ざひょうは HomeDesign と おなじ（x: よこ −w/2〜w/2、y: おく −d〜てまえ 0、z: 上）。見える 面は てまえ・みぎ・上。うしろ → てまえ の 順に かさねる。はんてんは 投影で かわるので、形は 1とおりで よい。
   - 道具: `box`（3面）・`prism`（凸な 形に あつみ。見える 面と ふちを 凸包で）・`cyl`・`frustum`・`ball`（球は はば 1.23 ばいの 円）・`slab`（かたむいた 板）・`onP`（面に 2D の 絵を はる）・`at`（床の 1点に 小さな 絵を たてる）・`lg` / `rg`（グラデーションの id は 通し番号で かさならない）。
@@ -427,6 +442,11 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
   - `sc.work.phase`: home → leaving（ドアへ あるいて きえる・「いってきます」）→ away（おるすばん）→ arriving（ドアから 入る・「ただいま」「おかえり」・3人の ごきげん と なかよし +）→ home。`PokaDebug.hour` で 時こくを とばした ときは `snap`（えんしゅつ なし）。
   - おるすばん: `ALONE`（1人ずつ・せいかく）・`TALKS`（かけあい）・`timely`（12じ・15じ・17じはん）。しぐさは `sc.react` / `sc.fx`、うごきは ドア・まど・3人で あつまる。テストで とめて いる 子（`c.t > 100`）は うごかさない。
   - その日 はじめて おしごと ちゅうに 入ると ひとこと（`flags.workDay`）、18〜21じに はじめて 入ると「ただいま」（`flags.homeDay`）。PokaDebug は `parentWork(event)`。
+- `MusicDiscs`（music-discs.js）… レアの 音楽プレイヤーと ディスク（ART-05）。
+  - プレイヤー 3しゅ（`player_boombox`・`player_gramophone`・`player_jukebox`）は `FURNITURE` に 足す ふつうの 家具（rare・ねだん 0・interactive）。絵は `FurnModels.register`、タップと うごきは `FurnLive.register`（ちくおんきの レコード・ジュークボックスの ひかりは live）。
+  - ディスク（`DISCS`）は きょく（`SONGS` の キー）と 手に入る ところ（`from.shop` / `from.map` / `from.town` / `starter` / `jukebox`）。ディスクだけの きょく（`disc_twinkle`・`disc_canon`・`disc_turkish`・`disc_nacht`）は 自作しない: 作曲者が 1967年 までに なくなった 名曲を Mutopia Project の 楽譜から 写して `SONGS` に 足し、`source`（作曲者・作品・楽譜・ライセンス）を つける（check が 出典と 没年を 見る）。セーブは `Save.d.discs`（id → 日づけ）だけ。
+  - 手に入れる: `ShopScene.prototype.results` を つつみ、○いじょうが 6わりで その おみせの ディスク（「きょうの けっか」に 1ぎょう 足す）。`Loot.give`（chest）と `WorldScene.prototype.openChest` を つつみ、その マップの ディスクを 中みの あとの ページで 出す。はじめての ディスクで ラジカセ、3まいで ちくおんき（たからばこ）、8まいで ジュークボックス。それぞれ 名曲の ディスクが 1まい つく。
+  - きく: プレイヤーを タップ → `open()`（ディスクの ボタン・「とめる」）→ `Sound.bgm(d.song)`。`sc.music` に いま ながして いる ディスク。PokaDebug は `discs()`・`discDrop(kind, where)`・`discLuck(on)`。
 
 ---
 
@@ -510,8 +530,9 @@ class NewTask extends TaskBase {
 | `folkTalk(id)` / `folkLast()` / `folkLine(id)` | 町の人の となりへ 行って 話しかける（会話は H.dialogs で すすめる）／さいごの セリフと ひとことの id／データの セリフ 1つ |
 | `folk()` / `folkOffer(id)` / `folkSignal(sig)` / `folkMarks()` | おねがいの きろく／つぎに かならず もちかける／手順を すすめる（会話は またない）／いまの マップの しるし |
 | `folkSpots(map)` / `folkKitten()` / `folkPhotoTile(map)` | さがす きらきら・さわる 小物（となりの 立てる マス `stand`・画面の 位置 `cx`/`cy`）／ついて くる こねこ／しゃしんが とれる マス。`folkOffer` は 物々交換の id（`bt-…`）も うけとる |
+| `smaho(app)` / `smahoState()` / `fortune(day)` | すまほを ひらく（app なしで ホーム・null で とじる）／`{ open, app, apps, button, phone, dot, hints }`／その日の うらない |
 | `fishGive(id, n)` | ③ 魚を いけすに 入れる（ずかんにも のる。大きさは `Fishing.size`）。ずかんの きろくを かえす |
-| `rod(n)` / `fishing(place, fishId)` / `fishState()` / `fishInput(kind)` / `fishSkip()` / `fishShore(map)` | ③ さおを もたせる／釣りの 画面を はじめる（その 魚が かかる）／いまの ようす／なげる・まく・はなす／まつ を とばす／歩いて 行ける 水べと 向き |
+| `rod(n)` / `fishShore(map)` / `fishState()` / `fishAuto(on, clear)` / `fishSpawn(id, cm, { nibbles, fickle, swim })` / `fishAim(uid)` / `fishCast(wx, wy)` / `fishPull()` | ③ さおを もたせる／岸の 立てる マス `{ x, y, dir }`／つりの ようす（`line`・`bobber`・`shadows`・`nibbled`・`escaped`・`brag`・`zoom`・`button`・`last`）／かってに 魚を 出す か（clear で けす）／3人の ちかくに 魚の かげ（ふつうは うきに 気づく まで とまる）／その かげの あたまの まえ（画面の CSS px。page.mouse で ながおし）／ながおしと おなじ ところへ なげる／「つる」ボタンと おなじ |
 | `fossilGive(key, n)` | ④ 骨を もたせる（`"trex.skull"` など）。もって いる 数を かえす |
 | `pick(n)` / `fossilRocks(map)` / `fossilSpot(map)` | ④ ピッケルを もたせる（0／1）／きょうの いわ `[[x, y], ...]`（ほった ものは のぞく）／いわの となりの 立てる マス `{ x, y, dir, rock }` |
 | `museumGive(kind, key)` / `museumDonate()` / `museumPick(key)` / `museumConfirm()` | ⑤ 寄贈した ことに する（"all" で ぜんぶ）／館の 人に 話しかけて 寄贈の 画面へ／えらぶ／きふする（ありがとうの 会話は またない） |
@@ -674,7 +695,7 @@ SeasonPaletteは四季4通りの草と木の色。季節が変わるとTilesの�
 ## ver2: 12か月のおまつり
 `annual-festivals.js`はseasonal.jsの後に読む。ANNUAL_EVENTSが12か月のテーマ・3つの活動・選択肢・限定品を定義。AnnualArtは家具と会場の飾りを共用し、12種類の有限なSVGを使う。通常のショップに限定品は並べない。
 
-「おまつり」から年間予定を開き、その月のイベントに参加する。会場3か所のしかけをタップし、好きな答えを選ぶと進行。開催期間は各月の1日〜月末。Save.events.activeAnnualを追加し、recordsは既存の`${year}-${season}`と別の`${year}-annual-${id}`キーにstamps/answers/claimedを保存。既存のコイン・所持品・四季記録を変換しない。キャンセル・期間外・重複回答は無効。受け取りは画面演出より先に保存するので連打や再起動で増えない。
+すまほの「イベント」から年間予定を開き、その月のイベントに参加する（UI-01 までは 町の「おまつり」ボタン）。会場3か所のしかけをタップし、好きな答えを選ぶと進行。開催期間は各月の1日〜月末。Save.events.activeAnnualを追加し、recordsは既存の`${year}-${season}`と別の`${year}-annual-${id}`キーにstamps/answers/claimedを保存。既存のコイン・所持品・四季記録を変換しない。キャンセル・期間外・重複回答は無効。受け取りは画面演出より先に保存するので連打や再起動で増えない。
 
 PokaDebug.calendar('YYYY-MM-DD')で日付を固定し、annual()で現在のイベント・目的地・選択肢・取得数を読む。390pxで全12種類、375pxで七夕とハロウィンを実際のタップで完了し、保存・再開・翌年の持ち越しを確認する。
 
@@ -753,11 +774,17 @@ TownFolk.STEPS に find・tap・follow・photo・catch・dig を足した（catc
 ### 魚の データ・絵・ずかん（FEAT-06）
 `fishing-data.js`（FISHING_DATA・自動生成。元は `tools/feature-design/fish-data.mjs`）・`fish-art.js`（FishArt。見本 FishArtRef と同じ）・`fishing.js`（Fishing）を townsfolk.js の後に読む。Fishing.pool / pick / size / shadowOf は見本と同じ計算（rarity の重み・天気が合えば×2・りっぱなさおは rarity 3 以上×1.4・unlock）。Save.fresh().fish（rod・dex・keep・caught）を追加（migrate の補完だけ）。Fishing.record(id, cm) がずかん（n・max・first）といけす（keep）を進める。Menu.dex は「まもの／さかな」を切り替え、さかなは Fishing.dex（50マス・場所で絞る・つった魚だけ絵・NEW はきょう初めて）と Fishing.detail（UI.modal）。TownFolk.features().fishing はさおを持つまで false。
 
-### 釣りざおと 釣りの 画面（FEAT-07）
-Fishing に見本 FishingRef の Game・SCENE・tint・heroSize・draw をそのまま入れ、FishingScene（SCENES.fishing）を足した。Talk.run はプレゼントの後に Fishing.talked（ペンが rod=1 にする）。WorldScene.update の最後で Fishing.refreshButton（spots のマップ・さおあり・先頭の子が '~' を向く）→ Game.goto("fishing", { place, name, back })。画面は canvas の Fishing.draw と DOM の .fish-ui、ボタン1つ（なげる→まつ…→つる！→まく）。つれると Fishing.card（いけすへ／にがす）→ Fishing.record → TownFolk.progress({do:"catch"})。TownFolk.have().fish は Save.d.fish.keep で、わたす・物々交換の魚はいけすから減らす。
+### 釣りざおと 釣り（FEAT-07 → UI-02 で 見おろしの まま つる ように 作りなおし）
+Talk.run はプレゼントの後に Fishing.talked（ペンが rod=1 にする）。UI-02 で よこから 見る 釣りの 画面（FishingScene・Fishing.Game・draw・card・水を むくと 出る「つる」ボタン）を やめ、`fishing-line.js`（FishLine）を fishing.js の あとに 読む。FishLine は WorldScene の down・update・renderWater・renderFx・drawMember・interact・key・exit・render・updateEnemies を 外から つつむ（scene-world.js は かえない）。つりの ようすは sc.fishing（セーブしない）。
+- 魚の かげ: spots の マップで ときどき 出る（SLOTS: いけ・かわ・さわ 2・うみべ 3・みなと 4 まで。いない ときも ある）。Fishing.pick・Fishing.size で 魚と cm を きめ、ながさ = cm × 0.8px（shadowLen。9〜128px）、はば 0.34 ばい（ほそながい 魚は 0.13）。水の 中に おさまる ばしょ（fits）だけ およぐ。はしると にげる。check は どの 魚も いちばん 大きい ときに 自分の 釣り場に おさまる ことを 見る。
+- なげる: 水を 0.45びょう ながおし（ながおしの わ）→ 立って いる マスから 4.2マス いない なら その ばで、とどかなければ いちばん ちかい 立てる 岸へ あるいて（goTo の pending { type: "fishcast" }）なげる。キーボードは 水を むいて ok。さおを ふる（land_01 → jump_01）→ うきが とぶ → ぽちゃん。
+- よって くる: あたまの まえ 80°・2.2マス いない・あいだが ぜんぶ 水 なら 気づく → ちょんちょん 0〜4かい（NIBBLE_W。たまに きが かわる fickle）→ うきが しずむ（「！」・ボタンが きいろ）→ BITE（1びょう）いないに「つる」。はやいと にげる・おそいと にげられる・かげの 上に おとすと びっくりして にげる・あるくと さおを しまう。うきが 水に ある あいだと じまんの あいだは まものが うごかない。
+- じまん: 魚が 水から とびだして 3人の ところへ → render を ZOOM（1.9）ばいに して せんとうの 子へ よる（DOM は そのまま）→ drawMember で せんとうは jump_01 で 頭の 上に 魚（SvgCache「fishhold:<id>」は 魚ごとに 1つ）・2人は ぴょんぴょん → UI.say で じまんの ひとこと（QUOTES は 魚ごとの しゃれ・TAIL は 3人の くちぐせ）→ Fishing.record（いけすが いっぱいなら にがす）→ TownFolk.progress({ do: "catch" })。
+- こうかおん: Sound.se を つつみ、fish_cast・fish_plop・fish_nibble・fish_bite・fish_hook・fish_splash・fish_catch・fish_flee・fish_reelin を WebAudio で つくる（音声ファイルは ない）。
+- 「つる」ボタン（.act-btn.fish-go-btn・右下の まる）は うきが 水に ある ときだけ。Fishing.refreshButton／hideButton／button は FishLine の もの（fossils.js の「ほる」は そのまま）。PokaDebug は fishState・fishAuto・fishSpawn・fishAim・fishCast・fishPull。
 
-### いけす・うる・りっぱな つりざお（FEAT-08）
-Fishing.KEEP_MAX（30）と keepCount()。Fishing.card は いけすへ／にがす／うる（いっぱいなら「いけすが いっぱい」を disabled に）。FishingScene.caught は sell なら Save.addCoins(f.sell)。りっぱな つりざおは Fishing.proShop()（rods[1].get.shop の建物のマップとお店）→ StoreScene.talk が Fishing.proChoice(this) を選択肢に足し、Fishing.buyPro(owner) で rod=2。ずかんには いけすの数（.fish-keep）。
+### いけす・うる・りっぱな つりざお（FEAT-08・UI-02 で うるのは スーパーに）
+Fishing.KEEP_MAX（30）と keepCount()。つった ときには うらない（どうぶつの森と おなじ）。スーパー（shopId が market）で いけすに 魚が いると StoreScene.talk が Fishing.sellChoice(this)「さかなを うる」を 足し、Fishing.sell()（1ぴき うる・ぜんぶ うる。すいぞくかんに まだ いない 魚には しるしと たしかめ）→ Fishing.sellFish(id, n) で Save.addCoins(f.sell × n)。きふは すいぞくかん（Museum）。りっぱな つりざおは Fishing.proShop()（rods[1].get.shop の建物のマップとお店）→ StoreScene.talk が Fishing.proChoice(this) を選択肢に足し、Fishing.buyPro(owner) で rod=2。ずかんには いけすの数（.fish-keep）。
 
 ### 骨の データ・絵・かせき ノート（FEAT-09）
 `fossil-data.js`（FOSSIL_DATA・自動生成。元は `tools/feature-design/fossil-data.mjs`）・`fossil-art.js`（FossilArt。見本 FossilArtRef と同じ）・`fossils.js`（Fossils）を fishing.js の後に読む。Save.fresh().fossil（pick・bones・dug）を追加（migrate の補完だけ）。Menu.dex は まもの／さかな／かせき、かせきは Fossils.note（10種の骨格・ない骨は点線・そろった！）と Fossils.detail（UI.modal）。TownFolk.features().fossil はピッケルを持つまで false。
@@ -806,3 +833,11 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 ## マックさん
 
 平和台 heiwadai_diner の act.variant=mac を StoreScene→ShopScene に渡す。MacKitchenRound の同一tickで具材とフライヤーを進める。受け皿の左右・ドラッグ、6〜8秒の揚げ時、10秒後からの冷め、誤順の積み直しを評価。Sound.noiseの短い音と文字を共用し、確認・非表示時は進めない。既存 burger の評判・レベル・中止時精算を引き継ぐ。従来のBurgerTaskは他店で保持。PokaDebug.mac/macState/macAdvanceとcheck-mac・2サイズスモークで検証。
+
+## 町の長い会話とクイズ
+
+`town-dialogue-data.js` の60会話／8相談を `TownDialogue` が文脈ごとに選ぶ。`UI.say` の任意actionは最終行だけ表示し、通常の読み送りを変えない。Talkは初回・贈り物・既存おねがいを優先し、無関係なTownFolk.reactを後付けしない。相談は保存されたノードと選択経路を進め、結末別の再会台詞を読む。
+
+`town-quiz-data.js` はdocsの2JSONから生成。`TownQuiz` は既存town_walker3の会話を出題パネルへつなぐ。activeに出題時点の問題スナップショット・選択肢順・抽選済み景品・開始日を保存し、回答時にactive消去とlast／コイン／袋／家具を同時保存する。Save.writeの失敗が例外を返さないため保存結果のtokenを読み戻し、失敗時は状態を復元する。日次枠は回答した時に消費。UIを閉じてもactiveは保留として残る。
+
+限定家具5品はQuizPrizesへ登録し、HomeDesignと同じ投影で描画。5品×2方向の有限キャッシュ。PokaDebug.conversation／quizState／quizStart／quizAnswer／quizCancelを検証の入口とする。既存Save.KEY／SCHEMAは維持し、conversationsとtownQuizを追加する。

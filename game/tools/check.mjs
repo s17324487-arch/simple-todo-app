@@ -748,24 +748,105 @@ if (ok(!!FD, "FISHING_DATA が ない（js/fishing-data.js）")) {
   ok(dexFlow.first && dexFlow.second && dexFlow.rec, "さかな ずかんの きろく（かず・いちばん 大きい・いけす）が 不正");
   ok(dexFlow.noRod && dexFlow.rod, "つりざおの ない あいだも ② の 釣りの 話・おねがいが 出る");
   ok(dexFlow.sizes, "魚の 大きさが データの はんいを こえる");
-  // 2番: 釣りの 画面・流れ（見本 FishingRef.Game の まま）。ぴんと ぐあいが 6わり より 下なら まく だけで、ひき 1〜5 の 魚が つれる（こどもが 遊べる かんたんさ）
-  ok(vm.runInContext(`typeof SCENES.fishing === "function" && SCENES.fishing === FishingScene`, ctx), "SCENES.fishing（FishingScene）が ない");
-  const reel = vm.runInContext(`(()=>{const rnd=TownFolk.rng("fishing-check"),out=[];
-    for(const rodPower of [1,1.6])for(let P=1;P<=5;P++){let ok=0;for(let k=0;k<40;k++){const g=new Fishing.Game({power:P},{rodPower,rand:rnd});g.update(0.1,{tap:true});
-      for(let t=0;(g.phase==="cast"||g.phase==="wait")&&t<30;t+=0.05)g.update(0.05,{});g.update(0.05,{tap:true});
-      for(let t=0;g.phase==="reel"&&t<90;t+=1/30)g.update(1/30,{hold:g.tension<0.6});if(g.phase==="caught")ok++;}out.push(rodPower+"/"+P+":"+ok);}
-    const e=new Fishing.Game({power:1},{rand:rnd});e.update(0.1,{tap:true});for(let t=0;e.phase==="cast"&&t<2;t+=0.05)e.update(0.05,{});e.update(0.05,{tap:true});
-    const l=new Fishing.Game({power:1},{rand:rnd});l.update(0.1,{tap:true});for(let t=0;l.phase!=="miss"&&t<30;t+=0.05)l.update(0.05,{});
-    return {out,early:e.phase==="miss"&&e.why==="early",late:l.phase==="miss"&&l.why==="late"};})()`, ctx);
-  ok(reel.out.every((x) => x.endsWith(":40")), `まく だけで つれない 魚が いる: ${reel.out.join(", ")}`);
-  ok(reel.early && reel.late, "はやすぎ（まつ の あいだに おす）・おそすぎ（ぐいっ！ で おさない）が にげる に ならない");
-  // 「つる」ボタン: 釣り場の マップで、さおが あって、水（'~'）を 向いて いる とき だけ
-  const btn = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const m=new WorldMap("town"),d=MAP_DEFS.town,D={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};let at=null;
-    for(let y=1;y<m.h-1&&!at;y++)for(let x=1;x<m.w-1&&!at;x++){if(m.isSolid(x,y))continue;for(const [dir,[dx,dy]] of Object.entries(D))if((d.rows[y+dy]||"")[x+dx]==="~"){at={x,y,dir};break;}}
-    const sc=(dir)=>({mapId:"town",map:m,party:[{tx:at.x,ty:at.y,dir,moving:false}]});const back={up:"down",down:"up",left:"right",right:"left"}[at.dir];
-    const noRod=!Fishing.spotAt(sc(at.dir));Save.d.fish.rod=1;const yes=!!Fishing.spotAt(sc(at.dir)),away=!Fishing.spotAt(sc(back))||(d.rows[at.y+D[back][1]]||"")[at.x+D[back][0]]==="~";
-    const city=!Fishing.spotAt({mapId:"city",map:new WorldMap("city"),party:[{tx:at.x,ty:at.y,dir:at.dir,moving:false}]});Save.d=old;return {noRod,yes,away,city};})()`, ctx);
-  ok(btn.noRod && btn.yes && btn.away && btn.city, "「つる」ボタンの 出る ときが 不正 " + JSON.stringify(btn));
+  // 2番（UI-02・js/fishing-line.js）: 見おろしの まま つる（どうぶつの森と おなじ ながれ）。よこから 見る 画面は もう ない
+  ok(vm.runInContext(`typeof SCENES.fishing === "undefined" && typeof FishingScene === "undefined" && typeof Fishing.card === "undefined"`, ctx), "よこから 見る 釣りの 画面（SCENES.fishing・つれた カード）が のこって いる");
+  const FL = vm.runInContext(`(()=>{
+    // かげの ながさは cm に 比例（1cm = PX_PER_CM px。ちいさすぎ・大きすぎる ときだけ MIN_PX〜MAX_PX に おさめる）
+    const lens = [3, 10, 12, 20, 50, 80, 100, 150, 160, 250, 500].map((cm) => [cm, FishLine.shadowLen(cm)]);
+    // どの 魚も 自分の 釣り場の マップに 出せる（いちばん 大きい とき・岸から さおが とどく 水の 中）
+    const nofit = [];
+    for (const [map, sp] of Object.entries(FISHING_DATA.spots)) {
+      const m = new WorldMap(map), tiles = FishLine.waterTiles(m);
+      for (const f of FISHING_DATA.fish.filter((f) => f.place === sp.place || (f.also || []).includes(sp.place))) {
+        const len = FishLine.shadowLen(f.size[1]), wid = FishLine.shadowWid(f, len); let fit = false;
+        for (const [tx, ty] of tiles) { for (let k = 0; k < 8 && !fit; k++) for (const [ox, oy] of [[16, 16], [8, 8], [24, 24], [8, 24], [24, 8], [16, 0], [0, 16]]) if (FishLine.fits(m, tx * TS + ox, ty * TS + oy, (k * Math.PI) / 4, len, wid)) { fit = true; break; } if (fit) break; }
+        if (!fit) nofit.push(map + ":" + f.id + "(" + len + "px)");
+      }
+    }
+    // ながれ: 岸に 立った 3人・まえに 魚を 1ぴき（あたまが こちら）・うきを あたまの まえに → 1/30びょう ずつ すすめる
+    const old = Save.d; Save.d = Save.fresh(); Save.d.fish.rod = 1;
+    const map = "coast", m = new WorldMap(map), D = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+    let at = null;
+    for (let y = 1; y < m.h - 1 && !at; y++) for (let x = 1; x < m.w - 1 && !at; x++) { if (m.isSolid(x, y) || m.warpAt(x, y) || m.doorAt(x, y)) continue; for (const [dir, [dx, dy]] of Object.entries(D)) { let wet = true; for (let k = 1; k <= 6; k++) if (m.groundAt(x + dx * k, y + dy * k) !== "water" || m.groundAt(x + dx * k - dy, y + dy * k - dx) !== "water" || m.groundAt(x + dx * k + dy, y + dy * k + dx) !== "water") wet = false; if (wet) { at = { x, y, dir }; break; } } }
+    const mk = () => { const w = [new Walker(at.x, at.y, at.dir), new Walker(at.x, at.y, at.dir), new Walker(at.x, at.y, at.dir)];
+      return { mapId: map, map: m, party: w, cam: { x: 0, y: 0 }, path: null, joy: null, touch: null, busy: false, walkable: (X, Y) => !m.isSolid(X, Y), goTo() {}, addFx() {}, shadow() {}, bubble() {},
+        screenToTile: (sx, sy) => ({ tx: Math.floor(sx / TS), ty: Math.floor(sy / TS), wx: sx, wy: sy }) }; };
+    const rnd = TownFolk.rng("fishline-check");
+    const setup = (nibbles, cm = 60, fid = "suzuki", fickle = 0) => {
+      const sc = mk(), S = FishLine.st(sc); S.auto = false; S.rand = rnd;
+      const [dx, dy] = D[at.dir], f = sc.party[0].feet(), cx = f.x + dx * 3.4 * TS, cy = f.y - 12 + dy * 3.4 * TS, a = Math.atan2(-dy, -dx);
+      const sh = FishLine.spawn(sc, { fish: fid, cm, nibbles, fickle, alpha: 1, at: { x: cx, y: cy, a } });
+      const h = FishLine.head(sh);
+      return { sc, S, sh, bx: h.x - dx * 18, by: h.y - dy * 18, dx, dy };
+    };
+    const run = (sc, sec, until) => { const phases = []; for (let t = 0; t < sec; t += 1 / 30) { FishLine.update(sc, 1 / 30); const S = sc.fishing, p = S.line ? S.line.phase : S.brag ? "brag" : "none"; if (phases[phases.length - 1] !== p) phases.push(p); if (until && until(S)) break; } return phases; };
+    // A: ちょんちょん 2かい → しずむ → つる で じまんへ
+    const A = setup(2), castA = FishLine.castAt(A.sc, A.bx, A.by);
+    const phA = run(A.sc, 20, (S) => S.line && S.line.phase === "bite");
+    const nibA = A.S.line ? A.S.line.nibbled : -1, pullA = FishLine.pull(A.sc);
+    const bragA = !!A.S.brag && A.S.brag.f.id === "suzuki" && A.S.brag.cm === 60 && !A.S.line && A.sc.busy && !A.S.shadows.includes(A.sh);
+    // B: ちょん 1かい めで おす → にげる（さおを もどす）
+    const B = setup(3); FishLine.castAt(B.sc, B.bx, B.by);
+    run(B.sc, 20, (S) => S.line && S.line.nibbled >= 1);
+    FishLine.pull(B.sc); const early = B.sh.state === "flee" && B.S.line && B.S.line.phase === "reel" && /はやすぎ/.test(FishLine.last || "");
+    // C: しずんでも おさない → BITE びょう で にげられる（うきは のこる）
+    const C = setup(0); FishLine.castAt(C.sc, C.bx, C.by);
+    run(C.sc, 20, (S) => S.line && S.line.phase === "bite");
+    const biteAt = C.S.line && C.S.line.phase === "bite"; run(C.sc, FishLine.BITE - 0.1);
+    const stillBite = C.S.line && C.S.line.phase === "bite"; run(C.sc, 0.3);
+    const late = biteAt && stillBite && C.S.line && C.S.line.phase === "float" && C.S.line.escaped === 1 && C.sh.state === "flee" && /にげられ/.test(FishLine.last || "");
+    // D: かげの 上に おとすと びっくりして にげる
+    const E = setup(1); FishLine.castAt(E.sc, E.sh.x, E.sh.y); run(E.sc, 2, (S) => S.line && S.line.phase === "float");
+    const scare = E.sh.state === "flee" && /びっくり/.test(FishLine.last || "");
+    // E: しっぽの うしろに おちても 気づかない
+    const F = setup(1); F.sh.a += Math.PI; F.sh.aim = F.sh.a; const tail = { x: F.sh.x - Math.cos(F.sh.a) * (F.sh.len / 2 + 14), y: F.sh.y - Math.sin(F.sh.a) * (F.sh.len / 2 + 14) };
+    FishLine.castAt(F.sc, tail.x, tail.y); run(F.sc, 1.2); const behind = F.S.line && !F.S.line.fish;
+    // きまぐれ: ちょんの あと いって しまう ことも ある（fickle = 1 なら かならず）
+    const K = setup(3, 60, "suzuki", 1); FishLine.castAt(K.sc, K.bx, K.by); run(K.sc, 12, (S) => S.line && S.line.nibbled >= 1); run(K.sc, 0.2);
+    const fickle = K.S.line && !K.S.line.fish && K.sh.state === "swim" && K.sh.cool > 0;
+    // F: うごくと さおを しまう
+    const G2 = setup(1); FishLine.castAt(G2.sc, G2.bx, G2.by); run(G2.sc, 1.2); G2.sc.party[0].moving = true; FishLine.update(G2.sc, 1 / 30); const walk = !G2.S.line;
+    // G: さおが ない ときは なげない・水の ないところは ながおししても なにも しない
+    const H2 = setup(1); Save.d.fish.rod = 0; const noRod = FishLine.aim(H2.sc, H2.bx, H2.by) === false && !H2.S.line; Save.d.fish.rod = 1;
+    const dn = mk(); FishLine.st(dn).auto = false; FishLine.down(dn, { id: 1, x: at.x * TS + 16, y: at.y * TS + 16 }); const dryPress = !dn.fishing.press;
+    // ちょんちょんの かず（0〜4。5かいめは かならず しずむ）
+    const nib = new Set(); for (let i = 0; i < 3000; i++) nib.add(FishLine.rollNibbles(rnd));
+    // じまんの ひとこと
+    const quotes = FISHING_DATA.fish.map((f) => ({ id: f.id, q: FishLine.QUOTES[f.id] || "", line: FishLine.quote(f, f.size[1], "goji") }));
+    // スーパーで うる
+    Save.d.fish.keep = { kingyo: 2 }; const coins = Save.d.coins;
+    const choiceM = Fishing.sellChoice({ shopId: "market", back: { map: "town" } }), choiceC = Fishing.sellChoice({ shopId: "clothes", back: { map: "town" } });
+    const sold = Fishing.sellFish("kingyo", 1), left = Save.d.fish.keep.kingyo, none = Fishing.sellFish("magoi", 1), all = Fishing.sellFish("kingyo", 5);
+    const sell = { choiceM, choiceC, sold, left, none, all, coins: Save.d.coins - coins, gone: !("kingyo" in Save.d.fish.keep), empty: Fishing.sellChoice({ shopId: "market", back: { map: "town" } }) };
+    Save.d = old;
+    return { lens, nofit, at: !!at, castA, phA, nibA, pullA, bragA, early, late, scare, behind, fickle, walk, noRod, dryPress, nib: [...nib].sort(), quotes, tails: ["wanko", "gachan", "goji"].every((k) => FishLine.TAIL[k]), sell, KEEP: Fishing.KEEP_MAX, bite: FishLine.BITE, sell1: FISHING_DATA.fish.find((f) => f.id === "kingyo").sell };
+  })()`, ctx);
+  const kanji = /[一-鿿]/, k = vm.runInContext("FishLine.PX_PER_CM", ctx), [mn, mx] = vm.runInContext("[FishLine.MIN_PX, FishLine.MAX_PX]", ctx);
+  for (const [cm, len] of FL.lens) ok(len === Math.min(mx, Math.max(mn, Math.round(cm * k * 10) / 10)), `かげの ながさが cm に 比例 しない: ${cm}cm → ${len}px`);
+  ok(FL.lens.every(([, l], i) => !i || l >= FL.lens[i - 1][1]), "大きい 魚ほど かげが 大きく ならない");
+  ok(FL.nofit.length === 0, "自分の 釣り場の 水に おさまらない 魚が いる（その 魚は 出ない）: " + FL.nofit.join(", "));
+  ok(FL.at && FL.castA, "しおかぜビーチで 岸から なげられない");
+  ok(FL.phA.join(">").startsWith("swing>fly>float") && FL.phA.includes("bite") && FL.nibA === 2, "なげる → うき → ちょんちょん 2かい → しずむ に ならない " + FL.phA.join(">") + " nib " + FL.nibA);
+  ok(FL.pullA && FL.bragA, "しずんだ ときに「つる」で つりあげて じまんに ならない");
+  ok(FL.early, "ちょんちょんの ときに おしても にげない（はやすぎ）");
+  ok(FL.late && FL.bite > 0.8 && FL.bite <= 1.2, `しずんで ${FL.bite}びょう おさないと にげられる に ならない`);
+  ok(FL.scare, "かげの 上に おとしても びっくりしない");
+  ok(FL.behind, "しっぽの うしろの うきに 魚が 気づく（あたまの まえ だけ 見える）");
+  ok(FL.fickle, "ちょんの あと きが かわって いって しまう ことが ない");
+  ok(FL.walk, "あるきだしても さおを しまわない");
+  ok(FL.noRod && FL.dryPress, "さおが ない ときに なげる・水の ない ところの ながおしで 釣りが はじまる");
+  ok(FL.nib.join() === "0,1,2,3,4", "ちょんちょんの かずが 0〜4 に ならない " + FL.nib.join());
+  for (const q of FL.quotes) {
+    ok(q.q && !kanji.test(q.q) && q.q.length <= 24, `じまんの ひとこと ${q.id}: ない／漢字／24もじ より ながい「${q.q}」`);
+    ok(q.line.includes("つりあげた！") && q.line.split("\n").length === 3 && /cm/.test(q.line), `じまんの ことば ${q.id} の 形が 不正`);
+  }
+  ok(FL.tails, "3人の くちぐせが そろって いない");
+  const sl = FL.sell;
+  ok(sl.choiceM === "さかなを うる" && !sl.choiceC && !sl.empty, "スーパー だけで・いけすに 魚が いる ときだけ「さかなを うる」に ならない " + JSON.stringify(sl));
+  ok(sl.sold === FL.sell1 && sl.left === 1 && sl.none === 0 && sl.all === FL.sell1 && sl.gone && sl.coins === FL.sell1 * 2, "さかなを うると コイン・いけすが 不正 " + JSON.stringify(sl));
+  // つかう こうかおんは ぜんぶ ある（FishLine.SE）
+  const flSrc = readFileSync(join(GAME, "js/fishing-line.js"), "utf8"), seNames = vm.runInContext("Object.keys(FishLine.SE)", ctx);
+  for (const m of flSrc.matchAll(/Sound\.se\("(fish_\w+)"\)/g)) ok(seNames.includes(m[1]), `こうかおん ${m[1]} が FishLine.SE に ない`);
   // 3番: いけすは 30ぴき・りっぱな つりざおは みなとの マルシェ（rods[1].get.shop の 建物）だけ
   const pro = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const p=Fishing.proShop();Save.d.fish.rod=1;
     const harbor=!!Fishing.proChoice({shopId:"market",back:{map:"harbor"}}),city=!Fishing.proChoice({shopId:"market",back:{map:"city"}}),town=!Fishing.proChoice({shopId:"market",back:{map:"town"}});
@@ -1152,6 +1233,132 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
     ok(!l.fx || ["heart", "note", "dots", "sweat", "anger"].includes(l.fx), `おるすばんの しぐさ ${l.fx} が ない`);
     ok(!l.where || ["door", "window", "hug"].includes(l.where), `おるすばんの うごき ${l.where} が ない`);
   }
+}
+
+// ---------- 音楽プレイヤーと ディスク（js/music-discs.js。ART-05）----------
+{
+  const md = vm.runInContext(`(()=>{
+    const discs = MusicDiscs.DISCS.map((d) => ({ id: d.id, song: d.song, from: d.from, title: MusicDiscs.title(d), modern: !!(SONGS[d.song] && SONGS[d.song].modern), art: MusicDiscs.art(d) }));
+    const players = Object.keys(MusicDiscs.PLAYERS).map((id) => { const f = FURN_INDEX[id]; return { id, ok: !!f && f.rare === true && f.price === 0 && f.interactive === true && f.kind === "floor", model: FurnModels.has(id), live: [...FurnLive.LIVE].includes(id), text: f ? f.name + " " + f.desc : "" }; });
+    // もらいかた（かりの セーブで ためす）
+    const d0 = Save.d, always = () => 0;
+    let flow = null;
+    try {
+      Save.d = Save.fresh();
+      const first = MusicDiscs.fromShop("crepe", [3, 3, 3], always), low = MusicDiscs.fromShop("bakery", [1, 1, 3], always), boombox = Save.d.furn.player_boombox || 0;
+      for (const s of ["bakery", "florist", "dentist", "cake", "groom", "burger"]) MusicDiscs.fromShop(s, [3, 3, 3], always);
+      const jukebox = Save.d.furn.player_jukebox || 0, march = MusicDiscs.has("disc_turkish"), chest = MusicDiscs.fromChest("cave", always);
+      flow = { first, low, boombox, jukebox, march, chest, gramophone: Save.d.furn.player_gramophone || 0, nacht: MusicDiscs.has("disc_nacht"), again: MusicDiscs.grant("disc_shop_crepe").length, saved: Object.keys(Save.d.discs).length };
+    } finally { Save.d = d0; }
+    // ディスクだけの きょくは 既存の 名曲（作曲者が 1967年 までに なくなった パブリックドメイン）。出典つき
+    const classics = Object.entries(SONGS).filter(([, s]) => s.disc).map(([id, s]) => ({ id, title: s.title, source: s.source || null }));
+    return { discs, players, flow, classics, shops: Object.keys(SHOPS).filter((id) => MG_TASKS[id]), chestMaps: Object.keys(MAP_DEFS).filter((id) => (MAP_DEFS[id].chests || []).length), fresh: JSON.stringify(Save.fresh().discs) };
+  })()`, ctx);
+  const kanji = /[\u4E00-\u9FFF]/;
+  ok(md.discs.length >= 20 && new Set(md.discs.map((d) => d.id)).size === md.discs.length, "ディスクが すくない か id が かさなる");
+  for (const d of md.discs) {
+    ok(d.modern, `ディスク ${d.id}: きょく ${d.song} が SONGS に ない（ながせない）`);
+    ok(d.title && !kanji.test(d.title) && d.title.length <= 12, `ディスク ${d.id}: なまえ「${d.title}」は ひらがなで 12もじ まで`);
+    ok(!d.from.shop || md.shops.includes(d.from.shop), `ディスク ${d.id}: おてつだいの おみせ ${d.from.shop} が ない`);
+    ok(!d.from.map || md.chestMaps.includes(d.from.map), `ディスク ${d.id}: たからばこの ある マップ ${d.from.map} が ない（手に入らない）`);
+    svgOk(d.art, `ディスクの 絵 ${d.id}`);
+  }
+  for (const s of md.shops) ok(md.discs.some((d) => d.from.shop === s), `おてつだいの おみせ ${s} の ディスクが ない`);
+  ok(["starter", "town", "jukebox", "gramophone"].every((k) => md.discs.some((d) => d.from[k])), "はじめ・町・ちくおんき・ジュークボックスの ディスクが そろわない");
+  ok(md.classics.length >= 4, "ディスクだけの 名曲が すくない");
+  for (const c of md.classics) {
+    const died = Number((/[（(]\d{4}-(\d{4})[)）]/.exec(c.source?.composer || "") || [])[1]);
+    ok(c.source && c.source.work && c.source.score && c.source.license, `ディスクの 名曲 ${c.id}: 出典（作品・楽譜・ライセンス）が ない`);
+    ok(died > 0 && died <= 1967, `ディスクの 名曲 ${c.id}: 作曲者が 1967年 までに なくなって いない（日本で 保護期間が おわって いるか わからない）`);
+  }
+  ok(md.players.length === 3, "音楽プレイヤーが 3しゅ ない");
+  for (const p of md.players) {
+    ok(p.ok, `${p.id}: レア・ねだん 0・さわれる 家具に なって いない`);
+    ok(p.model, `${p.id}: 立体モデルが ない`);
+    ok(!kanji.test(p.text), `${p.id}: なまえ・せつめいに 漢字が ある`);
+  }
+  ok(md.players.filter((p) => p.live).length >= 2, "ちくおんき・ジュークボックスの うごく 絵（live）が ない");
+  const f = md.flow;
+  ok(f.first.some((t) => /ディスク「/.test(t)) && f.first.some((t) => /ラジカセ/.test(t)) && f.boombox === 1, "はじめての ディスクで ラジカセが もらえない " + JSON.stringify(f.first));
+  ok(f.low.length === 0, "○ が すくない おてつだいでも ディスクが 出る");
+  ok(f.jukebox === 1 && f.march, "ディスク 8まいで ジュークボックスと「トルコ こうしんきょく」が もらえない");
+  ok(f.chest.some((t) => /どうくつの しずく/.test(t)) && f.gramophone === 1 && f.nacht, "たからばこで その ばしょの ディスクと ちくおんき（アイネ クライネ つき）が 出ない " + JSON.stringify(f.chest));
+  ok(f.again === 0 && f.saved === 11, "おなじ ディスクを 2かい もらえる か セーブの かずが ちがう " + f.saved);
+  ok(md.fresh === "{}", "Save.fresh() に discs が ない");
+}
+
+// ---------- 食べ物の 絵（js/food-art.js）: 食べ物ごとに じぶんの 絵が ある（ほかの 食べ物の 絵を かりない）----------
+{
+  const fa = vm.runInContext(`(()=>({ foods: FOODS.map((f) => ({ id: f.id, name: f.name, art: FOOD_ART[f.id] || "" })), fixed: FoodArtFix.ids }))()`, ctx);
+  const seen = new Map();
+  for (const f of fa.foods) {
+    ok(f.art, `食べ物 ${f.id}（${f.name}）: 絵が ない`);
+    if (!f.art) continue;
+    ok(!seen.has(f.art), `食べ物 ${f.id}（${f.name}）: ${seen.get(f.art)} と おなじ 絵（名前と 絵が あわない）`);
+    seen.set(f.art, `${f.id}（${f.name}）`);
+    svgOk(`<svg viewBox="0 0 64 64">${f.art}</svg>`, `食べ物の 絵 ${f.id}`);
+  }
+  ok(fa.fixed.length >= 20 && fa.fixed.every((id) => fa.foods.some((f) => f.id === id)), "FoodArtFix の 食べ物が ない か すくない " + fa.fixed.join());
+}
+
+// ---------- すまほ（js/smaho.js）: ≡ は せってい・あそびかた だけ。ちず・ようす・もちもの などは すまほの アプリ ----------
+{
+  const sm = vm.runInContext(`(()=>{
+    const apps = Smaho.APPS.map((a) => ({ id: a.id, name: a.name, icon: Smaho.ICON[a.id] || "", color: a.color }));
+    const d0 = Save.d, paused = Game.paused, out = {};
+    try {
+      Save.d = Save.fresh();
+      out.hints = Smaho.hints().map((h) => ({ icon: h.icon, text: h.text }));
+      const day = "2026-9-28"; // U.today() の 形
+      out.f1 = Smaho.fortune(day); out.f2 = Smaho.fortune(day);
+      out.lucks = [...new Set(Array.from({ length: 60 }, (_, i) => Smaho.fortune("2027-" + (1 + (i % 12)) + "-" + (1 + (i % 28))).luck))];
+      out.featured = typeof DailyPlay !== "undefined" ? DailyPlay.featured(day) : null;
+      // 町の「おまつり」ボタンは もう つくらない（すまほの ボタンだけ）
+      const mb = Smaho.mountButton; let mounts = 0; Smaho.mountButton = () => { mounts++; };
+      const sc = { festivalButton: "old" };
+      try { Seasonal.mount(sc); } finally { Smaho.mountButton = mb; }
+      out.mount = { mounts, festival: sc.festivalButton };
+      // Esc（Game.openMenu）は すまほを ひらく・とじる。うごけない ときは なにも しない
+      const tg = Smaho.toggle; let toggles = 0; Smaho.toggle = () => { toggles++; };
+      try { Game.paused = false; Game.openMenu(); Game.paused = true; Game.openMenu(); } finally { Smaho.toggle = tg; }
+      out.toggles = toggles;
+    } finally { Save.d = d0; Game.paused = paused; }
+    return { apps, LUCK: Smaho.LUCK.map((l) => l[0]), foods: FOODS.map((f) => f.id), places: Object.values(MAP_DEFS).map((m) => m.name), menu: Menu.open.toString(), help: Menu.help.toString(), fortuneSrc: Smaho.fortune.toString(), ...out };
+  })()`, ctx);
+  const kanji = /[\u4E00-\u9FFF]/;
+  const ids = sm.apps.map((a) => a.id);
+  ok(new Set(ids).size === ids.length, "すまほの アプリの id が かさなる");
+  for (const need of ["map", "status", "bag", "dex", "event", "rally", "hint", "fortune"]) ok(ids.includes(need), `すまほに アプリ ${need} が ない`);
+  for (const a of sm.apps) {
+    ok(a.name && !kanji.test(a.name) && a.name.length <= 7, `すまほの アプリ ${a.id}: なまえ「${a.name}」は ひらがな・カタカナで 7もじ まで`);
+    ok(a.icon, `すまほの アプリ ${a.id}: アイコンが ない`);
+    if (a.icon) svgOk(`<svg viewBox="0 0 44 44">${a.icon}</svg>`, `すまほの アイコン ${a.id}`);
+    ok(/^#[0-9A-Fa-f]{6}$/.test(a.color || ""), `すまほの アプリ ${a.id}: いろ が ない`);
+  }
+  // ≡（Menu.open）は メタな ものだけ
+  const tabs = [...((/const T = \[(.*?)\];/.exec(sm.menu) || [])[1] || "").matchAll(/\["(\w+)"/g)].map((m) => m[1]);
+  ok(tabs.join() === "settings,help", "≡ の タブは せってい・あそびかた だけ（ちず・ようす・もちもの・ずかんは すまほ）: " + tabs.join());
+  for (const t of sm.help.match(/"[^"]*"/g) || []) ok(!kanji.test(t), `あそびかたに 漢字が ある: ${t}`);
+  ok(sm.mount.mounts === 1 && sm.mount.festival === null, "町の「おまつり」ボタンが まだ ある（すまほの イベントへ まとめる）");
+  ok(sm.toggles === 1, "Esc（Game.openMenu）で すまほが ひらかない か うごけない ときも ひらく");
+  // ひんと
+  const proper = sm.places.flatMap((n) => [n, n.replace(/（.*$/, "")]).sort((a, b) => b.length - a.length);
+  ok(sm.hints.length >= 4, "ひんとが すくない");
+  for (const h of sm.hints) {
+    ok(sm.apps.some((a) => a.id === h.icon) || h.icon === "phone", `ひんとの アイコン ${h.icon} が ない`);
+    // ばしょの 名前（「平和台」など）は そのまま つかって よい
+    const plain = proper.reduce((t, n) => t.split(n).join(""), h.text || "");
+    ok(h.text && !kanji.test(plain), `ひんとに 漢字が ある: ${h.text}`);
+  }
+  // うらない: おなじ 日は おなじ けっか（Math.random・Date.now を つかわない）・日で かわる・ラッキーの もの は ほんとうに ある
+  ok(!/Math\.random|Date\.now|new Date/.test(sm.fortuneSrc), "うらないが その日の うちに かわる（Math.random・Date を つかって いる）");
+  ok(JSON.stringify(sm.f1) === JSON.stringify(sm.f2), "うらないが おなじ 日で ちがう");
+  ok(sm.lucks.length >= 3 && sm.lucks.every((l) => sm.LUCK.includes(l)), "うらないの けっかが 日で かわらない: " + sm.lucks.join());
+  ok(sm.foods.includes(sm.f1.food), `うらないの ラッキー たべもの ${sm.f1.food} が ない`);
+  ok(sm.places.includes(sm.f1.place), `うらないの ラッキー ばしょ ${sm.f1.place} が ない`);
+  ok(!sm.featured || sm.f1.shop === sm.featured, "うらないの ラッキー おみせが きょうの おすすめと ちがう（コインが ふえない）");
+  for (const t of [sm.f1.luck, sm.f1.message, ...Object.values(sm.f1.words)]) ok(!kanji.test(t), `うらないに 漢字が ある: ${t}`);
+  ok(["wanko", "gachan", "goji"].every((k) => sm.f1.words[k]), "うらないに 3にんの ひとことが ない");
 }
 
 finish();

@@ -23,6 +23,14 @@ const PokaDebug = {
       "PokaDebug.water('coast', 30, 10)   水の かたまりの しゅるい（川・海・湖）・岸・その マスの 色",
       "PokaDebug.cast('town_walker0')   町の人の 名前・種・見た目（id なしで 全員の ようす）",
       "PokaDebug.house()                     おうちへ",
+      "PokaDebug.fishSpawn('magoi', 60)      3人の ちかくに 魚の かげ（cm で ながさが きまる）。fishAuto(false, true) で かってに 出さない",
+      "PokaDebug.fishAim()                   かげの あたまの まえ（ながおしする 画面の ばしょ）。fishState() で うき・かげ・じまんの ようす",
+      "PokaDebug.smaho('map')                すまほを ひらく（アプリ id: map・status・bag・dex・event・rally・hint・fortune・rewards・music。なしで ホーム・null で とじる）",
+      "PokaDebug.smahoState()                すまほの ようす（ひらいて いるか・アプリ・ボタンの ばしょ・しるし）",
+      "PokaDebug.fortune('2026-9-28')        その日の うらない（日づけ なしで きょう）",
+      "PokaDebug.discs()                     あつめた ディスク・音楽プレイヤー・いま ながれて いる きょく",
+      "PokaDebug.discDrop('shop', 'crepe')   ディスクを かならず 手に入れる（'shop' / 'chest' と お店・マップ）",
+      "PokaDebug.discLuck(true)              おてつだい・たからばこで ディスクが かならず 出る（false で もとに もどす）",
       "PokaDebug.parentWork('talk')          ぱぱ・ままの おしごと（9〜18じ）の ようす。'alone' / 'talk' で おるすばん、'arrive' / 'leave' で ただいま／いってきます",
       "PokaDebug.furnLive('lamp')            さわれる 家具の ようす（つく・チャンネル・きょく・はと など）と タップする 点",
       "PokaDebug.furnArt('piano', false)     家具の 立体モデル（作りなおしたか・床の 大きさ・絵の 大きさ・うごいて いるか）。id なしで 作りなおした 一覧",
@@ -39,6 +47,8 @@ const PokaDebug = {
       "PokaDebug.coins(1000)                 コインを足す",
       "PokaDebug.level(16)                   3人のレベルを設定して全回復",
       "PokaDebug.unlockAll()                 服・家具・壁紙・床を ぜんぶ持つ",
+      "PokaDebug.itemDex('furn')             家具／服の図鑑の記録（'furn' / 'wear'）",
+      "PokaDebug.itemDexClaim('wear', 10)    10種類ごとの図鑑のごほうびを受け取る",
       "PokaDebug.give('cake', 3)             もちものを足す",
       "PokaDebug.save()                      いますぐセーブ",
       "PokaDebug.walkTo(4, 12)               町・フィールドで (x, y) まで歩く",
@@ -72,6 +82,10 @@ const PokaDebug = {
   dailyVisit(day) {return DailyPlay.visit(day);},
   dailyState() {return {...Save.d.daily,featured:DailyPlay.featured(),shop:SHOPS[DailyPlay.featured()].name};},
   saveData() {return JSON.parse(JSON.stringify(Save.d));},
+  itemDex(kind = "furn") {
+    return { kind, ...ItemDex.progress(kind), entries: ItemDex.entries(kind).map(e => ({ id: e.id, name: e.item.name, category: kind === "furn" ? e.item.kind : e.item.slot, seen: e.seen, owned: e.owned, count: e.count, rare: !!e.item.rare })) };
+  },
+  itemDexClaim(kind, threshold) { return ItemDex.claim(kind, threshold); },
   shopRewards(shop) {return { rows:ShopRewards.rows(shop), levels:[...SHOP_LV_REP], cap:ShopRewards.maxLevel };},
   shopRewardClaim(shop) {return ShopRewards.claim(shop).map(p=>p.id);},
   shopRewardOpen(shop) {ShopRewards.open(shop);},
@@ -248,6 +262,32 @@ const PokaDebug = {
       foot: !m || (m.footW === (flip ? dm.d : dm.w) && m.footD === (flip ? dm.w : dm.d)), w: m ? m.w : f.w, h: m ? m.h : f.h,
       kb: (m ? m.full.length : Art.furnSvg(id, { flip }).length) / 1024, loaded: [...SvgCache.map.keys()].some((k) => k.startsWith(key + "@")),
       moving: G.sceneName === "house" && Save.d.room.items.some((it) => it.id === id && G.scene.life.furniture[it.uid] > 0) };
+  },
+  // すまほ: app を わたすと その アプリ、なしで ホーム、null で とじる
+  smaho(app) {
+    if (typeof Smaho === "undefined") return null;
+    if (app === null) { Smaho.close(); return this.smahoState(); }
+    if (app) Smaho.show(app); else if (!Smaho.view) Smaho.open(); else Smaho.home();
+    return this.smahoState();
+  },
+  smahoState() {
+    if (typeof Smaho === "undefined") return null;
+    const b = Smaho.button, r = b && !b.classList.contains("hidden") ? b.getBoundingClientRect() : null;
+    const v = Smaho.view, ph = v ? v.phone.getBoundingClientRect() : null;
+    return { open: !!v, app: v ? v.app : null, apps: Smaho.apps().map((a) => a.name), button: r ? { x: r.x, y: r.y, w: r.width, h: r.height } : null, phone: ph ? { x: ph.x, y: ph.y, w: ph.width, h: ph.height } : null, dot: !!b && !b.querySelector(".smaho-dot").classList.contains("hidden"), hints: Smaho.hints().length };
+  },
+  fortune(day) { return typeof Smaho === "undefined" ? null : Smaho.fortune(day || U.today()); },
+  // ART-05: ディスクと 音楽プレイヤー。discDrop("shop", "crepe") / discDrop("chest", "forest") は かならず 出る ときの 手に入れかた
+  discs() {
+    if (typeof MusicDiscs === "undefined") return null;
+    const sc = G.sceneName === "house" ? G.scene : null;
+    return { owned: MusicDiscs.DISCS.filter((d) => MusicDiscs.has(d.id)).map((d) => d.id), total: MusicDiscs.DISCS.length, players: Object.fromEntries(Object.keys(MusicDiscs.PLAYERS).map((id) => [id, Save.d.furn[id] || 0])), playing: sc?.music?.disc || null, song: Sound.cur?.name || null };
+  },
+  discLuck(on = true) { return typeof MusicDiscs === "undefined" ? null : MusicDiscs.luck(on); },
+  discDrop(kind, where) {
+    if (typeof MusicDiscs === "undefined") return null;
+    const always = () => 0;
+    return kind === "shop" ? MusicDiscs.fromShop(where, [3, 3, 3], always) : kind === "chest" ? MusicDiscs.fromChest(where, always) : MusicDiscs.grant(where);
   },
   // ぱぱ・ままの おしごと（ART-04）: いまの ようす。event を わたすと おるすばんの できごとを すぐ おこす（"alone" / "talk"）
   parentWork(event) {
@@ -476,18 +516,41 @@ const PokaDebug = {
   rangeState() { return G.scene instanceof RangeScene ? G.scene.state() : null; },
   rangeEnd() { const s = G.scene; if (!(s instanceof RangeScene) || s.mode !== "play") return null; s.game.finish(); s.finish(); return this.rangeState(); },
   rod(n = 1) { Save.d.fish.rod = n; Save.mark(); return n; },
-  // 釣りの 画面を はじめる（fishId を わたすと その 魚が かかる）。もどり先は いまの 町の 場所
-  fishing(place = "pond", fishId) {
-    const sc = G.sceneName === "world" ? G.scene : null, L = sc && sc.party[0];
-    const back = L ? { map: sc.mapId, x: L.tx, y: L.ty, dir: L.dir } : { ...Save.d.world };
-    Game.trans = null; Game.goto("fishing", { place, fish: fishId || null, back }, "none");
-    return true;
+  // ③ UI-02: 見おろしの まま つる（FishLine）。fishState は つりの ようす（町・フィールドで ない ときは null）
+  fishState() { return G.sceneName === "world" ? FishLine.state(G.scene) : null; },
+  // かってに 魚が 出る／出ない（テストは false に して fishSpawn で 出す）。clear で いまの かげを けす
+  fishAuto(on = true, clear = false) { if (G.sceneName !== "world") return null; const S = FishLine.st(G.scene); S.auto = !!on; S.first = false; if (clear) S.shadows = []; return S.auto; },
+  // 3人の ちかく（1.6〜3.6マス）に 魚の かげを 1ぴき（あたまが 3人の ほう）。o: { nibbles（ちょんの かず・1）, fickle（0）, swim（true で およぐ。ふつうは うきに 気づく まで とまって いる） }
+  fishSpawn(id, cm, o = {}) {
+    if (G.sceneName !== "world") return null;
+    const sc = G.scene, S = FishLine.st(sc), f = Fishing.fish(id); if (!S.spot) return null; if (!f) throw new Error("unknown fish: " + id);
+    cm = cm || Fishing.size(f);
+    const len = FishLine.shadowLen(cm), wid = FishLine.shadowWid(f, len), p = sc.party[0].feet(), py = p.y - 12;
+    let best = null;
+    for (const [tx, ty] of FishLine.waterTiles(sc.map)) for (const [ox, oy] of [[16, 16], [8, 16], [24, 16], [16, 8], [16, 24]]) {
+      const x = tx * TS + ox, y = ty * TS + oy, d = Math.hypot(x - p.x, y - py);
+      if (d < 1.6 * TS || d > 3.6 * TS) continue;
+      for (let k = 0; k < 16; k++) {
+        const a = (k * Math.PI) / 8, hx = x + (Math.cos(a) * len) / 2, hy = y + (Math.sin(a) * len) / 2, bx = hx + Math.cos(a) * 18, by = hy + Math.sin(a) * 18;
+        if (!FishLine.fits(sc.map, x, y, a, len, wid) || !FishLine.water(sc.map, bx, by) || Math.hypot(bx - p.x, by - py) > FishLine.CAST_MAX - 8 || Math.hypot(bx - p.x, by - py) < FishLine.CAST_MIN + 4) continue;
+        const score = (-(Math.cos(a) * (x - p.x) + Math.sin(a) * (y - py)) / d) * 2 - Math.abs(d - 2.6 * TS) / TS;
+        if (!best || score > best.score) best = { x, y, a, score };
+      }
+    }
+    if (!best) return null;
+    const sh = FishLine.spawn(sc, { fish: id, cm, nibbles: o.nibbles != null ? o.nibbles : 1, fickle: o.fickle || 0, alpha: 1, life: 900, at: best });
+    if (sh && !o.swim) sh.pause = 999;
+    return sh ? FishLine.state(sc).shadows.find((x) => x.uid === sh.uid) : null;
   },
-  fishState() { if (G.sceneName !== "fishing") return null; const s = G.scene, g = s.game; return { phase: g.phase, tension: g.tension, prog: g.prog, fish: s.fish.id, place: s.place, busy: !!s.busy, msg: s.msg }; },
-  // "tap"（なげる・つる！）／"hold"（まく）／"release"（はなす）
-  fishInput(kind) { if (G.sceneName !== "fishing") return false; const s = G.scene; if (kind === "tap") s.tapQ = true; else if (kind === "hold") s.hold = true; else if (kind === "release") s.hold = false; return true; },
-  // まつ を とばして すぐ ぐいっ！
-  fishSkip() { if (G.sceneName !== "fishing") return false; const g = G.scene.game; if (g.phase !== "wait") return false; g.nibbles = 0; g.t = g.waitFor + 0.01; return true; },
+  // その かげの あたまの すこし まえ（うきを おとす ところ）。x・y は 画面の CSS px（page.mouse で ながおし する ばしょ）
+  fishAim(uid) {
+    const st = this.fishState(), s = st && (st.shadows.find((x) => x.uid === uid) || st.shadows[0]); if (!s) return null;
+    const wx = s.head.x + Math.cos(s.a) * 18, wy = s.head.y + Math.sin(s.a) * 18, r = G.canvas.getBoundingClientRect();
+    return { x: r.left + (s.sx - s.x + wx) * G.cssPerUnit, y: r.top + (s.sy - s.y + wy) * G.cssPerUnit, wx, wy };
+  },
+  // テストの 近道: ながおしと おなじ ところへ なげる（world の px）／「つる」ボタンと おなじ
+  fishCast(wx, wy) { return G.sceneName === "world" ? FishLine.aim(G.scene, wx, wy) : false; },
+  fishPull() { return G.sceneName === "world" ? FishLine.pull(G.scene) : false; },
   // 釣り場の 水べ（歩いて 行ける マスと、水の ほうの 向き）
   fishShore(map = "town") {
     const m = Maps.get(map), d = MAP_DEFS[map], D = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
@@ -508,7 +571,12 @@ const PokaDebug = {
     return moved.map(m => ({ id: m.ev.id, step: m.step.do, stepDone: m.stepDone, done: m.done }));
   },
   // TOWNSFOLK_DATA の セリフ／ひとこと 1つ（テストで 条件を たしかめる）
-  folkLine(id) { const D = typeof TOWNSFOLK_DATA !== "undefined" ? TOWNSFOLK_DATA : null; return D ? JSON.parse(JSON.stringify(D.lines.find(l => l.id === id) || D.react.find(l => l.id === id) || null)) : null; },
+  conversation() { return JSON.parse(JSON.stringify(Save.d.conversations)); },
+  quizState() { return TownQuiz.state(); },
+  quizStart(level) { return TownQuiz.start(level); },
+  quizAnswer(index) { return TownQuiz.answer(index); },
+  quizCancel() { return TownQuiz.cancel(); },
+  folkLine(id) { const exchange = TownDialogue.describe(id, (TownFolk.last || {}).npc); if (exchange) return JSON.parse(JSON.stringify(exchange)); const D = typeof TOWNSFOLK_DATA !== "undefined" ? TOWNSFOLK_DATA : null; return D ? JSON.parse(JSON.stringify(D.lines.find(l => l.id === id) || D.react.find(l => l.id === id) || null)) : null; },
   battle(foes = [{ kind: "purun", lv: 1 }], area = "meadow", boss = false) {
     for (const f of foes) if (!ENEMIES[f.kind]) throw new Error("unknown enemy: " + f.kind);
     const w = Save.d.world;

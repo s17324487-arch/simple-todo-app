@@ -80,6 +80,62 @@ html, body {
 .coin-ico::after { content: ""; position: absolute; left: 4px; top: 2px; width: 3px; height: 8px; background: #fff6c8; border-radius: 2px; }
 .menu-btn { display: flex; flex-direction: column; gap: 3px; background: var(--pink); }
 .menu-btn span { display: block; width: 18px; height: 3px; background: var(--ink); border-radius: 2px; }
+/* すまほ（ぽかぽかフォン・js/smaho.js）。モーダルと おなじ かさね（z 30）で、中の まど（ちず・カード）や かいわは その うえに でる */
+.smaho-btn { position:absolute; left:10px; bottom:calc(62px + var(--safe-b)); min-height:48px; display:flex; align-items:center; gap:4px; padding:4px 14px 4px 6px; font-size:14px; background:#FFF4C2; z-index:5; }
+.smaho-btn svg { width:32px; height:32px; }
+.smaho-dot { position:absolute; top:-3px; right:-3px; width:14px; height:14px; border-radius:50%; background:#E35D5B; border:2.5px solid var(--ink); }
+.smaho-dot.hidden { display:none; }
+.modal-wrap.smaho-wrap { align-items:center; padding:calc(8px + var(--safe-t)) 4px calc(8px + var(--safe-b)); }
+.smaho { position:relative; width:min(380px, 100%); height:min(780px, 100%); background:#FFE39A; border:4px solid var(--ink); border-radius:40px; padding:14px 6px 6px; box-shadow:0 6px 0 var(--ink); display:flex; flex-direction:column; animation:smahoUp .24s ease-out; }
+@keyframes smahoUp { from { transform:translateY(40px) scale(.96); opacity:0; } to { transform:none; opacity:1; } }
+.smaho::before { content:""; position:absolute; top:5px; left:50%; width:54px; height:5px; margin-left:-27px; border-radius:3px; background:#C9A45A; }
+.smaho-close { position:absolute; top:-14px; right:-8px; z-index:2; }
+.smaho-screen { flex:1; min-height:0; border:3px solid var(--ink); border-radius:30px; overflow:hidden; display:flex; flex-direction:column; background:linear-gradient(180deg,#BFE6F5 0%,#E9F6EC 55%,#FFF3D6 100%); }
+.smaho-status { flex:none; height:30px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; font-size:13px; font-weight:800; }
+.smaho-brand { font-size:11px; color:#6E6A63; }
+.smaho-page { flex:1; min-height:0; display:flex; flex-direction:column; }
+.smaho-home { overflow-y:auto; padding:0 12px 10px; overscroll-behavior:contain; }
+.smaho-clock { text-align:center; font-size:44px; font-weight:900; line-height:1.1; margin-top:4px; }
+.smaho-date { text-align:center; font-size:14px; font-weight:800; margin-bottom:12px; }
+.smaho-apps { display:grid; grid-template-columns:repeat(3,1fr); gap:12px 4px; }
+.smaho-app { background:none; border:0; padding:0; display:flex; flex-direction:column; align-items:center; gap:4px; min-height:44px; font:inherit; font-size:12.5px; font-weight:800; color:var(--ink); cursor:pointer; }
+.smaho-app .ico { position:relative; width:62px; height:62px; border-radius:20px; border:3px solid var(--ink); display:grid; place-items:center; box-shadow:0 3px 0 var(--ink); }
+.smaho-app:active .ico { transform:translateY(2px); box-shadow:0 1px 0 var(--ink); }
+.smaho-app .nm { line-height:1.15; text-align:center; }
+.smaho-app-view { background:#FFFDF6; }
+.smaho-bar { flex:none; display:flex; align-items:center; gap:8px; padding:4px 8px; background:var(--app-color,#FFE39A); border-bottom:3px solid var(--ink); }
+.smaho-back { min-width:44px; min-height:44px; padding:4px 10px; font-size:14px; }
+.smaho-title { display:flex; align-items:center; gap:6px; font-size:17px; font-weight:900; }
+.smaho-body { flex:1; min-height:0; overflow-y:auto; padding:10px 10px 14px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+.smaho-body .btn.wide { margin-bottom:8px; }
+.smaho-body.app-map { padding:6px 3px 14px; } /* ちずの 地点は 44px いじょう（よこはばを ぜんぶ つかう） */
+.smaho-foot { display:flex; gap:8px; margin-top:10px; }
+.smaho-homebar { flex:none; height:28px; background:none; border:0; display:grid; place-items:center; cursor:pointer; }
+.smaho-homebar::after { content:""; width:120px; height:6px; border-radius:3px; background:var(--ink); }
+.smaho-tabs { display:grid; grid-template-columns:1fr 1fr; margin-bottom:10px; }
+.smaho-hint { display:flex; gap:8px; align-items:flex-start; background:#FFFFFF; border:2.5px solid var(--ink); border-radius:14px; padding:8px 10px; margin-bottom:8px; font-size:14px; font-weight:700; line-height:1.45; }
+.smaho-hint .ico { flex:none; width:34px; height:34px; border-radius:10px; background:#F3F7EA; display:grid; place-items:center; }
+.smaho-fortune { text-align:center; }
+.smaho-ball { display:inline-block; margin:6px 0 4px; }
+.smaho-ball.shake { animation:smahoShake .15s infinite alternate; }
+@keyframes smahoShake { from { transform:rotate(-8deg) translateY(0); } to { transform:rotate(8deg) translateY(-4px); } }
+.smaho-omikuji { display:none; text-align:left; background:#FFFFFF; border:3px solid var(--ink); border-radius:16px; padding:10px 12px; margin:6px 0 10px; }
+.smaho-omikuji.show { display:block; animation:smahoUp .3s ease-out; }
+.smaho-omikuji .luck { font-size:30px; font-weight:900; text-align:center; color:var(--luck); -webkit-text-stroke:1px var(--ink); }
+.smaho-omikuji .msg { text-align:center; font-weight:800; margin:2px 0 8px; }
+.smaho-omikuji .rows > div { display:flex; align-items:center; gap:6px; min-height:34px; border-top:2px dashed #EADFC6; font-size:14px; }
+.smaho-omikuji .rows b { flex:none; width:112px; font-size:12px; }
+.smaho-omikuji .swatch { width:22px; height:22px; border-radius:50%; border:2px solid var(--ink); }
+.smaho-omikuji .kid { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; margin-top:6px; }
+.smaho-omikuji .kid .face { flex:none; width:34px; height:34px; border-radius:10px; overflow:hidden; background:var(--blue-l); border:2px solid var(--ink); }
+.smaho-omikuji .kid .face svg { width:100%; height:auto; transform:scale(1.3) translateY(4%); transform-origin:50% 20%; }
+.smaho-discs { display:grid; gap:6px; }
+.smaho-disc { display:flex; align-items:center; gap:8px; background:#FFFFFF; border:2.5px solid var(--ink); border-radius:12px; padding:5px 8px; }
+.smaho-disc b { display:block; font-size:14px; }
+.smaho-disc small { color:#7A746A; font-size:11px; font-weight:700; }
+.smaho-disc.lock svg { filter:grayscale(1) opacity(.45); }
+.help-row { background:#FFFFFF; border:2.5px solid var(--ink); border-radius:14px; padding:8px 12px; margin-bottom:8px; }
+.help-row b { font-size:15px; } .help-row p { margin:2px 0 0; font-size:14px; line-height:1.5; }
 
 /* ---- トースト ---- */
 .toasts { position: absolute; top: calc(64px + var(--safe-t)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none !important; z-index: 50; }
@@ -137,8 +193,8 @@ html, body {
 .tabs::-webkit-scrollbar { display: none; }
 .tab { flex: 0 0 auto; font: inherit; font-weight: 800; font-size: 14px; border: 3px solid var(--ink); background: var(--paper); border-radius: 12px; padding: 6px 12px; box-shadow: 0 3px 0 var(--ink); color: var(--ink); }
 .tab.on { background: var(--yellow); transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
-.menu-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
-.menu-tabs .tab { min-width: 0; min-height: 44px; padding: 6px 1px; font-size: 11px; }
+.menu-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.menu-tabs .tab { min-width: 0; min-height: 44px; padding: 6px 4px; font-size: 15px; }
 
 /* ---- グリッド・カード ---- */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
@@ -410,27 +466,7 @@ html, body {
 .folk-photo-btn svg { width: 30px; height: 30px; }
 .folk-flash { position: absolute; inset: 0; z-index: 35; background: #FFF; pointer-events: none; animation: folk-flash 0.7s ease-out forwards; }
 @keyframes folk-flash { from { opacity: 0.95; } to { opacity: 0; } }
-/* ③ 釣り: 釣りの 画面・つれた カード・さかな ずかん（見本 tools/feature-design/fishing-ui.css。ずかんの しぼりこみの ボタンは 44px にして、375 はばでも 6つ ならぶ ように した） */
-.fish-scene { position: absolute; inset: 0; z-index: 20; }
-.fish-scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.fish-top { position: absolute; left: 10px; right: 10px; top: calc(8px + var(--safe-t)); display: flex; align-items: center; gap: 8px; }
-.fish-top .pill { background: var(--paper); }
-.fish-top .grow { flex: 1; }
-.fish-talk { position: absolute; left: 12px; right: 12px; top: calc(64px + var(--safe-t)); text-align: center; pointer-events: none; }
-.fish-talk span { display: inline-block; background: rgba(255, 253, 246, 0.94); border: 3px solid var(--ink); border-radius: 14px; padding: 5px 12px; font-weight: 800; font-size: 15px; box-shadow: 0 3px 0 var(--ink); }
-.fish-ctrl { position: absolute; left: 0; right: 0; bottom: calc(16px + var(--safe-b)); display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.fish-btn { width: 132px; height: 132px; border-radius: 50%; font-size: 22px; font-weight: 900; display: grid; place-items: center; line-height: 1.15; background: var(--paper); }
-.fish-btn small { display: block; font-size: 12px; font-weight: 800; }
-.fish-btn.go { background: var(--yellow); animation: fishPulse 0.35s infinite alternate; }
-.fish-btn.reel { background: #8FD0F0; }
-.fish-btn:disabled { opacity: 0.75; }
-@keyframes fishPulse { to { transform: scale(1.07); } }
-.fish-meter { width: min(320px, calc(100% - 40px)); background: rgba(255, 253, 246, 0.94); border: 3px solid var(--ink); border-radius: 16px; padding: 6px 10px 8px; box-shadow: 0 3px 0 var(--ink); }
-.fish-meter .lbl { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 3px; }
-.fish-gauge { position: relative; height: 16px; border: 2.5px solid var(--ink); border-radius: 9px; overflow: hidden; background: linear-gradient(90deg, #BFE6FF 0 20%, #9BE08E 20% 80%, #FF9C8C 80% 100%); }
-.fish-gauge i { position: absolute; top: -3px; bottom: -3px; width: 6px; margin-left: -3px; background: var(--ink); border-radius: 3px; }
-.fish-prog { height: 12px; margin-top: 6px; border: 2.5px solid var(--ink); border-radius: 8px; overflow: hidden; background: #FFF; }
-.fish-prog i { display: block; height: 100%; background: linear-gradient(90deg, #F2C94C, #F2994A); }
+/* ③ 釣り: さかなの カード（くわしい ページ）・さかな ずかん（見本 tools/feature-design/fishing-ui.css。ずかんの しぼりこみの ボタンは 44px にして、375 はばでも 6つ ならぶ ように した） */
 /* つれた！カード（UI.modal の 中身） */
 .fish-card { text-align: center; }
 .fish-card .art { position: relative; margin: 2px auto 6px; width: 100%; max-width: 300px; aspect-ratio: 2 / 1; display: grid; place-items: center; background: radial-gradient(circle at 50% 60%, #E6F6FF, #BFE3F2); border: 3px solid var(--ink); border-radius: 18px; }
@@ -442,8 +478,6 @@ html, body {
 .fish-card .desc { font-size: 14px; font-weight: 700; margin: 6px 4px; line-height: 1.5; white-space: pre-line; }
 .fish-card .fact { background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 12px; padding: 6px 10px; font-size: 13px; font-weight: 700; white-space: pre-line; text-align: left; }
 .fish-card .fact b { display: block; font-size: 12px; color: #9a6a00; }
-.fish-card .acts { display: flex; gap: 8px; margin-top: 10px; }
-.fish-card .acts .btn { flex: 1; min-height: 48px; padding: 6px 4px; font-size: 14px; }
 /* さかな ずかん */
 .fish-dex-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .fish-dex-head .cnt { font-weight: 900; font-size: 16px; }
@@ -462,23 +496,75 @@ html, body {
 .fish-detail .facts span:nth-child(odd) { color: #8a7d6a; font-weight: 800; }
 /* メニューの「ずかん」の まもの／さかな */
 .dex-kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.dex-kinds .tab { min-height: 44px; }
-/* ③ 釣り: 町の「つる」ボタン（場所と 大きさは ④ の .act-btn。「ほる」と おなじ 下の まん中）・釣りの 画面の DOM・だいじな もの */
-.act-btn.fish-go-btn { background: #8FD0F0; }
-.fish-ui { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
-.fish-ui > * { pointer-events: none; }
-.fish-ui .fish-top .btn, .fish-ui .fish-btn { pointer-events: auto; }
-.fish-top .pill { display: flex; align-items: center; gap: 4px; }
-.fish-top .pill svg { width: 22px; height: 22px; }
-.fish-btn { touch-action: none; user-select: none; -webkit-user-select: none; }
+.dex-kinds .tab { min-width: 0; min-height: 44px; padding: 6px 2px; font-size: 12px; }
+
+/* 家具・服のずかん。24枚ずつのアルバムにして、スマホでも探しやすく。 */
+.item-dex { --dex-blue:#49728b; color:#293f4d; }
+.item-dex-summary { background:#e9f3f6; border:2px solid #a4c2cb; border-radius:14px; padding:10px 12px; display:grid; grid-template-columns:1fr auto; align-items:center; gap:7px; font-size:12px; }
+.item-dex-total { font-size:16px; white-space:nowrap; }
+.item-dex-summary progress { appearance:none; width:100%; height:8px; grid-column:1/-1; border:0; border-radius:6px; overflow:hidden; background:#d0e0e5; accent-color:var(--dex-blue); }
+.item-dex-summary progress::-webkit-progress-bar { background:#d0e0e5; }
+.item-dex-summary progress::-webkit-progress-value { background:var(--dex-blue); border-radius:6px; }
+.item-dex-summary progress::-moz-progress-bar { background:var(--dex-blue); }
+.item-dex-rewards { margin:7px 0 10px; font-size:11px; line-height:1.6; }
+.item-dex-rewards p { margin:0; }
+.item-dex-claim { width:100%; min-height:44px; font-size:12px; padding:8px 4px; }
+.item-dex-search,.item-dex-controls select { box-sizing:border-box; min-width:0; width:100%; min-height:44px; border:2px solid #b3c5c7; border-radius:10px; padding:7px 8px; background:#fffefa; font-family:inherit; color:#293f4d; }
+.item-dex-search { font-size:16px; margin:0 0 6px; }
+.item-dex-controls { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.item-dex-controls select { font-size:12px; }
+.item-dex-results { margin:9px 0 6px; font-size:11px; color:#556e78; }
+.item-dex-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+.item-dex-card { min-width:0; min-height:144px; display:flex; flex-direction:column; align-items:center; gap:5px; border:2px solid #a9bec3; border-radius:13px; background:#fffef9; padding:8px 6px; font:inherit; color:#293f4d; box-shadow:0 2px 0 #d7e3e3; }
+.item-dex-card.rare { border-color:#caa759; background:linear-gradient(145deg,#fffdf3,#fff1cf); }
+.item-dex-card.unknown { background:#f0f1ed; border-style:dashed; }
+.item-dex-card:active { transform:translateY(2px); box-shadow:none; }
+.item-dex-art { display:block; width:100%; height:77px; }
+.item-dex-art > svg { width:100%; height:100%; }
+.item-dex-name { font-size:12px; line-height:1.45; font-weight:800; overflow-wrap:anywhere; }
+.item-dex-status { margin-top:auto; font-size:10px; color:#5b7073; }
+.item-dex-card.unknown .item-dex-art > svg,.item-dex-preview.unknown > svg { filter:brightness(0) opacity(.23); }
+.item-dex-empty { grid-column:1/-1; font-size:13px; padding:16px 6px; }
+.item-dex-pages { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:14px; font-size:12px; }
+.item-dex-pages .btn { min-width:80px; min-height:44px; font-size:13px; }
+.item-dex-footnote { font-size:11px; line-height:1.65; color:#5b7073; margin:12px 0 4px; }
+.item-dex-detail .panel-title { font-size:17px; overflow-wrap:anywhere; }
+.item-dex-detail .panel-body { font-size:13px; min-height:0; }
+.item-dex-preview { display:flex; justify-content:center; align-items:center; height:225px; padding:12px; margin:5px 0 10px; border-radius:18px; border:2px solid #c2d7d9; background:radial-gradient(ellipse at 50% 90%,#d5e6df 0 25%,#eef5ef 65%); }
+.item-dex-preview > svg { display:block; max-width:100%; width:100%; height:100%; }
+.item-dex-who { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:9px; }
+.item-dex-who .btn { min-height:44px; min-width:0; padding:6px 2px; font-size:13px; overflow-wrap:anywhere; }
+.item-dex-who .btn.on { background:#ffe4a6; }
+.item-dex-turn { min-height:44px; font-size:13px; }
+.item-dex-detail-tags { font-size:12px; margin:10px 0; color:#55717a; }
+.item-dex-description { line-height:1.7; }
+.item-dex-hint { background:#fff3d5; border-left:4px solid #caab60; border-radius:6px; padding:9px 12px; margin:12px 0; line-height:1.65; }
+.item-dex-hint b { font-size:12px; color:#785e2a; }
+.item-dex-hint p { margin:4px 0 0; white-space:pre-line; }
+@media(max-height:700px) { .item-dex-preview { height:172px; } }
+/* ③ 釣り ver2（UI-02・js/fishing-line.js）: 見おろしの まま つる。「つる」ボタンは うきが 水に ある ときだけ。しずんだら きいろく ぴくぴく */
+/* 3人と うきが かくれない ように 右下の まるい ボタン（すまほ ボタンと おなじ 高さ） */
+.act-btn.fish-go-btn { left: auto; right: 12px; transform: none; bottom: calc(62px + var(--safe-b)); min-width: 0; width: 96px; height: 96px; min-height: 96px; border-radius: 50%; flex-direction: column; gap: 0; font-size: 18px; padding: 0; background: #8FD0F0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.act-btn.fish-go-btn.bite { background: var(--yellow); animation: fishBite 0.28s infinite alternate; }
+@keyframes fishBite { from { transform: scale(1); } to { transform: scale(1.08); } }
+/* スーパーで さかなを うる（Fishing.sell） */
+.fish-sell .note { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+.fish-sell-list { display: grid; gap: 6px; }
+.fish-sell-row { display: flex; align-items: center; gap: 8px; background: #EAF6FB; border: 2.5px solid var(--ink); border-radius: 12px; padding: 4px 8px; }
+.fish-sell-row svg { width: 60px; height: 34px; flex: none; }
+.fish-sell-row .t { flex: 1; min-width: 0; }
+.fish-sell-row b { display: block; font-size: 14px; }
+.fish-sell-row small { display: block; font-size: 11px; font-weight: 700; color: #7A746A; }
+.fish-sell-row.aq small { color: #C0506A; }
+.fish-sell-row .btn { flex: none; min-height: 44px; font-size: 13px; padding: 4px 10px; }
+.fish-sell-foot { margin-top: 10px; }
+/* だいじな もの */
 .toast .fish-got, .toast .fossil-got { display: inline-flex; align-items: center; gap: 6px; }
 .toast .fish-got svg, .toast .fossil-got svg { width: 26px; height: 26px; }
 .key-item { display: flex; align-items: center; gap: 10px; background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; padding: 8px 10px; margin-bottom: 10px; box-shadow: 0 3px 0 var(--ink); }
 .key-item svg { width: 44px; height: 44px; flex: 0 0 auto; }
 .key-item .nm { font-weight: 800; }
 .fish-keep { font-size: 12px; font-weight: 800; color: #8a7d6a; margin: -4px 0 8px; }
-/* つれた カードの ボタンは ことばの とちゅうで おりかえさない（「いけすが／いっぱい」） */
-.fish-card .acts .btn { word-break: keep-all; line-height: 1.25; }
 /* ④ 化石ほり: ほる ボタン・ほる 画面・みつけた カード・かせき ノート（見本 tools/feature-design/fossil-ui.css）と くわしい ページ */
 .act-btn { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(96px + var(--safe-b)); min-width: 132px; min-height: 56px; font-size: 18px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--yellow); }
 .act-btn svg { width: 34px; height: 34px; }
@@ -713,3 +799,30 @@ html, body {
 .shop-prize-card .note{padding:5px;margin:6px 0 0}
 
 .venue-controls{position:absolute;bottom:max(8px,env(safe-area-inset-bottom));left:8px;right:8px;display:flex;flex-wrap:wrap;gap:6px;background:#fff8e8ee;border:2px solid #1f1d1b;border-radius:15px;padding:8px}.venue-controls span{width:100%;font-size:11px;text-align:center}.venue-controls .btn{flex:1;min-height:44px;padding:7px;font-size:12px}
+
+/* 町の人の長い相談・大人向けクイズ。画面内で読む長さを選べる。 */
+.dialog-action { order:-1; align-self:flex-end; min-height:44px; margin:0 0 8px; max-width:100%; background:#f5e4b8; }
+.town-story, .town-quiz { max-height:calc(100dvh - 36px - var(--safe-b)); }
+.town-story .panel-body, .town-quiz .panel-body { min-height:0; overflow-y:auto; }
+.town-story-person { float:left; width:76px; height:80px; margin:0 12px 8px 0; }
+.town-story-person svg { width:100%; height:100%; }
+.town-story-body p { min-height:82px; line-height:1.7; }
+.town-story-choices, .town-quiz-actions { display:flex; flex-direction:column; gap:10px; clear:both; }
+.town-story-choice, .town-story-pause, .town-quiz-choice, .town-quiz-actions .btn { min-height:48px; height:auto; white-space:normal; text-align:left; line-height:1.6; padding:10px 14px; overflow-wrap:anywhere; }
+.town-story-pause { margin-top:10px; background:#efebe3; font-size:13px; }
+.town-quiz { background:#fcfaf2; }
+.town-quiz .panel-title { color:#344d59; }
+.town-quiz-note, .town-quiz-meta { font-size:13px; color:#53636b; line-height:1.7; }
+.town-quiz-result { padding:14px; border-radius:14px; background:#e9f1e3; line-height:1.8; margin:10px 0; }
+.town-quiz-sources { font-size:12px; line-height:1.7; overflow-wrap:anywhere; }
+.town-quiz-sources a { color:#285d72; text-decoration:underline; }
+.town-quiz p { line-height:1.8; }
+@media(max-height:700px) { .town-story .panel-head,.town-quiz .panel-head { padding-top:8px; padding-bottom:8px; } .town-quiz-actions { gap:7px; } }
+
+.town-quiz-host { display:flex; gap:12px; align-items:center; padding:8px 0; border-bottom:1px solid #ddd7c7; }
+.town-quiz-face { width:60px; height:64px; flex:none; overflow:hidden; border-radius:16px; background:#e0ece4; }
+.town-quiz-face svg { width:100%; height:100%; }
+.town-quiz-prompt { font-weight:800; font-size:18px; color:#263f4b; }
+.town-quiz-prize { display:flex; gap:12px; align-items:center; padding:8px; border:1px solid #dac38b; border-radius:12px; background:#fff5d9; margin:8px 0; }
+.town-quiz-chat { border-left:3px solid #97b9a6; padding-left:12px; margin:14px 0; }
+.town-quiz-sources summary,.town-quiz-rules summary { min-height:44px; padding:10px 0; cursor:pointer; font-weight:700; }

@@ -47,6 +47,8 @@ const Save = {
       rooms: { active: "main", owned: { main: true }, stored: {}, expanded: {} },
       // ② 町の人: なかよし・うけて いる おねがい（3つまで）・おわった 日・物々交換の 回数・その日に もちかけた 人
       folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
+      conversations: { recent: {}, stories: {} },
+      townQuiz: { active: null, history: {}, rotation: {}, last: null, plays: 0, correct: 0, daily: { day: "", attempts: 0 } },
       // ③ 釣り: rod 0 なし／1 つりざお／2 りっぱな つりざお・dex { id: { n, max, first } }・keep { id: いけすの 数 }・caught つった 数
       fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
       // ④ 化石: pick 0 なし／1 ピッケル・bones { "trex.skull": もって いる 数 }・dug { day, at: { site: ["x,y", …] } }（その日に ほった いわ）
@@ -56,6 +58,8 @@ const Save = {
       // ⑥ 射撃場: safety は RO の きまりを きいた・best は しゅもく:じゅう ごとの いちばん よい きろく・hop は じゅう ごとの ホップ ダイヤル
       range: { safety: false, plays: 0, best: {}, hop: {} },
       shopRewards: {},
+      // ART-05: あつめた ディスク（id → てに いれた 日）。プレイヤーは furn に はいる
+      discs: {},
       shops: {
         burger:{lv:1,rep:0,best:0,plays:0},
         groom: {lv:1,rep:0,best:0,plays:0},
@@ -73,6 +77,7 @@ const Save = {
       flags: { intro: false, chests: {}, boss: false, talked: {} },
       events: { records: {}, activeAnnual: null },
       dex: {},
+      itemDex: { furn: {}, wear: {}, claimed: { furn: {}, wear: {} } },
       stats: { battles: 0, wins: 0, coinsEarned: 0, shifts: 0, perfects: 0, fed: 0 },
       settings: { bgm: true, se: true, difficulty: "normal" },
     };
@@ -121,7 +126,13 @@ const Save = {
     if (!this.d) return;
     this.d.last = Date.now();
     this.d.gameVersion = GAME_VERSION;
-    try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) { /* 容量不足・プライベートモードなど */ }
+    try {
+      // 景品側が保存失敗で所持品を戻すとき、未獲得の図鑑記録を残さない。
+      const pending = { ...this.d, itemDex: JSON.parse(JSON.stringify(this.d.itemDex || { furn: {}, wear: {}, claimed: { furn: {}, wear: {} } })) };
+      if (typeof ItemDex !== "undefined") ItemDex.sync(pending);
+      localStorage.setItem(this.KEY, JSON.stringify(pending));
+      this.d.itemDex = pending.itemDex;
+    } catch (e) { /* 容量不足・プライベートモードなど */ }
     this.dirty = false;
   },
   reset() {
