@@ -93,7 +93,7 @@ class WorldScene {
     const hint = { town: "「！」マークの ひとに はなしかけてみよう", meadow: "まものに ふれると バトル！ HPが へったら おうちで ねよう", forest: "もりの おくに いやしの いずみが あるよ", cave: "どうくつの おくに キングプルンが いる……" }[this.mapId];
     if (hint && !f["visit_" + this.mapId]) { f["visit_" + this.mapId] = true; setTimeout(() => { if(G.scene===this&&!UI.busy)UI.toast(hint, "good"); }, 700); }
   }
-  exit() { this.festivalButton?.remove(); this.weatherButton?.remove(); if (typeof TownFolk !== "undefined") TownFolk.unmount(); UI.showHud(false); }
+  exit() { this.festivalButton?.remove(); this.weatherButton?.remove(); if (typeof TownFolk !== "undefined") TownFolk.unmount(); if (typeof Fishing !== "undefined") Fishing.hideButton(); UI.showHud(false); }
   saveWorld() {
     const L = this.party[0];
     Save.d.world = { map: this.mapId, x: L.tx, y: L.ty, dir: L.dir };
@@ -352,6 +352,7 @@ class WorldScene {
     UI.updateHud();
     Seasonal.refresh(this);
     Weather.refresh(this);
+    if (typeof Fishing !== "undefined") Fishing.refreshButton(this); // ③ 水べで「つる」
   }
   decideStep(carry) {
     const L = this.party[0];

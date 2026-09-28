@@ -48,8 +48,9 @@ const TownFolk = {
   forced: null, // PokaDebug.folkOffer: つぎに その人と 話した とき かならず もちかける
   st() { return Save.d.folk; },
   today() { return U.today(); },
-  // もって いる もの（さかな・ほねは ③④ で 足す）
-  have() { return { bag: Save.d.bag || {}, fish: {}, bone: {} }; },
+  // もって いる もの（さかなは ③ の いけす Save.d.fish.keep。ほねは ④ で 足す）
+  have() { return { bag: Save.d.bag || {}, fish: (Save.d.fish || {}).keep || {}, bone: {} }; },
+  fishName(id) { const f = typeof Fishing !== "undefined" && Fishing.fish(id); return f ? f.name : id; },
   canGive(give, have = this.have()) {
     if (give.bag) return (have.bag[give.bag] || 0) >= (give.n || 1);
     if (give.fish) return (have.fish[give.fish] || 0) >= (give.n || 1);
@@ -184,8 +185,9 @@ const TownFolk = {
   async effects(moved, who, before) {
     for (const m of moved) {
       const s = m.step, ev = m.ev;
-      if (s.do === "give" && m.stepDone && !this.data().items[s.item]) Save.d.bag[s.item] = Math.max(0, (Save.d.bag[s.item] || 0) - s.n);
-      if (s.do === "give" && m.stepDone) UI.toast(`${this.itemName(s.item)}を わたした！`);
+      if (s.do === "give" && m.stepDone && s.fish) { const k = Save.d.fish.keep; k[s.fish] = Math.max(0, (k[s.fish] || 0) - s.n); } // いけすから
+      else if (s.do === "give" && m.stepDone && !this.data().items[s.item]) Save.d.bag[s.item] = Math.max(0, (Save.d.bag[s.item] || 0) - s.n);
+      if (s.do === "give" && m.stepDone) UI.toast(`${s.fish ? this.fishName(s.fish) : this.itemName(s.item)}を わたした！`);
       if (s.do === "talk" && s.say) {
         const kid = this.teller(), text = `${this.short(s.to)}さん！ ${s.say}！`;
         if (this.last) this.last.relay = text;
@@ -260,7 +262,7 @@ const TownFolk = {
   hint(r) {
     const ev = this.event(r.id), s = this.stepOf(r); if (!ev || !s) return "";
     if (r.step === 0 && !r.n) return ev.lines.remind;
-    if (s.do === "give") return `${this.short(s.to)}に ${this.itemName(s.item)}を わたそう`;
+    if (s.do === "give") return `${this.short(s.to)}に ${s.fish ? this.fishName(s.fish) : this.itemName(s.item)}を わたそう`;
     if (s.do === "talk") return s.say ? `${this.short(s.to)}に でんごん:『${s.say.replace(/^.*?『|』.*$/g, "")}』` : `${this.short(s.to)}に はなしかけよう`;
     if (s.do === "trade") { const link = s.chain[r.n]; return link ? `${this.short(link[0])}に ${this.itemName(r.carry)}を わたそう` : ev.lines.remind; }
     return ev.lines.remind;
@@ -322,6 +324,7 @@ const TownFolk = {
     this.answer(off, ok);
     if (ok) {
       if (bt.give.bag) Save.d.bag[bt.give.bag] = Math.max(0, (Save.d.bag[bt.give.bag] || 0) - (bt.give.n || 1));
+      if (bt.give.fish) { const k = Save.d.fish.keep; k[bt.give.fish] = Math.max(0, (k[bt.give.fish] || 0) - (bt.give.n || 1)); } // いけすから
       const loot = this.lootOf(bt.get), msg = loot ? Loot.give(loot) : "";
       Sound.se("coin"); UI.toast("こうかん した！", "good");
       if (msg) await UI.say([{ text: msg }]);
@@ -332,8 +335,8 @@ const TownFolk = {
   },
   // もらう もの → Loot.give の 形（さかな・ほねの こうかんは ③④ で 足す。それまでは needs で 出ない）
   lootOf(o) { return o.bag ? { bag: o.bag, n: o.n || 1 } : o.furn ? { furn: o.furn } : o.wear ? { wear: o.wear } : null; },
-  thingArt(o) { return o.bag ? Art.iconSvg("bag", o.bag) : o.wear ? Art.iconSvg("wear", o.wear) : o.furn ? Art.iconSvg("furn", o.furn) : ""; },
-  thingName(o) { return o.bag ? BAG_INDEX[o.bag].name : o.wear ? ITEM_INDEX[o.wear].name : o.furn ? FURN_INDEX[o.furn].name : ""; },
+  thingArt(o) { const f = o.fish && typeof Fishing !== "undefined" && Fishing.fish(o.fish); return o.bag ? Art.iconSvg("bag", o.bag) : o.wear ? Art.iconSvg("wear", o.wear) : o.furn ? Art.iconSvg("furn", o.furn) : f ? Fishing.svg(f, "t" + f.id) : ""; },
+  thingName(o) { return o.bag ? BAG_INDEX[o.bag].name : o.wear ? ITEM_INDEX[o.wear].name : o.furn ? FURN_INDEX[o.furn].name : o.fish ? this.fishName(o.fish) : ""; },
   tradeCard(bt) {
     const cell = (o) => `<div><div class="folk-it">${this.thingArt(o)}<i>×${o.n || 1}</i></div><div class="folk-lbl">${this.thingName(o)}</div></div>`;
     return U.el("div", { class: "folk-trade", html: `${cell(bt.give)}<div class="folk-arrow">→</div>${cell(bt.get)}` });

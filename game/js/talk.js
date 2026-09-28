@@ -108,8 +108,10 @@ const Talk = {
       const msg = Loot.give(t.gift);
       await UI.say([{ name: n.name, face, text: msg }]);
     }
+    // ③ タウンの いけの ペンが つりざおを くれる（もらった ときは ふつうの セリフを 出さない）
+    const rod = typeof Fishing !== "undefined" && await Fishing.talked(n, who);
     // 2. おねがいを すすめる（でんごん・わたす・わらしべ・おわり）
-    const moved = folk ? await folk.talked(n, scene, who) : false;
+    const moved = (folk ? await folk.talked(n, scene, who) : false) || rod;
     if (!first && !moved) {
       // 3. ふつうの セリフ: 3わりは あそびかたの ヒント（TALKS）、7わりは 町の人の セリフ（TOWNSFOLK_DATA。時間・天気・季節・おまつり・ボスの あと で えらぶ）
       let lines, line = null;

@@ -90,7 +90,7 @@ fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
 ## 9. PR の 分けかた
 
 1. ✅ **魚の データ・絵・ずかん**（済み: Claude Code。下の「実装メモ」）: `js/fishing-data.js`・`js/fish-art.js`（index.html と sw.js の 両方）、ずかんの「さかな」タブ、`fishGive` で 見られる。
-2. **釣りざおと 釣りの 画面**: `Save.fish`・ペンから もらう・「つる」ボタン・`FishingScene`・PokaDebug・スモーク。
+2. ✅ **釣りざおと 釣りの 画面**（済み: Claude Code。下の「実装メモ」）: `Save.fish`・ペンから もらう・「つる」ボタン・`FishingScene`・PokaDebug・スモーク。
 3. **いけす・うる・つなぎ**: いけすの 上限・うる・りっぱな つりざお（みなとの マルシェ）・② との つなぎ。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
@@ -104,6 +104,16 @@ fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
 - しぼりこみの ボタンは 44px に して、375 はばでも 6つ ならぶ ように grid に した（見本は 36px・よこ スクロール）。
 - **② との きまり**: `TownFolk.features().fishing` は `FISHING_DATA` が あって **つりざおを もって いる（`Save.d.fish.rod > 0`）とき**だけ true（1番では まだ さおが もらえないので、アユの おねがいや 釣りの セリフは 出ない）。2番で ペンから さおを もらうと 出る ように なるので、**2番で つれた ときの `TownFolk.signal({ do: "catch", fish })` と、`TownFolk.have().fish` を `Save.d.fish.keep` に する ところまで 入れる**（アユを わたす おねがいが すすむ ように）。いけすから へらす・物々交換の さかなは 3番。
 - テストの 入口: `PokaDebug.fishGive(id, n)`（大きさは `Fishing.size`。ずかんの きろくと `keep` を かえす）。`rod(n)`・`fishing()`・`fishState()`・`fishInput()`・`fishSkip()` は 2番。
+- 2番: 見本 `FishingRef` の `Game`・`SCENE`・`tint`・`heroSize`・`draw` を `Fishing` に そのまま 入れた（文字まで おなじ）。`FishingScene` は `js/fishing.js` の さいごで `SCENES.fishing` に 登録。
+- つりざお: `Talk.run` の プレゼントの あと・おねがいの まえに `Fishing.talked(n, who)`（`rods[0].get.npc` の ペン。さおが ない ときだけ `get.talk` を 言って `rod = 1`）。もらった 回は ふつうの セリフ・もちかけを 出さない。メニューの「もちもの」の 上に「だいじな もの」（`.key-item`）。さおの 絵は `Fishing.rodSvg()`（デザインに ないので 作った）。
+- 「つる」ボタン: `WorldScene.update` の さいごで `Fishing.refreshButton(this)`（`spotAt`: `spots` の マップ・さおが ある・先頭の 子が 動いて いない・向いた マスが `'~'`）。右下（しゃしんの ボタンと おなじ ところ。しゃしんは シティだけ なので かさならない）。`exit` で `hideButton()`。おすと `Game.goto("fishing", { place, name, back })`。
+- 釣りの 画面: canvas は `Fishing.draw`、DOM は `.fish-ui`（`.fish-top`・`.fish-talk`・`.fish-ctrl`）。先頭の 子が いちばん 右で さおを もつ（`heroes = order を ぎゃくに`）。ボタンは `pointerdown` で tap／まく は おして いる あいだ hold（`pointerup`・`cancel`・`leave` で はなす）。キーは ok＝おす・cancel＝やめる。
+- 3人の かおは `Fishing.FACES`（EMO の normal・surprise・excited・love）と あかい ところの `DANGER_FACES`（わんこ surprise・がちゃん cry・ごじ shout）。これだけを `Chara.preload` する。
+- 魚の かげ: 見本は `Image` の 大きさ（Chromium だと ぜんぶ 300 はば）に たよって いて どの 魚も おなじ 大きさ だった。ゲームでは viewBox の 1.2 ばいで `SvgCache`「`fishshadow:<kind>`」に して、`draw` には `px: G.px / 2` を わたす（S〜XL で 大きさが かわる）。
+- つれた: `Fishing.card(f, cm, first)`（見本 ⑤。いけすへ／にがす。✕ で とじたら いけすへ。1かい だけ きまる）→ `Fishing.record(id, cm, { keep })` → `TownFolk.progress({ do: "catch", fish })`。にげたら 1.3びょう ことばを 出して また なげられる（なにも へらない）。
+- ② との つなぎ（さおが もらえると アユの おねがい・アジ／サバの 物々交換が 出るので 2番で 入れた）: `TownFolk.have().fish` は `Save.d.fish.keep`、おねがいで わたす・物々交換の さかなは いけすから へらす。名前は `TownFolk.fishName(id)`、交換カードの 絵は `Fishing.svg`。
+- 3番で のこって いる こと: いけすの 上限（30ぴき）と「いけすが いっぱい」、カードの「うる」、みなとの マルシェの りっぱな つりざお。
+- テストの 入口（2番）: `rod(n)`・`fishing(place, fishId)`・`fishState()`（`phase`・`tension`・`prog`・`fish`・`place`・`busy`・`msg`）・`fishInput("tap"|"hold"|"release")`・`fishSkip()`・`fishShore(map)`（歩いて 行ける 水べと 向き）。スモークでは 釣りの ボタンを `force` で おす（「つる！」は ぷるぷる うごき、その あいだの スクリーンショットの あとは Playwright が もどした アニメーションが のこる）。その まえに カードの まく（`.modal-wrap`）が きえるのを まつ。
 
 ## 10. やらないこと
 

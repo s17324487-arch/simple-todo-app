@@ -323,6 +323,27 @@ const PokaDebug = {
     for (let i = 0; i < n; i++) Fishing.record(id, Fishing.size(f));
     return { ...Save.d.fish.dex[id], keep: Save.d.fish.keep[id] };
   },
+  // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
+  rod(n = 1) { Save.d.fish.rod = n; Save.mark(); return n; },
+  // 釣りの 画面を はじめる（fishId を わたすと その 魚が かかる）。もどり先は いまの 町の 場所
+  fishing(place = "pond", fishId) {
+    const sc = G.sceneName === "world" ? G.scene : null, L = sc && sc.party[0];
+    const back = L ? { map: sc.mapId, x: L.tx, y: L.ty, dir: L.dir } : { ...Save.d.world };
+    Game.trans = null; Game.goto("fishing", { place, fish: fishId || null, back }, "none");
+    return true;
+  },
+  fishState() { if (G.sceneName !== "fishing") return null; const s = G.scene, g = s.game; return { phase: g.phase, tension: g.tension, prog: g.prog, fish: s.fish.id, place: s.place, busy: !!s.busy, msg: s.msg }; },
+  // "tap"（なげる・つる！）／"hold"（まく）／"release"（はなす）
+  fishInput(kind) { if (G.sceneName !== "fishing") return false; const s = G.scene; if (kind === "tap") s.tapQ = true; else if (kind === "hold") s.hold = true; else if (kind === "release") s.hold = false; return true; },
+  // まつ を とばして すぐ ぐいっ！
+  fishSkip() { if (G.sceneName !== "fishing") return false; const g = G.scene.game; if (g.phase !== "wait") return false; g.nibbles = 0; g.t = g.waitFor + 0.01; return true; },
+  // 釣り場の 水べ（歩いて 行ける マスと、水の ほうの 向き）
+  fishShore(map = "town") {
+    const m = Maps.get(map), d = MAP_DEFS[map], D = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+    const npc = (x, y) => (d.npcs || []).some((n) => Math.abs(n.x - x) + Math.abs(n.y - y) < 2);
+    for (const [x, y] of TownFolk.reach(map).tiles) for (const [dir, [dx, dy]] of Object.entries(D)) if ((d.rows[y + dy] || "")[x + dx] === "~" && !m.warpAt(x, y) && !m.doorAt(x, y) && !npc(x, y)) return { x, y, dir };
+    return null;
+  },
   // つぎに その人と 話した とき、かならず その おねがい（ev-…）／物々交換（bt-…）を もちかける
   folkOffer(id) {
     const ev = TownFolk.event(id), bt = !ev && TOWNSFOLK_DATA.barter.find((b) => b.id === id), npc = ev ? ev.giver : bt && bt.npc;
