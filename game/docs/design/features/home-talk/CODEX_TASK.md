@@ -118,10 +118,20 @@
 
 ## 6. PR の 分けかた
 
-1. **吹き出しの 描きかた**: `HomeBubbleRef` の 移植・`say` の `kind`・PokaDebug・スモークの 直し。セリフは いまの まま。
-2. **会話データと えらびかた**: `js/home-talk-data.js`（index.html と sw.js の 両方に、`home-life.js` より 前）・条件・くせ・かけあい・check.mjs。
+1. ✅ **吹き出しの 描きかた**（済み: Codex の PR #44。`js/home-bubbles.js` の `HomeBubbles`・`HomeLife.converse`）: `HomeBubbleRef` の 移植・`say` の `kind`・PokaDebug・スモークの 直し。セリフは いまの まま。
+2. ✅ **会話データと えらびかた**（済み: Claude Code。下の「実装メモ」）: `js/home-talk-data.js`（index.html と sw.js の 両方に、`home-life.js` より 前）・条件・くせ・かけあい・check.mjs。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
+
+## 実装メモ（2番を Claude Code が 作った ときの きまり）
+
+- 条件の 点数と くじは `U.condScore(when, ctx)` / `U.condPick(list, ctx, recent)`（`js/util.js`）。② 町の人も 同じ 関数を つかう。
+- `HomeLife.talkCtx(sc, c)` が まわりを まとめる。できごとは `sc.life.events`（シーンの 時計 `life.time` で 何秒まで おぼえるか）: return 20秒、win・work・dress・edit 30秒。win・work は 前に 家に いた ときより しょうり（`stats.wins`）・おてつだい（`shops[*].plays`）が ふえて いたら（`HomeLife.seen`・セーブしない）。ぱぱ・ままの state は 3人の state を あわせた もの。
+- 近くの 家具（near）: ゆかの 家具は 足もとの 四角まで、かべの 家具は かべの 足もとの 点までが 70 いない。`bed_simple` / `bed_royal` は `bed`。
+- ひとりごと（`HomeLife.solo`）: 見えて いる ぱぱ・ままが 2わり → わんこの わうーん！（3%）と クンクン（家具の 近くで 15%）→ がちゃんの かみなり（あめで 10%）→ 性格 3わり・まわり 7わり。おなか・デザ・天気は その 条件の ある セリフを 先に さがす。
+- かけあいは `HomeLife.playTalk(sc, talk)` → `converse`（1.3秒おき）。けんかの toy-turn では さけんだ 2人（わんこ・ごじ）が おこった かおに なる。
+- 会話ログ（`homeTalkLog()`）の 行に、データの セリフなら `line`（id）、かけあいなら `talk`（id）が つく。テストは `homeLines(id)` で その 条件を たしかめる。
+- ふだんの かけあいは 3人 そろうとは かぎらない（55本の うち 37本が 3人とも 出る）。「3人とも しゃべる」テストは `homeTalk('fall-down')` で たしかめる。
 
 ## 7. やらないこと
 

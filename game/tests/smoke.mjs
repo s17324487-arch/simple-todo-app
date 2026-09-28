@@ -964,6 +964,29 @@ function checkHomeBubbles(s) {
   for(const b of s.boxes){expect(b.x>=s.area.left&&b.y>=s.area.top&&b.x+b.w<=s.area.right+.01&&b.y+b.h<=s.area.bottom+.01,'吹き出しが表示範囲からはみ出す');expect(Math.hypot(b.tail.x-b.anchor.x,b.tail.y-b.anchor.y)<=30,'しっぽが話者の頭から離れる');}
   for(let i=0;i<s.boxes.length;i++)for(let j=i+1;j<s.boxes.length;j++){const a=s.boxes[i],b=s.boxes[j];expect(!(a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y),'吹き出しが重なる');}
 }
+// ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');
+  const n=await H.dbg('homeLines');expect(n.total>=500&&n.lines>=600&&n.talks>=50,'おうちの 会話が 500 より すくない');
+  let start=(await H.dbg('homeTalkLog')).length;
+  for(let i=0;i<8;i++){await H.dbg('homeLife','solo');await H.wait(60);}
+  const said=(await H.dbg('homeTalkLog')).slice(start).filter(x=>x.line);expect(said.length>=4,'ひとりごとが データから 出ない');
+  for(const x of said){const l=await H.dbg('homeLines',x.line);expect(l&&l.who===x.id,'話し手と セリフが あわない');const w=l.when||{};
+    expect(!w.time||w.time.includes('morning'),'あさ なのに ほかの 時間の セリフ: '+l.text);expect(!w.weather||w.weather.includes('rain'),'あめ なのに ほかの 天気の セリフ: '+l.text);expect(!w.room||w.room.includes('main'),'ほかの へやの セリフ: '+l.text);}
+  // ふだんの かけあい: データから えらび、1.3秒おきに 順番どおり
+  await H.wait(4500);start=(await H.dbg('homeTalkLog')).length;await H.dbg('homeLife','chat');await H.wait(150);
+  const first=(await H.dbg('homeTalkLog')).slice(start).find(x=>x.talk);expect(first,'かけあいが データから 出ない');
+  const talk=await H.dbg('homeLines',first.talk);let got=[];
+  for(let i=0;i<40&&got.length<talk.turns.length;i++){await H.wait(200);checkHomeBubbles(await H.dbg('homeBubbleState'));got=(await H.dbg('homeTalkLog')).slice(start).filter(x=>x.talk===first.talk);}
+  expect(got.map(x=>x.id).join()===talk.turns.map(t=>t.who).join(),'かけあいの 順番が ちがう: '+first.talk);
+  // わんこの クンクン → ままに おこられる
+  await H.wait(1500);start=(await H.dbg('homeTalkLog')).length;expect(await H.dbg('homeTalk','sniff-scold'),'かけあい sniff-scold が ない');
+  for(let i=0;i<40;i++){await H.wait(200);if((await H.dbg('homeTalkLog')).slice(start).length>=4)break;}
+  const scold=(await H.dbg('homeTalkLog')).slice(start);expect(scold.some(x=>x.id==='mama'&&/めっ/.test(x.text))&&scold.at(-1).id==='wanko'&&scold.at(-1).kind==='cry','ままに おこられて しょんぼり しない');
+  await H.shot('scold');
+  const after=await H.dbg('saveData');for(const k of ['coins','bag','wardrobe','furn','rooms'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'会話で セーブが 変わる: '+k);
+},{viewport,full:viewport.width===375,timeout:120000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-bubbles-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.wait(4000);const before=await H.dbg('saveData');
   for(const watching of [false,true]){
@@ -994,7 +1017,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(((await H.dbg("family")).bag.onigiri||0)===0,"3人のお世話で食事の数が合わない");
   expect((await H.dbg("state")).coins===money,"お世話や着せ替えでおかねが減った");
   await H.until(()=>PokaDebug.family().parents.every(p=>!p.target),10000);
-  await H.houseButton("みまもる");const logStart=(await H.dbg('homeTalkLog')).length;await H.dbg('homeLife','chat');
+  // 3人が 出る かけあい（fall-down）を 流して、2つまで・順番に 出る ことを たしかめる（ふだんの かけあいは データから えらぶので 3人 そろうとは かぎらない）
+  await H.houseButton("みまもる");const logStart=(await H.dbg('homeTalkLog')).length;expect(await H.dbg('homeTalk','fall-down'),'かけあい fall-down が ない');
   for(let i=0;i<7;i++){await H.wait(450);const f=await H.dbg('family');expect(f.bubbles.length<=2,'同時に3つ以上の吹き出し');checkHomeBubbles(await H.dbg('homeBubbleState'));}
   const spoken=(await H.dbg('homeTalkLog')).slice(logStart);expect(['wanko','gachan','goji'].every(id=>spoken.some(x=>x.id===id)),'順番に3人の会話が出ない');
   await H.shot('family-bubbles');
@@ -1064,7 +1088,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("weather","rain");await H.dbg("teleport","cave",4,4);await H.idle();
   expect((await H.dbg("weather")).particles===0,"洞窟に雨が降る");
   await H.dbg("house");await H.idle();expect((await H.dbg("weather")).indoors&&await H.page.locator(".world-weather").count()===0,"家に屋外ボタン/天気が残る");
-  await H.dbg("homeLife","weather");expect((await H.dbg("homeLife")).bubbles.some(b=>/あめ|しずく/.test(b.text)),"天気のひとことがない");
+  await H.dbg("homeLife","weather");{const x=(await H.dbg("homeTalkLog")).at(-1),l=x&&x.line?await H.dbg("homeLines",x.line):null;expect(x&&(x.talk==="thunder"||(l&&l.when&&l.when.weather&&l.when.weather.includes("rain"))||/あめ|しずく/.test(x.text)),"天気のひとことがない");}
   await H.dbg("teleport","town",12,16);await H.idle();expect((await H.dbg("weather")).particles===48,"外で雨が復帰しない");
   await H.dbg("calendar",null);const natural=await H.dbg("weather",null);await H.dbg("save");
   await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
