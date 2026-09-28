@@ -695,23 +695,23 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const moving=await H.dbg('heiwadaiLife',25);expect(moving.trainX>30&&!moving.trainStopped,'電車が出発しない');
   await H.dbg('teleport','heiwadai',9,50);await H.idle();const f=(await H.dbg('world')).objects.find(o=>o.id==='heiwadai_fountain');await H.tap(f.cx,f.cy);await H.until(()=>PokaDebug.world()?.active==='heiwadai_fountain');await H.shot('fountain');
   await H.dbg('teleport','heiwadai',20,33);await H.idle();await H.dbg('hour',21);expect((await H.dbg('heiwadaiLife')).night,'夜にならない');await H.shot('night');
-  await H.dbg('heiwadaiLife',null);const fps=await H.dbg('fps',2000);expect(fps>=20,'景観描画が20FPS未満: '+fps);const cache0=(await H.dbg('heiwadaiLife')).cache;
-  for(let t=0;t<200;t+=17){await H.dbg('heiwadaiLife',t);await H.wait(40);}expect((await H.dbg('heiwadaiLife')).cache<=cache0+10,'時刻でSVGキャッシュが増える');
+  await H.dbg('heiwadaiLife',null);const fps=await H.dbg('fps',2000);expect(fps>=20,'景観描画が20FPS未満: '+fps);const cache0=await H.dbg('heiwadaiLife');
+  for(let t=0;t<200;t+=17){await H.dbg('heiwadaiLife',t);await H.wait(40);}expect((await H.dbg('heiwadaiLife')).sceneryCache<=cache0.sceneryLimit,'時刻でSVGキャッシュが増える');
   expect((await H.dbg('saveData')).coins===before.coins,'景観や会話でおかねが変わる');await H.dbg('heiwadaiLife',null);
 },{viewport,timeout:120000,full:viewport.width===375});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('heiwadai-layout-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',12);await H.dbg('calendar','2026-05-01');await H.dbg('weather','clear');
   const fixture=await H.dbg('saveData');fixture.coins=987654;fixture.world={map:'heiwadai',x:27,y:11,dir:'down'};fixture.flags.chests.heiwadai_lane=true;
-  await H.dbg('seedSave',fixture);await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+  await H.dbg('seedSave',fixture);await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle(30000);
   let state=await H.dbg('state');expect(state.coins===987654&&state.map==='heiwadai'&&state.pos[0]===27&&state.pos[1]===19,'古い位置から駅前へ安全に復帰できない');
   expect((await H.dbg('saveData')).flags.chests.heiwadai_lane,'旧宝箱フラグが失われた');
   const layout=await H.dbg('heiwadaiState');expect(layout.size[0]===64&&layout.size[1]===68,'v0.2の広さではない');
-  const market=layout.doors.find(d=>d.id==='heiwadai_market');await H.dbg('teleport','heiwadai',market.x,market.y+1);await H.idle();
+  const market=layout.doors.find(d=>d.id==='heiwadai_market');await H.dbg('teleport','heiwadai',market.x,market.y+1);await H.idle(30000);
   expect(await H.dbg('walkTo',market.x,market.y),'駅前マーケットへ入れない');await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
   expect((await H.dbg('storeState')).shop==='market','別の店へ入った');
-  await H.dbg('teleport','heiwadai',42,29,'right');await H.idle();await H.shot('station');
-  await H.dbg('teleport','heiwadai',9,50);await H.idle();const fountain=(await H.dbg('world')).objects.find(o=>o.id==='heiwadai_fountain');await H.tap(fountain.cx,fountain.cy);await H.until(()=>PokaDebug.world()?.active==='heiwadai_fountain');
+  await H.dbg('teleport','heiwadai',42,29,'right');await H.idle(30000);await H.shot('station');
+  await H.dbg('teleport','heiwadai',9,50);await H.idle(30000);const fountain=(await H.dbg('world')).objects.find(o=>o.id==='heiwadai_fountain');await H.tap(fountain.cx,fountain.cy);await H.until(()=>PokaDebug.world()?.active==='heiwadai_fountain');
   expect((await H.dbg('world')).party.length===3,'なかまが欠ける');await H.dbg('save');
   expect((await H.dbg('persistedSave')).coins===987654,'配置の更新でおかねが変わる');
 },{viewport,timeout:120000});

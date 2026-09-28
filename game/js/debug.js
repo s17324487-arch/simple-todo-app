@@ -132,7 +132,7 @@ const PokaDebug = {
   },
   heiwadaiLife(time){
     if(arguments.length)HeiwadaiLife.clock=time;
-    const sc=G.scene,world=this.world(),r=G.canvas.getBoundingClientRect();return {...HeiwadaiLife.state(),night:DayTint.isNight(),cache:SvgCache.map.size,npcs:sc?.mapId==='heiwadai'?sc.npcs.map(n=>({id:n.id,name:n.name,x:n.w.x,y:n.w.y,sp:n.sp,outfit:n.outfit,cx:r.left+((n.w.x+.5+(n.artOffset?.[0]||0))*TS-sc.cam.x+G.W/2)*G.cssPerUnit,cy:r.top+((n.w.y+.5+(n.artOffset?.[1]||0))*TS-sc.cam.y+G.H/2)*G.cssPerUnit})):[],...world};
+    const sc=G.scene,world=this.world(),r=G.canvas.getBoundingClientRect();return {...HeiwadaiLife.state(),night:DayTint.isNight(),cache:SvgCache.map.size,sceneryCache:[...SvgCache.map.keys()].filter(k=>/^(w:heiwadai_|heiwadai-life:|heiwadai-ground:)/.test(k)).length,sceneryLimit:HeiwadaiArt.entries.length+Object.keys(HEIWADAI_LAYOUT_DATA.patterns).length+3,npcs:sc?.mapId==='heiwadai'?sc.npcs.map(n=>({id:n.id,name:n.name,x:n.w.x,y:n.w.y,sp:n.sp,outfit:n.outfit,cx:r.left+((n.w.x+.5+(n.artOffset?.[0]||0))*TS-sc.cam.x+G.W/2)*G.cssPerUnit,cy:r.top+((n.w.y+.5+(n.artOffset?.[1]||0))*TS-sc.cam.y+G.H/2)*G.cssPerUnit})):[],...world};
   },
   heiwadaiState(){
     const m=Maps.get('heiwadai');return {size:[m.w,m.h],doors:m.doors.map(d=>({id:d.b.id,x:d.x,y:d.y,act:d.b.act})),safe:m.def.safeSpawn,aliases:m.def.idAliases};
