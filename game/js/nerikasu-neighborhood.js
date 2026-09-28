@@ -64,7 +64,7 @@ const NerikasuNeighborhood={
     for(const y of [9,13,23,27,37,41,55,67])for(let x=y<43?49:3;x<60;x+=3)if(Math.abs(x-31)>4&&Math.abs(x-36)>2)prop(palette[(x+y)%palette.length],x,y);
     for(let y=3;y<67;y+=4){prop(y%8===3?'lamp':'treegrate',60,y);prop(palette[y%palette.length],58,y+1);}
     for(const y of [53,65]){d.crosswalks.push({x0:27,x1:28.4,y0:y-1,y1:y+1,bars:'h'});d.crosswalks.push({x0:29,x1:33,y0:y-3.7,y1:y-2.3,bars:'v'});}
-    for(const [i,x,y]of [[0,55,10],[1,55,24],[2,55,38],[3,7,51],[4,17,51],[5,27,51],[6,44,51],[7,53,51],[8,8,63],[9,22,63],[10,42,63],[11,53,63],[12,34,51],[13,34,63]]){d.objects=d.objects.filter(o=>!(o.x===x&&o.y===y));const id='nerikasu_neighbor'+i;d.npcs.push({id,x,y,sp:['rabbit','cat','sheep','mouse'][i%4],name:i>7?'せんせい':'ごきんじょさん',dir:'down',talk:id});TALKS[id]={first:['ネリカスタウンへ ようこそ。こどもたちの こえが きこえるね。'],lines:[['がっこうも ほいくえんも、なかを みていってね。']]};}
+    for(const [i,x,y]of [[0,53,11],[1,53,25],[2,53,39],[3,7,51],[4,17,51],[5,27,51],[6,42,51],[7,53,51],[8,8,63],[9,22,63],[10,42,63],[11,53,63],[12,34,51],[13,34,63]]){d.objects=d.objects.filter(o=>!(o.x===x&&o.y===y));const id='nerikasu_neighbor'+i;d.npcs.push({id,x,y,sp:['rabbit','cat','sheep','mouse'][i%4],name:i>7?'せんせい':'ごきんじょさん',dir:'down',talk:id});TALKS[id]={first:['ネリカスタウンへ ようこそ。こどもたちの こえが きこえるね。'],lines:[['がっこうも ほいくえんも、なかを みていってね。']]};}
     for(const y of [45,49,53,57,61,65])for(const x of [28,33])prop(palette[y%palette.length],x,y);
     for(const n of d.npcs.filter(n=>n.id.startsWith('nerikasu'))){TOWNSFOLK_DATA.crowd[n.id]='town_walker';}
     const rg=TownRoads.grid(d,W,H);for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(rg[y][x]&&!['#','D'].includes(g[y][x]))g[y][x]='=';
