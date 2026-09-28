@@ -656,3 +656,9 @@ TOWN-03で `heiwadai-assets-ab.js` を追加し、107種類・236パターンを
 
 ### 平和台の見本配置
 `heiwadai-layout-data.js` は `tools/build-heiwadai-layout.mjs` で見本JSONと描画コードから生成する。地面のSVGをPath2D・Canvas模様へ変換し、世界座標でチャンクに描く。建物・小物は元SVGの足もと原点を保持し、屋根・旗・電線を最後に重ねる。`heiwadai-town.js` が旧ID・入口・交通・祭り・宝箱を接続する。`PokaDebug.heiwadaiView` は比較画像用に一時カメラと3人の見本位置で描画し、実際の状態は戻す。
+
+## ver2: セーブのバックアップ
+
+`save-backup.js` は設定メニューの前に読み込む。SaveBackup.encode/decode がゲーム識別子・書式1のJSONを扱い、既知の型・部屋・所持数・3人・中断盤面を検証してからコピーへ Save.migrate を適用する。未知の追加項目も保持する。確認後の install は localStorage へ書き込み、同じ文字列を読み戻せたときだけ Save.d を置き換える。失敗時は元の保存文字列を戻す。読み込みはおうち・町・タイトルのみ。KEY と SCHEMA は変更しない。
+
+PokaDebug.backupText / backupDecode はテストで同じ処理を使う入口。`tools/check-save-backup.mjs` が旧セーブ・未知の追加項目・不正入力・容量不足を検査し、smoke はダウンロード→はじめから→キャンセル→ファイル復元をスマホ2サイズで検証する。
