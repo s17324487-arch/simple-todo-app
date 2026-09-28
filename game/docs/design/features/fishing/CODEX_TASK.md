@@ -1,0 +1,102 @@
+# ③ 釣り（釣りざお・魚 50種・ずかん）— 作業指示（Codex 向け）
+
+オーナーの 依頼（そのまま）:
+
+> 釣り竿のアイテムを追加し、釣りができるようにしなさい。魚はコレクターアイテムとして、まず50種類実装しなさい。現実の魚を参考にして、デザインや説明も見れるように。
+
+読む順番: `AGENTS.md` → この ファイル → [`FISH_LIST.md`](FISH_LIST.md)（50種の 一覧と 出典）→ `tools/feature-design/fish-art-ref.js`（魚の 絵）→ `tools/feature-design/fishing-ref.js`（釣りの しくみと 画面）。
+
+## 0. この フォルダに ある もの
+
+| ファイル | 中身 | つかいかた |
+| --- | --- | --- |
+| `fishing-data.js` | データ（`const FISHING_DATA = {...}`: 魚 50・釣り場・釣りざお）。**自動生成** | そのまま `game/js/fishing-data.js` に コピー。手で 直さない |
+| `fishing.json` | 上と 同じ 中身 ＋ 場所×季節×時間ごとの つれる 数（`cover`）・マップの 水べの マス数（`spotTiles`） | 確認用 |
+| `FISH_LIST.md` | 50種の 表（場所・季節・時間・天気・めずらしさ・大きさ・ひき・ねだん・説明・まめちしき）と 出典 | 文と バランスの 確認 |
+| `img/fish-sheet-1〜3.png` | 50種の 絵（`fish-art-ref.js` で 描いた もの） | 絵の 正解 |
+| `img/fishing-flow.png` | 画面の 見本 7まい（ゲームの 上に 重ねて 撮影） | 見た目の 正解 |
+| `img/small-phone.png` | 375×667 | 見た目の 正解 |
+| `../../../../tools/feature-design/fish-art-ref.js` | 魚の 絵（`FishArtRef.svg(art, {uid, flip})`・かげ `shadow(kind)`） | `js/fish-art.js` に 移植（ゲームでの 名前は `FishArt`。⑤ も この 名前で つかう） |
+| `../../../../tools/feature-design/fishing-ref.js` | しくみ（`pick`・`size`・`Game`）と 画面（`draw`） | `js/fishing.js` に 移植 |
+| `../../../../tools/feature-design/fishing-ui.css` | ボタン・メーター・つれたカード・ずかんの CSS | `css/style.css` の さいごに 足す |
+| `../../../../tools/feature-design/fish-data.mjs` | 元データ | 直すときは ここを 直して `npm run design:features` |
+
+## 1. 受け入れ条件
+
+- [ ] 「つりざお」（だいじな もの）が 手に 入る: タウンの いけの ペン（ぺんぎん）に 話すと もらえる。みなとの マルシェで「りっぱな つりざお」（1200 コイン・大きい 魚が にげにくい）。
+- [ ] 釣り場（タウン・はらっぱ・もり・ビーチ・みなと）の 水べで「つる」ボタン → 横から 見た 釣りの 画面。**3にんとも 岸に いて**、1人が さおを もち、2人が おうえんする。
+- [ ] なげる → まつ（ちょんちょん）→ ぐいっ！ で タップ → おしつづけて まく（あかい ところで はなす）→ つれた／にげた。にげても なにも なくならない。
+- [ ] 魚 50種（いけ 10・かわ 11・さわ 5・うみべ 12・みなと 12。ほかの 場所でも つれる もの あり）。季節・時間・天気で かわる。どの 時間にも つれる 魚が いる。
+- [ ] つれた ときの カード: 絵・なまえ・大きさ（cm）・めずらしさ・説明・まめちしき。「はじめて！」の しるし。いけすへ／にがす／うる。
+- [ ] さかな ずかん: 50種の 一覧（つった 魚は 絵、まだの 魚は かげ）・場所で しぼれる・くわしい ページ（すむ 場所・季節・時間・大きさ・いちばん 大きい 記録・つった 数・説明・まめちしき）。
+- [ ] 390×844・375×667 で はみ出さない。ボタンは 44px いじょう（まく ボタンは 132px）。
+
+## 2. データの 形（`FISHING_DATA`）
+
+```js
+{ version: 1,
+  fish: [{ id: "ayu", name: "アユ", place: "river", also?: ["stream"], season: [...]|"all", time: [...]|"all", weather?: ["rain"],
+           rarity: 1..5, size: [min, max] /* cm */, power: 1..5, sell: コイン, shadow: "S"|"M"|"L"|"XL"|"thin",
+           desc: "2行まで", fact: "2行まで", art: {...} /* fish-art-ref.js の パラメータ */, flip?: true /* カレイ: 右むき */, unlock?: 30 }],
+  spots: { town: { place: "pond", name }, meadow: {...}, forest: {...}, coast: {...}, harbor: {...} },
+  rods: [{ id: "rod", ... }, { id: "rod_pro", power: 1.6, ... }] }
+```
+
+- 時間の くぎり・季節・天気は ①② と 同じ（`U.hourNow()`・`Seasonal.current().id`・`Weather.kind()`）。
+- 出やすさ: rarity 1:10・2:6・3:3・4:1.2・5:0.35。天気が あう 魚は ×2。りっぱな つりざおは rarity 3 いじょうを ×1.4（`FishingRef.pool`）。
+- `unlock: 30` の シーラカンスは、30しゅ つった あとで 出る。
+
+## 3. セーブ（`Save.fresh()` に 足すだけ。`SCHEMA` は そのまま）
+
+```js
+fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
+// rod: 0 なし / 1 つりざお / 2 りっぱな つりざお
+// dex:  { [id]: { n: つった 数, max: いちばん 大きい cm, first: "2026-9-27" } }
+// keep: { [id]: いけすの 数 }（ぜんぶで 30ぴきまで。④⑤ の 寄贈・② の 物々交換で へる）
+```
+
+## 4. 釣りの 画面（`FishingScene`）
+
+- `SCENES` に `fishing` を 足す（ShopScene と 同じ ように 入る・出る）。町・外の 世界で、先頭の 子が 水（`'~'`）の マスを 向いて いて、`SPOTS` の マップで、さおを もって いる ときだけ「つる」ボタン（44px いじょう）を 出す。出ると もとの 場所に もどる。
+- 画面は `FishingRef.draw(ctx, W, H, st)`（見本の 絵を そのまま）＋ DOM（`fishing-ui.css`）。ボタンは 1つ: なげる → まつ…（おせない）→ つる！（きいろ・ぷるぷる）→ まく（おしつづける）。
+- `FishingRef.Game` の 数字（まつ 2〜5秒・ちょんちょん 1〜3回・タップの まどは 1.1秒・テンション 0.2〜0.8 が いいかんじ・1 いじょうが 0.6秒 つづくと いとが きれる）は 見本の まま。こどもが 遊べる かんたんさを かえない。
+- 3にんの かお: まつ＝normal、ぐいっ！＝surprise（がちゃんは sparkle）、まく＝smile/sparkle/shout、つれた＝smile/sparkle/love。大きさは 3にん おなじ（`FishingRef.heroSize`）で、`Chara.preload` してから 描く（キーを ふやさない）。
+- 音: なげる `tap`、ぐいっ！ `sparkle`、つれた `coin` など いまの `Sound.se` を つかう。
+- 魚の 絵は `SvgCache` の キー `"fish:" + id`（50こ）と かげ `"fishshadow:" + kind`（5こ）だけ。
+
+## 5. ずかん・いけす・うる
+
+- メニューの「ずかん」に「さかな」タブを 足す（いまの まものの ずかんは そのまま）。見た目は `img/fishing-flow.png` の ⑥⑦。
+- いけすが いっぱい（30ぴき）の ときは、カードの「いけすへ」の かわりに「いけすが いっぱい」→ にがす／うる を えらぶ。
+- 「うる」は その場で `sell` コイン（`Save.addCoins`）。
+
+## 6. ほかの 機能との つなぎ
+
+- ② 町の人: つれた とき `TownFolk.signal({ do: "catch", fish: id })`。`FISHING_DATA` が あると ② の `x:fishing` の セリフ・`needs: ["fishing"]` の おねがい・物々交換（アジ・サバ）が 出る。物々交換の「わたす」は `Save.d.fish.keep` から へらす。
+- ⑤ 水族館: 寄贈は `keep` から 1ぴき へらす（⑤ の 作業指示で）。
+
+## 7. テストの 入口（`PokaDebug`）
+
+- `fishing(place = "pond", fishId)` … 釣りの 画面を はじめる（fishId を わたすと その 魚が かかる）。
+- `fishState()` … `{ phase, tension, prog, fish }`。
+- `fishInput(kind)` … `"tap"` / `"hold"` / `"release"`。`fishSkip()` … まつ を とばして ぐいっ！ に する。
+- `fishGive(id, n = 1)` … いけすに 入れる（ずかんにも のる）。`rod(n)` … さおを もたせる。
+
+## 8. テスト
+
+- `tools/check.mjs`: `FISHING_DATA` の 50種・id の 重複なし・値が 表の とおり・場所×季節×時間で 2しゅ いじょう（`build-fishing.mjs` と 同じ）・文の 長さ・`spots` の マップが ある。
+- スモーク「釣り」（390×844・375×667）: `rod(1)` → タウンの いけ → `fishing("pond", "magoi")` → `fishInput("tap")`（なげる）→ `fishSkip()` → `fishInput("tap")` → `hold` で `caught` まで → カードで「いけすへ」→ `Save.d.fish.dex.magoi.n === 1` と `keep.magoi === 1`。はみ出しなし・スクリーンショット。
+
+## 9. PR の 分けかた
+
+1. **魚の データ・絵・ずかん**: `js/fishing-data.js`・`js/fish-art.js`（index.html と sw.js の 両方）、ずかんの「さかな」タブ、`fishGive` で 見られる。
+2. **釣りざおと 釣りの 画面**: `Save.fish`・ペンから もらう・「つる」ボタン・`FishingScene`・PokaDebug・スモーク。
+3. **いけす・うる・つなぎ**: いけすの 上限・うる・りっぱな つりざお（みなとの マルシェ）・② との つなぎ。
+
+それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
+
+## 10. やらないこと
+
+- 魚を 食べる・さばく 表現、つり針が ささる 絵（ほのぼのに する。AGENTS.md の 9）。
+- 失敗で なにかを うしなう しくみ・時間せいげん・課金。
+- `js/fishing-data.js` を 手で 直す。セーブの キーを かえる。

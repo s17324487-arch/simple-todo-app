@@ -1,0 +1,50 @@
+/* ③ 釣りの 画面（css/style.css の さいごに 足す 見本）。いまの 変数（--ink / --paper / --yellow / --pink …）を つかう */
+.fish-scene { position: absolute; inset: 0; z-index: 20; }
+.fish-scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fish-top { position: absolute; left: 10px; right: 10px; top: calc(8px + var(--safe-t)); display: flex; align-items: center; gap: 8px; }
+.fish-top .pill { background: var(--paper); }
+.fish-top .grow { flex: 1; }
+.fish-talk { position: absolute; left: 12px; right: 12px; top: calc(64px + var(--safe-t)); text-align: center; pointer-events: none; }
+.fish-talk span { display: inline-block; background: rgba(255, 253, 246, 0.94); border: 3px solid var(--ink); border-radius: 14px; padding: 5px 12px; font-weight: 800; font-size: 15px; box-shadow: 0 3px 0 var(--ink); }
+.fish-ctrl { position: absolute; left: 0; right: 0; bottom: calc(16px + var(--safe-b)); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.fish-btn { width: 132px; height: 132px; border-radius: 50%; font-size: 22px; font-weight: 900; display: grid; place-items: center; line-height: 1.15; background: var(--paper); }
+.fish-btn small { display: block; font-size: 12px; font-weight: 800; }
+.fish-btn.go { background: var(--yellow); animation: fishPulse 0.35s infinite alternate; }
+.fish-btn.reel { background: #8FD0F0; }
+.fish-btn:disabled { opacity: 0.75; }
+@keyframes fishPulse { to { transform: scale(1.07); } }
+.fish-meter { width: min(320px, calc(100% - 40px)); background: rgba(255, 253, 246, 0.94); border: 3px solid var(--ink); border-radius: 16px; padding: 6px 10px 8px; box-shadow: 0 3px 0 var(--ink); }
+.fish-meter .lbl { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 3px; }
+.fish-gauge { position: relative; height: 16px; border: 2.5px solid var(--ink); border-radius: 9px; overflow: hidden; background: linear-gradient(90deg, #BFE6FF 0 20%, #9BE08E 20% 80%, #FF9C8C 80% 100%); }
+.fish-gauge i { position: absolute; top: -3px; bottom: -3px; width: 6px; margin-left: -3px; background: var(--ink); border-radius: 3px; }
+.fish-prog { height: 12px; margin-top: 6px; border: 2.5px solid var(--ink); border-radius: 8px; overflow: hidden; background: #FFF; }
+.fish-prog i { display: block; height: 100%; background: linear-gradient(90deg, #F2C94C, #F2994A); }
+/* つれた！カード（UI.modal の 中身） */
+.fish-card { text-align: center; }
+.fish-card .art { position: relative; margin: 2px auto 6px; width: 100%; max-width: 300px; aspect-ratio: 2 / 1; display: grid; place-items: center; background: radial-gradient(circle at 50% 60%, #E6F6FF, #BFE3F2); border: 3px solid var(--ink); border-radius: 18px; }
+.fish-card .art svg { width: 92%; height: 88%; }
+.fish-card .badge { position: absolute; left: -6px; top: -10px; background: var(--pink); border: 2.5px solid var(--ink); border-radius: 10px; padding: 1px 8px; font-weight: 900; font-size: 13px; transform: rotate(-6deg); }
+.fish-card .nm { font-size: 22px; font-weight: 900; }
+.fish-card .sz { font-size: 15px; font-weight: 800; color: #9a6a00; }
+.fish-card .star { color: #E0A21E; font-size: 14px; letter-spacing: 1px; }
+.fish-card .desc { font-size: 14px; font-weight: 700; margin: 6px 4px; line-height: 1.5; white-space: pre-line; }
+.fish-card .fact { background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 12px; padding: 6px 10px; font-size: 13px; font-weight: 700; white-space: pre-line; text-align: left; }
+.fish-card .fact b { display: block; font-size: 12px; color: #9a6a00; }
+.fish-card .acts { display: flex; gap: 8px; margin-top: 10px; }
+.fish-card .acts .btn { flex: 1; min-height: 48px; padding: 6px 4px; font-size: 14px; }
+/* さかな ずかん */
+.fish-dex-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.fish-dex-head .cnt { font-weight: 900; font-size: 16px; }
+.fish-dex-tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 8px; }
+.fish-dex-tabs .tab { min-height: 36px; font-size: 12px; padding: 4px 9px; }
+.fish-dex-tabs .tab.on { background: var(--yellow); }
+.fish-dex { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.fish-cell { position: relative; background: #EAF6FB; border: 2.5px solid var(--ink); border-radius: 14px; padding: 4px 4px 3px; text-align: center; box-shadow: 0 3px 0 var(--ink); min-height: 76px; }
+.fish-cell svg { width: 100%; height: 44px; }
+.fish-cell .nm { font-size: 11px; font-weight: 800; line-height: 1.2; }
+.fish-cell .no { position: absolute; left: 5px; top: 2px; font-size: 10px; font-weight: 800; color: #8a7d6a; }
+.fish-cell.unknown { background: #E4E0D8; }
+.fish-cell.unknown svg { filter: brightness(0) opacity(0.28); }
+.fish-cell .new { position: absolute; right: -5px; top: -7px; background: var(--pink); border: 2px solid var(--ink); border-radius: 8px; font-size: 10px; font-weight: 900; padding: 0 4px; }
+.fish-detail .facts { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-size: 13px; font-weight: 700; text-align: left; margin: 8px 2px; }
+.fish-detail .facts span:nth-child(odd) { color: #8a7d6a; font-weight: 800; }
