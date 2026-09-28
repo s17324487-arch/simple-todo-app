@@ -48,12 +48,13 @@ const ParentCare = {
   },
   init(sc) {
     sc.parents=[{id:"papa",x:90,y:350},{id:"mama",x:375,y:345}].map(p=>({...p,tx:p.x,ty:p.y,anim:0,state:"idle",time:0,target:null,queue:[]}));
-    sc.parentTimer=8; sc.parentTurn=0; sc.careTurn=0;
+    sc.parentSpeechTurn=0; sc.parentTimer=8; sc.parentTurn=0; sc.careTurn=0;
   },
-  request(sc,id,all=false) {
+  request(sc,id,all=false,quiet=false) {
     const p=sc.parents.find(p=>p.id===id);
     if(!p)return;
     if(p.target||p.queue.length){if(all)p.queue=Save.d.order.filter(id=>id!==p.target);return;}
+    p.quiet=quiet;
     p.queue=all?[...Save.d.order]:[Save.d.order[sc.careTurn++%3]];
     this.next(sc,p);
   },
@@ -61,33 +62,34 @@ const ParentCare = {
     const id=p.queue.shift(); if(!id){p.target=null;p.state="idle";p.time=3;return;}
     p.target=id;p.state="walk";
     const c=sc.chars.find(c=>c.id===id);
-    c.state="idle";c.t=6;
+    HomeActions.cancel(c);c.state="idle";c.t=6;
     p.tx=U.clamp(c.x+(p.id==="papa"?-38:38),38,ROOM.W-38);p.ty=c.y-4;
   },
   care(sc,p) {
     const id=p.target, c=sc.chars.find(c=>c.id===id), d=Save.d.chars[id], now=Date.now();
     const last=Save.d.parents.lastCare[id]||0;
+    const say=(...args)=>{if(!p.quiet)HomeLife.say(...args);};
     if(now-last>=30000) {
       // ごはんは手持ちの普段の食事だけ。コインの自動使用・限定品の消費はしない。
       const food=["onigiri","bread","sandwich","soup","mild_curry"].find(f=>Save.d.bag[f]>0);
       if(d.hunger<70&&food) {
-        const res=Care.feed(id,food); HomeLife.say(sc,p.id,`${d.name}、ごはん どうぞ♪`);
-        HomeLife.say(sc,id,d.hunger>=90?Care.fullText(id):"ありがとう！ おいしいね♪");
+        const res=Care.feed(id,food); say(sc,p.id,`${d.name}、ごはん どうぞ♪`);
+        say(sc,id,d.hunger>=90?Care.fullText(id):"ありがとう！ おいしいね♪");
         c.food=food;c.state="eat";c.t=1.7;c.emo=res.emo;Sound.se("eat");
       } else {
         Save.care(id,{mood:3,bond:1});sc.react(c,"love","heart");
-        HomeLife.say(sc,p.id,d.hunger<70?"ごはんは あとでね。ぎゅーっ♪":"よしよし、だいすきだよ♪");
-        HomeLife.say(sc,id,d.hunger>=90?Care.fullText(id):"えへへ♪ ありがとう！");
+        say(sc,p.id,d.hunger<70?"ごはんは あとでね。ぎゅーっ♪":"よしよし、だいすきだよ♪");
+        say(sc,id,d.hunger>=90?Care.fullText(id):"えへへ♪ ありがとう！");
       }
       Save.d.parents.lastCare[id]=now;Save.mark();Save.write();sc.updateCare();
-    }else {HomeLife.say(sc,p.id,"いっしょに のんびり しようね♪");sc.fx("heart",c);}
+    }else {say(sc,p.id,"いっしょに のんびり しようね♪");sc.fx("heart",c);}
     p.state="care";p.time=2.5;
   },
   update(sc,dt) {
     if(document.hidden||UI.busy||sc.mode)return;
     if((sc.parentTimer-=dt)<=0){
       const p=sc.parents[sc.parentTurn++%2];
-      if(Save.d.parents.auto){if(sc.life.quarrel){HomeLife.settle(sc,false);HomeLife.say(sc,p.id,"みんなで じゅんばんこに しようね♪");}this.request(sc,p.id);}
+      if(Save.d.parents.auto){if(sc.life.quarrel){HomeLife.settle(sc,false);HomeLife.say(sc,p.id,"みんなで じゅんばんこに しようね♪");}this.request(sc,p.id,false,sc.parentSpeechTurn++%2===1);}
       else if(p.state==="idle"){p.tx=U.rand(55,ROOM.W-55);p.ty=U.rand(ROOM.WALL+80,ROOM.H-50);p.state="walk";}
       sc.parentTimer=U.rand(13,18);
     }

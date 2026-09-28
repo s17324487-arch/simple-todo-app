@@ -239,6 +239,7 @@ class HouseScene {
     this.mode = null;
   }
   react(c, emo = "love", fx = "heart") {
+    HomeActions.cancel(c);
     c.state = "jump"; c.t = 1.2; c.jumpT = 0; c.emo = emo; c.dir = "down";
     this.fx(fx, c);
     Sound.se("jump");
@@ -629,6 +630,7 @@ class HouseScene {
   update(dt) {
     HomeLife.update(this, dt);
     ParentCare.update(this,dt);
+    HomeActions.update(this,dt);
     for (const c of this.chars) this.updateChar(c, dt);
     this.fxs = this.fxs.filter((f) => (f.t += dt) < f.dur);
     if (this.darkTarget != null) this.dark = (this.dark || 0) + (this.darkTarget - (this.dark || 0)) * Math.min(1, dt * 4);
@@ -641,6 +643,7 @@ class HouseScene {
     }
   }
   updateChar(c, dt) {
+    if (document.hidden || UI.busy) return;
     c.anim += dt;
     if (c.jumpT >= 0) { c.jumpT += dt; if (c.jumpT > 0.7) c.jumpT = -1; }
     if (c.hidden) return;
@@ -659,7 +662,7 @@ class HouseScene {
         if (c.t <= 0 && !this.mode) {
           const r = Math.random();
           if (r < 0.58) { c.state = "walk"; c.tx = U.rand(50, ROOM.W - 50); c.ty = U.rand(ROOM.WALL + 90, ROOM.H - 35); }
-          else if (r < 0.72 && Save.d.chars[c.id].mood > 50) this.react(c, "happy", "note");
+          // 大きなしぐさは HomeActions の15秒タイマーに任せる。
           else { c.t = U.rand(1.5, 3.5); c.dir = U.pick(["down", "down", "left", "right"]); }
         }
         break;
@@ -744,11 +747,16 @@ class HouseScene {
     const s = this.actorScale;
     const [pose, dy] = this.pose(c);
     const p = this.toScreen(c.x, c.y);
-    const face = c.state === "sleep" ? "sleep" : c.emo || this.baseFace(c);
+    const motion = HomeActions.visual(c);
+    const face = motion?.face || (c.state === "sleep" ? "sleep" : c.emo || this.baseFace(c));
     ctx.fillStyle = "rgba(31,29,27,0.16)";
     ctx.beginPath(); ctx.ellipse(p.x, p.y, (24 - dy * 0.2) * s, 7 * s, 0, 0, 7); ctx.fill();
     const alpha = this.mode === "edit" ? 0.35 : 1;
-    Chara.draw(ctx, c.id, this.charOpts(c, pose, c.state === "sleep" ? "down" : c.dir, face), p.x, p.y - dy * s, HOUSE_SIZE * s, alpha);
+    if (motion) {
+      ctx.save();ctx.translate(p.x+motion.x*s,p.y+motion.y*s);ctx.rotate(motion.angle);ctx.scale(motion.sx,motion.sy);
+      Chara.draw(ctx,c.id,this.charOpts(c,motion.pose,motion.dir,face),0,0,HOUSE_SIZE*s,alpha*motion.alpha);ctx.restore();
+      HomeActions.props(ctx,c,p,s);
+    } else Chara.draw(ctx, c.id, this.charOpts(c, pose, c.state === "sleep" ? "down" : c.dir, face), p.x, p.y - dy * s, HOUSE_SIZE * s, alpha);
     if (c.state === "eat" && c.food) {
       const k = 1 - Math.max(0, c.t) / 1.7;
       const sz = 30 * s * (1 - k * 0.6);

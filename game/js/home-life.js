@@ -8,9 +8,9 @@ const HomeLife = {
   rare: { wanko: "ゆめで おほしさまを つかまえた！", gachan: "しあわせは 3にんぶんより おおきいね", goji: "ガゥー……おつきさまも かぞくかな？" },
   // time: この シーンで あそんだ 秒（メニュー中などは すすまない）。events: できごと → いつまで 覚えて いるか（time）
   init(sc) {
-    sc.life = { next: 4, bubbles: [], quarrel: false, elapsed: 0, furniture: {}, queue: [], talkWait: 0, log: [],
+    sc.life = { next: 8, bubbles: [], quarrel: false, elapsed: 0, furniture: {}, queue: [], talkWait: 0, log: [],
       time: 0, events: {}, recent: [], recentTalks: [], sniffs: [], aloneT: 0, aloneAt: -999, lastMode: null };
-    this.enterEvents(sc); ParentCare.init(sc);
+    this.enterEvents(sc); ParentCare.init(sc); HomeActions.init(sc);
   },
   say(sc, id, text, rare = false, kind = "say", meta = null) {
     sc.life.bubbles = sc.life.bubbles.filter(b => b.id !== id);
@@ -184,8 +184,9 @@ const HomeLife = {
     const g = sc.chars.find(c => c.id === "gachan"), others = sc.chars.filter(c => c.id !== "gachan" && !c.hidden);
     const far = !!g && !g.hidden && others.length > 0 && others.every(o => Math.hypot(o.x - g.x, o.y - g.y) > v.distPx);
     l.aloneT = far ? l.aloneT + dt : 0;
-    if (l.aloneT > v.sec && !l.queue.length && !l.quarrel && l.time - l.aloneAt > 60) { l.aloneT = 0; l.aloneAt = l.time; this.playTalk(sc, this.talkById(v.talk)); }
+    if (l.aloneT > v.sec && !l.queue.length && !l.quarrel && l.time - l.aloneAt > 120) { l.aloneT = 0; l.aloneAt = l.time; this.playTalk(sc, this.talkById(v.talk)); }
   },
+  nextDelay(watching) { return watching ? U.rand(14, 22) : U.rand(24, 40); },
   update(sc, dt) {
     const l = sc.life;
     this.watchMode(sc);
@@ -199,7 +200,7 @@ const HomeLife = {
     if (!l.queue.length && (l.next -= dt) <= 0) {
       const r = Math.random();
       this.event(sc, r < 0.035 ? "rare" : r < 0.13 ? "quarrel" : r < 0.43 ? "chat" : r < 0.58 ? "dance" : "solo");
-      l.next = sc.watching ? U.rand(7, 11) : U.rand(12, 20);
+      l.next = this.nextDelay(sc.watching);
     }
   },
   toggle(sc) {
