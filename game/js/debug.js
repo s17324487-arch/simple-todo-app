@@ -57,6 +57,7 @@ const PokaDebug = {
   backupDecode(text){return SaveBackup.decode(text);},
   saveData() {return JSON.parse(JSON.stringify(Save.d));},
   persistedSave() { try { return JSON.parse(localStorage.getItem(Save.KEY)); } catch { return null; } },
+  shopDecor(shop) {return {tier:ShopDecor.level(shop),keys:[...SvgCache.map.keys()].filter(k=>k.startsWith('w:building:')||k.startsWith('shop-decor:'))};},
   // この直後に再読み込みする。pagehide の自動保存にも旧JSONを渡し、通常の load/migrate を検証する。
   seedLegacySave(data){if(data?.gameVersion!=='1.0.0'||data.v!==1)throw Error('v1.0.0 fixture required');const raw=JSON.stringify(data);Save.write=()=>localStorage.setItem(Save.KEY,raw);Save.write();return true;},
   seedSave(data) {Save.d=Save.migrate(JSON.parse(JSON.stringify(data)));Save.write();return true;},
@@ -361,6 +362,7 @@ const PokaDebug = {
     out.score = sc.stamp?.score ?? null;
     if (!t) return out;
     out.buttons = t.btns.filter((b) => !b.disabled).map((b) => ({ label: b.label || "", ...css(b.x + b.w / 2, b.y + b.h / 2) }));
+    out.decorTier=ShopDecor.tier(sc.lv);
     if(sc.shopId==='burger')out.order={want:t.want.map(id=>BURGER_FILLINGS.find(f=>f.id===id).name),made:[...t.made]};
     if(sc.shopId==='groom')out.order={stage:t.stage,style:t.style.id,ribbon:RIBBONS.find(r=>r.id===t.ribbon).name+'の リボン',line:t.outline().map(q=>css(q.x,q.y)),trimmed:[...t.trimmed],offLine:t.offLine,zones:t.zones().map((q,i)=>({...css(q.x,q.y),dry:t.dry[i]}))};
     if(sc.shopId==='cake')out.order={step:t.steps[t.step],want:{...t.want},made:{...t.made},labels:{base:CAKE_BASES.find(x=>x.id===t.want.base).name,cream:CAKE_CREAMS.find(x=>x.id===t.want.cream).name,fruit:CAKE_FRUITS.find(x=>x.id===t.want.fruit).name,count:t.want.count+'こ',candles:t.want.candles+'ほん'}};

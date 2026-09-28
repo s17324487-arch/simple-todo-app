@@ -419,6 +419,23 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.burger.plays===1,'バーガー屋の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(before[k])===JSON.stringify(after[k]),'バーガー屋で所持品が変わる');
 },{viewport,full:viewport.width===375,timeout:180000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('shop-level-decor-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('coins',987504);const before=await H.dbg('saveData');
+  const layout=await H.dbg('townLayout','town'),door=layout.doors.find(d=>d.act.shop==='crepe');
+  for(const lv of [1,3,5]){
+    const data=JSON.parse(JSON.stringify(before));data.shops.crepe.lv=lv;await H.dbg('seedSave',data);
+    await H.dbg('teleport','town',door.x,door.y+1);await H.idle(30000);await H.wait(3300);await H.shot('outside-lv'+lv);
+    expect((await H.dbg('shopDecor','crepe')).tier===lv,'外観のレベルが反映されない');
+    await H.dbg('store','crepe','town');await H.idle();await H.wait(3300);await H.shot('store-lv'+lv);
+    await H.dbg('shop','crepe',lv);await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==='work');
+    expect((await H.dbg('mg')).decorTier===lv,'おてつだいの飾りがレベルに対応しない');await H.shot('work-lv'+lv);
+    await H.page.getByRole('button',{name:'おうちへ',exact:true}).click();await H.idle();
+  }
+  const hd=(await H.dbg('townLayout','heiwadai')).doors.find(d=>d.act.shop==='crepe');await H.dbg('teleport','heiwadai',hd.x,hd.y+1);await H.idle(30000);await H.wait(300);await H.shot('heiwadai-lv5');
+  const keys=(await H.dbg('shopDecor','crepe')).keys;expect(keys.some(k=>k.startsWith('shop-decor:5:')),'平和台の原画に飾りを重ねられない');
+  const after=await H.dbg('saveData');for(const k of ['coins','bag','wardrobe','furn','rooms'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'店の飾りで所持品が変わる: '+k);
+},{viewport,full:viewport.width===375,timeout:180000});
+
 for (const shop of ["dentist", "bakery", "florist"]) {
   await scenario(`${shop}（Lv3・正しく操作すれば ◎）`, async (H) => {
     await H.newGameFast();
