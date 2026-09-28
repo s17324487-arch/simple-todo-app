@@ -47,6 +47,8 @@ const PokaDebug = {
       "PokaDebug.coins(1000)                 コインを足す",
       "PokaDebug.level(16)                   3人のレベルを設定して全回復",
       "PokaDebug.unlockAll()                 服・家具・壁紙・床を ぜんぶ持つ",
+      "PokaDebug.itemDex('furn')             家具／服の図鑑の記録（'furn' / 'wear'）",
+      "PokaDebug.itemDexClaim('wear', 10)    10種類ごとの図鑑のごほうびを受け取る",
       "PokaDebug.give('cake', 3)             もちものを足す",
       "PokaDebug.save()                      いますぐセーブ",
       "PokaDebug.walkTo(4, 12)               町・フィールドで (x, y) まで歩く",
@@ -80,6 +82,10 @@ const PokaDebug = {
   dailyVisit(day) {return DailyPlay.visit(day);},
   dailyState() {return {...Save.d.daily,featured:DailyPlay.featured(),shop:SHOPS[DailyPlay.featured()].name};},
   saveData() {return JSON.parse(JSON.stringify(Save.d));},
+  itemDex(kind = "furn") {
+    return { kind, ...ItemDex.progress(kind), entries: ItemDex.entries(kind).map(e => ({ id: e.id, name: e.item.name, category: kind === "furn" ? e.item.kind : e.item.slot, seen: e.seen, owned: e.owned, count: e.count, rare: !!e.item.rare })) };
+  },
+  itemDexClaim(kind, threshold) { return ItemDex.claim(kind, threshold); },
   shopRewards(shop) {return { rows:ShopRewards.rows(shop), levels:[...SHOP_LV_REP], cap:ShopRewards.maxLevel };},
   shopRewardClaim(shop) {return ShopRewards.claim(shop).map(p=>p.id);},
   shopRewardOpen(shop) {ShopRewards.open(shop);},

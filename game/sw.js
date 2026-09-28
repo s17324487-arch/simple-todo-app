@@ -3,6 +3,7 @@
 importScripts("js/version.js");
 const CACHE = "pokapoka-" + GAME_VERSION;
 const FILES = [
+  "./js/item-dex-sources.js", "./js/item-dex.js",
   "./", "./index.html", "./manifest.webmanifest", "./css/style.css",
   "./icons/icon-192.png", "./icons/icon-512.png",
   "./js/version.js", "./js/chara-data.js", "./js/util.js", "./js/data.js", "./js/chara.js", "./js/art.js", "./js/npc-art.js", "./js/tiles.js", "./js/water-art.js", "./js/maps.js",
