@@ -689,3 +689,4 @@ WebKitのオフライン模擬はfile://も遮断するため、ローカルフ�
 
 ### おうちの吹き出し（FEAT-01）
 `HomeBubbles` は `tools/feature-design/home-bubble-ref.js` のCanvas描画と候補配置を移植。`HomeLife` が頭の投影・表示寿命・2つまでの制限・かけあいの待ち行列を管理する。会話ログはシーン内だけ、セーブの形は変えない。PokaDebug.homeSay / homeTalkLog / homeBubbleState で全6種類と通常・みまもりの配置を検証する。
+CIは両ブラウザの全シナリオを4分割し、各シナリオ終了時にブラウザプロセスも閉じて描画資源を解放する。`--list --full --shard=1/4` で対象一覧を検査できる。リトライ・失敗無視は行わない。

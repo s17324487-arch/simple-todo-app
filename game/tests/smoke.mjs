@@ -18,25 +18,28 @@ const FULL = argv.includes("--full");
 const SHOTS = argv.includes("--shots") || FULL;
 const HEADED = argv.includes("--headed");
 const ONLY = (argv.find((a) => a.startsWith("--only=")) || "").slice(7);
+const LIST = argv.includes('--list');
+const shardArg=(argv.find(a=>a.startsWith('--shard='))||'--shard=1/1').slice(8);
+if(!/^\d+\/\d+$/.test(shardArg))throw new Error('--shard は 1/4 の形式で指定してください');
+const [SHARD,SHARDS]=shardArg.split('/').map(Number);
+if(SHARD<1||SHARDS<1||SHARD>SHARDS)throw new Error('--shard の範囲が不正です');
+let eligibleCount=0;
 const ENGINE = (argv.find(a=>a.startsWith("--browser=")) || "--browser=chromium").slice(10);
 if (!["chromium","webkit"].includes(ENGINE)) throw new Error("--browser は chromium または webkit を指定してください");
 const BROWSER_TYPE = ENGINE === "webkit" ? webkit : chromium;
 const EXECUTABLE = process.env[ENGINE === "webkit" ? "WEBKIT_PATH" : "CHROMIUM_PATH"] || BROWSER_TYPE.executablePath();
-if (!existsSync(EXECUTABLE)) {
+if (!LIST && !existsSync(EXECUTABLE)) {
   const msg = `${ENGINE} がありません。game/ で npx playwright install ${ENGINE} を実行してください。`;
   if (argv.includes("--skip-missing")) { console.log("SKIP: " + msg); process.exit(0); }
   throw new Error(msg);
 }
 const SHOT_DIR = resolve(HERE, "screenshots", ...(ENGINE === "webkit" ? ["webkit"] : []));
-mkdirSync(SHOT_DIR, { recursive: true });
+if(!LIST) mkdirSync(SHOT_DIR, { recursive: true });
 // 前回の画像が残っていると まぎらわしいので消す（--shots のときは全部、ふだんは失敗画像 FAIL_*.png だけ）
-for (const f of readdirSync(SHOT_DIR)) if (f.endsWith(".png") && (SHOTS || f.startsWith("FAIL_"))) rmSync(join(SHOT_DIR, f));
+for (const f of LIST ? [] : readdirSync(SHOT_DIR)) if (f.endsWith(".png") && (SHOTS || f.startsWith("FAIL_"))) rmSync(join(SHOT_DIR, f));
 
-const { server, url } = await serve({ port: 0, quiet: true });
-let browser;
-try { browser = await BROWSER_TYPE.launch({ headless: !HEADED, executablePath: EXECUTABLE }); }
-catch(e) { server.close(); throw e; }
-console.log("検証ブラウザ: " + ENGINE);
+const { server, url } = LIST ? {server:{close(){}},url:''} : await serve({ port: 0, quiet: true });
+if(!LIST) console.log('検証ブラウザ: '+ENGINE+' / 分割 '+SHARD+'/'+SHARDS);
 const results = [];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -45,6 +48,11 @@ function expect(cond, msg) { if (!cond) throw new Error(msg); }
 async function scenario(name, fn, { viewport = { width: 390, height: 844 }, timeout = 90000, full = false } = {}) {
   if (full && !FULL) return;
   if (ONLY && !name.includes(ONLY)) return;
+  if(eligibleCount++ % SHARDS !== SHARD-1)return;
+  if(LIST){console.log(name);return;}
+  // SVGを多用するシナリオ間でWebKitの描画プロセスも確実に解放する。
+  // 各シナリオ内の長時間プレイ・画面遷移は従来どおり全部検査する。
+  const browser = await BROWSER_TYPE.launch({ headless: !HEADED, executablePath: EXECUTABLE });
   const context = await browser.newContext({ viewport, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "ja-JP" });
   // ゲームの検証は外部フォントの応答に依存させない（CIのload待ちを安定させる）。
   await context.route(/^https:\/\/fonts\.(?:googleapis|gstatic)\.com\//, route => route.abort());
@@ -52,6 +60,7 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   // SVGの初期描画や負荷のある実行環境でも、操作の待機を早く打ち切らない。
   page.setDefaultTimeout(15000);
   const problems = [];
+  page.on('crash',()=>problems.push('ブラウザの描画プロセスがクラッシュしました'));
   page.on("pageerror", (e) => problems.push("pageerror: " + e.stack));
   page.on("console", (m) => {
     // フォントなど 外部リソースが オフラインで読めないのは無視する
@@ -69,11 +78,12 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
     results.push({ name, ok: false, error: e.message });
     console.log(`  ✗ ${name}\n      ${e.message}`);
     console.log(e.stack);if(problems.length)console.log([...new Set(problems)]);
-    console.log(await H.dbg("state").catch(()=>null));
-    try { await page.screenshot({ path: join(SHOT_DIR, `FAIL_${name}.png`) }); } catch {}
+    console.log(await Promise.race([H.dbg('state').catch(e=>({diagnostic:e.message})),sleep(5000).then(()=>({diagnostic:'状態の応答がありません'}))]));
+    try { await page.screenshot({ path: join(SHOT_DIR, `FAIL_${name}.png`), timeout:5000 }); } catch {}
   } finally {
     clearTimeout(timer);
     await context.close();
+    await browser.close();
   }
 }
 
@@ -263,7 +273,7 @@ function helpers(page, name) {
   return H;
 }
 
-console.log(`ぽかぽかタウン スモークテスト ${FULL ? "（full）" : ""}`);
+if(!LIST) console.log(`ぽかぽかタウン スモークテスト ${FULL ? "（full）" : ""}`);
 
 await scenario("現代的BGM・全曲の音声合成",async H=>{
   await H.newGameFast();await H.page.mouse.click(5,5);
@@ -1379,8 +1389,8 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
   const items=state.prizes.slice(0,3).map((p,i)=>({id:p.id,x:90+i*140,y:450,uid:i+1}));await H.dbg("homeLayout",items);await H.wait(400);await H.shot("rare-room");
 },{viewport,timeout:240000});
 
-await browser.close();
 server.close();
+if(LIST)process.exit(0);
 if (!results.length) { console.error("検証対象がありません。--only の名前を確認してください。"); process.exit(1); }
 const bad = results.filter((r) => !r.ok);
 console.log(`\n${bad.length ? "✗" : "✓"} ${results.length - bad.length}/${results.length} シナリオ成功${SHOTS ? `（スクリーンショット: tests/screenshots/）` : ""}`);
