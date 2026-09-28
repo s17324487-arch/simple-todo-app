@@ -23,6 +23,9 @@ const PokaDebug = {
       "PokaDebug.water('coast', 30, 10)   水の かたまりの しゅるい（川・海・湖）・岸・その マスの 色",
       "PokaDebug.cast('town_walker0')   町の人の 名前・種・見た目（id なしで 全員の ようす）",
       "PokaDebug.house()                     おうちへ",
+      "PokaDebug.discs()                     あつめた ディスク・音楽プレイヤー・いま ながれて いる きょく",
+      "PokaDebug.discDrop('shop', 'crepe')   ディスクを かならず 手に入れる（'shop' / 'chest' と お店・マップ）",
+      "PokaDebug.discLuck(true)              おてつだい・たからばこで ディスクが かならず 出る（false で もとに もどす）",
       "PokaDebug.parentWork('talk')          ぱぱ・ままの おしごと（9〜18じ）の ようす。'alone' / 'talk' で おるすばん、'arrive' / 'leave' で ただいま／いってきます",
       "PokaDebug.furnLive('lamp')            さわれる 家具の ようす（つく・チャンネル・きょく・はと など）と タップする 点",
       "PokaDebug.furnArt('piano', false)     家具の 立体モデル（作りなおしたか・床の 大きさ・絵の 大きさ・うごいて いるか）。id なしで 作りなおした 一覧",
@@ -248,6 +251,18 @@ const PokaDebug = {
       foot: !m || (m.footW === (flip ? dm.d : dm.w) && m.footD === (flip ? dm.w : dm.d)), w: m ? m.w : f.w, h: m ? m.h : f.h,
       kb: (m ? m.full.length : Art.furnSvg(id, { flip }).length) / 1024, loaded: [...SvgCache.map.keys()].some((k) => k.startsWith(key + "@")),
       moving: G.sceneName === "house" && Save.d.room.items.some((it) => it.id === id && G.scene.life.furniture[it.uid] > 0) };
+  },
+  // ART-05: ディスクと 音楽プレイヤー。discDrop("shop", "crepe") / discDrop("chest", "forest") は かならず 出る ときの 手に入れかた
+  discs() {
+    if (typeof MusicDiscs === "undefined") return null;
+    const sc = G.sceneName === "house" ? G.scene : null;
+    return { owned: MusicDiscs.DISCS.filter((d) => MusicDiscs.has(d.id)).map((d) => d.id), total: MusicDiscs.DISCS.length, players: Object.fromEntries(Object.keys(MusicDiscs.PLAYERS).map((id) => [id, Save.d.furn[id] || 0])), playing: sc?.music?.disc || null, song: Sound.cur?.name || null };
+  },
+  discLuck(on = true) { return typeof MusicDiscs === "undefined" ? null : MusicDiscs.luck(on); },
+  discDrop(kind, where) {
+    if (typeof MusicDiscs === "undefined") return null;
+    const always = () => 0;
+    return kind === "shop" ? MusicDiscs.fromShop(where, [3, 3, 3], always) : kind === "chest" ? MusicDiscs.fromChest(where, always) : MusicDiscs.grant(where);
   },
   // ぱぱ・ままの おしごと（ART-04）: いまの ようす。event を わたすと おるすばんの できごとを すぐ おこす（"alone" / "talk"）
   parentWork(event) {

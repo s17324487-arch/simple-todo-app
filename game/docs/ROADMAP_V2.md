@@ -270,7 +270,8 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - `js/furniture-live.js`（`FurnLive`）。16しゅ。うごく ぶぶんは 絵（`opts.live`）から ぬいて canvas に 描く。受け入れ条件: live の 絵と ふつうの 絵の 大きさが おなじ（check）。スモーク「furniture-touch-390 / 375」（タップで かわる・3人が ひとこと）。
 ### [x] ART-04 ぱぱ・ままは 9:00〜18:00 おしごと（家に いない）・3人の おるすばんの ことばと しぐさ ✅
 - `js/parent-work.js`（`ParentWork`）。`ParentCare` の init・update・draw・open・request を 外から つつむ。受け入れ条件: 9〜18じは 家に いない・おせわ しない（check・スモーク「parents-work-390 / 375」）、ことばは ひらがなで 30もじ まで。PokaDebug.hour で 時こくを とばした ときは えんしゅつ なしで すぐ かわる（テストが CI の 時計に 左右されない）。
-### [ ] ART-05 レアの 音楽プレイヤー 3しゅ と ディスク（おてつだい・たんけんで 手に入る・へやで きける）
+### [x] ART-05 レアの 音楽プレイヤー 3しゅ と ディスク（おてつだい・たんけんで 手に入る・へやで きける） ✅
+- `js/music-discs.js`（`MusicDiscs`）。プレイヤーは ふつうの 家具（`FurnModels.register`・`FurnLive.register`）、ディスクは `Save.d.discs`。`ShopScene.results` と `Loot.give`・`WorldScene.openChest` を 外から つつむ（minigames.js・talk.js・scene-world.js は かえない）。受け入れ条件: ディスクの きょくが ぜんぶ ながせる・おみせと たからばこの マップが ある・プレイヤーは レアで ねだん 0（check）。スモーク「music-disc-390 / 375」（ほんとうの おてつだいと たからばこで 手に入る・えらんで きける・とめる・セーブ）。
 
 ---
 

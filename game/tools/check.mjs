@@ -1154,6 +1154,58 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   }
 }
 
+// ---------- 音楽プレイヤーと ディスク（js/music-discs.js。ART-05）----------
+{
+  const md = vm.runInContext(`(()=>{
+    const discs = MusicDiscs.DISCS.map((d) => ({ id: d.id, song: d.song, from: d.from, title: MusicDiscs.title(d), modern: !!(SONGS[d.song] && SONGS[d.song].modern), art: MusicDiscs.art(d) }));
+    const players = Object.keys(MusicDiscs.PLAYERS).map((id) => { const f = FURN_INDEX[id]; return { id, ok: !!f && f.rare === true && f.price === 0 && f.interactive === true && f.kind === "floor", model: FurnModels.has(id), live: [...FurnLive.LIVE].includes(id), text: f ? f.name + " " + f.desc : "" }; });
+    // もらいかた（かりの セーブで ためす）
+    const d0 = Save.d, always = () => 0;
+    let flow = null;
+    try {
+      Save.d = Save.fresh();
+      const first = MusicDiscs.fromShop("crepe", [3, 3, 3], always), low = MusicDiscs.fromShop("bakery", [1, 1, 3], always), boombox = Save.d.furn.player_boombox || 0;
+      for (const s of ["bakery", "florist", "dentist", "cake", "groom", "burger"]) MusicDiscs.fromShop(s, [3, 3, 3], always);
+      const jukebox = Save.d.furn.player_jukebox || 0, march = MusicDiscs.has("disc_turkish"), chest = MusicDiscs.fromChest("cave", always);
+      flow = { first, low, boombox, jukebox, march, chest, gramophone: Save.d.furn.player_gramophone || 0, nacht: MusicDiscs.has("disc_nacht"), again: MusicDiscs.grant("disc_shop_crepe").length, saved: Object.keys(Save.d.discs).length };
+    } finally { Save.d = d0; }
+    // ディスクだけの きょくは 既存の 名曲（作曲者が 1967年 までに なくなった パブリックドメイン）。出典つき
+    const classics = Object.entries(SONGS).filter(([, s]) => s.disc).map(([id, s]) => ({ id, title: s.title, source: s.source || null }));
+    return { discs, players, flow, classics, shops: Object.keys(SHOPS).filter((id) => MG_TASKS[id]), chestMaps: Object.keys(MAP_DEFS).filter((id) => (MAP_DEFS[id].chests || []).length), fresh: JSON.stringify(Save.fresh().discs) };
+  })()`, ctx);
+  const kanji = /[\u4E00-\u9FFF]/;
+  ok(md.discs.length >= 20 && new Set(md.discs.map((d) => d.id)).size === md.discs.length, "ディスクが すくない か id が かさなる");
+  for (const d of md.discs) {
+    ok(d.modern, `ディスク ${d.id}: きょく ${d.song} が SONGS に ない（ながせない）`);
+    ok(d.title && !kanji.test(d.title) && d.title.length <= 12, `ディスク ${d.id}: なまえ「${d.title}」は ひらがなで 12もじ まで`);
+    ok(!d.from.shop || md.shops.includes(d.from.shop), `ディスク ${d.id}: おてつだいの おみせ ${d.from.shop} が ない`);
+    ok(!d.from.map || md.chestMaps.includes(d.from.map), `ディスク ${d.id}: たからばこの ある マップ ${d.from.map} が ない（手に入らない）`);
+    svgOk(d.art, `ディスクの 絵 ${d.id}`);
+  }
+  for (const s of md.shops) ok(md.discs.some((d) => d.from.shop === s), `おてつだいの おみせ ${s} の ディスクが ない`);
+  ok(["starter", "town", "jukebox", "gramophone"].every((k) => md.discs.some((d) => d.from[k])), "はじめ・町・ちくおんき・ジュークボックスの ディスクが そろわない");
+  ok(md.classics.length >= 4, "ディスクだけの 名曲が すくない");
+  for (const c of md.classics) {
+    const died = Number((/[（(]\d{4}-(\d{4})[)）]/.exec(c.source?.composer || "") || [])[1]);
+    ok(c.source && c.source.work && c.source.score && c.source.license, `ディスクの 名曲 ${c.id}: 出典（作品・楽譜・ライセンス）が ない`);
+    ok(died > 0 && died <= 1967, `ディスクの 名曲 ${c.id}: 作曲者が 1967年 までに なくなって いない（日本で 保護期間が おわって いるか わからない）`);
+  }
+  ok(md.players.length === 3, "音楽プレイヤーが 3しゅ ない");
+  for (const p of md.players) {
+    ok(p.ok, `${p.id}: レア・ねだん 0・さわれる 家具に なって いない`);
+    ok(p.model, `${p.id}: 立体モデルが ない`);
+    ok(!kanji.test(p.text), `${p.id}: なまえ・せつめいに 漢字が ある`);
+  }
+  ok(md.players.filter((p) => p.live).length >= 2, "ちくおんき・ジュークボックスの うごく 絵（live）が ない");
+  const f = md.flow;
+  ok(f.first.some((t) => /ディスク「/.test(t)) && f.first.some((t) => /ラジカセ/.test(t)) && f.boombox === 1, "はじめての ディスクで ラジカセが もらえない " + JSON.stringify(f.first));
+  ok(f.low.length === 0, "○ が すくない おてつだいでも ディスクが 出る");
+  ok(f.jukebox === 1 && f.march, "ディスク 8まいで ジュークボックスと「トルコ こうしんきょく」が もらえない");
+  ok(f.chest.some((t) => /どうくつの しずく/.test(t)) && f.gramophone === 1 && f.nacht, "たからばこで その ばしょの ディスクと ちくおんき（アイネ クライネ つき）が 出ない " + JSON.stringify(f.chest));
+  ok(f.again === 0 && f.saved === 11, "おなじ ディスクを 2かい もらえる か セーブの かずが ちがう " + f.saved);
+  ok(md.fresh === "{}", "Save.fresh() に discs が ない");
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

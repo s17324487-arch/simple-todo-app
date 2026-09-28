@@ -427,6 +427,11 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
   - `sc.work.phase`: home → leaving（ドアへ あるいて きえる・「いってきます」）→ away（おるすばん）→ arriving（ドアから 入る・「ただいま」「おかえり」・3人の ごきげん と なかよし +）→ home。`PokaDebug.hour` で 時こくを とばした ときは `snap`（えんしゅつ なし）。
   - おるすばん: `ALONE`（1人ずつ・せいかく）・`TALKS`（かけあい）・`timely`（12じ・15じ・17じはん）。しぐさは `sc.react` / `sc.fx`、うごきは ドア・まど・3人で あつまる。テストで とめて いる 子（`c.t > 100`）は うごかさない。
   - その日 はじめて おしごと ちゅうに 入ると ひとこと（`flags.workDay`）、18〜21じに はじめて 入ると「ただいま」（`flags.homeDay`）。PokaDebug は `parentWork(event)`。
+- `MusicDiscs`（music-discs.js）… レアの 音楽プレイヤーと ディスク（ART-05）。
+  - プレイヤー 3しゅ（`player_boombox`・`player_gramophone`・`player_jukebox`）は `FURNITURE` に 足す ふつうの 家具（rare・ねだん 0・interactive）。絵は `FurnModels.register`、タップと うごきは `FurnLive.register`（ちくおんきの レコード・ジュークボックスの ひかりは live）。
+  - ディスク（`DISCS`）は きょく（`SONGS` の キー）と 手に入る ところ（`from.shop` / `from.map` / `from.town` / `starter` / `jukebox`）。ディスクだけの きょく（`disc_twinkle`・`disc_canon`・`disc_turkish`・`disc_nacht`）は 自作しない: 作曲者が 1967年 までに なくなった 名曲を Mutopia Project の 楽譜から 写して `SONGS` に 足し、`source`（作曲者・作品・楽譜・ライセンス）を つける（check が 出典と 没年を 見る）。セーブは `Save.d.discs`（id → 日づけ）だけ。
+  - 手に入れる: `ShopScene.prototype.results` を つつみ、○いじょうが 6わりで その おみせの ディスク（「きょうの けっか」に 1ぎょう 足す）。`Loot.give`（chest）と `WorldScene.prototype.openChest` を つつみ、その マップの ディスクを 中みの あとの ページで 出す。はじめての ディスクで ラジカセ、3まいで ちくおんき（たからばこ）、8まいで ジュークボックス。それぞれ 名曲の ディスクが 1まい つく。
+  - きく: プレイヤーを タップ → `open()`（ディスクの ボタン・「とめる」）→ `Sound.bgm(d.song)`。`sc.music` に いま ながして いる ディスク。PokaDebug は `discs()`・`discDrop(kind, where)`・`discLuck(on)`。
 
 ---
 

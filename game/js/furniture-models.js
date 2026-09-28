@@ -758,9 +758,11 @@ const FurnModels = (() => {
 
   return {
     ids: Object.keys(M),
+    extra: [], // ほかの ファイルが 足した モデル（音楽プレイヤー など）
     // ほかの ファイルから 立体モデルを 足す（fn(k) は kit を うけとって SVG の 中身を かえす）
-    register(id, fn) { M[id] = fn; if (!this.ids.includes(id)) this.ids.push(id); HomeDesign.models.forEach((_, key) => { if (key.startsWith(id + ":") || key.startsWith("live:" + id + ":")) HomeDesign.models.delete(key); }); },
+    register(id, fn) { M[id] = fn; if (!this.extra.includes(id)) this.extra.push(id); HomeDesign.models.forEach((_, key) => { if (key.startsWith(id + ":") || key.startsWith("live:" + id + ":")) HomeDesign.models.delete(key); }); },
     SPR,
+    shapes: { rect, rr, ov, arc, arch, star, heart, scallop, moon, close, rot2 },
     has(id) { return !!M[id] || onPlate(FURN_INDEX[id]); },
     build(id, opts = {}) {
       const f = FURN_INDEX[id];
