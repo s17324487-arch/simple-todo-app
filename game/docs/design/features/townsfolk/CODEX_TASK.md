@@ -146,12 +146,21 @@ folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
 
 ## 8. PR の 分けかた
 
-1. **町の人の セリフ**: `js/townsfolk-data.js`（index.html と sw.js の 両方。`talk.js`・`world-expansion.js`・`town-design.js` より あと）と `js/townsfolk.js` の セリフ・ひとこと 部分。`Talk.run` の 3・5。
+1. ✅ **町の人の セリフ**（済み: Claude Code。下の「実装メモ」）: `js/townsfolk-data.js`（index.html と sw.js の 両方。`talk.js`・`world-expansion.js`・`town-design.js` より あと）と `js/townsfolk.js` の セリフ・ひとこと 部分。`Talk.run` の 3・5。
 2. **おねがいの しくみ**: `Save.folk`・offer／answer／signal・`UI.ask` の 顔・ノート・しるし・PokaDebug・スモーク。まずは かいもの・でんごん・とどけもの・なぞなぞ・わらしべ。
 3. **さがす・さわる・つれていく・しゃしん・物々交換**: 小物の 絵・こねこ・しゃしんボタン・交換カード。
    （釣り・化石の おねがいは、③④ が できると 自動で 出る。）
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
+
+## 実装メモ（Claude Code が 作った ときの きまり。つぎの 番号も これに あわせる）
+
+- 1番: `js/townsfolk-data.js`（そのまま コピー）と `js/townsfolk.js`（`TownFolk`）を index.html・sw.js の `daily-play.js` の あと、`debug.js` の まえに 置いた（町の 組み立てが ぜんぶ おわった あと）。
+- 条件の 点数と くじは ① と 共通の `U.condScore` / `U.condPick`、時間の くぎりは `U.dayPart()`（`js/util.js`）。`TownFolkRef.score / pick / period` は 移さない。
+- `TownFolk.context(npcId)` の `bond` は `Save.d.folk.bond`（2番で `Save.fresh()` に 足す。まだ ない あいだは 0 なので なかよしの セリフは 出ない）。
+- `Talk.run`: はじめての 会話と ボスの あとの `t.boss` は いまの まま。それ いがいは 3わり ヒント（`TALKS[npc].lines`）・7わり `TownFolk.line(n)`。会話まどの 名前は `TownFolk.name(n)`（町の なかまは `crowdNames`）。ひとことは 35% で `TownFolk.react(n)`。
+- テストの 入口: `PokaDebug.folkTalk(id)`（その人の となりへ 行って 話しかける。会話は テストの がわで すすめる）・`folkLast()`（さいごの `{ npc, line, react }`）・`folkLine(id)`。2番の `folk()`・`folkOffer()`・`folkSignal()`・`folkSpots()` は まだ。
+- 村長は はじめて 話すと プレゼントを くれる（いまの `TALKS.mayor.gift`）。テストで おかねを くらべる ときは その あとから。
 
 ## 9. やらないこと
 

@@ -586,6 +586,40 @@ if (ok(!!HT, "HOME_TALK_DATA が ない（js/home-talk-data.js）")) {
   ok(talkFlow.unchanged, "会話で おかねが 変わった");
 }
 
+// ② 町の人の セリフ（TOWNSFOLK_DATA）: 町の人 みんなに セリフ・条件の キーと 値・会話まどに 入る 長さ・えらびかた
+const TF = vm.runInContext(`typeof TOWNSFOLK_DATA !== "undefined" ? TOWNSFOLK_DATA : null`, ctx);
+if (ok(!!TF, "TOWNSFOLK_DATA が ない（js/townsfolk-data.js）")) {
+  const npcIds = Object.values(R.MAP_DEFS).flatMap((d) => (d.npcs || []).map((n) => n.id)), npcSet = new Set(npcIds);
+  const who = new Set(TF.lines.map((l) => l.npc)), roles = new Set(Object.values(TF.crowd));
+  for (const id of npcIds) ok(who.has(TF.crowd[id] || id), `町の人 ${id} の セリフが ない（役 ${TF.crowd[id] || "-"}）`);
+  for (const r of roles) ok(!!TF.crowdNames[r], `町の なかま ${r} の 名前が ない`);
+  for (const [id, r] of Object.entries(TF.crowd)) ok(npcSet.has(id), `crowd の ${id}（${r}）が ゲームに いない`);
+  const VAL = { time: ["morning", "day", "evening", "night", "late"], weather: Object.keys(R.Weather.kinds), season: ["spring", "summer", "autumn", "winter"],
+    festival: R.ANNUAL_EVENTS.map((e) => e.id), event: ["boss"], person: npcIds, feature: ["fishing", "fossil", "aquarium", "museum", "range", "heiwadai2"].flatMap((f) => [f, "!" + f]) };
+  const width = (t) => [...t].reduce((a, c) => a + (c.charCodeAt(0) < 0x2000 ? 0.5 : 1), 0);
+  const check = (l, where) => {
+    const rows = l.text.split("\n"); ok(rows.length <= 4 && rows.every((r) => width(r) <= 30), `${where}: 会話まどに 入らない「${l.text}」`);
+    for (const [k, vs] of Object.entries(l.when || {})) { if (k === "bond") { ok(vs.every((v) => Number.isFinite(+v) && +v > 0), `${where}: bond の 値が 不正`); continue; } if (!ok(!!VAL[k], `${where}: 条件の キー ${k} が ない`)) continue; for (const v of vs) ok(VAL[k].includes(v), `${where}: ${k} の 値 ${v} が ゲームに ない`); }
+  };
+  const ids = new Set();
+  for (const l of TF.lines) { ok(!ids.has(l.id), `町の人の セリフの id ${l.id} が かさなる`); ids.add(l.id); ok(npcSet.has(l.npc) || roles.has(l.npc), `${l.id}: ${l.npc} が ゲームに いない`); ok(["line", "bond", "crowd"].includes(l.group), `${l.id}: group が 不正`); check(l, l.id); }
+  for (const r of TF.react) { ok(!ids.has(r.id), `ひとことの id ${r.id} が かさなる`); ids.add(r.id); ok(R.Chara.IDS.includes(r.who), `${r.id}: who が 3人で ない`); check(r, r.id); }
+  ok(TF.lines.length >= 230 && TF.react.length >= 30, `町の人の セリフが すくない（${TF.lines.length} ／ ひとこと ${TF.react.length}）`);
+  const folkFlow = vm.runInContext(`(()=>{const old=Save.d,oldHour=U.hourNow,oldW=Weather.override;Save.d=Save.fresh();U.hourNow=()=>7;Weather.override='clear';
+    const crowdId=Object.keys(TOWNSFOLK_DATA.crowd)[0],role=TOWNSFOLK_DATA.crowd[crowdId];
+    const crowd=[...Array(8)].map(()=>TownFolk.line({id:crowdId,name:'まちの なかま'})).every(l=>l&&l.npc===role),name=TownFolk.name({id:crowdId,name:'まちの なかま'})===TOWNSFOLK_DATA.crowdNames[role];
+    TownFolk.recent={};const pool=TOWNSFOLK_DATA.lines.filter(l=>l.npc==='mayor'&&U.condScore(l.when,TownFolk.context('mayor'))>=0).length,n=Math.min(pool,TownFolk.RECENT);
+    const got=[...Array(60)].map(()=>TownFolk.line({id:'mayor',name:'x'}));const f=TownFolk.features();
+    const okWhen=got.every(l=>l&&(!l.when.time||l.when.time.includes('morning'))&&(!l.when.weather||l.when.weather.includes('clear'))&&!l.when.bond&&(!l.when.feature||l.when.feature.every(v=>v[0]==='!'?!f[v.slice(1)]:f[v])));
+    const fresh=n>=3&&new Set(got.slice(0,n).map(l=>l.id)).size===n;
+    const react=[...Array(20)].map(()=>TownFolk.react({id:'mayor'})).every(r=>r&&(!r.when.person||r.when.person.includes('mayor')));
+    Save.d=old;U.hourNow=oldHour;Weather.override=oldW;return {crowd,name,okWhen,fresh,react};})()`, ctx);
+  ok(folkFlow.crowd && folkFlow.name, "町の なかまが 役の セリフ・名前を つかわない");
+  ok(folkFlow.okWhen, "町の人の セリフが 条件（時間・天気・なかよし・しせつ）に あわない");
+  ok(folkFlow.fresh, "町の人の さいきんの セリフを くりかえした");
+  ok(folkFlow.react, "3人の ひとことが 話した あいての 条件に あわない");
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);
