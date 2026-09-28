@@ -403,3 +403,8 @@ html, body {
 /* おわった ときの ごほうび（UI.toast の 中身） */
 .toast .folk-reward { display: inline-flex; align-items: center; gap: 6px; }
 .toast .folk-reward svg { width: 24px; height: 24px; }
+/* ② しゃしんの ボタン（おまつりの ボタンと おなじ 高さの 右がわ）と、とった ときの 白い ひかり */
+.folk-photo-btn { position: absolute; right: 10px; bottom: calc(62px + var(--safe-b)); min-height: 44px; display: flex; align-items: center; gap: 4px; padding: 4px 12px 4px 6px; font-size: 13px; background: #FFF4C2; }
+.folk-photo-btn svg { width: 30px; height: 30px; }
+.folk-flash { position: absolute; inset: 0; z-index: 35; background: #FFF; pointer-events: none; animation: folk-flash 0.7s ease-out forwards; }
+@keyframes folk-flash { from { opacity: 0.95; } to { opacity: 0; } }

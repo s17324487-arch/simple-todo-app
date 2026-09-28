@@ -41,12 +41,20 @@ const TownFolk = {
 
   // ---- おねがい（2番）。しくみは TownFolkRef の offer / answer / signal / match / targets / rewards と 同じ ----
   MAX_ACTIVE: 3,
-  // いま すすめられる 手順（3番で find・tap・follow・photo を 足す。catch・dig は ③④ が できてから）
-  STEPS: ["buy", "give", "talk", "quiz", "trade"],
+  // すすめられる 手順（catch・dig の おねがいは ③ 釣り・④ 化石 が できるまで needs で 出ない）
+  STEPS: ["buy", "give", "talk", "quiz", "trade", "find", "tap", "follow", "photo", "catch", "dig"],
+  BARTER_CHANCE: 0.1, // おねがいが 出なかった ときに こうかんを もちかける かくりつ
   forced: null, // PokaDebug.folkOffer: つぎに その人と 話した とき かならず もちかける
   st() { return Save.d.folk; },
   today() { return U.today(); },
+  // もって いる もの（さかな・ほねは ③④ で 足す）
   have() { return { bag: Save.d.bag || {}, fish: {}, bone: {} }; },
+  canGive(give, have = this.have()) {
+    if (give.bag) return (have.bag[give.bag] || 0) >= (give.n || 1);
+    if (give.fish) return (have.fish[give.fish] || 0) >= (give.n || 1);
+    if (give.bone) return give.bone === "dup" ? Object.values(have.bone).some((n) => n >= 2) : (have.bone[give.bone] || 0) >= (give.n || 1);
+    return false;
+  },
   needsOk(needs, c) { return (needs || []).every((f) => c.feature[f]); },
   ready(ev) { return ev.steps.every((s) => this.STEPS.includes(s.do)); },
   event(id) { return ((this.data() || {}).events || []).find((e) => e.id === id) || null; },
@@ -60,7 +68,11 @@ const TownFolk = {
   offer(npcId, rand = Math.random) {
     const D = this.data(); if (!D) return null;
     const st = this.st(), today = this.today(), c = this.context(npcId), active = new Set(st.req.map((r) => r.id));
-    if (this.forced && this.forced.npc === npcId) { const ev = this.event(this.forced.id); this.forced = null; if (ev && !active.has(ev.id) && st.req.length < this.MAX_ACTIVE) return { type: "event", ev }; }
+    if (this.forced && this.forced.npc === npcId) {
+      const f = this.forced; this.forced = null;
+      const bt = D.barter.find((b) => b.id === f.id); if (bt) return this.canGive(bt.give) ? { type: "barter", bt } : null;
+      const ev = this.event(f.id); if (ev && !active.has(ev.id) && st.req.length < this.MAX_ACTIVE) return { type: "event", ev };
+    }
     const o = st.offered[npcId];
     if (o && o.day === today) {
       if (o.wait) { const ev = this.event(o.wait); if (ev && !active.has(ev.id) && !this.isDone(ev, today) && st.req.length < this.MAX_ACTIVE) return { type: "event", ev }; }
@@ -72,11 +84,15 @@ const TownFolk = {
       for (const e of evs) { r -= e.chance; if (r < 0) return { type: "event", ev: e }; }
       return { type: "event", ev: evs[evs.length - 1] };
     }
+    const bts = D.barter.filter((b) => b.npc === npcId && !(b.once && st.barter[b.id]) && this.needsOk(b.needs, c) && this.canGive(b.give));
+    if (bts.length && rand() < this.BARTER_CHANCE) return { type: "barter", bt: bts[Math.floor(rand() * bts.length)] };
     return null;
   },
   // こたえを きろくする。ことわった（あとでね）ものは その日の あいだ まって もらう
   answer(off, ok) {
-    const st = this.st(), today = this.today(), ev = off.ev;
+    const st = this.st(), today = this.today();
+    if (off.type === "barter") { if (ok) st.barter[off.bt.id] = (st.barter[off.bt.id] || 0) + 1; st.offered[off.bt.npc] = { day: today }; Save.mark(); return; }
+    const ev = off.ev;
     st.offered[ev.giver] = ok ? { day: today } : { day: today, wait: ev.id };
     if (ok) st.req.push({ id: ev.id, step: 0, n: 0, day: today, carry: this.carryOf(ev) });
     Save.mark();
@@ -179,8 +195,14 @@ const TownFolk = {
         await UI.say([{ name: who.name, face: who.face, text: link[2] }]);
         UI.toast(`${this.itemName(link[1])}を もらった！`);
       }
+      // さがす・さわる・しゃしんが おわったら、つぎに 話す 人を おしえる
+      const next = !m.done && m.stepDone && ev.steps[m.r.step], tell = next && next.to ? ` ${this.short(next.to)}に はなしかけよう` : "";
+      if (s.do === "find" && m.stepDone) { UI.toast(s.item ? `${this.itemName(s.item)}を みつけた！${tell}` : `こねこを みつけた！${next && next.to ? ` ${this.short(next.to)}の ところへ つれて いこう` : ""}`, "good"); Sound.se("sparkle"); }
+      if (s.do === "follow" && m.stepDone) { UI.toast("こねこが ぴょんと もどったよ", "good"); if (this.scene && this.scene.follower) this.scene.follower = null; }
+      if (s.do === "tap" && m.stepDone) UI.toast(`ぜんぶ できた！${tell}`, "good");
+      if (s.do === "photo" && m.stepDone) UI.toast(`しゃしんを とった！${tell}`, "good");
       if (m.done) await this.finish(ev, !(ev.id in before));
-      else if (!(s.do === "talk" && s.say) && s.do !== "trade" && s.do !== "buy" && m.stepDone) UI.toast("おねがいが すすんだ！");
+      else if (!(s.do === "talk" && s.say) && !["trade", "buy", "find", "follow", "tap", "photo"].includes(s.do) && m.stepDone) UI.toast("おねがいが すすんだ！");
     }
     if (moved.length) { Save.write(); this.refresh(); }
   },
@@ -212,6 +234,7 @@ const TownFolk = {
   // Talk.run の 4: もちかける
   async propose(n, who) {
     const off = this.offer(n.id); if (!off) return false;
+    if (off.type === "barter") return this.barter(off, who);
     const ev = off.ev, i = await UI.ask(ev.lines.offer, ["うん、まかせて！", "あとでね"], { face: who.face, name: who.name });
     this.answer(off, i === 0);
     if (i === 0) {
@@ -264,13 +287,144 @@ const TownFolk = {
   },
   // 町・外の 世界の 右上の ボタン（おねがいが ある ときだけ）。
   // mount は WorldScene.enter の 中（G.scene が かわる まえ）で よばれるので、G.scene では なく mount〜unmount の あいだかで きめる
-  mount(sc) { this.scene = sc; this.button = null; this.refresh(); },
-  unmount() { if (this.button) this.button.remove(); this.button = null; this.scene = null; },
+  mount(sc) { this.scene = sc; this.button = null; this.photoButton = null; this.refresh(); },
+  unmount() { for (const b of [this.button, this.photoButton]) if (b) b.remove(); this.button = this.photoButton = null; this.scene = null; },
+  // 1マス 歩く たびに（WorldScene.onArrive）: しゃしんの ボタンを 出す／けす
+  arrived(sc) { if (sc === this.scene) this.refreshPhoto(); },
   refresh() {
     const sc = this.scene; if (!sc || !Save.d.folk) return;
+    if (sc.follower && !this.following()) sc.follower = null; // こねこの おねがいを やめた とき
+    this.refreshPhoto();
     const n = this.st().req.length;
     if (!n) { if (this.button) this.button.remove(); this.button = null; return; }
     if (!this.button) { this.button = UI.btn("", () => { if (!Game.inputLocked) this.openNote(); }, "folk-note-btn"); this.button.setAttribute("aria-label", "おねがい ノート"); UI.root.append(this.button); }
     this.button.innerHTML = `${TownFolkArt.item("note")}<span>おねがい</span><b>${n}</b>`;
+  },
+  // しゃしんの ボタン（右下・44px）。手順が photo で、その 小物の ちかくに いる ときだけ
+  refreshPhoto() {
+    const sc = this.scene; if (!sc || !Save.d.folk || !sc.party) return;
+    const L = sc.party[0], spot = this.photoSpot(sc.mapId, L.tx, L.ty);
+    if (!spot) { if (this.photoButton) this.photoButton.remove(); this.photoButton = null; return; }
+    if (this.photoButton) return;
+    this.photoButton = UI.btn(`${TownFolkArt.item("photo")}<span>しゃしんを とる</span>`, async () => {
+      const p = this.photoSpot(sc.mapId, sc.party[0].tx, sc.party[0].ty);
+      if (!p || sc.busy || Game.inputLocked || UI.busy) return;
+      sc.busy = true; await this.photo(sc, p); sc.busy = false;
+    }, "folk-photo-btn");
+    UI.root.append(this.photoButton);
+  },
+
+  // ---- 物々交換（3番）: わたす → もらう の カードを 出して きく ----
+  async barter(off, who) {
+    const bt = off.bt, i = await UI.ask(bt.text, ["こうかん する", "やめておく"], { face: who.face, name: who.name, extra: this.tradeCard(bt) });
+    const ok = i === 0 && this.canGive(bt.give);
+    this.answer(off, ok);
+    if (ok) {
+      if (bt.give.bag) Save.d.bag[bt.give.bag] = Math.max(0, (Save.d.bag[bt.give.bag] || 0) - (bt.give.n || 1));
+      const loot = this.lootOf(bt.get), msg = loot ? Loot.give(loot) : "";
+      Sound.se("coin"); UI.toast("こうかん した！", "good");
+      if (msg) await UI.say([{ text: msg }]);
+      this.signal({ do: "have" }); this.refresh(); // かう おねがいが すすむ ことも ある
+    }
+    Save.write();
+    return true;
+  },
+  // もらう もの → Loot.give の 形（さかな・ほねの こうかんは ③④ で 足す。それまでは needs で 出ない）
+  lootOf(o) { return o.bag ? { bag: o.bag, n: o.n || 1 } : o.furn ? { furn: o.furn } : o.wear ? { wear: o.wear } : null; },
+  thingArt(o) { return o.bag ? Art.iconSvg("bag", o.bag) : o.wear ? Art.iconSvg("wear", o.wear) : o.furn ? Art.iconSvg("furn", o.furn) : ""; },
+  thingName(o) { return o.bag ? BAG_INDEX[o.bag].name : o.wear ? ITEM_INDEX[o.wear].name : o.furn ? FURN_INDEX[o.furn].name : ""; },
+  tradeCard(bt) {
+    const cell = (o) => `<div><div class="folk-it">${this.thingArt(o)}<i>×${o.n || 1}</i></div><div class="folk-lbl">${this.thingName(o)}</div></div>`;
+    return U.el("div", { class: "folk-trade", html: `${cell(bt.give)}<div class="folk-arrow">→</div>${cell(bt.get)}` });
+  },
+
+  // ---- さがす・さわる ばしょ（3番）。歩けて 入口から 行ける マスから、その日で きまった ものを えらぶ ----
+  rng(seed) { let s = 0; for (const ch of String(seed)) s = (s * 31 + ch.charCodeAt(0)) >>> 0; return () => { s = (s + 0x6d2b79f5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; },
+  shuffle(list, rand) { const a = list.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; },
+  reachCache: {}, spotCache: {},
+  // マップの 入口（ほかの マップからの ワープの 着く ところ・町の人の 足もと）から 歩いて 行ける マス（ワープの マスと 端の 2マスは のぞく）
+  reach(mapId) {
+    if (this.reachCache[mapId]) return this.reachCache[mapId];
+    const m = Maps.get(mapId), d = MAP_DEFS[mapId];
+    const walk = (x, y) => x >= 0 && y >= 0 && x < m.w && y < m.h && !m.isSolid(x, y);
+    const starts = (d.npcs || []).map((p) => [p.x, p.y + 1]);
+    for (const od of Object.values(MAP_DEFS)) for (const w of od.warps || []) if (w.to === mapId) starts.push([w.tx, w.ty]);
+    const warpTiles = new Set((d.warps || []).flatMap((w) => Array.from({ length: w.w * w.h }, (_, i) => `${w.x + (i % w.w)},${w.y + Math.floor(i / w.w)}`)));
+    const seen = new Set(), tiles = [], q = starts.filter(([x, y]) => walk(x, y));
+    for (const [x, y] of q) seen.add(x + "," + y);
+    while (q.length) {
+      const [x, y] = q.shift();
+      if (!warpTiles.has(x + "," + y) && x > 1 && y > 1 && x < m.w - 2 && y < m.h - 2) tiles.push([x, y]);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = `${x + dx},${y + dy}`; if (!seen.has(k) && walk(x + dx, y + dy)) { seen.add(k); q.push([x + dx, y + dy]); } }
+    }
+    return (this.reachCache[mapId] = { walk, tiles });
+  },
+  // 見本 TownFolkRef.spots と 同じ: 木や しげみの となりを えらぶと「かくれている」感じ。たがいに 4マス いじょう はなす
+  pickSpots(mapId, n, seed, near) {
+    const { walk, tiles } = this.reach(mapId);
+    const cand = tiles.filter(([x, y]) => walk(x, y) && (!near || Math.hypot(x - near.x, y - near.y) <= near.r));
+    const hidden = cand.filter(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !walk(x + dx, y + dy)));
+    const pool = this.shuffle(hidden.length >= n * 3 ? hidden : cand, this.rng(mapId + ":" + seed)), out = [];
+    for (const p of pool) { if (out.every((q) => Math.abs(q[0] - p[0]) + Math.abs(q[1] - p[1]) >= 4)) out.push(p); if (out.length >= n) break; }
+    return out;
+  },
+  // いまの マップに 置く きらきら（find）・小物（tap）。[{ req, kind, x, y, i, prop, hit?, target? }]
+  spotsOn(mapId) {
+    if (!this.data() || !Save.d.folk) return [];
+    const out = [];
+    for (const r of this.st().req) {
+      const ev = this.event(r.id), s = this.stepOf(r);
+      if (!ev || !s || s.map !== mapId || (s.do !== "find" && s.do !== "tap")) continue;
+      const key = `${mapId}|${r.id}|${r.day}|${r.step}`;
+      let pts = this.spotCache[key];
+      if (!pts) {
+        const giver = this.npcDef(ev.giver), near = s.do === "tap" && giver && giver.map === mapId ? { x: giver.x, y: giver.y, r: 12 } : null;
+        pts = this.spotCache[key] = this.pickSpots(mapId, s.do === "find" ? s.spots : s.n, ev.id + ":" + r.day, near);
+      }
+      if (s.do === "find") {
+        const hit = Math.floor(this.rng(ev.id + ":" + r.day + ":hit")() * pts.length);
+        pts.forEach(([x, y], i) => { if (!(r.checked || []).includes(i)) out.push({ req: r.id, kind: "find", x, y, i, prop: "sparkle", hit: i === hit }); });
+      } else pts.forEach(([x, y], i) => {
+        const tapped = (r.tapped || []).includes(i);
+        if (!tapped || s.target === "flowerbed") out.push({ req: r.id, kind: "tap", x, y, i, prop: tapped ? "flowerbed_ok" : s.target, target: s.target, tapped });
+      });
+    }
+    return out;
+  },
+  spotAt(mapId, x, y) { return this.spotsOn(mapId).find((p) => p.x === x && p.y === y && !p.tapped) || null; },
+  // きらきら・小物を しらべる（WorldScene.interact から）
+  async investigate(spot, scene) {
+    const r = this.st().req.find((q) => q.id === spot.req), s = r && this.stepOf(r); if (!s) return;
+    const who = { name: "", face: "" };
+    if (spot.kind === "find") {
+      if (!spot.hit) { r.checked = [...(r.checked || []), spot.i]; Save.mark(); Sound.se("tap"); await UI.say([{ who: this.teller(), emo: "normal", text: "ここには ない みたい…" }]); return; }
+      const moved = await this.progress({ do: "find", map: scene.mapId, item: s.item, npc: s.npc }, who);
+      if (s.npc && moved.length && scene.startFollower) scene.startFollower(spot.x, spot.y);
+      return;
+    }
+    r.tapped = [...(r.tapped || []), spot.i];
+    Sound.se(spot.target === "flowerbed" ? "swish" : "pop");
+    const moved = await this.progress({ do: "tap", target: spot.target, map: scene.mapId }, who);
+    if (moved.length && !moved.some((m) => m.stepDone)) UI.toast(`${{ litter: "ごみを ひろった", flowerbed: "おみずを あげた", crop: "しゅうかく した", acorn: "どんぐりを ひろった" }[spot.target] || "できた"}！ ${r.n}/${s.n}`);
+  },
+  // こねこ（find の npc）を つれて いるか
+  following() { return Save.d.folk ? this.st().req.some((r) => r.follow) : false; },
+  // しゃしん: 手順が photo で、その 小物から r マス いないに いる とき
+  photoSpot(mapId, tx, ty) {
+    if (!this.data() || !Save.d.folk) return null;
+    for (const r of this.st().req) {
+      const s = this.stepOf(r); if (!s || s.do !== "photo" || s.map !== mapId) continue;
+      const o = (MAP_DEFS[mapId].objects || []).find((q) => q.id === s.near); if (!o) continue;
+      const dx = Math.max(o.x - tx, 0, tx - (o.x + (o.w || 1) - 1)), dy = Math.max(o.y - ty, 0, ty - (o.y + (o.h || 1) - 1));
+      if (Math.max(dx, dy) <= (s.r || 2)) return { req: r.id, near: s.near };
+    }
+    return null;
+  },
+  async photo(scene, spot) {
+    const flash = U.el("div", { class: "folk-flash" }); UI.root.append(flash); setTimeout(() => flash.remove(), 700);
+    Sound.se("sparkle");
+    for (const w of scene.party) { w.hop = 0.35; w.dir = "down"; } // 3人で ポーズ
+    await U.wait(450);
+    await this.progress({ do: "photo", map: scene.mapId, near: spot.near }, { name: "", face: "" });
   },
 };

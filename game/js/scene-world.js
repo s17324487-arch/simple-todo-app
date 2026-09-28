@@ -69,6 +69,12 @@ class WorldScene {
     this.npcs = (this.map.def.npcs || []).map((n) => ({ ...n, w: new Walker(n.x, n.y, n.dir), timer: U.rand(1, 3) }));
     this.enemies = [];
     this.spawnEnemies();
+    // ② まいごの こねこを つれて いる あいだは、どの マップでも 3人の うしろに いる（道さがしで 敵を みるので spawnEnemies の あと）
+    this.follower = null;
+    if (typeof TownFolk !== "undefined" && TownFolk.following()) {
+      const T = this.party[this.party.length - 1], [bx2, by2] = DIRS[T.dir];
+      this.startFollower(...(this.map.isSolid(T.tx - bx2, T.ty - by2) ? [T.tx, T.ty] : [T.tx - bx2, T.ty - by2]));
+    }
     this.fx = [];
     this.path = null; this.pending = null; this.joy = null; this.grace = p.grace || 0;
     this.cam = { x: 0, y: 0 };
@@ -224,6 +230,9 @@ class WorldScene {
     Save.d.flags.moveHint = true;
     // キャラの見た目で当たり判定（頭をタップしても反応するように）
     const hitBody = (wk,offset=[0,0]) => { const f = wk.feet();f.x+=offset[0]*TS;f.y+=offset[1]*TS; return Math.abs(wx - f.x) < 16 && wy < f.y + 4 && wy > f.y - 44; };
+    // ② おねがいの きらきら・小物 → となりまで 行って しらべる（町の人や なかまの 頭が かさなって いても こちらを 先に）
+    const spot = typeof TownFolk !== "undefined" && TownFolk.spotAt(this.mapId, tx, ty);
+    if (spot) return this.goInteract(tx, ty, { type: "folk", spot });
     const npc = this.npcs.find((n) => hitBody(n.w,n.artOffset));
     if (npc) return this.goInteract(npc.w.tx, npc.w.ty, { type: "npc", npc });
     const en = this.enemies.find((e) => e.boss && Math.abs(wx - e.w.feet().x) < 40 && wy < e.w.feet().y + 4 && wy > e.w.feet().y - 80);
@@ -326,6 +335,9 @@ class WorldScene {
       if (i === 0) carry = o;
       if (this.party[i].walkHold > 0) this.party[i].walkHold -= dt;
     }
+    // こねこは 3人が 歩いた あとを 1マスずつ たどる（おくれたら 小走り）
+    const K = this.follower;
+    if (K) { K.w.update(dt); if (!K.w.moving && K.trail.length) { const [kx, ky] = K.trail.shift(); K.w.moveTo(kx, ky, K.trail.length > 2 ? RUN_DUR : WALK_DUR); } }
     if (carry > 0) this.onArrive();
     if (!L.moving && !this.busy && !Game.inputLocked) this.decideStep(carry > 0 ? carry : 0);
     this.updateNpcs(dt);
@@ -376,7 +388,8 @@ class WorldScene {
     this.stepParty(nx, ny, run ? RUN_DUR : WALK_DUR, carry);
   }
   stepParty(nx, ny, dur, carry = 0) {
-    const P = this.party;
+    const P = this.party, K = this.follower, T = P[P.length - 1];
+    if (K) { const last = K.trail[K.trail.length - 1] || [K.w.tx, K.w.ty]; if (last[0] !== T.tx || last[1] !== T.ty) K.trail.push([T.tx, T.ty]); }
     for (let i = P.length - 1; i >= 1; i--) {
       const lead = P[i - 1];
       if (lead.tx !== P[i].tx || lead.ty !== P[i].ty) P[i].moveTo(lead.tx, lead.ty, dur, carry);
@@ -387,6 +400,7 @@ class WorldScene {
   onArrive() {
     const L = this.party[0];
     this.saveWorld();
+    if (typeof TownFolk !== "undefined") TownFolk.arrived(this);
     const warp = this.map.warpAt(L.tx, L.ty);
     if (warp) {
       this.busy = true;
@@ -431,6 +445,8 @@ class WorldScene {
     const x = L.tx + dx, y = L.ty + dy;
     const npc = this.npcs.find((n) => n.w.tx === x && n.w.ty === y);
     if (npc) return this.interact({ type: "npc", npc });
+    const spot = typeof TownFolk !== "undefined" && TownFolk.spotAt(this.mapId, x, y);
+    if (spot) return this.interact({ type: "folk", spot });
     const sign = this.map.signs.find((s) => s.x === x && s.y === y);
     if (sign) return this.interact({ type: "sign", sign });
     const chest = this.map.chests.find((c) => c.x === x && c.y === y);
@@ -453,6 +469,10 @@ class WorldScene {
       this.busy = true;
       await Talk.run(n, this);
       n.talking = false;
+      this.busy = false;
+    } else if (p.type === "folk") {
+      this.busy = true;
+      await TownFolk.investigate(p.spot, this);
       this.busy = false;
     } else if (p.type === "sign") {
       this.busy = true;
@@ -505,6 +525,13 @@ class WorldScene {
     UI.toast(`${c.name}「${U.pick(lines)}」`);
   }
   addFx(kind, target, dur = 1.1) { this.fx.push({ kind, target, t: 0, dur }); }
+
+  // ② まいごの こねこ（おねがい）。3人の いちばん うしろの 子の となりまで 歩いて、そこから あとを ついて くる
+  startFollower(x, y) {
+    const T = this.party[this.party.length - 1];
+    this.follower = { id: "kitten", sp: "cat", col: "#F6C28B", stripe: true, emo: "happy", size: CHAR_SIZE * 0.72, w: new Walker(x, y, "down"), trail: this.findPath(x, y, T.tx, T.ty, true) || [] };
+    this.follower.w.hop = 0.35;
+  }
 
   // ---- NPC ----
   updateNpcs(dt) {
@@ -632,6 +659,8 @@ class WorldScene {
       const f = n.w.feet();
       list.push({ z: f.y+(n.artOffset?.[1]||0)*TS, draw: () => this.drawNpc(ctx, n, ox, oy) });
     }
+    if (typeof TownFolk !== "undefined") for (const s of TownFolk.spotsOn(this.mapId)) list.push({ z: (s.y + 1) * TS - 3, draw: () => this.drawFolkProp(ctx, s, ox, oy) });
+    if (this.follower) list.push({ z: this.follower.w.feet().y - 0.5, draw: () => this.drawFollower(ctx, ox, oy) });
     for (const e of this.enemies) {
       const f = e.w.feet();
       list.push({ z: f.y + (e.boss ? 20 : 0), draw: () => this.drawEnemy(ctx, e, ox, oy) });
@@ -750,6 +779,24 @@ class WorldScene {
       const mark = TownFolk.markerOf(n.id, this.mapId);
       if (mark) TownFolkArt.marker(ctx, mark, ox + f.x + 12, oy + f.y - 50, G.t);
     }
+  }
+  // ② さがす きらきら・さわる 小物（1マス。足もとが 下の まん中）
+  drawFolkProp(ctx, s, ox, oy) {
+    const px = Math.ceil(TS * G.px), c = SvgCache.get("folk:prop:" + s.prop, () => TownFolkArt.prop(s.prop), px, px);
+    if (!c) return;
+    const bob = s.kind === "find" ? Math.sin(G.t * 3 + s.i * 2) * 1.5 : 0;
+    ctx.drawImage(c, ox + s.x * TS, oy + s.y * TS + bob, TS, TS);
+  }
+  drawFollower(ctx, ox, oy) {
+    const k = this.follower, f = k.w.feet();
+    let hop = 0;
+    if (k.w.hop > 0) { k.w.hop -= 1 / 60; hop = Math.sin((k.w.hop / 0.35) * Math.PI) * 6; }
+    const pose = k.w.moving ? (Math.floor(k.w.anim * 8) % 2 ? "walk_01" : "walk_02") : Math.floor(k.w.anim / 0.6) % 2 ? "idle_02" : "idle_01";
+    const c = this.npcCanvas(k, k.w.dir, pose, false) || this.npcCanvas(k, k.w.dir, "idle_01", false);
+    this.shadow(ctx, ox + f.x, oy + f.y, 9);
+    if (!c) return;
+    const w = k.size, h = (w * VB.h) / VB.w;
+    ctx.drawImage(c, ox + f.x - w * ((FOOT.x - VB.x) / VB.w), oy + f.y - hop - h * ((FOOT.y - VB.y) / VB.h), w, h);
   }
   drawEnemy(ctx, e, ox, oy) {
     const f = e.w.feet();
