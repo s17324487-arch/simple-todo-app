@@ -142,7 +142,7 @@
 - お店のミニゲームを足す → `minigames.js`（`TaskBase` を継承したクラス）＋ `MG_TASKS`・`SHOPS`・`SHOP_OWNERS`・`HOWTO` ＋ `maps.js` の建物 ＋ `Save.fresh().shops` ＋ `PokaDebug.mg()` ＋ スモークテスト
 - マップを変える → `maps.js`。`npm run check` が、ワープ先・宝箱・ドア・人・敵の出現位置に歩いて行けるかまで調べる
 - 町・建物・道を作る／直す → 先に [`game/docs/design/README.md`](game/docs/design/README.md) と `TOWN_GUIDE.md` を読む。見本がある町（平和台）は、見本の絵と配置のとおりに作る（`towns/<町>/CODEX_TASK.md`）
-- 見本がある機能（おうちの会話・町の人・釣り・化石ほり・水族館と博物館 など）→ [`game/docs/design/features/README.md`](game/docs/design/features/README.md) の `<機能>/CODEX_TASK.md` のとおりに作る。`docs/design/features/**/*-data.js` は自動生成なので、手で直さずにそのまま `js/` にコピーする
+- 見本がある機能（おうちの会話・町の人・釣り・化石ほり・水族館と博物館・射撃場）→ [`game/docs/design/features/README.md`](game/docs/design/features/README.md) の `<機能>/CODEX_TASK.md` のとおりに作る。`docs/design/features/**/*-data.js` は自動生成なので、手で直さずにそのまま `js/` にコピーする
 
 ## Code Review Rules
 

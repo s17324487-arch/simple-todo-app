@@ -38,6 +38,13 @@ npm run design:features -- --only=townsfolk
 | `museum-ui.css` | ⑤ 寄贈の 画面・かんせい・展示の 説明の CSS |
 | `build-museum.mjs` | ⑤ を 検査し（魚と 恐竜が 1回ずつ・どこにも 行ける・マスの 文字・町の 場所を ゲームの 地図で）、`museum-data.js`・JSON・`MUSEUM_LIST.md` に する |
 | `museum-mock.mjs` | ⑤ 全体図・スマホの 画面・寄贈の 画面・町に たてた ところを 撮る |
+| `range-data.mjs` | ⑥ じゅう 9しゅ（参考に した 形・長さ・せいのう・せつめい）・まと・コース・せりふ・町に たてる 場所 |
+| `gun-art-ref.js` | ⑥ じゅうの 絵（`GunArtRef`。実物の 長さ・高さの 比・右がわから 見た すがた） |
+| `range-ref.js` | ⑥ しくみ（`Game`・人に にせた じどう あそび `bot`）と 画面（`draw`・まと・主観の じゅう・建物の 外がわ） |
+| `range-ui.css` | ⑥ HUD・うつ／スコープ・おうえん・じゅうを えらぶ・けっかの CSS |
+| `build-range.mjs` | ⑥ を 検査し、じどうで あそんで ★の めやすを きめ、`range-data.js`・JSON・`GUN_LIST.md` に する |
+| `range-mock.mjs` | ⑥ じゅうの 一覧・スマホの 画面を 撮る |
+| `game-vm.mjs` | ⑤⑥ の 検査で ゲームを node に 読みこむ・町に 建物を たてて みる（`probeOutside`） |
 | `build.mjs` | 上を まとめて 動かす（`npm run design:features`） |
 
 文を 直すときは 元データ（`*-lines.mjs` / `*-data.mjs`）を 直して 作りなおす。`docs/design/features/**/**-data.js` を 手で 直さない。

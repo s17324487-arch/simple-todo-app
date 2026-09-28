@@ -189,7 +189,7 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 
 ## M8. 機能の 見本（①〜⑥。デザイン見本に 合わせる）
 
-見本と 作業指示: [`design/features/README.md`](design/features/README.md)。上から 順に 1つずつ PR に する（⑥ は 見本が できたら 足す）。
+見本と 作業指示: [`design/features/README.md`](design/features/README.md)。上から 順に 1つずつ PR に する。
 
 ### [ ] FEAT-01 ① おうちの 吹き出しの 描きかた（話し手の 真上・短い しっぽ・名札の 色・形 6種・2つまで）
 - 受け入れ条件: [`home-talk/CODEX_TASK.md`](design/features/home-talk/CODEX_TASK.md)「PR の 分けかた」1。390×844・375×667 × ふつう／みまもり で `img/before-after.png` の 右と 同じ 見え方。
@@ -231,6 +231,15 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - 受け入れ条件: 同 2。スモーク「水族館と 博物館」が ✓。セーブは `Save.fresh().museum` を 足すだけ。
 
 ### [ ] FEAT-14 ⑤ 展示を しらべる・③④② との つなぎ
+- 受け入れ条件: 同 3。
+
+### [ ] FEAT-15 ⑥ じゅうの 絵・シティの 射撃場・ロビー（やくそく・だれが うつ・じゅうを えらぶ）
+- 受け入れ条件: [`range/CODEX_TASK.md`](design/features/range/CODEX_TASK.md)「PR の 分けかた」1。9しゅの 絵が `img/gun-sheet.png` と 同じ。「ほのぼのを まもる きまり」を まもる。
+
+### [ ] FEAT-16 ⑥ あそぶ 画面（主観・うつ／スコープ・コース 3つ・けっか・コイン）
+- 受け入れ条件: 同 2。スモーク「射撃場」が ✓。セーブは `Save.fresh().range` を 足すだけ。
+
+### [ ] FEAT-17 ⑥ 2人の おうえん・ロック・② との つなぎ
 - 受け入れ条件: 同 3。
 
 ---
