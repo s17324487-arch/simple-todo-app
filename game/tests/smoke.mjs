@@ -1263,6 +1263,21 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   d=await H.dbg('saveData');expect(d.fish.rod===2&&(await H.dbg('state')).coins===coins-1200,'みなとの マルシェで りっぱな つりざおが かえない');
 },{viewport,full:viewport.width===375,timeout:180000});
 
+// 水の 絵: 川（もり）・海（ビーチ）・湖（はらっぱ）を 形で 見わけて 描きわける。水べに 立つと 水の マスが 水の 色・マスの まんなかの 見た目と 水の マスが ぜんぶ そろう・雨の 日も うごく
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('water-'+viewport.width,async H=>{
+  await H.newGameFast();
+  for(const [map,kind] of [['forest','river'],['coast','sea'],['meadow','lake']]){
+    const info=await H.dbg('water',map),b=info.bodies.find(b=>b.kind===kind);
+    expect(info.any&&b&&b.shore,map+' の 水が '+kind+' に ならない／水べに 立てない '+JSON.stringify(info.bodies));
+    await H.dbg('teleport',map,b.shore.x,b.shore.y);await H.until(m=>G.sceneName==='world'&&G.scene.mapId===m&&PokaDebug.idle(),20000,map);await H.wait(600);
+    const w=await H.dbg('water',map,b.shore.wx,b.shore.wy);
+    expect(w.looksWet&&w.px&&w.px[2]>w.px[0]+8,map+': 水の マスが 水の 色に 見えない '+JSON.stringify(w.px));
+    await H.shot(kind);
+  }
+  for(const map of ['town','forest','coast','meadow','cave','harbor']){const w=await H.dbg('water',map);expect(!w.any||w.mismatch===0,map+': マスの まんなかの 見た目と 水の マスが ずれる '+w.mismatch);}
+  await H.dbg('weather','rain');await H.wait(900);await H.shot('rain');
+},{viewport,full:viewport.width===375,timeout:90000});
+
 // ④ かせき ノート: fossilGive で 骨を もつと ノートに のる。まもの／さかな／かせき・そろった！・くわしい ページ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('fossil-note-'+viewport.width,async H=>{
   await H.newGameFast();

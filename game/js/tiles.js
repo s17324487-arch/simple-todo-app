@@ -20,9 +20,10 @@ const Tiles = {
     if (map.def.indoor && typeof Museum !== "undefined" && Museum.floor(g, map, tx, ty, x, y, s)) return; // ⑤ 館の 床
     const type = map.groundAt(tx, ty);
     const H = (k) => U.hash(tx, ty, k);
+    const wetEdge = typeof WaterArt !== "undefined" && WaterArt.on(map); // 岸は WaterArt が 描くので、水の がわに ふちどりを 描かない
     const same = (dx, dy) => {
       const t = map.groundAt(tx + dx, ty + dy);
-      return t === type || (t == null);
+      return t === type || (t == null) || (wetEdge && (t === "water" || t === "bridge"));
     };
     const u = s / 32;
     switch (type) {
@@ -101,6 +102,7 @@ const Tiles = {
         break;
       }
       case "water": {
+        if (typeof WaterArt !== "undefined" && WaterArt.on(map)) { WaterArt.under(g, map, tx, ty, x, y, s); break; } // 水面は WaterArt.chunk が チャンクごとに なめらかに 描く
         if(map.def.renewal){g.fillStyle=map.id==="harbor"?"#87BCCA":"#98C5C7";g.fillRect(x,y,s,s);if(H(9)<.3){g.strokeStyle="#B6D9D8";g.lineWidth=u;g.beginPath();g.moveTo(x+8*u,y+19*u);g.quadraticCurveTo(x+13*u,y+16*u,x+19*u,y+19*u);g.stroke();}break;}
         g.fillStyle = "#A6D883";
         if (map.baseGround === "cave") g.fillStyle = "#6E6259";
@@ -121,11 +123,9 @@ const Tiles = {
         break;
       }
       case "bridge": {
+        if (typeof WaterArt !== "undefined" && WaterArt.on(map)) { WaterArt.under(g, map, tx, ty, x, y, s); break; } // 下の 水と いた（bridgeDeck）は WaterArt.chunk が 描く
         g.fillStyle = "#86CFF2"; g.fillRect(x, y, s, s);
-        g.fillStyle = "#D9A066"; g.fillRect(x, y + 2 * u, s, s - 4 * u);
-        g.strokeStyle = "#B07A45"; g.lineWidth = 1.6 * u;
-        g.beginPath(); for (let k = 0; k <= 4; k++) { g.moveTo(x + k * 8 * u, y + 2 * u); g.lineTo(x + k * 8 * u, y + s - 2 * u); } g.stroke();
-        g.fillStyle = "#8B5A33"; g.fillRect(x, y + 1 * u, s, 3 * u); g.fillRect(x, y + s - 4 * u, s, 3 * u);
+        this.bridgeDeck(g, x, y, s);
         break;
       }
       case "cavewall": {
@@ -140,6 +140,14 @@ const Tiles = {
       default:
         g.fillStyle = SeasonPalette.get().grass; g.fillRect(x, y, s, s);
     }
+  },
+  // はしの いた（よこに わたる いたと 手すり）
+  bridgeDeck(g, x, y, s) {
+    const u = s / 32;
+    g.fillStyle = "#D9A066"; g.fillRect(x, y + 2 * u, s, s - 4 * u);
+    g.strokeStyle = "#B07A45"; g.lineWidth = 1.6 * u;
+    g.beginPath(); for (let k = 0; k <= 4; k++) { g.moveTo(x + k * 8 * u, y + 2 * u); g.lineTo(x + k * 8 * u, y + s - 2 * u); } g.stroke();
+    g.fillStyle = "#8B5A33"; g.fillRect(x, y + 1 * u, s, 3 * u); g.fillRect(x, y + s - 4 * u, s, 3 * u);
   },
   tallBlades(g, x, y, s, dark, light) {
     const palette=SeasonPalette.get();dark=palette.forestDark;light=palette.dark;
@@ -171,6 +179,7 @@ const Tiles = {
       if (tx >= map.w || ty >= map.h) continue;
       this.drawGround(g, map, tx, ty, i * s, j * s, s);
     }
+    if (typeof WaterArt !== "undefined" && WaterArt.on(map)) WaterArt.chunk(g, map, cx, cy, s, N); // 川・海・湖の 水面（マスを またいで なめらかに）
     if(TownRoads.enabled(map.def)) {
       // 毎チャンク同じ世界原点を使う。模様の位相や線の座標をチャンクでリセットしない。
       g.save();g.scale(s/TS,s/TS);g.translate(-cx*N*TS,-cy*N*TS);

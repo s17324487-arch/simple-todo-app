@@ -1019,6 +1019,39 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   ok(rewards.count===32&&rewards.unique===32&&rewards.ledger===32,"お店8種×4段階の非売品が一度ずつ");
 }
 
+// ---------- 水の 絵（川・海・湖。js/water-art.js）----------
+{
+  const water = vm.runInContext(`(()=>{
+    const out = [];
+    for (const id of Object.keys(MAP_DEFS)) {
+      const m = new WorldMap(id), info = WaterArt.info(m);
+      if (!info.any) continue;
+      const P = WaterArt.prep(m); let badPts = 0;
+      for (const s of P.shores) { for (let a = 0; a < s.pts.length; a++) if (!Number.isFinite(s.pts[a])) badPts++; for (let a = 0; a < s.nx.length; a++) if (Math.abs(Math.hypot(s.nx[a], s.ny[a]) - 1) > 1e-3) badPts++; }
+      out.push({ id, kinds: info.bodies.map((b) => b.kind), mismatch: info.mismatch, badPts, shores: info.shores, parts: info.parts, shore: info.bodies.every((b) => b.shore || b.tiles <= 2) });
+    }
+    // 形からの 見わけ（つくった マップで。町の 作りなおしに かかわらない）: まっすぐな 川・まがった 川・池・海・1マスの いずみ
+    const fake = (w, h, wetAt, base = "grass") => ({ w, h, id: "fake", def: {}, baseGround: base, groundAt: (x, y) => (x < 0 || y < 0 || x >= w || y >= h ? null : wetAt(x, y) ? "water" : base) });
+    const kinds = (m) => WaterArt.info(m).bodies.map((b) => b.kind).join();
+    return { out, kinds: {
+      river: kinds(fake(30, 20, (x, y) => y >= 9 && y <= 10)),
+      bend: kinds(fake(24, 24, (x, y) => (y >= 4 && y <= 5 && x <= 12) || (x >= 11 && x <= 12 && y >= 4))),
+      lake: kinds(fake(20, 20, (x, y) => x >= 6 && x <= 12 && y >= 7 && y <= 11)),
+      sea: kinds(fake(30, 20, (x, y) => x >= 18, "sand")),
+      pool: kinds(fake(10, 10, (x, y) => x === 4 && y === 4)),
+      fixed: kinds({ ...fake(30, 20, (x, y) => y >= 9 && y <= 10), def: { waterKind: "lake" } }),
+    } };
+  })()`, ctx);
+  ok(water.out.length > 0, "水の ある マップが ない");
+  for (const r of water.out) {
+    ok(r.kinds.every((k) => ["river", "sea", "lake"].includes(k)), `水の 絵 ${r.id}: 川・海・湖に 見わけられない ${r.kinds}`);
+    ok(r.mismatch === 0, `水の 絵 ${r.id}: マスの まんなかの 見た目と 水の マスが ${r.mismatch} か所 ちがう（通れない 水が 陸に 見える／通れる 陸が 水に 見える）`);
+    ok(r.badPts === 0 && r.shores > 0 && r.parts > 0 && r.shore, `水の 絵 ${r.id}: 岸の 線・うごく もの・水べの マスが 不正 ${JSON.stringify(r)}`);
+  }
+  const k = water.kinds;
+  ok(k.river === "river" && k.bend === "river" && k.lake === "lake" && k.sea === "sea" && k.pool === "lake" && k.fixed === "lake", "水の 見わけ（川・海・湖・def.waterKind）が 形と あわない " + JSON.stringify(k));
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

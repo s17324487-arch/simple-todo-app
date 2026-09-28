@@ -26,6 +26,7 @@ const PokaDebug = {
       "PokaDebug.idle()                      画面切り替え中・会話中でなければ true",
       "PokaDebug.newGame({ goji: 'soft' })   オープニングを飛ばして はじめから（おうちへ）",
       "PokaDebug.teleport('meadow', 14, 3)   マップの (x, y) へ移動（town/city/coast/meadow/forest/cave）",
+      "PokaDebug.water('coast', 30, 10)   水の かたまりの しゅるい（川・海・湖）・岸・その マスの 色",
       "PokaDebug.house()                     おうちへ",
       "PokaDebug.battle([{ kind: 'purun', lv: 2 }], 'meadow')  バトル開始",
       "PokaDebug.battleState()                属性・HP・状態・技・曲を読む",
@@ -309,6 +310,14 @@ const PokaDebug = {
     Save.write();
     Game.trans = null;
     Game.goto("house", {}, "none");
+  },
+  // 水の 絵（川・海・湖）の ようす（WaterArt.info）。x, y を わたすと その マスの まんなかの チャンクの 色 px も かえす
+  water(map = G.sceneName === "world" ? G.scene.mapId : "town", x, y) {
+    const m = Maps.get(map), info = WaterArt.info(m);
+    if (x == null) return info;
+    const c = Tiles.chunk(m, Math.floor(x / 8), Math.floor(y / 8)), s = c.width / 8;
+    const d = c.getContext("2d").getImageData(Math.floor(((x % 8) + 0.5) * s), Math.floor(((y % 8) + 0.5) * s), 1, 1).data;
+    return { ...info, px: [d[0], d[1], d[2]], looksWet: WaterArt.looksWet(m, x, y) };
   },
   teleport(map = "town", x, y, dir = "down") {
     const d = MAP_DEFS[map];
