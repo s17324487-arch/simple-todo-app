@@ -295,6 +295,11 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
 - `Art.furnSvg(id, { flip })` … 家具（`FURN_ART[id]`、大きさは `FURNITURE` の w×h）。
 - `Art.iconSvg(kind, id)` … アイコン。`kind` は `"wear"` `"bag"`（食べ物・どうぐ = `FOOD_ART`）`"furn"` `"wall"` `"floor"`。
 - `Tiles` / `WorldArt`（tiles.js）… 地面は 8×8 マスのかたまり（チャンク）ごとに canvas に描いて使い回す。木・建物・街灯などは y 順に並べて描く。
+- `WaterArt`（water-art.js）… 水の 絵。水の マス（`~` と はし）は これまでと おなじで、見た目だけ なめらかに する。
+  - マップごとに 1かい `prep(map)`: 水の かたまり（4方向）を 形で 見わける（ほそながい → 川、大きい・マップの はしへ ひろがる → 海、ほか → 湖。`def.waterKind` で 1つに きめられる）。岸からの ふかさ（すなはま は あさく、いしがき は すぐ ふかい）、川の ながれ（上流の はしからの みちのり）、岸の 線（マスの 水を 2じ B スプラインで ぼかし、すこし ゆらして、マーチング スクエアで 0.5 の 線）。
+  - `Tiles.drawGround` の 水・はしの マスは となりの 陸を 描くだけ（`under`）。`Tiles.chunk` の さいごに `WaterArt.chunk` が 水面（ふかさの 色・ながれの すじ・波・うつりこみ・はす・いし）と 岸（ぬれた すな・どて・いしがき・あわ・がま）と はしの いた（`Tiles.bridgeDeck`）を 描く。
+  - `WorldScene.renderWater` は `WaterArt.frame`（川の ながれ・波うちぎわの あわ・波がしら・波紋・きらめき・雨の わ）。チャンク 8×8 マスごとに 見える ものだけ。
+  - マスの まんなかの 見た目は かならず 水の マス ↔ 水（`looksWet`。`npm run check` が 全マップで たしかめる）。PokaDebug は `water(map, x, y)`。
 - 線はすべて `INK`（#1F1D1B）。キャラ座標系で線幅 4.5（家具・アイコンは `FS()` / `IS()` が同じ見た目の太さを返す）。
 
 ---

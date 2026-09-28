@@ -743,7 +743,8 @@ class WorldScene {
     }
   }
   renderWater(ctx, ox, oy) {
-    // 水面のきらめき（毎フレーム）
+    // 水面のきらめき（毎フレーム）。川・海・湖の うごきは WaterArt.frame
+    if (typeof WaterArt !== "undefined" && WaterArt.frame(ctx, this.map, ox, oy)) return;
     const map = this.map;
     const tx0 = Math.max(0, Math.floor(-ox / TS)), tx1 = Math.min(map.w - 1, Math.floor((G.W - ox) / TS));
     const ty0 = Math.max(0, Math.floor(-oy / TS)), ty1 = Math.min(map.h - 1, Math.floor((G.H - oy) / TS));
