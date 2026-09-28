@@ -52,10 +52,10 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   // SVGの初期描画や負荷のある実行環境でも、操作の待機を早く打ち切らない。
   page.setDefaultTimeout(15000);
   const problems = [];
-  page.on("pageerror", (e) => problems.push("pageerror: " + e.message));
+  page.on("pageerror", (e) => problems.push("pageerror: " + e.stack));
   page.on("console", (m) => {
     // フォントなど 外部リソースが オフラインで読めないのは無視する
-    if (m.type() === "error" && !/Failed to load resource|ERR_|fonts\.g/.test(m.text())) problems.push("console.error: " + m.text());
+    if (m.type() === "error" && !/Failed to load resource|ERR_|fonts\.g/.test(m.text())) problems.push("console.error: " + m.text()+" @"+JSON.stringify(m.location()));
   });
   const H = helpers(page, name);
   const t0 = Date.now();
@@ -568,7 +568,7 @@ await scenario("新エリア・全体マップ・帰宅", async (H) => {
   await H.until(() => PokaDebug.state().scene === "world" && PokaDebug.idle());
   expect((await H.dbg("state")).map === "coast", "逃走後に元のフィールドへ戻らない");
   const coins=(await H.dbg("state")).coins;
-  await H.dbg("shop","crepe",1); await H.dialogs();
+  await H.dbg("shop","crepe",1); await H.until(()=>PokaDebug.state().scene==="shop"&&!PokaDebug.state().transitioning); await H.dialogs();
   await H.until(() => PokaDebug.mg()?.phase === "work");
   await H.page.getByRole("button", { name:"おうちへ",exact:true }).click();
   await H.until(() => PokaDebug.state().scene === "house" && PokaDebug.idle());
@@ -885,15 +885,24 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await atlas.getByRole("button",{name:"いまの ばしょを みる",exact:true}).click();
   expect(+(await atlas.getAttribute("data-zoom"))===2,"現在地へ拡大されない");
   await svg.scrollIntoViewIfNeeded(); await H.shot("zoom-town");
-  // 実際の2本指入力で拡大・縮小。指を離したあとも通常のタップが使える。
-  const session=await H.page.context().newCDPSession(H.page), r=await svg.boundingBox();
-  const cx=r.x+r.width/2,cy=r.y+r.height/2;
-  const points=distance=>[{x:cx-distance,y:cy,id:1},{x:cx+distance,y:cy,id:2}];
-  await session.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:points(30)});
-  await session.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:points(55)});
-  await session.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
-  expect(+(await atlas.getAttribute("data-zoom"))>2,"2本指で拡大できない");
-  await session.detach();
+  // Chromium はネイティブ2本指入力、WebKit は同じ PointerEvent 経路を検証する。
+  if(ENGINE==='chromium') {
+    const session=await H.page.context().newCDPSession(H.page),r=await svg.boundingBox();
+    const cx=r.x+r.width/2,cy=r.y+r.height/2,points=d=>[{x:cx-d,y:cy,id:1},{x:cx+d,y:cy,id:2}];
+    await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:points(30)});
+    await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:points(55)});
+    await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await session.detach();
+  } else await svg.evaluate(el=>{
+    const r=el.getBoundingClientRect(),cx=r.x+r.width/2,cy=r.y+r.height/2;
+    const send=(type,id,x)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerType:'touch',pointerId:id,clientX:x,clientY:cy}));
+    // WebKit の Playwright API は2本指を送れないため、合成入力だけ捕捉を代替する。
+    const capture=el.setPointerCapture;el.setPointerCapture=()=>{};
+    try {send('pointerdown',91,cx-30);send('pointerdown',92,cx+30);
+      send('pointermove',91,cx-55);send('pointermove',92,cx+55);
+      send('pointerup',91,cx-55);send('pointerup',92,cx+55);
+    } finally {el.setPointerCapture=capture;}
+  });
+  expect(+(await atlas.getAttribute('data-zoom'))>2,'2本指で拡大できない');
   await atlas.getByRole("button",{name:"ちずを ぜんたいに もどす",exact:true}).click();
   expect(await svg.getAttribute("viewBox")==="0 0 800 850","全体に戻らない");
   const routes=atlas.getByRole("button",{name:"のりものの みち",exact:true});
@@ -1167,7 +1176,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 await scenario("vector-roads-file",async H=>{
   const def=runInNewContext(readFileSync(new URL("./fixtures/roads-v02.js",import.meta.url),"utf8")+";ROAD_FIXTURE");
-  await H.page.context().setOffline(true);
+  // WebKit のオフライン模擬は file:// も遮断するため、HTTP(S) 通信だけを遮断する。
+  await H.page.context().route(/^https?:\/\//,route=>route.abort());
   await H.page.goto(pathToFileURL(resolve(HERE,"../index.html")).href);
   await H.until(()=>window.PokaDebug&&PokaDebug.state().scene==="title");
   const image=await H.dbg("roadPreview",def,{width:375,height:667,cx:43,cy:45});
