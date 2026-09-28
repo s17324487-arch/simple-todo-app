@@ -11,6 +11,7 @@ const FILES = [
   "./js/home-life.js", "./js/parent-care.js",
   "./js/home-catalog.js",
   "./js/home-design.js",
+  "./js/road-patterns.js", "./js/town-roads.js",
   "./js/world-art.js", "./js/world-expansion.js",
   "./js/economy.js", "./js/arcade.js",
   "./js/world-scenery.js", "./js/town-design.js", "./js/transit.js",

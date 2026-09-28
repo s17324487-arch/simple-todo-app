@@ -22,6 +22,7 @@ const PokaDebug = {
       "PokaDebug.walkTo(4, 12)               町・フィールドで (x, y) まで歩く",
       "PokaDebug.mg()                        お店ミニゲームの状態（注文・ボタン位置）",
       "PokaDebug.hour(21)                    時刻を固定（null で戻す）",
+      "PokaDebug.roadPreview(def, view)       道の検証画像（セーブ・現在地は変えない）",
       "PokaDebug.fps(2000)                   指定ミリ秒のあいだの平均FPSを返す（Promise）",
     ];
     console.log(lines.join("\n"));
@@ -89,6 +90,42 @@ const PokaDebug = {
     if(G.sceneName!=="world")return null;
     return {camera:{...G.scene.cam},seasonal:Seasonal.particles(G.scene,time),wind:Seasonal.particles(G.scene,time,"wind")};
   },
+  async roadPreview(def, { cx=43.2,cy=27.4,width=390,height=844 }={}) {
+    // 定義は開発ページから渡す。本編のMAP_DEFSやプレイデータには登録しない。
+    await TownRoads.preload(def);
+    const map=new WorldMap("__road_preview",def),canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
+    canvas.width=width;canvas.height=height;
+    const scale=width/360,left=Math.round(cx*TS-180),top=Math.round(cy*TS-height/scale/2),size=8*TS;
+    for(const k of Tiles.chunks.keys())if(k.startsWith("__road_preview:"))Tiles.chunks.delete(k);
+    ctx.scale(scale,scale);ctx.translate(-left,-top);
+    for(let y=Math.max(0,Math.floor(top/size));y<Math.ceil((top+height/scale)/size);y++)for(let x=Math.max(0,Math.floor(left/size));x<Math.ceil((left+360)/size);x++) {
+      if(x*8<map.w&&y*8<map.h)ctx.drawImage(Tiles.chunk(map,x,y),x*size,y*size,size,size);
+    }
+    return {url:canvas.toDataURL(),width,height,left,top,grid:map.roadGrid,solid:map.solidGrid};
+  },
+  async roadSeams(def, scale=1) {
+    await TownRoads.preload(def);
+    const w=def.rows[0].length*TS,h=def.rows.length*TS,make=(w,h)=>{const c=document.createElement("canvas");c.width=w;c.height=h;return c;};
+    const whole=make(w*scale,h*scale),tiled=make(w*scale,h*scale),a=whole.getContext("2d"),b=tiled.getContext("2d");
+    a.scale(scale,scale);TownRoads.draw(a,def);
+    for(let y=0;y<h;y+=256)for(let x=0;x<w;x+=256){const c=make(256*scale+4,256*scale+4),g=c.getContext("2d");g.translate(2,2);g.scale(scale,scale);g.translate(-x,-y);TownRoads.draw(g,def);b.drawImage(c,2,2,256*scale,256*scale,x*scale,y*scale,256*scale,256*scale);}
+    const p=a.getImageData(0,0,whole.width,whole.height).data,q=b.getImageData(0,0,tiled.width,tiled.height).data;
+    // 透明画素のRGBは比較しない。見える色（白背景へ合成）とアルファを比べる。
+    let changed=0,max=0,flatMax=0,flatSamples=0;for(let i=0;i<p.length;i+=4)for(let k=0;k<4;k++){
+      const v=k===3?p[i+3]:255+(p[i+k]-255)*p[i+3]/255,u=k===3?q[i+3]:255+(q[i+k]-255)*q[i+3]/255,d=Math.abs(v-u);
+      const x=(i/4)%whole.width,y=Math.floor(i/4/whole.width),n=256*scale,onSeam=(x>0&&(x%n<2||x%n>n-3))||(y>0&&(y%n<2||y%n>n-3));
+      if(onSeam&&p[i+3]===255){
+        // Canvasの大小で曲線のAAが変わる。境界の平坦な面・白線の芯は厳密に検査。
+        let lo=v,hi=v,opaque=true;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+          if(x+dx<0||y+dy<0||x+dx>=whole.width||y+dy>=whole.height)continue;
+          const j=((y+dy)*whole.width+x+dx)*4,t=k===3?p[j+3]:255+(p[j+k]-255)*p[j+3]/255;lo=Math.min(lo,t);hi=Math.max(hi,t);opaque=opaque&&p[j+3]===255;
+        }if(opaque&&hi-lo<=3){flatMax=Math.max(flatMax,d);flatSamples++;}
+      }
+      if(d>.5)changed++;max=Math.max(max,d);
+    }
+    return {changed,max,channels:p.length,flatMax,flatSamples};
+  },
+  groundImage(mapId="town",cx=1,cy=1) { return Tiles.chunk(Maps.get(mapId),cx,cy).toDataURL(); },
   needs(hunger,mood=70) { for(const c of Object.values(Save.d.chars)){c.hunger=U.clamp(hunger,0,100);c.mood=U.clamp(mood,0,100);}Save.mark();if(G.sceneName==="house")G.scene.updateCare(); },
   wins(n) { Save.d.stats.wins = Math.max(0, Math.floor(n)); Save.mark(); },
   homePoint(x, y) { const p = G.scene.toScreen(x, y), r = G.canvas.getBoundingClientRect(); return { x: r.left + p.x * G.cssPerUnit, y: r.top + p.y * G.cssPerUnit }; },

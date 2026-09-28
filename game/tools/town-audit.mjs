@@ -4,8 +4,9 @@
 // めやすは docs/design/TOWN_GUIDE.md（「置きかたの めやす」）と 同じ。
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import vm from "node:vm";
-const GAME = new URL("..", import.meta.url).pathname;
+const GAME = fileURLToPath(new URL("..", import.meta.url));
 const TARGET = { propsPer100: 8, propKinds: 20, emptyPct: 10, maxModelShare: 30, roadIslands: 1, jaggedCorners: 0 };
 const args = process.argv.slice(2), ci = args.indexOf("--check"), checkIds = ci >= 0 ? args.slice(ci + 1).filter((a) => !a.startsWith("--")) : [];
 // ゲームの スクリプトを index.html の 順に 読む（画面の 部品は 空の にせもの）

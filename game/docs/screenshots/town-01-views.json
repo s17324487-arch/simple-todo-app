@@ -1,0 +1,42 @@
+{
+  "source": "docs/design/towns/heiwadai/img/phones.png",
+  "imageTop": 163,
+  "views": [
+    {
+      "name": "station",
+      "width": 390,
+      "height": 844,
+      "cx": 43.2,
+      "cy": 27.4,
+      "left": 1202,
+      "top": 487
+    },
+    {
+      "name": "junction",
+      "width": 390,
+      "height": 844,
+      "cx": 43,
+      "cy": 45,
+      "left": 1196,
+      "top": 1050
+    },
+    {
+      "name": "station",
+      "width": 375,
+      "height": 667,
+      "cx": 43.2,
+      "cy": 27.4,
+      "left": 1202,
+      "top": 557
+    },
+    {
+      "name": "junction",
+      "width": 375,
+      "height": 667,
+      "cx": 43,
+      "cy": 45,
+      "left": 1196,
+      "top": 1120
+    }
+  ]
+}

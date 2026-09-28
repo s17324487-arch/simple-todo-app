@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node tools/serve.mjs 8080",
-    "check": "node tools/check.mjs",
-    "test": "node tools/check.mjs && node tests/smoke.mjs",
-    "test:full": "node tools/check.mjs && node tests/smoke.mjs --full --shots",
+    "check": "node tools/check.mjs && node tools/build-road-fixture.mjs --check",
+    "test": "npm run check && node tests/smoke.mjs",
+    "test:full": "npm run check && node tests/smoke.mjs --full --shots",
     "build:chara": "node tools/build-chara.mjs",
     "design:heiwadai": "node tools/town-design/build.mjs",
     "audit:town": "node tools/town-audit.mjs",

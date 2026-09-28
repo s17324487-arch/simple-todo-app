@@ -1,5 +1,17 @@
 # ぽかぽかタウン 設計書（ARCHITECTURE）
 
+## 道のベクター描画（TOWN-01）
+
+`road-patterns.js` → `town-roads.js` を tiles.js の後、maps.js の前に読み込む。`MAP_DEFS[id]` に見本JSONと同じ `roads / ring / fillets / crosswalks / marks / driveways` を任意で持てる。道路のない既存マップは以前の描画・衝突判定のまま。
+
+- TownRoads は render.mjs の中心線サンプル・帯・円弧・隅切り・切り下げ・路面表示を Path2D にコンパイルし、定義ごとの WeakMap に保持。歩道→縁石→車道→島→隅切り→切り下げ→路面表示の順。
+- `lib.mjs` の歩道・アスファルト・芝・コンクリートのSVGを `node tools/build-road-fixture.mjs` でそのまま生成。4種類の有限キー、固定4倍のラスターを createPattern で論理寸法に戻す。WorldScene.preload が模様を待つ。
+- Tiles.chunk は地面を描いた後に同じ世界座標原点で道路を重ね、2端末pxの余白を切り落としてキャッシュ。模様読み込み前のチャンクはキャッシュしない。円弧のAAはCanvasの大きさで微差が出るため、検査は境界の面・白線の芯と全画像差分率を併用する。
+- WorldMap.roadGrid はマスの中心から求める純粋な幾何判定（Canvas不要）。島は通れず、既存の木・建物・小物・入口の判定を維持する。道路を定義したマスの下地には通れる地面を配置する。
+- 各roadの任意項目 `extendStart` は始点の車道の延長、`center / edges` は中心線に沿った距離 `{from,to}` の配列。見本JSONに未出力のこれらは、検証fixture生成時に元の heiwadai-v02.mjs / render.mjs の値を補う。drivewayの円弧・斜線は `road` の指定先（省略時 avenue）から求める。
+- `tools/roads-preview.html` と PokaDebug.roadPreview は本編にマップを登録せず、実際の Tiles.chunk で画像を作る。`node tools/road-screenshots.mjs` で390×844・375×667の見本①②との比較を再現できる。建物・小物のSVG、全体配置、会話は TOWN-02以降で移植する。
+- Save.KEY / SCHEMA / world / coinsは変更しない。今回のPRでは公開中の平和台48×44と全ID・ワープ座標を維持。64×68への置き換えと古いセーブ位置の救済は TOWN-04。
+
 ## 背景に固定した落ち葉
 
 Seasonal.particles(sc,time,kind,size) は208pxの世界セルごとの固定seedと経過時間から、葉・花びら・蛍の世界位置を求める。カメラは表示対象セルと画面への変換にのみ使い、軌道・回転・周期には使わない。画面端で折り返さず、見えているセルだけを生成する。Weatherの風も同じ処理を使う。葉は2種類の輪郭、葉脈、葉柄、秋の4色、風での揺れと裏返りをcanvasで描く。冬の季節粒子と洞窟内は生成しない。
