@@ -1206,6 +1206,20 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   ok(md.fresh === "{}", "Save.fresh() に discs が ない");
 }
 
+// ---------- 食べ物の 絵（js/food-art.js）: 食べ物ごとに じぶんの 絵が ある（ほかの 食べ物の 絵を かりない）----------
+{
+  const fa = vm.runInContext(`(()=>({ foods: FOODS.map((f) => ({ id: f.id, name: f.name, art: FOOD_ART[f.id] || "" })), fixed: FoodArtFix.ids }))()`, ctx);
+  const seen = new Map();
+  for (const f of fa.foods) {
+    ok(f.art, `食べ物 ${f.id}（${f.name}）: 絵が ない`);
+    if (!f.art) continue;
+    ok(!seen.has(f.art), `食べ物 ${f.id}（${f.name}）: ${seen.get(f.art)} と おなじ 絵（名前と 絵が あわない）`);
+    seen.set(f.art, `${f.id}（${f.name}）`);
+    svgOk(`<svg viewBox="0 0 64 64">${f.art}</svg>`, `食べ物の 絵 ${f.id}`);
+  }
+  ok(fa.fixed.length >= 20 && fa.fixed.every((id) => fa.foods.some((f) => f.id === id)), "FoodArtFix の 食べ物が ない か すくない " + fa.fixed.join());
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

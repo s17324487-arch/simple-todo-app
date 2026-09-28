@@ -20,7 +20,7 @@ const FILES = [
   "./js/store-interiors.js", "./js/scene-store.js",
   "./js/world-scenery.js", "./js/town-design.js", "./js/town-renewal-art.js", "./js/town-renewal.js", "./js/heiwadai-layout-data.js", "./js/heiwadai-ground.js", "./js/heiwadai-town.js", "./js/heiwadai-life.js", "./js/transit.js",
   "./js/seasonal-catalog.js", "./js/seasonal.js",
-  "./js/annual-festivals.js",
+  "./js/annual-festivals.js", "./js/food-art.js",
   "./js/weather.js", "./js/battle-elements.js",
   "./js/modern-music.js", "./js/music-arrangements.js", "./js/music-discs.js",
   "./js/atlas-art.js", "./js/world-atlas.js", "./js/district-travel.js", "./js/mac-kitchen.js", "./js/venue-hall-art.js", "./js/venue-hall.js", "./js/nerikasu-neighborhood.js",

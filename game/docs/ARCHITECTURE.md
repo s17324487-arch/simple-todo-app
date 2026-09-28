@@ -293,6 +293,7 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
 - `Art.npcSvg({ sp, col, stripe, outfit, emo })` … 町の人（`SPECIES` の cat / rabbit / bear / penguin / frog / sheep / mouse / pig）。服も着られる。
 - `Art.enemySvg(art, col, emo)` … 敵（`ENEMY_ART` の slime / slime_king / fluff / bee / mushroom / acorn / leaf / bat / rock / crystal）。`emo` は normal / hurt / sleep。
 - `Art.furnSvg(id, { flip })` … 家具（`FURN_ART[id]`、大きさは `FURNITURE` の w×h）。
+- `FoodArtFix`（food-art.js）… 食べ物の 絵を 名前に あわせる（ART-06）。`home-catalog.js` が ほかの 食べ物の 絵を かりて いた もの・`annual-festivals.js` の おまつりの しるしの デザ・ピーマン・やきざかな の `FOOD_ART` を 上がきする（その あとに 読む）。check は 食べ物ごとに 絵が ちがう ことを 見る。
 - `FurnModels`（furniture-models.js）… 家具の 立体モデル（ART-03）。`HomeDesign.model()` の さいしょに `FurnModels.build(id, opts)` を よび、作りなおした 24しゅ（`FurnModels.ids`）と、2D の 絵の 家具（植木・くま・きせつの かざり など。大きな 板を やめて かげだけ）を かえす。ほかは これまでの 絵。
   - ざひょうは HomeDesign と おなじ（x: よこ −w/2〜w/2、y: おく −d〜てまえ 0、z: 上）。見える 面は てまえ・みぎ・上。うしろ → てまえ の 順に かさねる。はんてんは 投影で かわるので、形は 1とおりで よい。
   - 道具: `box`（3面）・`prism`（凸な 形に あつみ。見える 面と ふちを 凸包で）・`cyl`・`frustum`・`ball`（球は はば 1.23 ばいの 円）・`slab`（かたむいた 板）・`onP`（面に 2D の 絵を はる）・`at`（床の 1点に 小さな 絵を たてる）・`lg` / `rg`（グラデーションの id は 通し番号で かさならない）。
