@@ -36,6 +36,8 @@ const TownRenewalArt = (() => {
     city_station:()=>p("M6,151 V53 Q100,-25 194,53 V151 Z","#CBC9C0")+p("M22,71 Q100,6 178,71 V123 H22 Z","#ACCBD1")+p("M35,67 V122 M65,41 V121 M100,30 V121 M135,41 V121 M166,67 V122 M25,83 H178")+r(4,125,192,27,"#B0B9BC")+clock(100,31)+banner("シティえき",91),
     // ⑤ まちの としょかんの 場所の きょうりゅう はくぶつかん・みなとの しりょうかんの 場所の すいぞくかん（見本 MuseumArt.facade200。入口は この あとの WorldArt.building が 描く）
     city_museum:()=>MuseumArt.facade200("museum"),
+    // ⑥ シティ シューティング レンジ（見本 ShootingRange.facade200）
+    city_range:()=>ShootingRange.facade200(),
     city_gallery:()=>r(5,60,190,92,"#C8BAB3")+p("M3,61 L50,19 V61 L98,19 V61 L146,19 V61 L194,19 V61 Z","#B0C0C8")+glass(13,26,28,27)+glass(62,26,28,27)+glass(111,26,28,27)+glass(158,26,27,27)+glass(18,94,40,44)+r(143,96,34,43,"#F3E4CB")+p("M149,125 L160,102 L171,129 Z","#B3C9AD")+banner("ギャラリー",66),
     harbor_ferry:()=>r(7,76,186,77,"#D4E1DC")+p("M0,76 Q43,14 99,59 Q157,91 199,38 L199,76 Z","#90B7C7")+glass(16,89,46,48)+glass(139,89,45,48)+p("M20,151 V141 M180,151 V141","none",4)+banner("ふねのりば",58),
     harbor_hangar:()=>p("M5,153 V73 Q100,-9 195,73 V153 Z","#CACED0")+p("M17,72 Q100,10 183,72 M28,62 Q100,21 172,62")+slats(16,89,167,60,"#A3BCC3")+banner("すいじょうき",64)+p("M138,38 H179 M157,29 V48","none",3),

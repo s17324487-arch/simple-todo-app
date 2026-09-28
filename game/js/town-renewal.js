@@ -11,7 +11,7 @@ const TownRenewal = (() => {
     town_parlor:["chalkboard","table","town_milk","planter"],town_clinic:["phone","recycle","planter","bicycles"],town_bakery:["chalkboard","town_breadrack","town_milk","town_breadrack"],
     town_greenhouse:["chalkboard","town_herbs","town_watering","town_herbs"],town_bazaar:["chalkboard","town_milk","town_herbs","town_breadrack"],town_station:["newsbox","phone","bicycles","postbox"],town_riverside:["chalkboard","town_pinwheel","town_watering","town_herbs"],
     city_department:["city_screen","city_billboard","planter","city_bikerack"],city_arcade:["city_kiosk","city_delivery","recycle","city_coffee"],city_design:["chalkboard","city_billboard","planter","postbox"],city_cafe:["chalkboard","city_coffee","table","city_bikerack"],
-    city_station:["city_metro","city_screen","city_bikerack","newsbox"],city_museum:["newsbox","planter","city_bikerack","chalkboard"],city_gallery:["city_billboard","chalkboard","planter","city_screen"],
+    city_station:["city_metro","city_screen","city_bikerack","newsbox"],city_museum:["newsbox","planter","city_bikerack","chalkboard"],city_range:["city_billboard","newsbox","planter","city_bikerack"],city_gallery:["city_billboard","chalkboard","planter","city_screen"],
     harbor_ferry:["harbor_lifering","harbor_mooring","harbor_rope","direction"],harbor_hangar:["harbor_buoy","harbor_crates","harbor_rope","recycle"],harbor_fishmarket:["chalkboard","harbor_fishbasket","harbor_net","harbor_crates"],harbor_warehouse:["harbor_crates","harbor_net","harbor_rope","harbor_anchor"],harbor_aquarium:["postbox","direction","harbor_anchor","planter"],harbor_pavilion:["direction","harbor_lifering","harbor_rope","harbor_mooring"],
     airport_terminal:["airport_departures","airport_luggage","airport_scanner","airport_cart"],airport_station:["newsbox","airport_departures","airport_luggage","phone"],airport_cargo:["airport_cart","airport_tug","airport_cone","recycle"],airport_service:["airport_stairs","airport_tug","airport_beacon","airport_cone"],airport_museum:["chalkboard","airport_scanner","airport_luggage","planter"],airport_lounge:["chalkboard","table","airport_departures","planter"],
   };
@@ -121,6 +121,8 @@ const TownRenewal = (() => {
     b.building("city_clothes",3,4,7,6,"city_department");b.building("city_market",29,5,8,5,"city_arcade");
     b.building("city_office",15,5,6,5,"city_design",{label:"まちの こうぼう"});
     b.building("link",40,5,6,5,"city_puzzle");
+    // ⑥ シティ シューティング レンジ（RANGE_DATA.outside・デパートと こうぼうの あいだ。入口 (12,9)・まえ (12,10)）
+    b.building("city_range",10,6,5,4,"city_range",{label:"シティ シューティング レンジ",door:2,act:{type:"range"}});
     // ⑤ まちの としょかん（見学だけ）の 場所に きょうりゅう はくぶつかん（MUSEUM_DATA.buildings.museum.outside）
     b.building("city_museum",3,16,6,4,"city_museum",{label:"きょうりゅう はくぶつかん",act:{type:"indoor",map:"museum"}});
     b.building("city_gallery",15,16,6,4,"city_salon",{label:"びようしつ",sign:"groom",act:{type:"work",shop:"groom"}});b.building("city_cafe",29,16,6,4,"city_cafe");

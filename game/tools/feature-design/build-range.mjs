@@ -14,6 +14,8 @@ import vm from "node:vm";
 import { itemIds, probeOutside, run } from "./game-vm.mjs";
 import { CATS, GUNS, COURSES, BALLISTICS, HOLD, PAY, SOUND, NEW_SE, STAFF, TALK, OUTSIDE } from "./range-data.mjs";
 export const OUT = new URL("../../docs/design/features/range/", import.meta.url).pathname;
+// ⑥ の 1番が ゲームに 入った あと（RANGE_DATA が ある）は、町に たてた 建物（outside.id・act: range）と sound.js の rg_ を しらべる
+const IN_GAME = run(`typeof RANGE_DATA !== "undefined"`);
 mkdirSync(OUT + "img", { recursive: true });
 const errors = [], width = (t) => [...t].reduce((a, c) => a + (c.charCodeAt(0) < 0x2000 ? 0.5 : 1), 0);
 const longRow = (where, t, max = 30) => { for (const row of String(t).split("\n")) if (width(row) > max) errors.push(`${where}: 1行が 長い（${width(row)}）「${row}」`); };
@@ -101,7 +103,8 @@ for (const a of Object.keys(ACTION)) if (!(HOLD.trigger[a] >= 0)) errors.push(`H
 // ---- こうかおん ----
 const SE = new Set([...readFileSync(new URL("../../js/sound.js", import.meta.url), "utf8").matchAll(/case "([a-z_]+)"/g)].map((m) => m[1]));
 for (const [n, parts] of Object.entries(NEW_SE)) {
-  if (SE.has(n)) errors.push(`NEW_SE.${n} は もう sound.js に ある`);
+  if (SE.has(n) && !IN_GAME) errors.push(`NEW_SE.${n} は もう sound.js に ある`);
+  if (!SE.has(n) && IN_GAME) errors.push(`NEW_SE.${n} が sound.js に ない（ゲームに 入れた あと）`);
   if (!/^rg_[a-z]+$/.test(n)) errors.push(`NEW_SE.${n}: 名前は rg_ で はじめる`);
   for (const [fn, o] of parts) if (!(["T", "N"].includes(fn) && o.dur > 0 && o.dur <= 1.5 && o.vol > 0 && o.vol <= 0.4)) errors.push(`NEW_SE.${n}: ${fn} ${JSON.stringify(o)}`);
 }
@@ -121,7 +124,17 @@ for (const who of ["wanko", "gachan", "goji"]) {
 for (const it of Object.values(STAFF.outfit)) if (!itemIds.has(it)) errors.push(`射撃場の 人: 服 ${it} が ゲームに ない`);
 if (run("typeof TALKS !== 'undefined' && !!TALKS[" + JSON.stringify(STAFF.talk) + "]")) errors.push(`TALKS.${STAFF.talk} が もう ある`);
 // 町に たてる 場所
-const pr = probeOutside(OUTSIDE);
+const pr = IN_GAME ? probeBuilt(OUTSIDE) : probeOutside(OUTSIDE);
+function probeBuilt(o) {
+  const b = run(`(MAP_DEFS[${JSON.stringify(o.map)}].buildings || []).find((b) => b.id === ${JSON.stringify(o.id)}) || null`), err = [];
+  if (!b) return { err: [`${o.id} が ${o.map} に ない（ゲームに 入れた ときの 建物）`] };
+  if (b.x !== o.x || b.y !== o.y || b.w !== o.w || b.h !== o.h) err.push(`${o.id} は (${b.x},${b.y}) ${b.w}×${b.h}（データは (${o.x},${o.y}) ${o.w}×${o.h}）`);
+  if (!b.act || b.act.type !== "range") err.push(`${o.id} の act が range で ない`);
+  const door = b.door != null ? b.door : Math.floor(b.w / 2), doorAt = [b.x + door, b.y + b.h - 1], front = [doorAt[0], doorAt[1] + 1];
+  if (door !== Math.floor(o.w / 2)) err.push(`${o.id} の 入口が まんなかで ない`);
+  if (run(`new WorldMap(${JSON.stringify(o.map)}).isSolid(${front[0]}, ${front[1]})`)) err.push(`入口の まえ (${front.join(",")}) が 通れない`);
+  return { err, door: doorAt, front };
+}
 for (const e of pr.err) errors.push(`射撃場（${OUTSIDE.map} の ${OUTSIDE.x},${OUTSIDE.y}）: ${e}`);
 if (errors.length) { console.log(errors.join("\n")); process.exit(1); }
 

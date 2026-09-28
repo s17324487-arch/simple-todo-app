@@ -1507,6 +1507,62 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(/0 \/ 8/.test(await H.eval(()=>document.querySelector('.fossil-detail').innerText)),'寄贈 0 の 台の 数が 不正');
 },{viewport,full:viewport.width===375,timeout:150000});
 
+// ⑥ 1番: 射撃場の ロビー。シティの 建物から 入る → RO の ラビの きまり（はじめて だけ）→ だれが うつ？ → しゅもくと じゅう（タブ・ロック・ホップ ダイヤル）→ ✕ で 町の 入口の まえ
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('range-lobby-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
+  await H.dbg('teleport','city',12,11,'up');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),10000);
+  const b=await H.eval(()=>{const b=G.scene.map.def.buildings.find(b=>b.id==='city_range');return b&&{label:b.label,act:b.act,door:[b.x+b.door,b.y+b.h-1]};});
+  expect(b&&b.act.type==='range'&&b.label==='シティ シューティング レンジ'&&b.door.join()==='12,9','シティに 射撃場が ない '+JSON.stringify(b));
+  await H.wait(700);await H.shot('outside');
+  expect(await H.dbg('walkTo',12,9),'射撃場の 入口へ 歩けない');
+  await H.until(()=>G.sceneName==='range'&&!Game.trans,15000);
+  // はじめて: RO の きまり（ゴーグル・ひきがね・じゅうこう・ショウ クリア）
+  await H.page.locator('.dlg-shade').waitFor({timeout:8000});await H.wait(700);
+  expect(/ラビ/.test(await H.eval(()=>document.querySelector('.dlg-name').innerText)),'RO の ラビが 話さない');
+  await H.shot('safety');await H.dialogs();
+  expect(await H.eval(()=>Save.d.range.safety===true),'きまりを きいた ことが のこらない');
+  // だれが うつ？（3人。のこりの 2人は おうえん）
+  await H.page.locator('.rg-who').waitFor({timeout:8000});await H.wait(400);
+  let v=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),cards=[...document.querySelectorAll('.rg-who-card')];return {n:cards.length,on:document.querySelector('.rg-who-card.on')?.dataset.who,lead:Save.d.order[0],
+    inView:cards.every(c=>r(c).left>=0&&r(c).right<=innerWidth+0.5&&r(c).height>=44),img:cards.every(c=>c.querySelector('img')?.complete),note:document.querySelector('.rg-note').innerText,wide:document.documentElement.scrollWidth>innerWidth};});
+  expect(v.n===3&&v.on===v.lead&&v.inView&&v.img&&/おうえん/.test(v.note)&&!v.wide,'だれが うつ？ が 不正 '+JSON.stringify(v));
+  await H.page.locator('.rg-who-card[data-who="goji"]').click();await H.wait(200);await H.shot('who');
+  await H.page.getByRole('button',{name:'この子で うつ',exact:true}).click();
+  // しゅもくと じゅう（ハンドガン: しゅもく 2つ・じゅう 3しゅ・ホップ ダイヤルは なし。ライフル・スナイパーは まだ ロック）
+  await H.page.locator('.rg-guns').waitFor({timeout:8000});await H.wait(400);
+  const lobby=()=>H.eval(()=>{const r=e=>e.getBoundingClientRect(),q=s=>[...document.querySelectorAll(s)];return {tabs:q('.rg-tabs .tab').map(t=>t.dataset.cat+(t.classList.contains('on')?'*':'')+(t.classList.contains('lock')?'!':'')),
+    courses:q('.rg-course').map(c=>c.dataset.course+(c.classList.contains('on')?'*':'')),guns:q('.rg-gun').map(g=>g.dataset.gun+(g.classList.contains('on')?'*':'')),art:q('.rg-gun .art svg').length,
+    rule:document.querySelector('.rg-rule')?.innerText||'',desc:document.querySelector('.rg-detail .desc')?.innerText||'',hop:document.querySelector('.rg-hop .v')?.textContent||null,lock:document.querySelector('.rg-lock')?.innerText||'',
+    go:document.querySelector('.rg-go')?.disabled,small:q('.rg-tabs .tab,.rg-course,.rg-gun,.rg-hop .btn,.rg-go').filter(e=>r(e).height<44||r(e).width<44).length,wide:document.documentElement.scrollWidth>innerWidth,
+    out:q('.panel .rg-course,.panel .rg-gun,.panel .rg-detail').filter(e=>r(e).left<0||r(e).right>innerWidth+0.5).length};});
+  v=await lobby();
+  expect(v.tabs.join()==='hand*,rifle!,sniper!'&&v.courses.join()==='steel*,bullseye'&&v.guns.join()==='auto*,revolver,classic'&&v.art===3&&/ストップ プレート/.test(v.rule)&&/25はつ/.test(v.desc)&&v.hop===null&&v.go===false&&!v.small&&!v.wide&&!v.out,'ハンドガンの しゅもくと じゅうが 不正 '+JSON.stringify(v));
+  await H.shot('pick');
+  await H.page.locator('.rg-course[data-course="bullseye"]').click();await H.page.locator('.rg-gun[data-gun="revolver"]').click();await H.wait(200);
+  v=await lobby();expect(v.courses.join()==='steel,bullseye*'&&v.guns.join()==='auto,revolver*,classic'&&/5はつ × 2シリーズ/.test(v.rule)&&/6はつ/.test(v.desc),'しゅもく・じゅうを えらべない '+JSON.stringify(v));
+  // ロック: ライフルは ハンドガンで ★1 から
+  await H.page.locator('.rg-tabs .tab[data-cat="rifle"]').click();await H.wait(200);
+  v=await lobby();expect(/ハンドガンで ★1/.test(v.lock)&&v.go===true&&!v.guns.length,'ロックが 不正 '+JSON.stringify(v));
+  await H.page.locator('.rg-tabs .tab[data-cat="hand"]').click();await H.wait(100);
+  await H.eval(()=>{Save.d.range.best['steel:auto']={result:31.2,stars:1};});
+  await H.page.locator('.rg-tabs .tab[data-cat="rifle"]').click();await H.wait(300);
+  v=await lobby();expect(v.tabs.join()==='hand,rifle*,sniper!'&&v.courses.join()==='practical*,precision'&&v.guns.join()==='carbine*,lever,match'&&v.hop==='10'&&!v.small&&!v.out,'ライフルが あかない／ホップ ダイヤルが ない '+JSON.stringify(v));
+  await H.page.locator('.rg-hop-up').click();await H.page.locator('.rg-hop-up').click();await H.page.locator('.rg-hop-down').click();await H.wait(100);
+  expect((await lobby()).hop==='11'&&await H.eval(()=>Save.d.range.hop.carbine===11),'ホップ ダイヤルが のこらない');
+  await H.page.locator('.rg-detail').scrollIntoViewIfNeeded();await H.wait(200);await H.shot('rifle');
+  // これで うつ（1番は まだ じゅんび ちゅう）→ もどる → ✕ で だれが うつ？ → ✕ で 町の 入口の まえ
+  await H.page.getByRole('button',{name:'これで うつ',exact:true}).click();await H.wait(500);
+  expect(await H.eval(()=>G.sceneName==='range'&&!!document.querySelector('.rg-guns')&&/じゅんび/.test(document.querySelector('.toasts').innerText)),'これで うつ の あとが 不正');
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.page.locator('.rg-who').waitFor({timeout:6000});await H.wait(250);
+  expect(await H.eval(()=>document.querySelector('.rg-who-card.on')?.dataset.who==='goji'),'えらんだ 子が もどる');
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();
+  await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),15000);
+  const w=await H.dbg('world');expect(w.party.length===3&&w.party[0].x===12&&w.party[0].y===10,'射撃場から 出ると 入口の まえに もどらない '+JSON.stringify(w.party[0]));
+  // 2かいめは きまりを 話さない・ホップ ダイヤルは のこる
+  expect(await H.dbg('walkTo',12,9),'2かいめ 入口へ 歩けない');await H.until(()=>G.sceneName==='range'&&!Game.trans,15000);
+  await H.page.locator('.rg-who').waitFor({timeout:8000});expect(!(await H.eval(()=>document.querySelector('.dlg-shade'))),'2かいめも きまりを 話す');
+},{viewport,full:viewport.width===375,timeout:150000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');
