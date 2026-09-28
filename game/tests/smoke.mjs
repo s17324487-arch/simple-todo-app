@@ -1284,6 +1284,85 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.eval(()=>!document.querySelector('.fossil-detail')),'まだ 骨が ない 恐竜の ページが ひらく');
 },{viewport,full:viewport.width===375,timeout:120000});
 
+// ④ 化石ほり: ほる 画面の 骨の マスを（ほんとうに マウスで）たたいて ほりだす。おわると ほる 画面が とじる
+async function digAll(H){
+  for(let i=0;i<40;i++){
+    const st=await H.dbg('digState');if(!st||st.done)break;
+    let cell=null;for(let y=st.area.y;y<st.area.y+st.area.h&&!cell;y++)for(let x=st.area.x;x<st.area.x+st.area.w&&!cell;x++)if(st.hp[y*st.cols+x]>0)cell=[x,y];
+    const b=await H.page.locator('.dig-wrap canvas').boundingBox(),pad=10,cw=(b.width-pad*2)/st.cols,ch=(b.height-pad*2)/st.rows;
+    await H.page.mouse.click(b.x+pad+cw*(cell[0]+0.5),b.y+pad+ch*(cell[1]+0.5));await H.wait(60);
+  }
+  const st=await H.dbg('digState');expect(st&&st.done,'骨が ほりだせない '+JSON.stringify(st));
+  return st;
+}
+// ④ 化石ほり: ケロスケから ピッケル → きょうの いわ（どうくつ 4・もり 3・ビーチ 3。とおれない）→「ほる」→ たたいて ほりだす → カード → ノート。ほった いわは きえる
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('fossil-dig-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
+  // もりの ケロスケが ピッケルを くれる（はじめての あいさつの あと）
+  expect(await H.dbg('folkTalk','explorer'),'ケロスケに 話しかけられない');await H.dialogs();await H.idle();
+  expect((await H.dbg('saveData')).fossil.pick===1,'ケロスケから ピッケルが もらえない');
+  const rocks=await H.dbg('fossilRocks','cave');
+  expect(rocks.length===4&&(await H.dbg('fossilRocks','forest')).length===3&&(await H.dbg('fossilRocks','coast')).length===3,'きょうの いわの 数が 不正 '+JSON.stringify(rocks));
+  // いわの となりで「ほる」（44px いじょう・はみ出さない）。いわの マスは とおれない
+  const spot=await H.dbg('fossilSpot','cave');expect(spot,'いわの となりに 立てない');
+  await H.dbg('teleport','cave',spot.x,spot.y,spot.dir);await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);
+  expect(await H.eval(([x,y])=>!G.scene.walkable(x,y)&&!!G.scene.rockAt(x,y),spot.rock),'いわの マスを とおれる');
+  await H.page.locator('.fossil-go-btn').waitFor({timeout:5000});
+  const go=await H.eval(()=>{const r=document.querySelector('.fossil-go-btn').getBoundingClientRect();return {h:r.height,inside:r.left>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1,fish:!!document.querySelector('.fish-go-btn')};});
+  expect(go.h>=43.5&&go.inside&&!go.fish,'「ほる」ボタンが 不正 '+JSON.stringify(go));
+  await H.shot('rock');
+  await H.page.locator('.fossil-go-btn').click();await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(400);
+  let st=await H.dbg('digState');expect(st&&st.cols===7&&st.rows===5&&st.taps===0&&!st.done,'ほる 画面が 不正 '+JSON.stringify(st));
+  const panel=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),w=r(document.querySelector('.dig-wrap'));return {inside:w.left>=0&&w.right<=innerWidth+1&&w.bottom<=innerHeight+1,text:document.querySelector('.dig-info').innerText};});
+  expect(panel.inside&&/タップ/.test(panel.text)&&/たたいた かず 0/.test(panel.text),'ほる 画面が はみ出す '+JSON.stringify(panel));
+  const before=(await H.dbg('saveData'));
+  st=await digAll(H);await H.shot('dug');
+  // 骨なら カード、おまけなら ひとこと（どちらも いわは きえる）
+  await H.until(()=>!!document.querySelector('.bone-card')||!!document.querySelector('.dlg-shade'),8000);
+  if(await H.eval(()=>!!document.querySelector('.bone-card'))){await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);}
+  await H.dialogs();await H.idle();
+  let d=await H.dbg('saveData');
+  const gotBone=Object.values(d.fossil.bones).reduce((a,n)=>a+n,0)===Object.values(before.fossil.bones).reduce((a,n)=>a+n,0)+1,gotExtra=d.coins>before.coins||(d.bag.candy||0)>(before.bag.candy||0);
+  expect(gotBone!==gotExtra,'ほった あとに 骨か おまけが 1つ もらえない');
+  expect(d.fossil.dug.at.cave.includes(spot.rock.join(','))&&(await H.dbg('fossilRocks','cave')).length===3,'ほった いわが きえない');
+  expect(await H.eval(([x,y])=>G.scene.walkable(x,y)&&!document.querySelector('.fossil-go-btn'),spot.rock),'ほった いわが のこって いる');
+  // ティラノサウルスの あたまを ほる → はじめて！ の カード（あつまりぐあい・骨格の 小さい 絵）
+  const had=d.fossil.bones['trex.skull']||0;
+  await H.dbg('fossilDig','cave','trex.skull');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(400);
+  await H.shot('dig');
+  st=await digAll(H);
+  const info=await H.eval(()=>document.querySelector('.dig-info').innerText);expect(/ティラノサウルスの あたま！/.test(info)&&/★/.test(info),'ほりだした ときの ことばが 不正 '+info);
+  await H.page.locator('.bone-card').waitFor({timeout:6000});await H.wait(300);
+  const card=await H.eval(()=>{const e=document.querySelector('.bone-card'),b=e.getBoundingClientRect();return {text:e.innerText,first:!!e.querySelector('.badge'),mini:!!e.querySelector('svg.mini'),inside:b.left>=0&&b.right<=innerWidth+1&&b.bottom<=innerHeight+1};});
+  const n=Object.keys((await H.dbg('saveData')).fossil.bones).filter(k=>k.startsWith('trex.')).length;
+  expect(/ティラノサウルスの あたま/.test(card.text)&&card.text.includes(n+'/8')&&card.mini&&card.inside&&card.first===(had===0),'みつけた カードが 不正 '+JSON.stringify(card));
+  await H.shot('card');
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.idle();
+  d=await H.dbg('saveData');expect(d.fossil.bones['trex.skull']===had+1,'ほった 骨が もてない');
+  // とちゅうで とじると なにも もらえない（しっぱいは ない・また ほれる）
+  await H.dbg('fossilDig','cave','trex.leg');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);
+  await H.dbg('digTap',3,2);await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(400);await H.idle();
+  expect(((await H.dbg('saveData')).fossil.bones['trex.leg']||0)===(d.fossil.bones['trex.leg']||0)&&!(await H.dbg('digState')),'とちゅうで とじたのに 骨が もらえた');
+  // ② おねがい「ほねを みせて」: ケロスケに たのまれる → ほる → ケロスケに 話すと おわる（コイン +150）
+  await H.dbg('folkOffer','ev-bone-show');await folkTalk(H,'explorer',{greet:false});await folkAnswer(H,0);await H.dialogs();await H.idle();
+  expect((await H.dbg('folk')).req.some(r=>r.id==='ev-bone-show'),'ほねを みせての おねがいを うけられない');
+  await H.dbg('fossilDig','forest','stego.tail');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);await digAll(H);
+  await H.page.locator('.bone-card').waitFor({timeout:6000});await H.wait(200);await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.dialogs();await H.idle();
+  expect((await H.dbg('folk')).req.find(r=>r.id==='ev-bone-show')?.step===1,'ほっても おねがいが すすまない');
+  const coins=(await H.dbg('state')).coins;
+  await folkTalk(H,'explorer',{greet:false});await H.dialogs();await H.idle();
+  expect((await H.dbg('saveData')).folk.done['ev-bone-show']&&(await H.dbg('state')).coins===coins+150,'ケロスケに みせても おねがいが おわらない');
+  // ノート: ティラノサウルスが「ほね n/8」
+  await H.page.locator('.menu-btn').click();await H.wait(300);
+  await H.page.locator('.menu-tabs .tab',{hasText:'ずかん'}).click();await H.wait(200);
+  await H.page.locator('.dex-kinds .tab[data-k="fossil"]').click();await H.wait(400);
+  const cnt=await H.eval(()=>document.querySelector('.fossil-cell[data-id="trex"] .cnt').textContent);expect(cnt==='ほね '+n+'/8','ノートに ほった 骨が のらない '+cnt);
+  await H.page.keyboard.press('Escape');await H.wait(300);
+  // セーブして よみこんでも ピッケル・骨・ほった いわは そのまま
+  await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+  const after=await H.dbg('saveData');expect(after.fossil.pick===1&&after.fossil.bones['trex.skull']===had+1&&after.fossil.dug.at.cave.includes(spot.rock.join(',')),'セーブで 化石の きろくが きえる');
+},{viewport,full:viewport.width===375,timeout:180000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');

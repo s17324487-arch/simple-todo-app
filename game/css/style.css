@@ -461,17 +461,16 @@ html, body {
 /* メニューの「ずかん」の まもの／さかな */
 .dex-kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .dex-kinds .tab { min-height: 44px; }
-/* ③ 釣り: 町の「つる」ボタン（右下・しゃしんの ボタンと おなじ ところ）・釣りの 画面の DOM・だいじな もの */
-.fish-go-btn { position: absolute; right: 10px; bottom: calc(62px + var(--safe-b)); min-height: 52px; display: flex; align-items: center; gap: 6px; padding: 4px 16px 4px 8px; font-size: 16px; background: #8FD0F0; }
-.fish-go-btn svg { width: 36px; height: 36px; }
+/* ③ 釣り: 町の「つる」ボタン（場所と 大きさは ④ の .act-btn。「ほる」と おなじ 下の まん中）・釣りの 画面の DOM・だいじな もの */
+.act-btn.fish-go-btn { background: #8FD0F0; }
 .fish-ui { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
 .fish-ui > * { pointer-events: none; }
 .fish-ui .fish-top .btn, .fish-ui .fish-btn { pointer-events: auto; }
 .fish-top .pill { display: flex; align-items: center; gap: 4px; }
 .fish-top .pill svg { width: 22px; height: 22px; }
 .fish-btn { touch-action: none; user-select: none; -webkit-user-select: none; }
-.toast .fish-got { display: inline-flex; align-items: center; gap: 6px; }
-.toast .fish-got svg { width: 26px; height: 26px; }
+.toast .fish-got, .toast .fossil-got { display: inline-flex; align-items: center; gap: 6px; }
+.toast .fish-got svg, .toast .fossil-got svg { width: 26px; height: 26px; }
 .key-item { display: flex; align-items: center; gap: 10px; background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; padding: 8px 10px; margin-bottom: 10px; box-shadow: 0 3px 0 var(--ink); }
 .key-item svg { width: 44px; height: 44px; flex: 0 0 auto; }
 .key-item .nm { font-weight: 800; }
@@ -488,6 +487,10 @@ html, body {
 .bone-card { text-align: center; }
 .bone-card .art { margin: 2px auto 6px; width: 100%; max-width: 300px; aspect-ratio: 16 / 10; display: grid; place-items: center; background: radial-gradient(circle at 50% 55%, #FFF6DE, #E9D6AE); border: 3px solid var(--ink); border-radius: 18px; }
 .bone-card .art svg { width: 90%; height: 86%; }
+.bone-card .art { position: relative; }
+.bone-card .badge { position: absolute; left: -6px; top: -10px; background: var(--pink); border: 2.5px solid var(--ink); border-radius: 10px; padding: 1px 8px; font-weight: 900; font-size: 13px; transform: rotate(-6deg); }
+.bone-card .muted { word-break: keep-all; }
+.dig-info .nm { word-break: keep-all; }
 .bone-card .nm { font-size: 19px; font-weight: 900; }
 .bone-card .dn { font-size: 13px; font-weight: 800; color: #8a7d6a; }
 .bone-card .stars { color: #E0A21E; font-size: 18px; letter-spacing: 2px; }

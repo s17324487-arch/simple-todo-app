@@ -474,6 +474,8 @@ class NewTask extends TaskBase {
 | `fishGive(id, n)` | ③ 魚を いけすに 入れる（ずかんにも のる。大きさは `Fishing.size`）。ずかんの きろくを かえす |
 | `rod(n)` / `fishing(place, fishId)` / `fishState()` / `fishInput(kind)` / `fishSkip()` / `fishShore(map)` | ③ さおを もたせる／釣りの 画面を はじめる（その 魚が かかる）／いまの ようす／なげる・まく・はなす／まつ を とばす／歩いて 行ける 水べと 向き |
 | `fossilGive(key, n)` | ④ 骨を もたせる（`"trex.skull"` など）。もって いる 数を かえす |
+| `pick(n)` / `fossilRocks(map)` / `fossilSpot(map)` | ④ ピッケルを もたせる（0／1）／きょうの いわ `[[x, y], ...]`（ほった ものは のぞく）／いわの となりの 立てる マス `{ x, y, dir, rock }` |
+| `fossilDig(site, key)` / `digTap(x, y)` / `digState()` / `fossilState()` | ④ ほる 画面を ひらく（key の 骨が 出る。いわとは むすばない）／マスを たたく（x 0〜6・y 0〜4）／`{ hp, area, taps, done, cols, rows }`／`{ pick, bones, dug }` の うつし |
 
 新しいお店を足したら `mg()` にそのお店の `order`（注文の中身）を足す。
 
@@ -716,6 +718,9 @@ Fishing.KEEP_MAX（30）と keepCount()。Fishing.card は いけすへ／にが
 
 ### 骨の データ・絵・かせき ノート（FEAT-09）
 `fossil-data.js`（FOSSIL_DATA・自動生成。元は `tools/feature-design/fossil-data.mjs`）・`fossil-art.js`（FossilArt。見本 FossilArtRef と同じ）・`fossils.js`（Fossils）を fishing.js の後に読む。Save.fresh().fossil（pick・bones・dug）を追加（migrate の補完だけ）。Menu.dex は まもの／さかな／かせき、かせきは Fossils.note（10種の骨格・ない骨は点線・そろった！）と Fossils.detail（UI.modal）。TownFolk.features().fossil はピッケルを持つまで false。
+
+### ピッケルと ほる（FEAT-10）
+Fossils に見本 FossilRef の rng・rocks・pick・Dig・drawDig・rockSvg・pickSvg をそのまま入れた。Talk.run は Fishing.talked の次に Fossils.talked（ケロスケが pick=1）。いわは Fossils.candidates(map)（入口から行ける・水いがいのかべのとなり・水のとなりでない・ワープ/人/宝箱などのまわりでない・ふさいでも道がきれない）から見本 rocks で日づけごとに選び、Save.d.fossil.dug.at[map] の分をのぞく（rocksOn）。WorldScene は this.rocks と rockAt(x, y) を持ち、walkable・enemyCan・町の人のさんぽで通れなくする（map.isSolid は変えない）。描画は SvgCache「fossil:rock」。タップ／ok／「ほる」ボタン（.act-btn.fossil-go-btn。Fishing.refreshButton の後の Fossils.refreshButton。「つる」が出ている間は出さない）→ interact({type:"rock"}) → Fossils.dig（UI.modal＋canvas の digModal → card か おまけ → dug に入れて this.rocks から消す → TownFolk.progress({do:"dig"})）。「つる」も .act-btn（下のまん中）に移した。
 
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。

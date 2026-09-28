@@ -249,7 +249,7 @@ const Fishing = {
     const sp = G.scene === sc && !sc.busy && !UI.busy && !Game.trans && this.spotAt(sc);
     if (!sp) { this.hideButton(); return; }
     if (this.button) return;
-    this.button = UI.btn(`${this.rodSvg()}<span>つる</span>`, () => this.start(sc), "fish-go-btn");
+    this.button = UI.btn(`${this.rodSvg()}<span>つる</span>`, () => this.start(sc), "act-btn fish-go-btn");
     this.button.setAttribute("aria-label", "つる");
     UI.root.append(this.button);
   },

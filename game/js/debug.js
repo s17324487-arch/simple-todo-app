@@ -325,6 +325,27 @@ const PokaDebug = {
   },
   // ④ 骨を もたせる（key は "trex.skull" など）。もって いる 数を かえす
   fossilGive(key, n = 1) { if (!Fossils.bone(key)) throw new Error("unknown bone: " + key); Fossils.give(key, n); return Save.d.fossil.bones[key]; },
+  // ④ ピッケルを もたせる（0 なし／1 あり）
+  pick(n = 1) { Save.d.fossil.pick = n; Save.mark(); return n; },
+  // ④ ほる 画面を ひらく（key を わたすと その 骨が 出る。いわとは むすばない）。おわると Fossils.dig の けっか
+  fossilDig(site = "cave", key) {
+    if (key && !Fossils.bone(key)) throw new Error("unknown bone: " + key);
+    const sc = G.sceneName === "world" ? G.scene : null;
+    if (sc) sc.busy = true;
+    Fossils.dig(null, null, { key: key || null, site }).finally(() => { if (sc) sc.busy = false; });
+    return true;
+  },
+  // ④ ほる 画面の マスを たたく（x 0〜6・y 0〜4）。{ left, done, stars } か null
+  digTap(x, y) { return Fossils.digging ? Fossils.digging.tap(x, y) : null; },
+  digState() { const g = Fossils.digging && Fossils.digging.dig; return g ? { hp: [...g.hp], area: { ...g.area }, taps: g.taps, done: g.done, cols: g.cols, rows: g.rows } : null; },
+  fossilState() { return JSON.parse(JSON.stringify({ pick: Save.d.fossil.pick, bones: Save.d.fossil.bones, dug: Save.d.fossil.dug })); },
+  // ④ きょうの いわ（[[x, y], ...]）と、いわの となりの 立てる マス（{ x, y, dir, rock }）
+  fossilRocks(map = "cave") { return Fossils.rocksOn(map); },
+  fossilSpot(map = "cave") {
+    const m = Maps.get(map), D = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }, rocks = Fossils.rocksOn(map);
+    for (const r of rocks) for (const [dir, [dx, dy]] of Object.entries(D)) { const x = r[0] - dx, y = r[1] - dy; if (!m.isSolid(x, y) && !m.warpAt(x, y) && !rocks.some(([a, b]) => a === x && b === y)) return { x, y, dir, rock: r }; }
+    return null;
+  },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
   rod(n = 1) { Save.d.fish.rod = n; Save.mark(); return n; },
   // 釣りの 画面を はじめる（fishId を わたすと その 魚が かかる）。もどり先は いまの 町の 場所

@@ -82,6 +82,12 @@ const Menu = {
       key.querySelector(".nm").textContent = `だいじな もの：${rod.name}`;
       el.append(key);
     }
+    // ④ ピッケル
+    if (typeof Fossils !== "undefined" && Fossils.data() && Fossils.hasPick()) {
+      const key = U.el("div", { class: "key-item", html: `${Fossils.pickSvg()}<div><div class="nm"></div><div class="muted">ひびの ある いわの そばで「ほる」が でるよ</div></div>` });
+      key.querySelector(".nm").textContent = `だいじな もの：${Fossils.data().pick.name}`;
+      el.append(key);
+    }
     const ids = Object.keys(d.bag).filter((k) => d.bag[k] > 0 && BAG_INDEX[k]);
     if (!ids.length) { el.append(U.el("div", { class: "note", text: "もちものは からっぽ。スーパーで かえるよ。" })); return; }
     const grid = U.el("div", { class: "grid" });
