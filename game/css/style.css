@@ -383,7 +383,9 @@ html, body {
 .folk-trade .folk-it svg { width: 42px; height: 42px; }
 .folk-trade .folk-it i { position: absolute; right: -8px; bottom: -8px; font-style: normal; font-weight: 800; font-size: 13px; background: var(--yellow); border: 2px solid var(--ink); border-radius: 9px; padding: 0 5px; }
 .folk-trade .folk-arrow { font-weight: 900; font-size: 20px; }
-.folk-trade .folk-lbl { font-size: 11px; font-weight: 800; text-align: center; margin-top: 2px; }
+.folk-trade .folk-lbl { font-size: 11px; font-weight: 800; text-align: center; margin-top: 2px; word-break: keep-all; }
+/* ④ ほねの なまえは ながい（「ティラノサウルスの しっぽの つけね」）ので、はばを きめて おりかえす */
+.folk-trade > div:not(.folk-arrow) { min-width: 0; max-width: 42%; display: flex; flex-direction: column; align-items: center; }
 /* おねがい ノート（UI.modal の 中身） */
 .folk-list { display: flex; flex-direction: column; gap: 10px; }
 .folk-card { display: grid; grid-template-columns: 56px 1fr; gap: 8px; align-items: start; padding: 8px 10px; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 3px 0 var(--ink); }

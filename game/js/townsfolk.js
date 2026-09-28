@@ -50,13 +50,14 @@ const TownFolk = {
   forced: null, // PokaDebug.folkOffer: つぎに その人と 話した とき かならず もちかける
   st() { return Save.d.folk; },
   today() { return U.today(); },
-  // もって いる もの（さかなは ③ の いけす Save.d.fish.keep。ほねは ④ で 足す）
-  have() { return { bag: Save.d.bag || {}, fish: (Save.d.fish || {}).keep || {}, bone: {} }; },
+  // もって いる もの（さかなは ③ の いけす Save.d.fish.keep、ほねは ④ の Save.d.fossil.bones）
+  have() { return { bag: Save.d.bag || {}, fish: (Save.d.fish || {}).keep || {}, bone: (Save.d.fossil || {}).bones || {} }; },
   fishName(id) { const f = typeof Fishing !== "undefined" && Fishing.fish(id); return f ? f.name : id; },
   canGive(give, have = this.have()) {
     if (give.bag) return (have.bag[give.bag] || 0) >= (give.n || 1);
     if (give.fish) return (have.fish[give.fish] || 0) >= (give.n || 1);
-    if (give.bone) return give.bone === "dup" ? Object.values(have.bone).some((n) => n >= 2) : (have.bone[give.bone] || 0) >= (give.n || 1);
+    // ④ だぶった 骨（dup）は、同じ 恐竜に まだ ない 骨が ある ときだけ（Fossils.dupTrade）
+    if (give.bone) return give.bone === "dup" ? !!(typeof Fossils !== "undefined" && Fossils.data() && Fossils.dupTrade(have.bone)) : (have.bone[give.bone] || 0) >= (give.n || 1);
     return false;
   },
   needsOk(needs, c) { return (needs || []).every((f) => c.feature[f]); },
@@ -321,24 +322,34 @@ const TownFolk = {
 
   // ---- 物々交換（3番）: わたす → もらう の カードを 出して きく ----
   async barter(off, who) {
-    const bt = off.bt, i = await UI.ask(bt.text, ["こうかん する", "やめておく"], { face: who.face, name: who.name, extra: this.tradeCard(bt) });
+    const bt = this.resolve(off.bt), i = await UI.ask(bt.text, ["こうかん する", "やめておく"], { face: who.face, name: who.name, extra: this.tradeCard(bt) });
     const ok = i === 0 && this.canGive(bt.give);
     this.answer(off, ok);
     if (ok) {
       if (bt.give.bag) Save.d.bag[bt.give.bag] = Math.max(0, (Save.d.bag[bt.give.bag] || 0) - (bt.give.n || 1));
       if (bt.give.fish) { const k = Save.d.fish.keep; k[bt.give.fish] = Math.max(0, (k[bt.give.fish] || 0) - (bt.give.n || 1)); } // いけすから
+      if (bt.give.bone) Fossils.take(bt.give.bone, bt.give.n || 1); // ④ だぶった 骨
       const loot = this.lootOf(bt.get), msg = loot ? Loot.give(loot) : "";
       Sound.se("coin"); UI.toast("こうかん した！", "good");
       if (msg) await UI.say([{ text: msg }]);
+      if (bt.get.bone) { const first = !Fossils.st().bones[bt.get.bone]; Fossils.give(bt.get.bone); Save.write(); await Fossils.card({ ...Fossils.bone(bt.get.bone), key: bt.get.bone }, first); }
       this.signal({ do: "have" }); this.refresh(); // かう おねがいが すすむ ことも ある
     }
     Save.write();
     return true;
   },
-  // もらう もの → Loot.give の 形（さかな・ほねの こうかんは ③④ で 足す。それまでは needs で 出ない）
+  // もらう もの → Loot.give の 形（ほねは Fossils.give で わたす）
   lootOf(o) { return o.bag ? { bag: o.bag, n: o.n || 1 } : o.furn ? { furn: o.furn } : o.wear ? { wear: o.wear } : null; },
-  thingArt(o) { const f = o.fish && typeof Fishing !== "undefined" && Fishing.fish(o.fish); return o.bag ? Art.iconSvg("bag", o.bag) : o.wear ? Art.iconSvg("wear", o.wear) : o.furn ? Art.iconSvg("furn", o.furn) : f ? Fishing.svg(f, "t" + f.id) : ""; },
-  thingName(o) { return o.bag ? BAG_INDEX[o.bag].name : o.wear ? ITEM_INDEX[o.wear].name : o.furn ? FURN_INDEX[o.furn].name : o.fish ? this.fishName(o.fish) : ""; },
+  // ④ データの「だぶった 骨（dup）→ 同じ 恐竜の まだ ない 骨（missing-same-dino）」を、いま もって いる 骨で きまった 2つに する
+  resolve(bt) {
+    if (bt.give.bone !== "dup" || typeof Fossils === "undefined" || !Fossils.data()) return bt;
+    const t = Fossils.dupTrade(); return t ? { ...bt, give: { bone: t.give, n: 1 }, get: { bone: t.get, n: 1 } } : bt;
+  },
+  thingArt(o) {
+    const f = o.fish && typeof Fishing !== "undefined" && Fishing.fish(o.fish), b = o.bone && typeof Fossils !== "undefined" && Fossils.bone(o.bone);
+    return o.bag ? Art.iconSvg("bag", o.bag) : o.wear ? Art.iconSvg("wear", o.wear) : o.furn ? Art.iconSvg("furn", o.furn) : f ? Fishing.svg(f, "t" + f.id) : b ? FossilArt.partSvg(b.dino, b.part.id) : "";
+  },
+  thingName(o) { return o.bag ? BAG_INDEX[o.bag].name : o.wear ? ITEM_INDEX[o.wear].name : o.furn ? FURN_INDEX[o.furn].name : o.fish ? this.fishName(o.fish) : o.bone && typeof Fossils !== "undefined" ? Fossils.boneName(o.bone) : ""; },
   tradeCard(bt) {
     const cell = (o) => `<div><div class="folk-it">${this.thingArt(o)}<i>×${o.n || 1}</i></div><div class="folk-lbl">${this.thingName(o)}</div></div>`;
     return U.el("div", { class: "folk-trade", html: `${cell(bt.give)}<div class="folk-arrow">→</div>${cell(bt.get)}` });

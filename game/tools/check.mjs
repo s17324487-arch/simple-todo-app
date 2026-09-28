@@ -845,6 +845,13 @@ if (ok(!!FO, "FOSSIL_DATA が ない（js/fossil-data.js）")) {
   ok(digFlow.noPick && digFlow.near && digFlow.moving && digFlow.far, "「ほる」ボタンの 出る ときが 不正 " + JSON.stringify(digFlow));
   for (const [what, svg] of vm.runInContext(`[["いわ",Fossils.rockSvg()],["ピッケル",Fossils.pickSvg()],...["crystal","amber","ammonite"].map(k=>["おまけ "+k,Fossils.extraSvg(k)])]`, ctx)) svgOk(svg, what);
   ok(vm.runInContext(`FOSSIL_DATA.extras.map(x=>Fossils.extraKind(x)).join()`, ctx) === "crystal,amber,ammonite", "おまけの 絵が データと あわない");
+  // 3番: ② の 物々交換（ケロスケ）: だぶった 骨 → 同じ 恐竜の まだ ない 骨。そろった 恐竜の だぶりでは 出ない。TownFolk.have().bone は Save.d.fossil.bones
+  const trade = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();Save.d.fossil.pick=1;const bt=TOWNSFOLK_DATA.barter.find(b=>b.id==="bt-explorer-bone"),can=()=>TownFolk.canGive(bt.give);
+    const none=!can()&&Fossils.dupTrade()===null;Fossils.give("compso.head",2);Fossils.give("compso.body");const full=!can()&&Fossils.dupTrade()===null;
+    Fossils.give("trex.skull",2);Fossils.give("trex.neck");const t=Fossils.dupTrade(),r=TownFolk.resolve(bt),yes=can()&&TownFolk.have().bone===Save.d.fossil.bones;
+    const card=TownFolk.thingName(r.give)+"→"+TownFolk.thingName(r.get),art=TownFolk.thingArt(r.get).startsWith("<svg");Fossils.take("trex.skull");const after=!can()&&Save.d.fossil.bones["trex.skull"]===1;
+    Save.d=old;return {none,full,t,card,art,yes,after};})()`, ctx);
+  ok(trade.none && trade.full && trade.yes && trade.after && trade.t && trade.t.give === "trex.skull" && trade.t.get === "trex.chest" && trade.card === "ティラノサウルスの あたま→ティラノサウルスの むね" && trade.art, "だぶった 骨の 物々交換が 不正 " + JSON.stringify(trade));
 }
 
 finish();

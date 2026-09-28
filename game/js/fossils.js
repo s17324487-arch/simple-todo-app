@@ -13,6 +13,18 @@ const Fossils = {
   // 骨の id「<恐竜>.<部品>」→ { dino, part }
   bone(key) { const [id, pid] = String(key).split("."), d = this.dino(id), p = d && d.art.parts.find((x) => x.id === pid); return p ? { dino: d, part: p } : null; },
   give(key, n = 1) { const st = this.st(); st.bones[key] = (st.bones[key] || 0) + n; Save.mark(); },
+  // 3番: 骨を へらす（② の 物々交換で わたす）と、なまえ（「ティラノサウルスの あたま」）
+  take(key, n = 1) { const st = this.st(); st.bones[key] = Math.max(0, (st.bones[key] || 0) - n); Save.mark(); },
+  boneName(key) { const b = this.bone(key); return b ? `${b.dino.name}の ${b.part.name}` : key; },
+  // 3番: ② の 物々交換（ケロスケ「だぶった 骨 → 同じ 恐竜の まだ ない 骨」）。2こ いじょう ある 骨と、
+  // その 恐竜の まだ ない 骨を データの じゅんで 1つずつ（{ give, get }）。そろった 恐竜の だぶりは つかわない。なければ null
+  dupTrade(own = this.st().bones) {
+    for (const d of this.data().dinos) {
+      const dup = d.art.parts.find((p) => (own[d.id + "." + p.id] || 0) >= 2), miss = d.art.parts.find((p) => !own[d.id + "." + p.id]);
+      if (dup && miss) return { give: d.id + "." + dup.id, get: d.id + "." + miss.id };
+    }
+    return null;
+  },
   total() { return this.data().dinos.reduce((a, d) => a + d.art.parts.length, 0); },
   count() { return this.data().dinos.reduce((a, d) => a + this.have(d).length, 0); },
 
