@@ -49,6 +49,7 @@ class Walker {
 
 class WorldScene {
   async enter(p = {}) {
+    DailyPlay.visit();
     const w = Save.d.world;
     this.mapId = p.map || w.map || "town";
     this.map = Maps.get(this.mapId);

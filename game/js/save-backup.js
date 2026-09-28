@@ -34,6 +34,7 @@ const SaveBackup={
     for(const r of Object.values(data.rooms?.stored||{}))room(r);
     if(data.rooms&&(!HomeRooms.catalog.some(r=>r.id===data.rooms.active)||!data.rooms.owned[data.rooms.active]))bad();
     if(data.world&&(!MAP_DEFS[data.world.map]||!Number.isInteger(data.world.x)||!Number.isInteger(data.world.y)))bad();
+    if(data.daily){const d=data.daily;if(!['stamps','total','cycles'].every(k=>Number.isSafeInteger(d[k])&&d[k]>=0)||d.stamps!==(d.total?(d.total-1)%7+1:0)||d.cycles!==Math.floor(d.total/7)||(d.last!==''&&DailyPlay.dayIndex(d.last)===null))bad();}
     // 有料パズルの中断盤面も、そのまま安全に再開できる形で保持する。
     if(data.puzzle?.active!=null){
       const run=data.puzzle.active,s=run?.state,template=new NakayoshiPuzzle(1).s;

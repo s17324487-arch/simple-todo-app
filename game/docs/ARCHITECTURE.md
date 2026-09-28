@@ -687,6 +687,8 @@ WebKitのオフライン模擬はfile://も遮断するため、ローカルフ�
 ### お店のレベル装飾（V2-06）
 `ShopDecor` は既存の `shops[id].lv` から1/3/5の段階を求める。通常建物のSVGへ星・鉢植え・旗を加え、WorldSceneのキャッシュキーに有限の `shopTier` を追加。平和台は見本のSVGを変えず、別の有限キャッシュで重ねる。店内とミニゲームも同じ段階で描画。セーブ・建物寸法・通行判定は変わらない。PokaDebug.shopDecor(id)は段階と関係するキャッシュキーを返す。
 
+### 毎日のスタンプ（V2-09）
+DailyPlay は U.today() を日単位の数値に変換し、最後の取得日より新しい日にだけ daily の記録を進める。7日ごとの報酬は coins と bag へ加算。daily は追加項目だけで旧セーブの値を保持する。おすすめは日付と実装済み店舗表から決まり、ShopScene.enter で倍率を固定する。PokaDebug.dailyVisit / dailyState で日付境界と再取得防止を検査する。
 ### おうちの吹き出し（FEAT-01）
 `HomeBubbles` は `tools/feature-design/home-bubble-ref.js` のCanvas描画と候補配置を移植。`HomeLife` が頭の投影・表示寿命・2つまでの制限・かけあいの待ち行列を管理する。会話ログはシーン内だけ、セーブの形は変えない。PokaDebug.homeSay / homeTalkLog / homeBubbleState で全6種類と通常・みまもりの配置を検証する。
 CIは両ブラウザの全シナリオを4分割し、各シナリオ終了時にブラウザプロセスも閉じて描画資源を解放する。`--list --full --shard=1/4` で対象一覧を検査できる。リトライ・失敗無視は行わない。
