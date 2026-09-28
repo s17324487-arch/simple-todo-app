@@ -662,3 +662,7 @@ TOWN-03で `heiwadai-assets-ab.js` を追加し、107種類・236パターンを
 ## ver2: お店ごとのファイル
 
 `minigames.js` は共通の絵・店主・ShopScene・ボタン・TaskBase・空の MG_TASKS を定義。その後の `mg-crepe.js` / `mg-dentist.js` / `mg-bakery.js` / `mg-florist.js` が元と同じクラスを定義し、それぞれ MG_TASKS に登録する。これらの後に world-expansion.js / arcade.js を読み込む。採点・注文・セーブの意味は変更しない。
+
+## ver2: ケーキ屋
+
+`mg-cake.js` の CakeTask は TaskBase を継承。want/made の土台・クリーム・果物・個数・ろうそくを比較し、Lv1は果物、Lv2は土台とクリーム、Lv3以降はろうそくも選択する。Lv3〜5は注文が7/5/3.5秒で隠れ、再表示は既存の8点減点。CakeTaskの描画はCanvasと有限の果物アイコンのみ。店は町(10,32)の南向き入口から既存のStoreSceneへ入る。Save.shops.cake は追加項目で、旧所持金や既存の店記録は変えない。PokaDebug.mg().order に段階・注文・選択肢の名前を返す。

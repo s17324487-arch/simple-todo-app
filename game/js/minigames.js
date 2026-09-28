@@ -399,7 +399,7 @@ class ShopScene {
     const W = G.W, y = this.viewH + 10;
     ctx.save();
     ctx.font = "900 13px 'M PLUS Rounded 1c', sans-serif"; ctx.textBaseline = "middle"; ctx.fillStyle = INK;
-    ctx.textAlign = "left"; ctx.fillText(`おきゃくさん ${Math.min(this.n + 1, this.total)}/${this.total}`, 14, y + 10);
+    ctx.textAlign = "left"; ctx.fillText(`${Math.min(this.n + 1, this.total)} / ${this.total} にん`, 14, y + 10);
     ctx.textAlign = "right"; ctx.fillText(`コイン +${this.earn + this.tips}`, W - 14, y + 10);
     if (this.task && this.phase === "work") {
       const k = U.clamp(this.timeLeft / this.timeLimit, 0, 1);
