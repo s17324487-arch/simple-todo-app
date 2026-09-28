@@ -170,6 +170,26 @@ R.HomeRooms.switchTo("study");
 ok(R.Room.available("bed_simple") === countBefore && mig.room.items.length === 0, "別室にある家具が複製できてしまう");
 R.HomeRooms.switchTo("main");
 ok(JSON.stringify(mig.room) === oldRoom, "元の部屋の配置が変わった");
+// 拡張は部屋ごとに1回。支払前の条件と旧セーブ・配置の保持を検証する。
+const expansionSave = JSON.parse(JSON.stringify(mig));
+delete expansionSave.rooms.expanded;
+R.Save.d = R.Save.migrate(expansionSave);
+const baseArea = R.HomeDesign.W * R.HomeDesign.D, expansionRoom = JSON.stringify(R.Save.d.room), expansionFurn = JSON.stringify(R.Save.d.furn);
+ok(R.HomeDesign.W === 480 && R.HomeDesign.D === 360, "旧セーブの部屋が勝手に拡張された");
+R.Save.d.coins = 5999;
+ok(!R.HomeRooms.expand("main") && R.Save.d.coins === 5999 && R.HomeDesign.W * R.HomeDesign.D === baseArea, "残高不足で拡張/引き落としが起きた");
+R.Save.d.coins = 987654;
+ok(!R.HomeRooms.expand("garden") && !R.HomeRooms.expand("unknown") && R.Save.d.coins === 987654, "未所有/不明な部屋を拡張できる");
+ok(R.HomeRooms.expand("main") && R.Save.d.coins === 981654 && R.HomeDesign.W * R.HomeDesign.D === baseArea * 2, "拡張の面積または代金が不正");
+ok(!R.HomeRooms.expand("main") && R.Save.d.coins === 981654, "同じ部屋の拡張で二重払いが起きた");
+ok(JSON.stringify(R.Save.d.room) === expansionRoom && JSON.stringify(R.Save.d.furn) === expansionFurn, "拡張で家具・配置・壁紙・床が変わった");
+R.HomeRooms.switchTo("study");
+ok(R.HomeDesign.W * R.HomeDesign.D === baseArea && !R.HomeRooms.expand("main"), "別室が勝手に広がる/表示中でない部屋を拡張できる");
+ok(R.HomeRooms.expand("study") && R.Save.d.coins === 975654, "別室を独立して拡張できない");
+R.HomeRooms.switchTo("main");
+R.Save.d = R.Save.migrate(JSON.parse(JSON.stringify(R.Save.d)));
+ok(R.HomeDesign.W * R.HomeDesign.D === baseArea * 2 && R.Save.d.rooms.expanded.study && R.Save.d.coins === 975654 && JSON.stringify(R.Save.d.room) === expansionRoom, "拡張とコイン・部屋の再読み込みが不正");
+R.Save.d = mig;
 ok(mig.shops.florist && mig.flags && mig.v === R.Save.SCHEMA, "Save.migrate() で足りないキーが補われない");
 ok(mig.chars.wanko.name === "bポチ/b" && mig.chars.gachan.name === fresh.chars.gachan.name, `Save.migrate() が名前の HTML 記号を取りのぞかない (${mig.chars.wanko.name} / ${mig.chars.gachan.name})`);
 
@@ -275,6 +295,7 @@ for(const x of [0,120,360,480])for(const y of [0,140,230,360]){
   ok(Math.abs(q.x-x)<1e-8&&Math.abs(q.y-y)<1e-8,"おへやの床座標が往復しない");
 }
 for(const w of R.WALLPAPERS)for(const f of R.FLOORS)svgOk(R.HomeDesign.roomSvg(w.id,f.id),`部屋 ${w.id}/${f.id}`);
+svgOk(R.HomeDesign.roomSvg("wp_cream", "fl_wood", R.HomeDesign.sizes.expanded), "拡張した部屋");
 for(const f of R.FURNITURE.filter(f=>f.kind!=="wall"))for(const flip of [false,true]){
   const m=R.HomeDesign.model(f.id,{flip});
   ok([m.x,m.y,m.w,m.h,m.footW,m.footD].every(Number.isFinite)&&m.w>0&&m.h>0,`家具の投影範囲 ${f.id}/${flip}`);

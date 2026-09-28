@@ -1,9 +1,16 @@
 // 家具の所持ID・配置座標を変えず、床と高さを斜め上から投影する。
 const HomeDesign = {
-  W:480,D:360,H:230,A:.88,B:.48,uid:0,models:new Map(),
+  sizes:{standard:{w:480,d:360},expanded:{w:640,d:540}},
+  size() {
+    const rooms=typeof Save!=="undefined"&&Save.d?.rooms;
+    return this.sizes[rooms?.expanded?.[rooms.active]===true?"expanded":"standard"];
+  },
+  get W() {return this.size().w;},
+  get D() {return this.size().d;},
+  H:230,A:.88,B:.48,uid:0,models:new Map(),
   project(x,y,z=0) {return {x:(x-y)*this.A,y:(x+y)*this.B-z};},
   inverse(x,y) {return {x:(x/this.A+y/this.B)/2,y:(y/this.B-x/this.A)/2};},
-  bounds() {return {x:-this.D*this.A-12,y:-this.H-14,w:(this.W+this.D)*this.A+24,h:(this.W+this.D)*this.B+this.H+48};},
+  bounds(size=this.size()) {return {x:-size.d*this.A-12,y:-this.H-14,w:(size.w+size.d)*this.A+24,h:(size.w+size.d)*this.B+this.H+48};},
   poly(points,fill,line=1.5) {return `<polygon points="${points.map(p=>`${f2(p.x)},${f2(p.y)}`).join(" ")}" fill="${fill}" stroke="${INK}" stroke-width="${line}" stroke-linejoin="round"/>`;},
   texture(p,w,h) {
     if(p.pat==="plank"||p.pat==="parquet"){
@@ -21,8 +28,8 @@ const HomeDesign = {
       if(p.pat==="panel")s+=`<rect y="${h-70}" width="${w}" height="70" fill="${p.c2}"/>`+Array.from({length:Math.ceil(w/32)},(_,i)=>`<path d="M${i*32+7},${h-61} h20 v52 h-20 Z" fill="none" stroke="${p.base}" stroke-opacity=".55" stroke-width="1.5"/>`).join("");
     }return s;
   },
-  roomSvg(wall,floor) {
-    const b=this.bounds(),wp=WALL_INDEX[wall]||WALLPAPERS[0],fl=FLOOR_INDEX[floor]||FLOORS[0],uid="room-design-"+(++this.uid),p=(x,y,z=0)=>this.project(x,y,z),W=this.W,D=this.D,H=this.H;
+  roomSvg(wall,floor,size=this.size()) {
+    const b=this.bounds(size),wp=WALL_INDEX[wall]||WALLPAPERS[0],fl=FLOOR_INDEX[floor]||FLOORS[0],uid="room-design-"+(++this.uid),p=(x,y,z=0)=>this.project(x,y,z),W=size.w,D=size.d,H=this.H;
     let s=`<defs><clipPath id="${uid}-left"><rect width="${D}" height="${H}"/></clipPath><clipPath id="${uid}-right"><rect width="${W}" height="${H}"/></clipPath></defs>`;
     s+=this.poly([p(0,D),p(W,D),p(W,D,-22),p(0,D,-22)],"#6B4934")+this.poly([p(W,0),p(W,D),p(W,D,-22),p(W,0,-22)],"#8A6140");
     for(const [side,L] of [["left",D],["right",W]]){

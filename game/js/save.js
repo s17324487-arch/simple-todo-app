@@ -44,7 +44,7 @@ const Save = {
         wallpapers: { wp_cream: true }, floors: { fl_wood: true },
         nextUid: 6,
       },
-      rooms: { active: "main", owned: { main: true }, stored: {} },
+      rooms: { active: "main", owned: { main: true }, stored: {}, expanded: {} },
       shops: {
         crepe: { lv: 1, rep: 0, best: 0, plays: 0 },
         dentist: { lv: 1, rep: 0, best: 0, plays: 0 },

@@ -904,6 +904,50 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.houseButton("ねる");await H.wait(4000);await H.dialogs();await H.until(()=>PokaDebug.homeDesign().mode===null,8000);
 },{viewport,full:viewport.width===375,timeout:150000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`おへやの2倍拡張（${viewport.width}）`,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);
+  const raw=items=>items.map(({rect,anchor,...it})=>it);
+  await H.dbg("homeLayout",[...raw((await H.dbg("homeDesign")).items),{id:"stool_oak",x:390,y:540}]);
+  const legacy=await H.dbg("saveData");delete legacy.rooms.expanded;legacy.coins=987654;legacy.rooms.owned.study=true;
+  legacy.rooms.stored.study={wall:"wp_cream",floor:"fl_wood",items:[],wallpapers:{wp_cream:true},floors:{fl_wood:true},nextUid:1};
+  await H.dbg("seedSave",legacy);await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();await H.dbg("hour",12);
+  let d=await H.dbg("homeDesign");
+  expect(d.width===480&&d.depth===360&&!d.expanded,"旧セーブの部屋が勝手に広がった");
+  expect(JSON.stringify(raw(d.items))===JSON.stringify(legacy.room.items)&&(await H.dbg("state")).coins===987654,"旧セーブの配置/おかねが変わった");
+  await H.shot("before");
+  await H.dbg("coins",5999-987654);await H.houseButton("おへや");
+  expect(await H.page.getByRole("button",{name:"2ばいに ひろげる",exact:true}).isDisabled(),"残高不足でも拡張できる");
+  await H.page.locator(".modal-wrap .close").last().click();await H.wait(220);
+  await H.dbg("coins",987654-5999);await H.houseButton("おへや");
+  const button=H.page.getByRole("button",{name:"2ばいに ひろげる",exact:true}),box=await button.boundingBox();
+  expect(box.height>=44&&box.x>=0&&box.x+box.width<=viewport.width,"拡張ボタンが小さい/画面外");
+  await H.shot("menu");await button.click();await H.choose(1);
+  expect((await H.dbg("state")).coins===987654&&!(await H.dbg("homeDesign")).expanded,"キャンセルで支払い/拡張が起きた");
+  await button.click();await H.choose(0);await H.until(()=>PokaDebug.idle()&&PokaDebug.homeDesign()?.expanded);
+  d=await H.dbg("homeDesign");
+  expect(d.width*d.depth===480*360*2&&(await H.dbg("state")).coins===981654,"2倍の面積または6000コインの支払いが不正");
+  expect(JSON.stringify(raw(d.items))===JSON.stringify(legacy.room.items)&&JSON.stringify(d.furn)===JSON.stringify(legacy.furn)&&d.wall===legacy.room.wall&&d.floor===legacy.room.floor,"拡張で家具・壁紙・床が変わった");
+  const expandedBg=d.background;await H.wait(500);await H.shot("expanded");
+  await H.houseButton("おへや");expect(await H.page.getByRole("button",{name:"ひろげたよ",exact:true}).isDisabled(),"2回目の拡張が可能");
+  await H.page.locator(".modal-wrap .close").last().click();await H.wait(220);await H.houseButton("もようがえ");
+  d=await H.dbg("homeDesign");const stool=d.items.find(it=>it.id==="stool_oak"),start={x:stool.rect.x+stool.rect.w*.5,y:stool.rect.y+stool.rect.h*.2};
+  const a=await H.dbg("homePoint",stool.x,stool.y),b=await H.dbg("homePoint",550,690);
+  await H.drag(start.x,start.y,start.x+b.x-a.x,start.y+b.y-a.y);
+  const moved=(await H.dbg("homeDesign")).items.find(it=>it.uid===stool.uid);
+  expect(Math.abs(moved.x-550)<2&&Math.abs(moved.y-690)<2,"広がった床へ家具を置けない");await H.shot("new-floor");
+  await H.page.locator(".edit-bar").getByRole("button",{name:"おわる",exact:true}).click();
+  const arranged=raw((await H.dbg("homeDesign")).items);
+  await H.houseButton("おへや");await H.page.locator('[data-room="study"]').getByRole("button",{name:"このへやへ",exact:true}).click();await H.idle();
+  d=await H.dbg("homeDesign");expect(!d.expanded&&d.width===480&&d.depth===360&&d.background!==expandedBg,"未拡張の別室へ広さ/背景が漏れた");
+  await H.houseButton("おへや");await H.page.getByRole("button",{name:"2ばいに ひろげる",exact:true}).click();await H.choose(0);await H.until(()=>PokaDebug.idle()&&PokaDebug.homeDesign()?.expanded);
+  expect((await H.dbg("state")).coins===975654,"別室拡張の支払いが不正");
+  await H.houseButton("おへや");await H.page.locator('[data-room="main"]').getByRole("button",{name:"このへやへ",exact:true}).click();await H.idle();
+  await H.dbg("save");await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  d=await H.dbg("homeDesign");expect(d.expanded&&d.stored.expanded.study&&d.width*d.depth===480*360*2&&JSON.stringify(raw(d.items))===JSON.stringify(arranged)&&(await H.dbg("state")).coins===975654,"再開で拡張・家具・おかねが変わった");
+  await H.page.getByRole("button",{name:"おへやを おおきく",exact:true}).click();expect((await H.dbg("homeDesign")).zoom===1.25,"拡張後に拡大できない");
+  await H.page.getByRole("button",{name:"おへやを ぜんたいに",exact:true}).click();
+},{viewport,full:viewport.width===375,timeout:120000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`落ち葉・背景に固定（${viewport.width}）`,async H=>{
   await H.newGameFast();await H.dbg("calendar","2026-10-15");await H.dbg("hour",12);await H.dbg("weather","wind");
   await H.dbg("teleport","heiwadai",16,28);await H.idle();await H.wait(300);

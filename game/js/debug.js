@@ -160,7 +160,7 @@ const PokaDebug = {
     if(G.sceneName !== "house")return null;
     const sc=G.scene, canvas=G.canvas.getBoundingClientRect(), point=p=>({x:canvas.left+p.x*G.cssPerUnit,y:canvas.top+p.y*G.cssPerUnit});
     const rect=r=>({...point(r),w:r.w*G.cssPerUnit,h:r.h*G.cssPerUnit});
-    return {width:ROOM.W,depth:HomeDesign.D,zoom:sc.zoom,pan:{...sc.pan},mode:sc.mode,selected:sc.sel?.uid,
+    return {width:ROOM.W,depth:HomeDesign.D,expanded:!!Save.d.rooms.expanded[Save.d.rooms.active],background:sc.bgArgs[0],zoom:sc.zoom,pan:{...sc.pan},mode:sc.mode,selected:sc.sel?.uid,
       items:Save.d.room.items.map(it=>({...it,rect:rect(sc.itemRect(it)),anchor:FURN_INDEX[it.id].kind==="wall"?point(sc.wallPoint(it)):point(sc.toScreen(sc.anchor(it).x,sc.anchor(it).y))})),
       actors:[...sc.chars,...sc.parents].map(c=>({id:c.id,state:c.state,rect:rect(sc.actorRect(c,sc.parents.includes(c)))})),
       ball:sc.ball?{...point(sc.ballPoint(sc.ball)),hits:sc.ball.hits}:null,
