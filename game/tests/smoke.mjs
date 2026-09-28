@@ -964,6 +964,30 @@ function checkHomeBubbles(s) {
   for(const b of s.boxes){expect(b.x>=s.area.left&&b.y>=s.area.top&&b.x+b.w<=s.area.right+.01&&b.y+b.h<=s.area.bottom+.01,'吹き出しが表示範囲からはみ出す');expect(Math.hypot(b.tail.x-b.anchor.x,b.tail.y-b.anchor.y)<=30,'しっぽが話者の頭から離れる');}
   for(let i=0;i<s.boxes.length;i++)for(let j=i+1;j<s.boxes.length;j++){const a=s.boxes[i],b=s.boxes[j];expect(!(a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y),'吹き出しが重なる');}
 }
+// ② 町の人の セリフ: 時間・天気で えらぶ・町の なかまは 役の 名前と セリフ・3人の ひとこと
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('townsfolk-lines-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','clear');
+  const talk=async(id)=>{expect(await H.dbg('folkTalk',id),id+' に 話しかけられない');await H.wait(350);return H.dbg('folkLast');};
+  for(const id of ['mayor','town_walker0']){await talk(id);await H.dialogs();await H.idle();} // はじめては いまの あいさつ（村長の プレゼントも いまの まま）
+  const before=await H.dbg('saveData');
+  let data=0,shot=false;
+  for(let i=0;i<12;i++){
+    const last=await talk('mayor');
+    if(last.line){data++;const l=await H.dbg('folkLine',last.line),w=l.when||{};expect(l.npc==='mayor','村長で ない セリフ: '+l.text);
+      expect(!w.time||w.time.includes('morning'),'あさ なのに ほかの 時間の セリフ: '+l.text);expect(!w.weather||w.weather.includes('clear'),'はれ なのに ほかの 天気の セリフ: '+l.text);expect(!w.bond,'なかよしの セリフが まだ 出る: '+l.text);
+      if(!shot){shot=true;await H.wait(1200);await H.shot('mayor');}}
+    await H.dialogs();await H.idle();
+    const r=(await H.dbg('folkLast')).react;if(r){const x=await H.dbg('folkLine',r);expect(x&&['wanko','gachan','goji'].includes(x.who)&&(!x.when.person||x.when.person.includes('mayor')),'3人の ひとことが 不正');}
+  }
+  expect(data>=5,'町の人の セリフが データから 出ない（'+data+'/12）');
+  // 町の なかま（town_walker0）: 会話まどの 名前は 役の 名前、セリフは 役の もの
+  await talk('town_walker0');expect((await H.page.locator('.dlg-name').first().textContent())==='おさんぽの なかま','町の なかまの 名前が ちがう');await H.dialogs();await H.idle();
+  if((await H.dbg('folkLast')).line)expect((await H.dbg('folkLine',(await H.dbg('folkLast')).line)).npc==='town_walker','町の なかまが 役の セリフを つかわない');
+  let crowd=0;for(let i=0;i<6;i++){const last=await talk('town_walker0');if(last.line){crowd++;expect((await H.dbg('folkLine',last.line)).npc==='town_walker','町の なかまが 役の セリフを つかわない');if(crowd===1){await H.wait(1200);await H.shot('crowd');}}await H.dialogs();await H.idle();}
+  expect(crowd>=2,'町の なかまの セリフが 出ない');
+  const after=await H.dbg('saveData');for(const k of ['coins','bag','wardrobe','furn','rooms'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'会話で セーブが 変わる: '+k);
+},{viewport,full:viewport.width===375,timeout:150000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');

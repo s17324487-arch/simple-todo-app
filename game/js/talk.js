@@ -93,25 +93,34 @@ const Talk = {
     if (!t) return;
     Sound.se("tap");
     const face = Art.npcSvg({ sp: n.sp, col: n.col, stripe: n.stripe, outfit: n.outfit, emo: "happy" });
-    const f = Save.d.flags;
-    let lines;
+    const f = Save.d.flags, name = typeof TownFolk !== "undefined" ? TownFolk.name(n) : n.name;
+    let lines, line = null;
     if (!f.talked[n.id] && t.first) {
       lines = t.first;
       f.talked[n.id] = true;
       Save.mark();
     } else if (t.boss && Save.d.flags.boss && U.chance(0.4)) lines = t.boss;
-    else lines = U.pick(t.lines);
-    await UI.say(lines.map((text) => ({ name: n.name, face, text })));
+    else {
+      // 3わりは あそびかたの ヒント（TALKS）、7わりは 町の人の セリフ（TOWNSFOLK_DATA。時間・天気・季節・おまつり・ボスの あと で えらぶ）
+      line = typeof TownFolk !== "undefined" && !U.chance(TownFolk.TIP_SHARE) ? TownFolk.line(n) : null;
+      lines = line ? [line.text] : U.pick(t.lines);
+    }
+    if (typeof TownFolk !== "undefined") TownFolk.last = { npc: n.id, line: line && line.id, react: null };
+    await UI.say(lines.map((text) => ({ name, face, text })));
     if (t.gift && !f["gift_" + n.id]) {
       f["gift_" + n.id] = true;
       const msg = Loot.give(t.gift);
       await UI.say([{ name: n.name, face, text: msg }]);
     }
-    // ときどき なかまが ひとこと
-    if (U.chance(0.35)) {
-      const id = U.pick(Chara.IDS);
-      const say = { wanko: ["ワン！ よろしくね！", "ふむふむ、なるほど〜"], gachan: ["ぴよっ！ おぼえたよ！", "ぴよぴよ〜♪"], goji: ["ガオー！（よろしく）", "……（こくり）"] }[id];
-      await UI.say([{ who: id, emo: "happy", text: U.pick(say) }]);
+    // ときどき なかまが ひとこと（3人の 性格に あう もの。話した あいてで かわる ものも ある）
+    if (U.chance(typeof TownFolk !== "undefined" ? TownFolk.REACT_CHANCE : 0.35)) {
+      const r = typeof TownFolk !== "undefined" ? TownFolk.react(n) : null;
+      if (r) { TownFolk.last.react = r.id; await UI.say([{ who: r.who, emo: "happy", text: r.text }]); }
+      else {
+        const id = U.pick(Chara.IDS);
+        const say = { wanko: ["ワン！ よろしくね！", "ふむふむ、なるほど〜"], gachan: ["ぴよっ！ おぼえたよ！", "ぴよぴよ〜♪"], goji: ["ガオー！（よろしく）", "……（こくり）"] }[id];
+        await UI.say([{ who: id, emo: "happy", text: U.pick(say) }]);
+      }
     }
   },
 };

@@ -75,7 +75,7 @@ const HomeLife = {
   // ---- 会話データ（HOME_TALK_DATA）から えらぶ（docs/design/features/home-talk/CODEX_TASK.md §3） ----
   RETURN_SEC: 20, AFTER_SEC: 30, RECENT: 40, NEAR: 70,
   data() { return typeof HOME_TALK_DATA !== "undefined" ? HOME_TALK_DATA : null; },
-  timeOfDay(h = U.hourNow()) { return h >= 5 && h < 10 ? "morning" : h >= 10 && h < 16 ? "day" : h >= 16 && h < 19 ? "evening" : h >= 19 && h < 23 ? "night" : "late"; },
+  timeOfDay(h) { return U.dayPart(h); },
   // 家に 入った ときの できごと: return は いつも 20秒。win・work は 前に 家に いた ときより しょうり・おてつだいが ふえて いたら（セーブしない）
   enterEvents(sc) {
     const l = sc.life, wins = Save.d.stats?.wins || 0, plays = Object.values(Save.d.shops || {}).reduce((a, s) => a + (s.plays || 0), 0);

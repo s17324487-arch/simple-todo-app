@@ -62,6 +62,8 @@ const U = {
     return d.getHours() + d.getMinutes() / 60;
   },
   svgUrl: (svg) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg),
+  // 時間の くぎり（会話の 条件 time）: morning 5–10時／day 10–16／evening 16–19／night 19–23／late 23–5
+  dayPart(h = U.hourNow()) { return h >= 5 && h < 10 ? "morning" : h >= 10 && h < 16 ? "day" : h >= 16 && h < 19 ? "evening" : h >= 19 && h < 23 ? "night" : "late"; },
   // 会話の 条件（① おうちの 会話・② 町の人 で 共通）。when の 同じ キーの 中は「どれか」、ちがう キーは「ぜんぶ」。
   // あわなければ -1、あえば あった キーの 数（feature は 数えない）。c の 値は 配列でも よい（近くの 家具・できごと など）
   condScore(when, c) {

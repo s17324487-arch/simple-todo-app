@@ -286,6 +286,23 @@ const PokaDebug = {
     Game.goto("world", { map, x, y, dir, grace: 2 }, "none");
   },
   house() { Game.trans = null; Game.goto("house", {}, "none"); },
+  // ② 町の人: その人の マップの となりへ 行って 話しかける（Talk.run）。会話は テストの がわで すすめる（またない）
+  async folkTalk(id) {
+    const map = Object.keys(MAP_DEFS).find(k => (MAP_DEFS[k].npcs || []).some(n => n.id === id)); if (!map) return false;
+    if (!(G.sceneName === "world" && G.scene.mapId === map)) {
+      const d = MAP_DEFS[map].npcs.find(n => n.id === id), w = new WorldMap(map);
+      const spot = [[0, 1], [1, 0], [-1, 0], [0, -1], [0, 2], [2, 0]].map(([dx, dy]) => [d.x + dx, d.y + dy]).find(([x, y]) => !w.isSolid(x, y)) || [d.x, d.y + 1];
+      this.teleport(map, spot[0], spot[1], "up");
+      for (let i = 0; i < 150 && !(G.sceneName === "world" && G.scene.mapId === map && this.idle()); i++) await new Promise(r => setTimeout(r, 100));
+    }
+    const n = G.sceneName === "world" && G.scene.npcs.find(n => n.id === id); if (!n || G.scene.busy) return false;
+    G.scene.interact({ type: "npc", npc: n });
+    return true;
+  },
+  // さいごに 話した 人と、出た セリフ・ひとことの id（TOWNSFOLK_DATA）
+  folkLast() { return typeof TownFolk !== "undefined" && TownFolk.last ? { ...TownFolk.last } : null; },
+  // TOWNSFOLK_DATA の セリフ／ひとこと 1つ（テストで 条件を たしかめる）
+  folkLine(id) { const D = typeof TOWNSFOLK_DATA !== "undefined" ? TOWNSFOLK_DATA : null; return D ? JSON.parse(JSON.stringify(D.lines.find(l => l.id === id) || D.react.find(l => l.id === id) || null)) : null; },
   battle(foes = [{ kind: "purun", lv: 1 }], area = "meadow", boss = false) {
     for (const f of foes) if (!ENEMIES[f.kind]) throw new Error("unknown enemy: " + f.kind);
     const w = Save.d.world;
