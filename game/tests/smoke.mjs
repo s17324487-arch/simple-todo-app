@@ -617,6 +617,22 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   if(viewport.width===390){const ctx=await browser.newContext({viewport,locale:'ja-JP'});try{await ctx.route(new RegExp("^https://fonts[.]"),r=>r.abort());const other=await ctx.newPage();await other.goto(url);await other.waitForFunction(()=>window.PokaDebug&&PokaDebug.idle());const imported=await other.evaluate(text=>PokaDebug.backupDecode(text),text);expect(imported.coins===987654&&JSON.stringify(imported.room)===JSON.stringify(fixture.room),'別ブラウザで文字列を読めない');}finally{await ctx.close();}}
 },{viewport,full:viewport.width===375,timeout:150000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('save-v1-compat-'+viewport.width,async H=>{
+  const old=JSON.parse(readFileSync(new URL('./fixtures/save-v1.json',import.meta.url),'utf8'));
+  await H.open();await H.dbg('seedLegacySave',old);expect((await H.dbg('persistedSave')).gameVersion==='1.0.0','旧形式をそのまま置けない');await H.page.reload();
+  await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle(30000);await H.shot('continued');
+  const data=await H.dbg('saveData');expect(data.coins===987654,'ver1のおかねが変わる');
+  for(const k of ['bag','wardrobe','furn','order','stats','dex'])expect(JSON.stringify(data[k])===JSON.stringify(old[k]),'ver1の持ち物・進行が変わる: '+k);
+  for(const id of old.order)for(const k of ['name','lv','exp','outfit','boost','color'])expect(JSON.stringify(data.chars[id][k])===JSON.stringify(old.chars[id][k]),'ver1のキャラが変わる: '+id+'.'+k);
+  for(const [id,rec]of Object.entries(old.shops))expect(JSON.stringify(data.shops[id])===JSON.stringify(rec),'旧お店の記録が変わる');
+  expect(data.flags.boss&&JSON.stringify(data.flags.chests)===JSON.stringify(old.flags.chests),'宝箱・ボスの記録が変わる');
+  for(const it of old.room.items){const kept=data.room.items.find(x=>x.uid===it.uid);expect(kept&&['id','x','y','flip'].every(k=>kept[k]===it[k]),'部屋の配置が変わる');}
+  expect((await H.dbg('world')).party.length===3,'3人で再開できない');
+  await H.page.getByRole('button',{name:'メニュー',exact:true}).click();await H.page.getByRole('button',{name:'おうちへ',exact:true}).click();await H.choose(0);await H.idle();await H.shot('house');
+  await H.dbg('feed','goji','apple');await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle(30000);
+  const again=await H.dbg('saveData');expect(again.coins===987654&&again.bag.apple===old.bag.apple-1&&again.wardrobe.crown,'ver2で遊んだあと保存できない');
+},{viewport,full:viewport.width===375,timeout:90000});
+
 await scenario("セーブ→つづきから", async (H) => {
   await H.newGameFast();
   await H.dbg("teleport", "town", 12, 24, "left");
