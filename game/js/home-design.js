@@ -50,7 +50,9 @@ const HomeDesign = {
     const [w,d,h]=special[id]||[f.w,f.depth||Math.min(50,f.w*.7),f.h];return {w,d,h};
   },
   model(id,opts={}) {
+    if(opts.live&&typeof FurnModels!=="undefined"){const k="live:"+id+":"+!!opts.flip;if(!this.models.has(k))this.models.set(k,FurnModels.build(id,opts)||this.model(id,{flip:opts.flip}));return this.models.get(k);}
     const key=id+":"+!!opts.flip;if(this.models.has(key))return this.models.get(key);
+    if(typeof FurnModels!=="undefined"&&FurnModels.has(id)){const m=FurnModels.build(id,opts);if(m){this.models.set(key,m);return m;}}
     if(FURN_INDEX[id]?.puzzlePrize){const m=PuzzlePrizeArt.model(id,opts);this.models.set(key,m);return m;}
     if(FURN_INDEX[id]?.shopPrize){const m=ShopRewardArt.model(id,opts);this.models.set(key,m);return m;}
     if(FURN_INDEX[id]?.cityItem){const m=IkebukuroItemArt.model(id,opts);this.models.set(key,m);return m;}
