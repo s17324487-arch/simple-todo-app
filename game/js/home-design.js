@@ -53,6 +53,7 @@ const HomeDesign = {
     const key=id+":"+!!opts.flip;if(this.models.has(key))return this.models.get(key);
     if(FURN_INDEX[id]?.puzzlePrize){const m=PuzzlePrizeArt.model(id,opts);this.models.set(key,m);return m;}
     if(FURN_INDEX[id]?.shopPrize){const m=ShopRewardArt.model(id,opts);this.models.set(key,m);return m;}
+    if(FURN_INDEX[id]?.cityItem){const m=IkebukuroItemArt.model(id,opts);this.models.set(key,m);return m;}
     const f=FURN_INDEX[id],dim=this.dimensions(id),w=dim.w,d=dim.d,h=dim.h,points=[];
     const pt=(x,y,z=0)=>{const q=opts.flip?this.project(y+d/2,x-w/2,z):this.project(x,y,z);points.push(q);return q;};
     const poly=(vs,col,stroke=1.5)=>this.poly(vs.map(v=>pt(...v)),col,stroke);

@@ -88,12 +88,12 @@ const ParentCare = {
   update(sc,dt) {
     if(document.hidden||UI.busy||sc.mode)return;
     if((sc.parentTimer-=dt)<=0){
-      const p=sc.parents[sc.parentTurn++%2];
+      const available=sc.parents.filter(p=>!p.hidden);const p=available[sc.parentTurn++%available.length];
       if(Save.d.parents.auto){if(sc.life.quarrel){HomeLife.settle(sc,false);HomeLife.say(sc,p.id,"みんなで じゅんばんこに しようね♪");}this.request(sc,p.id,false,sc.parentSpeechTurn++%2===1);}
       else if(p.state==="idle"){p.tx=U.rand(55,ROOM.W-55);p.ty=U.rand(ROOM.WALL+80,ROOM.H-50);p.state="walk";}
       sc.parentTimer=U.rand(13,18);
     }
-    for(const p of sc.parents){
+    for(const p of sc.parents.filter(p=>!p.hidden)){
       p.anim+=dt;
       if(p.state==="walk"){
         const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy),step=Math.min(d,90*dt);

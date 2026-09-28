@@ -96,7 +96,7 @@ class PuzzleScene {
     this.overlay.append(box);UI.root.append(this.overlay);
   }
   pause(){if(this.phase!=="running")return;this.clock();this.cancelChain();if(this.model.s.done){this.finish();return;}this.phase="paused";this.persist();this.overlayReady(true);}
-  leave(home=false){if(this.closed||Game.trans)return;this.persist();if(home)Game.goto("house");else Game.goto("store",{shop:"link",back:this.run.back,atCounter:true});}
+  leave(home=false){if(this.closed||Game.trans)return;this.persist();if(home)Game.goto("house");else if(this.run.back.venueReturn)Game.goto("venue",this.run.back.venueReturn);else Game.goto("store",{shop:"link",back:this.run.back,atCounter:true});}
   finish(){
     if(this.phase==="result")return;this.phase="result";this.cancelChain();this.controls.classList.add("hidden");this.overlay?.remove();
     const result=PuzzleArcade.settle(this.run);this.overlay=U.el("div",{class:"puzzle-cover puzzle-results"});

@@ -16,6 +16,11 @@ const VenueHallArt={
     else if(kind==='table')a=p('M16 41v31m95-31v31')+'<ellipse cx="64" cy="32" rx="58" ry="23" fill="#D9BD92" stroke="'+INK+'" stroke-width="2"/>'+c(48,28,11,'#FFF5D8')+r(67,19,14,18,'#BACFC3')+p('M81 22q13-3 9 10h-9')+r(2,59,25,13,'#C6AAA1')+r(100,59,25,13,'#C6AAA1');
     else if(kind==='officeDesk')a=r(3,30,120,24,'#C1B49E')+p('M12 53v21m105-21v21')+r(39,2,53,32,'#6C7E87')+r(44,7,43,22,'#B1CFD2')+p('M65 33v7m-11 0h22')+r(36,43,59,6,'#DDDFDA')+r(103,22,14,20,'#A2B894');
     else if(kind==='rack')a=p('M12 74V5h104v69M6 73h13m90 0h13')+Array.from({length:4},(_,i)=>p(`M${18+i*24} 21l9-9 9 9-4 9v24h-11V30Z`,['#EABCCF','#BACCB9','#ACBDD2','#D2BBDB'][i])).join('');
+    else if(kind==='crane')a=r(14,-2,100,78,'#CAAFCB')+r(20,8,88,45,'#D9E9E5')+p('M64 9v20m-12 0q0 18 12 9 12 9 12-9')+c(43,44,9,'#EDD1A5')+c(83,45,9,'#B1C5D9')+r(20,55,88,12,'#F4DBA0')+c(37,61,3,'#DF8FA6')+r(65,70,26,5,'#756D81');
+    else if(kind==='planter')a=r(21,53,86,22,'#BFA783')+p('M43 55V14m31 42V6m15 50V22','#9CAB83')+c(35,28,18,'#9DB88E')+c(69,20,21,'#AEC5A0')+c(88,39,18,'#8DAE87')+c(48,47,17,'#B8CFA4');
+    else if(kind==='bench')a=p('M14 57v17m96-17v17')+r(5,17,118,30,'#B49D7A')+r(3,47,122,12,'#D6C39D')+p('M9 26h109M9 36h109');
+    else if(kind==='partition')a=r(0,5,128,62,'#B1C7C3')+r(4,9,120,43,'#D9E6DE')+p('M30 10v42m34-42v42m34-42v42M5 59h118');
+    else if(kind==='foodcounter')a=r(4,32,120,43,'#C5AD8D')+r(0,24,128,12,'#E6DAC6')+r(9,0,52,26,'#52746B')+p('M16 7h34m-34 6h27m-27 6h31','#F2E6C4')+[77,96,114].map((x,i)=>r(x-7,7,13,17,['#DCC6AF','#E0B0BF','#B8C6A3'][i])+p(`M${x} 5v-8`)).join('');
     else a=r(7,25,114,48,'#D2C1A4')+r(2,17,124,12,'#EEE4D0')+p('M15 48h98m-51-17v37');
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -4 128 82">${a}</svg>`;
   },
@@ -26,7 +31,8 @@ const VenueHallArt={
     for(let x=48;x<W-48;x+=160){ctx.fillStyle='#B8D4D8';ctx.fillRect(x,24,62,45);ctx.strokeStyle='#F4F3DC';ctx.lineWidth=4;ctx.strokeRect(x,24,62,45);ctx.beginPath();ctx.moveTo(x+31,24);ctx.lineTo(x+31,69);ctx.stroke();}
     ctx.fillStyle='#FFF7E8';U.rr(ctx,W/2-140,20,280,47,5);ctx.fill();ctx.fillStyle=INK;ctx.font='bold 16px sans-serif';ctx.fillText(r.title||'',W/2,40,264);ctx.font='bold 12px sans-serif';ctx.fillText(floor+'F',W/2,58);
     if(r.hole){const h=r.hole,x=h.x*32,y=h.y*32,w=h.w*32,hh=h.h*32;ctx.fillStyle='#B9B3A9';ctx.fillRect(x,y,w,hh);ctx.save();ctx.translate(x+w/2-64,y+hh/2-38);const m=SvgCache.get('venue:fountain',()=>this.svg('fountain'),256,164);if(m)ctx.drawImage(m,0,0,128,82);ctx.restore();ctx.strokeStyle='#698B91';ctx.lineWidth=6;ctx.strokeRect(x,y,w,hh);ctx.strokeStyle='#D7ECE9';ctx.lineWidth=2;ctx.strokeRect(x-4,y-4,w+8,hh+8);for(let xx=x;xx<=x+w;xx+=32){ctx.beginPath();ctx.moveTo(xx,y);ctx.lineTo(xx,y-17);ctx.moveTo(xx,y+hh);ctx.lineTo(xx,y+hh-17);ctx.stroke();}ctx.fillStyle=INK;ctx.font='bold 12px sans-serif';ctx.fillText('1Fの ふんすい',x+w/2,y+hh/2+52);}
-    if(r.zones)for(const z of r.zones){ctx.fillStyle=z.color+'44';ctx.fillRect(z.x*32,z.y*32,z.w*32,z.h*32);ctx.fillStyle=z.color;ctx.fillRect(z.x*32,z.y*32,z.w*32,4);ctx.fillStyle=INK;ctx.font='bold 13px sans-serif';ctx.fillText(z.label,(z.x+z.w/2)*32,z.y*32-9);}
+    if(r.zones)for(const z of r.zones){ctx.fillStyle=z.color+'55';ctx.fillRect(z.x*32,z.y*32,z.w*32,z.h*32);ctx.fillStyle=z.color;ctx.fillRect(z.x*32,z.y*32,z.w*32,10);ctx.fillStyle='#FFF9E9';U.rr(ctx,(z.x+z.w/2)*32-77,z.y*32-28,154,25,3);ctx.fill();ctx.fillStyle=INK;ctx.font='bold 13px sans-serif';ctx.fillText(z.label,(z.x+z.w/2)*32,z.y*32-10);}
+    if(r.mall){const x=r.w*16,y=18*32;ctx.strokeStyle='#C5BFA7';ctx.lineWidth=3;for(const rad of [160,170]){ctx.beginPath();ctx.ellipse(x,y,rad,rad*1.2,0,0,7);ctx.stroke();}for(const xx of [14,24]){ctx.strokeStyle='#CFBE9B';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(xx*32,100);ctx.lineTo(xx*32,H-20);ctx.stroke();}}
   },
   fixture(ctx,f,time){
     const x=f.x*32,y=(f.y+f.h)*32,w=f.w*32,h=f.height||Math.max(44,Math.min(94,w*.64));let img;
@@ -36,6 +42,7 @@ const VenueHallArt={
     else{img=SvgCache.get('venue:fixture:'+f.kind,()=>this.svg(f.kind),256,164);if(img)ctx.drawImage(img,x,y-h,w,h);}
     if(f.kind==='fountain'){ctx.strokeStyle='#DEF7ED';ctx.lineWidth=2;for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(x+w/2,y-h*.62);ctx.quadraticCurveTo(x+w/2+Math.sin(i)*w*.22,y-h*(1+.12*Math.sin(time*3+i)),x+w/2+Math.cos(i)*w*.29,y-h*.25);ctx.stroke();}}
     if(f.kind==='escalator'){ctx.strokeStyle='#F6E9B2';ctx.lineWidth=2;for(let i=0;i<5;i++){const t=(time*.3+i*.2)%1;ctx.beginPath();ctx.moveTo(x+w*t*.7+7,y-h*t*.7-9);ctx.lineTo(x+w*t*.7+24,y-h*t*.7-9);ctx.stroke();}}
+    if(f.kind==='crane'&&typeof PrizeArcade!=='undefined'){const m=PrizeArcade.machines[f.machine],id=m.prize;const prize=SvgCache.get('venue:prize:'+id,()=>FURN_INDEX[id]?Art.furnSvg(id):Art.iconSvg('bag',id),120,120);if(prize)ctx.drawImage(prize,x+w*.38,y-h*.66+Math.sin(time*2)*2,w*.25,h*.36);ctx.fillStyle=['#DE94BA','#D9BB6F','#8AA8C7','#A3BC97'][Math.floor(f.machine/2)];ctx.fillRect(x+w*.14,y-h,w*.73,5);ctx.font='bold 9px sans-serif';ctx.fillStyle=INK;ctx.fillText('100コイン',x+w/2,y-h*.15);}
     if(f.label){ctx.font='bold 10px sans-serif';ctx.textAlign='center';const width=Math.min(w+44,Math.max(58,ctx.measureText(f.label).width+12));ctx.fillStyle='#FFF9E6';U.rr(ctx,x+w/2-width/2,y+2,width,17,4);ctx.fill();ctx.fillStyle=INK;ctx.fillText(f.label,x+w/2,y+14,width-5);}
   },
 };
