@@ -8,7 +8,7 @@ const FILES = [
   "./js/version.js", "./js/chara-data.js", "./js/util.js", "./js/data.js", "./js/chara.js", "./js/art.js", "./js/tiles.js", "./js/maps.js",
   "./js/save.js", "./js/sound.js", "./js/ui.js", "./js/main.js", "./js/talk.js", "./js/save-backup.js", "./js/menu.js", "./js/shop.js",
   "./js/dressup.js", "./js/scene-title.js", "./js/museum-data.js", "./js/museum-art.js", "./js/museum.js", "./js/range-data.js", "./js/gun-art.js", "./js/range.js", "./js/scene-world.js", "./js/scene-house.js", "./js/scene-battle.js", "./js/minigames.js", "./js/mg-crepe.js", "./js/mg-dentist.js", "./js/mg-bakery.js", "./js/mg-florist.js", "./js/mg-cake.js", "./js/mg-groom.js", "./js/mg-burger.js", "./js/shop-decor.js", "./js/daily-play.js", "./js/townsfolk-data.js", "./js/townsfolk-art.js", "./js/townsfolk.js", "./js/fishing-data.js", "./js/fish-art.js", "./js/fishing.js", "./js/fossil-data.js", "./js/fossil-art.js", "./js/fossils.js", "./js/scene-range.js", "./js/slow-life-prices.js", "./js/debug.js",
-  "./js/home-bubbles.js", "./js/home-talk-data.js", "./js/home-life.js", "./js/parent-care.js",
+  "./js/home-bubbles.js", "./js/home-talk-data.js", "./js/home-life.js", "./js/home-actions.js", "./js/parent-care.js",
   "./js/home-catalog.js",
   "./js/home-design.js",
   "./js/road-patterns.js", "./js/town-roads.js",
