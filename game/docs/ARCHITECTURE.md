@@ -483,6 +483,7 @@ class NewTask extends TaskBase {
 | `pick(n)` / `fossilRocks(map)` / `fossilSpot(map)` | ④ ピッケルを もたせる（0／1）／きょうの いわ `[[x, y], ...]`（ほった ものは のぞく）／いわの となりの 立てる マス `{ x, y, dir, rock }` |
 | `museumGive(kind, key)` / `museumDonate()` / `museumPick(key)` / `museumConfirm()` | ⑤ 寄贈した ことに する（"all" で ぜんぶ）／館の 人に 話しかけて 寄贈の 画面へ／えらぶ／きふする（ありがとうの 会話は またない） |
 | `museumShow(objId)` | ⑤ 展示の 説明を ひらく（`aq_flow`・`mu_trex`・`mu_f1` など） |
+| `range(course, gun, who, seed)` / `rangeInput(inp)` / `rangeAuto(sec, skill)` / `rangeState()` / `rangeEnd()` | ⑥ ロビーを とばして 射撃場で あそぶ（ロックは むし）／1フレームぶんの 入力／`ShootingRange.bot` で すぐ すすめる（音なし）／`game.hud()` ＋ `{ mode, course, gun, who, result, stars, coins, hop }`／すぐ おわらせる |
 | `museumGo(id, room)` / `museumState()` | ⑤ 館（aquarium / museum）の 入口か へやの まんなかの 手前へ／`{ fish, bones, done, rooms, intro }` |
 | `fossilDig(site, key)` / `digTap(x, y)` / `digState()` / `fossilState()` | ④ ほる 画面を ひらく（key の 骨が 出る。いわとは むすばない）／マスを たたく（x 0〜6・y 0〜4）／`{ hp, area, taps, done, cols, rows }`／`{ pick, bones, dug }` の うつし |
 
@@ -745,6 +746,9 @@ Museum.at（walk でない展示のはんい）と canShow（fish／dino／info�
 
 ### 射撃場: じゅうの 絵・町の 建物・ロビー（FEAT-15）
 `range-data.js`（RANGE_DATA・自動生成。元は `tools/feature-design/range-data.mjs`）・`gun-art.js`（GunArt。見本 GunArtRef と同じ）・`range.js`（ShootingRange。見本 RangeRef の 弾道と 絵。2番で Game・bot・draw を足す）を museum.js の後・scene-world.js の前に、`scene-range.js`（RangeScene・SCENES.range）を fossils.js の後に読む。シティの `city_range`（10,6・5×4・act: range）の入口は WorldScene.enterDoor → Game.goto("range", { back })。RangeScene は canvas に ロビーの うしろ（ラビは SvgCache「rg:staff」）を描き、update で はじめて Game.trans が なくなったら lobby（初回だけ RO の talk.first → Save.d.range.safety）→ pickWho（.rg-who）→ pickGame（.rg-tabs／.rg-courses／.rg-rule／.rg-guns／.rg-detail／.rg-hop）。ロックは cats.*.unlock と Save.d.range.best、ホップ ダイヤルは Save.d.range.hop[じゅう]。Save.fresh().range（safety・plays・best・hop）を追加（SCHEMA は そのまま）。sound.js に rg_ の 8つ。check.mjs は RANGE_DATA と GUN_LIST.md の 弾道の 表（0.1cm）と 絵を しらべる。
+
+### 射撃場: あそぶ 画面（FEAT-16）
+ShootingRange に見本 RangeRef の rng・gauss・Game・SKILL・bot・view・proj・draw* を そのまま足した（range.js は見本と名前以外同じ）。RangeScene.start が ShootingRange.Game（W: G.W・H: G.H）を作り、update で input（.range-scene の ドラッグ・pointerdown の ボタン・キー・PokaDebug.rangeInput）→ game.update → game.take()（RANGE_DATA.sound。あたりは delay 秒あと）→ refresh（game.hud() を DOM に。かわった時だけ）。render は ShootingRange.draw(ctx, game, art) で #screen に描き、art.img は その しゅもくの 的（SvgCache「rt:…」はば 400px）と "fpv"（SvgCache「rg:じゅう:だれ:いろ」）。phase が end で finish: Save.d.range.plays・best（score の むき・ブルズアイは X）・GameEconomy.pay("range", 1, ★, difficulty)（shopBase.range = 60）→ .rg-result／.rg-sheet（もう いちど／えらびなおす／おわる）。✕ は UI.confirm で ロビーへ（コインなし）。
 
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。
