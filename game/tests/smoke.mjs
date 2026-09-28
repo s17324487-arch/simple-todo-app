@@ -1604,8 +1604,9 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   // ブザーの あと じゅうを あげる（0.3びょう）まで うてない
   await H.until(()=>{const s=PokaDebug.rangeState();return s.phase==='play'&&s.clock>0.45;},8000);
   v=await rangeHud(H);expect(/いま\s*30m/.test(v.sub)&&/かぜ/.test(v.sub)&&!v.small.length&&!v.out.length&&!v.over.length,'ロングレンジの HUD が 不正 '+JSON.stringify(v));
-  // 文字が ひろい ブラウザ（WebKit など）でも うえの 列の ✕ は 44px の まま 画面の 中（字間を ひろげて たしかめる。ピルが いちばん 多い しゅもく）
-  v=await H.eval(()=>{document.body.style.letterSpacing='1.4px';const r=document.querySelector('.range-quit').getBoundingClientRect(),out={w:r.width,h:r.height,right:r.right,iw:innerWidth};document.body.style.letterSpacing='';return out;});
+  // 文字が ひろい ブラウザ（WebKit など）でも うえの 列の ✕ は 44px の まま 画面の 中（字間を ひろげて たしかめる。ピルが いちばん 多い しゅもく。
+  // 3.4px は Chromium でも 列に はいりきらない ひろさ → ピルの ほうが ちぢむ ことを たしかめる）
+  v=await H.eval(()=>{document.body.style.letterSpacing='3.4px';const r=document.querySelector('.range-quit').getBoundingClientRect(),out={w:r.width,h:r.height,right:r.right,iw:innerWidth};document.body.style.letterSpacing='';return out;});
   expect(v.w>=44&&v.h>=44&&v.right<=v.iw+0.5,'文字が ひろいと ✕ が つぶれる／はみ出す '+JSON.stringify(v));
   await H.dbg('rangeInput',{fire:true});await H.wait(300);
   s=await H.dbg('rangeState');expect(s.needAction===true&&s.shot===1,'うった あと ボルトが いらない '+JSON.stringify(s));

@@ -696,8 +696,10 @@ html, body {
 .panel-foot .rg-go { min-height: 48px; font-size: 16px; }
 /* ⑥ 2番: あそぶ 画面の 絵は #screen に 描く。.range-scene は その うえの HUD と そうさ だけ（すける）。けっかの したの 3つの ボタン */
 .range-scene.rg-live { background: transparent; }
-/* うえの 列の ✕・おわりは ちぢめない（44px の まま）。せまい 画面では ピルと すきまを すこし つめる（WebKit など 文字が ひろい ときも ✕ が はみ出さない） */
+/* うえの 列の ✕・おわりは ちぢめない（44px の まま）。せまい 画面では ピルと すきまを すこし つめる（WebKit など 文字が ひろい ときも ✕ が はみ出さない）。
+   それでも はいらない ときは ピルの ほうが ちぢむ（はしが すこし かくれる）。✕ は 画面の そとへ おしださない */
 .range-top .btn { flex-shrink: 0; }
+.range-top .pill, .range-sub .pill { min-width: 0; overflow: hidden; }
 @media (max-width: 389px) { .range-top, .range-sub { gap: 3px; } .range-top .pill, .range-sub .pill { padding: 2px 5px; } }
 .rg-foot { display: flex; gap: 8px; flex: 1; }
 .rg-foot .btn { flex: 1; min-height: 48px; padding: 6px 2px; font-size: 13px; }
