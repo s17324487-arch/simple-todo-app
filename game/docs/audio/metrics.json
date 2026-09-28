@@ -1,0 +1,50 @@
+[
+  {
+    "name": "town",
+    "seconds": 8,
+    "peak": 0.13967157900333405,
+    "rms": 0.026218037946819078,
+    "finite": true,
+    "peakVoices": 24
+  },
+  {
+    "name": "house",
+    "seconds": 8,
+    "peak": 0.11337956041097641,
+    "rms": 0.022354799082411593,
+    "finite": true,
+    "peakVoices": 20
+  },
+  {
+    "name": "city",
+    "seconds": 8,
+    "peak": 0.11543717235326767,
+    "rms": 0.02957269842305794,
+    "finite": true,
+    "peakVoices": 19
+  },
+  {
+    "name": "heiwadai",
+    "seconds": 8,
+    "peak": 0.1690777987241745,
+    "rms": 0.03058502009372221,
+    "finite": true,
+    "peakVoices": 22
+  },
+  {
+    "name": "shop_crepe",
+    "seconds": 8,
+    "peak": 0.13221052289009094,
+    "rms": 0.030165055368458198,
+    "finite": true,
+    "peakVoices": 22
+  },
+  {
+    "name": "battle_crown",
+    "seconds": 8,
+    "peak": 0.12419180572032928,
+    "rms": 0.028707757379785735,
+    "finite": true,
+    "peakVoices": 25
+  }
+]

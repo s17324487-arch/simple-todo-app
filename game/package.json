@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node tools/serve.mjs 8080",
-    "check": "node tools/check.mjs && node tools/build-road-fixture.mjs --check && node tools/town-check.mjs && node tools/battle-check.mjs",
+    "check": "node tools/check.mjs && node tools/build-road-fixture.mjs --check && node tools/town-check.mjs && node tools/battle-check.mjs && node tools/music-check.mjs",
     "test": "npm run check && node tests/smoke.mjs",
     "test:full": "npm run check && node tests/smoke.mjs --full --shots",
     "build:chara": "node tools/build-chara.mjs",

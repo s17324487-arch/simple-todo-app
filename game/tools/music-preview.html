@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ぽかぽかタウン｜BGM 試聴室</title>
+<style>
+*{box-sizing:border-box}body{font-family:system-ui,sans-serif;color:#272c33;background:#f3f1eb;margin:0;padding:24px;line-height:1.7}main{max-width:880px;margin:auto}h1{font-size:26px;margin-bottom:4px}p{color:#505b65}button{min-height:48px;border:1px solid #cad2cc;border-radius:12px;padding:10px 16px;background:#fff;color:inherit;font:inherit;cursor:pointer}button:hover,button.on{background:#dfece4;border-color:#527c66}.toolbar{position:sticky;top:8px;display:flex;align-items:center;gap:12px;padding:12px;background:#f3f1ebf5;border:1px solid #cbd5cc;border-radius:16px;z-index:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:22px 0}.track{text-align:left;display:flex;flex-direction:column;gap:6px}.track small{color:#53645a;font-size:12px}iframe{position:absolute;width:1px;height:1px;border:0;clip-path:inset(100%)}#status{font-size:14px}a{color:#246344}
+</style>
+<main>
+<h1>ぽかぽかタウン BGM 試聴室</h1>
+<p>町、おうち、お店、バトルの曲を選んで聴けます。ゲームと同じ音源で演奏します。</p>
+<div class="toolbar"><button id="stop">停止</button><span id="status" role="status">準備しています…</span></div>
+<div id="tracks" class="grid"></div>
+<p>エレクトリックピアノ、木の弦をはじく音、丸いベース、柔らかいドラム。<a href="../index.html">ゲームを開く</a></p>
+</main><iframe id="game" src="../index.html?audio-preview=1" title="ゲームの音源" allow="autoplay"></iframe>
+<script>
+const frame=document.getElementById('game'),list=document.getElementById('tracks'),status=document.getElementById('status');
+const instruments={piano:'ピアノ',epiano:'エレクトリックピアノ',pluck:'弦のプラック',mallet:'マレット',bass:'ベース',pad:'パッド',drums:'ドラム'};
+let api;
+frame.addEventListener('load',async()=>{
+  api=frame.contentWindow.PokaDebug;
+  if(!api){status.textContent='読み込めませんでした。npm start から開いてください。';return;}
+  await new Promise(resolve=>{const wait=()=>api.idle()?resolve():setTimeout(wait,30);wait();});
+  api.music(null);api.pause(true);status.textContent='曲を選んでください';
+  for(const song of api.musicCatalog()){
+    const button=document.createElement('button');button.className='track';button.dataset.track=song.id;
+    const title=document.createElement('strong'),meta=document.createElement('small');title.textContent=song.title;
+    meta.textContent=`${song.id} · ${song.bpm} BPM / ${song.instruments.map(i=>instruments[i]).join('・')}`;
+    button.append(title,meta);button.onclick=()=>{api.music(song.id);document.querySelectorAll('.track').forEach(b=>b.classList.toggle('on',b===button));status.textContent='再生中：'+song.title;};list.append(button);
+  }
+});
+document.getElementById('stop').onclick=()=>{api?.music(null);document.querySelectorAll('.track').forEach(b=>b.classList.remove('on'));status.textContent='停止しました';};
+</script>
+</html>

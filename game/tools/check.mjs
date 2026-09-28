@@ -447,7 +447,7 @@ for (const id of [...Object.keys(R.SHOPS), ...Object.keys(R.BUY_SHOPS)]) ok(!!R.
 // BGM の音符
 for (const [name, song] of Object.entries(R.SONGS)) for (const tr of song.tracks) {
   const seq = R.Sound.parse(tr.notes);
-  for (const ev of seq) if (ev && !tr.drum) ok(R.Sound.freq(ev.n) > 0, `曲 ${name}: 音符 "${ev.n}" が読めない`);
+  for (const ev of seq) if (ev && !tr.drum) for (const note of ev.n.split("+")) ok(R.Sound.freq(note) > 0, `曲 ${name}: 音符 "${note}" が読めない`);
   if (tr.drum) for (const ev of seq) if (ev) ok(["k", "s", "h"].includes(ev.n), `曲 ${name}: ドラム "${ev.n}" が不明`);
 }
 ok(typeof R.PokaDebug.help === "function", "PokaDebug（js/debug.js）がない");

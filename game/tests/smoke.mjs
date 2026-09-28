@@ -227,6 +227,31 @@ function helpers(page, name) {
 
 console.log(`ぽかぽかタウン スモークテスト ${FULL ? "（full）" : ""}`);
 
+await scenario("現代的BGM・全曲の音声合成",async H=>{
+  await H.newGameFast();await H.page.mouse.click(5,5);
+  const catalog=await H.dbg("musicCatalog");
+  expect(catalog.length>=30&&catalog.every(s=>s.modern),"未更新のBGMがある");
+  const rendered=[];
+  for(const song of catalog){
+    const audio=await H.dbg("musicRender",song.id,6);
+    expect(audio.finite&&audio.peak>.005&&audio.peak<.95&&audio.rms>.001,`${song.id}: 無音・クリップ・非数値 ${JSON.stringify(audio)}`);
+    expect(audio.peakVoices<60,`${song.id}: 同時発音が多すぎる ${audio.peakVoices}`);
+    rendered.push(audio);
+  }
+  console.log(`    audio: ${rendered.length} tracks; peak ${Math.max(...rendered.map(s=>s.peak)).toFixed(3)}; max voices ${Math.max(...rendered.map(s=>s.peakVoices))}`);
+  for(const name of ['town','shop_clothes','heiwadai','house','battle_water','battle_elite','battle_crown']){
+    await H.dbg("music",name);await H.wait(180);
+    const current=await H.dbg("music");expect(current.name===name&&current.modern&&current.voices<60,"曲の切替に失敗");
+  }
+  const saved=await H.dbg("saveData");
+  await H.dbg("seedSave",{...saved,settings:{...saved.settings,bgm:false}});
+  await H.dbg("music","town");expect((await H.dbg("music")).gain===0,"BGMオフが効かない");
+  await H.dbg("seedSave",saved);await H.dbg("music","town");expect((await H.dbg("music")).gain>0,"BGMオンに戻せない");
+  await H.dbg("music","victory");expect((await H.dbg("music")).jingles===1,"結果曲が鳴らない");
+  await H.dbg("music",null);await H.wait(200);const stopped=await H.dbg("music");expect(!stopped.name&&!stopped.pending&&stopped.voices===0&&stopped.jingles===0,"停止後も音が予約される");
+  expect((await H.dbg("saveData")).coins===saved.coins,"音楽更新でおかねが変わった");
+},{timeout:180000});
+
 await scenario("起動とタイトル", async (H) => {
   await H.open();
   const ver = await H.eval(() => document.querySelector(".title-ui .ver").textContent);
@@ -235,6 +260,26 @@ await scenario("起動とタイトル", async (H) => {
   expect((await H.eval(() => PokaDebug.help())) > 5, "PokaDebug.help() が動かない");
   await H.shot("title");
 });
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}]) await scenario(`BGM試聴室・${viewport.width}`,async H=>{
+  await H.newGameFast();await H.dbg('coins',76543);await H.dbg('save');
+  const coins=(await H.dbg('saveData')).coins;
+  await H.page.goto(url+"tools/music-preview.html");
+  const town=H.page.locator('[data-track="town"]');await town.waitFor();await town.click();
+  const stored=await H.eval(()=>JSON.stringify(document.getElementById('game').contentWindow.PokaDebug.persistedSave()));
+  expect(JSON.parse(stored).coins===coins,'試聴の開始でおかねが変わった');
+  await H.until(()=>document.getElementById('game').contentWindow.PokaDebug.music().name==='town');
+  expect(!(await H.eval(()=>document.documentElement.scrollWidth>innerWidth)),"試聴ページが横にはみ出す");
+  if(SHOTS)await H.page.screenshot({path:join(SHOT_DIR,`music-preview-${viewport.width}.png`)});
+  await H.page.locator('[data-track="victory"]').click();
+  expect(await H.eval(()=>document.getElementById('game').contentWindow.PokaDebug.music().jingles===1),"結果曲を試聴できない");
+  await H.page.getByRole('button',{name:'停止',exact:true}).click();
+  expect(await H.eval(()=>document.getElementById('game').contentWindow.PokaDebug.music().jingles===0),"結果曲を停止できない");
+  if(viewport.width===390)await H.wait(21000); // 本編の自動保存周期を超えても保存に触れない。
+  expect(await H.eval(()=>JSON.stringify(document.getElementById('game').contentWindow.PokaDebug.persistedSave()))===stored,'試聴中に保存データを書き換えた');
+  await H.open();
+  expect(JSON.stringify(await H.dbg('persistedSave'))===stored,'試聴を閉じたときに保存データを書き換えた');
+},{viewport,full:true});
 
 await scenario("はじめから→おうち→ごはん", async (H) => {
   await H.newGameByUI();

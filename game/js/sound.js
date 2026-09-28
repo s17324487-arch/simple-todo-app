@@ -3,6 +3,7 @@ const Sound = {
   ctx: null, master: null, bgmGain: null, seGain: null,
   cur: null, // 再生中のBGM
   timer: null,
+  jingles: new Set(),
   noiseBuf: null,
   pulse: null,
 
@@ -134,13 +135,16 @@ const Sound = {
     const stepDur = 60 / song.bpm / 2; // 8分音符
     const tracks = song.tracks.map((tr) => ({ ...tr, seq: this.parse(tr.notes) }));
     const len = Math.max(...tracks.map((t) => t.seq.length));
-    this.cur = { name, song, tracks, stepDur, len, step: 0, next: this.ctx.currentTime + 0.08 };
+    this.cur = { name, song, tracks, stepDur, len, step: 0, next: this.ctx.currentTime + 0.08,
+      bus: song.modern ? ModernMusic.bus(this.ctx, this.bgmGain) : null };
     this.timer = setInterval(() => this.schedule(), 40);
     this.schedule();
   },
   stopBgm() {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
+    this.want = null;
+    if (this.cur?.bus) ModernMusic.release(this.cur.bus);
     this.cur = null;
   },
   parse(str) {
@@ -160,9 +164,15 @@ const Sound = {
     const cur = this.cur;
     if (!cur || !this.ctx) return;
     const ahead = this.ctx.currentTime + 0.25;
+    // 背景タブから戻ったとき、過去の音符を一度に鳴らさない。
+    if (cur.next < this.ctx.currentTime - .4) {
+      cur.step += Math.floor((this.ctx.currentTime - cur.next) / cur.stepDur);
+      cur.next = this.ctx.currentTime + .04;
+    }
     while (cur.next < ahead) {
       const t = cur.next - this.ctx.currentTime;
-      for (const tr of cur.tracks) {
+      if (cur.bus) ModernMusic.step(cur.bus, cur.tracks, cur.step, cur.next, cur.stepDur, this.noiseBuf);
+      else for (const tr of cur.tracks) {
         const ev = tr.seq[cur.step % tr.seq.length];
         if (!ev) continue;
         const dur = ev.len * cur.stepDur;
@@ -176,7 +186,7 @@ const Sound = {
       }
       cur.step++;
       if (cur.song.once && cur.step >= cur.len) { this.stopBgm(); return; }
-      cur.next += cur.stepDur;
+      cur.next += cur.stepDur * (1 + (cur.step % 2 ? 1 : -1) * (cur.song.swing || 0));
     }
   },
   jingle(name) {
@@ -184,6 +194,14 @@ const Sound = {
     if (!this.ctx || !Save.d.settings.se) return;
     const song = SONGS[name];
     const stepDur = 60 / song.bpm / 2;
+    if (song.modern) {
+      const bus = ModernMusic.bus(this.ctx, this.seGain), tracks = song.tracks.map(tr => ({ ...tr, seq: this.parse(tr.notes) }));
+      this.jingles.add(bus);
+      const len = Math.max(...tracks.map(tr => tr.seq.length));
+      for (let i = 0; i < len; i++) ModernMusic.step(bus, tracks, i, this.ctx.currentTime + .02 + i * stepDur, stepDur, this.noiseBuf);
+      setTimeout(() => { ModernMusic.release(bus); this.jingles.delete(bus); }, (len * stepDur + .6) * 1000);
+      return;
+    }
     for (const tr of song.tracks) {
       const seq = this.parse(tr.notes);
       seq.forEach((ev, i) => {
@@ -192,6 +210,7 @@ const Sound = {
       });
     }
   },
+  stopJingles() { for (const bus of this.jingles) ModernMusic.release(bus); this.jingles.clear(); },
 };
 
 // ---- きょく（オリジナル） 1トークン=8分音符 ----
