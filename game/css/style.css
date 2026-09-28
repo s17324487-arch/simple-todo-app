@@ -220,6 +220,10 @@ html, body {
 .battle-ui .cmd-head { margin-top: 0; font-size: 12px; }
 .battle-ui .cmd-head .who { padding: 0 8px; }
 .battle-ui .skill-list { margin-top: 2px; max-height: none; }
+.battle-ui .element-help-button { min-height: 44px; margin-left: auto; padding: 4px 7px; font-size: 11px; }
+.element-tag { display: inline-block; color: #1F1D1B; border: 1px solid #1F1D1B; border-radius: 5px; padding: 0 4px; font-size: 11px; }
+.battle-ui .cmd-grid small { display: block; font-size: 11px; }
+.element-help p { line-height: 1.6; }
 .battle-msg { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 10px 14px; font-weight: 800; font-size: 15px; min-height: 52px; box-shadow: 0 3px 0 var(--ink); line-height: 1.45; }
 .cmd-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
 .cmd-grid .btn { font-size: 17px; padding: 12px 6px; border-radius: 16px; }

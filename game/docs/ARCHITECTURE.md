@@ -585,7 +585,13 @@ HomeLife.bubbleLayoutは話者の頭の位置に合わせ、文字を折り返�
 HomeLife はシーン内の会話・けんか・家具アニメーションを管理。HomeRooms は room を現在の部屋として保持し、rooms.stored に非表示の部屋を保存する（同じ家具は全室の配置数で管理）。Save.KEY と schema 1 を維持し、wantsDeza と rooms は migrate の補完で追加。home-catalog.js は art.js の後に読み、服22点・家具12点・壁紙4点・床3点・食べ物6点を追加。PokaDebug.homeLife(event)、feed(id,item)、wins(n)、homePoint(x,y) を生活テストに使用。
 
 ## ver2: 全体マップと新エリア
-world-art.js は tiles.js の後、world-expansion.js は minigames.js の後に読む。川沿いの公園・city・coast を双方向ワープで接続。WorldAtlas が全体の接続図とタイル地図をメニュー内に表示する。戦闘の帰宅は現在の行動が完了した安全な境界で実行し報酬は付与しない。お店の帰宅は終了フラグで結果処理を止める。
+world-art.js は tiles.js の後、world-expansion.js は minigames.js の後に読む。川沿いの公園・city・coast を双方向ワープで接続。WorldAtlas が全体の接続図とタイル地図をメニュー内に表示する。戦闘からの帰宅は全滅時のみ（Game.goto でも制限）。逃走・勝利は元のフィールドへ戻す。お店の帰宅は終了フラグで結果処理を止める。
+
+## ver2: 5属性の戦闘
+
+`battle-elements.js` は sound.js の後・scene-battle.js の前。BattleElements が属性相性・戦闘だけの状態異常・敵の曲選択を管理し、既存の SKILLS に25技を追加する。敵IDは world-expansion.js の追加分も含む。保存形式・KEY・SCHEMAは変更しない。習得技は既存の Stats.skills が保存レベルから算出する。数値・解除条件・技一覧は [BATTLE_ELEMENTS.md](BATTLE_ELEMENTS.md)。
+
+PokaDebug.battleState() は味方・敵の属性/HP/状態、現在の曲・手番・習得技を返す。battleFixture({hp,condition}) はコマンド待ちのときだけ状態を設定し、テストの決着には実際のターン処理を使う。状態は自分の番の開始に効果が発生し、終了に残り回数を減らす。戦闘終了後のセーブには残さない。
 
 ## ver2: 天気と四季
 `weather.js`のWeatherは端末の年月日と3時間枠から決定的に天候を選ぶ。天候データは保存しないので同じ枠で再開しても同じ天気になり、既存データやコインを変更しない。冬だけ雪を候補に含める。予報は現在と次の2枠。洞窟/屋内は粒0、外は雨48・雪40・風14・雲3で固定し、時刻や座標をSVGキャッシュのキーに使わない。描画は明暗の後、操作スティックの前。

@@ -17,7 +17,7 @@ const FILES = [
   "./js/world-scenery.js", "./js/town-design.js", "./js/town-renewal-art.js", "./js/town-renewal.js", "./js/transit.js",
   "./js/seasonal-catalog.js", "./js/seasonal.js",
   "./js/annual-festivals.js",
-  "./js/weather.js",
+  "./js/weather.js", "./js/battle-elements.js",
   "./js/atlas-art.js", "./js/world-atlas.js",
 ];
 self.addEventListener("install", (e) => {

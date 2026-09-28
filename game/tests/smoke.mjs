@@ -411,8 +411,12 @@ await scenario("新エリア・全体マップ・帰宅", async (H) => {
   await H.shot("coast");
   await H.dbg("level", 24); await H.dbg("battle", [{ kind:"crab",lv:16 }], "coast");
   await H.page.getByRole("button", { name:"とくぎ",exact:true }).waitFor(); await H.shot("new-enemy");
-  await H.page.getByRole("button", { name:"おうちへ",exact:true }).click();
-  await H.until(() => PokaDebug.state().scene === "house" && PokaDebug.idle());
+  expect(await H.page.getByRole("button", { name:"おうちへ",exact:true }).count() === 0, "戦闘中に帰宅ボタンがある");
+  await H.dbg("give", "smoke", 1);
+  await H.page.getByRole("button", { name:"どうぐ",exact:true }).click();
+  await H.page.getByRole("button", { name:/にげだまくん/ }).click();
+  await H.until(() => PokaDebug.state().scene === "world" && PokaDebug.idle());
+  expect((await H.dbg("state")).map === "coast", "逃走後に元のフィールドへ戻らない");
   const coins=(await H.dbg("state")).coins;
   await H.dbg("shop","crepe",1); await H.dialogs();
   await H.until(() => PokaDebug.mg()?.phase === "work");
@@ -420,6 +424,66 @@ await scenario("新エリア・全体マップ・帰宅", async (H) => {
   await H.until(() => PokaDebug.state().scene === "house" && PokaDebug.idle());
   await H.wait(2000); expect((await H.dbg("state")).coins===coins,"途中退出で報酬が発生");
 }, {full:true});
+
+for (const viewport of [{width:390,height:844},{width:375,height:667}]) await scenario(`属性技と状態異常・${viewport.width}`, async H => {
+  await H.newGameFast(); await H.dbg("level",18); await H.dbg("coins",123456);
+  await H.dbg("teleport","cave",12,29); await H.idle();
+  const before=await H.dbg("saveData");
+  await H.dbg("battle",[{kind:"iwagoro",lv:22}],"cave");
+  await H.page.getByRole("button",{name:"とくぎ",exact:true}).waitFor();
+  const st=await H.dbg("battleState");
+  expect(st.active==="gachan"&&st.music==="battle_elite","味方の行動または強敵BGMが不正");
+  expect(st.allies.length===3&&st.foes[0].elements[0]==="rock","属性または3人編成がない");
+  expect(await H.page.getByRole("button",{name:"おうちへ",exact:true}).count()===0,"戦闘中の帰宅ボタンがある");
+  await H.dbg("house"); await H.wait(100);
+  expect((await H.dbg("state")).scene==="battle","戦闘から帰宅できてしまう");
+  await H.shot("commands");
+  await H.page.getByRole("button",{name:"ぞくせい・じょうたい",exact:true}).click();
+  expect(await H.page.getByText("ひ → くさ → いわ → かみなり → みず → ひ",{exact:true}).isVisible(),"相性の説明がない");
+  await H.shot("help"); await H.page.locator(".modal-wrap:not(.out) .close").click(); await H.wait(300);
+  await H.page.getByRole("button",{name:"とくぎ",exact:true}).click();
+  expect(await H.page.locator('.battle-ui [data-skill^="grass_"]').count()===5,"草の5技がない");
+  await H.page.locator('[data-skill="grass_leaf"]').scrollIntoViewIfNeeded(); await H.shot("skills");
+  await H.page.locator('[data-skill="grass_bloom"]').click();
+  await H.until(()=>PokaDebug.battleState()?.foes[0].condition?.element==="grass");
+  expect((await H.dbg("battleState")).foes[0].hp<st.foes[0].hp,"属性技でダメージがない");
+  await H.page.getByRole("button",{name:"とくぎ",exact:true}).waitFor();
+  await H.dbg("battleFixture",{condition:"fire"}); await H.wait(100); await H.shot("condition");
+  const active=(await H.dbg("battleState")).active;
+  await H.page.getByRole("button",{name:"ぼうぎょ",exact:true}).click();
+  await H.until(id=>PokaDebug.battleState()?.allies.find(a=>a.id===id)?.condition===null,10000,active);
+  await H.page.getByRole("button",{name:"とくぎ",exact:true}).waitFor();
+  const bounds=await H.dbg("battleLayout");expect(bounds.cardBottom<=bounds.menuTop&&bounds.enemyTop>=0,"HPや敵が画面に収まらない");
+  await H.dbg("give","smoke",1);await H.page.getByRole("button",{name:"どうぐ",exact:true}).click();
+  await H.page.getByRole("button",{name:/にげだまくん/}).click();
+  await H.until(()=>PokaDebug.state().scene==="world"&&PokaDebug.idle());
+  const after=await H.dbg("saveData");
+  expect(after.coins===before.coins&&after.stats.wins===before.stats.wins,"逃走で所持金または勝利数を変更した");
+  expect(after.world.map===before.world.map,"逃走先が違う");
+  expect(!Object.values(after.chars).some(c=>c.condition),"一時的な状態異常を保存した");
+  await H.dbg("save");await H.page.reload();await H.page.locator(".title-ui .btn").first().click();await H.idle();
+  expect((await H.dbg("saveData")).coins===before.coins,"再開時におかねが消えた");
+},{viewport,full:viewport.width===375});
+
+await scenario("戦闘の敗北だけ帰宅",async H=>{
+  await H.newGameFast();await H.dbg("level",24);await H.dbg("coins",87654);
+  const before=await H.dbg("saveData");
+  await H.dbg("battle",[{kind:"king",lv:18}],"cave",true);
+  await H.page.getByRole("button",{name:"とくぎ",exact:true}).waitFor();
+  expect((await H.dbg("battleState")).music==="battle_crown","ボス専用BGMがない");
+  await H.dbg("battleFixture",{hp:1,condition:"fire"});
+  for(let i=0;i<10;i++){
+    const guard=H.page.getByRole("button",{name:/^ぼうぎょ/});
+    if(await guard.count())await guard.click();
+    await H.wait(1000);
+    if((await H.dbg("state")).scene==="house")break;
+  }
+  await H.until(()=>PokaDebug.state().scene==="house"&&PokaDebug.idle(),20000);
+  const after=await H.dbg("saveData");
+  expect(after.coins===before.coins&&after.stats.wins===before.stats.wins,"敗北でおかねまたは勝利報酬が変わった");
+  expect(Object.values(after.chars).every(c=>c.hp>0),"3人を回復して帰宅していない");
+  await H.shot("recovered");
+});
 
 await scenario("バトルに勝つ", async (H) => {
   await H.newGameFast();
@@ -563,6 +627,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
       const o=(await H.dbg("world")).objects.find(o=>o.id===t.id);await H.tap(o.cx,o.cy);
       await H.until(id=>!!PokaDebug.festival().stamps[id],10000,t.id);
     }
+    // 記念品の検証は安全な町で行う。草原で敵が近づくまでの時間に依存させない。
+    await H.dbg("teleport","town",12,16);await H.idle();
     await H.page.locator(".world-festival").click();await H.shot(initial.id+"-rewards");
     await H.page.getByRole("button",{name:"きねんひんを うけとる",exact:true}).click();
     const s=await H.dbg("festival");expect(s.count===3&&s.claimed&&s.inventory.wear&&s.inventory.furn===1&&s.inventory.food===3,"記念品がそろわない");

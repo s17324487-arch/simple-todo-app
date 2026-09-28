@@ -106,7 +106,7 @@ const Menu = {
       const card = U.el("div", { class: "card" + (x ? "" : " lock") });
       if (x) card.innerHTML = `<div class="ico" style="width:72px;height:72px">${Art.enemySvg(e.art, e.col)}</div><div>${e.name}</div><div class="muted">たおした ${x.won || 0}</div>`;
       else card.innerHTML = `<div class="ico" style="width:72px;height:72px;filter:brightness(0) opacity(.25)">${Art.enemySvg(e.art, e.col)}</div><div>？？？</div>`;
-      if (x) card.addEventListener("click", () => UI.say([{ name: e.name, face: Art.enemySvg(e.art, e.col), text: e.desc }]));
+      if (x) card.addEventListener("click", () => UI.say([{ name: e.name, face: Art.enemySvg(e.art, e.col), text: `${e.desc}\nぞくせい：${BattleElements.types[BattleElements.enemies[k]].name}` }]));
       grid.append(card);
     }
     el.append(grid);
