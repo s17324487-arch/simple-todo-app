@@ -82,7 +82,7 @@ for(const key of ["43,17","50,21","36,21","40,42","24,66","59,67"])ok(reached.ha
 ok(roadMap.isSolid(43,21)&&!roadMap.isSolid(43,28),"ロータリーの島と車道の通行判定が不正");
 const obstacle=structuredClone(roadFixture);obstacle.rows[28]=obstacle.rows[28].slice(0,43)+"T"+obstacle.rows[28].slice(44);
 ok(new R.WorldMap("road-obstacle",obstacle).isSolid(43,28),"ベクター道路が既存の木の衝突を消した");
-ok(new R.WorldMap("town").roadGrid===null,"道のない町にもベクター判定が追加された");
+ok(new R.WorldMap("meadow").roadGrid===null,"道のないはらっぱにもベクター判定が追加された");
 ok(R.Save.KEY==="pokapoka-town-save-v1"&&R.Save.SCHEMA===1,"道路追加でセーブ形式を変えた");
 
 // ---------- 3. バージョン ----------
@@ -202,7 +202,7 @@ for (const id of Object.keys(R.MAP_DEFS)) {
   }
   if (m.def.boss) ok(R.ENEMIES[m.def.boss.enemy], `マップ ${id}: ボス ${m.def.boss.enemy} がない`);
   // 到達性（最初のワープ or 家のドアから）
-  const start = id === "town" ? [4, 6] : [m.warps[0].x, m.warps[0].y];
+  const start = m.def.safeSpawn || (id === "town" ? [4, 6] : [m.warps[0].x, m.warps[0].y]);
   const seen = new Set([start.join(",")]);
   const q = [start];
   while (q.length) {

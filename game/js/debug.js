@@ -42,6 +42,27 @@ const PokaDebug = {
     };
   },
   idle() { return !Game.trans && !UI.busy; },
+  townLayout(id) {
+    const m=Maps.get(id);return {id,w:m.w,h:m.h,spawn:m.def.safeSpawn,views:m.def.views,doors:m.doors.map(d=>({id:d.b.id,x:d.x,y:d.y,act:d.b.act})),warps:m.warps};
+  },
+  saveData() {return JSON.parse(JSON.stringify(Save.d));},
+  seedSave(data) {Save.d=Save.migrate(JSON.parse(JSON.stringify(data)));Save.write();return true;},
+  townRoutes() {
+    if(G.sceneName!=="world")return null;
+    const sc=G.scene,p=sc.party[0];
+    return {doors:sc.map.doors.map(d=>({id:d.b.id,reachable:!!sc.findPath(p.tx,p.ty,d.x,d.y,false)})),solid:sc.map.isSolid(p.tx,p.ty),motion:TownRenewal.motion(sc.mapId,G.t)};
+  },
+  async townPlan(id,before=false) {
+    const d=before?TownRenewal.originals[id]:MAP_DEFS[id],m=new WorldMap(before?"before-"+id:id,d),sc=new WorldScene();
+    sc.map=m;sc.mapId=id;sc.npcs=(d.npcs||[]).map(n=>({...n,w:new Walker(n.x,n.y,n.dir)}));sc.enemies=[];
+    await sc.preload();
+    const cv=document.createElement("canvas");cv.width=m.w*TS;cv.height=m.h*TS;const ctx=cv.getContext("2d");
+    for(let y=0;y<m.h;y+=8)for(let x=0;x<m.w;x+=8)ctx.drawImage(Tiles.chunk(m,x/8,y/8),x*TS,y*TS,8*TS,8*TS);
+    if(d.renewal)TownRenewal.drawMoving(ctx,sc,0,0);
+    const all=m.sprites.map(s=>({z:(s.y+1)*TS,draw:()=>sc.drawStatic(ctx,s,0,0,{w:cv.width,h:cv.height})}));
+    for(const n of sc.npcs)all.push({z:(n.y+1)*TS,draw:()=>sc.drawNpc(ctx,n,0,0)});
+    all.sort((a,b)=>a.z-b.z);all.forEach(s=>s.draw());return cv.toDataURL("image/png");
+  },
   pause(value) { const previous = !!Game.paused; Game.paused = !!value; return previous; },
   world() {
     if(G.sceneName!=="world")return null;

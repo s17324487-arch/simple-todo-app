@@ -9,12 +9,12 @@ const WorldScenery = {
     UI.toast(Seasonal.collect(sc.mapId,o)||o.text, "good");
     AnnualFestivals.interact(sc,o);
   },
-  draw(ctx, s, ox, oy) {
+  draw(ctx, s, ox, oy, bounds) {
     const o=s.o; if(!o) return;
     if(!WorldArt[o.kind])return;
     const a=WorldArt[o.kind]();
     const x=ox+o.x*TS+(o.w*TS-a.w)/2, y=oy+(o.y+o.h)*TS-a.h;
-    if(x>G.W+80||x+a.w< -80||y>G.H+80||y+a.h< -80)return;
+    if(x>(bounds?.w||G.W)+80||x+a.w< -80||y>(bounds?.h||G.H)+80||y+a.h< -80)return;
     const active=!!o.id && G.scene.objectActive?.id===o.id && G.scene.objectActive.until>G.t;
     const t=G.t*(active?2.2:1), line=(pts,col="#FFF6D9",width=2)=>{ctx.strokeStyle=col;ctx.lineWidth=width;ctx.beginPath();pts.forEach(([xx,yy],i)=>i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy));ctx.stroke();};
     ctx.save();ctx.translate(x,y);ctx.lineCap="round";ctx.lineJoin="round";

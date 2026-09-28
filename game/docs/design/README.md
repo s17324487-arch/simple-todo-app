@@ -5,6 +5,7 @@
 | ファイル | 中身 |
 | --- | --- |
 | [`TOWN_GUIDE.md`](TOWN_GUIDE.md) | 町づくりの 共通の きまり（道・見かた・にぎやかさの めやす・確かめかた） |
+| [`towns/renewal/README.md`](towns/renewal/README.md) | ぽかぽかタウン・シティ・港・空港のテーマ、街区の配置、保存データの互換と検証 |
 | [`towns/heiwadai/CODEX_TASK.md`](towns/heiwadai/CODEX_TASK.md) | 平和台を v0.2 に 作り直す 作業指示（PR の 分けかた・互換・完了の 条件） |
 | [`towns/heiwadai/ASSET_LIST.md`](towns/heiwadai/ASSET_LIST.md) | 部品 107種の 一覧（必須の 細部・はみ出し・優先度・使った数・出典） |
 | `towns/heiwadai/img/` | 全体図 `plan.png`・スマホ見本 `phones.png`・比べ図 `compare.png`・部品の 見本 `asset_sheet_1〜4.png`・v0.1 `v01_plan.png` |

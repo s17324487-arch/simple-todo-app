@@ -54,6 +54,8 @@ class WorldScene {
     this.map = Maps.get(this.mapId);
     if (FieldMemory.map !== this.mapId) { FieldMemory.map = this.mapId; FieldMemory.defeated = new Set(); }
     let x = p.x != null ? p.x : w.x, y = p.y != null ? p.y : w.y;
+    const safe=TownRenewal.safePosition(this.map,x,y);
+    if(safe)[x,y]=safe;
     if (this.map.isSolid(x, y) && !this.map.doorAt(x, y)) { const f = this.findFree(x, y); x = f[0]; y = f[1]; }
     const dir = p.dir || w.dir || "down";
     this.party = Save.d.order.map(() => new Walker(x, y, dir));
@@ -134,7 +136,8 @@ class WorldScene {
 
   // ---- スプライト取得 ----
   objCanvas(kind, opt, ensure) {
-    const key = "w:" + kind + ":" + JSON.stringify(opt || {}) + (SeasonPalette.vegetation(kind)?":"+SeasonPalette.id():"");
+    const cacheOpt=kind==="building"&&opt.style?{style:opt.style,w:opt.w,h:opt.h,door:opt.door}:opt;
+    const key = "w:" + kind + ":" + JSON.stringify(cacheOpt || {}) + (SeasonPalette.vegetation(kind)?":"+SeasonPalette.id():"");
     const a = SeasonPalette.object(kind,Art.worldSvg(kind, opt));
     const pw = Math.ceil((a.w + 4) * G.px), ph = Math.ceil((a.h + 4) * G.px);
     if (ensure) return SvgCache.ensure(key, () => a.full, pw, ph);
@@ -613,6 +616,7 @@ class WorldScene {
         ctx.drawImage(c, ox + cx * cs, oy + cy * cs, cs, cs);
       }
     this.renderWater(ctx, ox, oy);
+    TownRenewal.drawMoving(ctx,this,ox,oy);
     if (this.tapMark) {
       const m = this.tapMark;
       ctx.save(); ctx.globalAlpha = Math.min(1, m.t * 2);
@@ -693,7 +697,7 @@ class WorldScene {
     }
     ctx.stroke();
   }
-  drawStatic(ctx, s, ox, oy) {
+  drawStatic(ctx, s, ox, oy, bounds) {
     const r = this.spriteCanvas(s, false);
     if (!r) return;
     const { c, a } = r;
@@ -703,8 +707,8 @@ class WorldScene {
     let x = left + (tw * TS - a.w) / 2 - 2, y = bottom - a.h - 2;
     if (s.kind === "tree" || s.kind === "pine" || s.kind === "appletree") y += 2;
     ctx.drawImage(c, ox + x, oy + y, w, h);
-    WorldScenery.draw(ctx, s, ox, oy);
-    if(s.kind === "building" && s.spec.terminal) {
+    WorldScenery.draw(ctx, s, ox, oy, bounds);
+    if(s.kind === "building" && s.spec.terminal && !s.spec.style) {
       ctx.save();ctx.font="800 10px 'M PLUS Rounded 1c',sans-serif";ctx.textAlign="center";ctx.fillStyle=INK;
       const label=s.spec.label, bw=Math.min(s.spec.w*TS-4,ctx.measureText(label).width+14);
       U.rr(ctx,ox+left+(tw*TS-bw)/2,oy+bottom-8,bw,18,5);ctx.fillStyle="#FFF6DF";ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=1.4;ctx.stroke();ctx.fillStyle=INK;ctx.fillText(label,ox+left+tw*TS/2,oy+bottom+5);ctx.restore();

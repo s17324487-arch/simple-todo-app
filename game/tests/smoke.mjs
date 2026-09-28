@@ -33,6 +33,8 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   if (full && !FULL) return;
   if (ONLY && !name.includes(ONLY)) return;
   const context = await browser.newContext({ viewport, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "ja-JP" });
+  // ゲームの検証は外部フォントの応答に依存させない（CIのload待ちを安定させる）。
+  await context.route(/^https:\/\/fonts\.(?:googleapis|gstatic)\.com\//, route => route.abort());
   const page = await context.newPage();
   page.setDefaultTimeout(8000);
   const problems = [];
@@ -278,7 +280,8 @@ await scenario("まちへ→お店の入口", async (H) => {
   await H.houseButton("おでかけ");
   await H.until(() => G.sceneName === "world" && G.scene.mapId === "town" && !Game.trans, 10000);
   await H.shot("town");
-  expect(await H.dbg("walkTo", 4, 12), "クレープやさんへの道が見つからない");
+  const door=(await H.dbg("townLayout","town")).doors.find(d=>d.id==="crepe");
+  expect(await H.dbg("walkTo", door.x, door.y), "クレープやさんへの道が見つからない");
   await H.page.waitForSelector(".choices .btn", { timeout: 12000 });
   await H.choose(1); // やめておく
   await H.until(() => PokaDebug.idle() && !G.scene.busy, 8000);
@@ -394,8 +397,8 @@ await scenario("おうちの生活・デザ・増築", async (H) => {
 
 await scenario("新エリア・全体マップ・帰宅", async (H) => {
   await H.newGameFast();
-  await H.dbg("teleport", "town", 34, 7);
-  await H.until(() => PokaDebug.idle()); await H.dbg("walkTo", 35, 7);
+  await H.dbg("teleport", "town", 46, 11);
+  await H.until(() => PokaDebug.idle()); await H.dbg("walkTo", 47, 11);
   await H.until(() => PokaDebug.state().map === "city" && PokaDebug.idle());
   await H.shot("city");
   await H.page.getByRole("button", { name: "メニュー", exact: true }).click();
@@ -403,8 +406,8 @@ await scenario("新エリア・全体マップ・帰宅", async (H) => {
   expect(await H.page.getByRole("group", { name: "ぽかぽかの せかいの ちず", exact:true }).isVisible(), "全体マップがない");
   expect(await H.page.locator('.atlas-marker.is-current').getAttribute('data-area') === "city", "入ったエリアが地図の現在地に反映されない");
   await H.shot("atlas"); await H.page.locator(".modal-wrap .close").last().click(); await H.wait(300);
-  await H.dbg("teleport", "city", 34, 17); await H.until(() => PokaDebug.idle());
-  await H.dbg("walkTo", 35, 17); await H.until(() => PokaDebug.state().map === "coast" && PokaDebug.idle());
+  await H.dbg("teleport", "city", 46, 24); await H.until(() => PokaDebug.idle());
+  await H.dbg("walkTo", 47, 24); await H.until(() => PokaDebug.state().map === "coast" && PokaDebug.idle());
   await H.shot("coast");
   await H.dbg("level", 24); await H.dbg("battle", [{ kind:"crab",lv:16 }], "coast");
   await H.page.getByRole("button", { name:"とくぎ",exact:true }).waitFor(); await H.shot("new-enemy");
@@ -448,7 +451,7 @@ await scenario("ボスに勝つ（王冠がもらえる）", async (H) => {
 
 await scenario("セーブ→つづきから", async (H) => {
   await H.newGameFast();
-  await H.dbg("teleport", "town", 12, 17, "left");
+  await H.dbg("teleport", "town", 12, 24, "left");
   await H.until(() => G.sceneName === "world" && !Game.trans, 10000);
   await H.dbg("coins", 777);
   await H.dbg("save");
@@ -459,7 +462,7 @@ await scenario("セーブ→つづきから", async (H) => {
   await H.page.click(".title-ui .btn");
   await H.until(() => G.sceneName === "world" && !Game.trans, 10000);
   const st = await H.dbg("state");
-  expect(st.map === "town" && st.pos[0] === 12 && st.pos[1] === 17, "つづきから の位置がちがう " + JSON.stringify(st));
+  expect(st.map === "town" && st.pos[0] === 12 && st.pos[1] === 24, "つづきから の位置がちがう " + JSON.stringify(st));
   expect(st.coins >= 777 + 150, "コインが保存されていない");
 });
 
@@ -504,6 +507,7 @@ await scenario("夜の町", async (H) => {
 await scenario("交通（電車・船・飛行機・中止・セーブ）", async H=>{
   await H.newGameFast(); await H.dbg("hour",12);
   const board=async(map,x,y,stop,choice)=>{
+    const door=(await H.dbg("townLayout",map)).doors.find(d=>d.act.stop===stop);x=door.x;y=door.y+1;
     await H.dbg("teleport",map,x,y,"up");
     await H.until(m=>PokaDebug.state().map===m&&PokaDebug.idle(),15000,map);
     const p=(await H.dbg("world")).stops.find(s=>s.id===stop);
@@ -816,7 +820,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const def=runInNewContext(readFileSync(new URL("./fixtures/roads-v02.js",import.meta.url),"utf8")+";ROAD_FIXTURE");
   await H.newGameFast();await H.dbg("coins",927);await H.dbg("teleport","heiwadai",16,28);await H.idle();
   await H.dbg("pause",true);const state=await H.dbg("state"),world=await H.dbg("world");
-  const oldGround=await H.dbg("groundImage","town",1,1);
+  const oldGround=await H.dbg("groundImage","meadow",1,1);
   for(const [name,cx,cy]of [["station",43.2,27.4],["junction",43,45]]){
     const r=await H.dbg("roadPreview",def,{...viewport,cx,cy});
     expect(r.width===viewport.width&&r.height===viewport.height,"道路画像のサイズが不正");
@@ -832,7 +836,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   }
   const blocked=structuredClone(def);blocked.objects=[{kind:"rock",x:43,y:28,w:1,h:1,solid:true}];
   expect((await H.dbg("roadPreview",blocked,viewport)).solid[28][43],"道路が小物の当たり判定を消した");
-  expect(await H.dbg("groundImage","town",1,1)===oldGround,"道路のない町の地面が変わった");
+  expect(await H.dbg("groundImage","meadow",1,1)===oldGround,"道路のないはらっぱの地面が変わった");
   const after=await H.dbg("state");expect(after.map===state.map&&after.pos.join()===state.pos.join()&&after.coins===state.coins,"道路プレビューでプレイ状態が変化");
   expect(JSON.stringify((await H.dbg("world")).party)===JSON.stringify(world.party),"道路プレビューで3人が移動した");
   await H.dbg("pause",false);await H.dbg("walkTo",18,30);await H.until(()=>PokaDebug.state().pos.join() === "18,30");
@@ -847,6 +851,36 @@ await scenario("vector-roads-file",async H=>{
   const image=await H.dbg("roadPreview",def,{width:375,height:667,cx:43,cy:45});
   expect(image.url.startsWith("data:image/png;")&&image.grid[21][43]==="island","file:// で道路が描けない");
 },{full:true});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`town-renewal-${viewport.width}`,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);await H.dbg("weather","clear");
+  const fixture=await H.dbg("saveData");fixture.coins=987654;fixture.bag.cake=7;fixture.wardrobe.crown=true;fixture.furn.trophy=2;fixture.flags.chests.port_boardwalk=true;fixture.shops.crepe.lv=3;
+  for(const [id,x,y]of [["town",4,6],["city",17,17],["harbor",4,21],["airport",20,10]]){
+    const old=structuredClone(fixture);old.world={map:id,x,y,dir:"down"};
+    await H.dbg("pause",true);await H.dbg("seedSave",old);await H.page.reload();
+    await H.page.getByRole("button",{name:"つづきから",exact:true}).click();
+    await H.until(id=>PokaDebug.state().map===id&&PokaDebug.idle(),15000,id);
+    const state=await H.dbg("state"),after=await H.dbg("saveData"),routes=await H.dbg("townRoutes");
+    expect(state.coins===987654,"古いセーブのおかねが変わった");expect(!routes.solid,"古い位置が建物や滑走路に取り残された");
+    expect(state.pos.join()!==[x,y].join(),"塞がれた古い位置を救済していない");
+    for(const key of ["bag","wardrobe","furn","room","rooms","shops","events"])expect(JSON.stringify(after[key])===JSON.stringify(old[key]),id+": "+key+"が変わった");
+    expect(after.flags.chests.port_boardwalk,"取得済み宝箱が復活した");expect((await H.dbg("world")).party.length===3,"仲間が欠けた");
+    expect(routes.doors.every(d=>d.reachable),id+": 人を避けて到達できない入口 "+JSON.stringify(routes.doors.filter(d=>!d.reachable)));
+    const layout=await H.dbg("townLayout",id),view=layout.views[0];
+    await H.dbg("teleport",id,...view);await H.idle();await H.shot(id+"-renewal");
+    expect(await H.eval(()=>document.documentElement.scrollWidth<=innerWidth),"スマホで横にはみ出す");
+    const door=layout.doors.find(d=>d.act.type==="buy")||layout.doors.find(d=>d.act.type==="transit");
+    await H.dbg("teleport",id,door.x,door.y+1,"up");await H.idle();
+    expect(await H.dbg("walkTo",door.x,door.y),"入口へ歩けない");await H.wait(600);
+    expect(await H.page.locator('.modal-wrap,.choices').count()>0,"店/交通の入口が開かない");
+    if(door.act.type==="transit")await H.page.getByRole("button",{name:"やめておく",exact:true}).click();
+    else await H.page.locator('.modal-wrap .close').last().click();
+    await H.dbg("teleport",id,...view);await H.idle();await H.dbg("save");await H.page.reload();
+    await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.until(id=>PokaDebug.idle()&&PokaDebug.state().map===id,15000,id);
+    expect((await H.dbg("state")).coins===987654,"更新後の再保存でコインが変わった");
+  }
+  expect(await H.dbg("fps",1000)>=20,"街区描画が20FPS未満");
+},{viewport,full:viewport.width===375,timeout:150000});
 
 await browser.close();
 server.close();

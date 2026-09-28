@@ -1,0 +1,12 @@
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import vm from 'node:vm';
+export function gameContext(){
+  const root=fileURLToPath(new URL('..',import.meta.url)),noop=()=>{},store=new Map();
+  const el=()=>({style:{setProperty:noop},append:noop,appendChild:noop,remove:noop,addEventListener:noop,querySelector:()=>null,querySelectorAll:()=>[],classList:{add:noop,remove:noop,toggle:noop,contains:()=>false},getContext:()=>null,setAttribute:noop,dataset:{}});
+  const c={console:{log:noop,warn:noop,error:noop,info:noop},performance,setTimeout,clearTimeout,setInterval,clearInterval,URL,TextEncoder,requestAnimationFrame:noop,navigator:{},location:{protocol:'http:',origin:'http://localhost',search:''},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)},document:{addEventListener:noop,getElementById:()=>null,querySelector:()=>null,querySelectorAll:()=>[],createElement:el,body:el(),documentElement:el(),fonts:null},Image:class{set src(v){}},addEventListener:noop};
+  c.window=c;vm.createContext(c);
+  for(const m of readFileSync(join(root,'index.html'),'utf8').matchAll(/<script src="(js\/[^"]+)"><\/script>/g))vm.runInContext(readFileSync(join(root,m[1]),'utf8'),c,{filename:m[1]});
+  return vm.runInContext('({MAP_DEFS,WorldMap,TownRenewal,TownRenewalArt,Save,Transit,WorldArt,Art})',c);
+}

@@ -39,7 +39,7 @@ class HouseScene {
     await Promise.all([this.preloadChars(), this.preloadFurn(), this.buildBg()]);
     Sound.bgm("house");
     UI.showHud(true, "おうち");
-    Save.d.world = { map: "town", x: 4, y: 6, dir: "down", house: true };
+    Save.d.world = { ...TownRenewal.homeExit(), house: true };
     this.buildUI();
     this.statusTimer = setInterval(() => this.updateCare(), 1500);
     if (p.intro) setTimeout(() => this.intro(), 500);
@@ -402,7 +402,7 @@ class HouseScene {
   goOut() {
     this.mode = "out";
     Sound.se("door");
-    Game.goto("world", { map: "town", x: 4, y: 6, dir: "down" }, "circle");
+    Game.goto("world", TownRenewal.homeExit(), "circle");
   }
 
   // ---- もようがえ ----

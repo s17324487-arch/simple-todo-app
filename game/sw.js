@@ -14,7 +14,7 @@ const FILES = [
   "./js/road-patterns.js", "./js/town-roads.js",
   "./js/world-art.js", "./js/world-expansion.js",
   "./js/economy.js", "./js/arcade.js",
-  "./js/world-scenery.js", "./js/town-design.js", "./js/transit.js",
+  "./js/world-scenery.js", "./js/town-design.js", "./js/town-renewal-art.js", "./js/town-renewal.js", "./js/transit.js",
   "./js/seasonal-catalog.js", "./js/seasonal.js",
   "./js/annual-festivals.js",
   "./js/weather.js",
