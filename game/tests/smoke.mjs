@@ -15,6 +15,9 @@ import { serve } from "../tools/serve.mjs";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
 const FULL = argv.includes("--full");
+// CIは1倍。負荷の高いPCでは待機上限だけを延ばせる（検証項目は同じ）。
+const WAIT_SCALE=Number((argv.find(a=>a.startsWith("--timeout-scale="))||"--timeout-scale=1").split("=")[1]);
+if(!Number.isFinite(WAIT_SCALE)||WAIT_SCALE<1||WAIT_SCALE>5)throw new Error("timeout-scale must be 1..5");
 const SHOTS = argv.includes("--shots") || FULL;
 const WAIT_SCALE=Number((argv.find(a=>a.startsWith("--timeout-scale="))||"--timeout-scale=1").split("=")[1]);
 if(!Number.isFinite(WAIT_SCALE)||WAIT_SCALE<1||WAIT_SCALE>5)throw new Error("timeout-scale must be 1..5");
@@ -2185,6 +2188,40 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("shop","crepe",30);await H.until(()=>PokaDebug.state().scene==="shop"&&!PokaDebug.state().transitioning,30000);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==="work",30000);
   const mg=await H.dbg("mg");expect(mg.lv===30&&mg.workLv===5&&mg.total===7,"Lv30で難易度や客数が際限なく上がる");await H.shot("work-lv30");
 },{viewport,timeout:180000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-idle-life-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('pause',true);await H.dbg('homeBubbleFixture');await H.dbg('homeActionSchedule');
+  const before=await H.dbg('saveData');
+  await H.dbg('homeAdvance',14);let st=await H.dbg('homeActions');expect(st.log.length===0,'15秒より早く生活動作が出る');
+  await H.dbg('homeAdvance',1.1);st=await H.dbg('homeActions');expect(st.log.length===1,'約15秒で動作が出ない');
+  expect(st.talkDelay.normal>=24&&st.talkDelay.normal<=40&&st.talkDelay.watching>=14&&st.talkDelay.watching<=22,'自動会話の間隔が倍になっていない');
+  await H.dbg('homeAdvance',15);expect((await H.dbg('homeActions')).log.length===2,'次の動作が15秒間隔でない');
+  await H.dbg('homeLayout',[{id:'chair_wood',x:170,y:400,uid:1},{id:'bookshelf',x:245,y:380,uid:2},{id:'plant',x:310,y:390,uid:3},{id:'toybox',x:360,y:460,uid:4}]);
+  await H.dbg('homeBubbleFixture');st=await H.dbg('homeActions');expect(st.kinds.length===15&&st.available.length===15,'15種類の動作がそろわない');
+  for(const [i,kind] of st.kinds.entries()){
+    await H.dbg('homeBubbleFixture');const who=['wanko','gachan','goji'][i%3];expect(await H.dbg('homeAction',who,kind),'動作を始められない: '+kind);
+    for(let n=0;n<80;n++){const c=(await H.dbg('homeActions')).chars.find(c=>c.id===who);if(c.activity?.stage==='act')break;await H.dbg('homeAdvance',.1);}
+    expect((await H.dbg('homeActions')).chars.find(c=>c.id===who).activity?.stage==='act','家具へ歩いて動作を始めない: '+kind);
+    await H.dbg('homeAdvance',.6);await H.wait(100);
+    if(['nap','read','sing','peek','water','stumble'].includes(kind))await H.shot(kind);
+    await H.dbg('homeAdvance',8);expect(!(await H.dbg('homeActions')).chars.find(c=>c.id===who).activity,'動作がおわらない: '+kind);
+  }
+  const after=await H.dbg('saveData');for(const key of ['coins','bag','wardrobe'])expect(JSON.stringify(before[key])===JSON.stringify(after[key]),'動作で持ち物が変わる: '+key);
+  await H.dbg('homeLayout',[]);await H.dbg('homeBubbleFixture');expect(!(await H.dbg('homeAction','wanko','read')),'家具がないのに読書する');
+  await H.dbg('pause',false);
+},{viewport,timeout:180000});
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('slow-life-prices-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('coins',987504);await H.dbg('save');const before=await H.dbg('saveData'),prices=await H.dbg('shopPrices');
+  const price=(kind,id)=>prices[kind].find(p=>p.id===id).price;
+  expect(price('furniture','chair_wood')===320&&price('furniture','bed_royal')===5600&&price('wear','ribbon_pink')===150,'新しい販売価格でない');
+  expect(price('wear','crown')===0&&price('wall','wp_cream')===0&&price('food','onigiri')===20,'非売品・初期内装・食事を値上げした');
+  await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle(30000);
+  const after=await H.dbg('saveData');for(const key of ['coins','furn','wardrobe','bag','room','rooms','shops'])expect(JSON.stringify(after[key])===JSON.stringify(before[key]),'アップデートで既存財産が変わる: '+key);
+  expect(JSON.stringify(await H.dbg('shopPrices'))===JSON.stringify(prices),'再読み込みで値上げが累積する');
+  await H.dbg('store','furniture');await H.idle(30000);await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'かいものを する',exact:true}).click();await H.shot('catalog');
+  const card=H.page.locator('.modal-wrap .card:not(.on)').first();const cost=Number((await card.locator('.price').textContent()).replace(/[^0-9]/g,''));expect(cost>=320,'家具屋の表示に値上げが反映されない');await card.click();await H.shot('confirm');await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.wait(250);
+  const saved=await H.dbg('persistedSave');expect(saved.coins===before.coins-cost,'表示価格と差し引き額が違う');expect(JSON.stringify(saved.furn)!==JSON.stringify(before.furn),'購入家具を受け取れない');
+},{viewport,timeout:120000});
 for (const viewport of [{width:390,height:844},{width:375,height:667}]) await scenario('おてつだいの途中終了（'+viewport.width+'）', async H=>{
   await H.newGameFast();await H.dbg('coins',12345);
   const start=async()=>{await H.dbg('store','crepe');await H.idle();await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==='work');};
