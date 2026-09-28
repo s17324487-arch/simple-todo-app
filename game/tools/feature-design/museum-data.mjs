@@ -72,7 +72,7 @@ export const BUILDINGS = {
     route: ["entrance", "tunnel", "esc", "stream", "river", "pond", "ring", "tide", "deep", "shop"],
   },
   museum: {
-    name: "きょうりゅう はくぶつかん", W: 36, H: 34, outside: { map: "city", id: "city_museum", replace: "city_gallery", x: 15, y: 16, w: 6, h: 4, label: "きょうりゅう はくぶつかん", roof: "#D9B47A", facility: "museum", style: "city_museum" },
+    name: "きょうりゅう はくぶつかん", W: 36, H: 34, outside: { map: "city", id: "city_museum", replace: "city_library", x: 3, y: 16, w: 6, h: 4, label: "きょうりゅう はくぶつかん", roof: "#D9B47A", facility: "museum", style: "city_museum" },
     rooms: [
       { id: "entrance", name: "いりぐち", x: 14, y: 28, w: 8, h: 5, f: "0", intro: "ようこそ！ きょうりゅうの じだいへ でかけよう。" },
       { id: "esc", name: "エスカレーター", x: 16, y: 20, w: 4, h: 8, f: "2", intro: "ながい エスカレーターで むかしへ おりて いこう。" },

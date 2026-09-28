@@ -136,16 +136,16 @@ await png(`<div style="padding:20px 24px"><div style="font-size:26px;font-weight
 }
 await png(`<div style="padding:20px 24px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">小さい スマホ（375×667）</div><div style="display:flex;gap:20px"><div><div style="font-weight:800;font-size:13px;margin-bottom:5px">寄贈の 画面</div><img src="${b64(shots.i)}" style="width:300px;border-radius:12px;border:4px solid #3C352E;display:block"></div></div></div>`, IMG + "small-phone.png", { width: 400, height: 700 });
 // 4) 町に たてた ところ（いまの 見学だけの 建物を おきかえて 撮影。外がわの 絵は MuseumArtRef.facade200）
-const MART = readFileSync(new URL("./museum-art-ref.js", import.meta.url), "utf8"), outs = {};
+const MART = readFileSync(new URL("./museum-art-ref.js", import.meta.url), "utf8"), outs = {}, was = {}; // was: おきかえた 建物の いまの 名前
 for (const bid of ["aquarium", "museum"]) {
   const o = DATA.buildings[bid].outside, page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
   page.on("pageerror", (e) => console.log("pageerror", e.message));
   await page.goto(GAME); await page.waitForFunction(() => typeof PokaDebug !== "undefined", null, { timeout: 20000 });
   await page.evaluate(() => PokaDebug.newGame()); await page.waitForFunction(() => G.sceneName === "house" && PokaDebug.idle(), null, { timeout: 15000 });
-  await page.evaluate(({ o, art }) => {
+  was[bid] = await page.evaluate(({ o, art }) => {
     eval(art + ";window.__MA=MuseumArtRef;");
     // いまの 見学だけの 建物（o.replace）を 館に おきかえる。外がわは town-renewal-art.js と 同じ つつみかた（200×160 ＋ 入口の とびら）
-    const d = MAP_DEFS[o.map], b = d.buildings.find((x) => x.id === o.replace);
+    const d = MAP_DEFS[o.map], b = d.buildings.find((x) => x.id === o.replace), label = b.label;
     Object.assign(b, { id: o.id, label: o.label, style: o.style, act: { type: "indoor", map: o.facility } });
     const base = WorldArt.building, R = (x, y, w, h, c, rx = 2) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${c}" ${OS(1.7)}/>`;
     WorldArt.building = (sp) => {
@@ -156,13 +156,14 @@ for (const bid of ["aquarium", "museum"]) {
     };
     Save.d.flags.intro = true; Save.d.flags["visit_" + o.map] = true; PokaDebug.hour(11);
     PokaDebug.teleport(o.map, o.front[0], o.front[1] + 2, "up");
+    return label;
   }, { o, art: MART });
   await page.waitForFunction(() => G.sceneName === "world" && PokaDebug.idle() && !document.querySelector(".house-bar"), null, { timeout: 15000 });
   await page.waitForTimeout(1500); outs[bid] = `${TMP}museum-out-${bid}.png`; await page.screenshot({ path: outs[bid] }); await page.close();
 }
 {
   const vb = (k) => { const o = DATA.buildings[k].outside; return `${o.map} の (${o.x}, ${o.y}) ${o.w}×${o.h}マス・入口 (${o.doorAt.join(", ")})`; };
-  await png(`<div style="padding:20px 24px"><div style="font-size:24px;font-weight:800">町に たてた ところ（390×844・いまの 町の 建物を おきかえて 撮影）</div><div style="font-size:14px;margin:4px 0 12px;max-width:620px">港の「みなとの しりょうかん」を 水族館に、シティの「まちの ギャラリー」を 恐竜博物館に おきかえる（同じ 場所・大きさ）。外がわの 絵は MuseumArtRef.facade200（town-renewal-art.js の facades と 同じ 200×160）。入口に 入ると 館の マップへ、館の 出入り口から 出ると 入口の まえに もどる。</div><div style="display:flex;gap:20px">${["aquarium", "museum"].map((k) => `<div><div style="font-weight:800;font-size:13px;margin-bottom:5px">${DATA.buildings[k].name}（${vb(k)}）</div><img src="${b64(outs[k])}" style="width:300px;border-radius:12px;border:4px solid #3C352E;display:block"></div>`).join("")}</div></div>`, IMG + "outside.png", { width: 700, height: 900 });
+  await png(`<div style="padding:20px 24px"><div style="font-size:24px;font-weight:800">町に たてた ところ（390×844・いまの 町の 建物を おきかえて 撮影）</div><div style="font-size:14px;margin:4px 0 12px;max-width:620px">港の「${was.aquarium}」を 水族館に、シティの「${was.museum}」を 恐竜博物館に おきかえる（同じ 場所・大きさ）。外がわの 絵は MuseumArtRef.facade200（town-renewal-art.js の facades と 同じ 200×160）。入口に 入ると 館の マップへ、館の 出入り口から 出ると 入口の まえに もどる。</div><div style="display:flex;gap:20px">${["aquarium", "museum"].map((k) => `<div><div style="font-weight:800;font-size:13px;margin-bottom:5px">${DATA.buildings[k].name}（${vb(k)}）</div><img src="${b64(outs[k])}" style="width:300px;border-radius:12px;border:4px solid #3C352E;display:block"></div>`).join("")}</div></div>`, IMG + "outside.png", { width: 700, height: 900 });
 }
 await browser.close();
 console.log("museum mock: aquarium-plan.png / museum-plan.png / phones.png / small-phone.png / outside.png");

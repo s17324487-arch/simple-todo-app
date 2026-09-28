@@ -26,7 +26,7 @@
 
 ## 1. 受け入れ条件
 
-- [ ] あおぞらポート（`harbor`）の「みなとの しりょうかん」（(2, 29)・7×3 マス）を「ぽかぽか すいぞくかん」に、きらめきシティ（`city`）の「まちの ギャラリー」（(15, 16)・6×4 マス）を「きょうりゅう はくぶつかん」に おきかえる（同じ 場所・大きさ。どちらも 町の 作り直しで できた 見学だけの 建物）。外がわは `facade200`（ガラスの ドーム／はしらと ブラキオサウルスの 像）。`img/outside.png` の とおり。
+- [ ] あおぞらポート（`harbor`）の「みなとの しりょうかん」（(2, 29)・7×3 マス）を「ぽかぽか すいぞくかん」に、きらめきシティ（`city`）の「まちの としょかん」（(3, 16)・6×4 マス）を「きょうりゅう はくぶつかん」に おきかえる（同じ 場所・大きさ。どちらも 町の 作り直しで できた 見学だけの 建物）。外がわは `facade200`（ガラスの ドーム／はしらと ブラキオサウルスの 像）。`img/outside.png` の とおり。
 - [ ] 入口に 入ると 館の マップ（`MAP_DEFS.aquarium` / `MAP_DEFS.museum`）へ。**3にん いっしょに** 歩いて まわれる。出入り口（2か所）から 出ると 町の 入口の まえに もどる。
 - [ ] 順路が ある: 水族館は「アクアトンネル → エスカレーターで 上へ → やまの さわ → さとの かわ → いけと たんぼ → 大水槽の まわりを ぐるっと → いその ひろば → よるの うみ・しんかい → おみやげ」、博物館は「エスカレーターで 下へ → かせきの みち → きょうりゅうの せかい（ホール）→ けんきゅうしつ → たまごの へや → おみやげ」。床の 矢印と 案内板つき。へやに はじめて 入ると 案内（`intro`）が 出る。
 - [ ] 水族館の かんちょう（マリン）に 話すと 寄贈: いけす（`Save.d.fish.keep`）の 魚から えらぶ → いけすから 1ぴき へる → その 魚の 水そうに 入る（1しゅ 1回）。
@@ -68,14 +68,15 @@
 ```js
 // 港（begin("harbor", …)）: b.building("harbor_customs", 2, 29, 7, 3, "harbor_customs", { label: "みなとの しりょうかん", … }) を
 b.building("harbor_aquarium", 2, 29, 7, 3, "harbor_aquarium", { label: "ぽかぽか すいぞくかん", act: { type: "indoor", map: "aquarium" } });
-// シティ（begin("city", …)）: b.building("city_gallery", 15, 16, 6, 4, "city_gallery", { label: "まちの ギャラリー" }) を
-b.building("city_museum", 15, 16, 6, 4, "city_museum", { label: "きょうりゅう はくぶつかん", act: { type: "indoor", map: "museum" } });
+// シティ（begin("city", …)）: b.building("city_library", 3, 16, 6, 4, "city_library", { label: "まちの としょかん", act: { type: "visit", … } }) を
+b.building("city_museum", 3, 16, 6, 4, "city_museum", { label: "きょうりゅう はくぶつかん", act: { type: "indoor", map: "museum" } });
 // js/town-renewal-art.js の facades に 2つ（MuseumArt.facade200 の 中身を そのまま。入口は つつむ 関数が 描く）
 harbor_aquarium: () => MuseumArt.facade200("aquarium"), city_museum: () => MuseumArt.facade200("museum"),
 ```
 
 - 場所は `MUSEUM_DATA.buildings.<館>.outside` の とおり。`build-museum.mjs` が ゲームの 地図で たしかめた: おきかえる 建物が 同じ 場所・大きさで `act: visit`・もとの 町（作り直す まえ）には ない（`tools/town-check.mjs` の「もとの 建物を なくさない・お店や のりものを かえない」に ふれない）・入口の まえが 通れる。
-- 建物の まえの 小物（`town-renewal.js` の 建物ごとの 小物の 表 `city_gallery: [...]` など）は、新しい id（`city_museum` / `harbor_aquarium`）に うつして よい。
+- 建物の まえの 小物（`town-renewal.js` の 建物ごとの 小物の 表 `city_library: [...]` など）は、新しい id（`city_museum` / `harbor_aquarium`）に うつして よい。
+- main は どんどん すすむ（シティの「まちの ギャラリー」は 美容室に、「えほんの おへや」は バーガーやさんに なった）。おきかえる 建物が もう 見学だけで なく なって いたら（`build-museum.mjs` が「見学だけの 建物で ない」で 止まる）、**その お店は こわさない**。同じ 町の 見学だけの 建物（作り直しで できた もの）から 大きさの ちかい ものを えらんで `tools/feature-design/museum-data.mjs` の `outside` を 直し、`npm run design:features -- --only=museum` で 見本を 作りなおして、PR に どれに したかを 書く。
 - かんばんの アイコンは `SIGN_ICON.aquarium` / `SIGN_ICON.museum` に `MuseumArt.signIcon.*`（店内の 見出しなどで つかう とき）。
 - `scene-world.js` の `enterDoor`: `act.type === "indoor"` → `Game.goto("world", { map: act.map, x: arrive.x, y: arrive.y, dir: "up" }, "circle")`（`Sound.se("door")`）。
 
