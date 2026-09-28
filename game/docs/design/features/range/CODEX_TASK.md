@@ -43,11 +43,11 @@
 
 ## 1. 受け入れ条件
 
-- [ ] きらめきシティ（`city`）の (10, 6) に「シティ シューティング レンジ」（5×4 マス・入口 (12, 9)・まえは 大通り）。外がわは `RangeRef.facade200()`（`img/range-flow.png` の ①）。
-- [ ] 入口に 入ると 射撃場（`RangeScene`）。おわると 入口の まえ (12, 10) に もどる。
-- [ ] はじめての ときは ラビ（うさぎ・サングラス）が きまりを 話す（`talk.first`・②）。
-- [ ] だれが うつ？ → 3にんから 1人（③）。のこりの 2人は うしろで おうえん。
-- [ ] しゅもくと じゅう（④）: タブ（ハンドガン・ライフル・スナイパー）→ しゅもく 2つ（ルールの 文）→ じゅう 3しゅ（絵・動力・たま・ベストの ★）→ せいのう（しょそく・まとまり・れんしゃ・はねあがり・おもさ）・まめちしき。ライフルと スナイパーは ホップ ダイヤル（0〜20・まんなか 10）。ロックは `cats.*.unlock`（ライフルは ハンドガンの どれかの しゅもくで ★1、スナイパーは ライフルで ★1）。
+- [x] きらめきシティ（`city`）の (10, 6) に「シティ シューティング レンジ」（5×4 マス・入口 (12, 9)・まえは 大通り）。外がわは `RangeRef.facade200()`（`img/range-flow.png` の ①）。
+- [x] 入口に 入ると 射撃場（`RangeScene`）。おわると 入口の まえ (12, 10) に もどる。
+- [x] はじめての ときは ラビ（うさぎ・サングラス）が きまりを 話す（`talk.first`・②）。
+- [x] だれが うつ？ → 3にんから 1人（③）。のこりの 2人は うしろで おうえん。
+- [x] しゅもくと じゅう（④）: タブ（ハンドガン・ライフル・スナイパー）→ しゅもく 2つ（ルールの 文）→ じゅう 3しゅ（絵・動力・たま・ベストの ★）→ せいのう（しょそく・まとまり・れんしゃ・はねあがり・おもさ）・まめちしき。ライフルと スナイパーは ホップ ダイヤル（0〜20・まんなか 10）。ロックは `cats.*.unlock`（ライフルは ハンドガンの どれかの しゅもくで ★1、スナイパーは ライフルで ★1）。
 - [ ] RO の 号令 → スタンバイ（じゅうを さげて まつ・⑤）→ ブザー → 主観で うつ（⑥〜⑩）→ けっか（⑪⑫）。
 - [ ] 6つの しゅもくが `range-ref.js` の とおりに うごく: スチール（5ストリング・いちばん おそい 1かいを のぞく・のこした プレート +3びょう）・ブルズアイ（5はつ × 2シリーズ・X/10/8/5・線に かかれば 上）・IPSC（A5 C3 D1・ポッパー 5・ミス −10・NS −10・60びょう・ヒット ファクター）・10m（10.9 まで）・ロングレンジ（30〜70m の かね 5つを ちかい じゅんに 2はつずつ）・ムービング（まどの 中だけ 見える 的・1かい 1ぱつ）。
 - [ ] じゅうの ちがい: 初速・BB の 重さ・まとまり・れんしゃ（カービンは おしっぱなし）・たまの 数・リロード（ガス ブローバックは スライドが とまって +0.4びょう）・ボルト／レバー（うったら じぶんで うごかす）・1ぱつずつ こめる・ダブル アクションの おもい ひきがね・はねあがり・おもさ（ゆれと のぞく はやさ）・サイト・スコープの ばいりつ。
@@ -155,11 +155,30 @@ range: { safety: false, plays: 0, best: {}, hop: {} },
 
 ## 9. PR の 分けかた
 
-1. **絵と 町の 建物と ロビー**: `js/range-data.js`・`js/gun-art.js`・`js/range.js` の 絵と 弾道の 部分（index.html と sw.js の 両方）、シティの 建物・入口、ラビの きまり・だれが うつ・しゅもくと じゅう（ホップ ダイヤル・ロック）、`sound.js` の `rg_` 8つ（あそぶ ボタンは まだ「じゅんび ちゅう」で よい）。
+1. ✅ **絵と 町の 建物と ロビー**（済み: Claude Code。下の「実装メモ」）: `js/range-data.js`・`js/gun-art.js`・`js/range.js` の 絵と 弾道の 部分（index.html と sw.js の 両方）、シティの 建物・入口、ラビの きまり・だれが うつ・しゅもくと じゅう（ホップ ダイヤル・ロック）、`sound.js` の `rg_` 8つ（あそぶ ボタンは まだ「じゅんび ちゅう」で よい）。
 2. **あそぶ 画面**: `RangeScene`・主観の 画面・サイトと スコープ・HUD・そうさ・6しゅもく・けっか・`Save.range`・コイン・PokaDebug・スモーク。
 3. **RO の 号令・おうえん・つなぎ**: メイク レディ〜ショウ クリア・2人の おうえん・② の `signal`。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の FEAT-15〜17 に ✅。
+
+## 実装メモ（Claude Code が 作った ときの きまり。つぎの 番号も これに あわせる）
+
+- 1番: `js/range-data.js`（そのまま コピー）・`js/gun-art.js`（見本 `GunArtRef` を 名前だけ `GunArt` に して そのまま）・`js/range.js`（見本 `RangeRef` を 名前だけ `ShootingRange` に。中の `GunArtRef` は `GunArt`）を **`museum.js` の あと・`scene-world.js` の まえ**に、`js/scene-range.js`（`RangeScene`・`SCENES.range`）を **`fossils.js` の あと・`debug.js` の まえ**に 読む（index.html と sw.js の 両方）。`tools/preview.html` も `gun-art.js`・`range.js` を 読む（町の 建物の 一覧で `ShootingRange.facade200` を つかう）。
+- `js/range.js` は 1番では 見本の **弾道**（`flight`・`ballistics`・`drift`・`FOV`・`SHAPE`・`hopAt`）と **絵**（`targetSvg`・`tkey`・`artKeys`・`handSvg`・`fpvSvg`・`facade200`）だけ。2番で 見本の `rng`・`gauss`・`Game`・`SKILL`・`bot`・`view`・`proj`・`draw*` を **見本と 同じ ならびの 場所に** 足す（さいごに `range-ref.js` と 名前いがい 同じ に なる）。
+- 町の 建物: `town-renewal.js` の シティの ブロックに `b.building("city_range", 10, 6, 5, 4, "city_range", { label, door: 2, act: { type: "range" } })`。店先の 小物の 表（`frontages`）に `city_range`（`city_billboard`・`newsbox`・`planter`・`city_bikerack`）を 足した。外がわは `town-renewal-art.js` の `facades.city_range = () => ShootingRange.facade200()`（入口は いつもの つつむ 関数が 描く）。
+- ドア: `WorldScene.enterDoor` で `act.type === "range"` → `this.busy = true; Game.goto("range", { back: out }, "circle")`（`out` は 入口の まえ (12, 10)）。`tools/check.mjs` の 建物の `act` に `range`（`SCENES.range` が ある とき）を みとめた。
+- ロビー（`scene-range.js`）: うしろは canvas に 描く（コンクリートの かべ・まとの マーク・カウンターと RO の ラビ。ラビの 絵は `SvgCache` の `rg:staff`）。HUD は 出した まま（コインと 場所の 名前「シティ シューティング レンジ」）。ロビーの 会話と モーダルは、シーンが 入った あと（`Game.trans` が おわって から）`update` で はじめる（`enter` の 中で まつと 画面の きりかえが とまる）。
+  - はじめて: `UI.say`（名前 `staff.name`・かお `Art.npcSvg({ sp: "rabbit", outfit: { face: "sunglasses" } })`・`talk.first` 3つ）→ `Save.d.range.safety = true`。2かいめ からは 話さない。
+  - だれが うつ？: `.rg-who` の カード（3人の かおは `Chara.svg` を `U.svgUrl` の img に。わんこ smile・がちゃん smile・ごじ love）・ことばは `talk.go[だれ][0]`。さいしょは 先頭の 子。✕ で 町へ もどる。
+  - しゅもくと じゅう: `.rg-tabs`（ロックは `🔒`・`.lock`。えらぶと `.rg-lock` に `talk.lock` を 出し「これで うつ」を おせない）→ `.rg-courses`（名前・もとの 競技・てんの かぞえかた・その しゅもくの いちばん よい ★）→ `.rg-rule` → `.rg-guns`（`GunArt.svg(g, { px: ハンドガン 0.5 / ほか 0.105, uid: "sel" + id })`・動力・たま・ばいりつ か うごき・この しゅもくでの ★）→ `.rg-detail`（せいのうの ぼう・ホップ ダイヤル・まめちしき）。✕ で だれが うつ？ に もどる。えらんだ もの（だれ・しゅるい・しゅるいごとの しゅもくと じゅう）は `RangeScene.memo` に おぼえる（セーブ しない）。
+  - ホップ ダイヤル（ライフル・スナイパー）: −／＋ で 0〜20（まんなか 10）。かえると すぐ `Save.d.range.hop[じゅう]` に のこす。
+  - 1番の「これで うつ」は トースト「しゃてきじょうは じゅんび ちゅう…」を 出して しゅもくと じゅうに もどる（2番で あそぶ 画面に つなぐ）。
+  - CSS は `range-ui.css` を そのまま `style.css` の さいごに 足し、その あとに ゲームで 足した 2行（ロビーの 文は `word-break: keep-all` で 文節で おりかえす・したの ボタン `.rg-go` は 48px）。
+- セーブ: `Save.fresh().range = { safety: false, plays: 0, best: {}, hop: {} }`（足すだけ。`SCHEMA` は そのまま）。
+- 音: `sound.js` の `se()` に `rg_` の 8つ（`GUN_LIST.md` の「こうかおん」。書き方は まわりに あわせて `{ f: … }` に 空白を 入れた）。
+- `tools/check.mjs`: `RANGE_DATA` の 検査（じゅう 9しゅ・0.98J いか・性能の はんい・うごきごとの 数・しゅもく 6つ・的の 形と 参照・★の ならび・こうかおん・RO の 服・町の 建物と 入口・セーブ）と、**`GUN_LIST.md` の「弾道」「ホップ ダイヤル」の 表を よんで** `ShootingRange.ballistics` と 0.1cm（とぶ 時間は 0.01びょう）まで あうか。じゅう・主観の じゅう（9×3×2）・的（14）・外がわの SVG。
+- `tools/feature-design/build-range.mjs`・`range-mock.mjs`: ゲームに 射撃場が 入った あと（`RANGE_DATA` が ある）でも 見本を 作りなおせる ように、たてた あとの 建物（`act: range`）と sound.js の `rg_` を しらべ、見本の 画面は 建物を たてずに 撮る。
+- スモーク `range-lobby-390` / `-375`: 町の 建物 → 入口へ 歩く → きまり → だれが うつ？ → しゅもくと じゅう（えらぶ・ロック・★1 で ライフルが あく・ホップ ダイヤルが のこる）→ ✕ ✕ で 入口の まえ → 2かいめは きまりを 話さない。スクリーンショットは `docs/screenshots/range-lobby/`。
 
 ## 10. やらないこと
 

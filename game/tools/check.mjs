@@ -209,7 +209,7 @@ for (const id of Object.keys(R.MAP_DEFS)) {
   }
   for (const d of m.doors) {
     const a = d.b.act;
-    ok(a && (a.type === "house" || (a.type === "work" && R.SHOPS[a.shop]) || (a.type === "buy" && R.BUY_SHOPS[a.shop]) || (a.type === "transit" && R.Transit.stops[a.stop]?.map === id) || (a.type === "visit" && typeof a.text === "string") || (a.type === "indoor" && !!R.MAP_DEFS[a.map]?.indoor)), `マップ ${id}: 建物 ${d.b.id} の act が不正`);
+    ok(a && (a.type === "house" || (a.type === "work" && R.SHOPS[a.shop]) || (a.type === "buy" && R.BUY_SHOPS[a.shop]) || (a.type === "transit" && R.Transit.stops[a.stop]?.map === id) || (a.type === "visit" && typeof a.text === "string") || (a.type === "indoor" && !!R.MAP_DEFS[a.map]?.indoor) || (a.type === "range" && typeof R.SCENES.range === "function")), `マップ ${id}: 建物 ${d.b.id} の act が不正`);
     if(a?.type === "transit") {
       const arrival=R.Transit.arrival(a.stop);
       ok(!m.isSolid(arrival.x,arrival.y)&&!m.warpAt(arrival.x,arrival.y)&&R.Transit.destinations(a.stop).length>0, `${id}: のりばの着地点・路線が不正`);
@@ -914,6 +914,74 @@ if (ok(!!MU, "MUSEUM_DATA が ない（js/museum-data.js）")) {
     return {bad,n,tanks};})()`, ctx);
   ok(!show.bad.length && show.n >= 30, `展示を しらべる はんいが 不正（${show.n}）${show.bad.slice(0, 4).join("・")}`);
   for (const [what, svg] of show.tanks) svgOk(svg, what);
+}
+
+// ⑥ 射撃場（RANGE_DATA・GunArt・ShootingRange・RangeScene）: build-range.mjs と 同じ 検査・弾道が GUN_LIST.md の 表と 0.1cm まで あう・絵・町の 建物・セーブ
+const RD = vm.runInContext(`typeof RANGE_DATA !== "undefined" ? RANGE_DATA : null`, ctx);
+if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
+  ok(vm.runInContext(`typeof GunArt !== "undefined" && typeof ShootingRange !== "undefined" && SCENES.range === RangeScene`, ctx), "GunArt・ShootingRange・SCENES.range（RangeScene）が ない");
+  const POW = ["gbb", "gas", "aeg", "spring"], ACT = ["semi", "da", "auto", "lever", "bolt", "single"], SIGHT = ["notch3", "ramp", "notch", "peep", "buckhorn", "diopter", "scope"];
+  const inR = (v, lo, hi) => typeof v === "number" && v >= lo && v <= hi;
+  for (const g of RD.guns) {
+    const w = `射撃場の じゅう ${g.id}`, J = 0.5 * (g.bb / 1000) * g.v0 * g.v0;
+    ok(!!RD.cats[g.cat] && POW.includes(g.power) && ACT.includes(g.action) && SIGHT.includes(g.sight), `${w}: しゅるい・動力・うごき・サイトが 不正`);
+    ok(J <= 0.98, `${w}: ${J.toFixed(3)}J は 0.98J（18さい以上用）を こえる`);
+    ok([["len", 150, 1200], ["h", 100, 300], ["bb", 0.12, 0.4], ["v0", 50, 100], ["group", 0.3, 6], ["hip", 5, 30], ["rate", 0.5, 20], ["mag", 1, 40], ["reload", 0, 3], ["recoil", 0.5, 15], ["back", 0, 1], ["weight", 0.3, 6], ["zero", 5, 50], ["sh", 0.01, 0.1], ["hop", 0.8, 1.5]].every(([k, lo, hi]) => inR(g[k], lo, hi)), `${w}: 性能が はんいの そと`);
+    ok(g.action !== "da" || inR(g.pull, 0.01, 0.5), `${w}: ダブル アクションの pull`);
+    ok(!["bolt", "lever"].includes(g.action) || inR(g.cycle, 0.01, 1.5), `${w}: ボルト／レバーの cycle`);
+    ok(!["lever", "single"].includes(g.action) || (inR(g.perRound, 0.01, 2) && !g.reload), `${w}: 1ぱつずつ こめる perRound`);
+    ok(g.power !== "gbb" ? !g.empty : g.empty > 0, `${w}: スライドが とまる empty は ガス ブローバックだけ`);
+    ok(g.cat === "sniper" ? g.sight === "scope" && Array.isArray(g.zoom) && g.zoom[1] > g.zoom[0] : typeof g.zoom === "number" && g.sight !== "scope", `${w}: サイトと ばいりつ`);
+    ok(!!(g.name && g.desc && g.fact && g.ref) && g.desc.split("\n").length <= 3 && g.fact.split("\n").length <= 3, `${w}: 名前・せつめい・まめちしき`);
+  }
+  for (const c of Object.keys(RD.cats)) {
+    ok(RD.guns.filter((g) => g.cat === c).length === 3, `射撃場: ${c} の じゅうが 3しゅで ない`);
+    ok(Object.values(RD.courses).filter((x) => x.cat === c).length === 2, `射撃場: ${c} の しゅもくが 2つで ない`);
+    const u = RD.cats[c].unlock; ok(!u || (!!RD.cats[u.cat] && u.cat !== c && inR(u.stars, 1, 3)), `射撃場: ${c} の unlock が 不正`);
+  }
+  ok(new Set(RD.guns.map((g) => g.id)).size === 9 && Object.keys(RD.courses).length === 6, "射撃場: じゅう 9しゅ・しゅもく 6つ で ない");
+  const KIND = { steel: "time", bull: "points", ipsc: "hf", issf: "points", long: "points", run: "points" }, TSHAPE = { steel: ["round", "stop"], ipsc: ["ipsc", "ns", "popper"], long: ["gong"] };
+  for (const [cid, c] of Object.entries(RD.courses)) {
+    const w = `射撃場の しゅもく ${cid}`, T = c.targets || [], ids = new Set(T.map((t) => t.id)), st = c.stars || [];
+    ok(!!RD.cats[c.cat] && ["indoor", "hall", "field"].includes(c.env) && KIND[c.kind] === c.score && !!c.name && !!c.rule && c.rule.split("\n").length <= 3, `${w}: しゅるい・ばしょ・てんの かぞえかた・ルール`);
+    ok(ids.size === T.length && T.every((t) => (TSHAPE[c.kind] || []).includes(t.shape) && inR(t.z, 3, 80) && inR(t.x, -8, 8) && (!t.act || (ids.has(t.act) && T.find((x) => x.id === t.act).wait))), `${w}: 的の 形・場所・参照`);
+    ok(st.length === 3 && st.every((v, i) => !i || (c.score === "time" ? v < st[i - 1] : v > st[i - 1])), `${w}: ★の めやすが score の むきに ならばない ${JSON.stringify(st)}`);
+    if (c.kind === "steel") ok(c.strings >= 3 && c.drop < c.strings && c.penalty > 0 && T.length === 5 && T.filter((t) => t.stop).length === 1, `${w}: ストリング・プレート 5まい（ストップ 1まい）`);
+    if (c.kind === "long") ok(c.shots === c.per * T.length && T.every((t, i) => !i || (t.z > T[i - 1].z && t.pts > T[i - 1].pts)), `${w}: かねは ちかい じゅんに 2はつずつ`);
+    if (c.kind === "ipsc") ok(c.zones.A > c.zones.C && c.zones.C > c.zones.D && T.some((t) => t.shape === "ns") && T.some((t) => t.rail) && T.some((t) => t.swing), `${w}: A・C・D・NS・うごく 的`);
+  }
+  // こうかおん（sound.js の se() に ある 名前）・射撃場の 人
+  const seNames = new Set([...readFileSync(join(GAME, "js/sound.js"), "utf8").matchAll(/case "([a-z_]+)"/g)].map((m) => m[1]));
+  const walk = (v) => (typeof v === "string" ? [v] : Object.values(v).flatMap(walk));
+  for (const n of walk(RD.sound)) ok(seNames.has(n), `射撃場の こうかおん ${n} が sound.js に ない`);
+  ok(Object.values(RD.staff.outfit).every((it) => !!R.ITEM_INDEX[it]) && !!R.SPECIES[RD.staff.sp], "射撃場の RO の 服・しゅるいが ない");
+  // 町の 建物（シティの 5×4・入口の まえが 通れる・act は range）と セーブ
+  const out = vm.runInContext(`(()=>{const o=RANGE_DATA.outside,b=(MAP_DEFS[o.map].buildings||[]).find(x=>x.id===o.id),m=new WorldMap(o.map);if(!b)return null;
+    const door=[b.x+b.door,b.y+b.h-1];return {pos:b.x===o.x&&b.y===o.y&&b.w===o.w&&b.h===o.h&&b.label===o.label&&b.style===o.style&&b.act?.type==="range",
+      door:door[0]===o.doorAt[0]&&door[1]===o.doorAt[1]&&!!m.doorAt(door[0],door[1]),front:!m.isSolid(o.front[0],o.front[1])&&o.front[0]===door[0]&&o.front[1]===door[1]+1,
+      save:JSON.stringify(Save.fresh().range)===JSON.stringify({safety:false,plays:0,best:{},hop:{}})};})()`, ctx);
+  ok(!!out && Object.values(out).every(Boolean), "射撃場の 町の 建物・入口・セーブが 不正 " + JSON.stringify(out));
+  // 弾道: GUN_LIST.md の「弾道」と「ホップ ダイヤル」の 表と ShootingRange.ballistics が 0.1cm（とぶ 時間は 0.01びょう）まで あう
+  const md = readFileSync(join(GAME, "docs/design/features/range/GUN_LIST.md"), "utf8"), num = (t) => Number(String(t).replace(/[^0-9.+-]/g, ""));
+  const rows = (head) => { const sec = md.split(head)[1] || "", out = []; for (const ln of sec.split("\n").slice(1)) { if (ln.startsWith("#")) break; if (ln.startsWith("| ") && !/^\| (じゅう|---)/.test(ln)) out.push(ln.split("|").slice(1, -1).map((x) => x.trim())); } return out; };
+  const bal = vm.runInContext(`(()=>{const B=RANGE_DATA.ballistics,out={};for(const g of RANGE_DATA.guns){const b=ShootingRange.ballistics(g,g.hop,B);
+    out[g.name]={y:[5,10,20,30,40,50,60,70].map(d=>b.at(d).y*100),t:[30,50,70].map(d=>b.at(d).t),w:[30,50,70].map(d=>ShootingRange.drift(g,d,b.at(d).t,1)*100),
+      hop:g.cat==="hand"?null:[0,5,10,15,20].map(s=>{const h=ShootingRange.ballistics(g,ShootingRange.hopAt(g,s,B),B);return [20,30,50,70].map(d=>h.at(d).y*100);})};}return out;})()`, ctx);
+  const main = rows("## 弾道"), hops = rows("### ホップ ダイヤル");
+  ok(main.length === 9 && hops.length === 6, `GUN_LIST.md の 弾道の 表が 読めない（${main.length} / ${hops.length}）`);
+  const near = (a, b, tol) => Math.abs(a - b) <= tol + 1e-9;
+  for (const r of main) {
+    const b = bal[r[0]]; if (!ok(!!b, `弾道の 表の じゅう「${r[0]}」が RANGE_DATA に ない`)) continue;
+    const ts = r[9].split("/").map(num), ws = r[10].split("/").map(num);
+    ok(r.slice(1, 9).every((v, i) => near(Math.round(b.y[i] * 10) / 10, num(v), 0.1)) && ts.every((v, i) => near(Math.round(b.t[i] * 100) / 100, v, 0.01)) && ws.every((v, i) => near(Math.round(b.w[i] * 10) / 10, v, 0.1)), `弾道が GUN_LIST.md と ちがう: ${r[0]}`);
+  }
+  for (const r of hops) { const b = bal[r[0]]; if (ok(!!(b && b.hop), `ホップの 表の じゅう「${r[0]}」`)) ok(r.slice(1).every((cell, s) => cell.split("/").map(num).every((v, i) => near(Math.round(b.hop[s][i] * 10) / 10, v, 0.1))), `ホップ ダイヤルの 弾道が GUN_LIST.md と ちがう: ${r[0]}`); }
+  // 絵: じゅう 9しゅ・的（キーは 14こ・有限）・主観の じゅう（9×3×2）・町の 建物の 外がわ
+  const art = vm.runInContext(`(()=>{const out=[];for(const g of RANGE_DATA.guns){out.push(["じゅうの 絵 "+g.id,GunArt.svg(g,{px:g.cat==="hand"?0.5:0.105,uid:"ck"+g.id})]);for(const w of ["wanko","gachan","goji"])for(const t of ["soft","dark"])out.push(["主観の じゅう "+g.id+"/"+w+"/"+t,ShootingRange.fpvSvg(g,w,t).svg]);}
+    const keys=ShootingRange.artKeys(RANGE_DATA);for(const k of keys)out.push(["的の 絵 "+k.key,k.make()]);
+    out.push(["射撃場の 外がわ",'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160">'+ShootingRange.facade200()+"</svg>"]);return {out,keys:keys.map(k=>k.key)};})()`, ctx);
+  ok(art.keys.length === 14 && new Set(art.keys).size === 14 && art.keys.every((k) => /^rt:[a-z]+(:\d+)?$/.test(k)), `射撃場の 的の キーが 14こで ない（${art.keys.join(",")}）`);
+  for (const [what, svg] of art.out) svgOk(svg, what);
 }
 
 finish();

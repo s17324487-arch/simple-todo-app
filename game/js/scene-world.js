@@ -445,6 +445,7 @@ class WorldScene {
     }
     if (act.type === "house") { this.busy = true; Game.goto("house", {}, "circle"); return; }
     if (act.type === "indoor" && typeof Museum !== "undefined" && Museum.enter(this, act)) return; // ⑤ すいぞくかん・はくぶつかん
+    if (act.type === "range" && SCENES.range) { this.busy = true; Game.goto("range", { back: out }, "circle"); return; } // ⑥ 射撃場
     if (act.type === "buy" || act.type === "work") {
       this.busy = true;
       Game.goto("store", { shop: act.shop, back: out }, "circle");

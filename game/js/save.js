@@ -53,6 +53,8 @@ const Save = {
       fossil: { pick: 0, bones: {}, dug: { day: "", at: {} } },
       // ⑤ 水族館と 博物館: 寄贈した 魚・骨（日づけ）・そろった 恐竜・入った へや（案内は 1かい）・ぜんぶ そろった おいわい
       museum: { fish: {}, bones: {}, done: {}, rooms: {}, all: {} },
+      // ⑥ 射撃場: safety は RO の きまりを きいた・best は しゅもく:じゅう ごとの いちばん よい きろく・hop は じゅう ごとの ホップ ダイヤル
+      range: { safety: false, plays: 0, best: {}, hop: {} },
       shops: {
         burger:{lv:1,rep:0,best:0,plays:0},
         groom: {lv:1,rep:0,best:0,plays:0},

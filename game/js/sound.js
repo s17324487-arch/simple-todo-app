@@ -121,6 +121,15 @@ const Sound = {
       case "bake": N({ dur: 0.5, vol: 0.08, freq: 5000, q: 0.3, type: "highpass" }); break;
       case "ding": T({ f: 1760, dur: 0.3, type: "sine", vol: 0.2 }); T({ f: 2637, dur: 0.3, type: "sine", vol: 0.08 }); break;
       case "swish": N({ dur: 0.12, vol: 0.15, freq: 2500, f2: 1200, q: 2 }); break;
+      // ⑥ 射撃場（RANGE_DATA.sound・GUN_LIST.md の「こうかおん」）: ブザー・動力ごとの 発射音・ボルト／レバー・マガジン・かね
+      case "rg_beep": T({ f: 2400, dur: 0.32, type: "square", vol: 0.08 }); break;
+      case "rg_gbb": N({ dur: 0.06, vol: 0.32, freq: 3000, q: 0.7 }); T({ f: 150, f2: 70, t: 0.01, dur: 0.05, type: "square", vol: 0.1 }); N({ t: 0.06, dur: 0.03, vol: 0.18, freq: 1400, q: 3 }); break;
+      case "rg_gas": N({ dur: 0.08, vol: 0.28, freq: 2200, q: 0.8 }); T({ f: 1300, dur: 0.02, type: "pulse", vol: 0.08 }); break;
+      case "rg_aeg": T({ f: 95, f2: 140, dur: 0.05, type: "sawtooth", vol: 0.1 }); N({ t: 0.02, dur: 0.05, vol: 0.24, freq: 1800, q: 1 }); break;
+      case "rg_spring": N({ dur: 0.1, vol: 0.3, freq: 900, q: 0.8 }); T({ f: 220, f2: 120, dur: 0.08, type: "triangle", vol: 0.14 }); break;
+      case "rg_bolt": N({ dur: 0.05, vol: 0.22, freq: 1800, q: 3 }); N({ t: 0.18, dur: 0.05, vol: 0.22, freq: 1500, q: 3 }); break;
+      case "rg_mag": N({ dur: 0.04, vol: 0.2, freq: 1300, q: 3 }); N({ t: 0.3, dur: 0.05, vol: 0.24, freq: 900, q: 3 }); break;
+      case "rg_gong": T({ f: 620, dur: 0.9, type: "sine", vol: 0.16, vib: 4 }); T({ f: 1540, dur: 0.5, type: "sine", vol: 0.06 }); break;
     }
   },
   voice(id) { this.se(id === "wanko" ? "wan" : id === "gachan" ? "piyo" : Math.random() < 0.5 ? "gao" : "gau"); },

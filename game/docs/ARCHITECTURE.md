@@ -737,6 +737,9 @@ Talk.run の最初で role: "donate" の人は Museum.talk（first／all／none�
 ### 水族館と 博物館: 展示を しらべる・つなぎ（FEAT-14）
 Museum.at（walk でない展示のはんい）と canShow（fish／dino／info）。interactFront は WorldScenery.at の前、tapAt は いわの後に goObject(o, "exhibit") → interact → Museum.show。水そうは .ex-card（Museum.tankSvg: 町と同じ魚なしの水そう＋町と同じ大きさの魚）と .ex-list → Fishing.detail（寄贈した魚に「すいぞくかんに いるよ」）。骨格の台は Fossils.detail(id, { have, museum: true })、かざりは .ex-card.rock と MUSEUM_DATA.info。寄贈で TownFolk.signal({ do: "donate", fish／bone })。
 
+### 射撃場: じゅうの 絵・町の 建物・ロビー（FEAT-15）
+`range-data.js`（RANGE_DATA・自動生成。元は `tools/feature-design/range-data.mjs`）・`gun-art.js`（GunArt。見本 GunArtRef と同じ）・`range.js`（ShootingRange。見本 RangeRef の 弾道と 絵。2番で Game・bot・draw を足す）を museum.js の後・scene-world.js の前に、`scene-range.js`（RangeScene・SCENES.range）を fossils.js の後に読む。シティの `city_range`（10,6・5×4・act: range）の入口は WorldScene.enterDoor → Game.goto("range", { back })。RangeScene は canvas に ロビーの うしろ（ラビは SvgCache「rg:staff」）を描き、update で はじめて Game.trans が なくなったら lobby（初回だけ RO の talk.first → Save.d.range.safety）→ pickWho（.rg-who）→ pickGame（.rg-tabs／.rg-courses／.rg-rule／.rg-guns／.rg-detail／.rg-hop）。ロックは cats.*.unlock と Save.d.range.best、ホップ ダイヤルは Save.d.range.hop[じゅう]。Save.fresh().range（safety・plays・best・hop）を追加（SCHEMA は そのまま）。sound.js に rg_ の 8つ。check.mjs は RANGE_DATA と GUN_LIST.md の 弾道の 表（0.1cm）と 絵を しらべる。
+
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。
 

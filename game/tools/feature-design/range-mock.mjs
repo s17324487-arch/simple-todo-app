@@ -88,12 +88,16 @@ async function gamePage(vp, where) {
   await page.evaluate(({ art, ref, rd, o }) => {
     eval(art + ";" + ref + ";window.__GA=GunArtRef;window.__RR=RangeRef;"); window.__RD = rd;
     const d = MAP_DEFS[rd.outside.map], b = rd.outside, rows = d.rows.map((r) => r.split(""));
-    for (let y = b.y; y < b.y + b.h; y++) for (let x = b.x; x < b.x + b.w; x++) rows[y][x] = "#";
-    rows[b.doorAt[1]][b.doorAt[0]] = "D"; d.rows = rows.map((r) => r.join(""));
-    d.buildings.push({ id: b.id, x: b.x, y: b.y, w: b.w, h: b.h, door: b.door, label: b.label, style: b.style, act: { type: "range" } });
+    // ⑥ の 1番が ゲームに 入った あと（建物が もう ある）は たてずに そのまま 撮る
+    const built = d.buildings.some((x) => x.id === b.id);
+    if (!built) {
+      for (let y = b.y; y < b.y + b.h; y++) for (let x = b.x; x < b.x + b.w; x++) rows[y][x] = "#";
+      rows[b.doorAt[1]][b.doorAt[0]] = "D"; d.rows = rows.map((r) => r.join(""));
+      d.buildings.push({ id: b.id, x: b.x, y: b.y, w: b.w, h: b.h, door: b.door, label: b.label, style: b.style, act: { type: "range" } });
+    }
     // town-renewal-art.js の つつみかたと 同じ（入口の とびら・ガラス・とって・ステップ）
     const base = WorldArt.building, R = (x, y, w, h, c, rx = 2) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${c}" ${OS(1.7)}/>`;
-    WorldArt.building = (sp) => {
+    if (!built) WorldArt.building = (sp) => {
       if (sp.style !== b.style) return base(sp);
       const w = sp.w * TS, h = sp.h * TS + 24, dx = ((sp.door + 0.5) / sp.w) * 200;
       const svg = __RR.facade200() + R(dx - 12, 117, 24, 36, "#839FA3") + R(dx - 9, 121, 18, 19, "#B8DADF") + `<circle cx="${dx + 7}" cy="145" r="1.4" fill="#EDD5A4" ${OS(1.5)}/>` + R(dx - 16, 153, 32, 6, "#D4C4AE");
