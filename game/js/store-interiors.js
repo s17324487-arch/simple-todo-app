@@ -1,5 +1,9 @@
 // 店内は町とは別の、10×12マスの歩ける空間。セーブの座標は入口の外に保つ。
 const STORE_INTERIORS = {
+  burger:{wall:"#E7DDCB",floor:"#EADBC3",accent:"#A9BBB6",motif:"check",caption:"こんがり できたて バーガー",fixtures:[
+    ["burgergrill",0,0,3,2,"じゅうじゅう てっぱん"],["sodas",8,0,2,2,"のみもの コーナー"],["booth",0,5,3,2,"まどべの ボックスせき"],["burgerprep",7,5,3,2,"ぐざいを ならべる だい"],["menu",0,9,3,1,"きょうの バーガー"],["booth",7,9,3,1,"ひとやすみの せき"]]},
+  groom:{wall:"#DCEBE5",floor:"#E4DCCA",accent:"#94B6AF",motif:"tile",caption:"ふんわり すっきり おしゃれ",fixtures:[
+    ["mirror",0,0,3,2,"おおきな かがみ"],["sink",8,0,2,2,"シャンプーの ながし"],["salonchair",0,5,3,2,"カットの いす"],["haircart",7,5,3,2,"ドライヤーと はさみ"],["accessories",0,9,3,1,"いろとりどりの リボン"],["waiting",7,9,3,1,"まちあいの ソファ"]]},
   cake: {wall:"#F2DEE5",floor:"#EFE2CA",accent:"#BC98AC",motif:"check",caption:"きねんびを いろどる デザ",fixtures:[
     ["pastrycase",0,0,3,2,"ホールケーキの ショーケース"],["jars",8,0,2,2,"クリームと くだもの"],["pastrycase",0,5,3,2,"ちいさな デザ"],["decorating",7,5,3,2,"ケーキを かざる だい"],["cafe",0,9,3,1,"おいわいの せき"],["dessert",8,9,2,1,"おくりものの ケーキ"]]},
   clothes: { wall: "#F4DCE5", floor: "#EDDAC3", accent: "#B87893", motif: "stripe", caption: "とっておきの いちまい", fixtures: [
@@ -67,6 +71,12 @@ const StoreArt = {
       case "oven": a=r(12,14,196,163,"#D6A88F",18)+p("M23,44 H193 M23,80 H193 M23,118 H193 M23,156 H193 M50,16 V43 M130,16 V43 M87,44 V79 M170,44 V79 M50,119 V154 M170,119 V154")+p("M46,152 V91 Q110,22 174,91 V152 Z","#624E43")+p("M63,144 Q80,122 89,133 Q96,94 111,126 Q137,110 150,144 Z","#EDB46C")+p("M34,163 H186");break;
       case "pastrycase": a=base("#B99FA9")+r(14,17,192,93,"#D3E2E3",9)+p("M18,105 H201 M20,60 H202 M22,22 L46,19");for(let i=0;i<4;i++){const x=54+i%2*105,y=43+Math.floor(i/2)*43;a+=r(x-26,y,51,18,["#E5BAC8","#E6CF99"][i%2],5)+p(`M${x-26},${y+7} h51`,"none")+[x-16,x,x+16].map(cx=>c(cx,y-3,5,"#DB9C9B")).join("");}break;
       case "decorating": a=base("#C2A7A8")+r(23,39,173,48,"#F0DECE")+r(59,33,75,43,"#EDD5A6",9)+p("M59,43 Q71,53 83,43 Q94,53 105,43 Q118,53 134,43","#F8CFD8")+c(78,32,6,"#D9A1AA")+c(111,32,6,"#D9A1AA")+p("M157,32 L178,42 L165,73 L153,65 Z","#F7EBD6")+r(23,88,172,11,"#D6B9A1");break;
+      case "burgergrill": a=base("#B4BFBA")+r(21,50,180,42,"#727C78")+p("M26,60 H197 M26,70 H197 M26,80 H197");for(let i=0;i<4;i++)a+=r(33+i*40,58,31,20,"#AA8265",9)+p(`M${40+i*40},62 l9,11`);a+=r(23,119,174,13,"#7C9490")+[48,90,132,174].map(x=>c(x,147,8,"#E6D2AB")).join("");break;
+      case "burgerprep": a=base()+["#96B982","#D99E89","#EAC87B"].map((col,i)=>r(24+i*61,55,54,37,"#B6C8C1")+r(30+i*61,63,41,22,col)).join("")+p("M33,126 H182 M33,151 H182");break;
+      case "sodas": a=r(27,20,166,147,"#B1C3BF",12)+r(40,34,140,55,"#E0D4B9")+[55,105,155].map((x,i)=>c(x,59,12,["#D9AE86","#E0C876","#B4B5CA"][i])+p(`M${x},91 v20 h8`)+r(x-11,125,22,29,"#F5E8CF")).join("")+r(32,155,156,15,"#8F9F9D");break;
+      case "booth": a=r(19,39,75,66,"#CFA296",14)+r(15,100,84,32,"#CBA093",9)+r(131,39,75,66,"#CFA296",14)+r(125,100,84,32,"#CBA093",9)+p("M30,133 V173 M192,133 V173 M110,109 V175 M86,179 H136")+r(69,87,83,19,"#E1C69C",8)+p("M38,49 V88 M174,49 V88");break;
+      case "salonchair": a=p("M109,122 V173 M61,176 H160","none")+r(58,20,106,86,"#B3BACF",18)+r(44,103,134,40,"#D1BED0",15)+p("M29,79 V129 H51 M192,79 V129 H168","none")+r(21,70,37,17,"#B9ADBB",8)+r(161,70,37,17,"#B9ADBB",8)+p("M68,56 H153 M101,165 H170 V148","none");break;
+      case "haircart": a=r(30,48,161,110,"#AEC3BB")+p("M29,93 H192 M29,130 H192 M43,160 V176 M179,160 V176")+r(43,112,63,38,"#E6D5B5")+bottle(53,23,"#E3BDD0")+bottle(100,23,"#C8DBA8")+r(134,20,42,20,"#C6B6D4",9)+p("M147,40 V58 M168,32 H193")+c(67,77,7,"#DEC69E")+c(91,77,7,"#DEC69E")+p("M69,73 L97,53 M90,73 L64,53");break;
       case "flour": a=p("M31,162 L25,77 Q64,51 96,78 L100,167 Z","#F0DEBB")+p("M110,168 L112,43 Q152,22 192,46 L190,166 Z","#E5D1A4")+p("M42,82 H86 M123,49 H180 M146,79 V137 M146,97 L131,86 M146,115 L164,100");break;
       case "bread": a=base("#C49969");for(let i=0;i<6;i++)a+=bread(49+i%3*61,48+Math.floor(i/3)*41);a+=p("M17,111 H201 M76,93 V108 M145,93 V108");break;
       case "dough": a=base()+`<ellipse cx="96" cy="76" rx="45" ry="21" fill="#F7E7B5"/>`+r(64,43,90,13,"#B98457",7)+p("M44,50 H64 M154,50 H176")+bottle(163,44,"#F4E4C3");break;

@@ -148,6 +148,8 @@ function helpers(page, name) {
         if (shop === "crepe") {
           for (const nm of st.order.want) await H.tapLabel(nm);
           await H.tapLabel("できあがり！");
+        } else if(shop==='burger'){
+          for(const label of st.order.want)await H.tapLabel(label);if(c===0)await H.shot('burger_prepared');await H.tapLabel('できあがり！');
         } else if(shop==='cake'){
           for(let step=0;step<4;step++){
             const m=await H.dbg('mg'),o=m.order;if(m.phase!=='work')break;
@@ -171,6 +173,19 @@ function helpers(page, name) {
             for (let i = 0; i < st.order.top.n; i++) await H.tap(st.order.breadAt.cx - 30 + i * 13, st.order.breadAt.cy - 6 + (i % 2) * 10);
             await H.tapLabel("できあがり！");
           }
+        } else if(shop==='groom'){
+          await page.locator('#screen').evaluate(async canvas=>{
+            const line=PokaDebug.mg().order.line,send=(type,q)=>canvas.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerId:91,pointerType:'touch',clientX:q.cx,clientY:q.cy}));
+            send('pointerdown',line[0]);for(const q of line.slice(1)){send('pointermove',q);await new Promise(r=>requestAnimationFrame(r));}send('pointerup',line.at(-1));
+          });
+          expect((await H.dbg('mg')).order.trimmed.every(Boolean),'見本に沿って切れない');if(c===0)await H.shot('groom_trimmed');
+          await H.tapLabel('カット おわり');await page.locator('#screen').evaluate(async canvas=>{
+            const round=PokaDebug.mg().n,zones=PokaDebug.mg().order.zones,send=(type,q)=>canvas.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerId:91,pointerType:'touch',clientX:q.cx,clientY:q.cy}));
+            for(let i=0;i<zones.length;i++){const q=zones[i],start=performance.now();send('pointerdown',q);
+              while(PokaDebug.mg()?.order?.zones?.[i]?.dry!==1){if(PokaDebug.mg().n!==round||performance.now()-start>10000)throw Error('ドライヤーの操作が終わらない');await new Promise(r=>requestAnimationFrame(r));}send('pointerup',q);
+            }
+          });
+          if(c===0)await H.shot('groom_dried');await H.tapLabel('リボンを えらぶ');await H.tapLabel(st.order.ribbon);
         } else if (shop === "dentist") {
           for (let k = 0; k < 200; k++) {
             const m = await H.dbg("mg");
@@ -363,6 +378,23 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.cake.plays===1,'報酬・お店の記録が残らない');
   for(const k of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(before[k])===JSON.stringify(after[k]),'ケーキ屋で既存の所持品が変わる');
 },{viewport,full:viewport.width===375,timeout:150000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('groom-shop-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('coins',987504);const before=await H.dbg('saveData');
+  const layout=await H.dbg('townLayout','city'),door=layout.doors.find(d=>d.act.shop==='groom');expect(door,'びようしつの入口がない');
+  await H.dbg('teleport','city',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
+  expect((await H.dbg('storeState')).party.length===3,'3人で入れない');await H.shot('interior');await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle());
+  const ranks=await H.playShop('groom',3);expect(ranks.length===6&&ranks.every(r=>r===3),'正しいカットで◎にならない: '+JSON.stringify(H.shopGrades));
+  const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.groom.plays===1,'美容室の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(before[k])===JSON.stringify(after[k]),'美容室で所持品が変わる');
+},{viewport,full:viewport.width===375,timeout:180000});
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('burger-shop-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('coins',987504);const before=await H.dbg('saveData');
+  const layout=await H.dbg('townLayout','city'),door=layout.doors.find(d=>d.act.shop==='burger');expect(door,'バーガーやさんの入口がない');
+  await H.dbg('teleport','city',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
+  expect((await H.dbg('storeState')).party.length===3,'3人で入れない');await H.shot('interior');await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle());
+  const ranks=await H.playShop('burger',3);expect(ranks.length===6&&ranks.every(r=>r===3),'正しい順番で◎にならない: '+JSON.stringify(H.shopGrades));
+  const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.burger.plays===1,'バーガー屋の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(before[k])===JSON.stringify(after[k]),'バーガー屋で所持品が変わる');
+},{viewport,full:viewport.width===375,timeout:180000});
 
 for (const shop of ["dentist", "bakery", "florist"]) {
   await scenario(`${shop}（Lv3・正しく操作すれば ◎）`, async (H) => {

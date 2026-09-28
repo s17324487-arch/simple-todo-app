@@ -418,6 +418,18 @@ for (const [shop, Task] of Object.entries(R.MG_TASKS)) for (let lv = 1; lv <= 5;
     ok(t.timeLimit > 5 && typeof t.title === "string", `ミニゲーム ${shop} Lv${lv}: timeLimit/title が不正`);
     for (const b of t.btns) ok(b.x >= RECT.x - 1 && b.x + b.w <= RECT.x + RECT.w + 1 && b.y >= RECT.y - 1 && b.y + b.h <= RECT.y + RECT.h + 4, `ミニゲーム ${shop} Lv${lv}: ボタン「${b.label || "?"}」が作業エリアからはみ出す`);
     let perfect = null;
+    if(shop==='burger'){
+      for(const id of t.want)t.btns.find(b=>b.label===t.fillings.find(f=>f.id===id).name).cb();perfect=t.score();ok(t.made.length===lv+2,'burger: 具材がレベルで増えない');const saved=[...t.made];[t.made[0],t.made[1]]=[t.made[1],t.made[0]];ok(t.score()<72,'burger: 順番違いが減点されない');t.made=saved;t.peeks=1;ok(t.score()===92,'burger: 見直しが減点されない');t.peeks=0;
+      for(const b of t.btns)ok(b.h>=44&&b.w>=44,'burger: ボタンの操作範囲');t.btns.find(b=>b.label==='ひとつ もどす').cb();ok(t.made.length===t.want.length-1&&!t.btns[0].disabled,'burger: 積み直しができない');
+    }
+    if(shop==='groom'){
+      const line=t.outline();t.downArea(line[0]);line.slice(1).forEach(q=>t.move(q));t.up();ok(t.trimmed.every(Boolean),'groom: 見本をなぞってもカットできない');
+      t.stage='dry';t.setup();for(const q of t.zones()){t.downArea(q);t.tick(.6+lv*.1);t.up();}t.chosen=t.ribbon;perfect=t.score();
+      t.chosen=t.ribbon==='pink'?'blue':'pink';ok(t.score()===80,'groom: 違うリボンが減点されない');t.chosen=t.ribbon;
+      const dried=t.dry.join();t.up();t.tick(5);ok(t.dry.join()===dried,'groom: 指を離した後も乾燥する');
+      t.stage='ribbon';t.setup();for(const b of t.btns)ok(b.w>=44&&b.h>=44&&b.y+b.h<=RECT.y+RECT.h,'groom: リボンの操作範囲');
+      t.stage='cut';const q={x:RECT.x+20,y:RECT.y+RECT.h*.6};t.downArea(q);t.move({x:q.x+100,y:q.y});t.up();ok(t.offLine>0&&t.score()<100,'groom: はみだしが採点に反映されない');
+    }
     if (shop === "cake") { t.made={...t.want}; perfect=t.score(); for(let i=0;i<t.steps.length;i++){t.step=i;t.setup();for(const b of t.btns)ok(b.h>=44&&b.w>=44&&b.y+b.h<=RECT.y+RECT.h,`cake Lv${lv}: 作業ボタンの大きさ・位置`);} }
     if (shop === "crepe") { t.placed = t.want.map((id) => ({ id })); perfect = t.score(); }
     if (shop === "florist") { t.picked = Object.entries(t.want).flatMap(([k, n]) => Array(n).fill(k)); t.chosen = t.ribbon; perfect = t.score(); }

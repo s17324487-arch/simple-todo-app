@@ -113,6 +113,7 @@ const SKILLS = {
 
 // ---- たべもの（ごはん・バトルでも使える） ----
 const FOODS = [
+  {id:"burger",name:"チーズバーガー",price:70,hunger:44,mood:10,hp:42,desc:"こんがり おにくと やさいの バーガー"},
   { id: "apple", name: "りんご", price: 15, hunger: 12, mood: 4, hp: 15, desc: "あまずっぱい りんご" },
   { id: "onigiri", name: "おにぎり", price: 20, hunger: 26, mood: 4, hp: 25, desc: "おなかが ふくれる" },
   { id: "bread", name: "メロンパン", price: 25, hunger: 22, mood: 6, hp: 20, desc: "がちゃんの だいこうぶつ" },
@@ -222,6 +223,8 @@ const AREAS = {
 
 // ---- おてつだいの お店（ミニゲーム） ----
 const SHOPS = {
+  burger:{name:"バーガーやさん",color:"#E5C69F",desc:"じゅんばんを おぼえて ぐざいを つもう",perk:"cook"},
+  groom: {name:"びようしつ",color:"#BFDED7",desc:"なぞって カット、ふんわり しあげよう",perk:"shop"},
   cake: { name: "ケーキやさん", color: "#EDBAC6", desc: "きねんびの ケーキを ちゅうもんどおりに", perk: "cook" },
   crepe: { name: "クレープやさん", color: "#F8A5C2", desc: "ちゅうもんどおりの クレープを つくろう", perk: "cook" },
   dentist: { name: "はいしゃさん", color: "#8FD3F4", desc: "ばいきんを やっつけて はを ピカピカに", perk: "dentist" },
