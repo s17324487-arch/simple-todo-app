@@ -1,5 +1,5 @@
 // ネリカス駅の原画。平和台と同じ32px/マス、南向き、左上光源。
-// 本編へはまだ登録しない。bboxは足もとの左上基準。横長の絵をマスへ圧縮しない。
+// 本編へはbuild-nerikasu-town.mjsで原画のまま登録。bboxは足もとの左上基準。横長の絵をマスへ圧縮しない。
 import {INK,R,Rn,C,E,Pth,L,T,groundShadow,shade} from './lib.mjs';
 import {NERIKASU_PROPS,nerikasuBicycle} from './nerikasu-props.mjs';
 const green='#648975', dark='#31594E', cream='#F3EAD9', wood='#A97850', copper='#BC795C';

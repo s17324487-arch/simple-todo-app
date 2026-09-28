@@ -1,6 +1,6 @@
 # ネリカスタウンの建物と駅前
 
-[建物原画集](index.html) · [承認済みの駅原画](../nerikasu-station/index.html)
+[建物原画集](index.html) · [町の全体図](img/plan.png) · [承認済みの駅原画](../nerikasu-station/index.html)
 
 駅舎に合わせて町の全22棟を実寸のSVGへ更新。学校、保育園、9店舗、主人公のおうち、8棟の住宅、川辺のあずまやを、それぞれの用途が見える建物にしました。1マス32px、南側の入口、左上の光、セージ・クリーム・木・レンガの材料を共通にしています。
 
@@ -39,3 +39,5 @@ node tests/smoke.mjs --only=nerikasu --shots
 | 小学校 | ![](img/nerikasu-art-390_school.png) | ![](img/nerikasu-art-375_school.png) |
 | 保育園 | ![](img/nerikasu-art-390_nursery.png) | ![](img/nerikasu-art-375_nursery.png) |
 | 夜の駅 | ![](img/nerikasu-art-390_station-night.png) | ![](img/nerikasu-art-375_station-night.png) |
+
+全体図の描画テスト（`npm test -- --only=nerikasu-plan`）では64×68マスの実寸PNGと、描画前後のセーブ不変を確認。検証用の一時WorldSceneには化石配列も初期化する。

@@ -105,7 +105,7 @@ const PokaDebug = {
   },
   async townPlan(id,before=false) {
     const d=before?TownRenewal.originals[id]:MAP_DEFS[id],m=new WorldMap(before?"before-"+id:id,d),sc=new WorldScene();
-    sc.map=m;sc.mapId=id;sc.npcs=(d.npcs||[]).map(n=>({...n,w:new Walker(n.x,n.y,n.dir)}));sc.enemies=[];
+    sc.map=m;sc.mapId=id;sc.npcs=(d.npcs||[]).map(n=>({...n,w:new Walker(n.x,n.y,n.dir)}));sc.enemies=[];sc.rocks=[];
     await sc.preload();
     const cv=document.createElement("canvas");cv.width=m.w*TS;cv.height=m.h*TS;const ctx=cv.getContext("2d");
     for(let y=0;y<m.h;y+=8)for(let x=0;x<m.w;x+=8)ctx.drawImage(Tiles.chunk(m,x/8,y/8),x*TS,y*TS,8*TS,8*TS);
