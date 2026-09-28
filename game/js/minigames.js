@@ -79,7 +79,7 @@ class ShopScene {
     this.shopId = p.shop; this.back = p.back;
     this.returnStore = !!p.returnStore;
     this.S = SHOPS[p.shop]; this.st = Save.d.shops[p.shop];
-    this.lv = this.st.lv;
+    this.lv = this.st.lv; this.dailyBoost = DailyPlay.boost(this.shopId);
     this.total = this.S.rounds || 3 + Math.min(4, this.lv);
     this.difficulty = Save.d.settings.difficulty;
     this.n = 0; this.earn = 0; this.tips = 0; this.rep = 0; this.ranks = [];
@@ -133,7 +133,8 @@ class ShopScene {
   async flow() {
     const face = Art.npcSvg({ ...this.owner, emo: "happy" });
     const first = !this.st.plays;
-    const lines = first ? HOWTO[this.shopId] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
+    const lines = first ? [...HOWTO[this.shopId]] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
+    if(this.dailyBoost>1)lines.push('きょうの おすすめ！ コインが 1.2ばいだよ。');
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
     if (this.closed) return;
     for (this.n = 0; this.n < this.total; this.n++) {
@@ -181,6 +182,7 @@ class ShopScene {
     if (Stats.perk("shop")) perkMul += 0.1;
     if (rank >= 2 && Save.avg("mood") > 80) perkMul += 0.1;
     tip += Math.round((pay + tip) * perkMul);
+    ({pay,tip}=DailyPlay.payout(pay,tip,this.dailyBoost));
     this.earn += pay; this.tips += tip; this.rep += R.rep;
     this.ranks.push(rank);
     this.cust.emo = R.emo;

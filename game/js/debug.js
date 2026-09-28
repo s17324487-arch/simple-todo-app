@@ -55,6 +55,8 @@ const PokaDebug = {
   },
   backupText(){return SaveBackup.encode();},
   backupDecode(text){return SaveBackup.decode(text);},
+  dailyVisit(day) {return DailyPlay.visit(day);},
+  dailyState() {return {...Save.d.daily,featured:DailyPlay.featured(),shop:SHOPS[DailyPlay.featured()].name};},
   saveData() {return JSON.parse(JSON.stringify(Save.d));},
   persistedSave() { try { return JSON.parse(localStorage.getItem(Save.KEY)); } catch { return null; } },
   shopDecor(shop) {return {tier:ShopDecor.level(shop),keys:[...SvgCache.map.keys()].filter(k=>k.startsWith('w:building:')||k.startsWith('shop-decor:'))};},
@@ -358,7 +360,7 @@ const PokaDebug = {
     const sc = G.scene, t = sc.task;
     const cv = G.canvas.getBoundingClientRect();
     const css = (x, y) => ({ cx: Math.round(cv.left + x * G.cssPerUnit), cy: Math.round(cv.top + y * G.cssPerUnit) });
-    const out = { shop: sc.shopId, lv: sc.lv, phase: sc.phase, n: sc.n, total: sc.total, ranks: [...(sc.ranks || [])], earn: sc.earn, tips: sc.tips, difficulty: sc.difficulty, timeLimit: sc.timeLimit, timeLeft: sc.timeLeft, buttons: [], order: null, targets: [] };
+    const out = { shop: sc.shopId, lv: sc.lv, phase: sc.phase, n: sc.n, total: sc.total, ranks: [...(sc.ranks || [])], earn: sc.earn, tips: sc.tips, difficulty: sc.difficulty, dailyBoost: sc.dailyBoost, timeLimit: sc.timeLimit, timeLeft: sc.timeLeft, buttons: [], order: null, targets: [] };
     out.score = sc.stamp?.score ?? null;
     if (!t) return out;
     out.buttons = t.btns.filter((b) => !b.disabled).map((b) => ({ label: b.label || "", ...css(b.x + b.w / 2, b.y + b.h / 2) }));

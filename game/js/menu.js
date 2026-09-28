@@ -34,6 +34,7 @@ const Menu = {
   map(el) { WorldAtlas.render(el); el.append(UI.btn("きせつの おまつり",()=>Seasonal.open(),"wide")); },
   status(el) {
     const d = Save.d;
+    el.append(UI.btn("まいにち スタンプ",()=>DailyPlay.open(),"wide yellow"));
     d.order.forEach((id, idx) => {
       const c = d.chars[id];
       const card = U.el("div", { class: "chara-card" });

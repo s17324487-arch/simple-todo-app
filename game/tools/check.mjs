@@ -494,6 +494,15 @@ for(const [id,def] of Object.entries(R.STORE_INTERIORS)){
   ok(!/undefined|NaN/.test(R.StoreArt.room(id)),id+": 店内SVGが不正");
 }
 
+const daily=vm.runInContext('DailyPlay',ctx);
+ok(daily.dayIndex('2030-9-10')>daily.dayIndex('2030-9-9')&&daily.dayIndex('2031-1-1')>daily.dayIndex('2030-12-31'),'スタンプの日付比較が文字列順');
+ok(daily.dayIndex('2030-2-29')===null&&daily.dayIndex('2032-2-29')!==null,'スタンプの実在日付の検査');
+for(let i=1;i<=14;i++){const id=daily.featured('2030-10-'+i);ok(!!R.MG_TASKS[id]&&id!=='link'&&daily.boost(id,'2030-10-'+i)===1.2,'おすすめに未実装/有料パズルが入る');}
+for(const [pay,tip,boost]of [[28,7,1.2],[0,0,1.2],[32,13,1]]){const r=daily.payout(pay,tip,boost);ok(r.pay+r.tip===Math.round((pay+tip)*boost),'おすすめの合計報酬倍率が不正');}
+const dailyFixture=vm.runInContext(`(()=>{const before=Save.d;Save.d=Save.fresh();Save.d.coins=987654;const initial=JSON.stringify({wardrobe:Save.d.wardrobe,furn:Save.d.furn,room:Save.d.room});
+const dates=['2030-12-29','2030-12-30','2030-12-31','2031-1-1','2031-1-2','2031-1-3','2031-1-4'];for(const date of dates)DailyPlay.visit(date);const reward=Save.d.coins===987804&&Save.d.bag.pudding===1&&Save.d.daily.cycles===1&&Save.d.daily.stamps===7;const once=!DailyPlay.visit('2031-1-4')&&!DailyPlay.visit('2030-12-30');const exact=initial===JSON.stringify({wardrobe:Save.d.wardrobe,furn:Save.d.furn,room:Save.d.room});DailyPlay.visit('2031-2-6');const next=Save.d.daily.stamps===1&&Save.d.daily.total===8&&Save.d.coins===987804;const backup=SaveBackup.decode(SaveBackup.encode()).daily.total===8;Save.d=before;return{reward,once,exact,next,backup};})()`,ctx);
+for(const [key,value]of Object.entries(dailyFixture))ok(value,'毎日スタンプ '+key+' の検査失敗');
+ok(R.BAG_INDEX.pudding?.deza===true||R.BAG_INDEX.pudding?.dessert===true||R.BAG_INDEX.pudding?.kind==='food','スタンプ景品のプリンがない');
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

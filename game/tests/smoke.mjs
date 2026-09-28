@@ -409,6 +409,16 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.burger.plays===1,'バーガー屋の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(before[k])===JSON.stringify(after[k]),'バーガー屋で所持品が変わる');
 },{viewport,full:viewport.width===375,timeout:180000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('daily-stamps-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('coins',987504);const saved=await H.dbg('saveData');saved.daily={last:'',stamps:0,total:0,cycles:0};await H.dbg('seedSave',saved);
+  const before=await H.dbg('saveData');for(const date of ['2030-12-29','2030-12-30','2030-12-31','2031-1-1','2031-1-2','2031-1-3','2031-1-4'])await H.dbg('dailyVisit',date);
+  const earned=await H.dbg('saveData');expect(earned.coins===987804&&earned.bag.pudding===(before.bag.pudding||0)+1,'7日のごほうびが不正');expect(!await H.dbg('dailyVisit','2030-12-31')&&!await H.dbg('dailyVisit','2031-1-4'),'日付を戻して重複取得できる');
+  await H.page.keyboard.press('Escape');await H.page.getByRole('button',{name:'まいにち スタンプ',exact:true}).click();expect(await H.page.locator('.daily-stamp.stamped').count()===7,'7個のスタンプが出ない');await H.shot('seven-days');expect(!await H.eval(()=>document.documentElement.scrollWidth>innerWidth),'スタンプがはみ出す');
+  await H.page.locator('.modal-wrap:not(.out)').last().getByRole('button',{name:'とじる',exact:true}).click();await H.page.locator('.modal-wrap:not(.out)').getByRole('button',{name:'とじる',exact:true}).click();await H.idle();
+  await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();const after=await H.dbg('saveData');expect(after.coins===987804&&after.daily.total===7,'再開で報酬/スタンプが変わる');for(const k of ['wardrobe','furn','room'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'毎日スタンプで所持品が変わる');
+  const featured=(await H.dbg('dailyState')).featured;await H.dbg('shop',featured,1);await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==='work');expect((await H.dbg('mg')).dailyBoost===1.2,'おすすめの倍率が適用されない');await H.shot('featured-shop');
+},{viewport,full:viewport.width===375,timeout:120000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('shop-level-decor-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);const before=await H.dbg('saveData');
   const layout=await H.dbg('townLayout','town'),door=layout.doors.find(d=>d.act.shop==='crepe');

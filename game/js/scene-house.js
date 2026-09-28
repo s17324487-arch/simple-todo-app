@@ -30,6 +30,7 @@ const HOUSE_ICONS = {
 
 class HouseScene {
   async enter(p = {}) {
+    DailyPlay.visit();
     this.mode = null;
     this.zoom = 1; this.pan = { x: 0, y: 0 };
     this.fxs = [];

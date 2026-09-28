@@ -35,10 +35,12 @@ class TitleScene {
     if (fresh) {
       Save.reset();
       await this.opening();
+      DailyPlay.visit();
       Save.write();
       Game.goto("house", { intro: true }, "circle");
     } else {
       Save.applyElapsed(true);
+      DailyPlay.visit();
       const w = Save.d.world;
       if (w.house) Game.goto("house", {}, "circle");
       else Game.goto("world", { map: w.map, x: w.x, y: w.y, dir: w.dir }, "circle");

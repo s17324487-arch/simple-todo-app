@@ -367,3 +367,8 @@ html, body {
 @media(prefers-reduced-motion:reduce) { .puzzle-prize-art:after { animation:none; } }
 
 .save-backup-text{box-sizing:border-box;display:block;width:100%;min-height:140px;max-height:30vh;margin:12px 0;padding:10px;border:2px solid #1f1d1b;border-radius:12px;font:14px monospace;resize:vertical;overflow-wrap:anywhere;word-break:break-all}.save-backup .btn{min-height:44px;margin:6px 0}.save-backup input[type=file]{box-sizing:border-box;max-width:100%;min-height:44px}.save-backup [role=alert]:not(:empty){color:#8f2631}
+
+.daily-stamps { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:16px 0; }
+.daily-stamp { border:2px dashed #C9BCA7; border-radius:50%; aspect-ratio:1; display:grid; place-items:center; font-size:22px; color:#AFA490; }
+.daily-stamp.stamped { border:3px solid #AF7744; color:#AF7744; background:#FFF0AD; transform:rotate(-8deg); }
+.daily-featured { padding:16px; border:3px solid var(--ink); border-radius:14px; background:#DFEFD0; font-size:20px; font-weight:900; text-align:center; }
