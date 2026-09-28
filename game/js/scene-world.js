@@ -125,7 +125,7 @@ class WorldScene {
       const c = Save.d.chars[id];
       for (const dir of ["down", "up", "left", "right"]) for (const pose of poses) list.push([id, { pose, dir, outfit: c.outfit, color: c.color }]);
     }
-    const jobs = [Chara.preload(list, CHAR_SIZE),TownRoads.preload(this.map.def),HeiwadaiGround.preload(this.map.def)];
+    const jobs = [Chara.preload(list, CHAR_SIZE),TownRoads.preload(this.map.def),HeiwadaiGround.preload(this.map.def),HeiwadaiLife.preload(this.map.def)];
     for(const it of [...(this.map.def.decals||[]),...(this.map.def.overhead||[])])jobs.push(HeiwadaiTown.canvas(this,it,true));
     const kinds = new Set(this.map.sprites.map((s) => (s.kind === "building" ? "b:" + s.spec.id : s.kind)));
     for (const s of this.map.sprites) jobs.push(this.spriteCanvas(s, true));
@@ -220,8 +220,8 @@ class WorldScene {
     const { tx, ty, wx, wy } = this.screenToTile(sx, sy);
     Save.d.flags.moveHint = true;
     // キャラの見た目で当たり判定（頭をタップしても反応するように）
-    const hitBody = (wk) => { const f = wk.feet(); return Math.abs(wx - f.x) < 16 && wy < f.y + 4 && wy > f.y - 44; };
-    const npc = this.npcs.find((n) => hitBody(n.w));
+    const hitBody = (wk,offset=[0,0]) => { const f = wk.feet();f.x+=offset[0]*TS;f.y+=offset[1]*TS; return Math.abs(wx - f.x) < 16 && wy < f.y + 4 && wy > f.y - 44; };
+    const npc = this.npcs.find((n) => hitBody(n.w,n.artOffset));
     if (npc) return this.goInteract(npc.w.tx, npc.w.ty, { type: "npc", npc });
     const en = this.enemies.find((e) => e.boss && Math.abs(wx - e.w.feet().x) < 40 && wy < e.w.feet().y + 4 && wy > e.w.feet().y - 80);
     if (en) return this.goInteract(en.w.tx, en.w.ty, { type: "boss", e: en });
@@ -618,7 +618,7 @@ class WorldScene {
     for (const s of map.sprites) {
       if(s.o?.over)continue;
       const wx = (s.bx != null ? s.bx : s.x) * TS, wy = (s.y + 1) * TS;
-      if (wx > vx1 || wx + (s.tw || 1) * TS < vx0 || wy < vy0 || wy - 200 > vy1) continue;
+      if (s.o?.asset!=="rail.train" && (wx > vx1 || wx + (s.tw || 1) * TS < vx0 || wy < vy0 || wy - 200 > vy1)) continue;
       list.push({ z: wy - 1+(s.o?.z||0)*.32, draw: () => this.drawStatic(ctx, s, ox, oy) });
     }
     for (const c of map.chests) {
@@ -627,7 +627,7 @@ class WorldScene {
     }
     for (const n of this.npcs) {
       const f = n.w.feet();
-      list.push({ z: f.y, draw: () => this.drawNpc(ctx, n, ox, oy) });
+      list.push({ z: f.y+(n.artOffset?.[1]||0)*TS, draw: () => this.drawNpc(ctx, n, ox, oy) });
     }
     for (const e of this.enemies) {
       const f = e.w.feet();
@@ -656,6 +656,7 @@ class WorldScene {
     this.renderFx(ctx, ox, oy);
     Seasonal.draw(ctx, this, ox, oy);
     this.renderLight(ctx, ox, oy);
+    HeiwadaiLife.lights(ctx,this,ox,oy);
     Weather.draw(ctx,this);
     this.renderJoy(ctx);
     if (this.hintT > 0 && !this.joy && !UI.busy) {
@@ -687,7 +688,7 @@ class WorldScene {
     ctx.stroke();
   }
   drawStatic(ctx, s, ox, oy, bounds) {
-    if((s.spec||s.o)?.asset){HeiwadaiTown.draw(ctx,this,s.spec||s.o,ox,oy);return;}
+    if((s.spec||s.o)?.asset){HeiwadaiTown.draw(ctx,this,s.spec||s.o,ox,oy,bounds);return;}
     const r = this.spriteCanvas(s, false);
     if (!r) return;
     const { c, a } = r;
@@ -731,12 +732,12 @@ class WorldScene {
     Chara.draw(ctx, id, { pose: w.pose(), dir: w.dir, outfit: c.outfit, color: c.color }, ox + f.x, oy + f.y - hop, CHAR_SIZE, blink ? 0.45 : 1);
   }
   drawNpc(ctx, n, ox, oy) {
-    const f = n.w.feet();
+    const f = n.w.feet();f.x+=(n.artOffset?.[0]||0)*TS;f.y+=(n.artOffset?.[1]||0)*TS;
     const pose = n.w.moving ? (Math.floor(n.w.anim * 6) % 2 ? "walk_01" : "walk_02") : Math.floor(n.w.anim / 0.6) % 2 ? "idle_02" : "idle_01";
     const c = this.npcCanvas(n, n.w.dir, pose, false) || this.npcCanvas(n, n.w.dir, "idle_01", false) || this.npcCanvas(n, n.dir, "idle_01", false);
     this.shadow(ctx, ox + f.x, oy + f.y, 13);
     if (!c) return;
-    const w = CHAR_SIZE, h = (w * VB.h) / VB.w;
+    const w = n.size||CHAR_SIZE, h = (w * VB.h) / VB.w;
     ctx.drawImage(c, ox + f.x - w * ((FOOT.x - VB.x) / VB.w), oy + f.y - h * ((FOOT.y - VB.y) / VB.h), w, h);
     if (Talk.hasNew(n)) {
       const bob = Math.sin(G.t * 4) * 2;
