@@ -503,6 +503,29 @@ const dailyFixture=vm.runInContext(`(()=>{const before=Save.d;Save.d=Save.fresh(
 const dates=['2030-12-29','2030-12-30','2030-12-31','2031-1-1','2031-1-2','2031-1-3','2031-1-4'];for(const date of dates)DailyPlay.visit(date);const reward=Save.d.coins===987804&&Save.d.bag.pudding===1&&Save.d.daily.cycles===1&&Save.d.daily.stamps===7;const once=!DailyPlay.visit('2031-1-4')&&!DailyPlay.visit('2030-12-30');const exact=initial===JSON.stringify({wardrobe:Save.d.wardrobe,furn:Save.d.furn,room:Save.d.room});DailyPlay.visit('2031-2-6');const next=Save.d.daily.stamps===1&&Save.d.daily.total===8&&Save.d.coins===987804;const backup=SaveBackup.decode(SaveBackup.encode()).daily.total===8;Save.d=before;return{reward,once,exact,next,backup};})()`,ctx);
 for(const [key,value]of Object.entries(dailyFixture))ok(value,'毎日スタンプ '+key+' の検査失敗');
 ok(R.BAG_INDEX.pudding?.deza===true||R.BAG_INDEX.pudding?.dessert===true||R.BAG_INDEX.pudding?.kind==='food','スタンプ景品のプリンがない');
+// 吹き出しの見本は図形や候補を省略せずに移植する。
+const bubbleRef=vm.runInNewContext(readFileSync(join(GAME,'tools/feature-design/home-bubble-ref.js'),'utf8')+';HomeBubbleRef');
+const bubbles=vm.runInContext('HomeBubbles',ctx);
+for(const key of ['S','COLOR','FILL'])ok(JSON.stringify(bubbles[key])===JSON.stringify(bubbleRef[key]),'吹き出し定数 '+key+' が見本と違う');
+for(const key of ['life','wrap','layout','shape','draw'])ok(bubbles[key].toString().replace(/\r\n/g,'\n')===bubbleRef[key].toString().replace(/\r\n/g,'\n'),'吹き出し '+key+' が見本と違う');
+for(const n of [0,1,10,100])ok(bubbles.life('あ'.repeat(n))>=2.4&&bubbles.life('あ'.repeat(n))<=5.5,'吹き出し寿命が範囲外');
+const measure={measureText:s=>({width:Array.from(s).length*12})};
+for(const kind of ['say','shout','cry','think','whisper','rare']){
+  const heads={wanko:{x:120,y:320,r:18},gachan:{x:230,y:335,r:18},goji:{x:180,y:380,r:18}};
+  const boxes=bubbles.layout(measure,[{id:'wanko',text:'みんな なかよし',kind},{id:'gachan',text:'いっしょに あそぼ',kind:'say'}],heads,{top:120,bottom:500,left:8,right:352});
+  ok(boxes.length===2&&boxes.every(b=>Number.isFinite(b.score)&&b.x>=8&&b.y>=120&&b.x+b.w<=352&&b.y+b.h<=500),'吹き出し配置が不正 '+kind);
+}
+
+const bubbleFlow=vm.runInContext(`(()=>{const old=Save.d,oldT=G.t;Save.d=Save.fresh();const money=Save.d.coins;
+const sc={life:{bubbles:[],queue:[],talkWait:0,log:[]}};G.t=10;
+HomeLife.say(sc,'wanko','いち');HomeLife.say(sc,'gachan','に');HomeLife.say(sc,'goji','さん');const latest=sc.life.bubbles.map(b=>b.id).join();
+HomeLife.say(sc,'goji','ガゥ','', 'shout');const replace=sc.life.bubbles.length===2&&sc.life.bubbles[1].text==='ガゥ';
+HomeLife.converse(sc,[{who:'wanko',text:'わん'},{who:'gachan',text:'ぴよ'},{who:'goji',text:'ガゥ'}]);const first=sc.life.log.at(-1).id;HomeLife.advance(sc,1.2);const waiting=sc.life.log.at(-1).id===first;G.t+=1.3;HomeLife.advance(sc,.1);const second=sc.life.log.at(-1).id;G.t+=1.3;HomeLife.advance(sc,1.3);const third=sc.life.log.at(-1).id;
+const unchanged=Save.d.coins===money;Save.d=old;G.t=oldT;return {latest,replace,first,waiting,second,third,unchanged};})()`,ctx);
+ok(bubbleFlow.latest==='gachan,goji'&&bubbleFlow.replace,'吹き出しの2個上限・同じ話者の置換が不正');
+ok(bubbleFlow.first==='wanko'&&bubbleFlow.waiting&&bubbleFlow.second==='gachan'&&bubbleFlow.third==='goji','3人の順番・1.3秒間隔が不正');
+ok(bubbleFlow.unchanged,'吹き出しでおかねが変わった');
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

@@ -6,12 +6,23 @@ const HomeLife = {
     goji: ["ガォー！ みんな だいすき", "ガゥー♪ なでて〜", "ガゥー、おひるね しよう", "ガォー！ あそんでー", "ぱぱ、だっこ〜", "ままの ごはん すき", "ガゥー、てを つなごう", "ぼくが みんなを まもるよ"],
   },
   rare: { wanko: "ゆめで おほしさまを つかまえた！", gachan: "しあわせは 3にんぶんより おおきいね", goji: "ガゥー……おつきさまも かぞくかな？" },
-  init(sc) { sc.life = { next: 4, bubbles: [], quarrel: false, elapsed: 0, furniture: {} }; ParentCare.init(sc); },
-  say(sc, id, text, rare = false) {
+  init(sc) { sc.life = { next: 4, bubbles: [], quarrel: false, elapsed: 0, furniture: {}, queue: [], talkWait: 0, log: [] }; ParentCare.init(sc); },
+  say(sc, id, text, rare = false, kind = "say") {
     sc.life.bubbles = sc.life.bubbles.filter(b => b.id !== id);
-    sc.life.bubbles.push({ id, text, rare, left: 5 });
-    if (sc.life.bubbles.length > 3) sc.life.bubbles.shift();
+    kind = rare ? 'rare' : kind;
+    const life = HomeBubbles.life(text);
+    sc.life.bubbles.push({ id, text, kind, rare, born:G.t, life, left:life });
+    if (sc.life.bubbles.length > 2) sc.life.bubbles.shift();
+    sc.life.log.push({id,text,kind,t:G.t});if(sc.life.log.length>80)sc.life.log.shift();
     if (rare) { Save.d.flags.rareChats = (Save.d.flags.rareChats || 0) + 1; Save.mark(); Sound.se("sparkle"); }
+  },
+  converse(sc, turns) {
+    sc.life.queue=turns.map(t=>({...t}));sc.life.talkWait=0;this.advance(sc,0);
+  },
+  advance(sc,dt) {
+    if(sc.life.queue.length && (sc.life.talkWait-=dt)<=1e-9){
+      const t=sc.life.queue.shift();this.say(sc,t.who,t.text,!!t.rare,t.kind||'say');sc.life.talkWait=1.3;
+    }
   },
   event(sc, kind) {
     const c = U.pick(sc.chars), d = Save.d.chars[c.id];
@@ -22,9 +33,7 @@ const HomeLife = {
       sc.chars.slice(0, 2).forEach(c => { c.emo = "angry"; c.state = "idle"; c.t = 12; });
     } else if (kind === "rare") this.say(sc, c.id, this.rare[c.id], true);
     else if (kind === "chat") {
-      this.say(sc, "wanko", "つぎは 3にんで なにする？");
-      this.say(sc, "gachan", "おはなを みに いこう♪");
-      this.say(sc, "goji", "ガゥー！ さんせい！");
+      this.converse(sc,[{who:'wanko',text:'つぎは 3にんで なにする？'},{who:'gachan',text:'おはなを みに いこう♪'},{who:'goji',text:'ガゥー！ さんせい！'}]);
       sc.chars.forEach(c => sc.react(c, "happy", "note"));
     } else if (kind === "weather") this.say(sc,c.id,Weather.comment(c.id));
     else if (kind === "dance") {
@@ -47,11 +56,12 @@ const HomeLife = {
   },
   update(sc, dt) {
     const l = sc.life;
-    if (document.hidden || UI.busy || sc.mode) return;
+    if (document.hidden || UI.busy || sc.mode) { for(const b of l.bubbles)b.born+=dt; return; }
     l.bubbles = l.bubbles.filter(b => (b.left -= dt) > 0);
+    this.advance(sc,dt);
     for (const uid in l.furniture) { l.furniture[uid] -= dt; if (l.furniture[uid] <= 0) delete l.furniture[uid]; }
     if (l.quarrel) { l.elapsed += dt; if (l.elapsed > 12) this.settle(sc, false); return; }
-    if ((l.next -= dt) <= 0) {
+    if (!l.queue.length && (l.next -= dt) <= 0) {
       const r = Math.random();
       this.event(sc, r < 0.035 ? "rare" : r < 0.13 ? "quarrel" : r < 0.43 ? "chat" : r < 0.58 ? "dance" : "solo");
       l.next = sc.watching ? U.rand(7, 11) : U.rand(12, 20);
@@ -65,46 +75,21 @@ const HomeLife = {
     sc.layout(); sc.buildBg();
     if (sc.watching) sc.life.next = 1;
   },
-  bubbleLayout(sc,ctx) {
-    const boxes=[], top=sc.watching?112:194, bottom=G.H-(sc.watching?65:143);
-    const faces=[...sc.chars,...sc.parents].filter(c=>!c.hidden).map(c=>{const p=sc.toScreen(c.x,c.y),s=sc.actorScale;return{x:p.x-30*s,y:p.y-86*s,w:60*s,h:54*s};});
-    ctx.font="700 11px sans-serif";
-    for(const b of sc.life.bubbles){
-      const c=sc.chars.find(c=>c.id===b.id)||sc.parents.find(p=>p.id===b.id);if(!c||c.hidden)continue;
-      const anchor=sc.toScreen(c.x,c.y,(b.id==="papa"||b.id==="mama"?100:86)*1.35);
-      const w=Math.min(168,G.W-24),lines=[];let line="";
-      for(const ch of b.text){if(ch==="\n"||ctx.measureText(line+ch).width>w-20){lines.push(line);line=ch==="\n"?"":ch;}else line+=ch;}
-      if(line)lines.push(line);
-      const h=24+lines.length*14, maxY=Math.max(top,bottom-h);
-      const xs=[U.clamp(anchor.x-w/2,8,G.W-w-8),8,G.W-w-8];
-      const preferred=anchor.y-h-12;
-      const ys=[0,-1,1,-2,2,-3,3].map(n=>U.clamp(preferred+n*(h+8),top,maxY));
-      let chosen=null;
-      for(const y of ys){for(const x of xs){if(![...boxes,...faces].some(r=>x<r.x+r.w+6&&x+w+6>r.x&&y<r.y+r.h+6&&y+h+6>r.y)){chosen={x,y};break;}}if(chosen)break;}
-      boxes.push({...b,...(chosen||{x:xs[0],y:top}),w,h,lines,anchor});
+  heads(sc) {
+    const heads={},k=sc.actorScale;
+    for(const c of [...sc.chars,...sc.parents]){
+      if(c.hidden)continue;const parent=c.id==='papa'||c.id==='mama',p=sc.toScreen(c.x,c.y),h={x:p.x,y:p.y-(parent?104:84)*k,r:(parent?21:24)*k};
+      if(h.x>=8&&h.x<=G.W-8&&h.y>=sc.view.top&&h.y<=sc.view.bottom)heads[c.id]=h;
     }
-    return boxes;
+    return heads;
+  },
+  bubbleLayout(sc,ctx) {
+    const heads=this.heads(sc),bubbles=sc.life.bubbles.map(b=>({...b,name:(Save.d.chars[b.id]?.name||ParentCare.name(b.id))+(b.rare?' ☆':'')}));
+    return HomeBubbles.layout(ctx,bubbles,heads,{top:sc.view.top,bottom:sc.view.bottom,left:8,right:G.W-8}).map(b=>({...b,anchor:heads[b.id],tail:b.tip}));
   },
   draw(sc, ctx) {
-    if(["edit","sleep","dress"].includes(sc.mode))return;
-    ctx.save();
-    const boxes=this.bubbleLayout(sc,ctx);sc.life.boxes=boxes;
-    // しっぽは話者の方向へ短く。長い線が顔や別の吹き出しを横切らないよう、先に描く。
-    for(const b of boxes){
-      const below=b.anchor.y>=b.y+b.h/2, ax=U.clamp(b.anchor.x,b.x+12,b.x+b.w-12),ay=below?b.y+b.h-2:b.y+2;
-      const dx=b.anchor.x-ax,dy=b.anchor.y-ay,d=Math.hypot(dx,dy),n=Math.min(26,d)/Math.max(1,d);
-      ctx.fillStyle=b.rare?"#FFF0A5":"#FFFDF6";ctx.strokeStyle=INK;ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(ax-7,ay);ctx.lineTo(ax+dx*n,ay+dy*n);ctx.lineTo(ax+7,ay);ctx.closePath();ctx.fill();ctx.stroke();
-    }
-    for(const b of boxes){
-      const fill=b.rare?"#FFF0A5":"#FFFDF6";
-      ctx.fillStyle=fill;ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.lineJoin="round";
-      U.rr(ctx,b.x,b.y,b.w,b.h,12);ctx.fill();ctx.stroke();
-      ctx.fillStyle="#79654E";ctx.font="bold 10px sans-serif";ctx.textAlign="left";
-      ctx.fillText((Save.d.chars[b.id]?.name||ParentCare.name(b.id))+(b.rare?" ☆":""),b.x+10,b.y+13);
-      ctx.fillStyle=INK;ctx.font="700 11px sans-serif";
-      b.lines.forEach((line,i)=>ctx.fillText(line,b.x+10,b.y+28+i*14));
-    }
+    if(['edit','sleep','dress'].includes(sc.mode))return;
+    ctx.save();const boxes=this.bubbleLayout(sc,ctx);sc.life.boxes=boxes;HomeBubbles.draw(ctx,boxes,G.t);
     if(sc.life.quarrel){ctx.fillStyle="#FFF3C4";U.rr(ctx,12,157,G.W-130,28,10);ctx.fill();ctx.fillStyle=INK;ctx.textAlign="center";ctx.font="bold 11px sans-serif";ctx.fillText("タップで なかなおり",(G.W-106)/2,175);}
     ctx.restore();
   },
