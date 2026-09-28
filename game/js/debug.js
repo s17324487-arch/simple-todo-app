@@ -58,6 +58,8 @@ const PokaDebug = {
   saveData() {return JSON.parse(JSON.stringify(Save.d));},
   persistedSave() { try { return JSON.parse(localStorage.getItem(Save.KEY)); } catch { return null; } },
   shopDecor(shop) {return {tier:ShopDecor.level(shop),keys:[...SvgCache.map.keys()].filter(k=>k.startsWith('w:building:')||k.startsWith('shop-decor:'))};},
+  // この直後に再読み込みする。pagehide の自動保存にも旧JSONを渡し、通常の load/migrate を検証する。
+  seedLegacySave(data){if(data?.gameVersion!=='1.0.0'||data.v!==1)throw Error('v1.0.0 fixture required');const raw=JSON.stringify(data);Save.write=()=>localStorage.setItem(Save.KEY,raw);Save.write();return true;},
   seedSave(data) {Save.d=Save.migrate(JSON.parse(JSON.stringify(data)));Save.write();return true;},
   townRoutes() {
     if(G.sceneName!=="world")return null;

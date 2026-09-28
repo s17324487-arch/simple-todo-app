@@ -25,6 +25,10 @@ concurrency:
 
 jobs:
   test:
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     defaults:
@@ -45,17 +49,17 @@ jobs:
       - name: 静的チェック
         run: npm run check
 
-      - name: Chromium を入れる
-        run: npx playwright install --with-deps chromium
+      - name: ブラウザを入れる
+        run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: スモークテスト（全部・スクリーンショットつき）
-        run: node tests/smoke.mjs --full --shots
+        run: node tests/smoke.mjs --browser=${{ matrix.browser }} --full --shots
 
       - name: スクリーンショットを保存
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: game-screenshots
+          name: game-screenshots-${{ matrix.browser }}
           path: game/tests/screenshots/
           if-no-files-found: ignore
           retention-days: 14
