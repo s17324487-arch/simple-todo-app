@@ -109,11 +109,15 @@ const PokaDebug = {
     return { watching: !!G.scene.watching, quarrel: l.quarrel, bubbles: l.bubbles.map(b => ({ ...b })), room: Save.d.rooms.active, owned: { ...Save.d.rooms.owned }, coins: Save.d.coins, rare: Save.d.flags.rareChats || 0, furniture: { ...l.furniture }, chars: Object.fromEntries(Chara.IDS.map(id => [id, { ...Save.d.chars[id] }])) };
   },
   feed(id, food) { return Care.feed(id, food); },
+  homeSay(id,text,kind='say') {if(G.sceneName!=='house')return false;HomeLife.say(G.scene,id,String(text),kind==='rare',kind);return true;},
+  homeTalkLog() {return G.sceneName==='house'?G.scene.life.log.map(x=>({...x})):[];},
+  homeBubbleFixture() {if(G.sceneName!=='house')return false;const sc=G.scene;sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});return true;},
+  homeBubbleState() {if(G.sceneName!=='house')return null;const sc=G.scene;return {heads:HomeLife.heads(sc),boxes:HomeLife.bubbleLayout(sc,G.ctx),area:{...sc.view,left:8,right:G.W-8},watching:sc.watching};},
   family() {
     if(G.sceneName!=="house")return null;
     const sc=G.scene;
     return {looks:{papa:ParentCare.look("papa"),mama:ParentCare.look("mama")},auto:Save.d.parents.auto,lastCare:{...Save.d.parents.lastCare},bag:{...Save.d.bag},
-      parents:sc.parents.map(p=>({...p})),bubbles:HomeLife.bubbleLayout(sc,G.ctx).map(b=>({id:b.id,text:b.text,x:b.x,y:b.y,w:b.w,h:b.h,anchor:b.anchor})),width:G.W,height:G.H};
+      parents:sc.parents.map(p=>({...p})),bubbles:HomeLife.bubbleLayout(sc,G.ctx).map(b=>({id:b.id,text:b.text,x:b.x,y:b.y,w:b.w,h:b.h,anchor:b.anchor,kind:b.kind,tail:b.tip})),width:G.W,height:G.H};
   },
   annual() {
     const s=AnnualFestivals.state();return {...s,events:ANNUAL_EVENTS.map(e=>({id:e.id,month:e.month,name:e.name})),inventory:{wear:!!Save.d.wardrobe[s.items.wear],furn:Save.d.furn[s.items.furn]||0,food:Save.d.bag[s.items.food]||0}};

@@ -179,9 +179,7 @@ class HouseScene {
   showBar(on) { this.bar.classList.toggle("hidden", !on); this.care.classList.toggle("hidden", !on); this.parentButton.classList.toggle("hidden", !on); this.viewControls.classList.toggle("hidden", !on && this.mode !== "edit"); }
 
   async intro() {
-    HomeLife.say(this,"wanko","ここが ぼくたちの おうち！");
-    HomeLife.say(this,"gachan","ごはんボタンで ごはんを たべよう♪");
-    HomeLife.say(this,"goji","ぼくたちを タップして なでてね！");
+    HomeLife.converse(this,[{who:'wanko',text:'ここが ぼくたちの おうち！'},{who:'gachan',text:'ごはんボタンで ごはんを たべよう♪'},{who:'goji',text:'ぼくたちを タップして なでてね！'}]);
   }
 
   // ---- ごはん ----
