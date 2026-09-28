@@ -131,6 +131,8 @@ const Menu = {
     el.append(U.el("div", { class: "muted", text: "のんびり: じかん ながめ・てき よわめ。むずかしい: じかん みじかめ・てき つよめ。" }));
     el.append(UI.btn("いま セーブする", () => { Save.write(); Sound.se("ok"); UI.toast("セーブしました", "good"); }, "wide green"));
     el.append(U.el("div", { class: "note", html: "セーブは じどうでも されます。<br>ホーム画面に 追加すると アプリのように あそべます。" }));
+    el.append(UI.btn("セーブを かきだす",()=>SaveBackup.exportUI(),"wide"));
+    const restore=UI.btn("セーブを よみこむ",()=>SaveBackup.importUI(),"wide");restore.disabled=!SaveBackup.canImport();el.append(restore);
     const del = UI.btn("データを けして はじめから", async () => {
       if (await UI.confirm("ほんとうに データを けす？\n（もとに もどせません）", "けす", "やめる")) {
         Save.reset(); Save.write(); this.m.close(); Game.goto("title", {}, "fade");
