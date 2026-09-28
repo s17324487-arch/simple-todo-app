@@ -772,6 +772,40 @@ if (ok(!!FD, "FISHING_DATA が ない（js/fishing-data.js）")) {
   ok(pro.count === 30 && pro.max === 30, "いけすの かずが 不正");
 }
 
+// ④ 化石（FOSSIL_DATA・FossilArt・Fossils）: 10種・骨 2〜10こ（ぜんぶで 63）・骨格の 要素は ちょうど 1回ずつ・場所・ピッケル・文の 長さ・絵・ノートの きろく
+const FO = vm.runInContext(`typeof FOSSIL_DATA !== "undefined" ? FOSSIL_DATA : null`, ctx);
+if (ok(!!FO, "FOSSIL_DATA が ない（js/fossil-data.js）")) {
+  const width = (t) => [...t].reduce((a, c) => a + (c.charCodeAt(0) < 0x2000 ? 0.5 : 1), 0);
+  const text = (t, where, rows, maxW) => { const r = String(t || "").split("\n"); ok(!!t && r.length <= rows && r.every((x) => width(x) <= maxW) && !/[a-zA-Z]{2,}/.test(t), `${where}: 文が ない／${rows}行を こえる／1行が 長い「${t}」`); };
+  ok(FO.dinos.length === 10 && new Set(FO.dinos.map((d) => d.id)).size === 10, `恐竜が 10しゅ で ない／id が かさなる（${FO.dinos.length}）`);
+  ok(FO.dinos.reduce((a, d) => a + d.art.parts.length, 0) === 63, "骨が ぜんぶで 63こ で ない");
+  for (const d of FO.dinos) {
+    const w = `恐竜 ${d.id}`, a = d.art, used = new Map();
+    ok(a.parts.length >= 2 && a.parts.length <= 10 && new Set(a.parts.map((p) => p.id)).size === a.parts.length, `${w}: 骨が 2〜10こ で ない／部品 id が かさなる`);
+    for (const p of a.parts) { text(p.name, `${w} の ${p.id}`, 1, 12); for (const el of p.el) { ok(!used.has(el), `${w}: ${el} が 2つの 部品に ある`); used.set(el, p.id); } }
+    const known = new Set(["skull", "ribs", ...a.spine.map((sg) => sg.el), ...(a.limbs || []).map((l) => l.id), ...(a.extras || []).map((x) => x.id)]);
+    for (const [el] of used) ok(known.has(el), `${w}: ${el} は 骨格に ない`);
+    for (const k of known) ok(used.has(k), `${w}: ${k} が どの 部品にも ない`);
+    ok(!!FO.sites[d.site] && d.rarity >= 1 && d.rarity <= 4 && d.len > 0, `${w}: site／rarity／len が 不正`);
+    text(d.desc, `${w} の 説明`, 2, 23); text(d.fact, `${w} の まめちしき`, 2, 23);
+  }
+  const npcIds = new Set(Object.values(R.MAP_DEFS).flatMap((m) => (m.npcs || []).map((n) => n.id)));
+  ok(npcIds.has(FO.pick.get.npc), `ピッケルを くれる 人 ${FO.pick.get.npc} が いない`);
+  for (const x of FO.extras) ok(x.coins > 0 || !!R.BAG_INDEX[x.bag], `おまけ ${x.bag || x.coins} が 不正`);
+  for (const [k, st] of Object.entries(FO.sites)) ok(st.maps.every((m) => !!R.MAP_DEFS[m]) && FO.dinos.some((d) => d.site === k) && st.rocks > 0, `化石の 場所 ${k}: マップ／恐竜／いわの 数が 不正`);
+  // 絵: 骨格（ない 骨は 点線・ぜんぶ ある）と 骨 63こ
+  const svgs = vm.runInContext(`FOSSIL_DATA.dinos.flatMap(d=>[["骨格 "+d.id+"（なし）",FossilArt.svg(d,{have:[]})],["骨格 "+d.id+"（ぜんぶ）",FossilArt.svg(d,{have:d.art.parts.map(p=>p.id)})],...d.art.parts.map(p=>["骨 "+d.id+"."+p.id,FossilArt.partSvg(d,p.id)])])`, ctx);
+  ok(svgs.length === 20 + 63, `化石の 絵の 数が ちがう（${svgs.length}）`);
+  for (const [what, svg] of svgs) svgOk(svg, what);
+  // ノートの きろく（Fossils.give・have・progress）と、ピッケルが ない あいだは ② の 化石の 話が 出ない
+  const note = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();Fossils.give("trex.skull");Fossils.give("trex.skull");Fossils.give("compso.head");Fossils.give("compso.body");
+    const t=Fossils.dino("trex"),c=Fossils.dino("compso"),pt=Fossils.progress(t,Save.d.fossil.bones),pc=Fossils.progress(c,Save.d.fossil.bones);
+    const ok1=pt.n===1&&pt.total===8&&!pt.done&&pc.done&&Save.d.fossil.bones["trex.skull"]===2&&Fossils.have(t).join()==="skull"&&Fossils.count()===3&&Fossils.total()===63&&!Fossils.bone("trex.nope");
+    const noPick=!TownFolk.features().fossil;Save.d.fossil.pick=1;const pick=TownFolk.features().fossil;Save.d=old;return {ok1,noPick,pick};})()`, ctx);
+  ok(note.ok1, "かせき ノートの きろく（あつまりぐあい・そろった）が 不正");
+  ok(note.noPick && note.pick, "ピッケルの ない あいだも ② の 化石の 話・おねがいが 出る");
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

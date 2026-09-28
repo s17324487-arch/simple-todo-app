@@ -1260,6 +1260,30 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   d=await H.dbg('saveData');expect(d.fish.rod===2&&(await H.dbg('state')).coins===coins-1200,'みなとの マルシェで りっぱな つりざおが かえない');
 },{viewport,full:viewport.width===375,timeout:180000});
 
+// ④ かせき ノート: fossilGive で 骨を もつと ノートに のる。まもの／さかな／かせき・そろった！・くわしい ページ
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('fossil-note-'+viewport.width,async H=>{
+  await H.newGameFast();
+  for(const k of ['trex.skull','trex.leg','compso.head','compso.body'])await H.dbg('fossilGive',k);
+  expect((await H.dbg('saveData')).fossil.bones['trex.skull']===1&&(await H.dbg('saveData')).fossil.pick===0,'fossilGive で 骨が もてない');
+  await H.page.locator('.menu-btn').click();await H.wait(300);
+  await H.page.locator('.menu-tabs .tab',{hasText:'ずかん'}).click();await H.wait(200);
+  await H.page.locator('.dex-kinds .tab[data-k="fossil"]').click();await H.wait(400);
+  const v=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),cells=[...document.querySelectorAll('.fossil-cell')];
+    return {n:cells.length,names:cells.map(c=>c.querySelector('.nm').textContent),cnt:cells.map(c=>c.querySelector('.cnt').textContent),done:cells.filter(c=>c.classList.contains('done')).map(c=>c.dataset.id),
+      sum:document.querySelector('.fossil-sum').textContent,inside:cells.every(c=>{const b=r(c);return b.left>=0&&b.right<=innerWidth+1;}),tabs:[...document.querySelectorAll('.dex-kinds .tab')].map(b=>[b.textContent,r(b).height>=43.5,r(b).right<=innerWidth+1])};});
+  expect(v.n===10&&v.names[0]==='ティラノサウルス'&&v.cnt[0]==='ほね 2/8'&&v.done.join()==='compso'&&v.cnt[9]==='そろった！'&&v.names.filter(n=>n==='？？？').length===8&&/4 \/ 63/.test(v.sum)&&v.inside&&v.tabs.length===3&&v.tabs.every(t=>t[1]&&t[2]),'かせき ノートが 不正 '+JSON.stringify(v));
+  await H.shot('note');
+  // くわしい ページ（ティラノサウルス）
+  await H.page.locator('.fossil-cell[data-id="trex"]').click();await H.page.locator('.fossil-detail').waitFor();await H.wait(300);
+  const page=await H.eval(()=>{const e=document.querySelector('.fossil-detail'),b=e.getBoundingClientRect();return {text:e.innerText,inside:b.left>=0&&b.right<=innerWidth+1,svg:!!e.querySelector('.art svg')};});
+  expect(page.svg&&page.inside&&/ティラノサウルス/.test(page.text)&&/きたアメリカ/.test(page.text)&&/12m/.test(page.text)&&/2 \/ 8/.test(page.text)&&/まめちしき/.test(page.text),'くわしい ページが 不正 '+JSON.stringify(page));
+  await H.shot('detail');
+  // まだ 骨が ない 恐竜は ひらかない
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);
+  await H.page.locator('.fossil-cell[data-id="stego"]').click();await H.wait(300);
+  expect(await H.eval(()=>!document.querySelector('.fossil-detail')),'まだ 骨が ない 恐竜の ページが ひらく');
+},{viewport,full:viewport.width===375,timeout:120000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');

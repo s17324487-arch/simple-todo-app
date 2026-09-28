@@ -323,6 +323,8 @@ const PokaDebug = {
     for (let i = 0; i < n; i++) Fishing.record(id, Fishing.size(f));
     return { ...Save.d.fish.dex[id], keep: Save.d.fish.keep[id] };
   },
+  // ④ 骨を もたせる（key は "trex.skull" など）。もって いる 数を かえす
+  fossilGive(key, n = 1) { if (!Fossils.bone(key)) throw new Error("unknown bone: " + key); Fossils.give(key, n); return Save.d.fossil.bones[key]; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
   rod(n = 1) { Save.d.fish.rod = n; Save.mark(); return n; },
   // 釣りの 画面を はじめる（fishId を わたすと その 魚が かかる）。もどり先は いまの 町の 場所

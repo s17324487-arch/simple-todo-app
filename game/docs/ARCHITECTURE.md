@@ -473,6 +473,7 @@ class NewTask extends TaskBase {
 | `folkSpots(map)` / `folkKitten()` / `folkPhotoTile(map)` | さがす きらきら・さわる 小物（となりの 立てる マス `stand`・画面の 位置 `cx`/`cy`）／ついて くる こねこ／しゃしんが とれる マス。`folkOffer` は 物々交換の id（`bt-…`）も うけとる |
 | `fishGive(id, n)` | ③ 魚を いけすに 入れる（ずかんにも のる。大きさは `Fishing.size`）。ずかんの きろくを かえす |
 | `rod(n)` / `fishing(place, fishId)` / `fishState()` / `fishInput(kind)` / `fishSkip()` / `fishShore(map)` | ③ さおを もたせる／釣りの 画面を はじめる（その 魚が かかる）／いまの ようす／なげる・まく・はなす／まつ を とばす／歩いて 行ける 水べと 向き |
+| `fossilGive(key, n)` | ④ 骨を もたせる（`"trex.skull"` など）。もって いる 数を かえす |
 
 新しいお店を足したら `mg()` にそのお店の `order`（注文の中身）を足す。
 
@@ -712,6 +713,9 @@ Fishing に見本 FishingRef の Game・SCENE・tint・heroSize・draw をその
 
 ### いけす・うる・りっぱな つりざお（FEAT-08）
 Fishing.KEEP_MAX（30）と keepCount()。Fishing.card は いけすへ／にがす／うる（いっぱいなら「いけすが いっぱい」を disabled に）。FishingScene.caught は sell なら Save.addCoins(f.sell)。りっぱな つりざおは Fishing.proShop()（rods[1].get.shop の建物のマップとお店）→ StoreScene.talk が Fishing.proChoice(this) を選択肢に足し、Fishing.buyPro(owner) で rod=2。ずかんには いけすの数（.fish-keep）。
+
+### 骨の データ・絵・かせき ノート（FEAT-09）
+`fossil-data.js`（FOSSIL_DATA・自動生成。元は `tools/feature-design/fossil-data.mjs`）・`fossil-art.js`（FossilArt。見本 FossilArtRef と同じ）・`fossils.js`（Fossils）を fishing.js の後に読む。Save.fresh().fossil（pick・bones・dug）を追加（migrate の補完だけ）。Menu.dex は まもの／さかな／かせき、かせきは Fossils.note（10種の骨格・ない骨は点線・そろった！）と Fossils.detail（UI.modal）。TownFolk.features().fossil はピッケルを持つまで false。
 
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。

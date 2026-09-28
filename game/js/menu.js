@@ -104,10 +104,12 @@ const Menu = {
   },
 
   dex(el, m, kind = this.dexKind || "enemy") {
-    // ③ まもの／さかな（さかな ずかんは Fishing.dex）
-    if (typeof Fishing !== "undefined" && Fishing.data()) {
+    // ③④ まもの／さかな／かせき（さかな ずかんは Fishing.dex、かせき ノートは Fossils.note）
+    const kinds = [["enemy", "まもの"], ...(typeof Fishing !== "undefined" && Fishing.data() ? [["fish", "さかな"]] : []), ...(typeof Fossils !== "undefined" && Fossils.data() ? [["fossil", "かせき"]] : [])];
+    if (kinds.length > 1) {
       const sw = U.el("div", { class: "tabs dex-kinds" });
-      for (const [k, label] of [["enemy", "まもの"], ["fish", "さかな"]]) {
+      sw.style.gridTemplateColumns = `repeat(${kinds.length}, 1fr)`;
+      for (const [k, label] of kinds) {
         const b = U.el("button", { class: "tab" + (k === kind ? " on" : ""), text: label });
         b.dataset.k = k;
         b.addEventListener("click", () => { Sound.se("tap"); this.dexKind = k; el.innerHTML = ""; this.dex(el, m, k); });
@@ -115,6 +117,7 @@ const Menu = {
       }
       el.append(sw);
       if (kind === "fish") return Fishing.dex(el);
+      if (kind === "fossil") return Fossils.note(el);
     }
     const d = Save.d;
     const all = Object.keys(ENEMIES);
