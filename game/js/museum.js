@@ -145,7 +145,7 @@ const Museum = {
     return FOSSIL_DATA.dinos.flatMap((d) => d.art.parts.map((p) => d.id + "." + p.id)).filter((k) => (Save.d.fossil.bones[k] || 0) > 0 && !this.gaveBone(k));
   },
   async talk(n, sc) {
-    const bid = sc.mapId, T = this.talk_(n), face = Art.npcSvg({ sp: n.sp, col: n.col, outfit: n.outfit, emo: "happy" }), f = Save.d.flags;
+    const bid = sc.mapId, T = this.talk_(n), face = Art.npcSvg({ sp: n.sp, col: n.col, col2: n.col2, outfit: n.outfit, look: n.look, emo: "happy" }), f = Save.d.flags;
     const say = (text) => UI.say([{ name: n.name, face, text }]);
     if (!f.talked[n.id]) { f.talked[n.id] = true; Save.mark(); await say(T.first); }
     if (this.complete(bid)) {
