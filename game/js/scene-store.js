@@ -1,6 +1,7 @@
 // 買い物とミニゲームに共通の、歩いて入る店内。
 // 専門店でも既存の商品ID・価格・所持品を共用する。
 for (const [id,kind,label,ids] of [
+  ["groom","wear","リボン",["ribbon_pink","ribbon_blue"]],
   ["cake","bag","ケーキと デザ",["cake","pudding","milk"]],
   ["crepe","bag","デザ",["pudding","cake","juice"]],
   ["bakery","bag","パンと おやつ",["bread","bone","milk"]],
@@ -8,7 +9,7 @@ for (const [id,kind,label,ids] of [
 ]) {
   const owner=SHOP_OWNERS[id];
   BUY_SHOPS[id]={name:SHOPS[id].name,keeper:owner,keeperName:owner.name,hello:["いらっしゃい！ ゆっくり みていってね。"],kind,
-    tabs:[["goods",label]],items:()=>ids.map(k=>kind==="bag"?BAG_INDEX[k]:FURN_INDEX[k])};
+    tabs:[["goods",label]],items:()=>ids.map(k=>kind==="bag"?BAG_INDEX[k]:kind==="wear"?ITEM_INDEX[k]:FURN_INDEX[k])};
 }
 
 class StoreScene {

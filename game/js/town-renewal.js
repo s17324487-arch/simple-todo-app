@@ -3,6 +3,7 @@ const TownRenewal = (() => {
   const ids=["town","city","harbor","airport"], originals={};
   const common=["bench","planter","bicycles","postbox","recycle","bollard","newsbox","phone","hydrant","direction","streetclock"];
   const frontages={
+    city_salon:["city_billboard","bicycles","planter","city_coffee"],
     town_cakery:["chalkboard","town_cakes","town_milk","planter"],
     city_puzzle:["city_billboard","city_screen","planter","city_bikerack"],city_deliveryhall:["city_delivery","city_kiosk","postbox","recycle"],
     town_home:["postbox","town_milk","planter","town_pinwheel"],town_tailor:["chalkboard","town_yarn","town_yarn","planter"],town_workshop:["chalkboard","town_watering","planter","postbox"],
@@ -120,7 +121,7 @@ const TownRenewal = (() => {
     b.building("city_office",15,5,6,5,"city_design",{label:"まちの こうぼう"});
     b.building("link",40,5,6,5,"city_puzzle");
     b.building("city_library",3,16,6,4,"city_library",{label:"まちの としょかん",act:{type:"visit",text:"ほんを ひらくと たびが はじまる。\n3にんで えほんを よもう！"}});
-    b.building("city_gallery",15,16,6,4,"city_gallery",{label:"まちの ギャラリー"});b.building("city_cafe",29,16,6,4,"city_cafe");
+    b.building("city_gallery",15,16,6,4,"city_salon",{label:"びようしつ",sign:"groom",act:{type:"work",shop:"groom"}});b.building("city_cafe",29,16,6,4,"city_cafe");
     b.building("city_furniture",3,31,7,5,"city_design");b.building("city_station",29,31,14,5,"city_station",{door:7});
     b.building("relay",39,16,7,4,"city_deliveryhall");
     b.building("city_reading",15,31,6,5,"city_library",{label:"えほんの おへや"});

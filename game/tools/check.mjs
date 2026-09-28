@@ -418,6 +418,14 @@ for (const [shop, Task] of Object.entries(R.MG_TASKS)) for (let lv = 1; lv <= 5;
     ok(t.timeLimit > 5 && typeof t.title === "string", `ミニゲーム ${shop} Lv${lv}: timeLimit/title が不正`);
     for (const b of t.btns) ok(b.x >= RECT.x - 1 && b.x + b.w <= RECT.x + RECT.w + 1 && b.y >= RECT.y - 1 && b.y + b.h <= RECT.y + RECT.h + 4, `ミニゲーム ${shop} Lv${lv}: ボタン「${b.label || "?"}」が作業エリアからはみ出す`);
     let perfect = null;
+    if(shop==='groom'){
+      const line=t.outline();t.downArea(line[0]);line.slice(1).forEach(q=>t.move(q));t.up();ok(t.trimmed.every(Boolean),'groom: 見本をなぞってもカットできない');
+      t.stage='dry';t.setup();for(const q of t.zones()){t.downArea(q);t.tick(.6+lv*.1);t.up();}t.chosen=t.ribbon;perfect=t.score();
+      t.chosen=t.ribbon==='pink'?'blue':'pink';ok(t.score()===80,'groom: 違うリボンが減点されない');t.chosen=t.ribbon;
+      const dried=t.dry.join();t.up();t.tick(5);ok(t.dry.join()===dried,'groom: 指を離した後も乾燥する');
+      t.stage='ribbon';t.setup();for(const b of t.btns)ok(b.w>=44&&b.h>=44&&b.y+b.h<=RECT.y+RECT.h,'groom: リボンの操作範囲');
+      t.stage='cut';const q={x:RECT.x+20,y:RECT.y+RECT.h*.6};t.downArea(q);t.move({x:q.x+100,y:q.y});t.up();ok(t.offLine>0&&t.score()<100,'groom: はみだしが採点に反映されない');
+    }
     if (shop === "cake") { t.made={...t.want}; perfect=t.score(); for(let i=0;i<t.steps.length;i++){t.step=i;t.setup();for(const b of t.btns)ok(b.h>=44&&b.w>=44&&b.y+b.h<=RECT.y+RECT.h,`cake Lv${lv}: 作業ボタンの大きさ・位置`);} }
     if (shop === "crepe") { t.placed = t.want.map((id) => ({ id })); perfect = t.score(); }
     if (shop === "florist") { t.picked = Object.entries(t.want).flatMap(([k, n]) => Array(n).fill(k)); t.chosen = t.ribbon; perfect = t.score(); }
