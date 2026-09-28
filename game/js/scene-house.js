@@ -734,6 +734,7 @@ class HouseScene {
       ctx.drawImage(image, -pad, -pad, f.w + pad * 2, f.h + pad * 2);
     } else if (image) ctx.drawImage(image, r.x, r.y, r.w, r.h);
     ctx.restore();
+    if (f.puzzlePrize) PuzzlePrizeArt.draw(ctx, it.id, r, G.t, moving);
     if (moving) { FX.note(ctx, r.x + r.w / 2, r.y - 6); FX.star(ctx, r.x + r.w, r.y + 10, 5, "#FFE066"); }
     if (this.mode === "edit" && this.sel === it) {
       ctx.save(); ctx.setLineDash([5, 4]); ctx.strokeStyle = "#F29A1F"; ctx.lineWidth = 2;

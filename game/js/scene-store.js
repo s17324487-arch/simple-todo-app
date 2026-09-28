@@ -68,6 +68,7 @@ class StoreScene {
     if(this.interacting||this.closed)return;
     this.interacting=true;this.party[0].dir="up";
     try {
+      if(this.shopId==="link"){await PuzzleArcade.open(this.back);return;}
       const retail=BUY_SHOPS[this.shopId],work=SHOPS[this.shopId];
       const choices=[...(retail?["かいものを する"]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
       const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${Save.d.shops[this.shopId].lv}`;

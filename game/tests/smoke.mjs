@@ -36,7 +36,8 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   // ゲームの検証は外部フォントの応答に依存させない（CIのload待ちを安定させる）。
   await context.route(/^https:\/\/fonts\.(?:googleapis|gstatic)\.com\//, route => route.abort());
   const page = await context.newPage();
-  page.setDefaultTimeout(8000);
+  // SVGの初期描画や負荷のある実行環境でも、操作の待機を早く打ち切らない。
+  page.setDefaultTimeout(15000);
   const problems = [];
   page.on("pageerror", (e) => problems.push("pageerror: " + e.message));
   page.on("console", (m) => {
@@ -351,7 +352,7 @@ for (const shop of ["dentist", "bakery", "florist"]) {
   }, { full: true, timeout: 150000 });
 }
 
-for (const shop of ["link", "relay"]) for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario(`新ミニゲーム ${shop}（${viewport.width}）`, async (H) => {
+for (const shop of ["relay"]) for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario(`新ミニゲーム ${shop}（${viewport.width}）`, async (H) => {
   await H.newGameFast();
   const before = (await H.dbg("state")).coins;
   await H.dbg("shop", shop, 2);
@@ -365,12 +366,7 @@ for (const shop of ["link", "relay"]) for (const viewport of [{ width: 390, heig
     for (let n = 0; n < 900; n++) {
       st = await H.dbg("mg");
       if (st.phase !== "work") break;
-      if (shop === "link") {
-        const cells = st.order.legal.map(i => st.cells[i]);
-        await H.page.mouse.move(cells[0].cx, cells[0].cy); await H.page.mouse.down();
-        for (const p of cells.slice(1)) await H.page.mouse.move(p.cx, p.cy, { steps: 3 });
-        await H.page.mouse.up();
-      } else {
+      {
         const next = st.order.items.filter(it => it.progress > .48).sort((a,b) => b.progress - a.progress)[0];
         if (next) {
           const lane = next.rock ? (next.lane + 1) % 3 : next.lane;
@@ -442,11 +438,11 @@ await scenario("難易度の設定と保存", async (H) => {
   await H.dbg("save"); await H.page.reload();
   await H.until(() => PokaDebug.state().scene === "title" && PokaDebug.idle());
   await H.page.locator(".title-ui .btn").first().click();
-  await H.idle(); await H.dbg("shop", "link", 1);
+  await H.idle(); await H.dbg("shop", "relay", 1);
   await H.until(() => PokaDebug.state().scene === "shop" && !PokaDebug.state().transitioning); await H.dialogs();
   await H.until(() => PokaDebug.mg()?.phase === "work");
   const st = await H.dbg("mg");
-  expect(st.difficulty === "hard" && st.timeLimit === 44, "保存した難易度が新ミニゲームに反映されない");
+  expect(st.difficulty === "hard" && Math.abs(st.timeLimit - 33.6) < .001, "保存した難易度が新ミニゲームに反映されない");
 }, { full: true });
 
 await scenario("おうちの生活・デザ・増築", async (H) => {
@@ -1109,9 +1105,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
     await H.until(()=>{const s=PokaDebug.storeState();return s&&s.party[0].y===8&&!s.party[0].moving&&!s.path;});
     const fixture=s.fixtures[0];expect(!await H.dbg("storeWalkTo",fixture.x,fixture.y),"展示を通り抜ける");
     await H.tap(s.keeper.cx,s.keeper.cy);
-    await H.page.waitForSelector(".choices");
+    await H.page.waitForSelector(id==="link"?".puzzle-lobby":".choices");
     s=await H.dbg("storeState");expect(s.party[0].x===5&&s.party[0].y===3,"店員の前まで歩いていない");
-    await H.page.getByRole("button",{name:"また あとで",exact:true}).click();await H.idle();
+    if(id==="link")await H.page.locator(".puzzle-lobby .close").click();
+    else await H.page.getByRole("button",{name:"また あとで",exact:true}).click();await H.idle();
     await H.page.getByRole("button",{name:"おみせを でる",exact:true}).click();
     await H.until(()=>PokaDebug.state().scene==="world"&&PokaDebug.idle());
     const w=await H.dbg("state");expect(w.map===map&&w.pos[0]===door.x&&w.pos[1]===door.y+1,"元のお店の出口へ戻らない");
@@ -1163,6 +1160,52 @@ await scenario("店員から購入・保存・おてつだい",async H=>{
   await H.page.getByRole("button",{name:"おうちへ",exact:true}).click();await H.idle();
   expect((await H.dbg("state")).scene==="house","店内から帰宅できない");
 },{timeout:180000});
+
+for (const viewport of [{width:390,height:844},{width:375,height:667}]) await scenario(`なかよしパズル・参加料と形と景品（${viewport.width}）`, async H=>{
+  await H.newGameFast();await H.dbg("coins",5000);
+  const original=await H.dbg("saveData");H.page.setDefaultTimeout(30000);
+  const lobby=async()=>{await H.dbg("store","link","city");await H.idle();await H.page.getByRole("button",{name:"てんいんと はなす",exact:true}).click();await H.page.locator(".puzzle-lobby").waitFor();};
+  const board=path=>{const b=Array.from({length:36},(_,i)=>1+(i+Math.floor(i/6))%3);for(const i of path)b[i]=0;return b;};
+  const draw=async(path,release=true)=>{const s=await H.dbg("puzzleState"),points=path.map(i=>s.cells[i]);await H.page.mouse.move(points[0].cx,points[0].cy);await H.page.mouse.down();for(const p of points.slice(1))await H.page.mouse.move(p.cx,p.cy,{steps:3});if(release)await H.page.mouse.up();};
+  await lobby();expect(await H.page.getByRole("button",{name:"おてつだいする",exact:true}).count()===0,"パズルにお客さん式の受付が残った");
+  await H.shot("lobby");await H.page.getByRole("button",{name:"80コインで挑戦",exact:true}).click();
+  await H.until(()=>PokaDebug.puzzleState()?.phase==="ready"&&PokaDebug.idle());
+  await H.dbg("puzzleClock",true);
+  let state=await H.dbg("puzzleState"),paid=await H.dbg("persistedSave");
+  expect(paid.coins===original.coins-80&&paid.puzzle.active.id===state.id,"参加料と盤面が同時に保存されない");
+  for(const [path,shape] of [[[0,1,2,3],"line"],[[0,1,2,8,14],"elbow"],[[0,1,7,6,0],"loop"]]){
+    await H.dbg("puzzleBoard",board(path));await H.page.getByRole("button",{name:state.phase==="ready"?"スタート":"再開する",exact:true}).click();
+    await draw(path,false);state=await H.dbg("puzzleState");expect(state.preview?.shape===shape,"指で形の技を作れない: "+shape);
+    if(shape==="loop")await H.shot("loop-preview");
+    const before=state.score;await H.page.mouse.up();state=await H.dbg("puzzleState");expect(state.score>before&&state.extended>0,"消去でスコア/時間が増えない");
+    await H.page.getByRole("button",{name:"一時停止",exact:true}).click();state=await H.dbg("puzzleState");
+  }
+  const snapshot=await H.dbg("puzzleState");await H.page.getByRole("button",{name:"中断して受付へ",exact:true}).click();await H.idle();
+  await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  await lobby();await H.page.getByRole("button",{name:"中断したゲームを再開",exact:true}).click();await H.until(()=>PokaDebug.puzzleState()?.phase==="ready"&&PokaDebug.idle());
+  await H.dbg("puzzleClock",true);state=await H.dbg("puzzleState");
+  expect(state.score===snapshot.score&&state.rng===snapshot.rng&&JSON.stringify(state.board)===JSON.stringify(snapshot.board)&&Math.abs(state.remaining-snapshot.remaining)<.05,"中断・再読み込みで盤面や時計が変わった");
+  expect((await H.dbg("persistedSave")).coins===original.coins-80,"再開で二重払い");
+  await H.page.getByRole("button",{name:"スタート",exact:true}).click();await H.shot("play");
+  // タッチ中断は得点にしない。
+  state=await H.dbg("puzzleState");const before=state.score,chain=state.legal,first=state.cells[chain[0]];
+  await H.eval(({first})=>{const el=document.getElementById("screen");el.dispatchEvent(new PointerEvent("pointerdown",{pointerId:71,clientX:first.cx,clientY:first.cy,bubbles:true}));el.dispatchEvent(new PointerEvent("pointercancel",{pointerId:71,bubbles:true}));},{first});
+  expect((await H.dbg("puzzleState")).score===before,"タッチ中断が得点になった");
+  await H.page.getByRole("button",{name:"一時停止",exact:true}).click();await H.page.getByRole("button",{name:"中断して受付へ",exact:true}).click();await H.idle();
+  const fixture=await H.dbg("saveData");fixture.puzzle.active.state.score=state.prizes[2].score;fixture.puzzle.active.state.remaining=.4;
+  await H.dbg("seedSave",fixture);await lobby();await H.page.getByRole("button",{name:"中断したゲームを再開",exact:true}).click();await H.until(()=>PokaDebug.puzzleState()?.phase==="ready"&&PokaDebug.idle());
+  await H.page.getByRole("button",{name:"スタート",exact:true}).click();await H.dbg("puzzleAdvance",1);await H.until(()=>PokaDebug.puzzleState()?.phase==="result");await H.shot("prizes");
+  paid=await H.dbg("persistedSave");expect(!paid.puzzle.active&&paid.puzzle.plays===1&&paid.puzzle.best===fixture.puzzle.active.state.score,"結果未保存");
+  for(const p of state.prizes.slice(0,3))expect(paid.furn[p.id]===1&&paid.puzzle.claimed[p.id],"下位の景品を含めて配布されない");
+  expect(JSON.stringify(paid.shops)===JSON.stringify(original.shops)&&JSON.stringify(paid.rooms)===JSON.stringify(original.rooms),"既存のお店/部屋のデータが変化");
+  await H.page.getByRole("button",{name:"受付へ戻る",exact:true}).click();await H.idle();await lobby();
+  await H.page.getByRole("button",{name:"無料で練習（景品なし）",exact:true}).click();await H.until(()=>PokaDebug.puzzleState()?.phase==="ready"&&PokaDebug.idle());
+  await H.dbg("puzzleClock",true);const beforePractice=await H.dbg("persistedSave");await H.page.getByRole("button",{name:"スタート",exact:true}).click();await draw((await H.dbg("puzzleState")).legal);
+  await H.dbg("puzzleAdvance",181);await H.until(()=>PokaDebug.puzzleState()?.phase==="result");
+  const afterPractice=await H.dbg("persistedSave");for(const key of ["coins","furn","puzzle"])expect(JSON.stringify(beforePractice[key])===JSON.stringify(afterPractice[key]),"練習で記録や所持品が変わる: "+key);
+  await H.page.getByRole("button",{name:"おうちへ",exact:true}).click();await H.idle();
+  const items=state.prizes.slice(0,3).map((p,i)=>({id:p.id,x:90+i*140,y:450,uid:i+1}));await H.dbg("homeLayout",items);await H.wait(400);await H.shot("rare-room");
+},{viewport,timeout:240000});
 
 await browser.close();
 server.close();

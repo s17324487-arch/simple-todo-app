@@ -2,7 +2,7 @@
 
 ## 歩いて入るおみせ
 
-`world → store ⇄ shop` の構成。建物の既存の `act.type=buy/work` と `act.shop` は変えず、`WorldScene.enterDoor` が `StoreScene` へ入口外の `back` を渡す。`arcade.js` の後に `store-interiors.js` → `scene-store.js` を読み、全9種類の内装・店員・10×12マスの床と衝突判定を登録する。
+`world → store ⇄ shop / puzzle` の構成。建物の既存の `act.type=buy/work` と `act.shop` は変えず、`WorldScene.enterDoor` が `StoreScene` へ入口外の `back` を渡す。`arcade.js` の後に `store-interiors.js` → `scene-store.js` を読み、全9種類の内装・店員・10×12マスの床と衝突判定を登録する。
 
 - `STORE_INTERIORS` の展示は `[kind,x,y,w,d,label]`。描画は奥から足元順、当たり判定は床面の矩形。床タップと方向キーで3人が一緒に歩く。店員または「てんいんと はなす」でレジ前まで経路探索してから会話する。入店しただけでは商品画面を開かない。
 - `StoreArt` が各業種の壁・床・棚・作業設備のSVGを作る。部屋は店ID、展示は固定種類、店員は店IDでキャッシュする。蒸気と点灯の時間はCanvas描画だけに使う。
@@ -629,9 +629,11 @@ PokaDebug.calendar('YYYY-MM-DD')で日付を固定し、annual()で現在のイ�
 ## ver2: 新ミニゲーム・難易度
 economy.js の GameEconomy が報酬と難易度の値を管理する（[比較表](BALANCE.md)）。設定を開始時に保存するため途中変更は次回から反映。セーブには settings.difficulty と shops.link/relay を追加し、旧データは migrate が補完する。
 
-arcade.js は world-expansion.js の後。LinkGardenTask / SkyRelayTask は既存の TaskBase を継承する。パズルは隣接・同種の3個以上をなぞり、重複不可・1個戻り可・pointercancelは破棄。7個で周囲消去、4コンボでフィーバー。配達は3列の移動・担当3人の交代・岩回避と6秒間隔の防御。左右キーで移動、上で交代、決定で防御も可能。
+arcade.js は world-expansion.js の後。SkyRelayTask は既存の TaskBase を継承する。なかよしパズルは専用の PuzzleScene（お客さんのラウンドなし）へ変更。配達は3列の移動・担当3人の交代・岩回避と6秒間隔の防御。左右キーで移動、上で交代、決定で防御も可能。
 
-PokaDebug.shop('link'|'relay', lv) で開始。mg() は difficulty/timeLimit/timeLeft、link の cells（i/value/cx/cy）と order（legal/chain/collected/target/shuffles/fever）、relay の order（lane/role/items/progress/caught/target/misses/shield）を返す。描画・入力のテストはこの公開情報で操作する。店別BGMは SONGS.shop_<id>。
+PokaDebug.shop('relay', lv) と mg() で配達を操作。パズルは PokaDebug.puzzleStart({practice,seed}) / puzzleState() を使用する。旧 shop('link') はシティの店内へ案内。店別BGMは SONGS.shop_<id>。
+
+パズルのルールは puzzle-engine.js、景品と立体SVGは puzzle-prizes.js、受付/操作/保存は scene-puzzle.js。Save.d.puzzle を追加し、shops.link の旧記録は保持。毎秒と操作・中断時に時計と乱数状態を保存し、育成の経過時間も進める。料金・景品は保存成功を確認し、失敗時はロールバック。[設計・調査・バランス検証](design/features/puzzle-score-attack.md) を参照。
 
 PokaDebug.pause(bool) は以前の停止状態を返す。テストで撮影する間だけ停止し、finally で戻す。外部フォントや描画待ちの時間をミニゲームの制限時間に含めないために使用する。
 

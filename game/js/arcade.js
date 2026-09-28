@@ -1,72 +1,4 @@
-// 新作2種。既存4店の TaskBase / ShopScene と同じ進行で遊ぶ。
-class LinkGardenTask extends TaskBase {
-  constructor(sc,lv) {
-    super(sc,lv); this.title="なかよし つなぎ"; this.timeLimit=55; this.target=36+lv*9;
-    this.types=Math.min(5,3+Math.floor(lv/2)); this.board=Array.from({length:25},()=>U.randi(0,this.types-1));
-    this.chain=[]; this.collected=0; this.combo=0; this.comboTime=0; this.fever=0; this.penalty=0; this.shuffles=3; this.bursts=[]; this.ensureMove();
-  }
-  neighbors(a,b) { return a!==b && Math.abs(a%5-b%5)<=1 && Math.abs(Math.floor(a/5)-Math.floor(b/5))<=1; }
-  legalMove() {
-    for(let i=0;i<25;i++) for(let j=0;j<25;j++) if(this.neighbors(i,j)&&this.board[i]===this.board[j]) for(let k=0;k<25;k++) if(k!==i&&this.neighbors(j,k)&&this.board[k]===this.board[i]) return [i,j,k];
-    return null;
-  }
-  ensureMove() { if(!this.legalMove()) this.board[0]=this.board[1]=this.board[2]=U.randi(0,this.types-1); }
-  layout(R) {
-    this.R=R; this.cell=Math.min((R.w-16)/5,(R.h-77)/5); this.bx=R.x+(R.w-5*this.cell)/2; this.by=R.y+29;
-    this.btns=[{x:R.x+8,y:R.y+R.h-44,w:R.w-16,h:44,label:`まぜる（あと ${this.shuffles}かい・ひょうか -3）`,cb:()=>{
-      if(this.shuffles<=0) return; this.shuffles--; this.penalty+=3; this.board=U.shuffle(this.board);this.chain=[];this.ensureMove();this.btns[0].label=`まぜる（あと ${this.shuffles}かい）`;
-    }}];
-  }
-  point(i) { return {x:this.bx+(i%5+.5)*this.cell,y:this.by+(Math.floor(i/5)+.5)*this.cell}; }
-  hit(p) {const x=Math.floor((p.x-this.bx)/this.cell),y=Math.floor((p.y-this.by)/this.cell);return x>=0&&x<5&&y>=0&&y<5?y*5+x:-1;}
-  down(p) { if (this.pointerId != null) return; super.down(p); }
-  downArea(p) {const i=this.hit(p);this.chain=i<0?[]:[i];this.pointerId=i<0?null:p.id;}
-  move(p) {
-    if (this.pointerId != null && p.id !== this.pointerId) return;
-    const i=this.hit(p), chain=this.chain;
-    if(i<0||!chain.length)return;
-    if(chain.length>1&&chain[chain.length-2]===i){chain.pop();return;}
-    if(!chain.includes(i)&&this.neighbors(chain[chain.length-1],i)&&this.board[i]===this.board[chain[0]]) {chain.push(i);Sound.se("tap");}
-  }
-  up(p,canceled=false) {
-    if (this.pointerId != null && p.id !== this.pointerId) return;
-    this.pointerId=null;
-    if(canceled) {this.chain=[];return;}
-    if(this.chain.length<3){this.chain=[];return;}
-    const clear=new Set(this.chain),last=this.chain[this.chain.length-1];
-    if(this.chain.length>=7) for(let i=0;i<25;i++)if(this.neighbors(last,i))clear.add(i);
-    this.combo=this.comboTime>0?this.combo+1:1;this.comboTime=5;
-    if(this.combo>=4)this.fever=8;
-    this.collected+=clear.size*(this.fever>0?2:1);
-    this.bursts=[...clear].map(i=>({...this.point(i),left:.45}));
-    for(let x=0;x<5;x++) {const keep=[];for(let y=4;y>=0;y--)if(!clear.has(y*5+x))keep.push(this.board[y*5+x]);for(let y=4;y>=0;y--)this.board[y*5+x]=keep[4-y]??U.randi(0,this.types-1);}
-    this.chain=[];this.ensureMove();Sound.se(clear.size>=7?"fanfare":"pop");
-    if(this.collected>=this.target)this.sc.finish(this.score());
-  }
-  tick(dt){this.comboTime-=dt;this.fever=Math.max(0,this.fever-dt);this.bursts=this.bursts.filter(b=>(b.left-=dt)>0);}
-  score(){return U.clamp(Math.round(100*Math.min(this.collected,this.target)/this.target)-this.penalty,0,100);}
-  timeout(){return this.score();}
-  drawOrder(ctx,x,y,w,h){ctx.fillStyle=INK;ctx.font="bold 13px sans-serif";ctx.fillText(`${this.collected} / ${this.target} こ`,x+w/2,y+h*.35);ctx.font="11px sans-serif";ctx.fillText("3こから なぞって つなごう",x+w/2,y+h*.65);}
-  draw(ctx){
-    const colors=["#EBAABB","#F4D887","#AACBC2","#A3CBE7","#C6B3DD"],symbols=["わ","が","ご","★","☾"];
-    ctx.save();ctx.fillStyle=this.fever>0?"#FFF0A6":"#EAE1CF";U.rr(ctx,this.bx-5,this.by-5,this.cell*5+10,this.cell*5+10,16);ctx.fill();
-    ctx.textAlign="center";ctx.fillStyle=INK;ctx.font="bold 12px sans-serif";ctx.fillText(this.fever>0?"フィーバー！ あつめた かず 2ばい":`${this.combo} コンボ / 7こで まわりも けせる`,this.R.x+this.R.w/2,this.R.y+16);
-    for(let i=0;i<25;i++){
-      const p=this.point(i),v=this.board[i];
-      ctx.fillStyle=colors[v];ctx.strokeStyle=this.chain.includes(i)?"#D77465":INK;ctx.lineWidth=this.chain.includes(i)?4:2;
-      ctx.beginPath();ctx.arc(p.x,p.y,this.cell*.4,0,Math.PI*2);ctx.fill();ctx.stroke();
-      if(v<3){
-        const id=Chara.IDS[v],c=Save.d.chars[id];
-        Chara.draw(ctx,id,{face:"happy",outfit:c.outfit,color:c.color},p.x,p.y+this.cell*.33,this.cell*.64);
-      } else {
-        ctx.fillStyle=INK;ctx.font=`bold ${this.cell*.42}px sans-serif`;ctx.fillText(symbols[v],p.x,p.y+this.cell*.13);
-      }
-    }
-    if(this.chain.length>1){ctx.strokeStyle="rgba(255,255,255,.8)";ctx.lineWidth=5;ctx.beginPath();this.chain.forEach((i,n)=>{const p=this.point(i);if(n)ctx.lineTo(p.x,p.y);else ctx.moveTo(p.x,p.y);});ctx.stroke();}
-    for(const b of this.bursts)FX.star(ctx,b.x,b.y,15*b.left/.45,"#FFF7CE");ctx.restore();
-  }
-}
-
+// そらのはいたつと新作ゲームの町への登録。パズルは独立したスコアアタック。
 class SkyRelayTask extends TaskBase {
   constructor(sc,lv){super(sc,lv);this.title="そらの おとどけ";this.timeLimit=42;this.target=8+lv*2;this.caught=0;this.misses=0;this.lane=1;this.role=0;this.items=[];this.spawnIn=.4;this.elapsed=0;this.shield=0;this.invincible=0;this.combo=0;this.lastType=null;}
   layout(R){this.R=R;this.trackTop=R.y+28;this.trackBottom=R.y+R.h-103;this.laneW=(R.w-20)/3;
@@ -96,12 +28,12 @@ class SkyRelayTask extends TaskBase {
     if(this.invincible>0){ctx.strokeStyle="#E7B74F";ctx.lineWidth=4;ctx.beginPath();ctx.arc(R.x+10+(this.lane+.5)*this.laneW,this.trackBottom-15,32,0,7);ctx.stroke();}ctx.restore();
   }
 }
-MG_TASKS.link=LinkGardenTask; MG_TASKS.relay=SkyRelayTask;
-SHOPS.link={name:"なかよし パズル",color:"#C7B5E0",desc:"3こいじょう なぞって つなぐ パズル",perk:"shop",rounds:3};
+MG_TASKS.relay=SkyRelayTask;
+SHOPS.link={name:"なかよし パズル",color:"#C7B5E0",desc:"80コインで挑戦。得点で限定家具を獲得",perk:"shop",arcade:true};
 SHOPS.relay={name:"そらの はいたつ",color:"#91C6DA",desc:"3にんを こうたいして はいたつ！",perk:"shop",rounds:3};
 SHOP_OWNERS.link={sp:"rabbit",name:"パズルの ララ",outfit:{head:"starclip"}};
 SHOP_OWNERS.relay={sp:"penguin",name:"はいたつの ソラ",outfit:{neck:"scarf_red"}};
-HOWTO.link=["おなじ えを 3こ いじょう なぞってね。\nたて・よこ・ななめに つながるよ。","7こ つなぐと まわりも けせる！\n5びょう いないに つづけて 4コンボで フィーバー！","まぜるのは 3かいまで。ひょうかが 3ずつ へるよ。\nもくひょうの かずまで あつめよう！"];
+HOWTO.link=["縦・横に同じ絵を3個以上つなぐ。直線・L字・輪で特殊消去。","消すと時間が延長。30秒ごとに時計が加速するスコアアタック。","詳しいルールと非売品の景品は受付で確認できます。"];
 HOWTO.relay=["わんこは ほね、がちゃんは はな、ごじは さかな。\nおとどけものに あわせて こうたいしよう！","ひだり・みぎで いどう。いわは よけてね。\n「まもる」は 1びょうほど むてき。6びょうで また つかえるよ。","まちがえて とると ひょうかが さがるよ。\n3にんで もくひょうの かずを あつめよう！"];
 SIGN_ICON.link=(x,y)=>[-11,0,11].map((dx,i)=>`<circle cx="${x+dx}" cy="${y+(i===1?-4:4)}" r="7" fill="${["#EBAABB","#F4D887","#AACBC2"][i]}" ${OS(1.5)}/>`).join("");
 SIGN_ICON.relay=(x,y)=>`<rect x="${x-15}" y="${y-9}" width="30" height="20" rx="3" fill="#F2D4AB" ${OS(1.5)}/><path d="M${x},${y-9} V${y+11} M${x-15},${y-1} H${x+15}" stroke="${INK}" stroke-width="2"/>`;

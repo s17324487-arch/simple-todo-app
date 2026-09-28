@@ -74,6 +74,8 @@ const Game = {
 
   // ---- シーン ----
   goto(name, params = {}, type = "fade") {
+    // 旧デバッグ/入口から来ても、なかよしパズルは専用受付に案内する。
+    if(name==="shop" && params.shop==="link"){name="store";params={...params,atCounter:true};}
     // 戦闘からの帰宅は全滅処理だけ。UI以外からの移動要求にも同じ規則を適用。
     if (name === "house" && G.sceneName === "battle" && !G.scene?.defeated) return;
     if (this.trans && this.trans.phase !== "in") return;

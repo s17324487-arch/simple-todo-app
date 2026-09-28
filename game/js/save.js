@@ -53,6 +53,7 @@ const Save = {
         link: { lv: 1, rep: 0, best: 0, plays: 0 },
         relay: { lv: 1, rep: 0, best: 0, plays: 0 },
       },
+      puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },
       world: { map: "town", x: 7, y: 7, dir: "down" },
       flags: { intro: false, chests: {}, boss: false, talked: {} },
       events: { records: {}, activeAnnual: null },
