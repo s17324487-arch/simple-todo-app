@@ -30,7 +30,15 @@ const NerikasuNeighborhood={
     }
     return a;
   },
-  installArt(){const original=WorldArt.building;WorldArt.building=sp=>{if(!this.styles.includes(sp.style))return original(sp);const w=sp.w*32,h=sp.h*32+24;return {w,h,svg:`<g transform="scale(${w/200} ${h/160})">${this.facade(sp.style)}</g>`};};},
+  wideFacade(sp,w,h){
+    const nursery=sp.style==='town_nursery',r=(x,y,ww,hh,c)=>`<rect x="${x}" y="${y}" width="${ww}" height="${hh}" fill="${c}" stroke="${INK}" stroke-width="1.5"/>`;let a=r(3,30,w-6,h-34,nursery?'#F0DFCA':'#EEE6D5')+r(0,23,w,9,nursery?'#B8C9A4':'#AAB7AF');
+    for(const y of nursery?[73,127]:[51,96,143])for(let x=15;x<w-34;x+=42)if(Math.abs(x-w/2)>62)a+=r(x,y,29,29,'#B9D6D8')+`<path d="M${x+14} ${y}v29m-14-13h29" stroke="${INK}" fill="none" stroke-width="1.2"/>`;
+    a+=r(w/2-47,h-65,94,60,'#809D9B')+r(w/2-38,h-55,76,49,'#D6E3DB')+`<path d="M${w/2} ${h-55}v49" stroke="${INK}"/>`+r(w/2-108,h-91,216,24,'#FFF1D6')+`<text x="${w/2}" y="${h-74}" text-anchor="middle" font-family="sans-serif" font-size="16" fill="${INK}">${nursery?'ネリカス保育園':'ネリカス小学校'}</text>`;
+    if(!nursery)a+=r(w/2-28,2,56,58,'#D6C8A5')+`<circle cx="${w/2}" cy="29" r="20" fill="#FFF5D9" stroke="${INK}" stroke-width="2"/><path d="M${w/2} 14v15l13 7" stroke="${INK}" stroke-width="2" fill="none"/>`;
+    else for(let x=0;x<w;x+=80)a+=`<path d="M${x} 24l40-20 40 20Z" fill="${x%160?'#E0BDAB':'#B8C9A4'}" stroke="${INK}"/>`;
+    return a;
+  },
+  installArt(){const original=WorldArt.building;WorldArt.building=sp=>{if(!this.styles.includes(sp.style))return original(sp);const w=sp.w*32,h=sp.h*32+24;return {w,h,svg:['town_school','town_nursery'].includes(sp.style)?this.wideFacade(sp,w,h):`<g transform="scale(${w/200} ${h/160})">${this.facade(sp.style)}</g>`};};},
   install(){
     const d=MAP_DEFS.town,W=64,H=68,oldW=d.rows[0].length,oldH=d.rows.length;
     const g=Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>x<oldW&&y<oldH?d.rows[y][x]:'.'));
@@ -56,7 +64,7 @@ const NerikasuNeighborhood={
     for(const y of [9,13,23,27,37,41,55,67])for(let x=y<43?49:3;x<60;x+=3)if(Math.abs(x-31)>4&&Math.abs(x-36)>2)prop(palette[(x+y)%palette.length],x,y);
     for(let y=3;y<67;y+=4){prop(y%8===3?'lamp':'treegrate',60,y);prop(palette[y%palette.length],58,y+1);}
     for(const y of [53,65]){d.crosswalks.push({x0:27,x1:28.4,y0:y-1,y1:y+1,bars:'h'});d.crosswalks.push({x0:29,x1:33,y0:y-3.7,y1:y-2.3,bars:'v'});}
-    for(const [i,x,y]of [[0,53,9],[1,53,23],[2,53,37],[3,6,51],[4,17,51],[5,27,51],[6,43,51],[7,53,51],[8,8,63],[9,22,63],[10,42,63],[11,53,63],[12,34,51],[13,34,63]]){d.objects=d.objects.filter(o=>!(o.x===x&&o.y===y));const id='nerikasu_neighbor'+i;d.npcs.push({id,x,y,sp:['rabbit','cat','sheep','mouse'][i%4],name:i>7?'せんせい':'ごきんじょさん',dir:'down',talk:id});TALKS[id]={first:['ネリカスタウンへ ようこそ。こどもたちの こえが きこえるね。'],lines:[['がっこうも ほいくえんも、なかを みていってね。']]};}
+    for(const [i,x,y]of [[0,55,10],[1,55,24],[2,55,38],[3,7,51],[4,17,51],[5,27,51],[6,44,51],[7,53,51],[8,8,63],[9,22,63],[10,42,63],[11,53,63],[12,34,51],[13,34,63]]){d.objects=d.objects.filter(o=>!(o.x===x&&o.y===y));const id='nerikasu_neighbor'+i;d.npcs.push({id,x,y,sp:['rabbit','cat','sheep','mouse'][i%4],name:i>7?'せんせい':'ごきんじょさん',dir:'down',talk:id});TALKS[id]={first:['ネリカスタウンへ ようこそ。こどもたちの こえが きこえるね。'],lines:[['がっこうも ほいくえんも、なかを みていってね。']]};}
     for(const y of [45,49,53,57,61,65])for(const x of [28,33])prop(palette[y%palette.length],x,y);
     for(const n of d.npcs.filter(n=>n.id.startsWith('nerikasu'))){TOWNSFOLK_DATA.crowd[n.id]='town_walker';}
     const rg=TownRoads.grid(d,W,H);for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(rg[y][x]&&!['#','D'].includes(g[y][x]))g[y][x]='=';
