@@ -40,18 +40,22 @@ const HeiwadaiTown={
     MAP_DEFS.heiwadai=d;
   },
   canvas(scene,it,ensure){return scene.objCanvas('heiwadai_'+it.asset.replaceAll('.','_'),it.opts||{},ensure);},
-  draw(ctx,scene,it,ox,oy){
+  draw(ctx,scene,it,ox,oy,bounds){
     const r=this.canvas(scene,it,false);if(!r)return;const {c,a}=r;
-    let x=ox+it.x*TS,y=oy+it.y*TS;
+    const at=HeiwadaiLife.position(it);let x=ox+at.x*TS,y=oy+at.y*TS;
+    if(x+a.originX+a.w<0||x+a.originX>(bounds?.w||G.W)||y+a.originY+a.h<0||y+a.originY>(bounds?.h||G.H))return;
     const flip=it.opts?.flip&&!['shrine.komainu','nat.pine'].includes(it.asset);
     ctx.save();ctx.translate(x,y);if(flip){ctx.translate(a.footW*TS,0);ctx.scale(-1,1);}
-    ctx.drawImage(c,a.originX-2,a.originY-2,a.w+4,a.h+4);ctx.restore();
+    if(it.asset==='prop.bunting')ctx.scale(1,HeiwadaiLife.state().flagScale);
+    if(it.asset==='park.swing')HeiwadaiLife.drawSwing(ctx,scene.objectActive?.until>G.t&&scene.objectActive.id===it.id);
+    else ctx.drawImage(c,a.originX-2,a.originY-2,a.w+4,a.h+4);
+    HeiwadaiLife.effect(ctx,it,scene.objectActive?.until>G.t&&scene.objectActive.id===it.id);ctx.restore();
   },
-  overhead(ctx,scene,ox,oy){
+  overhead(ctx,scene,ox,oy,bounds){
     if(!scene.map.def.heiwadai)return;
     const d=scene.map.def;
-    for(const p of d.objects)if(p.over)this.draw(ctx,scene,p,ox,oy);
-    for(const p of d.overhead)this.draw(ctx,scene,{...p,y:p.y-p.h},ox,oy);
+    for(const p of d.objects)if(p.over)this.draw(ctx,scene,p,ox,oy,bounds);
+    for(const p of d.overhead)this.draw(ctx,scene,{...p,y:p.y-p.h},ox,oy,bounds);
     ctx.save();ctx.translate(ox,oy);ctx.strokeStyle='#34322F';ctx.lineWidth=.9;ctx.globalAlpha=.75;ctx.beginPath();
     for(const chain of d.wires)for(let i=0;i<chain.length-1;i++)for(const dy of [0,5]){
       const a=chain[i],b=chain[i+1],ax=a[0]*TS+16,ay=a[1]*TS-60+dy,bx=b[0]*TS+16,by=b[1]*TS-60+dy;
