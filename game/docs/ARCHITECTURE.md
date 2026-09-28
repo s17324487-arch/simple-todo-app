@@ -679,3 +679,6 @@ PokaDebug.backupText / backupDecode はテストで同じ処理を使う入口�
 
 ### WebKit のスモークテスト（T-02）
 `npx playwright install --with-deps webkit` の後、`npm run test:webkit` / `npm run test:webkit:full` を実行する。`tests/smoke.mjs --browser=webkit` はChromiumと同じPokaDebug/入力/シナリオを使用し、画像を `tests/screenshots/webkit/` に分ける。独自実行ファイルは `WEBKIT_PATH`。導入できない環境に限り `--skip-missing` で未導入を明示して終了できる（CIには付けない）。これは実機Safari/iPhoneの確認を代替しない。GitHub Actionsは両エンジンの全シナリオを必須として実行する。
+
+### バーガー屋（V2-05）
+`mg-burger.js` の `BurgerTask` は TaskBase を継承し、3〜7段の具材を下から積む。`want` / `made` は具材IDの配列で、順番違い・注文の見直し・時間経過を採点する。店内・専用BGM・購入食品を登録。シティ南の `city_reading` はIDと入口を維持してダイナーへ改装し、北側の図書館は維持。セーブは `shops.burger` の既定値追加だけ。PokaDebug.mg().order が注文名と積んだIDを返す。

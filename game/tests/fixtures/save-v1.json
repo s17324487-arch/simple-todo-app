@@ -1,0 +1,225 @@
+{
+  "v": 1,
+  "gameVersion": "1.0.0",
+  "created": 1788220800000,
+  "last": 1788220800000,
+  "coins": 987654,
+  "chars": {
+    "wanko": {
+      "name": "わんこ",
+      "lv": 20,
+      "exp": 7,
+      "hp": 194,
+      "sp": 50,
+      "hunger": 70,
+      "mood": 75,
+      "bond": 60,
+      "outfit": {
+        "head": null,
+        "face": null,
+        "neck": null,
+        "body": "tshirt_red",
+        "back": null
+      },
+      "boost": {
+        "hp": 0,
+        "sp": 0,
+        "atk": 0,
+        "def": 0,
+        "spd": 0
+      },
+      "color": "soft",
+      "lastPet": 0
+    },
+    "gachan": {
+      "name": "がちゃん",
+      "lv": 21,
+      "exp": 8,
+      "hp": 154,
+      "sp": 78,
+      "hunger": 70,
+      "mood": 75,
+      "bond": 61,
+      "outfit": {
+        "head": null,
+        "face": null,
+        "neck": "scarf_green",
+        "body": null,
+        "back": null
+      },
+      "boost": {
+        "hp": 0,
+        "sp": 0,
+        "atk": 0,
+        "def": 0,
+        "spd": 0
+      },
+      "color": "soft",
+      "lastPet": 0
+    },
+    "goji": {
+      "name": "ごじ",
+      "lv": 22,
+      "exp": 9,
+      "hp": 287,
+      "sp": 55,
+      "hunger": 70,
+      "mood": 75,
+      "bond": 62,
+      "outfit": {
+        "head": "crown",
+        "face": null,
+        "neck": null,
+        "body": null,
+        "back": null
+      },
+      "boost": {
+        "hp": 0,
+        "sp": 0,
+        "atk": 0,
+        "def": 0,
+        "spd": 0
+      },
+      "color": "soft",
+      "lastPet": 0
+    }
+  },
+  "order": [
+    "goji",
+    "wanko",
+    "gachan"
+  ],
+  "bag": {
+    "onigiri": 3,
+    "apple": 23,
+    "bandaid": 2,
+    "cake": 12
+  },
+  "wardrobe": {
+    "ribbon_pink": true,
+    "tshirt_red": true,
+    "scarf_green": true,
+    "crown": true
+  },
+  "furn": {
+    "bed_simple": 1,
+    "table_wood": 1,
+    "rug_round": 1,
+    "window": 1,
+    "plant": 1,
+    "trophy": 1
+  },
+  "room": {
+    "wall": "wp_cream",
+    "floor": "fl_wood",
+    "items": [
+      {
+        "uid": 1,
+        "id": "window",
+        "x": 190,
+        "y": 116,
+        "flip": false
+      },
+      {
+        "uid": 2,
+        "id": "rug_round",
+        "x": 190,
+        "y": 404,
+        "flip": false
+      },
+      {
+        "uid": 3,
+        "id": "bed_simple",
+        "x": 74,
+        "y": 318,
+        "flip": false
+      },
+      {
+        "uid": 4,
+        "id": "table_wood",
+        "x": 206,
+        "y": 372,
+        "flip": false
+      },
+      {
+        "uid": 5,
+        "id": "plant",
+        "x": 324,
+        "y": 304,
+        "flip": false
+      },
+      {
+        "uid": 6,
+        "id": "trophy",
+        "x": 270,
+        "y": 300,
+        "flip": true
+      }
+    ],
+    "wallpapers": {
+      "wp_cream": true
+    },
+    "floors": {
+      "fl_wood": true
+    },
+    "nextUid": 7
+  },
+  "shops": {
+    "crepe": {
+      "lv": 3,
+      "rep": 130,
+      "best": 480,
+      "plays": 8
+    },
+    "dentist": {
+      "lv": 1,
+      "rep": 0,
+      "best": 0,
+      "plays": 0
+    },
+    "bakery": {
+      "lv": 1,
+      "rep": 0,
+      "best": 0,
+      "plays": 0
+    },
+    "florist": {
+      "lv": 1,
+      "rep": 0,
+      "best": 0,
+      "plays": 0
+    }
+  },
+  "world": {
+    "map": "town",
+    "x": 7,
+    "y": 7,
+    "dir": "down"
+  },
+  "flags": {
+    "intro": true,
+    "chests": {
+      "m1": true,
+      "m2": true
+    },
+    "boss": true,
+    "talked": {
+      "mayor": 4
+    }
+  },
+  "dex": {
+    "slime": 12
+  },
+  "stats": {
+    "battles": 40,
+    "wins": 35,
+    "coinsEarned": 990000,
+    "shifts": 20,
+    "perfects": 33,
+    "fed": 52
+  },
+  "settings": {
+    "bgm": true,
+    "se": true
+  }
+}
