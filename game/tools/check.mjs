@@ -748,24 +748,105 @@ if (ok(!!FD, "FISHING_DATA が ない（js/fishing-data.js）")) {
   ok(dexFlow.first && dexFlow.second && dexFlow.rec, "さかな ずかんの きろく（かず・いちばん 大きい・いけす）が 不正");
   ok(dexFlow.noRod && dexFlow.rod, "つりざおの ない あいだも ② の 釣りの 話・おねがいが 出る");
   ok(dexFlow.sizes, "魚の 大きさが データの はんいを こえる");
-  // 2番: 釣りの 画面・流れ（見本 FishingRef.Game の まま）。ぴんと ぐあいが 6わり より 下なら まく だけで、ひき 1〜5 の 魚が つれる（こどもが 遊べる かんたんさ）
-  ok(vm.runInContext(`typeof SCENES.fishing === "function" && SCENES.fishing === FishingScene`, ctx), "SCENES.fishing（FishingScene）が ない");
-  const reel = vm.runInContext(`(()=>{const rnd=TownFolk.rng("fishing-check"),out=[];
-    for(const rodPower of [1,1.6])for(let P=1;P<=5;P++){let ok=0;for(let k=0;k<40;k++){const g=new Fishing.Game({power:P},{rodPower,rand:rnd});g.update(0.1,{tap:true});
-      for(let t=0;(g.phase==="cast"||g.phase==="wait")&&t<30;t+=0.05)g.update(0.05,{});g.update(0.05,{tap:true});
-      for(let t=0;g.phase==="reel"&&t<90;t+=1/30)g.update(1/30,{hold:g.tension<0.6});if(g.phase==="caught")ok++;}out.push(rodPower+"/"+P+":"+ok);}
-    const e=new Fishing.Game({power:1},{rand:rnd});e.update(0.1,{tap:true});for(let t=0;e.phase==="cast"&&t<2;t+=0.05)e.update(0.05,{});e.update(0.05,{tap:true});
-    const l=new Fishing.Game({power:1},{rand:rnd});l.update(0.1,{tap:true});for(let t=0;l.phase!=="miss"&&t<30;t+=0.05)l.update(0.05,{});
-    return {out,early:e.phase==="miss"&&e.why==="early",late:l.phase==="miss"&&l.why==="late"};})()`, ctx);
-  ok(reel.out.every((x) => x.endsWith(":40")), `まく だけで つれない 魚が いる: ${reel.out.join(", ")}`);
-  ok(reel.early && reel.late, "はやすぎ（まつ の あいだに おす）・おそすぎ（ぐいっ！ で おさない）が にげる に ならない");
-  // 「つる」ボタン: 釣り場の マップで、さおが あって、水（'~'）を 向いて いる とき だけ
-  const btn = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const m=new WorldMap("town"),d=MAP_DEFS.town,D={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};let at=null;
-    for(let y=1;y<m.h-1&&!at;y++)for(let x=1;x<m.w-1&&!at;x++){if(m.isSolid(x,y))continue;for(const [dir,[dx,dy]] of Object.entries(D))if((d.rows[y+dy]||"")[x+dx]==="~"){at={x,y,dir};break;}}
-    const sc=(dir)=>({mapId:"town",map:m,party:[{tx:at.x,ty:at.y,dir,moving:false}]});const back={up:"down",down:"up",left:"right",right:"left"}[at.dir];
-    const noRod=!Fishing.spotAt(sc(at.dir));Save.d.fish.rod=1;const yes=!!Fishing.spotAt(sc(at.dir)),away=!Fishing.spotAt(sc(back))||(d.rows[at.y+D[back][1]]||"")[at.x+D[back][0]]==="~";
-    const city=!Fishing.spotAt({mapId:"city",map:new WorldMap("city"),party:[{tx:at.x,ty:at.y,dir:at.dir,moving:false}]});Save.d=old;return {noRod,yes,away,city};})()`, ctx);
-  ok(btn.noRod && btn.yes && btn.away && btn.city, "「つる」ボタンの 出る ときが 不正 " + JSON.stringify(btn));
+  // 2番（UI-02・js/fishing-line.js）: 見おろしの まま つる（どうぶつの森と おなじ ながれ）。よこから 見る 画面は もう ない
+  ok(vm.runInContext(`typeof SCENES.fishing === "undefined" && typeof FishingScene === "undefined" && typeof Fishing.card === "undefined"`, ctx), "よこから 見る 釣りの 画面（SCENES.fishing・つれた カード）が のこって いる");
+  const FL = vm.runInContext(`(()=>{
+    // かげの ながさは cm に 比例（1cm = PX_PER_CM px。ちいさすぎ・大きすぎる ときだけ MIN_PX〜MAX_PX に おさめる）
+    const lens = [3, 10, 12, 20, 50, 80, 100, 150, 160, 250, 500].map((cm) => [cm, FishLine.shadowLen(cm)]);
+    // どの 魚も 自分の 釣り場の マップに 出せる（いちばん 大きい とき・岸から さおが とどく 水の 中）
+    const nofit = [];
+    for (const [map, sp] of Object.entries(FISHING_DATA.spots)) {
+      const m = new WorldMap(map), tiles = FishLine.waterTiles(m);
+      for (const f of FISHING_DATA.fish.filter((f) => f.place === sp.place || (f.also || []).includes(sp.place))) {
+        const len = FishLine.shadowLen(f.size[1]), wid = FishLine.shadowWid(f, len); let fit = false;
+        for (const [tx, ty] of tiles) { for (let k = 0; k < 8 && !fit; k++) for (const [ox, oy] of [[16, 16], [8, 8], [24, 24], [8, 24], [24, 8], [16, 0], [0, 16]]) if (FishLine.fits(m, tx * TS + ox, ty * TS + oy, (k * Math.PI) / 4, len, wid)) { fit = true; break; } if (fit) break; }
+        if (!fit) nofit.push(map + ":" + f.id + "(" + len + "px)");
+      }
+    }
+    // ながれ: 岸に 立った 3人・まえに 魚を 1ぴき（あたまが こちら）・うきを あたまの まえに → 1/30びょう ずつ すすめる
+    const old = Save.d; Save.d = Save.fresh(); Save.d.fish.rod = 1;
+    const map = "coast", m = new WorldMap(map), D = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+    let at = null;
+    for (let y = 1; y < m.h - 1 && !at; y++) for (let x = 1; x < m.w - 1 && !at; x++) { if (m.isSolid(x, y) || m.warpAt(x, y) || m.doorAt(x, y)) continue; for (const [dir, [dx, dy]] of Object.entries(D)) { let wet = true; for (let k = 1; k <= 6; k++) if (m.groundAt(x + dx * k, y + dy * k) !== "water" || m.groundAt(x + dx * k - dy, y + dy * k - dx) !== "water" || m.groundAt(x + dx * k + dy, y + dy * k + dx) !== "water") wet = false; if (wet) { at = { x, y, dir }; break; } } }
+    const mk = () => { const w = [new Walker(at.x, at.y, at.dir), new Walker(at.x, at.y, at.dir), new Walker(at.x, at.y, at.dir)];
+      return { mapId: map, map: m, party: w, cam: { x: 0, y: 0 }, path: null, joy: null, touch: null, busy: false, walkable: (X, Y) => !m.isSolid(X, Y), goTo() {}, addFx() {}, shadow() {}, bubble() {},
+        screenToTile: (sx, sy) => ({ tx: Math.floor(sx / TS), ty: Math.floor(sy / TS), wx: sx, wy: sy }) }; };
+    const rnd = TownFolk.rng("fishline-check");
+    const setup = (nibbles, cm = 60, fid = "suzuki", fickle = 0) => {
+      const sc = mk(), S = FishLine.st(sc); S.auto = false; S.rand = rnd;
+      const [dx, dy] = D[at.dir], f = sc.party[0].feet(), cx = f.x + dx * 3.4 * TS, cy = f.y - 12 + dy * 3.4 * TS, a = Math.atan2(-dy, -dx);
+      const sh = FishLine.spawn(sc, { fish: fid, cm, nibbles, fickle, alpha: 1, at: { x: cx, y: cy, a } });
+      const h = FishLine.head(sh);
+      return { sc, S, sh, bx: h.x - dx * 18, by: h.y - dy * 18, dx, dy };
+    };
+    const run = (sc, sec, until) => { const phases = []; for (let t = 0; t < sec; t += 1 / 30) { FishLine.update(sc, 1 / 30); const S = sc.fishing, p = S.line ? S.line.phase : S.brag ? "brag" : "none"; if (phases[phases.length - 1] !== p) phases.push(p); if (until && until(S)) break; } return phases; };
+    // A: ちょんちょん 2かい → しずむ → つる で じまんへ
+    const A = setup(2), castA = FishLine.castAt(A.sc, A.bx, A.by);
+    const phA = run(A.sc, 20, (S) => S.line && S.line.phase === "bite");
+    const nibA = A.S.line ? A.S.line.nibbled : -1, pullA = FishLine.pull(A.sc);
+    const bragA = !!A.S.brag && A.S.brag.f.id === "suzuki" && A.S.brag.cm === 60 && !A.S.line && A.sc.busy && !A.S.shadows.includes(A.sh);
+    // B: ちょん 1かい めで おす → にげる（さおを もどす）
+    const B = setup(3); FishLine.castAt(B.sc, B.bx, B.by);
+    run(B.sc, 20, (S) => S.line && S.line.nibbled >= 1);
+    FishLine.pull(B.sc); const early = B.sh.state === "flee" && B.S.line && B.S.line.phase === "reel" && /はやすぎ/.test(FishLine.last || "");
+    // C: しずんでも おさない → BITE びょう で にげられる（うきは のこる）
+    const C = setup(0); FishLine.castAt(C.sc, C.bx, C.by);
+    run(C.sc, 20, (S) => S.line && S.line.phase === "bite");
+    const biteAt = C.S.line && C.S.line.phase === "bite"; run(C.sc, FishLine.BITE - 0.1);
+    const stillBite = C.S.line && C.S.line.phase === "bite"; run(C.sc, 0.3);
+    const late = biteAt && stillBite && C.S.line && C.S.line.phase === "float" && C.S.line.escaped === 1 && C.sh.state === "flee" && /にげられ/.test(FishLine.last || "");
+    // D: かげの 上に おとすと びっくりして にげる
+    const E = setup(1); FishLine.castAt(E.sc, E.sh.x, E.sh.y); run(E.sc, 2, (S) => S.line && S.line.phase === "float");
+    const scare = E.sh.state === "flee" && /びっくり/.test(FishLine.last || "");
+    // E: しっぽの うしろに おちても 気づかない
+    const F = setup(1); F.sh.a += Math.PI; F.sh.aim = F.sh.a; const tail = { x: F.sh.x - Math.cos(F.sh.a) * (F.sh.len / 2 + 14), y: F.sh.y - Math.sin(F.sh.a) * (F.sh.len / 2 + 14) };
+    FishLine.castAt(F.sc, tail.x, tail.y); run(F.sc, 1.2); const behind = F.S.line && !F.S.line.fish;
+    // きまぐれ: ちょんの あと いって しまう ことも ある（fickle = 1 なら かならず）
+    const K = setup(3, 60, "suzuki", 1); FishLine.castAt(K.sc, K.bx, K.by); run(K.sc, 12, (S) => S.line && S.line.nibbled >= 1); run(K.sc, 0.2);
+    const fickle = K.S.line && !K.S.line.fish && K.sh.state === "swim" && K.sh.cool > 0;
+    // F: うごくと さおを しまう
+    const G2 = setup(1); FishLine.castAt(G2.sc, G2.bx, G2.by); run(G2.sc, 1.2); G2.sc.party[0].moving = true; FishLine.update(G2.sc, 1 / 30); const walk = !G2.S.line;
+    // G: さおが ない ときは なげない・水の ないところは ながおししても なにも しない
+    const H2 = setup(1); Save.d.fish.rod = 0; const noRod = FishLine.aim(H2.sc, H2.bx, H2.by) === false && !H2.S.line; Save.d.fish.rod = 1;
+    const dn = mk(); FishLine.st(dn).auto = false; FishLine.down(dn, { id: 1, x: at.x * TS + 16, y: at.y * TS + 16 }); const dryPress = !dn.fishing.press;
+    // ちょんちょんの かず（0〜4。5かいめは かならず しずむ）
+    const nib = new Set(); for (let i = 0; i < 3000; i++) nib.add(FishLine.rollNibbles(rnd));
+    // じまんの ひとこと
+    const quotes = FISHING_DATA.fish.map((f) => ({ id: f.id, q: FishLine.QUOTES[f.id] || "", line: FishLine.quote(f, f.size[1], "goji") }));
+    // スーパーで うる
+    Save.d.fish.keep = { kingyo: 2 }; const coins = Save.d.coins;
+    const choiceM = Fishing.sellChoice({ shopId: "market", back: { map: "town" } }), choiceC = Fishing.sellChoice({ shopId: "clothes", back: { map: "town" } });
+    const sold = Fishing.sellFish("kingyo", 1), left = Save.d.fish.keep.kingyo, none = Fishing.sellFish("magoi", 1), all = Fishing.sellFish("kingyo", 5);
+    const sell = { choiceM, choiceC, sold, left, none, all, coins: Save.d.coins - coins, gone: !("kingyo" in Save.d.fish.keep), empty: Fishing.sellChoice({ shopId: "market", back: { map: "town" } }) };
+    Save.d = old;
+    return { lens, nofit, at: !!at, castA, phA, nibA, pullA, bragA, early, late, scare, behind, fickle, walk, noRod, dryPress, nib: [...nib].sort(), quotes, tails: ["wanko", "gachan", "goji"].every((k) => FishLine.TAIL[k]), sell, KEEP: Fishing.KEEP_MAX, bite: FishLine.BITE, sell1: FISHING_DATA.fish.find((f) => f.id === "kingyo").sell };
+  })()`, ctx);
+  const kanji = /[一-鿿]/, k = vm.runInContext("FishLine.PX_PER_CM", ctx), [mn, mx] = vm.runInContext("[FishLine.MIN_PX, FishLine.MAX_PX]", ctx);
+  for (const [cm, len] of FL.lens) ok(len === Math.min(mx, Math.max(mn, Math.round(cm * k * 10) / 10)), `かげの ながさが cm に 比例 しない: ${cm}cm → ${len}px`);
+  ok(FL.lens.every(([, l], i) => !i || l >= FL.lens[i - 1][1]), "大きい 魚ほど かげが 大きく ならない");
+  ok(FL.nofit.length === 0, "自分の 釣り場の 水に おさまらない 魚が いる（その 魚は 出ない）: " + FL.nofit.join(", "));
+  ok(FL.at && FL.castA, "しおかぜビーチで 岸から なげられない");
+  ok(FL.phA.join(">").startsWith("swing>fly>float") && FL.phA.includes("bite") && FL.nibA === 2, "なげる → うき → ちょんちょん 2かい → しずむ に ならない " + FL.phA.join(">") + " nib " + FL.nibA);
+  ok(FL.pullA && FL.bragA, "しずんだ ときに「つる」で つりあげて じまんに ならない");
+  ok(FL.early, "ちょんちょんの ときに おしても にげない（はやすぎ）");
+  ok(FL.late && FL.bite > 0.8 && FL.bite <= 1.2, `しずんで ${FL.bite}びょう おさないと にげられる に ならない`);
+  ok(FL.scare, "かげの 上に おとしても びっくりしない");
+  ok(FL.behind, "しっぽの うしろの うきに 魚が 気づく（あたまの まえ だけ 見える）");
+  ok(FL.fickle, "ちょんの あと きが かわって いって しまう ことが ない");
+  ok(FL.walk, "あるきだしても さおを しまわない");
+  ok(FL.noRod && FL.dryPress, "さおが ない ときに なげる・水の ない ところの ながおしで 釣りが はじまる");
+  ok(FL.nib.join() === "0,1,2,3,4", "ちょんちょんの かずが 0〜4 に ならない " + FL.nib.join());
+  for (const q of FL.quotes) {
+    ok(q.q && !kanji.test(q.q) && q.q.length <= 24, `じまんの ひとこと ${q.id}: ない／漢字／24もじ より ながい「${q.q}」`);
+    ok(q.line.includes("つりあげた！") && q.line.split("\n").length === 3 && /cm/.test(q.line), `じまんの ことば ${q.id} の 形が 不正`);
+  }
+  ok(FL.tails, "3人の くちぐせが そろって いない");
+  const sl = FL.sell;
+  ok(sl.choiceM === "さかなを うる" && !sl.choiceC && !sl.empty, "スーパー だけで・いけすに 魚が いる ときだけ「さかなを うる」に ならない " + JSON.stringify(sl));
+  ok(sl.sold === FL.sell1 && sl.left === 1 && sl.none === 0 && sl.all === FL.sell1 && sl.gone && sl.coins === FL.sell1 * 2, "さかなを うると コイン・いけすが 不正 " + JSON.stringify(sl));
+  // つかう こうかおんは ぜんぶ ある（FishLine.SE）
+  const flSrc = readFileSync(join(GAME, "js/fishing-line.js"), "utf8"), seNames = vm.runInContext("Object.keys(FishLine.SE)", ctx);
+  for (const m of flSrc.matchAll(/Sound\.se\("(fish_\w+)"\)/g)) ok(seNames.includes(m[1]), `こうかおん ${m[1]} が FishLine.SE に ない`);
   // 3番: いけすは 30ぴき・りっぱな つりざおは みなとの マルシェ（rods[1].get.shop の 建物）だけ
   const pro = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const p=Fishing.proShop();Save.d.fish.rod=1;
     const harbor=!!Fishing.proChoice({shopId:"market",back:{map:"harbor"}}),city=!Fishing.proChoice({shopId:"market",back:{map:"city"}}),town=!Fishing.proChoice({shopId:"market",back:{map:"town"}});

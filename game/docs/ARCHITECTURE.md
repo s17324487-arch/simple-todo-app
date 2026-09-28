@@ -532,7 +532,7 @@ class NewTask extends TaskBase {
 | `folkSpots(map)` / `folkKitten()` / `folkPhotoTile(map)` | さがす きらきら・さわる 小物（となりの 立てる マス `stand`・画面の 位置 `cx`/`cy`）／ついて くる こねこ／しゃしんが とれる マス。`folkOffer` は 物々交換の id（`bt-…`）も うけとる |
 | `smaho(app)` / `smahoState()` / `fortune(day)` | すまほを ひらく（app なしで ホーム・null で とじる）／`{ open, app, apps, button, phone, dot, hints }`／その日の うらない |
 | `fishGive(id, n)` | ③ 魚を いけすに 入れる（ずかんにも のる。大きさは `Fishing.size`）。ずかんの きろくを かえす |
-| `rod(n)` / `fishing(place, fishId)` / `fishState()` / `fishInput(kind)` / `fishSkip()` / `fishShore(map)` | ③ さおを もたせる／釣りの 画面を はじめる（その 魚が かかる）／いまの ようす／なげる・まく・はなす／まつ を とばす／歩いて 行ける 水べと 向き |
+| `rod(n)` / `fishShore(map)` / `fishState()` / `fishAuto(on, clear)` / `fishSpawn(id, cm, { nibbles, fickle, swim })` / `fishAim(uid)` / `fishCast(wx, wy)` / `fishPull()` | ③ さおを もたせる／岸の 立てる マス `{ x, y, dir }`／つりの ようす（`line`・`bobber`・`shadows`・`nibbled`・`escaped`・`brag`・`zoom`・`button`・`last`）／かってに 魚を 出す か（clear で けす）／3人の ちかくに 魚の かげ（ふつうは うきに 気づく まで とまる）／その かげの あたまの まえ（画面の CSS px。page.mouse で ながおし）／ながおしと おなじ ところへ なげる／「つる」ボタンと おなじ |
 | `fossilGive(key, n)` | ④ 骨を もたせる（`"trex.skull"` など）。もって いる 数を かえす |
 | `pick(n)` / `fossilRocks(map)` / `fossilSpot(map)` | ④ ピッケルを もたせる（0／1）／きょうの いわ `[[x, y], ...]`（ほった ものは のぞく）／いわの となりの 立てる マス `{ x, y, dir, rock }` |
 | `museumGive(kind, key)` / `museumDonate()` / `museumPick(key)` / `museumConfirm()` | ⑤ 寄贈した ことに する（"all" で ぜんぶ）／館の 人に 話しかけて 寄贈の 画面へ／えらぶ／きふする（ありがとうの 会話は またない） |
@@ -774,11 +774,17 @@ TownFolk.STEPS に find・tap・follow・photo・catch・dig を足した（catc
 ### 魚の データ・絵・ずかん（FEAT-06）
 `fishing-data.js`（FISHING_DATA・自動生成。元は `tools/feature-design/fish-data.mjs`）・`fish-art.js`（FishArt。見本 FishArtRef と同じ）・`fishing.js`（Fishing）を townsfolk.js の後に読む。Fishing.pool / pick / size / shadowOf は見本と同じ計算（rarity の重み・天気が合えば×2・りっぱなさおは rarity 3 以上×1.4・unlock）。Save.fresh().fish（rod・dex・keep・caught）を追加（migrate の補完だけ）。Fishing.record(id, cm) がずかん（n・max・first）といけす（keep）を進める。Menu.dex は「まもの／さかな」を切り替え、さかなは Fishing.dex（50マス・場所で絞る・つった魚だけ絵・NEW はきょう初めて）と Fishing.detail（UI.modal）。TownFolk.features().fishing はさおを持つまで false。
 
-### 釣りざおと 釣りの 画面（FEAT-07）
-Fishing に見本 FishingRef の Game・SCENE・tint・heroSize・draw をそのまま入れ、FishingScene（SCENES.fishing）を足した。Talk.run はプレゼントの後に Fishing.talked（ペンが rod=1 にする）。WorldScene.update の最後で Fishing.refreshButton（spots のマップ・さおあり・先頭の子が '~' を向く）→ Game.goto("fishing", { place, name, back })。画面は canvas の Fishing.draw と DOM の .fish-ui、ボタン1つ（なげる→まつ…→つる！→まく）。つれると Fishing.card（いけすへ／にがす）→ Fishing.record → TownFolk.progress({do:"catch"})。TownFolk.have().fish は Save.d.fish.keep で、わたす・物々交換の魚はいけすから減らす。
+### 釣りざおと 釣り（FEAT-07 → UI-02 で 見おろしの まま つる ように 作りなおし）
+Talk.run はプレゼントの後に Fishing.talked（ペンが rod=1 にする）。UI-02 で よこから 見る 釣りの 画面（FishingScene・Fishing.Game・draw・card・水を むくと 出る「つる」ボタン）を やめ、`fishing-line.js`（FishLine）を fishing.js の あとに 読む。FishLine は WorldScene の down・update・renderWater・renderFx・drawMember・interact・key・exit・render・updateEnemies を 外から つつむ（scene-world.js は かえない）。つりの ようすは sc.fishing（セーブしない）。
+- 魚の かげ: spots の マップで ときどき 出る（SLOTS: いけ・かわ・さわ 2・うみべ 3・みなと 4 まで。いない ときも ある）。Fishing.pick・Fishing.size で 魚と cm を きめ、ながさ = cm × 0.8px（shadowLen。9〜128px）、はば 0.34 ばい（ほそながい 魚は 0.13）。水の 中に おさまる ばしょ（fits）だけ およぐ。はしると にげる。check は どの 魚も いちばん 大きい ときに 自分の 釣り場に おさまる ことを 見る。
+- なげる: 水を 0.45びょう ながおし（ながおしの わ）→ 立って いる マスから 4.2マス いない なら その ばで、とどかなければ いちばん ちかい 立てる 岸へ あるいて（goTo の pending { type: "fishcast" }）なげる。キーボードは 水を むいて ok。さおを ふる（land_01 → jump_01）→ うきが とぶ → ぽちゃん。
+- よって くる: あたまの まえ 80°・2.2マス いない・あいだが ぜんぶ 水 なら 気づく → ちょんちょん 0〜4かい（NIBBLE_W。たまに きが かわる fickle）→ うきが しずむ（「！」・ボタンが きいろ）→ BITE（1びょう）いないに「つる」。はやいと にげる・おそいと にげられる・かげの 上に おとすと びっくりして にげる・あるくと さおを しまう。うきが 水に ある あいだと じまんの あいだは まものが うごかない。
+- じまん: 魚が 水から とびだして 3人の ところへ → render を ZOOM（1.9）ばいに して せんとうの 子へ よる（DOM は そのまま）→ drawMember で せんとうは jump_01 で 頭の 上に 魚（SvgCache「fishhold:<id>」は 魚ごとに 1つ）・2人は ぴょんぴょん → UI.say で じまんの ひとこと（QUOTES は 魚ごとの しゃれ・TAIL は 3人の くちぐせ）→ Fishing.record（いけすが いっぱいなら にがす）→ TownFolk.progress({ do: "catch" })。
+- こうかおん: Sound.se を つつみ、fish_cast・fish_plop・fish_nibble・fish_bite・fish_hook・fish_splash・fish_catch・fish_flee・fish_reelin を WebAudio で つくる（音声ファイルは ない）。
+- 「つる」ボタン（.act-btn.fish-go-btn・右下の まる）は うきが 水に ある ときだけ。Fishing.refreshButton／hideButton／button は FishLine の もの（fossils.js の「ほる」は そのまま）。PokaDebug は fishState・fishAuto・fishSpawn・fishAim・fishCast・fishPull。
 
-### いけす・うる・りっぱな つりざお（FEAT-08）
-Fishing.KEEP_MAX（30）と keepCount()。Fishing.card は いけすへ／にがす／うる（いっぱいなら「いけすが いっぱい」を disabled に）。FishingScene.caught は sell なら Save.addCoins(f.sell)。りっぱな つりざおは Fishing.proShop()（rods[1].get.shop の建物のマップとお店）→ StoreScene.talk が Fishing.proChoice(this) を選択肢に足し、Fishing.buyPro(owner) で rod=2。ずかんには いけすの数（.fish-keep）。
+### いけす・うる・りっぱな つりざお（FEAT-08・UI-02 で うるのは スーパーに）
+Fishing.KEEP_MAX（30）と keepCount()。つった ときには うらない（どうぶつの森と おなじ）。スーパー（shopId が market）で いけすに 魚が いると StoreScene.talk が Fishing.sellChoice(this)「さかなを うる」を 足し、Fishing.sell()（1ぴき うる・ぜんぶ うる。すいぞくかんに まだ いない 魚には しるしと たしかめ）→ Fishing.sellFish(id, n) で Save.addCoins(f.sell × n)。きふは すいぞくかん（Museum）。りっぱな つりざおは Fishing.proShop()（rods[1].get.shop の建物のマップとお店）→ StoreScene.talk が Fishing.proChoice(this) を選択肢に足し、Fishing.buyPro(owner) で rod=2。ずかんには いけすの数（.fish-keep）。
 
 ### 骨の データ・絵・かせき ノート（FEAT-09）
 `fossil-data.js`（FOSSIL_DATA・自動生成。元は `tools/feature-design/fossil-data.mjs`）・`fossil-art.js`（FossilArt。見本 FossilArtRef と同じ）・`fossils.js`（Fossils）を fishing.js の後に読む。Save.fresh().fossil（pick・bones・dug）を追加（migrate の補完だけ）。Menu.dex は まもの／さかな／かせき、かせきは Fossils.note（10種の骨格・ない骨は点線・そろった！）と Fossils.detail（UI.modal）。TownFolk.features().fossil はピッケルを持つまで false。

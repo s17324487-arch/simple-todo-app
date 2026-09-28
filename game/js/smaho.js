@@ -170,6 +170,7 @@ const Smaho = {
     }
     if (typeof DailyPlay !== "undefined") { const shop = DailyPlay.featured(); add("rewards", `きょうの おすすめ おみせは「${SHOPS[shop]?.name || shop}」。おてつだいの コインが 1.2ばい！`); }
     if (typeof Fishing !== "undefined" && Fishing.data() && !Fishing.rod()) { const g = Fishing.data().rods[0].get, who = npcAt(g.npc); add("map", `${who ? who + "に" : "まちの ひとに"} はなすと つりざおが もらえるよ。`); }
+    else if (typeof Fishing !== "undefined" && Fishing.data()) add("map", Fishing.keepCount() >= Fishing.KEEP_MAX ? "いけすが いっぱい！ スーパーで うるか すいぞくかんに きふ しよう。" : "みずべの さかなの かげを ねらって みずを ながおし。うきが しずんだら「つる」！");
     if (typeof Fossils !== "undefined" && Fossils.data() && !Fossils.hasPick()) { const g = Fossils.data().pick.get, who = npcAt(g.npc); add("map", `${who ? who + "に" : "もりの ひとに"} はなすと ピッケルが もらえるよ。ひびの ある いわを ほろう。`); }
     if (typeof MusicDiscs !== "undefined") { const n = MusicDiscs.count(), all = MusicDiscs.DISCS.length; if (n < all) add("music", `ディスク ${n}/${all}。おてつだいで ○ いじょう・たからばこで みつかるよ。`); }
     if (typeof ParentWork !== "undefined" && ParentWork.away()) add("status", "ぱぱと ままは 9じ〜18じ おしごと。3にんで おるすばん しようね。");
