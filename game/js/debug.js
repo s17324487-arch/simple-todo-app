@@ -486,6 +486,7 @@ const PokaDebug = {
       keeper:{...point(5,1),cy:point(5,1).cy-24*sc.scale*G.cssPerUnit},
       path:sc.path.length,interacting:!!sc.interacting,exit:point(5,11),scale:sc.scale};
   },
+  shopPrices() {return Object.fromEntries([['wear',WEAR_ITEMS],['furniture',FURNITURE],['wall',WALLPAPERS],['floor',FLOORS],['food',FOODS]].map(([kind,list])=>[kind,list.map(it=>({id:it.id,name:it.name,price:it.price,rare:!!it.rare}))]));},
   coins(n = 1000) { Save.addCoins(n); UI.updateHud(); return Save.d.coins; },
   level(lv = 10) {
     for (const id of Chara.IDS) { const c = Save.d.chars[id]; c.lv = U.clamp(lv, 1, 50); c.exp = 0; }
