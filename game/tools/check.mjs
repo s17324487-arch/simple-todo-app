@@ -982,6 +982,16 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
     out.push(["射撃場の 外がわ",'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160">'+ShootingRange.facade200()+"</svg>"]);return {out,keys:keys.map(k=>k.key)};})()`, ctx);
   ok(art.keys.length === 14 && new Set(art.keys).size === 14 && art.keys.every((k) => /^rt:[a-z]+(:\d+)?$/.test(k)), `射撃場の 的の キーが 14こで ない（${art.keys.join(",")}）`);
   for (const [what, svg] of art.out) svgOk(svg, what);
+  // 2番: あそびの しくみ（見本と 同じ Game・bot）。しゅもく × じゅう 18とおりを good で あそぶと おわって ★1 いじょう。ゲームの 弾道も 表と 同じ。コインは 0 / 27 / 60 / 90
+  const play = vm.runInContext(`(()=>{const D=RANGE_DATA,out=[];for(const [cid,C] of Object.entries(D.courses))for(const g of D.guns.filter(x=>x.cat===C.cat)){
+      const G=new ShootingRange.Game(D,cid,g.id,{seed:"check:"+cid+":"+g.id,W:360,H:700});let n=0;while(G.phase!=="end"&&n++<60*400)G.update(1/60,ShootingRange.bot(G,"good"));
+      out.push({k:cid+"/"+g.id,end:G.phase==="end",stars:G.stars,result:G.result,hud:!!G.hud().kind});}
+    const lb=new ShootingRange.Game(D,"long","bolt",{hopStep:10}).bal.at(50).y*100,lb0=new ShootingRange.Game(D,"long","bolt",{hopStep:0}).bal.at(50).y*100;
+    return {out,lb,lb0,pay:[0,1,2,3].map(s=>GameEconomy.pay("range",1,s)),draw:typeof ShootingRange.draw==="function"&&typeof ShootingRange.bot==="function"};})()`, ctx);
+  for (const r of play.out) ok(r.end && r.stars >= 1 && Number.isFinite(r.result) && r.hud, `射撃場 ${r.k}: じどうで あそんでも おわらない／★1 に とどかない ${JSON.stringify(r)}`);
+  ok(play.out.length === 18 && play.draw, "射撃場: しゅもく × じゅう が 18とおりで ない／draw・bot が ない");
+  ok(Math.abs(play.lb - 1.1) <= 0.1 && Math.abs(play.lb0 + 94.7) <= 0.1, `射撃場の ゲームの 弾道が GUN_LIST.md と ちがう（ボルト 50m: ${play.lb.toFixed(2)} / ダイヤル 0: ${play.lb0.toFixed(2)}）`);
+  ok(play.pay.join() === "0,27,60,90", "射撃場の コイン（GameEconomy.pay）が 0 / 27 / 60 / 90 で ない " + play.pay.join());
 }
 
 finish();
