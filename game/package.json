@@ -13,10 +13,12 @@
     "design:heiwadai": "node tools/town-design/build.mjs",
     "audit:town": "node tools/town-audit.mjs",
     "design:features": "node tools/feature-design/build.mjs",
-    "balance:puzzle": "node tools/puzzle-sim.mjs"
+    "balance:puzzle": "node tools/puzzle-sim.mjs",
+    "test:webkit": "npm run check && node tests/smoke.mjs --browser=webkit",
+    "test:webkit:full": "npm run check && node tests/smoke.mjs --browser=webkit --full --shots"
   },
   "devDependencies": {
-    "playwright": "1.56.1"
+    "playwright": "1.63.0"
   },
   "engines": {
     "node": ">=18"

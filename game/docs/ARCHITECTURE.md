@@ -677,5 +677,13 @@ PokaDebug.backupText / backupDecode はテストで同じ処理を使う入口�
 
 `mg-groom.js` の GroomTask は指の移動線分を4px刻みで検査し、見本の輪郭に近い部分をカット済みにする。見本の到達率60点、3か所の乾燥20点、リボン20点から、はみ出しと時間の減点を引く。乾燥は押している間の実ゲーム時間で進む。Lvで輪郭・点数・許容幅・制限時間を変える。新規ショップは Save.fresh.shops.groom に追加。シティの建物 city_gallery のIDを保持して店の入口に変更し、旧位置が重なる場合は既存の安全な位置への補正を使う。PokaDebug.mg().order は線・乾燥位置をCSS座標で返す。
 
+### WebKit のスモークテスト（T-02）
+WebKitのオフライン模擬はfile://も遮断するため、ローカルファイル検査はHTTP(S)だけを遮断する。PWAマニフェストはHTTP(S)起動時だけ読み込む。2本指はChromiumではネイティブ入力、WebKitでは合成PointerEventで処理を検証する（捕捉APIのみ代替）。
+`npx playwright install --with-deps webkit` の後、`npm run test:webkit` / `npm run test:webkit:full` を実行する。`tests/smoke.mjs --browser=webkit` はChromiumと同じPokaDebug/入力/シナリオを使用し、画像を `tests/screenshots/webkit/` に分ける。独自実行ファイルは `WEBKIT_PATH`。導入できない環境に限り `--skip-missing` で未導入を明示して終了できる（CIには付けない）。これは実機Safari/iPhoneの確認を代替しない。GitHub Actionsは両エンジンの全シナリオを必須として実行する。
+
 ### バーガー屋（V2-05）
 `mg-burger.js` の `BurgerTask` は TaskBase を継承し、3〜7段の具材を下から積む。`want` / `made` は具材IDの配列で、順番違い・注文の見直し・時間経過を採点する。店内・専用BGM・購入食品を登録。シティ南の `city_reading` はIDと入口を維持してダイナーへ改装し、北側の図書館は維持。セーブは `shops.burger` の既定値追加だけ。PokaDebug.mg().order が注文名と積んだIDを返す。
+
+CIは両ブラウザの全シナリオを4分割し、各シナリオ終了時にブラウザプロセスも閉じて描画資源を解放する。`--list --full --shard=1/4` で対象一覧を検査できる。リトライ・失敗無視は行わない。
+
+テスト専用のPlaywrightを1.63.0へ更新。旧1.56.1のLinux WebKitで描画プロセスのクラッシュが複数発生したため、ブラウザの診断ログも保存する。ゲームの実行時依存や保存データは変わらない。

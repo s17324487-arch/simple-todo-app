@@ -1,11 +1,12 @@
-// ブラウザで実際に遊んで確かめる自動テスト（Playwright + Chromium）。
+// ブラウザで実際に遊んで確かめる自動テスト（Playwright + Chromium / WebKit）。
 //   npm test              … 静的チェック + ふだんのスモークテスト（約1〜2分）
 //   npm run test:full     … 4つのお店・ボス・小さい画面・夜 もふくむ（約4〜6分）、スクリーンショットも保存
 // オプション: --full（全部） --shots（tests/screenshots/ に画像を保存） --headed（画面を表示） --only=名前の一部
-// Chromium の場所を指定したいときは 環境変数 CHROMIUM_PATH。
+// --browser=webkit でWebKit。実行ファイルは CHROMIUM_PATH / WEBKIT_PATH。
+// --skip-missing はブラウザ未導入時だけ理由を表示して飛ばす（CIでは使わない）。
 // ゲーム内部の変数にはなるべく触らず、js/debug.js の PokaDebug と 実際のタップ操作で進める。
-import { chromium } from "playwright";
-import { mkdirSync, readdirSync, rmSync, readFileSync } from "node:fs";
+import { chromium, webkit } from "playwright";
+import { mkdirSync, readdirSync, rmSync, readFileSync, existsSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -17,13 +18,28 @@ const FULL = argv.includes("--full");
 const SHOTS = argv.includes("--shots") || FULL;
 const HEADED = argv.includes("--headed");
 const ONLY = (argv.find((a) => a.startsWith("--only=")) || "").slice(7);
-const SHOT_DIR = resolve(HERE, "screenshots");
-mkdirSync(SHOT_DIR, { recursive: true });
+const LIST = argv.includes('--list');
+const shardArg=(argv.find(a=>a.startsWith('--shard='))||'--shard=1/1').slice(8);
+if(!/^\d+\/\d+$/.test(shardArg))throw new Error('--shard は 1/4 の形式で指定してください');
+const [SHARD,SHARDS]=shardArg.split('/').map(Number);
+if(SHARD<1||SHARDS<1||SHARD>SHARDS)throw new Error('--shard の範囲が不正です');
+let eligibleCount=0;
+const ENGINE = (argv.find(a=>a.startsWith("--browser=")) || "--browser=chromium").slice(10);
+if (!["chromium","webkit"].includes(ENGINE)) throw new Error("--browser は chromium または webkit を指定してください");
+const BROWSER_TYPE = ENGINE === "webkit" ? webkit : chromium;
+const EXECUTABLE = process.env[ENGINE === "webkit" ? "WEBKIT_PATH" : "CHROMIUM_PATH"] || BROWSER_TYPE.executablePath();
+if (!LIST && !existsSync(EXECUTABLE)) {
+  const msg = `${ENGINE} がありません。game/ で npx playwright install ${ENGINE} を実行してください。`;
+  if (argv.includes("--skip-missing")) { console.log("SKIP: " + msg); process.exit(0); }
+  throw new Error(msg);
+}
+const SHOT_DIR = resolve(HERE, "screenshots", ...(ENGINE === "webkit" ? ["webkit"] : []));
+if(!LIST) mkdirSync(SHOT_DIR, { recursive: true });
 // 前回の画像が残っていると まぎらわしいので消す（--shots のときは全部、ふだんは失敗画像 FAIL_*.png だけ）
-for (const f of readdirSync(SHOT_DIR)) if (f.endsWith(".png") && (SHOTS || f.startsWith("FAIL_"))) rmSync(join(SHOT_DIR, f));
+for (const f of LIST ? [] : readdirSync(SHOT_DIR)) if (f.endsWith(".png") && (SHOTS || f.startsWith("FAIL_"))) rmSync(join(SHOT_DIR, f));
 
-const { server, url } = await serve({ port: 0, quiet: true });
-const browser = await chromium.launch({ headless: !HEADED, executablePath: process.env.CHROMIUM_PATH || undefined });
+const { server, url } = LIST ? {server:{close(){}},url:''} : await serve({ port: 0, quiet: true });
+if(!LIST) console.log('検証ブラウザ: '+ENGINE+' / 分割 '+SHARD+'/'+SHARDS);
 const results = [];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -32,6 +48,11 @@ function expect(cond, msg) { if (!cond) throw new Error(msg); }
 async function scenario(name, fn, { viewport = { width: 390, height: 844 }, timeout = 90000, full = false } = {}) {
   if (full && !FULL) return;
   if (ONLY && !name.includes(ONLY)) return;
+  if(eligibleCount++ % SHARDS !== SHARD-1)return;
+  if(LIST){console.log(name);return;}
+  // SVGを多用するシナリオ間でWebKitの描画プロセスも確実に解放する。
+  // 各シナリオ内の長時間プレイ・画面遷移は従来どおり全部検査する。
+  const browser = await BROWSER_TYPE.launch({ headless: !HEADED, executablePath: EXECUTABLE });
   const context = await browser.newContext({ viewport, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "ja-JP" });
   // ゲームの検証は外部フォントの応答に依存させない（CIのload待ちを安定させる）。
   await context.route(/^https:\/\/fonts\.(?:googleapis|gstatic)\.com\//, route => route.abort());
@@ -39,10 +60,11 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   // SVGの初期描画や負荷のある実行環境でも、操作の待機を早く打ち切らない。
   page.setDefaultTimeout(15000);
   const problems = [];
-  page.on("pageerror", (e) => problems.push("pageerror: " + e.message));
+  page.on('crash',()=>problems.push('ブラウザの描画プロセスがクラッシュしました'));
+  page.on("pageerror", (e) => problems.push("pageerror: " + e.stack));
   page.on("console", (m) => {
     // フォントなど 外部リソースが オフラインで読めないのは無視する
-    if (m.type() === "error" && !/Failed to load resource|ERR_|fonts\.g/.test(m.text())) problems.push("console.error: " + m.text());
+    if (m.type() === "error" && !/Failed to load resource|ERR_|fonts\.g/.test(m.text())) problems.push("console.error: " + m.text()+" @"+JSON.stringify(m.location()));
   });
   const H = helpers(page, name);
   const t0 = Date.now();
@@ -56,11 +78,12 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
     results.push({ name, ok: false, error: e.message });
     console.log(`  ✗ ${name}\n      ${e.message}`);
     console.log(e.stack);if(problems.length)console.log([...new Set(problems)]);
-    console.log(await H.dbg("state").catch(()=>null));
-    try { await page.screenshot({ path: join(SHOT_DIR, `FAIL_${name}.png`) }); } catch {}
+    console.log(await Promise.race([H.dbg('state').catch(e=>({diagnostic:e.message})),sleep(5000).then(()=>({diagnostic:'状態の応答がありません'}))]));
+    try { await page.screenshot({ path: join(SHOT_DIR, `FAIL_${name}.png`), timeout:5000 }); } catch {}
   } finally {
     clearTimeout(timer);
     await context.close();
+    await browser.close();
   }
 }
 
@@ -250,7 +273,7 @@ function helpers(page, name) {
   return H;
 }
 
-console.log(`ぽかぽかタウン スモークテスト ${FULL ? "（full）" : ""}`);
+if(!LIST) console.log(`ぽかぽかタウン スモークテスト ${FULL ? "（full）" : ""}`);
 
 await scenario("現代的BGM・全曲の音声合成",async H=>{
   await H.newGameFast();await H.page.mouse.click(5,5);
@@ -555,7 +578,7 @@ await scenario("新エリア・全体マップ・帰宅", async (H) => {
   await H.until(() => PokaDebug.state().scene === "world" && PokaDebug.idle());
   expect((await H.dbg("state")).map === "coast", "逃走後に元のフィールドへ戻らない");
   const coins=(await H.dbg("state")).coins;
-  await H.dbg("shop","crepe",1); await H.dialogs();
+  await H.dbg("shop","crepe",1); await H.until(()=>PokaDebug.state().scene==="shop"&&!PokaDebug.state().transitioning); await H.dialogs();
   await H.until(() => PokaDebug.mg()?.phase === "work");
   await H.page.getByRole("button", { name:"おうちへ",exact:true }).click();
   await H.until(() => PokaDebug.state().scene === "house" && PokaDebug.idle());
@@ -664,7 +687,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.until(()=>window.PokaDebug?.state().scene==='title'&&PokaDebug.idle(),20000);await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();const restored=await H.dbg('saveData');
   for(const k of ['coins','wardrobe','room','rooms','bag','furn','order'])expect(JSON.stringify(restored[k])===JSON.stringify(fixture[k]),'復元後の値が違う: '+k);
   expect(restored.chars.wanko.lv===20&&restored.chars.gachan.lv===20&&restored.chars.goji.lv===20,'レベルが戻らない');await H.shot('restored');
-  if(viewport.width===390){const ctx=await browser.newContext({viewport,locale:'ja-JP'});try{await ctx.route(new RegExp("^https://fonts[.]"),r=>r.abort());const other=await ctx.newPage();await other.goto(url);await other.waitForFunction(()=>window.PokaDebug&&PokaDebug.idle());const imported=await other.evaluate(text=>PokaDebug.backupDecode(text),text);expect(imported.coins===987654&&JSON.stringify(imported.room)===JSON.stringify(fixture.room),'別ブラウザで文字列を読めない');}finally{await ctx.close();}}
+  if(viewport.width===390){const ctx=await H.page.context().browser().newContext({viewport,locale:'ja-JP'});try{await ctx.route(new RegExp("^https://fonts[.]"),r=>r.abort());const other=await ctx.newPage();await other.goto(url);await other.waitForFunction(()=>window.PokaDebug&&PokaDebug.idle());const imported=await other.evaluate(text=>PokaDebug.backupDecode(text),text);expect(imported.coins===987654&&JSON.stringify(imported.room)===JSON.stringify(fixture.room),'別ブラウザで文字列を読めない');}finally{await ctx.close();}}
 },{viewport,full:viewport.width===375,timeout:150000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('save-v1-compat-'+viewport.width,async H=>{
@@ -872,15 +895,24 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await atlas.getByRole("button",{name:"いまの ばしょを みる",exact:true}).click();
   expect(+(await atlas.getAttribute("data-zoom"))===2,"現在地へ拡大されない");
   await svg.scrollIntoViewIfNeeded(); await H.shot("zoom-town");
-  // 実際の2本指入力で拡大・縮小。指を離したあとも通常のタップが使える。
-  const session=await H.page.context().newCDPSession(H.page), r=await svg.boundingBox();
-  const cx=r.x+r.width/2,cy=r.y+r.height/2;
-  const points=distance=>[{x:cx-distance,y:cy,id:1},{x:cx+distance,y:cy,id:2}];
-  await session.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:points(30)});
-  await session.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:points(55)});
-  await session.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
-  expect(+(await atlas.getAttribute("data-zoom"))>2,"2本指で拡大できない");
-  await session.detach();
+  // Chromium はネイティブ2本指入力、WebKit は同じ PointerEvent 経路を検証する。
+  if(ENGINE==='chromium') {
+    const session=await H.page.context().newCDPSession(H.page),r=await svg.boundingBox();
+    const cx=r.x+r.width/2,cy=r.y+r.height/2,points=d=>[{x:cx-d,y:cy,id:1},{x:cx+d,y:cy,id:2}];
+    await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:points(30)});
+    await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:points(55)});
+    await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await session.detach();
+  } else await svg.evaluate(el=>{
+    const r=el.getBoundingClientRect(),cx=r.x+r.width/2,cy=r.y+r.height/2;
+    const send=(type,id,x)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerType:'touch',pointerId:id,clientX:x,clientY:cy}));
+    // WebKit の Playwright API は2本指を送れないため、合成入力だけ捕捉を代替する。
+    const capture=el.setPointerCapture;el.setPointerCapture=()=>{};
+    try {send('pointerdown',91,cx-30);send('pointerdown',92,cx+30);
+      send('pointermove',91,cx-55);send('pointermove',92,cx+55);
+      send('pointerup',91,cx-55);send('pointerup',92,cx+55);
+    } finally {el.setPointerCapture=capture;}
+  });
+  expect(+(await atlas.getAttribute('data-zoom'))>2,'2本指で拡大できない');
   await atlas.getByRole("button",{name:"ちずを ぜんたいに もどす",exact:true}).click();
   expect(await svg.getAttribute("viewBox")==="0 0 800 850","全体に戻らない");
   const routes=atlas.getByRole("button",{name:"のりものの みち",exact:true});
@@ -1154,7 +1186,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 await scenario("vector-roads-file",async H=>{
   const def=runInNewContext(readFileSync(new URL("./fixtures/roads-v02.js",import.meta.url),"utf8")+";ROAD_FIXTURE");
-  await H.page.context().setOffline(true);
+  // WebKit のオフライン模擬は file:// も遮断するため、HTTP(S) 通信だけを遮断する。
+  await H.page.context().route(/^https?:\/\//,route=>route.abort());
   await H.page.goto(pathToFileURL(resolve(HERE,"../index.html")).href);
   await H.until(()=>window.PokaDebug&&PokaDebug.state().scene==="title");
   const image=await H.dbg("roadPreview",def,{width:375,height:667,cx:43,cy:45});
@@ -1323,8 +1356,9 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
   const items=state.prizes.slice(0,3).map((p,i)=>({id:p.id,x:90+i*140,y:450,uid:i+1}));await H.dbg("homeLayout",items);await H.wait(400);await H.shot("rare-room");
 },{viewport,timeout:240000});
 
-await browser.close();
 server.close();
+if(LIST)process.exit(0);
+if (!results.length) { console.error("検証対象がありません。--only の名前を確認してください。"); process.exit(1); }
 const bad = results.filter((r) => !r.ok);
 console.log(`\n${bad.length ? "✗" : "✓"} ${results.length - bad.length}/${results.length} シナリオ成功${SHOTS ? `（スクリーンショット: tests/screenshots/）` : ""}`);
 process.exit(bad.length ? 1 : 0);

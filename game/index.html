@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="ぽかぽかタウン">
 <meta name="description" content="わんこ・がちゃん・ごじ の 3にんと くらす ほのぼの育成・着せ替え・冒険ゲーム">
 <title>ぽかぽかタウン</title>
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" id="poka-manifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -90,6 +90,7 @@
 <script src="js/music-arrangements.js"></script>
 <script src="js/debug.js"></script>
 <script>
+  if (location.protocol === "https:" || location.protocol === "http:") document.getElementById("poka-manifest").href = "manifest.webmanifest";
   if ("serviceWorker" in navigator && location.protocol === "https:") {
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
   }
