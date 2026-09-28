@@ -1098,6 +1098,33 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   ok(fm.sky && fm.poster === 4 && !fm.clock, "かべの 家具: まどの 空の いろ・ポスターの 3にん・はとどけいの はり（live）が 不正");
 }
 
+// ---------- さわれる 家具（js/furniture-live.js。ART-03b）----------
+{
+  const lv = vm.runInContext(`(()=>{
+    const out = [];
+    for (const id of FurnLive.LIVE) {
+      const f = FURN_INDEX[id];
+      if (!f) { out.push({ id, missing: true }); continue; }
+      for (const flip of [false, true]) {
+        if (f.kind === "wall") { const a = Art.furnSvg(id, { flip }), b = Art.furnSvg(id, { flip, live: true }); out.push({ id, flip, wall: true, diff: a !== b, a, b }); continue; }
+        const a = HomeDesign.model(id, { flip }), b = HomeDesign.model(id, { flip, live: true });
+        out.push({ id, flip, same: [a.x, a.y, a.w, a.h, a.footW, a.footD].join() === [b.x, b.y, b.w, b.h, b.footW, b.footD].join(), diff: a.full !== b.full, b: b.full });
+      }
+    }
+    const taps = ["lamp", "tv", "piano", "clock", "fishbowl", "aquarium", "toybox", "fireplace", "musicbox", "train", "rockinghorse", "window", "kitchen", "kotatsu", "tent", "desk"];
+    return { out, interactive: taps.filter((id) => !FURN_INDEX[id] || !FURN_INDEX[id].interactive) };
+  })()`, ctx);
+  for (const r of lv.out) {
+    const w = `さわれる 家具 ${r.id}${r.flip ? "（はんてん）" : ""}`;
+    ok(!r.missing, `${w}: FURN_INDEX に ない`);
+    if (r.missing) continue;
+    ok(r.wall || r.same, `${w}: うごく ぶぶんを ぬいた 絵（live）と ふつうの 絵で 大きさが ちがう（部屋で 絵が ずれる）`);
+    ok(r.diff, `${w}: live でも 絵が かわらない（うごく ぶぶんが 2じゅうに なる）`);
+    svgOk(r.b, `${w}（live）`);
+  }
+  ok(lv.interactive.length === 0, "タップで うごく はずの 家具が interactive で ない " + lv.interactive.join());
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

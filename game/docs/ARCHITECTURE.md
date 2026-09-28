@@ -298,6 +298,9 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
   - 道具: `box`（3面）・`prism`（凸な 形に あつみ。見える 面と ふちを 凸包で）・`cyl`・`frustum`・`ball`（球は はば 1.23 ばいの 円）・`slab`（かたむいた 板）・`onP`（面に 2D の 絵を はる）・`at`（床の 1点に 小さな 絵を たてる）・`lg` / `rg`（グラデーションの id は 通し番号で かさならない）。
   - 床の 大きさ・高さ（`footW` / `footD` / `height`）は `HomeDesign.dimensions` の まま。床の 四すみは かならず 絵の はんいに 入れる（あたり判定を これまでと そろえる）。`npm run check` が 全家具・はんてんで たしかめる。PokaDebug は `furnArt(id, flip)`。
   - かべの 家具の うち はとどけい・まど・ポスターは `FURN_ART` を 上書き（ポスターは `Chara.svg` の 3にんを 入れる。まどの `class="sky"` は 天気の 空の 色に かわる）。
+- `FurnLive`（furniture-live.js）… さわれる 家具（ART-03b）。scene-house の 4か所から よぶ: `furnCanvas` で `FurnLive.opts`（`LIVE` の 家具は `opts.live` → 絵から うごく ぶぶんを ぬく。`HomeDesign.model` は `live:` の キーで 別に もつ）、`drawFurn` の さいごに `draw`、タップで `tap`（あつかった ときは これまでの 「わあ！ うごいた♪」を しない）、よるの くらさの あとに `lights`（あかりを `lighter` で 足す）。
+  - じょうたいは へや・uid・家具の id ごと（セーブしない）。時こくは `U.hourNow()`（PokaDebug.hour に あわせる）と 分。音は `Sound.tone` / `Sound.noise` を その場で。SvgCache は もくばの 2まいだけ。
+  - さわると ちかくの 1人が `react`（とぶ・♪/ハート）と `HomeLife.say` で ひとこと。PokaDebug は `furnLive(id)`（ようすと タップする 点）。
 - `Art.iconSvg(kind, id)` … アイコン。`kind` は `"wear"` `"bag"`（食べ物・どうぐ = `FOOD_ART`）`"furn"` `"wall"` `"floor"`。
 - `Tiles` / `WorldArt`（tiles.js）… 地面は 8×8 マスのかたまり（チャンク）ごとに canvas に描いて使い回す。木・建物・街灯などは y 順に並べて描く。
 - `WaterArt`（water-art.js）… 水の 絵。水の マス（`~` と はし）は これまでと おなじで、見た目だけ なめらかに する。

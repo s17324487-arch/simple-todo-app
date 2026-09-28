@@ -165,6 +165,8 @@ const FurnModels = (() => {
       return `url(#${id})`;
     };
     const shadow = (a = 0.12, inset = 3, r = 12) => shape(TP(0), rr(-w / 2 + inset, -d + inset, w - inset * 2, d - inset * 2, r), INK, 0, `fill-opacity="${a}"`);
+    // live（ART-03b で canvas に うごく 絵を かさねる とき）は その ぶぶんを 描かない。点は 数えるので 絵の はんいは おなじ
+    const L = (svg) => (opts.live ? "" : svg);
     const byDepth = (ps) => ps.slice().sort((p, q) => p[0] + p[1] - (q[0] + q[1]));
     const done = (body) => {
       for (const [x, y] of [[-w / 2, -d], [w / 2, -d], [w / 2, 0], [-w / 2, 0]]) P(x, y, 0); // 床の 四すみ（あたり判定を これまでと そろえる）
@@ -174,7 +176,7 @@ const FurnModels = (() => {
       return { x: x0, y: y0, w: x1 - x0, h: y1 - y0, footW: flip ? d : w, footD: flip ? w : d, height: h,
         full: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f2(x0)} ${f2(y0)} ${f2(x1 - x0)} ${f2(y1 - y0)}">${defs.length ? "<defs>" + defs.join("") + "</defs>" : ""}${body}</svg>` };
     };
-    return { id, w, d, h, flip, opts, P, plane, FR, SD, TP, tilt, away, poly, shape, line, lineOn, rod, smooth, prism, slab, box, cyl, frustum, ball, at, onP, lg, rg, shadow, byDepth, done };
+    return { id, w, d, h, flip, opts, L, P, plane, FR, SD, TP, tilt, away, poly, shape, line, lineOn, rod, smooth, prism, slab, box, cyl, frustum, ball, at, onP, lg, rg, shadow, byDepth, done };
   }
 
   // ---- いろ ----
@@ -316,7 +318,7 @@ const FurnModels = (() => {
     // 画板（おくが 高い）と クレヨンの え
     const { m, s: board } = slab([-46, -12, 63.5], [1, 0, 0], [0, -0.6, 0.8], rr(0, 0, 42, 28, 2), 2.4, "#D9B783", "#B08A5A");
     s += lineOn(TP(63.2), [[-40, -30], [-40, -22]], INK, 1.2) + board + shape(m, rect(3, 3, 36, 22), "#FFFDF5", 1);
-    s += onP(m, 3, 25, 36, 22, `<circle cx="7" cy="6" r="3.4" fill="#F7D56A"/><path d="M7,1 V-0.5 M12,6 H13.5 M10.6,2.4 L11.6,1.4" stroke="#F2B34B" stroke-width="1"/><path d="M15,15 L22,9 L29,15 Z" fill="#E77E6E"/><rect x="16.5" y="15" width="11" height="6" fill="#F2B8C6"/><rect x="20.5" y="17" width="3" height="4" fill="#9A6A45"/><path d="M1,21 Q12,18 35,21" fill="none" stroke="#8DB87A" stroke-width="1.6"/><path d="${heartPath(31, 6, 0.3)}" fill="#EE8FA6"/>`);
+    s += k.L(onP(m, 3, 25, 36, 22, `<circle cx="7" cy="6" r="3.4" fill="#F7D56A"/><path d="M7,1 V-0.5 M12,6 H13.5 M10.6,2.4 L11.6,1.4" stroke="#F2B34B" stroke-width="1"/><path d="M15,15 L22,9 L29,15 Z" fill="#E77E6E"/><rect x="16.5" y="15" width="11" height="6" fill="#F2B8C6"/><rect x="20.5" y="17" width="3" height="4" fill="#9A6A45"/><path d="M1,21 Q12,18 35,21" fill="none" stroke="#8DB87A" stroke-width="1.6"/><path d="${heartPath(31, 6, 0.3)}" fill="#EE8FA6"/>`));
     s += box(8, -30, 16, 8, 63, 6, ["#E77E6E", "#C9604F", "#F29C8E"]);
     ["#F7D56A", "#9CC7E6", "#8DB87A", "#F2A7B8", "#C9B6E0"].forEach((c, i) => { s += cyl(10.4 + i * 3, -26, 69, 1.1, 3.5 + (i % 2) * 1.5, shade(c, -0.1), c, 0.9, 10); });
     s += cyl(34, -40, 63, 4.4, 10, "#9CC7E6", "#6E9CBF", 1.2);
@@ -546,8 +548,8 @@ const FurnModels = (() => {
     s += shape(FR(-0.9), rr(3, 4, 32, 24, 2.5), "#6E5238", 1.2) + onP(FR(-0.8), 9, 12, 20, 7, `<g transform="translate(10 7)">${SPR.console()}</g>`);
     s += shape(TP(32.1), ov(0, -20, 12, 6.5, 24), "#4A4F5E", 1.2) + box(-3, -22, 6, 3, 32, 6, ["#4A4F5E", "#3A3F4C", "#5B6172"]);
     s += prism(FR(-17), rr(-35, 37, 70, 43, 8), [0, -7, 0], "#5C6477", "#474E5F");
-    s += shape(FR(-16.9), rr(-31, 41, 62, 34, 5), k.lg([[0, "#CFEBF6"], [1, "#8FC7E8"]]), 1.2);
-    s += onP(FR(-16.85), -29, 73, 58, 30, `<path d="M0,22 Q10,14 20,19 Q32,10 44,17 Q52,13 58,16 V30 H0 Z" fill="#9ED08C"/><path d="M0,26 Q20,21 58,25 V30 H0 Z" fill="#7FB06A"/><circle cx="46" cy="7" r="4" fill="#F7D56A"/><path d="M10,8 q2,-3 5,-1 q3,-2 5,1 z" fill="#FFFFFF"/>`);
+    s += k.opts.live ? shape(FR(-16.9), rr(-31, 41, 62, 34, 5), "#2F3848", 1.2) : shape(FR(-16.9), rr(-31, 41, 62, 34, 5), k.lg([[0, "#CFEBF6"], [1, "#8FC7E8"]]), 1.2);
+    s += k.L(onP(FR(-16.85), -29, 73, 58, 30, `<path d="M0,22 Q10,14 20,19 Q32,10 44,17 Q52,13 58,16 V30 H0 Z" fill="#9ED08C"/><path d="M0,26 Q20,21 58,25 V30 H0 Z" fill="#7FB06A"/><circle cx="46" cy="7" r="4" fill="#F7D56A"/><path d="M10,8 q2,-3 5,-1 q3,-2 5,1 z" fill="#FFFFFF"/>`));
     s += shape(FR(-16.8), [[-31, 60], [-31, 75], [-16, 75]], "#FFFFFF", 0, 'fill-opacity=".22"');
     s += shape(FR(-16.8), ov(28, 38.9, 1.2, 1.2, 10), "#E77E6E", 0);
     s += rod([[-2, -20, 80], [-14, -23, 95]], "#9DA3AF", 1) + rod([[2, -20, 80], [13, -22, 93]], "#9DA3AF", 1) + ball(-14, -23, 95.5, 1.5, "#F2B8C6", 0.9, 0) + ball(13, -22, 93.5, 1.5, "#9CC7E6", 0.9, 0) + ball(0, -20, 80, 3, "#5C6477", 1.1, 0.3);
@@ -573,7 +575,7 @@ const FurnModels = (() => {
     s += shape(FR(-7.45), rr(-17, 7, 34, 6.2, 3), "#8C5E3C", 1.2) + shape(FR(-7.4), rot2(rr(-12, 11, 26, 5.6, 2.8), 0, 13.5, -0.18), "#A06E48", 1.2);
     s += shape(FR(-7.35), ov(-15, 10.1, 2.3, 2.7, 12), "#D9B07E", 0.9) + shape(FR(-7.35), ov(15, 10.1, 2.3, 2.7, 12), "#D9B07E", 0.9);
     // うごかない ときの 小さな 火（ART-03b で ゆらぐ 火を かさねる）
-    s += onP(FR(-7.3), -12, 30, 24, 16, `<path d="M4,16 C0,11 4,8 5,4 C8,8 10,11 9,16 Z M10,16 C6,9 11,5 12,0 C16,5 19,10 15,16 Z M15,16 C13,12 17,10 18,7 C21,10 22,13 20,16 Z" fill="#F7A24B" stroke="${INK}" stroke-width="0.9" stroke-linejoin="round"/><path d="M11.5,16 C10,12 12,9 12.5,6 C14.5,9 15.5,12 14,16 Z" fill="#FFE8A0"/>`);
+    s += k.L(onP(FR(-7.3), -12, 30, 24, 16, `<path d="M4,16 C0,11 4,8 5,4 C8,8 10,11 9,16 Z M10,16 C6,9 11,5 12,0 C16,5 19,10 15,16 Z M15,16 C13,12 17,10 18,7 C21,10 22,13 20,16 Z" fill="#F7A24B" stroke="${INK}" stroke-width="0.9" stroke-linejoin="round"/><path d="M11.5,16 C10,12 12,9 12.5,6 C14.5,9 15.5,12 14,16 Z" fill="#FFE8A0"/>`));
     s += box(-49, -44, 98, 42, 75, 6, WAL) + lineOn(FR(-1.9), [[-49, 77.5], [49, 77.5]], "#C49A73", 1.1);
     s += cyl(-38, -20, 81, 2.4, 9, "#FFF1D8", "#FFFBF0", 1.1) + at(-38, -20, 90, SPR.candle(), 4, 11) + cyl(-31, -24, 81, 2.4, 6, "#FFF1D8", "#FFFBF0", 1.1) + at(-31, -24, 87, SPR.candle(), 4, 11);
     s += at(0, -26, 81, SPR.clock(), 8, 18) + at(22, -30, 81, SPR.photo(), 8, 14) + cyl(38, -20, 81, 3.6, 5, "#9CC7E6", "#BFDDF0", 1.1) + at(38, -20, 86, SPR.sprout(), 7, 10);
@@ -617,8 +619,8 @@ const FurnModels = (() => {
     for (let i = 0; i < 26; i++) s += shape(TP(40.1), ov(-43 + R() * 86, -43 + R() * 36, 1.2 + R(), 1 + R() * 0.6, 8), ["#C9B48A", "#F2E6C9", "#B6C9C9", "#E9B9A8"][i % 4], 0);
     s += at(-38, -41, 40, SPR.seaweed(30, "#6FAE7C"), 8, 32) + at(-28, -42, 40, SPR.seaweed(22, "#8FC08A"), 8, 24) + at(36, -40, 40, SPR.seaweed(28, "#6FAE7C"), 8, 30) + at(28, -42, 40, SPR.seaweed(18, "#A3CF94"), 8, 20);
     s += at(14, -32, 40, SPR.castle(), 12, 26) + at(-8, -26, 40, SPR.rocks(), 13, 10);
-    s += at(-14, -26, 58, SPR.fish("#F29A5B", "#FFD08A"), 12, 7) + at(24, -18, 65, SPR.fish("#F7D56A", "#FFF1B0"), 12, 7);
-    for (let i = 0; i < 5; i++) s += ball(-34 + (i % 2) * 1.5, -12, 44 + i * 6.5, 0.9 + i * 0.25, "#EFFBFF", 0.8, 0);
+    s += k.L(at(-14, -26, 58, SPR.fish("#F29A5B", "#FFD08A"), 12, 7) + at(24, -18, 65, SPR.fish("#F7D56A", "#FFF1B0"), 12, 7));
+    for (let i = 0; i < 5; i++) s += k.L(ball(-34 + (i % 2) * 1.5, -12, 44 + i * 6.5, 0.9 + i * 0.25, "#EFFBFF", 0.8, 0));
     s += at(-42, -8, 40, SPR.grass(), 8, 12) + at(40, -9, 40, SPR.grass("#A3CF94"), 8, 12);
     s += box(-47, -46, 94, 2, 76, 2.4, FRAME, 1.1) + box(-47, -46, 2, 42, 76, 2.4, FRAME, 1.1);
     s += shape(TP(74), rect(-45, -44, 90, 38), "#C4E9F2", 1, 'fill-opacity=".45"') + lineOn(TP(74.1), [[-30, -30], [-18, -28], [-6, -31]], "#FFFFFF", 1.2, 'stroke-opacity=".8"') + lineOn(TP(74.1), [[8, -18], [20, -16], [30, -19]], "#FFFFFF", 1.2, 'stroke-opacity=".8"');
@@ -646,7 +648,7 @@ const FurnModels = (() => {
     s += lineOn(FR(-5.9), close(rect(-38, 10, 76, 22)), GOLD, 1.4) + lineOn(SD(42.1), close(rect(-40, 10, 30, 22)), GOLD, 1.4);
     s += shape(FR(-5.8), heart(0, 21, 7.5), GOLD, 1.2) + shape(FR(-5.7), ov(0, 19.2, 1.1, 1.1, 8), INK, 0) + lineOn(FR(-5.7), [[0, 19], [0, 16.8]], INK, 0.9);
     s += poly([[-42, -9, 36], [42, -9, 36], [42, -6, 36], [-42, -6, 36]], LVT, 1.1) + poly([[39, -44, 36], [42, -44, 36], [42, -6, 36], [39, -6, 36]], LVT, 1.1);
-    s += at(0, -24, 50, SPR.starFig(), 16, 34);
+    s += k.L(at(0, -24, 50, SPR.starFig(), 16, 34));
     s += rod([[42, -25, 21], [48, -25, 21]], GOLD, 2) + shape(SD(48.5), ov(-25, 21, 5.2, 4.2, 18), GOLD, 1.2) + shape(SD(48.6), ov(-25, 21, 1.8, 1.4, 10), GOLDD, 0);
     s += ball(-37, -10, 3.4, 3.4, GOLD, 1.1, 0.4) + ball(37, -10, 3.4, 3.4, GOLD, 1.1, 0.4);
     return s;
@@ -662,13 +664,14 @@ const FurnModels = (() => {
     s += prism(SD(-12), arch(-50, -30, 0, 9, 19), [-22, 0, 0], "#9ACB86", "#7FB06A", 1.4) + shape(SD(-11.9), arch(-46, -34, 0, 5, 10.5), "#4E4540", 1.2);
     s += at(-26, -44, 17, SPR.blooms(), 10, 14) + at(34, -45, 0, SPR.tree(), 9, 22) + at(-44, -12, 0, SPR.tree(), 9, 22) + at(24, -47, 0, SPR.signal(), 5, 28);
     const wheels = (x0, n) => { let w = ""; for (let i = 0; i < n; i++) w += shape(FR(-2.7), ov(x0 + 2.4 + i * 4.4, 2.6, 2.3, 2.3, 12), "#4B4550", 1) + shape(FR(-2.6), ov(x0 + 2.4 + i * 4.4, 2.6, 0.8, 0.8, 8), GOLD, 0); return w; };
-    s += box(-24, -11, 13, 8, 2, 6, ["#F3D98A", "#D9BD64", "#F8E7AE"], 1.2) + ball(-20, -7, 10, 2.6, "#9CC7E6", 1, 0.4) + ball(-15, -7, 10, 2.4, "#F2A7B8", 1, 0.4) + wheels(-24, 3);
-    s += lineOn(TP(4), [[-11, -7], [-8, -7]], INK, 1.4);
-    s += box(-8, -11, 13, 8, 2, 7, ["#9CC7E6", "#7EAAD0", "#BCDBF0"], 1.2) + box(-5, -9.5, 7, 5, 9, 5, ["#E9DCC0", "#CEBFA0", "#F7EEDB"], 1) + wheels(-8, 3);
-    s += lineOn(TP(4), [[5, -7], [8, -7]], INK, 1.4);
-    s += box(8, -11, 17, 8, 2, 8, ["#E77E6E", "#C9604F", "#F29C8E"], 1.2) + box(8, -11.5, 7, 9, 10, 7, ["#E77E6E", "#C9604F", "#F29C8E"], 1.2) + box(7.4, -12, 8.2, 10, 17, 1.6, ["#4B4550", "#3A3540", "#5E5864"], 1);
-    s += cyl(20, -7, 10, 2.1, 6, "#4B4550", "#6B6570", 1.1) + shape(FR(-2.8), ov(25.2, 7, 1.4, 1.4, 10), "#F7D56A", 0.9) + wheels(8, 4);
-    s += at(20, -7, 17, SPR.puff(), 8, 12);
+    // きしゃ（live の ときは FurnLive が レールの 上を はしらせる）
+    s += k.L(box(-24, -11, 13, 8, 2, 6, ["#F3D98A", "#D9BD64", "#F8E7AE"], 1.2) + ball(-20, -7, 10, 2.6, "#9CC7E6", 1, 0.4) + ball(-15, -7, 10, 2.4, "#F2A7B8", 1, 0.4) + wheels(-24, 3) +
+      lineOn(TP(4), [[-11, -7], [-8, -7]], INK, 1.4) +
+      box(-8, -11, 13, 8, 2, 7, ["#9CC7E6", "#7EAAD0", "#BCDBF0"], 1.2) + box(-5, -9.5, 7, 5, 9, 5, ["#E9DCC0", "#CEBFA0", "#F7EEDB"], 1) + wheels(-8, 3) +
+      lineOn(TP(4), [[5, -7], [8, -7]], INK, 1.4) +
+      box(8, -11, 17, 8, 2, 8, ["#E77E6E", "#C9604F", "#F29C8E"], 1.2) + box(8, -11.5, 7, 9, 10, 7, ["#E77E6E", "#C9604F", "#F29C8E"], 1.2) + box(7.4, -12, 8.2, 10, 17, 1.6, ["#4B4550", "#3A3540", "#5E5864"], 1) +
+      cyl(20, -7, 10, 2.1, 6, "#4B4550", "#6B6570", 1.1) + shape(FR(-2.8), ov(25.2, 7, 1.4, 1.4, 10), "#F7D56A", 0.9) + wheels(8, 4) +
+      at(20, -7, 17, SPR.puff(), 8, 12));
     return s;
   };
   M.tent = (k) => {
@@ -744,15 +747,20 @@ const FurnModels = (() => {
     const { d, P, shape, TP, flip } = k, r = Math.min(f.w * 0.34, 30);
     const s = shape(TP(0), ov(0, -d / 2, r, Math.min(r * 0.78, d * 0.48), 28), INK, 0, 'fill-opacity=".13"');
     const q = P(0, -d / 2, 0);
-    const g = `<g transform="translate(${f2(q.x + (flip ? f.w / 2 : -f.w / 2))} ${f2(q.y - f.h)})${flip ? " scale(-1 1)" : ""}">${FURN_ART[f.id]({})}</g>`;
+    // live で 絵ごと うごかす 家具（もくば）は かげだけ。ほかは live を 絵に わたす（きんぎょばちの 魚を ぬく など）
+    const g = k.opts.live && ART_LIVE.has(f.id) ? "" : `<g transform="translate(${f2(q.x + (flip ? f.w / 2 : -f.w / 2))} ${f2(q.y - f.h)})${flip ? " scale(-1 1)" : ""}">${FURN_ART[f.id]({ live: !!k.opts.live })}</g>`;
     return { s: s + g, box: [q.x - f.w / 2 - 12, q.y - f.h - 12, q.x + f.w / 2 + 12, q.y + 8] };
   };
+  const ART_LIVE = new Set(["rockinghorse"]);
   // 板の 上に 置いていた 家具（HomeDesign の さいごの わけ方と おなじ）
   const OLD_OWN = new Set(["bed_simple", "bed_royal", "table_wood", "desk", "stool_oak", "chair_wood", "teacart", "console_oak", "sofa", "cloudsofa", "bookshelf", "wardrobe_oak", "kitchen", "vanity", "piano", "tv", "fireplace", "toybox", "plantshelf", "birdcage_brass"]);
   const onPlate = (f) => f && f.kind === "floor" && !OLD_OWN.has(f.id) && !M[f.id] && !f.puzzlePrize && !f.shopPrize && typeof FURN_ART[f.id] === "function";
 
   return {
     ids: Object.keys(M),
+    // ほかの ファイルから 立体モデルを 足す（fn(k) は kit を うけとって SVG の 中身を かえす）
+    register(id, fn) { M[id] = fn; if (!this.ids.includes(id)) this.ids.push(id); HomeDesign.models.forEach((_, key) => { if (key.startsWith(id + ":") || key.startsWith("live:" + id + ":")) HomeDesign.models.delete(key); }); },
+    SPR,
     has(id) { return !!M[id] || onPlate(FURN_INDEX[id]); },
     build(id, opts = {}) {
       const f = FURN_INDEX[id];

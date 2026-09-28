@@ -1,4 +1,4 @@
-# 家具の 絵（ART-03a）
+# 家具の 絵（ART-03a）と さわれる 家具（ART-03b）
 
 `npm run test:full` の スモーク「furniture-art-390 / furniture-art-375」で とった 画面（`tests/screenshots/` から コピー）と、まえと あとの くらべ。
 
@@ -9,3 +9,8 @@
 | `furniture-art-390_room-2.png` / `-375_room-2.png` | 天がいの ベッド・ドレッサー・ピアノ・こたつ・ほしの ラグ |
 | `furniture-art-390_room-3.png` / `-375_room-3.png` | キッチン・おちゃの ワゴン・水そう・くもの ソファ・きしゃ・テレビ（はんてん） |
 | `furniture-art-390_room-4.png` / `-375_room-4.png` | だんろ・テント・オルゴール・おえかき デスク・コンソール・みどりの たな（はんてん）・ソファ |
+| `furniture-touch-390_tv-on.png` | よる 9じ。スタンドライトを つけて、テレビを つけた ところ（おてんきの ばんぐみ）。3人が ひとこと |
+| `furniture-touch-390_piano.png` | ピアノを ひく（きらきらぼし）・テレビは どうぶつの ばんぐみ |
+| `furniture-touch-390_room-a.png` | はとどけい（はとが 出て 時こくを いう）・カーテンを しめた まど・おもちゃばこ |
+| `furniture-touch-390_room-b.png` / `-375_room-b.png` | きんぎょばち・水そう（えさ）・きしゃ（はしる）・おえかき デスク・だんろ（火と あかり） |
+| `furniture-touch-390_room-c.png` / `-375_room-c.png` | オルゴール・キッチン（ぐつぐつ）・もくば・こたつ（あかい あかり）・テント |
