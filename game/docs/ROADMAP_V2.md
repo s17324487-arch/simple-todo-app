@@ -264,7 +264,10 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 
 ### [x] ART-02 町の人（モブ）の 作り直し・同じ 見た目の 人を なくす ✅
 - `js/npc-art.js`（35しゅ・顔の ぶひん・もよう）・`js/npc-cast.js`（1人ずつの look と 名前・お客さん 60人）。受け入れ条件: 83人 全員 見た目も 名前も ちがう（check・スモーク「npc-cast」）。見本は `docs/screenshots/npc-cast/`。
-### [ ] ART-03 家具の 絵の 直し・細部・さわれる 家具
+### [x] ART-03a 家具の 絵の 直し・細部（24しゅ） ✅
+- `js/furniture-models.js`（`FurnModels`）。`HomeDesign.model()` の さいしょで 作りなおした モデルを かえす。受け入れ条件: 床の 大きさ・高さ（`HomeDesign.dimensions`）が かわらない・SVG の id が かさならない（check）。スモーク「furniture-art-390 / 375」。見本は `docs/screenshots/furniture/before-after.png`。
+### [x] ART-03b さわれる 家具（ライト・テレビ・ピアノ・とけい・魚・だんろ など） ✅
+- `js/furniture-live.js`（`FurnLive`）。16しゅ。うごく ぶぶんは 絵（`opts.live`）から ぬいて canvas に 描く。受け入れ条件: live の 絵と ふつうの 絵の 大きさが おなじ（check）。スモーク「furniture-touch-390 / 375」（タップで かわる・3人が ひとこと）。
 ### [ ] ART-04 ぱぱ・ままは 9:00〜18:00 おしごと（家に いない）・3人の おるすばんの ことばと しぐさ
 ### [ ] ART-05 レアの 音楽プレイヤー 3しゅ と ディスク（おてつだい・たんけんで 手に入る・へやで きける）
 

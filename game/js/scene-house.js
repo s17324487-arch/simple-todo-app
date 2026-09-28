@@ -121,6 +121,7 @@ class HouseScene {
     const f = FURN_INDEX[it.id];
     const opts = { flip: !!it.flip };
     if (it.id === "window") opts.sky = Weather.sky();
+    if (typeof FurnLive !== "undefined") FurnLive.opts(it, opts);
     const key = "furn:" + it.id + ":" + JSON.stringify(opts);
     const m = f.kind === "wall" ? { w: f.w + 24, h: f.h + 24 } : HomeDesign.model(it.id, opts);
     // Fixed raster sizes keep zooming and dragging out of the cache key.
@@ -605,6 +606,7 @@ class HouseScene {
     if (c) { if (this.parents.includes(c)) ParentCare.open(this, c.id); else this.pet(c); return; }
     const it = this.hitItem(r.x, r.y);
     if (it && FURN_INDEX[it.id].interactive) {
+      if (typeof FurnLive !== "undefined" && FurnLive.tap(this, it)) return;
       this.life.furniture[it.uid] = 6; Sound.se(it.id === "musicbox" || it.id === "piano" ? "fanfare" : "pop"); HomeLife.say(this, U.pick(this.chars).id, "わあ！ うごいた♪");
     }
   }
@@ -722,6 +724,7 @@ class HouseScene {
       ctx.fillRect(0, 0, G.W, G.H);
       if (this.mode === "sleep") for (const c of this.chars) { const p = this.toScreen(c.x, c.y); this.zzz(ctx, p.x + 18 * s, p.y - 80 * s); }
     }
+    if (typeof FurnLive !== "undefined") FurnLive.lights(ctx, this);
     if (this.mode === "hide") this.drawHideHint(ctx);
     HomeLife.draw(this, ctx);
   }
@@ -736,6 +739,7 @@ class HouseScene {
       ctx.drawImage(image, -pad, -pad, f.w + pad * 2, f.h + pad * 2);
     } else if (image) ctx.drawImage(image, r.x, r.y, r.w, r.h);
     ctx.restore();
+    if (typeof FurnLive !== "undefined") FurnLive.draw(ctx, this, it, r);
     if (f.puzzlePrize) PuzzlePrizeArt.draw(ctx, it.id, r, G.t, moving);
     if (f.shopPrize) ShopRewardArt.draw(ctx, it.id, r, G.t, moving);
     if (moving) { FX.note(ctx, r.x + r.w / 2, r.y - 6); FX.star(ctx, r.x + r.w, r.y + 10, 5, "#FFE066"); }
