@@ -1411,7 +1411,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const v=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),cells=[...document.querySelectorAll('.fossil-cell')];
     return {n:cells.length,names:cells.map(c=>c.querySelector('.nm').textContent),cnt:cells.map(c=>c.querySelector('.cnt').textContent),done:cells.filter(c=>c.classList.contains('done')).map(c=>c.dataset.id),
       sum:document.querySelector('.fossil-sum').textContent,inside:cells.every(c=>{const b=r(c);return b.left>=0&&b.right<=innerWidth+1;}),tabs:[...document.querySelectorAll('.dex-kinds .tab')].map(b=>[b.textContent,r(b).height>=43.5,r(b).right<=innerWidth+1])};});
-  expect(v.n===10&&v.names[0]==='ティラノサウルス'&&v.cnt[0]==='ほね 2/8'&&v.done.join()==='compso'&&v.cnt[9]==='そろった！'&&v.names.filter(n=>n==='？？？').length===8&&/4 \/ 63/.test(v.sum)&&v.inside&&v.tabs.length===3&&v.tabs.every(t=>t[1]&&t[2]),'かせき ノートが 不正 '+JSON.stringify(v));
+  expect(v.n===10&&v.names[0]==='ティラノサウルス'&&v.cnt[0]==='ほね 2/8'&&v.done.join()==='compso'&&v.cnt[9]==='そろった！'&&v.names.filter(n=>n==='？？？').length===8&&/4 \/ 63/.test(v.sum)&&v.inside&&v.tabs.map(t=>t[0]).join('|')==='まもの|さかな|かせき|かぐ|ふく'&&v.tabs.every(t=>t[1]&&t[2]),'かせき ノートが 不正 '+JSON.stringify(v));
   await H.shot('note');
   // くわしい ページ（ティラノサウルス）
   await H.page.locator('.fossil-cell[data-id="trex"]').click();await H.page.locator('.fossil-detail').waitFor();await H.wait(300);
