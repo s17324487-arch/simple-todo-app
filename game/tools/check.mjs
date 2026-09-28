@@ -992,6 +992,8 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   ok(play.out.length === 18 && play.draw, "射撃場: しゅもく × じゅう が 18とおりで ない／draw・bot が ない");
   ok(Math.abs(play.lb - 1.1) <= 0.1 && Math.abs(play.lb0 + 94.7) <= 0.1, `射撃場の ゲームの 弾道が GUN_LIST.md と ちがう（ボルト 50m: ${play.lb.toFixed(2)} / ダイヤル 0: ${play.lb0.toFixed(2)}）`);
   ok(play.pay.join() === "0,27,60,90", "射撃場の コイン（GameEconomy.pay）が 0 / 27 / 60 / 90 で ない " + play.pay.join());
+  // 3番: RO の 号令（4つ）と おうえんの かお（hit・combo・hurry × 3人。Chara に ある かお）
+  ok(vm.runInContext(`["ready","areYou","standby","done"].every(k=>!!RANGE_DATA.talk.cmd[k])&&Object.entries(RangeScene.CHEER_FACE).every(([k,m])=>Chara.IDS.every(id=>(RANGE_DATA.talk.cheer[id][k]||[]).length&&!!CHARA_DATA[id].faces[Chara.faceOf(id,m[id])]))`, ctx), "射撃場の RO の 号令・おうえんの かおが 不正");
 }
 
 finish();
