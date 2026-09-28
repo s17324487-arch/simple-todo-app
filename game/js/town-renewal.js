@@ -3,6 +3,7 @@ const TownRenewal = (() => {
   const ids=["town","city","harbor","airport"], originals={};
   const common=["bench","planter","bicycles","postbox","recycle","bollard","newsbox","phone","hydrant","direction","streetclock"];
   const frontages={
+    city_diner:["chalkboard","city_coffee","table","city_bikerack"],
     city_salon:["city_billboard","bicycles","planter","city_coffee"],
     town_cakery:["chalkboard","town_cakes","town_milk","planter"],
     city_puzzle:["city_billboard","city_screen","planter","city_bikerack"],city_deliveryhall:["city_delivery","city_kiosk","postbox","recycle"],
@@ -124,7 +125,7 @@ const TownRenewal = (() => {
     b.building("city_gallery",15,16,6,4,"city_salon",{label:"びようしつ",sign:"groom",act:{type:"work",shop:"groom"}});b.building("city_cafe",29,16,6,4,"city_cafe");
     b.building("city_furniture",3,31,7,5,"city_design");b.building("city_station",29,31,14,5,"city_station",{door:7});
     b.building("relay",39,16,7,4,"city_deliveryhall");
-    b.building("city_reading",15,31,6,5,"city_library",{label:"えほんの おへや"});
+    b.building("city_reading",15,31,6,5,"city_diner",{label:"バーガーやさん",sign:"burger",act:{type:"work",shop:"burger"}});
     b.rect(31,27,15,4,"p");b.rect(13,27,8,4,"p");
     b.prop("fountain",36,28,{id:"city_fountain",w:3,h:2,text:"ビルの あいだに みずの にじ！"});b.prop("city_sculpture",14,29,{text:"くるんと つながる まちの ちょうこく。"});
     for(const [kind,id,x,y] of [["clocktower","city_clock",18,28],["signal","city_signal",28,21],["flowercart","city_cart",40,28],["busstop","city_bus",15,10],["vending","city_drink",31,10],["bicycles","city_bikes",42,36]])b.prop(kind,x,y,{id,text:"まちの よりみち。ゆっくり ながめてみよう！"});

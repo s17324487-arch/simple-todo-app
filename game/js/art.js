@@ -368,6 +368,7 @@ Art.FURN_PAD = 12;
 // ================= たべもの・どうぐ のアイコン（viewBox 0 0 64 64） =================
 const IS = (w = 3) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
 const FOOD_ART = {
+  burger:`<rect x="8" y="42" width="48" height="14" rx="6" fill="#E6BA76" ${IS()}/><rect x="6" y="35" width="52" height="10" rx="5" fill="#9B7357" ${IS()}/><path d="M6,28 H57 L51,37 L36,34 L29,41 L20,34 L8,37 Z" fill="#F1CF76" ${IS()}/><path d="M7,26 Q15,18 23,25 Q31,18 39,25 Q48,18 57,26 V30 H7 Z" fill="#A6C584" ${IS()}/><path d="M7,25 C7,0 57,0 57,25 Z" fill="#E8BF81" ${IS()}/><path d="M19,15 L22,13 M31,10 L34,11 M43,14 L45,16" stroke="#FFF0CE" stroke-width="2.5"/>`,
   apple: `<path d="M32,18 C22,10 8,16 10,32 C12,48 24,58 32,54 C40,58 52,48 54,32 C56,16 42,10 32,18 Z" fill="#E8453C" ${IS()}/><path d="M32,18 C32,12 34,8 38,6" fill="none" ${IS()}/><path d="M36,12 C42,6 50,8 50,12 C44,16 38,14 36,12 Z" fill="#6DBE5B" ${IS(2.4)}/><ellipse cx="22" cy="28" rx="4" ry="7" fill="#FFF" fill-opacity="0.6"/>`,
   onigiri: `<path d="M32,8 C40,8 58,40 56,48 C54,56 10,56 8,48 C6,40 24,8 32,8 Z" fill="#FFF" ${IS()}/><rect x="20" y="38" width="24" height="18" rx="3" fill="#2F3B2F" ${IS(2.4)}/><circle cx="26" cy="30" r="2" fill="${INK}"/><circle cx="38" cy="30" r="2" fill="${INK}"/>`,
   bread: `<path d="M8,40 C8,20 20,12 32,12 C44,12 56,20 56,40 C56,50 8,50 8,40 Z" fill="#F7D774" ${IS()}/><path d="M16,24 L40,46 M28,16 L52,38 M40,14 L18,40 M52,24 L30,46" stroke="#D9B04A" stroke-width="2.4"/>`,
