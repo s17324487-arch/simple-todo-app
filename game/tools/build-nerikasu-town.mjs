@@ -13,7 +13,7 @@ for(const a of all){
 const data='// 自動生成: tools/build-nerikasu-town.mjs。原画の形・実寸・bboxを保持。\nconst NERIKASU_TOWN_ART='+JSON.stringify({assets,entries})+';\n';
 const file=new URL('../js/nerikasu-town-art.js',import.meta.url);
 if(process.argv.includes('--check')){
-  if(readFileSync(file,'utf8')!==data)throw Error('Nerikasu artwork is stale: node tools/build-nerikasu-town.mjs');
+  if(readFileSync(file,'utf8').replace(/\r\n/g,'\n')!==data)throw Error('Nerikasu artwork is stale: node tools/build-nerikasu-town.mjs');
   console.log('Nerikasu artwork: '+all.length+' original SVG assets / '+entries.length+' finite variants match');
 }else{
   writeFileSync(file,data);
