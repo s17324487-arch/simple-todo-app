@@ -58,6 +58,9 @@ const PokaDebug = {
   dailyVisit(day) {return DailyPlay.visit(day);},
   dailyState() {return {...Save.d.daily,featured:DailyPlay.featured(),shop:SHOPS[DailyPlay.featured()].name};},
   saveData() {return JSON.parse(JSON.stringify(Save.d));},
+  shopRewards(shop) {return { rows:ShopRewards.rows(shop), levels:[...SHOP_LV_REP], cap:ShopRewards.maxLevel };},
+  shopRewardClaim(shop) {return ShopRewards.claim(shop).map(p=>p.id);},
+  shopRewardOpen(shop) {ShopRewards.open(shop);},
   persistedSave() { try { return JSON.parse(localStorage.getItem(Save.KEY)); } catch { return null; } },
   shopDecor(shop) {return {tier:ShopDecor.level(shop),keys:[...SvgCache.map.keys()].filter(k=>k.startsWith('w:building:')||k.startsWith('shop-decor:'))};},
   // この直後に再読み込みする。pagehide の自動保存にも旧JSONを渡し、通常の load/migrate を検証する。
@@ -441,7 +444,7 @@ const PokaDebug = {
   shop(id = "crepe", lv) {
     if (!SHOPS[id]) throw new Error("unknown shop: " + id);
     if (id === "link") return this.store("link", "city");
-    if (lv) Save.d.shops[id].lv = U.clamp(lv, 1, 5);
+    if (lv) Save.d.shops[id].lv = U.clamp(lv, 1, 30);
     Game.trans = null;
     Game.goto("shop", { shop: id, back: { map: "town", x: 12, y: 21, dir: "down" } }, "none");
   },
@@ -518,7 +521,7 @@ const PokaDebug = {
     const sc = G.scene, t = sc.task;
     const cv = G.canvas.getBoundingClientRect();
     const css = (x, y) => ({ cx: Math.round(cv.left + x * G.cssPerUnit), cy: Math.round(cv.top + y * G.cssPerUnit) });
-    const out = { shop: sc.shopId, lv: sc.lv, phase: sc.phase, n: sc.n, total: sc.total, ranks: [...(sc.ranks || [])], earn: sc.earn, tips: sc.tips, difficulty: sc.difficulty, dailyBoost: sc.dailyBoost, timeLimit: sc.timeLimit, timeLeft: sc.timeLeft, buttons: [], order: null, targets: [] };
+    const out = { shop: sc.shopId, lv: sc.lv, workLv: sc.workLv, phase: sc.phase, n: sc.n, total: sc.total, ranks: [...(sc.ranks || [])], earn: sc.earn, tips: sc.tips, difficulty: sc.difficulty, dailyBoost: sc.dailyBoost, timeLimit: sc.timeLimit, timeLeft: sc.timeLeft, buttons: [], order: null, targets: [] };
     out.score = sc.stamp?.score ?? null;
     if (!t) return out;
     out.buttons = t.btns.filter((b) => !b.disabled).map((b) => ({ label: b.label || "", ...css(b.x + b.w / 2, b.y + b.h / 2) }));

@@ -134,7 +134,7 @@ ok(Object.keys(R.SHOP_OWNERS).sort().join(",") === shopKeys, "SHOPS と SHOP_OWN
 ok(Object.keys(R.HOWTO).sort().join(",") === shopKeys, "SHOPS と HOWTO の お店が一致しない");
 ok(Object.keys(R.Save.fresh().shops).sort().join(",") === shopKeys, "SHOPS と Save.fresh().shops の お店が一致しない");
 for (const [k, s] of Object.entries(R.SHOPS)) ok(R.PERK_TEXT[s.perk], `お店 ${k}: perk "${s.perk}" が不明`);
-ok(R.SHOP_LV_REP.length === 6, "SHOP_LV_REP は Lv0〜5 の 6要素");
+ok(R.SHOP_LV_REP.length === 31 && R.SHOP_LV_REP.slice(0,6).join() === "0,0,120,360,800,1600", "お店Lv30までと旧Lv1〜5の評判を維持");
 for (const [k, s] of Object.entries(R.BUY_SHOPS)) for (const [tab] of s.tabs) ok(s.items(tab).length > 0, `買い物 ${k} のタブ ${tab} が空`);
 
 // ---------- 5. セーブの初期値 ----------
@@ -994,6 +994,29 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   ok(play.pay.join() === "0,27,60,90", "射撃場の コイン（GameEconomy.pay）が 0 / 27 / 60 / 90 で ない " + play.pay.join());
   // 3番: RO の 号令（4つ）と おうえんの かお（hit・combo・hurry × 3人。Chara に ある かお）
   ok(vm.runInContext(`["ready","areYou","standby","done"].every(k=>!!RANGE_DATA.talk.cmd[k])&&Object.entries(RangeScene.CHEER_FACE).every(([k,m])=>Chara.IDS.every(id=>(RANGE_DATA.talk.cheer[id][k]||[]).length&&!!CHARA_DATA[id].faces[Chara.faceOf(id,m[id])]))`, ctx), "射撃場の RO の 号令・おうえんの かおが 不正");
+}
+
+{
+  const rewards=vm.runInContext(`(() => {
+    const prior=Save.d;Save.d=Save.fresh();Save.d.coins=987654;
+    const ids=ShopRewards.prizes.map(p=>p.id);
+    const valid=ShopRewards.prizes.every(p=>{
+      const f=FURN_INDEX[p.id],a=HomeDesign.model(p.id),b=HomeDesign.model(p.id,{flip:true});
+      return f.rare&&f.price===0&&f.kind==="floor"&&a.w>0&&a.h>0&&b.w>0&&!a.full.includes("NaN");
+    });
+    let boundaries=true,once=true;
+    for(const shop of Object.keys(ShopRewards.themes)){
+      for(const lv of [4,5,9,10,14,15,29,30]){
+        Save.d.shops[shop]={lv:1,rep:SHOP_LV_REP[lv]};
+        boundaries=boundaries&&ShopRewards.level(Save.d.shops[shop])===lv&&ShopRewards.rows(shop).filter(p=>p.ready).length===[5,10,15,30].filter(n=>n<=lv).length;
+      }
+      const a=ShopRewards.claim(shop),b=ShopRewards.claim(shop);once=once&&a.length===4&&b.length===0&&a.every(p=>Save.d.furn[p.id]===1);
+    }
+    const preserved=Save.d.coins===987654,ledger=Object.keys(Save.d.shopRewards).length,cap=GameEconomy.pay("crepe",30,3)===GameEconomy.pay("crepe",5,3);
+    Save.d=prior;return {valid,boundaries,once,preserved,ledger,cap,unique:new Set(ids).size,count:ids.length};
+  })()`,ctx);
+  for(const k of ["valid","boundaries","once","preserved","cap"])ok(rewards[k],"お店のレベル報酬: "+k);
+  ok(rewards.count===32&&rewards.unique===32&&rewards.ledger===32,"お店8種×4段階の非売品が一度ずつ");
 }
 
 finish();
