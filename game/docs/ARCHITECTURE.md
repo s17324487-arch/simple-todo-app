@@ -710,6 +710,9 @@ TownFolk.STEPS に find・tap・follow・photo・catch・dig を足した（catc
 ### 釣りざおと 釣りの 画面（FEAT-07）
 Fishing に見本 FishingRef の Game・SCENE・tint・heroSize・draw をそのまま入れ、FishingScene（SCENES.fishing）を足した。Talk.run はプレゼントの後に Fishing.talked（ペンが rod=1 にする）。WorldScene.update の最後で Fishing.refreshButton（spots のマップ・さおあり・先頭の子が '~' を向く）→ Game.goto("fishing", { place, name, back })。画面は canvas の Fishing.draw と DOM の .fish-ui、ボタン1つ（なげる→まつ…→つる！→まく）。つれると Fishing.card（いけすへ／にがす）→ Fishing.record → TownFolk.progress({do:"catch"})。TownFolk.have().fish は Save.d.fish.keep で、わたす・物々交換の魚はいけすから減らす。
 
+### いけす・うる・りっぱな つりざお（FEAT-08）
+Fishing.KEEP_MAX（30）と keepCount()。Fishing.card は いけすへ／にがす／うる（いっぱいなら「いけすが いっぱい」を disabled に）。FishingScene.caught は sell なら Save.addCoins(f.sell)。りっぱな つりざおは Fishing.proShop()（rods[1].get.shop の建物のマップとお店）→ StoreScene.talk が Fishing.proChoice(this) を選択肢に足し、Fishing.buyPro(owner) で rod=2。ずかんには いけすの数（.fish-keep）。
+
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。
 

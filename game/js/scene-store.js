@@ -73,12 +73,15 @@ class StoreScene {
     try {
       if(this.shopId==="link"){await PuzzleArcade.open(this.back);return;}
       const retail=BUY_SHOPS[this.shopId],work=SHOPS[this.shopId];
-      const choices=[...(retail?["かいものを する"]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
+      // ③ みなとの マルシェでは りっぱな つりざおも かえる
+      const pro=typeof Fishing!=="undefined"&&Fishing.proChoice(this);
+      const choices=[...(retail?["かいものを する"]:[]),...(pro?[pro]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
       const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${Save.d.shops[this.shopId].lv}`;
-      const answer=await UI.ask(`${this.owner.name}\n${text}`,choices);
+      const answer=await UI.ask(`${this.owner.name}\n${text}`,choices),picked=choices[answer];
       if(this.closed)return;
-      if(retail&&answer===0){await ShopUI.open(this.shopId);Save.write();}
-      else if(work&&answer===(retail?1:0)){
+      if(retail&&picked==="かいものを する"){await ShopUI.open(this.shopId);Save.write();}
+      else if(pro&&picked===pro){await Fishing.buyPro(this.owner);Save.write();}
+      else if(work&&picked==="おてつだいする"){
         if(Chara.IDS.some(id=>Save.d.chars[id].hunger<8))await UI.say([{who:"wanko",emo:"sad",text:"おなかが ぺこぺこだよ〜。\nごはんを たべてから おてつだい しよう。"}]);
         else Game.goto("shop",{shop:this.shopId,back:this.back,returnStore:true});
       }

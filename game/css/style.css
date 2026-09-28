@@ -475,3 +475,6 @@ html, body {
 .key-item { display: flex; align-items: center; gap: 10px; background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; padding: 8px 10px; margin-bottom: 10px; box-shadow: 0 3px 0 var(--ink); }
 .key-item svg { width: 44px; height: 44px; flex: 0 0 auto; }
 .key-item .nm { font-weight: 800; }
+.fish-keep { font-size: 12px; font-weight: 800; color: #8a7d6a; margin: -4px 0 8px; }
+/* つれた カードの ボタンは ことばの とちゅうで おりかえさない（「いけすが／いっぱい」） */
+.fish-card .acts .btn { word-break: keep-all; line-height: 1.25; }
