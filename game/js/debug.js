@@ -523,7 +523,12 @@ const PokaDebug = {
     return moved.map(m => ({ id: m.ev.id, step: m.step.do, stepDone: m.stepDone, done: m.done }));
   },
   // TOWNSFOLK_DATA の セリフ／ひとこと 1つ（テストで 条件を たしかめる）
-  folkLine(id) { const D = typeof TOWNSFOLK_DATA !== "undefined" ? TOWNSFOLK_DATA : null; return D ? JSON.parse(JSON.stringify(D.lines.find(l => l.id === id) || D.react.find(l => l.id === id) || null)) : null; },
+  conversation() { return JSON.parse(JSON.stringify(Save.d.conversations)); },
+  quizState() { return TownQuiz.state(); },
+  quizStart(level) { return TownQuiz.start(level); },
+  quizAnswer(index) { return TownQuiz.answer(index); },
+  quizCancel() { return TownQuiz.cancel(); },
+  folkLine(id) { const exchange = TownDialogue.describe(id, (TownFolk.last || {}).npc); if (exchange) return JSON.parse(JSON.stringify(exchange)); const D = typeof TOWNSFOLK_DATA !== "undefined" ? TOWNSFOLK_DATA : null; return D ? JSON.parse(JSON.stringify(D.lines.find(l => l.id === id) || D.react.find(l => l.id === id) || null)) : null; },
   battle(foes = [{ kind: "purun", lv: 1 }], area = "meadow", boss = false) {
     for (const f of foes) if (!ENEMIES[f.kind]) throw new Error("unknown enemy: " + f.kind);
     const w = Save.d.world;

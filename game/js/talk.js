@@ -96,6 +96,7 @@ const Talk = {
     const face = Art.npcSvg({ sp: n.sp, col: n.col, col2: n.col2, stripe: n.stripe, outfit: n.outfit, look: n.look, emo: "happy" });
     const folk = typeof TownFolk !== "undefined" ? TownFolk : null;
     const f = Save.d.flags, name = folk ? folk.name(n) : n.name, who = { name, face };
+    if (typeof TownQuiz !== "undefined" && TownQuiz.host(n)) return TownQuiz.talk(n, scene, who);
     const first = !f.talked[n.id] && !!t.first;
     if (folk) folk.last = { npc: n.id, line: null, react: null };
     // 1. はじめての 会話は いまの まま
@@ -117,6 +118,8 @@ const Talk = {
     const moved = (folk ? await folk.talked(n, scene, who) : false) || rod || pick;
     if (!first && !moved) {
       // 3. ふつうの セリフ: 3わりは あそびかたの ヒント（TALKS）、7わりは 町の人の セリフ（TOWNSFOLK_DATA。時間・天気・季節・おまつり・ボスの あと で えらぶ）
+      const exchanged = typeof TownDialogue !== "undefined" && U.chance(0.75) && await TownDialogue.talk(n, who);
+      if (!exchanged) {
       let lines, line = null;
       if (t.boss && Save.d.flags.boss && U.chance(0.4)) lines = t.boss;
       else {
@@ -125,18 +128,10 @@ const Talk = {
       }
       if (folk) folk.last.line = line && line.id;
       await UI.say(lines.map((text) => ({ name, face, text })));
+      }
       // 4. おねがいを もちかける（10〜20%）
       if (folk) await folk.propose(n, who);
     }
-    // ときどき なかまが ひとこと（3人の 性格に あう もの。話した あいてで かわる ものも ある）
-    if (U.chance(folk ? folk.REACT_CHANCE : 0.35)) {
-      const r = folk ? folk.react(n) : null;
-      if (r) { TownFolk.last.react = r.id; await UI.say([{ who: r.who, emo: "happy", text: r.text }]); }
-      else {
-        const id = U.pick(Chara.IDS);
-        const say = { wanko: ["ワン！ よろしくね！", "ふむふむ、なるほど〜"], gachan: ["ぴよっ！ おぼえたよ！", "ぴよぴよ〜♪"], goji: ["ガオー！（よろしく）", "……（こくり）"] }[id];
-        await UI.say([{ who: id, emo: "happy", text: U.pick(say) }]);
-      }
-    }
+    // 仲間の返事は上の会話に含める。別の話題の反応を後付けしない。
   },
 };

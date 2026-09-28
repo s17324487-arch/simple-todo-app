@@ -47,6 +47,8 @@ const Save = {
       rooms: { active: "main", owned: { main: true }, stored: {}, expanded: {} },
       // ② 町の人: なかよし・うけて いる おねがい（3つまで）・おわった 日・物々交換の 回数・その日に もちかけた 人
       folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
+      conversations: { recent: {}, stories: {} },
+      townQuiz: { active: null, history: {}, rotation: {}, last: null, plays: 0, correct: 0, daily: { day: "", attempts: 0 } },
       // ③ 釣り: rod 0 なし／1 つりざお／2 りっぱな つりざお・dex { id: { n, max, first } }・keep { id: いけすの 数 }・caught つった 数
       fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
       // ④ 化石: pick 0 なし／1 ピッケル・bones { "trex.skull": もって いる 数 }・dug { day, at: { site: ["x,y", …] } }（その日に ほった いわ）
