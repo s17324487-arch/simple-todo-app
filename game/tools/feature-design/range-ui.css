@@ -1,30 +1,63 @@
-/* ⑥ 射撃場の 画面（css/style.css の さいごに 足す 見本）。いまの 変数（--ink / --paper / --yellow / --pink …）を つかう */
-.range-scene { position: absolute; inset: 0; z-index: 20; background: #2A2630; touch-action: none; }
+/* ⑥ 射撃場の 画面（css/style.css の さいごに 足す 見本）。いまの 変数（--ink / --paper / --yellow / --blue …）と .btn / .pill を つかう */
+.range-scene { position: absolute; inset: 0; z-index: 20; background: #22252B; touch-action: none; -webkit-user-select: none; user-select: none; }
 .range-scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.range-top { position: absolute; left: 8px; right: 8px; top: calc(8px + var(--safe-t)); display: flex; align-items: center; gap: 6px; pointer-events: none; }
-.range-top .pill { background: var(--paper); font-size: 14px; padding: 4px 10px; gap: 4px; }
+
+/* うえの 表示（1だんめ）: しゅもくの すすみ・のこり時間／タイム・たま・おわり・やめる */
+.range-top { position: absolute; left: 8px; right: 8px; top: calc(8px + var(--safe-t)); display: flex; align-items: center; gap: 5px; pointer-events: none; }
+.range-top .pill, .range-sub .pill { font-size: 12px; padding: 2px 8px; gap: 3px; border-width: 2.5px; box-shadow: 0 2px 0 var(--ink); background: rgba(255, 253, 246, 0.94); }
+.range-top .pill b, .range-sub .pill b { font-size: 15px; font-variant-numeric: tabular-nums; }
 .range-top .grow { flex: 1; }
-.range-top .ammo { display: flex; gap: 2px; align-items: center; }
-.range-top .ammo i { width: 5px; height: 12px; border-radius: 3px; background: #F7C948; border: 1.5px solid var(--ink); }
-.range-top .ammo i.off { background: #D8D2C6; }
-.range-top .reload { color: #E35D5B; font-weight: 900; }
-.range-quit { pointer-events: auto; }
-.range-combo { position: absolute; left: 50%; top: calc(56px + var(--safe-t)); transform: translateX(-50%); background: var(--yellow); border: 3px solid var(--ink); border-radius: 12px; padding: 2px 12px; font-weight: 900; font-size: 15px; box-shadow: 0 3px 0 var(--ink); pointer-events: none; }
-.range-count { position: absolute; left: 0; right: 0; top: 38%; text-align: center; font-size: 34px; font-weight: 900; color: #FFFFFF; -webkit-text-stroke: 2px var(--ink); text-shadow: 0 4px 0 var(--ink); pointer-events: none; }
-/* うつ・スコープ（右した。ゆびで おしやすい 大きさ） */
-.range-ctrl { position: absolute; right: 12px; bottom: calc(14px + var(--safe-b)); display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.range-fire { width: 92px; height: 92px; border-radius: 50%; background: var(--yellow); font-size: 22px; font-weight: 900; display: grid; place-items: center; padding: 0; }
+.range-top .warn b { color: #D9443F; }
+.range-top .btn { pointer-events: auto; }
+.range-finish { min-height: 44px; font-size: 13px; padding: 4px 10px; background: var(--yellow); }
+.range-ammo { display: flex; gap: 2px; align-items: center; }
+.range-ammo i { width: 4px; height: 13px; border-radius: 2px; background: #C9A227; border: 1.5px solid var(--ink); }
+.range-ammo i.off { background: #D8D2C6; }
+
+/* 2だんめ: いまの まと・かぜ（ロングレンジ・ムービング）。ズームは みぎはしに たて ならび（スコープの まるの そと） */
+.range-sub { position: absolute; left: 8px; right: 8px; top: calc(60px + var(--safe-t)); display: flex; align-items: center; gap: 5px; pointer-events: none; }
+.range-sub .grow { flex: 1; }
+.range-wind .arrow { font-size: 15px; line-height: 1; }
+.range-zoom { position: absolute; right: 8px; top: calc(60px + var(--safe-t)); display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: auto; }
+.range-zoom .btn.round { width: 44px; height: 44px; font-size: 20px; }
+.range-zoom .v { min-width: 44px; text-align: center; font-weight: 900; font-size: 14px; color: #FFFDF6; text-shadow: 0 1px 0 var(--ink), 0 0 3px var(--ink); }
+
+/* RO の ことば（メイク レディ → アー ユー レディ？ → スタンバイ… → ブザー） */
+.range-cmd { position: absolute; left: 0; right: 0; top: 30%; text-align: center; pointer-events: none; }
+.range-cmd span { display: inline-block; background: rgba(31, 29, 27, 0.8); color: #FFFDF6; font-size: 22px; font-weight: 900; padding: 8px 18px; border-radius: 14px; letter-spacing: 1px; }
+.range-cmd small { display: table; margin: 8px auto 0; background: rgba(31, 29, 27, 0.72); color: #FFFDF6; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 10px; }
+
+/* スコア モニター（ブルズアイ・10m: その シリーズの 的と あたった ところ・さいごの てん・ごうけい） */
+.range-monitor { position: absolute; right: 8px; top: calc(60px + var(--safe-t)); width: 100px; background: #1F2328; border: 2.5px solid var(--ink); border-radius: 10px; padding: 4px 4px 3px; color: #FFFDF6; text-align: center; pointer-events: none; }
+.range-monitor svg { display: block; width: 90px; height: 90px; margin: 0 auto; border-radius: 6px; }
+.range-monitor .v { font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.range-monitor .s { font-size: 10px; font-weight: 800; opacity: 0.85; }
+
+/* そうさ（右した）: [リロード][のぞく] / [ボルト][うつ] */
+.range-ctrl { position: absolute; right: 10px; bottom: calc(12px + var(--safe-b)); display: grid; grid-template-columns: 56px 92px; gap: 8px; align-items: center; justify-items: center; }
+.range-ctrl .btn { padding: 0; display: grid; place-items: center; font-weight: 900; line-height: 1.1; border-radius: 50%; }
+.range-fire { grid-column: 2; grid-row: 2; width: 92px; height: 92px; background: var(--yellow); font-size: 22px; }
 .range-fire.wait { background: #D8D2C6; }
-.range-scope { width: 64px; height: 64px; border-radius: 50%; background: var(--blue-l); font-size: 12px; font-weight: 900; line-height: 1.1; display: grid; place-items: center; padding: 0; }
-.range-scope.on { background: var(--blue); }
-.range-hint { position: absolute; left: 12px; right: 12px; top: calc(92px + var(--safe-t)); text-align: center; font-size: 13px; font-weight: 800; color: #FFFFFF; -webkit-text-stroke: 3px var(--ink); paint-order: stroke; pointer-events: none; }
-/* おうえんの 2人（ひだりした） */
-.range-cheer { position: absolute; left: 6px; bottom: calc(6px + var(--safe-b)); display: flex; align-items: flex-end; gap: 0; pointer-events: none; }
-.range-buddy { position: relative; width: 66px; height: 74px; }
+.range-ads { grid-column: 2; grid-row: 1; width: 64px; height: 64px; background: var(--blue-l); font-size: 13px; }
+.range-ads.on { background: var(--blue); }
+.range-act { grid-column: 1; grid-row: 2; width: 56px; height: 56px; font-size: 12px; background: var(--paper); }
+.range-act.need { background: var(--yellow); outline: 3px solid var(--orange); outline-offset: 2px; }
+.range-reload { grid-column: 1; grid-row: 1; width: 56px; height: 56px; font-size: 11px; background: var(--paper); }
+/* いき（おうえんの 2人の みぎ・ひだりの ゆびで おしている あいだ とめる。したの ぼうが のこり） */
+.range-breath { position: absolute; left: 128px; bottom: calc(12px + var(--safe-b)); width: 64px; height: 64px; border-radius: 50%; padding: 0; display: grid; place-items: center; align-content: center; gap: 3px; font-size: 13px; font-weight: 900; background: var(--green-l); }
+.range-breath.on { background: var(--green); }
+.range-breath .bar { width: 40px; height: 7px; border: 2px solid var(--ink); border-radius: 5px; background: #FFF; overflow: hidden; }
+.range-breath .bar i { display: block; height: 100%; background: var(--blue); }
+.range-breath.shake .bar i { background: #E35D5B; }
+
+/* おうえんの 2人（ひだりした・うしろで 見て いる） */
+.range-cheer { position: absolute; left: 4px; bottom: calc(4px + var(--safe-b)); display: flex; align-items: flex-end; pointer-events: none; }
+.range-buddy { position: relative; width: 58px; height: 66px; }
 .range-buddy img { width: 100%; height: 100%; }
-.range-bubble { position: absolute; left: 4px; bottom: 78px; white-space: nowrap; background: var(--paper); border: 3px solid var(--ink); border-radius: 12px; padding: 2px 9px; font-weight: 800; font-size: 13px; box-shadow: 0 2px 0 var(--ink); }
-.range-bubble::after { content: ""; position: absolute; left: 18px; bottom: -9px; border: 5px solid transparent; border-top: 7px solid var(--ink); }
-/* だれが うつ？ */
+.range-bubble { position: absolute; left: 2px; bottom: 70px; white-space: nowrap; background: var(--paper); border: 2.5px solid var(--ink); border-radius: 12px; padding: 2px 8px; font-weight: 800; font-size: 12px; box-shadow: 0 2px 0 var(--ink); }
+.range-bubble::after { content: ""; position: absolute; left: 16px; bottom: -8px; border: 5px solid transparent; border-top: 6px solid var(--ink); }
+
+/* ロビー: だれが うつ？ */
 .rg-who { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .rg-who-card { font: inherit; color: var(--ink); background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 3px 0 var(--ink); padding: 6px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 150px; }
 .rg-who-card img { width: 78px; height: 88px; }
@@ -32,34 +65,55 @@
 .rg-who-card .ln { font-size: 11px; font-weight: 700; line-height: 1.3; text-align: center; }
 .rg-who-card.on { background: var(--yellow-l); outline: 3px solid var(--orange); outline-offset: -7px; }
 .rg-note { margin: 10px 2px 0; font-size: 12px; font-weight: 700; color: #8a7d6a; text-align: center; }
-/* じゅうを えらぶ */
+/* ロビー: しゅるい → しゅもく → じゅう */
 .rg-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
 .rg-tabs .tab { flex: 1; min-height: 44px; font-size: 13px; padding: 4px 2px; }
 .rg-tabs .tab.lock { opacity: 0.55; }
-.rg-guns { display: flex; flex-direction: column; gap: 8px; }
-.rg-gun { font: inherit; color: var(--ink); display: grid; grid-template-columns: 132px 1fr; align-items: center; gap: 8px; min-height: 76px; padding: 6px 10px 6px 6px; background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink); text-align: left; }
-.rg-gun .art { height: 60px; display: grid; place-items: center; background: linear-gradient(#EEF3F7, #DDE6EE); border: 2px solid var(--ink); border-radius: 10px; }
-.rg-gun .art svg { max-width: 122px; max-height: 52px; width: auto; height: auto; }
+.rg-h { margin: 8px 2px 4px; font-size: 12px; font-weight: 900; color: #8a7d6a; }
+.rg-courses { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rg-course { font: inherit; color: var(--ink); text-align: left; background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink); padding: 6px 8px; min-height: 64px; display: flex; flex-direction: column; gap: 2px; }
+.rg-course .nm { font-size: 13px; font-weight: 900; line-height: 1.25; }
+.rg-course .sub { font-size: 10.5px; font-weight: 700; color: #8a7d6a; line-height: 1.3; }
+.rg-course .best { color: #E0A21E; font-size: 12px; letter-spacing: 1px; }
+.rg-course.on { background: var(--yellow-l); outline: 3px solid var(--orange); outline-offset: -7px; }
+.rg-rule { margin-top: 6px; background: #FFF9EC; border: 2.5px dashed #d9b64a; border-radius: 12px; padding: 5px 9px; font-size: 11.5px; font-weight: 700; line-height: 1.5; white-space: pre-line; }
+.rg-guns { display: flex; flex-direction: column; gap: 7px; }
+.rg-gun { font: inherit; color: var(--ink); display: grid; grid-template-columns: 124px 1fr; align-items: center; gap: 8px; min-height: 68px; padding: 5px 10px 5px 5px; background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink); text-align: left; }
+.rg-gun .art { height: 56px; display: grid; place-items: center; background: linear-gradient(#EEF3F7, #DDE6EE); border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; }
+.rg-gun .art svg { max-width: 116px; max-height: 50px; width: auto; height: auto; }
 .rg-gun .nm { font-size: 14px; font-weight: 900; line-height: 1.25; }
-.rg-gun .sub { font-size: 11px; font-weight: 700; color: #8a7d6a; line-height: 1.3; }
-.rg-gun .best { color: #E0A21E; font-size: 13px; letter-spacing: 1px; }
+.rg-gun .sub { font-size: 10.5px; font-weight: 700; color: #8a7d6a; line-height: 1.3; }
+.rg-gun .best { color: #E0A21E; font-size: 12px; letter-spacing: 1px; }
 .rg-gun.on { background: var(--yellow-l); outline: 3px solid var(--orange); outline-offset: -7px; }
 .rg-lock { text-align: center; padding: 18px 8px; font-weight: 800; font-size: 14px; background: #EFEAE0; border: 3px dashed #BFB4A2; border-radius: 14px; }
-/* じゅうの くわしい せつめい（えらんだ とき） */
-.rg-detail { margin-top: 10px; background: #FFF9EC; border: 2.5px solid var(--ink); border-radius: 14px; padding: 8px 10px; }
-.rg-detail .desc { font-size: 13px; font-weight: 700; line-height: 1.5; white-space: pre-line; }
-.rg-detail .fact { margin-top: 6px; background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 12px; padding: 5px 9px; font-size: 12px; font-weight: 700; line-height: 1.5; white-space: pre-line; }
+/* じゅうの くわしい せつめい・せいのう・ホップ ダイヤル */
+.rg-detail { margin-top: 8px; background: #FFF9EC; border: 2.5px solid var(--ink); border-radius: 14px; padding: 7px 10px; }
+.rg-detail .desc { font-size: 12.5px; font-weight: 700; line-height: 1.5; white-space: pre-line; }
+.rg-detail .fact { margin-top: 6px; background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 12px; padding: 5px 9px; font-size: 11.5px; font-weight: 700; line-height: 1.5; white-space: pre-line; }
 .rg-detail .fact b { display: block; font-size: 11px; color: #9a6a00; }
-.rg-stats { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; align-items: center; margin-top: 6px; font-size: 11px; font-weight: 800; }
+.rg-stats { display: grid; grid-template-columns: max-content 1fr max-content; gap: 3px 7px; align-items: center; margin-top: 6px; font-size: 11px; font-weight: 800; }
 .rg-stats .bar { height: 9px; border: 2px solid var(--ink); border-radius: 6px; background: #FFF; overflow: hidden; }
-.rg-stats .bar i { display: block; height: 100%; background: #7EC8F0; }
-/* けっか */
+.rg-stats .bar i { display: block; height: 100%; background: var(--blue); }
+.rg-stats .n { font-variant-numeric: tabular-nums; color: #6a5d4a; }
+.rg-hop { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; font-weight: 900; }
+.rg-hop .btn.round { width: 44px; height: 44px; font-size: 20px; }
+.rg-hop .dial { flex: 1; height: 12px; border: 2px solid var(--ink); border-radius: 8px; background: linear-gradient(90deg, #DFF3FF, #7EC8F0); position: relative; }
+.rg-hop .dial i { position: absolute; top: -6px; width: 6px; height: 20px; margin-left: -3px; background: var(--ink); border-radius: 3px; }
+.rg-hop .v { min-width: 30px; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* けっか: ★・きろく・シート（スチールの 5ストリング・IPSC の てん）・コイン・ひとこと */
 .rg-result { text-align: center; }
-.rg-result .stars { font-size: 38px; letter-spacing: 4px; color: #E0A21E; -webkit-text-stroke: 1.5px var(--ink); }
+.rg-result .stars { font-size: 36px; letter-spacing: 4px; color: #E0A21E; -webkit-text-stroke: 1.5px var(--ink); line-height: 1.1; }
 .rg-result .stars .off { color: #D8D2C6; }
-.rg-result .score { font-size: 30px; font-weight: 900; }
-.rg-result .sub { font-size: 13px; font-weight: 800; color: #8a7d6a; }
-.rg-result .coins { display: inline-flex; align-items: center; gap: 4px; margin: 6px 0; font-size: 17px; font-weight: 900; color: #9a6a00; }
-.rg-result .says { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-.rg-result .say { display: flex; align-items: center; gap: 6px; text-align: left; font-size: 13px; font-weight: 800; background: var(--paper); border: 2.5px solid var(--ink); border-radius: 12px; padding: 3px 8px 3px 3px; }
-.rg-result .say img { width: 40px; height: 44px; }
+.rg-result .score { font-size: 28px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.rg-result .sub { font-size: 12px; font-weight: 800; color: #8a7d6a; }
+.rg-result .coins { display: inline-flex; align-items: center; gap: 4px; margin: 4px 0; font-size: 16px; font-weight: 900; color: #9a6a00; }
+.rg-sheet { width: 100%; margin: 6px 0; border-collapse: collapse; font-size: 12px; font-weight: 800; background: var(--paper); border: 2.5px solid var(--ink); border-radius: 10px; overflow: hidden; }
+.rg-sheet th, .rg-sheet td { padding: 3px 5px; border-bottom: 1.5px dashed #e6d7b8; font-variant-numeric: tabular-nums; }
+.rg-sheet th { background: var(--yellow-l); font-size: 11px; white-space: nowrap; }
+.rg-sheet tr:last-child td { border-bottom: none; }
+.rg-sheet .drop { text-decoration: line-through; color: #A89C88; }
+.rg-sheet .tot td { background: var(--blue-l); font-size: 13px; }
+.rg-result .says { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+.rg-result .say { display: flex; align-items: center; gap: 6px; text-align: left; font-size: 12.5px; font-weight: 800; background: var(--paper); border: 2.5px solid var(--ink); border-radius: 12px; padding: 2px 8px 2px 2px; }
+.rg-result .say img { width: 38px; height: 42px; }
