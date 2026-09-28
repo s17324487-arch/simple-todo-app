@@ -262,11 +262,12 @@ const TownFolk = {
     const m = UI.modal({ title: `${TownFolkArt.item("note").replace("<svg ", '<svg style="width:26px;height:26px;vertical-align:-6px;margin-right:4px" ')}おねがい ノート`, body: list, footer: U.el("div", { class: "muted", text: `おねがいは ${this.MAX_ACTIVE}つまで。まちの ひとに はなしかけると ふえるよ。` }) });
     return m;
   },
-  // 町・外の 世界の 右上の ボタン（おねがいが ある ときだけ）
+  // 町・外の 世界の 右上の ボタン（おねがいが ある ときだけ）。
+  // mount は WorldScene.enter の 中（G.scene が かわる まえ）で よばれるので、G.scene では なく mount〜unmount の あいだかで きめる
   mount(sc) { this.scene = sc; this.button = null; this.refresh(); },
   unmount() { if (this.button) this.button.remove(); this.button = null; this.scene = null; },
   refresh() {
-    const sc = this.scene; if (!sc || G.scene !== sc || !Save.d.folk) return;
+    const sc = this.scene; if (!sc || !Save.d.folk) return;
     const n = this.st().req.length;
     if (!n) { if (this.button) this.button.remove(); this.button = null; return; }
     if (!this.button) { this.button = UI.btn("", () => { if (!Game.inputLocked) this.openNote(); }, "folk-note-btn"); this.button.setAttribute("aria-label", "おねがい ノート"); UI.root.append(this.button); }
