@@ -161,6 +161,11 @@ function helpers(page, name) {
       throw new Error(`おうちのボタン「${label}」がない`);
     },
     // お店を「正しい操作」で最後まで遊ぶ。ランクの配列を返す
+    // もって いた ものが そのまま か（ディスクと いっしょに ふえる 音楽プレイヤー player_* は のぞく。ART-05）
+    kept(before, after, k) {
+      const f = (o) => (k === "furn" ? Object.fromEntries(Object.entries(o || {}).filter(([id]) => !id.startsWith("player_"))) : o);
+      return JSON.stringify(f(before[k])) === JSON.stringify(f(after[k]));
+    },
     async playShop(shop, lv, fromStore = false) {
       H.shopGrades = [];
       if (!fromStore) await H.dbg("shop", shop, lv);
@@ -248,6 +253,7 @@ function helpers(page, name) {
       await H.until(() => !!document.querySelector(".modal-wrap .panel-foot .btn"), 15000);
       const st = await H.dbg("mg");
       await H.shot(`${shop}_result`);
+      H.shopResult = await H.eval(() => document.querySelector(".modal-wrap")?.textContent || "");
       await page.click(".modal-wrap .panel-foot .btn");
       await H.until(scene => PokaDebug.state().scene === scene && PokaDebug.idle(), 10000, fromStore ? "store" : "world");
       return st.ranks;
@@ -402,7 +408,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle());
   const ranks=await H.playShop('cake',3);expect(ranks.length===6&&ranks.every(r=>r===3),'ケーキの正解で◎にならない: '+JSON.stringify(H.shopGrades));
   const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.cake.plays===1,'報酬・お店の記録が残らない');
-  for(const k of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(before[k])===JSON.stringify(after[k]),'ケーキ屋で既存の所持品が変わる');
+  for(const k of ['bag','wardrobe','furn','rooms'])expect(H.kept(before,after,k),'ケーキ屋で既存の所持品が変わる');
 },{viewport,full:viewport.width===375,timeout:150000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('groom-shop-'+viewport.width,async H=>{
@@ -411,7 +417,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg('teleport','city',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
   expect((await H.dbg('storeState')).party.length===3,'3人で入れない');await H.shot('interior');await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle());
   const ranks=await H.playShop('groom',3);expect(ranks.length===6&&ranks.every(r=>r===3),'正しいカットで◎にならない: '+JSON.stringify(H.shopGrades));
-  const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.groom.plays===1,'美容室の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(before[k])===JSON.stringify(after[k]),'美容室で所持品が変わる');
+  const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.groom.plays===1,'美容室の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(H.kept(before,after,k),'美容室で所持品が変わる');
 },{viewport,full:viewport.width===375,timeout:180000});
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('burger-shop-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);const before=await H.dbg('saveData');
@@ -419,7 +425,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg('teleport','city',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
   expect((await H.dbg('storeState')).party.length===3,'3人で入れない');await H.shot('interior');await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle());
   const ranks=await H.playShop('burger',3);expect(ranks.length===6&&ranks.every(r=>r===3),'正しい順番で◎にならない: '+JSON.stringify(H.shopGrades));
-  const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.burger.plays===1,'バーガー屋の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(before[k])===JSON.stringify(after[k]),'バーガー屋で所持品が変わる');
+  const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.burger.plays===1,'バーガー屋の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(H.kept(before,after,k),'バーガー屋で所持品が変わる');
 },{viewport,full:viewport.width===375,timeout:180000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('daily-stamps-'+viewport.width,async H=>{
@@ -1961,6 +1967,55 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   for(const id of ["musicbox","kitchen","rockinghorse"])await touch(id,(a,b)=>b.t<1,`${id} を タップしても うごかない`);
   await touch("kotatsu",(a,b)=>b.on===true,"こたつが つかない");await touch("tent",(a,b)=>a.on===true&&b.on===false,"テントの あかりが きえない");
   await H.shot("room-c");
+  await H.dbg("hour",null);
+},{viewport,full:viewport.width===375,timeout:90000});
+
+// ART-05: レアの 音楽プレイヤーと ディスク。おてつだい・たからばこで 手に入り、へやで きける
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('music-disc-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg("hour",20);await H.page.mouse.click(5,5);
+  let d=await H.dbg("discs");expect(d.owned.length===0&&Object.values(d.players).every(n=>n===0)&&d.total>=20,"さいしょから ディスクや プレーヤーが ある "+JSON.stringify(d));
+  // ほんとうの おてつだい: ぜんぶ ◎ の あと「きょうの けっか」に ディスクと ラジカセ
+  await H.dbg("discLuck",true);const ranks=await H.playShop("crepe",1);expect(ranks.every(r=>r===3),"クレープが ◎ に ならない "+ranks);
+  expect(/ディスク「あまい カフェ」/.test(H.shopResult)&&/ラジカセ/.test(H.shopResult),"おてつだいの けっかに ディスクが 出ない "+H.shopResult);
+  await H.dbg("house");await H.until(()=>G.sceneName==="house"&&!Game.trans,15000);await H.wait(300);
+  d=await H.dbg("discs");expect(d.owned.includes("disc_shop_crepe")&&d.owned.includes("disc_twinkle")&&d.players.player_boombox===1,"ディスク・ラジカセが セーブに ない "+JSON.stringify(d));
+  const chest=await H.dbg("discDrop","chest","forest");expect(chest.some(t=>/もりの こもれび/.test(t)),"たからばこで その ばしょの ディスクが 出ない "+JSON.stringify(chest));
+  await H.dbg("homeLayout",[{id:"player_boombox",x:110,y:560},{id:"rug_round",x:300,y:560}]);await H.dbg("homeBubbleFixture");await H.wait(500);
+  let a=await H.dbg("furnLive","player_boombox");expect(a&&a.tap,"ラジカセを タップできない");
+  await H.tap(a.tap.x,a.tap.y);await H.wait(350);
+  const btn=H.page.getByRole("button",{name:"あまい カフェ",exact:true});expect(await btn.count()===1,"ディスクを えらぶ まどが 出ない");
+  for(const b of await H.page.locator(".disc-picker button").all()){const q=await b.boundingBox();expect(q.height>=44&&q.x>=0&&q.x+q.width<=viewport.width,"ディスクの ボタンが 小さい／はみ出す");}
+  await H.shot("disc-list");await btn.click();await H.wait(500);
+  d=await H.dbg("discs");expect(d.playing==="disc_shop_crepe"&&d.song==="shop_crepe","ディスクの きょくが ながれない "+JSON.stringify(d));
+  await H.wait(1200);await H.shot("playing");
+  a=await H.dbg("furnLive","player_boombox");await H.tap(a.tap.x,a.tap.y);await H.wait(350);
+  await H.page.getByRole("button",{name:"とめる",exact:true}).click();await H.wait(300);
+  d=await H.dbg("discs");expect(!d.playing&&d.song==="house","とめても おうちの きょくに もどらない "+JSON.stringify(d));
+  // 8まいで ジュークボックス、ちくおんきは たからばこ（3まい いじょう）
+  for(const shop of ["bakery","florist","dentist","cake","groom"])await H.dbg("discDrop","shop",shop);
+  d=await H.dbg("discs");expect(d.owned.length>=8&&d.players.player_jukebox===1&&d.owned.includes("disc_turkish"),"8まいで ジュークボックスが もらえない "+JSON.stringify(d));
+  await H.dbg("discDrop","chest","cave");d=await H.dbg("discs");expect(d.players.player_gramophone===1&&d.owned.includes("disc_nacht"),"たからばこで ちくおんき（アイネ クライネ つき）が 出ない "+JSON.stringify(d));
+  await H.dbg("homeLayout",[{id:"player_gramophone",x:210,y:560},{id:"player_jukebox",x:400,y:560},{id:"player_boombox",x:80,y:560}]);await H.dbg("homeBubbleFixture");await H.wait(500);
+  a=await H.dbg("furnLive","player_jukebox");await H.tap(a.tap.x,a.tap.y);await H.wait(350);
+  await H.page.getByRole("button",{name:"トルコ こうしんきょく",exact:true}).click();await H.wait(900);
+  d=await H.dbg("discs");expect(d.song==="disc_turkish","ジュークボックスで ディスクだけの 名曲が ながれない "+JSON.stringify(d));
+  await H.shot("jukebox");
+  // ほんとうの たからばこ（はらっぱの m1）: 中みの あとに ディスクの ページが べつに 出る
+  await H.dbg("teleport","meadow",5,7,"up");await H.idle();await H.wait(400);await H.page.keyboard.press("z");
+  const pages=[];
+  for(let i=0;i<6;i++){
+    const ok=await H.until(()=>{const s=document.querySelector(".dlg-shade:not(.ask)");return !s||!s.querySelector(".dlg-next").classList.contains("hidden");},6000).then(()=>true,()=>false);if(!ok)break;
+    const p=await H.eval(()=>{const s=document.querySelector(".dlg-shade:not(.ask)");if(!s)return null;const r=s.querySelector(".dialog").getBoundingClientRect();return {text:s.querySelector(".dlg-text").textContent,top:r.top,bottom:r.bottom};});
+    if(!p){if(pages.length)break;await H.wait(300);continue;}
+    pages.push(p);if(/ディスク「/.test(p.text)&&pages.length===2)await H.shot("chest-disc");
+    await H.eval(()=>document.querySelector(".dlg-shade:not(.ask)")?.dispatchEvent(new PointerEvent("pointerup",{bubbles:true})));await H.wait(200);
+  }
+  expect(pages.length>=2&&/たからばこを あけた/.test(pages[0].text)&&pages.slice(1).some(p=>/ディスク「はらっぱを こえて」/.test(p.text)),"たからばこで ディスクの ページが 出ない "+JSON.stringify(pages));
+  expect(pages.every(p=>p.top>=0&&p.bottom<=viewport.height),"たからばこの まどが はみ出す");
+  await H.dbg("discLuck",false);
+  d=await H.dbg("discs");expect(d.owned.includes("disc_meadow"),"たからばこの ディスクが セーブに ない "+JSON.stringify(d));
+  await H.dbg("save");await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  const after=await H.dbg("discs");expect(after.owned.length===d.owned.length&&after.players.player_jukebox===1,"ディスクが セーブされない");
   await H.dbg("hour",null);
 },{viewport,full:viewport.width===375,timeout:90000});
 
