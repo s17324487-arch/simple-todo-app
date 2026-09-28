@@ -49,6 +49,8 @@ const Save = {
       folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
       // ③ 釣り: rod 0 なし／1 つりざお／2 りっぱな つりざお・dex { id: { n, max, first } }・keep { id: いけすの 数 }・caught つった 数
       fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
+      // ④ 化石: pick 0 なし／1 ピッケル・bones { "trex.skull": もって いる 数 }・dug { day, at: { site: ["x,y", …] } }（その日に ほった いわ）
+      fossil: { pick: 0, bones: {}, dug: { day: "", at: {} } },
       shops: {
         burger:{lv:1,rep:0,best:0,plays:0},
         groom: {lv:1,rep:0,best:0,plays:0},

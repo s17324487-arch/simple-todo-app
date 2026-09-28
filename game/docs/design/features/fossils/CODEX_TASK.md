@@ -84,11 +84,20 @@ fossil: { pick: 0, bones: {}, dug: { day: "", at: {} } },
 
 ## 8. PR の 分けかた
 
-1. **骨の データ・絵・かせき ノート**: `js/fossil-data.js`・`js/fossil-art.js`（index.html と sw.js の 両方）、ノート、`fossilGive` で 見られる。
+1. ✅ **骨の データ・絵・かせき ノート**（済み: Claude Code。下の「実装メモ」）: `js/fossil-data.js`・`js/fossil-art.js`（index.html と sw.js の 両方）、ノート、`fossilGive` で 見られる。
 2. **ピッケルと ほる**: `Save.fossil`・ケロスケから もらう・いわ・「ほる」ボタン・ほる 画面・カード・PokaDebug・スモーク。
 3. **つなぎ**: ② の おねがい・物々交換。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
+
+## 実装メモ（Claude Code が 作った ときの きまり。つぎの 番号も これに あわせる）
+
+- 1番: `js/fossil-data.js`（そのまま コピー）・`js/fossil-art.js`（見本 `FossilArtRef` を 名前だけ `FossilArt` に して そのまま）・`js/fossils.js`（`Fossils`）を index.html・sw.js の `fishing.js` の あと、`debug.js` の まえに 置いた。骨の 絵には SVG の id が ないので、DOM に なんまい 入れても かさならない。
+- `Fossils` に 見本 `FossilRef.progress`（おなじ 計算）と、`have(dino)`（もって いる 部品 id の 配列。`FossilArt.svg` の `have` に わたす）・`bone(key)`・`give(key, n)`・`count()`・`total()` を 入れた。**2番で `rng`・`rocks`・`pick`・`Dig`・`drawDig`・`rockSvg`・`pickSvg` を 足す。**
+- `Save.fresh().fossil`（`{ pick: 0, bones: {}, dug: { day: "", at: {} } }`）は ノートで つかうので 1番で 足した（2番では 足さない）。
+- ノート: メニューの「ずかん」の まもの／さかな／かせき（`.dex-kinds`。ある タブの 数で ならべる）。`Fossils.note(el)`（見本 ⑤）、骨が 1つ いじょう ある 恐竜を おすと `Fossils.detail(id)`（くわしい ページ: 骨格・何年 まえ・じだい・みつかった ところ・おおきさ・たべもの・ほね n/全部・説明・まめちしき。デザインに ないので ③ の さかなの ページに あわせて 作った）。上の 文は はくぶつかん（⑤ の `MAP_DEFS.museum`）が できるまで「くみたてられるよ」を 言わない。
+- **② との きまり**: `TownFolk.features().fossil` は `FOSSIL_DATA` が あって **ピッケルを もって いる（`Save.d.fossil.pick > 0`）とき**だけ true（釣りと おなじ。1番では まだ ピッケルが もらえないので、ほねの おねがいや 化石の セリフは 出ない）。2番で ケロスケから ピッケルを もらうと 出る ように なるので、**2番で ほる たびの `TownFolk.signal({ do: "dig" })` と、`TownFolk.have().bone` を `Save.d.fossil.bones` に する ところ（物々交換の「だぶった 骨」）まで 入れる**。
+- テストの 入口: `PokaDebug.fossilGive(key, n)`（もって いる 数を かえす）。`pick(n)`・`fossilDig()`・`digTap()`・`digState()`・`fossilState()`・`fossilRocks()` は 2番。
 
 ## 9. やらないこと
 
