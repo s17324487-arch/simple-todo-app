@@ -1,0 +1,538 @@
+[
+  {
+    "id": "nerikasu.station",
+    "name": "ネリカス駅・木組みの駅舎",
+    "category": "駅舎・交通",
+    "w": 14,
+    "h": 5,
+    "bbox": [
+      -8,
+      -47,
+      470,
+      179
+    ],
+    "details": [
+      "時計切妻と金属屋根のはぜ",
+      "木の柱・方杖・銅の雨どい",
+      "葉の駅章・和英駅名",
+      "ガラス越しの改札",
+      "左：駅員窓口／右：券売機",
+      "入口の点字ブロック"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_home",
+    "buildingId": "home",
+    "name": "みんなのおうち",
+    "category": "住宅・お店・学校",
+    "w": 6,
+    "h": 4,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      207,
+      140
+    ],
+    "details": [
+      "切妻",
+      "花箱",
+      "玄関灯",
+      "郵便受け"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_clothes",
+    "buildingId": "clothes",
+    "name": "いととはな・洋服店",
+    "category": "住宅・お店・学校",
+    "w": 5,
+    "h": 4,
+    "door": 2,
+    "bbox": [
+      -10,
+      -49,
+      175,
+      140
+    ],
+    "details": [
+      "三角の切妻",
+      "ハンガーの丸看板",
+      "仕立て屋の服",
+      "しまの日よけ"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_furniture",
+    "buildingId": "furniture",
+    "name": "こもれび家具工房",
+    "category": "住宅・お店・学校",
+    "w": 6,
+    "h": 4,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      207,
+      140
+    ],
+    "details": [
+      "木組み",
+      "作業台",
+      "家具展示",
+      "腰壁"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_crepe",
+    "buildingId": "crepe",
+    "name": "くるりクレープ",
+    "category": "住宅・お店・学校",
+    "w": 6,
+    "h": 4,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      207,
+      140
+    ],
+    "details": [
+      "丸いヴォールト屋根",
+      "クレープの立体看板と実物展示",
+      "軒先ランプ"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_dentist",
+    "buildingId": "dentist",
+    "name": "ネリカス歯科",
+    "category": "住宅・お店・学校",
+    "w": 9,
+    "h": 4,
+    "door": 4,
+    "bbox": [
+      -10,
+      -49,
+      303,
+      140
+    ],
+    "details": [
+      "低い陸屋根",
+      "受付窓",
+      "すりガラス"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_florist",
+    "buildingId": "florist",
+    "name": "はなのこみち",
+    "category": "住宅・お店・学校",
+    "w": 9,
+    "h": 4,
+    "door": 4,
+    "bbox": [
+      -10,
+      -49,
+      303,
+      140
+    ],
+    "details": [
+      "ガラス温室",
+      "屋根の桟",
+      "切花のバケツ"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_cake",
+    "buildingId": "cake",
+    "name": "こはるケーキ",
+    "category": "住宅・お店・学校",
+    "w": 6,
+    "h": 4,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      207,
+      140
+    ],
+    "details": [
+      "マンサード屋根と丸い高窓",
+      "苺ケーキのケース",
+      "花箱",
+      "日よけ"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_bakery",
+    "buildingId": "bakery",
+    "name": "こむぎのいえ",
+    "category": "住宅・お店・学校",
+    "w": 6,
+    "h": 4,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      207,
+      140
+    ],
+    "details": [
+      "レンガ煙突",
+      "焼き目のパン",
+      "二段棚"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_market",
+    "buildingId": "market",
+    "name": "ネリカスマーケット",
+    "category": "住宅・お店・学校",
+    "w": 10,
+    "h": 4,
+    "door": 5,
+    "bbox": [
+      -10,
+      -49,
+      335,
+      140
+    ],
+    "details": [
+      "棟の採光窓",
+      "青果箱",
+      "すじのある木箱",
+      "しまの日よけ"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_town_atelier",
+    "buildingId": "town_atelier",
+    "name": "川のアトリエ",
+    "category": "住宅・お店・学校",
+    "w": 9,
+    "h": 4,
+    "door": 4,
+    "bbox": [
+      -10,
+      -49,
+      303,
+      140
+    ],
+    "details": [
+      "高窓",
+      "風景画",
+      "木の額",
+      "花箱"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_school",
+    "buildingId": "nerikasu_school",
+    "name": "ネリカス小学校",
+    "category": "住宅・お店・学校",
+    "w": 24,
+    "h": 6,
+    "door": 12,
+    "bbox": [
+      -10,
+      -49,
+      783,
+      204
+    ],
+    "details": [
+      "時計塔",
+      "教室の窓",
+      "掲示板",
+      "校旗",
+      "玄関の庇"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_nursery",
+    "buildingId": "nerikasu_nursery",
+    "name": "ネリカス保育園",
+    "category": "住宅・お店・学校",
+    "w": 19,
+    "h": 6,
+    "door": 9,
+    "bbox": [
+      -10,
+      -49,
+      623,
+      204
+    ],
+    "details": [
+      "三つの屋根",
+      "靴箱",
+      "デッキ",
+      "小さな遊具"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_gatehouse",
+    "buildingId": "nerikasu_gatehouse",
+    "name": "川辺のあずまや",
+    "category": "住宅・お店・学校",
+    "w": 2,
+    "h": 4,
+    "door": 1,
+    "bbox": [
+      -10,
+      -49,
+      79,
+      140
+    ],
+    "details": [
+      "柱と方杖",
+      "木のベンチ",
+      "板のデッキ"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_home0",
+    "buildingId": "nerikasu_home0",
+    "name": "駅東の中庭の家",
+    "category": "住宅・お店・学校",
+    "w": 6,
+    "h": 5,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      207,
+      172
+    ],
+    "details": [
+      "金属屋根",
+      "縁側",
+      "雨どい",
+      "花箱"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_home1",
+    "buildingId": "nerikasu_home1",
+    "name": "双子切妻の長屋",
+    "category": "住宅・お店・学校",
+    "w": 9,
+    "h": 5,
+    "door": 4,
+    "bbox": [
+      -10,
+      -49,
+      303,
+      172
+    ],
+    "details": [
+      "二つのドーマー",
+      "窓のよろい戸"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_home2",
+    "buildingId": "nerikasu_home2",
+    "name": "太陽光のある家",
+    "category": "住宅・お店・学校",
+    "w": 9,
+    "h": 5,
+    "door": 4,
+    "bbox": [
+      -10,
+      -49,
+      303,
+      172
+    ],
+    "details": [
+      "段状の屋上",
+      "パネル",
+      "室外機"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_home3",
+    "buildingId": "nerikasu_home3",
+    "name": "瓦屋根の家",
+    "category": "住宅・お店・学校",
+    "w": 7,
+    "h": 5,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      239,
+      172
+    ],
+    "details": [
+      "瓦の重なり",
+      "木枠の窓",
+      "植木"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_home4",
+    "buildingId": "nerikasu_home4",
+    "name": "テラスの家",
+    "category": "住宅・お店・学校",
+    "w": 7,
+    "h": 5,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      239,
+      172
+    ],
+    "details": [
+      "時計切妻と異なる高窓",
+      "縁側の格子"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_home5",
+    "buildingId": "nerikasu_home5",
+    "name": "小さな中庭の家",
+    "category": "住宅・お店・学校",
+    "w": 6,
+    "h": 5,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      207,
+      172
+    ],
+    "details": [
+      "木の床",
+      "郵便受け",
+      "エントランス灯"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_home6",
+    "buildingId": "nerikasu_home6",
+    "name": "通学路の長屋",
+    "category": "住宅・お店・学校",
+    "w": 7,
+    "h": 5,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      239,
+      172
+    ],
+    "details": [
+      "二つの切妻",
+      "花のプランター"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_nerikasu_home7",
+    "buildingId": "nerikasu_home7",
+    "name": "画家の家",
+    "category": "住宅・お店・学校",
+    "w": 8,
+    "h": 5,
+    "door": 4,
+    "bbox": [
+      -10,
+      -49,
+      271,
+      172
+    ],
+    "details": [
+      "大きな仕事窓",
+      "片側の屋上",
+      "窓辺の花"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  }
+]
