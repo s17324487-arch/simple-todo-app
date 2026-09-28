@@ -49,13 +49,13 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   let timer;
   try {
     await Promise.race([fn(H), new Promise((_, ng) => (timer = setTimeout(() => ng(new Error(`時間切れ（${timeout / 1000}秒）`)), timeout)))]);
-    expect(!problems.length, "ブラウザでエラー: " + problems.join(" | "));
+    expect(!problems.length, "ブラウザでエラー: " + [...new Set(problems)].join(" | "));
     results.push({ name, ok: true, ms: Date.now() - t0 });
     console.log(`  ✓ ${name}（${((Date.now() - t0) / 1000).toFixed(1)}秒）`);
   } catch (e) {
     results.push({ name, ok: false, error: e.message });
     console.log(`  ✗ ${name}\n      ${e.message}`);
-    console.log(e.stack);if(problems.length)console.log(problems);
+    console.log(e.stack);if(problems.length)console.log([...new Set(problems)]);
     console.log(await H.dbg("state").catch(()=>null));
     try { await page.screenshot({ path: join(SHOT_DIR, `FAIL_${name}.png`) }); } catch {}
   } finally {
@@ -686,6 +686,19 @@ await scenario("交通（電車・船・飛行機・中止・セーブ）", asyn
   await H.page.getByRole("button",{name:"おうちへ",exact:true}).click();
   await H.until(()=>PokaDebug.state().scene==="house"&&PokaDebug.idle());
 }, {timeout:120000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('heiwadai-life-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',12);await H.dbg('calendar','2026-06-01');await H.dbg('weather','clear');await H.dbg('teleport','heiwadai',27,19);await H.idle();
+  const before=await H.dbg('saveData'),life=await H.dbg('heiwadaiLife',0);expect(life.npcs.length===13,'8人と5人の通行人がいない');
+  const haru=life.npcs.find(n=>n.id==='heiwadai_local');expect(haru.sp==='cat','ハルの見た目が見本と違う');await H.tap(haru.cx,haru.cy);await H.page.locator('.dlg-text').waitFor();await H.until(()=>document.querySelector('.dlg-text')?.textContent.includes('えきまえ'));await H.dialogs();await H.idle();
+  await H.dbg('teleport','heiwadai',42,35);await H.idle();await H.dbg('heiwadaiLife',0);await H.shot('signal-green');const red=await H.dbg('heiwadaiLife',10);expect(red.signal==='red','信号が変わらない');await H.shot('signal-red');
+  const moving=await H.dbg('heiwadaiLife',25);expect(moving.trainX>30&&!moving.trainStopped,'電車が出発しない');
+  await H.dbg('teleport','heiwadai',9,50);await H.idle();const f=(await H.dbg('world')).objects.find(o=>o.id==='heiwadai_fountain');await H.tap(f.cx,f.cy);await H.until(()=>PokaDebug.world()?.active==='heiwadai_fountain');await H.shot('fountain');
+  await H.dbg('teleport','heiwadai',20,33);await H.idle();await H.dbg('hour',21);expect((await H.dbg('heiwadaiLife')).night,'夜にならない');await H.shot('night');
+  await H.dbg('heiwadaiLife',null);const fps=await H.dbg('fps',2000);expect(fps>=20,'景観描画が20FPS未満: '+fps);const cache0=(await H.dbg('heiwadaiLife')).cache;
+  for(let t=0;t<200;t+=17){await H.dbg('heiwadaiLife',t);await H.wait(40);}expect((await H.dbg('heiwadaiLife')).cache<=cache0+10,'時刻でSVGキャッシュが増える');
+  expect((await H.dbg('saveData')).coins===before.coins,'景観や会話でおかねが変わる');await H.dbg('heiwadaiLife',null);
+},{viewport,timeout:120000,full:viewport.width===375});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('heiwadai-layout-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',12);await H.dbg('calendar','2026-05-01');await H.dbg('weather','clear');
