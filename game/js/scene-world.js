@@ -66,6 +66,8 @@ class WorldScene {
       const px = x - bx * i, py = y - by * i;
       if (!this.map.isSolid(px, py)) { this.party[i].tx = this.party[i].fx = px; this.party[i].ty = this.party[i].fy = py; }
     }
+    // ④ きょうの「ひびの ある いわ」（どうくつ・もり・ビーチ。とおれない。3人が 立って いる マスには 出さない）
+    this.rocks = typeof Fossils !== "undefined" ? Fossils.rocksOn(this.mapId).filter(([rx, ry]) => !this.party.some((w) => w.tx === rx && w.ty === ry)) : [];
     this.npcs = (this.map.def.npcs || []).map((n) => ({ ...n, w: new Walker(n.x, n.y, n.dir), timer: U.rand(1, 3) }));
     this.enemies = [];
     this.spawnEnemies();
@@ -93,7 +95,7 @@ class WorldScene {
     const hint = { town: "「！」マークの ひとに はなしかけてみよう", meadow: "まものに ふれると バトル！ HPが へったら おうちで ねよう", forest: "もりの おくに いやしの いずみが あるよ", cave: "どうくつの おくに キングプルンが いる……" }[this.mapId];
     if (hint && !f["visit_" + this.mapId]) { f["visit_" + this.mapId] = true; setTimeout(() => { if(G.scene===this&&!UI.busy)UI.toast(hint, "good"); }, 700); }
   }
-  exit() { this.festivalButton?.remove(); this.weatherButton?.remove(); if (typeof TownFolk !== "undefined") TownFolk.unmount(); if (typeof Fishing !== "undefined") Fishing.hideButton(); UI.showHud(false); }
+  exit() { this.festivalButton?.remove(); this.weatherButton?.remove(); if (typeof TownFolk !== "undefined") TownFolk.unmount(); if (typeof Fishing !== "undefined") Fishing.hideButton(); if (typeof Fossils !== "undefined") Fossils.hideButton(); UI.showHud(false); }
   saveWorld() {
     const L = this.party[0];
     Save.d.world = { map: this.mapId, x: L.tx, y: L.ty, dir: L.dir };
@@ -139,6 +141,7 @@ class WorldScene {
     for (const s of this.map.sprites) jobs.push(this.spriteCanvas(s, true));
     for (const n of this.npcs) jobs.push(this.npcCanvas(n, n.w.dir, "idle_01", true));
     for (const e of this.enemies) jobs.push(this.enemyCanvas(e, true));
+    if (this.rocks.length) jobs.push(SvgCache.ensure("fossil:rock", () => Fossils.rockSvg(), Math.ceil(TS * G.px), Math.ceil(TS * G.px)));
     jobs.push(this.objCanvas("chest", { open: false }, true), this.objCanvas("chest", { open: true }, true));
     await Promise.all(jobs);
   }
@@ -233,6 +236,9 @@ class WorldScene {
     // ② おねがいの きらきら・小物 → となりまで 行って しらべる（町の人や なかまの 頭が かさなって いても こちらを 先に）
     const spot = typeof TownFolk !== "undefined" && TownFolk.spotAt(this.mapId, tx, ty);
     if (spot) return this.goInteract(tx, ty, { type: "folk", spot });
+    // ④ ひびの ある いわ → となりまで 行って ほる
+    const rock = this.rockAt(tx, ty);
+    if (rock) return this.goInteract(tx, ty, { type: "rock", rock });
     const npc = this.npcs.find((n) => hitBody(n.w,n.artOffset));
     if (npc) return this.goInteract(npc.w.tx, npc.w.ty, { type: "npc", npc });
     const en = this.enemies.find((e) => e.boss && Math.abs(wx - e.w.feet().x) < 40 && wy < e.w.feet().y + 4 && wy > e.w.feet().y - 80);
@@ -281,11 +287,14 @@ class WorldScene {
     if (path) { this.path = path; this.pending = { ...pending, tx, ty }; this.tapMark = { x: tx, y: ty, t: 0.6 }; }
     else Sound.se("cancel");
   }
+  // ④ きょうの いわ（ほると きえる）
+  rockAt(x, y) { return (this.rocks || []).find(([rx, ry]) => rx === x && ry === y) || null; }
   blockedByNpc(x, y) {
     return this.npcs.some((n) => (n.w.tx === x && n.w.ty === y) || (n.w.moving && n.w.fx === x && n.w.fy === y));
   }
   walkable(x, y) {
     if (this.map.isSolid(x, y)) return false;
+    if (this.rockAt(x, y)) return false;
     if (this.blockedByNpc(x, y)) return false;
     if (this.enemies.some((e) => e.boss && Math.abs(e.w.tx - x) <= 1 && e.w.ty === y)) return false;
     return true;
@@ -353,6 +362,7 @@ class WorldScene {
     Seasonal.refresh(this);
     Weather.refresh(this);
     if (typeof Fishing !== "undefined") Fishing.refreshButton(this); // ③ 水べで「つる」
+    if (typeof Fossils !== "undefined") Fossils.refreshButton(this); // ④ いわの そばで「ほる」（「つる」と おなじ 場所。つるが さき）
   }
   decideStep(carry) {
     const L = this.party[0];
@@ -448,6 +458,8 @@ class WorldScene {
     if (npc) return this.interact({ type: "npc", npc });
     const spot = typeof TownFolk !== "undefined" && TownFolk.spotAt(this.mapId, x, y);
     if (spot) return this.interact({ type: "folk", spot });
+    const rock = this.rockAt(x, y);
+    if (rock) return this.interact({ type: "rock", rock });
     const sign = this.map.signs.find((s) => s.x === x && s.y === y);
     if (sign) return this.interact({ type: "sign", sign });
     const chest = this.map.chests.find((c) => c.x === x && c.y === y);
@@ -474,6 +486,10 @@ class WorldScene {
     } else if (p.type === "folk") {
       this.busy = true;
       await TownFolk.investigate(p.spot, this);
+      this.busy = false;
+    } else if (p.type === "rock") {
+      this.busy = true;
+      await Fossils.dig(this, p.rock);
       this.busy = false;
     } else if (p.type === "sign") {
       this.busy = true;
@@ -548,7 +564,7 @@ class WorldScene {
       const [x0, y0, x1, y1] = n.wander;
       n.w.dir = d;
       if (nx < x0 || nx > x1 || ny < y0 || ny > y1) continue;
-      if (this.map.isSolid(nx, ny) || this.map.doorAt(nx, ny)) continue;
+      if (this.map.isSolid(nx, ny) || this.map.doorAt(nx, ny) || this.rockAt(nx, ny)) continue;
       if (this.party.some((p) => (p.tx === nx && p.ty === ny) || (p.fx === nx && p.fy === ny))) continue;
       if (this.npcs.some((o) => o !== n && o.w.tx === nx && o.w.ty === ny)) continue;
       n.w.moveTo(nx, ny, 0.36);
@@ -595,7 +611,7 @@ class WorldScene {
   enemyCan(e, dir) {
     const [dx, dy] = DIRS[dir];
     const x = e.w.tx + dx, y = e.w.ty + dy;
-    if (this.map.isSolid(x, y) || this.map.warpAt(x, y) || this.map.doorAt(x, y) || this.blockedByNpc(x, y)) return false;
+    if (this.map.isSolid(x, y) || this.map.warpAt(x, y) || this.map.doorAt(x, y) || this.blockedByNpc(x, y) || this.rockAt(x, y)) return false;
     if (this.enemies.some((o) => o !== e && o.w.tx === x && o.w.ty === y)) return false;
     return true;
   }
@@ -661,6 +677,7 @@ class WorldScene {
       list.push({ z: f.y+(n.artOffset?.[1]||0)*TS, draw: () => this.drawNpc(ctx, n, ox, oy) });
     }
     if (typeof TownFolk !== "undefined") for (const s of TownFolk.spotsOn(this.mapId)) list.push({ z: (s.y + 1) * TS - 3, draw: () => this.drawFolkProp(ctx, s, ox, oy) });
+    for (const [rx, ry] of this.rocks) list.push({ z: (ry + 1) * TS - 4, draw: () => this.drawRock(ctx, rx, ry, ox, oy) });
     if (this.follower) list.push({ z: this.follower.w.feet().y - 0.5, draw: () => this.drawFollower(ctx, ox, oy) });
     for (const e of this.enemies) {
       const f = e.w.feet();
@@ -780,6 +797,11 @@ class WorldScene {
       const mark = TownFolk.markerOf(n.id, this.mapId);
       if (mark) TownFolkArt.marker(ctx, mark, ox + f.x + 12, oy + f.y - 50, G.t);
     }
+  }
+  // ④ ひびの ある いわ（1マス。見本 Fossils.rockSvg）
+  drawRock(ctx, x, y, ox, oy) {
+    const px = Math.ceil(TS * G.px), c = SvgCache.get("fossil:rock", () => Fossils.rockSvg(), px, px);
+    if (c) ctx.drawImage(c, ox + x * TS, oy + y * TS, TS, TS);
   }
   // ② さがす きらきら・さわる 小物（1マス。足もとが 下の まん中）
   drawFolkProp(ctx, s, ox, oy) {

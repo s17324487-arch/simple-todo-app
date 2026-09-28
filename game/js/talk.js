@@ -110,8 +110,10 @@ const Talk = {
     }
     // ③ タウンの いけの ペンが つりざおを くれる（もらった ときは ふつうの セリフを 出さない）
     const rod = typeof Fishing !== "undefined" && await Fishing.talked(n, who);
+    // ④ もりの ケロスケが ピッケルを くれる（おなじく）
+    const pick = typeof Fossils !== "undefined" && await Fossils.talked(n, who);
     // 2. おねがいを すすめる（でんごん・わたす・わらしべ・おわり）
-    const moved = (folk ? await folk.talked(n, scene, who) : false) || rod;
+    const moved = (folk ? await folk.talked(n, scene, who) : false) || rod || pick;
     if (!first && !moved) {
       // 3. ふつうの セリフ: 3わりは あそびかたの ヒント（TALKS）、7わりは 町の人の セリフ（TOWNSFOLK_DATA。時間・天気・季節・おまつり・ボスの あと で えらぶ）
       let lines, line = null;

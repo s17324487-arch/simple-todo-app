@@ -85,8 +85,8 @@ fossil: { pick: 0, bones: {}, dug: { day: "", at: {} } },
 ## 8. PR の 分けかた
 
 1. ✅ **骨の データ・絵・かせき ノート**（済み: Claude Code。下の「実装メモ」）: `js/fossil-data.js`・`js/fossil-art.js`（index.html と sw.js の 両方）、ノート、`fossilGive` で 見られる。
-2. **ピッケルと ほる**: `Save.fossil`・ケロスケから もらう・いわ・「ほる」ボタン・ほる 画面・カード・PokaDebug・スモーク。
-3. **つなぎ**: ② の おねがい・物々交換。
+2. ✅ **ピッケルと ほる**（済み: Claude Code。下の「実装メモ」）: `Save.fossil`・ケロスケから もらう・いわ・「ほる」ボタン・ほる 画面・カード・PokaDebug・スモーク。
+3. **つなぎ**: ② の 物々交換（ケロスケ: だぶった 骨 → 同じ 恐竜の まだ ない 骨）。おねがい「ほねを みせて」は 2番で うごく（下の 実装メモ）。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
 
@@ -98,6 +98,17 @@ fossil: { pick: 0, bones: {}, dug: { day: "", at: {} } },
 - ノート: メニューの「ずかん」の まもの／さかな／かせき（`.dex-kinds`。ある タブの 数で ならべる）。`Fossils.note(el)`（見本 ⑤）、骨が 1つ いじょう ある 恐竜を おすと `Fossils.detail(id)`（くわしい ページ: 骨格・何年 まえ・じだい・みつかった ところ・おおきさ・たべもの・ほね n/全部・説明・まめちしき。デザインに ないので ③ の さかなの ページに あわせて 作った）。上の 文は はくぶつかん（⑤ の `MAP_DEFS.museum`）が できるまで「くみたてられるよ」を 言わない。
 - **② との きまり**: `TownFolk.features().fossil` は `FOSSIL_DATA` が あって **ピッケルを もって いる（`Save.d.fossil.pick > 0`）とき**だけ true（釣りと おなじ。1番では まだ ピッケルが もらえないので、ほねの おねがいや 化石の セリフは 出ない）。2番で ケロスケから ピッケルを もらうと 出る ように なるので、**2番で ほる たびの `TownFolk.signal({ do: "dig" })` と、`TownFolk.have().bone` を `Save.d.fossil.bones` に する ところ（物々交換の「だぶった 骨」）まで 入れる**。
 - テストの 入口: `PokaDebug.fossilGive(key, n)`（もって いる 数を かえす）。`pick(n)`・`fossilDig()`・`digTap()`・`digState()`・`fossilState()`・`fossilRocks()` は 2番。
+- 2番: 見本 `FossilRef` の `rng`・`rocks`・`pick`・`Dig`・`drawDig`・`rockSvg`・`pickSvg` を `Fossils` に そのまま 入れた（文字まで おなじ）。
+- ピッケル: `Talk.run` の つりざおの つぎに `Fossils.talked(n, who)`（`pick.get.npc` の ケロスケ。ピッケルが ない ときだけ `get.talk` を 言って `pick = 1`）。もらった 回は ふつうの セリフを 出さない。メニューの「もちもの」の「だいじな もの」に ならぶ。
+- いわの 場所: `Fossils.candidates(map)`（マップごとに 1かい。入口から 歩いて 行ける・となりに 水 いがいの かべ・**水の となりは のぞく**（釣り場を あける）・ワープと 入口・ドア・宝箱・かんばん・人・しかけ・建物・ボスの まわり 1マスと 敵の 出る マスを のぞく・**ふさいでも まわりの 8マスで となりどうしが つながる マスだけ**（道が きれない））→ 見本 `rocks(map, sites[site].rocks, U.today(), 候補)` → `Save.d.fossil.dug.at[map]`（**キーは マップ id**。いまは site と おなじ）に ある いわを のぞく（`Fossils.rocksOn(map)`）。こうほは どうくつ 94・もり 169・ビーチ 84 マス。
+- 町では: `WorldScene.enter` で `this.rocks = Fossils.rocksOn(...)`（3人が 立って いる マスは のぞく）。`rockAt(x, y)` を `walkable`・`enemyCan`・町の人の さんぽに 足して **いわは とおれない**（`map.isSolid` は かえない）。y順の スプライト（`SvgCache`「`fossil:rock`」・`drawRock`）。タップ／ok で となりまで 行って `interact({ type: "rock" })` → `Fossils.dig(scene, rock)`。ピッケルが ない ときは「ピッケルが あれば ほれそう……」。
+- 「ほる」ボタン: `WorldScene.update` の さいごで `Fishing.refreshButton` の あとに `Fossils.refreshButton(this)`（`rockNear`: ピッケルが ある・先頭の 子が 動いて いない・上下左右の となりに いわ。むいて いる いわを さきに）。`.act-btn.fossil-go-btn`（見本 ①・下の まん中）。**「つる」も 同じ `.act-btn`（`.act-btn.fish-go-btn` で 青）に して、「つる」が 出て いる ときは「ほる」を 出さない**。`exit` で `hideButton()`。
+- 出る もの: 日づけ・マップ・いわの 場所の `rng` で `pick` と `Dig` を きめる（とちゅうで とじて やりなおしても おなじ）。ほる 画面は `UI.modal`「かせきを ほる」＋ canvas（`drawDig`・`devicePixelRatio`）。マスを `pointerdown` で たたく（`Sound.se("tap")`）。ほりだせたら `sparkle` と「〇〇の △△！ ★★☆」を 1.4びょう 見せて とじる。✕ で とちゅうで とじたら なにも おきない（いわは のこる）。
+- 下の 絵: 骨は `partSvg` を `partBox` の 形の まま 360 に（`SvgCache`「`bone:<key>`」・63こ）、おまけは `Fossils.extraSvg(kind)`（キラキラの いし・こはく・アンモナイト。**デザインに ないので 作った**。`extraKind` が データの 文から えらぶ。キー「`fossil:extra:<kind>`」・3つ）。
+- みつけた カード: 見本 ④ の とおり（`.bone-card`）。はじめての 骨には「はじめて！」、2こめ いじょうは「おなじ ほねは これで Nこ」、そろったら「ぜんぶ そろった！」（はくぶつかんの ことは ⑤ まで 言わない）。おまけは コイン／キャンディを `Loot.give` して データの 文を 言う。
+- ほった あと: その いわを `dug.at[map]` に 入れて きえる（`dugToday()` が 日が かわったら けす）→ `TownFolk.progress({ do: "dig" })`（② の「ほねを みせて」が ほる → ケロスケに 話す で おわる）。
+- テストの 入口（2番）: `pick(n)`・`fossilDig(site, key)`（いわと むすばない）・`digTap(x, y)`・`digState()`（`{ hp, area, taps, done, cols, rows }`）・`fossilState()`・`fossilRocks(map)`・`fossilSpot(map)`（いわの となりの 立てる マスと 向き）。スモーク `fossil-dig-390`・`-375`。
+- **3番に のこした こと**: `TownFolk.have().bone` は まだ `{}`（物々交換「だぶった 骨」を 出さない）。3番で `Save.d.fossil.bones` に して、`TownFolk.barter` で `give.bone: "dup"`（2こ いじょうの 骨を 1こ へらす）と `get.bone: "missing-same-dino"`（同じ 恐竜の まだ ない 骨を `Fossils.give`）を あつかう。
 
 ## 9. やらないこと
 

@@ -106,7 +106,7 @@ fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
 - テストの 入口: `PokaDebug.fishGive(id, n)`（大きさは `Fishing.size`。ずかんの きろくと `keep` を かえす）。`rod(n)`・`fishing()`・`fishState()`・`fishInput()`・`fishSkip()` は 2番。
 - 2番: 見本 `FishingRef` の `Game`・`SCENE`・`tint`・`heroSize`・`draw` を `Fishing` に そのまま 入れた（文字まで おなじ）。`FishingScene` は `js/fishing.js` の さいごで `SCENES.fishing` に 登録。
 - つりざお: `Talk.run` の プレゼントの あと・おねがいの まえに `Fishing.talked(n, who)`（`rods[0].get.npc` の ペン。さおが ない ときだけ `get.talk` を 言って `rod = 1`）。もらった 回は ふつうの セリフ・もちかけを 出さない。メニューの「もちもの」の 上に「だいじな もの」（`.key-item`）。さおの 絵は `Fishing.rodSvg()`（デザインに ないので 作った）。
-- 「つる」ボタン: `WorldScene.update` の さいごで `Fishing.refreshButton(this)`（`spotAt`: `spots` の マップ・さおが ある・先頭の 子が 動いて いない・向いた マスが `'~'`）。右下（しゃしんの ボタンと おなじ ところ。しゃしんは シティだけ なので かさならない）。`exit` で `hideButton()`。おすと `Game.goto("fishing", { place, name, back })`。
+- 「つる」ボタン: `WorldScene.update` の さいごで `Fishing.refreshButton(this)`（`spotAt`: `spots` の マップ・さおが ある・先頭の 子が 動いて いない・向いた マスが `'~'`）。右下（しゃしんの ボタンと おなじ ところ）に おいたが、**④ の 2番で「ほる」と おなじ `.act-btn`（下の まん中・青は `.act-btn.fish-go-btn`）に うつした**。`exit` で `hideButton()`。おすと `Game.goto("fishing", { place, name, back })`。
 - 釣りの 画面: canvas は `Fishing.draw`、DOM は `.fish-ui`（`.fish-top`・`.fish-talk`・`.fish-ctrl`）。先頭の 子が いちばん 右で さおを もつ（`heroes = order を ぎゃくに`）。ボタンは `pointerdown` で tap／まく は おして いる あいだ hold（`pointerup`・`cancel`・`leave` で はなす）。キーは ok＝おす・cancel＝やめる。
 - 3人の かおは `Fishing.FACES`（EMO の normal・surprise・excited・love）と あかい ところの `DANGER_FACES`（わんこ surprise・がちゃん cry・ごじ shout）。これだけを `Chara.preload` する。
 - 魚の かげ: 見本は `Image` の 大きさ（Chromium だと ぜんぶ 300 はば）に たよって いて どの 魚も おなじ 大きさ だった。ゲームでは viewBox の 1.2 ばいで `SvgCache`「`fishshadow:<kind>`」に して、`draw` には `px: G.px / 2` を わたす（S〜XL で 大きさが かわる）。

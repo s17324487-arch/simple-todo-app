@@ -4,7 +4,7 @@
 
 |場面|390×844|375×667|
 |---|---|---|
-|水べで「つる」|![390](fishing-390_shore.png)|![375](fishing-375_shore.png)|
+|水べで「つる」（下の まん中。④ の 2番から「ほる」と おなじ ボタン）|![390](fishing-390_shore.png)|![375](fishing-375_shore.png)|
 |なげる（タウンの いけ）|![390](fishing-390_ready.png)|![375](fishing-375_ready.png)|
 |ぐいっ！ → つる！|![390](fishing-390_bite.png)|![375](fishing-375_bite.png)|
 |まく（いとの ぴんと ぐあい）|![390](fishing-390_reel.png)|![375](fishing-375_reel.png)|

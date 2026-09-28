@@ -804,6 +804,47 @@ if (ok(!!FO, "FOSSIL_DATA が ない（js/fossil-data.js）")) {
     const noPick=!TownFolk.features().fossil;Save.d.fossil.pick=1;const pick=TownFolk.features().fossil;Save.d=old;return {ok1,noPick,pick};})()`, ctx);
   ok(note.ok1, "かせき ノートの きろく（あつまりぐあい・そろった）が 不正");
   ok(note.noPick && note.pick, "ピッケルの ない あいだも ② の 化石の 話・おねがいが 出る");
+  // 2番: まいにちの いわ（30日ぶん）。数・5マス いじょう はなれる・水の となりでない・かべの となり・ふさいでも ほかの マスへ 行ける まま
+  const rockCheck = vm.runInContext(`(()=>{const out={},N4=[[1,0],[-1,0],[0,1],[0,-1]];
+    for(const [site,st] of Object.entries(FOSSIL_DATA.sites))for(const mapId of st.maps){
+      const m=Maps.get(mapId),d=m.def,cand=Fossils.candidates(mapId),bad=[];
+      const starts=Object.values(MAP_DEFS).flatMap(o=>(o.warps||[]).filter(w=>w.to===mapId).map(w=>[w.tx,w.ty]));
+      const reach=(block)=>{const seen=new Set(),q=starts.filter(([x,y])=>!m.isSolid(x,y)&&!block.has(x+","+y));for(const [x,y] of q)seen.add(x+","+y);
+        while(q.length){const [x,y]=q.shift();for(const [dx,dy] of N4){const k=(x+dx)+","+(y+dy);if(!seen.has(k)&&!m.isSolid(x+dx,y+dy)&&!block.has(k)){seen.add(k);q.push([x+dx,y+dy]);}}}return seen;};
+      const all=reach(new Set());
+      for(let i=0;i<30;i++){const day="2026-10-"+(i+1),r=Fossils.rocks(mapId,st.rocks,day,cand);
+        if(r.length!==st.rocks)bad.push(day+": "+r.length+"こ");
+        for(const [x,y] of r){if(m.isSolid(x,y)||m.warpAt(x,y)||m.doorAt(x,y))bad.push(day+": とおれない マス "+x+","+y);
+          if(N4.some(([dx,dy])=>(d.rows[y+dy]||"")[x+dx]==="~"))bad.push(day+": 水の となり "+x+","+y);
+          if(!N4.some(([dx,dy])=>m.isSolid(x+dx,y+dy)))bad.push(day+": かべの となりで ない "+x+","+y);
+          if((d.npcs||[]).some(n=>Math.abs(n.x-x)<=1&&Math.abs(n.y-y)<=1)||(d.chests||[]).some(c=>Math.abs(c.x-x)<=1&&Math.abs(c.y-y)<=1))bad.push(day+": 人・宝箱の そば "+x+","+y);}
+        for(let a=0;a<r.length;a++)for(let b=a+1;b<r.length;b++)if(Math.abs(r[a][0]-r[b][0])+Math.abs(r[a][1]-r[b][1])<5)bad.push(day+": ちかすぎ");
+        const block=new Set(r.map(p=>p.join(","))),got=reach(block);for(const k of all)if(!block.has(k)&&!got.has(k)){bad.push(day+": "+k+" へ 行けなく なる");break;}}
+      out[mapId]={cand:cand.length,need:st.rocks,bad:bad.slice(0,4)};}
+    return out;})()`, ctx);
+  for (const [mapId, r] of Object.entries(rockCheck)) ok(r.cand >= r.need * 4 && !r.bad.length, `化石の いわ（${mapId}）が 不正: こうほ ${r.cand}／${r.bad.join("・")}`);
+  // 2番: 出る もの（見本 pick）: 骨 7わり・その 場所の 恐竜だけ・まだ ない 骨が 出やすい。ほる（見本 Dig）: しっぱい なし・★ は たたいた かず。ほった いわは その日 きえる
+  const digFlow = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const R=Fossils.rng("fossil-check"),D=FOSSIL_DATA;let bone=0,site=true;
+    for(let i=0;i<3000;i++){const g=Fossils.pick(D,"cave",{},R);if(g.key){bone++;if(g.dino.site!=="cave")site=false;}else if(!g.extra)site=false;}
+    const own={};for(const d of D.dinos.filter(d=>d.site==="forest"))for(const p of d.art.parts)own[d.id+"."+p.id]=1;delete own["stego.plates"];
+    let fresh=0,bones=0;for(let i=0;i<3000;i++){const g=Fossils.pick(D,"forest",own,R);if(g.key){bones++;if(g.key==="stego.plates")fresh++;}}
+    let dig=true,three=0;for(let k=0;k<200;k++){const g=new Fossils.Dig("x",{rand:R});let r=null;for(let t=0;t<60&&!g.done;t++){const i=g.hp.findIndex((h,j)=>h>0&&g.isBone(...g.cellOf(j)));const [x,y]=g.cellOf(i);r=g.tap(x,y);}
+      if(!g.done||!r||r.stars<1||r.stars>3)dig=false;if(r&&r.stars===3)three++;const a=g.area;if(a.x<1||a.y<1||a.x+a.w>g.cols-1||a.y+a.h>g.rows-1)dig=false;}
+    const st=(taps)=>{const g=new Fossils.Dig("x",{rand:Fossils.rng("s")});g.taps=taps-1;for(let i=0;i<g.hp.length;i++)g.hp[i]=g.isBone(...g.cellOf(i))?0:1;const a=g.area;g.hp[a.y*g.cols+a.x]=1;return g.tap(a.x,a.y).stars;};
+    const rocks=Fossils.rocksOn("cave"),first=rocks[0];Save.d.fossil.dug.at.cave=[first.join(",")];const after=Fossils.rocksOn("cave");
+    Save.d.fossil.dug.day="2000-1-1";const reset=Fossils.rocksOn("cave").length===rocks.length&&!Object.keys(Fossils.dugToday().at).length;
+    const town=Fossils.rocksOn("town").length===0;
+    const sc={mapId:"cave",rocks:rocks.slice(),party:[{tx:first[0]-1,ty:first[1],dir:"up",moving:false}]};sc.rockAt=(x,y)=>sc.rocks.find(([a,b])=>a===x&&b===y)||null;
+    Save.d.fossil.pick=0;const noPick=!Fossils.rockNear(sc);Save.d.fossil.pick=1;const near=Fossils.rockNear(sc)===sc.rocks[0];sc.party[0].moving=true;const moving=!Fossils.rockNear(sc);
+    sc.party[0]={tx:first[0]-2,ty:first[1],dir:"right",moving:false};const far=!Fossils.rockNear(sc);
+    Save.d=old;return {bone:bone/3000,site,fresh:fresh/bones,dig,three,stars:[st(8),st(9),st(11),st(12)].join(),after:after.length===rocks.length-1&&!after.some(r=>r.join()===first.join()),reset,town,noPick,near,moving,far};})()`, ctx);
+  ok(Math.abs(digFlow.bone - 0.7) < 0.04 && digFlow.site, `ほって 出る ものが 不正（骨 ${digFlow.bone}）`);
+  ok(digFlow.fresh > 0.6, `まだ ない 骨が 出やすく ない（${digFlow.fresh}）`);
+  ok(digFlow.dig && digFlow.three > 0 && digFlow.stars === "3,2,2,1", `ほる ミニゲームが 不正 ${JSON.stringify(digFlow)}`);
+  ok(digFlow.after && digFlow.reset && digFlow.town, "ほった いわが きえない／日が かわっても もどらない／町に いわが 出る");
+  ok(digFlow.noPick && digFlow.near && digFlow.moving && digFlow.far, "「ほる」ボタンの 出る ときが 不正 " + JSON.stringify(digFlow));
+  for (const [what, svg] of vm.runInContext(`[["いわ",Fossils.rockSvg()],["ピッケル",Fossils.pickSvg()],...["crystal","amber","ammonite"].map(k=>["おまけ "+k,Fossils.extraSvg(k)])]`, ctx)) svgOk(svg, what);
+  ok(vm.runInContext(`FOSSIL_DATA.extras.map(x=>Fossils.extraKind(x)).join()`, ctx) === "crystal,amber,ammonite", "おまけの 絵が データと あわない");
 }
 
 finish();
