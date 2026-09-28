@@ -77,8 +77,8 @@ const CUST_BODY = ["tshirt_blue", "stripe", "dress", "sweater", "overalls", null
 class ShopScene {
   async enter(p) {
     this.shopId = p.shop; this.back = p.back;
-    this.returnStore = !!p.returnStore;
-    this.S = SHOPS[p.shop]; this.st = Save.d.shops[p.shop];
+    this.returnStore = !!p.returnStore; this.variant=p.variant;
+    this.S = this.variant==='mac'?{...SHOPS[p.shop],name:'マックさん'}:SHOPS[p.shop]; this.st = Save.d.shops[p.shop];
     this.lv = ShopRewards.level(this.st); this.workLv = Math.min(5, this.lv); this.dailyBoost = DailyPlay.boost(this.shopId);
     this.total = this.S.rounds || 3 + Math.min(4, this.lv);
     this.difficulty = Save.d.settings.difficulty;
@@ -146,7 +146,7 @@ class ShopScene {
   async flow() {
     const face = Art.npcSvg({ ...this.owner, emo: "happy" });
     const first = !this.st.plays;
-    const lines = first ? [...HOWTO[this.shopId]] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
+    const lines = this.variant==='mac' ? [...MacShop.howto] : first ? [...HOWTO[this.shopId]] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
     if(this.dailyBoost>1)lines.push('きょうの おすすめ！ コインが 1.2ばいだよ。');
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
     if (this.closed) return;
@@ -156,7 +156,7 @@ class ShopScene {
       Sound.se("door");
       await this.tween(0.9, (k) => (this.cust.x = U.lerp(-60, this.custX, U.ease.outCubic(k))));
       if (this.closed) return;
-      this.task = new MG_TASKS[this.shopId](this, this.workLv);
+      this.task = new (this.variant==="mac"?MacKitchenTask:MG_TASKS[this.shopId])(this, this.workLv);
       this.task.layout(this.R);
       this.timeLimit = this.task.timeLimit * GameEconomy.mode(this.difficulty).time;
       this.timeLeft = this.timeLimit;
@@ -192,6 +192,7 @@ class ShopScene {
     if (["link", "relay"].includes(this.shopId)) R.line = ["つぎは いっしょに がんばろう！", "もうすこし！", "たくさん あつまったね！", "すごい！ だいせいこう！"][rank];
     const base = GameEconomy.shopBase[this.shopId] * (1 + 0.28 * (this.workLv - 1)) * GameEconomy.mode(this.difficulty).reward;
     let pay = GameEconomy.pay(this.shopId, this.workLv, rank, this.difficulty);
+    if(this.variant==='mac'&&rank>=2)pay=Math.round(pay*1.4);
     let tip = 0;
     if (rank === 3 && this.timeLeft / this.timeLimit > 0.35) tip += Math.round(base * 0.5);
     let perkMul = 0;

@@ -4,6 +4,9 @@
 // ここの関数名と引数は「約束」なので、変えるときは tests/smoke.mjs と docs も直すこと。
 const PokaDebug = {
   version: GAME_VERSION,
+  mac(lv=1) {Save.d.shops.burger.lv=lv;Game.goto('shop',{shop:'burger',variant:'mac',back:{map:'heiwadai',x:27,y:31,dir:'down'},returnStore:true},'none');return true;},
+  macState(){if(!(G.scene?.task instanceof MacKitchenTask))return null;const t=G.scene.task,g=t.round;return {want:g.want,made:g.made,falling:g.falling,plate:g.plate,fries:g.fries,stage:g.stage(),time:g.time,score:g.score(),complete:g.complete(),play:t.playRect(),buttons:t.btns.map(b=>({label:b.label,x:b.x+b.w/2,y:b.y+b.h/2,w:b.w,h:b.h})),scale:G.canvas.getBoundingClientRect().width/G.W};},
+  macAdvance(dt=.25){if(!this.macState()||!Game.paused||!Number.isFinite(dt)||dt<0||dt>3)return false;G.scene.update(dt);return this.macState();},
   districtTravel() { return {names:{town:MAP_DEFS.town.name,city:MAP_DEFS.city.name},places:AtlasArt.places,walkIns:Object.values(MAP_DEFS).filter(d=>!d.indoor).flatMap(d=>(d.warps||[]).filter(w=>w.to==='city')),coins:Save.d.coins}; },
   atlas() {WorldAtlas.open();return true;},
   station(id) { if(!Transit.stops[id]||UI.busy)return false;Transit.open(id);return true; },
@@ -543,7 +546,7 @@ const PokaDebug = {
     if (!t) return out;
     out.buttons = t.btns.filter((b) => !b.disabled).map((b) => ({ label: b.label || "", ...css(b.x + b.w / 2, b.y + b.h / 2) }));
     out.decorTier=ShopDecor.tier(sc.lv);
-    if(sc.shopId==='burger')out.order={want:t.want.map(id=>BURGER_FILLINGS.find(f=>f.id===id).name),made:[...t.made]};
+    if(sc.shopId==='burger')out.order={want:t.want.map(id=>sc.variant==='mac'?MacKitchen.name(id):BURGER_FILLINGS.find(f=>f.id===id).name),made:[...t.made]};
     if(sc.shopId==='groom')out.order={stage:t.stage,style:t.style.id,ribbon:RIBBONS.find(r=>r.id===t.ribbon).name+'の リボン',line:t.outline().map(q=>css(q.x,q.y)),trimmed:[...t.trimmed],offLine:t.offLine,zones:t.zones().map((q,i)=>({...css(q.x,q.y),dry:t.dry[i]}))};
     if(sc.shopId==='cake')out.order={step:t.steps[t.step],want:{...t.want},made:{...t.made},labels:{base:CAKE_BASES.find(x=>x.id===t.want.base).name,cream:CAKE_CREAMS.find(x=>x.id===t.want.cream).name,fruit:CAKE_FRUITS.find(x=>x.id===t.want.fruit).name,count:t.want.count+'こ',candles:t.want.candles+'ほん'}};
     if (sc.shopId === "crepe") out.order = { want: t.want.map((id) => CREPE_TOPS.find((x) => x.id === id).name) };

@@ -444,7 +444,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
     expect((await H.dbg('mg')).decorTier===lv,'おてつだいの飾りがレベルに対応しない');await H.shot('work-lv'+lv);
     await H.page.getByRole('button',{name:'おてつだいを やめる',exact:true}).click();await H.page.getByRole('button',{name:'ここで やめる',exact:true}).click();await H.page.getByRole('button',{name:'まちに もどる',exact:true}).click();await H.idle();
   }
-  const hd=(await H.dbg('townLayout','heiwadai')).doors.find(d=>d.act.shop==='crepe');await H.dbg('teleport','heiwadai',hd.x,hd.y+1);await H.idle(30000);await H.wait(300);await H.shot('heiwadai-lv5');
+  const data=await H.dbg('saveData');data.shops.burger.lv=5;await H.dbg('seedSave',data);const hd=(await H.dbg('townLayout','heiwadai')).doors.find(d=>d.act.shop==='burger');await H.dbg('teleport','heiwadai',hd.x,hd.y+1);await H.idle(30000);await H.wait(300);await H.shot('heiwadai-lv5');
   const keys=(await H.dbg('shopDecor','crepe')).keys;expect(keys.some(k=>k.startsWith('shop-decor:5:')),'平和台の原画に飾りを重ねられない');
   const after=await H.dbg('saveData');for(const k of ['coins','bag','wardrobe','furn','rooms'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'店の飾りで所持品が変わる: '+k);
 },{viewport,full:viewport.width===375,timeout:180000});
@@ -2259,6 +2259,16 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.until(()=>PokaDebug.state().map==='city'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-500,'運賃一回');
   await H.dbg('station','city_station');await H.page.getByRole('button',{name:'ネリカスえきへ',exact:true}).click();await H.until(()=>PokaDebug.state().map==='town'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-500,'帰り無料');
   await H.dbg('atlas');await H.shot('map');
+},{viewport,timeout:90000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('mac-kitchen-'+viewport.width,async H=>{
+ await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');await H.dbg('teleport','heiwadai',27,32,'up');await H.idle();await H.shot('outside');
+ await H.dbg('mac',2);await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning);await H.dialogs();await H.until(()=>!!PokaDebug.macState());
+ const money=(await H.dbg('saveData')).coins;let s=await H.dbg('macState');expect(s.want.length===6&&s.buttons.every(b=>b.w>=44&&b.h>=44),'注文と操作サイズ');
+ await H.tapLabel('◀');expect((await H.dbg('macState')).plate<s.plate,'受け皿が左へ動かない');await H.tapLabel('▶');
+ await H.tapLabel('あげる');await H.until(()=>PokaDebug.macState()?.stage==='gold',12000);await H.shot('gold');await H.tapLabel('ひきあげる');s=await H.dbg('macState');expect(s.fries.score===100&&s.fries.state==='done','音の合図でカリッと揚がらない');
+ expect(s.time>6&&s.falling.length>0,'ポテト中にバーガーが止まる');
+ await H.page.getByRole('button',{name:'おてつだいを やめる',exact:true}).click();const paused=await H.dbg('macState');await H.wait(1000);expect((await H.dbg('macState')).time===paused.time,'中止確認中に調理時計が進む');await H.page.getByRole('button',{name:'ここで やめる',exact:true}).click();await H.until(()=>PokaDebug.mg()?.phase==='result');expect((await H.dbg('saveData')).coins===money,'未完成の注文が報酬になる');
 },{viewport,timeout:90000});
 
 server.close();

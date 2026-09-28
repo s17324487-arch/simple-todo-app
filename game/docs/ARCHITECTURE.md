@@ -776,3 +776,7 @@ Save.fresh().shopRewardsは受け取った家具IDの真偽値。結果画面で
 ## ネリカスタウン・池袋の交通
 
 district-travel.js は全体地図の後に読み込み、町IDを変えずに名称・接続・地図の配置を更新する。池袋の屋外徒歩ワープはなく、館から町へ戻る室内出口は維持する。Transit.fare/payは池袋への電車だけ500コインを保存し、中止・残高不足では変更しない。帰路は無料。PokaDebug.districtTravel/station/atlas と2画面のスモークで確認。
+
+## マックさん
+
+平和台 heiwadai_diner の act.variant=mac を StoreScene→ShopScene に渡す。MacKitchenRound の同一tickで具材とフライヤーを進める。受け皿の左右・ドラッグ、6〜8秒の揚げ時、10秒後からの冷め、誤順の積み直しを評価。Sound.noiseの短い音と文字を共用し、確認・非表示時は進めない。既存 burger の評判・レベル・中止時精算を引き継ぐ。従来のBurgerTaskは他店で保持。PokaDebug.mac/macState/macAdvanceとcheck-mac・2サイズスモークで検証。
