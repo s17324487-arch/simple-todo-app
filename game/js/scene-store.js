@@ -1,6 +1,7 @@
 // 買い物とミニゲームに共通の、歩いて入る店内。
 // 専門店でも既存の商品ID・価格・所持品を共用する。
 for (const [id,kind,label,ids] of [
+  ["cake","bag","ケーキと デザ",["cake","pudding","milk"]],
   ["crepe","bag","デザ",["pudding","cake","juice"]],
   ["bakery","bag","パンと おやつ",["bread","bone","milk"]],
   ["florist","furn","おはなと みどり",["plant","plantshelf","garland"]],

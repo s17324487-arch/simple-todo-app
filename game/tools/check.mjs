@@ -418,6 +418,7 @@ for (const [shop, Task] of Object.entries(R.MG_TASKS)) for (let lv = 1; lv <= 5;
     ok(t.timeLimit > 5 && typeof t.title === "string", `ミニゲーム ${shop} Lv${lv}: timeLimit/title が不正`);
     for (const b of t.btns) ok(b.x >= RECT.x - 1 && b.x + b.w <= RECT.x + RECT.w + 1 && b.y >= RECT.y - 1 && b.y + b.h <= RECT.y + RECT.h + 4, `ミニゲーム ${shop} Lv${lv}: ボタン「${b.label || "?"}」が作業エリアからはみ出す`);
     let perfect = null;
+    if (shop === "cake") { t.made={...t.want}; perfect=t.score(); for(let i=0;i<t.steps.length;i++){t.step=i;t.setup();for(const b of t.btns)ok(b.h>=44&&b.w>=44&&b.y+b.h<=RECT.y+RECT.h,`cake Lv${lv}: 作業ボタンの大きさ・位置`);} }
     if (shop === "crepe") { t.placed = t.want.map((id) => ({ id })); perfect = t.score(); }
     if (shop === "florist") { t.picked = Object.entries(t.want).flatMap(([k, n]) => Array(n).fill(k)); t.chosen = t.ribbon; perfect = t.score(); }
     if (shop === "bakery") { t.pen = 0; perfect = t.score(); }

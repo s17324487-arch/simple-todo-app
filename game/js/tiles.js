@@ -235,6 +235,8 @@ const WorldArt = {
 // ---- 建物 ----
 // spec: { w,h (タイル), roof, wall, door (ドアのタイル位置 x), sign, awning:[c1,c2], chimney }
 const SIGN_ICON = {
+  cake: (x,y)=>`<g transform="translate(${x} ${y})"><rect x="-9" y="-4" width="18" height="12" rx="3" fill="#E7C699" ${OS(1)}/><path d="M-9,-4 Q0,-11 9,-4 V0 Q3,5 0,0 Q-5,4 -9,0 Z" fill="#F9D4DF" ${OS(1)}/><path d="M0,-5 V-12" stroke="#B08BA5" stroke-width="2"/><ellipse cx="0" cy="-14" rx="2" ry="3" fill="#ECC16B"/></g>`,
+
   home: (x, y) => `<path d="${heartPath(x, y - 1, 1.3)}" fill="#F06292" ${OS(1.2)}/>`,
   crepe: (x, y) => `<path d="M${x - 7},${y - 3} L${x},${y + 8} L${x + 7},${y - 3} Z" fill="#E2B982" ${OS(1.2)}/><circle cx="${x - 3}" cy="${y - 4}" r="3.5" fill="#FFF" ${OS(1)}/><circle cx="${x + 3}" cy="${y - 4}" r="3.5" fill="#FFF" ${OS(1)}/><circle cx="${x}" cy="${y - 7}" r="2.5" fill="#E8453C" ${OS(1)}/>`,
   dentist: (x, y) => `<path d="M${x - 6},${y - 6} C${x - 8},${y - 10} ${x - 2},${y - 10} ${x},${y - 7} C${x + 2},${y - 10} ${x + 8},${y - 10} ${x + 6},${y - 6} C${x + 5},${y} ${x + 5},${y + 7} ${x + 3},${y + 7} C${x + 1},${y + 7} ${x + 1},${y + 2} ${x},${y + 2} C${x - 1},${y + 2} ${x - 1},${y + 7} ${x - 3},${y + 7} C${x - 5},${y + 7} ${x - 5},${y} ${x - 6},${y - 6} Z" fill="#FFF" ${OS(1.2)}/>`,

@@ -23,6 +23,7 @@
     forest: [92, "Am", "mallet", "quiet", .1, "もりの こもれび"],
     cave: [80, "Dm", "epiano", "quiet", 0, "どうくつの しずく"],
     shop: [106, "C", "epiano", "pop", .08, "おみせへ ようこそ"],
+    shop_cake: [100, "C", "piano", "lounge", .1, "きねんびの ケーキ"],
     shop_crepe: [96, "C", "epiano", "lounge", .12, "あまい カフェ"],
     shop_dentist: [94, "Dm", "mallet", "pop", .04, "ぴかぴかの は"],
     shop_bakery: [102, "F", "piano", "pop", .09, "やきたての あさ"],

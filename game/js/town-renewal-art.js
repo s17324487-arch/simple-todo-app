@@ -12,6 +12,7 @@ const TownRenewalArt = (() => {
     clock=(x,y)=>c(x,y,15,"#E4CC9F")+c(x,y,11,"#FFF9E8")+p(`M${x},${y-7} V${y} L${x+6},${y+3}`),
     banner=(txt,y=71)=>r(47,y,106,21,"#FFF6DF",5)+`<text x="100" y="${y+14}" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1F1D1B">${txt}</text>`;
   const facades={
+    town_cakery:()=>r(12,54,176,99,"#F0DBD4",8)+p("M2,54 L30,29 H170 L198,54 Z","#BF9CA5")+r(53,19,94,27,"#F9EEDD",10)+r(70,7,60,18,"#E4BEC6",6)+c(85,7,5,"#D3A19F")+c(114,7,5,"#D3A19F")+awning(80,"#C1ACBC")+glass(20,104,42,34)+glass(137,104,42,34)+[28,46,146,164].map(x=>r(x,123,10,9,"#E9BBBC")+c(x+5,120,3,"#E2C990")).join("")+banner("ケーキやさん",55)+p("M18,147 H65 M136,147 H182"),
     city_puzzle:()=>r(9,51,182,102,"#D9CEE0",12)+p("M0,54 L27,21 H174 L200,54 Z","#AEAAC9")+glass(18,90,44,48)+glass(138,90,44,48)+p("M43,29 Q100,3 157,29","none",4)+[70,100,130].map((x,i)=>c(x,26,12,["#E2AEB7","#E6CB91","#A4C7BE"][i])).join("")+banner("つなぐ パズル",59),
     city_deliveryhall:()=>r(7,56,186,98,"#D3D9D9")+p("M0,56 L32,20 H168 L200,56 Z","#8FACBB")+glass(17,93,44,32)+r(137,89,47,55,"#B8A891")+r(142,103,30,28,"#E6C598")+p("M141,118 H172 M156,104 V132 M18,134 H62","none",2)+banner("おとどけ リレー",61)+p("M81,28 H121 L110,19 M121,28 L110,37","none",4),
     town_riverside:()=>slats(6,64,188,88,"#D2BA95")+p("M0,64 L100,16 L200,64 Z","#8EA6A2")+glass(18,85,46,48)+glass(138,85,46,48)+p("M14,137 H67 M137,137 H185 M20,144 V134 M180,144 V134")+banner("かわの アトリエ",58)+flowers(40,142)+flowers(162,142),
@@ -52,6 +53,7 @@ const TownRenewalArt = (() => {
     return {w,h,svg:`<g transform="scale(${w/200} ${h/160})">${svg}</g>`};
   };
   const props={
+    town_cakes:[32,40,r(3,27,26,10,"#B5947E")+r(1,23,30,5,"#E2CBA9")+r(8,8,17,15,"#F3D0D8",4)+c(12,8,3,"#D99B9B")+c(21,8,3,"#D99B9B")+p("M5,23 V4 Q16,-3 28,4 V23","none",1)+p("M7,13 L12,7","none",1)],
     airport_jet:[160,115,p("M61,51 L95,4 H112 L97,50 L139,91 H117 L73,71 L50,101 H34 L45,61 Z","#BAC9D3")+p("M14,45 Q4,52 15,64 L143,65 Q170,56 143,45 Z","#F1EDDD")+p("M21,43 L10,22 H25 L42,45 Z","#A7B7CC")+glass(131,49,15,10)+[52,65,78,91,104,117].map(x=>glass(x,49,6,7)).join("")+r(88,31,17,9,"#DCE3DB",4)+r(91,78,18,10,"#DCE3DB",4)],
     // 共通の道具もそれぞれ用途が読める形にする（へい・地面は密度に数えない）。
     postbox:[32,46,r(8,16,16,26,"#B59078")+r(3,2,26,22,"#D59B91",4)+p("M8,10 H24 M12,16 H20")],

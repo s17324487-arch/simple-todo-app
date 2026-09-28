@@ -72,9 +72,10 @@ const PokaDebug = {
     const cv=document.createElement("canvas");cv.width=m.w*TS;cv.height=m.h*TS;const ctx=cv.getContext("2d");
     for(let y=0;y<m.h;y+=8)for(let x=0;x<m.w;x+=8)ctx.drawImage(Tiles.chunk(m,x/8,y/8),x*TS,y*TS,8*TS,8*TS);
     if(d.renewal)TownRenewal.drawMoving(ctx,sc,0,0);
-    const all=m.sprites.map(s=>({z:(s.y+1)*TS,draw:()=>sc.drawStatic(ctx,s,0,0,{w:cv.width,h:cv.height})}));
+    for(const it of d.decals||[])HeiwadaiTown.draw(ctx,sc,it,0,0,{w:cv.width,h:cv.height});
+    const all=m.sprites.filter(s=>!s.o?.over).map(s=>({z:(s.y+1)*TS,draw:()=>sc.drawStatic(ctx,s,0,0,{w:cv.width,h:cv.height})}));
     for(const n of sc.npcs)all.push({z:(n.y+1)*TS,draw:()=>sc.drawNpc(ctx,n,0,0)});
-    all.sort((a,b)=>a.z-b.z);all.forEach(s=>s.draw());return cv.toDataURL("image/png");
+    all.sort((a,b)=>a.z-b.z);all.forEach(s=>s.draw());HeiwadaiTown.overhead(ctx,sc,0,0,{w:cv.width,h:cv.height});return cv.toDataURL("image/png");
   },
   pause(value) { const previous = !!Game.paused; Game.paused = !!value; if(G.sceneName==="puzzle")G.scene.lastClock=performance.now(); return previous; },
   world() {
@@ -128,10 +129,14 @@ const PokaDebug = {
     if(G.sceneName!=="world"||G.scene.mapId!=="heiwadai")throw Error("Enter Heiwadai first");
     const sc=G.scene,canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
     canvas.width=width;canvas.height=height;
-    const old={w:G.W,h:G.H,cam:sc.cam,hint:sc.hintT,party:sc.party};
-    try{sc.party=[41.7,42.95,44.2].map(x=>new Walker(x-.5,29.25-27/32,'right'));G.W=360;G.H=height*360/width;sc.cam={x:Math.round(cx*TS-180)+180,y:Math.round(cy*TS-G.H/2)+G.H/2};sc.hintT=0;
+    const old={w:G.W,h:G.H,cam:sc.cam,hint:sc.hintT,party:sc.party,grace:sc.grace};
+    try{sc.grace=0;sc.party=[41.7,42.95,44.2].map(x=>new Walker(x-.5,29.25-27/32,'right'));G.W=360;G.H=height*360/width;sc.cam={x:Math.round(cx*TS-180)+180,y:Math.round(cy*TS-G.H/2)+G.H/2};sc.hintT=0;
       ctx.scale(width/360,width/360);sc.render(ctx);return canvas.toDataURL();
-    }finally{G.W=old.w;G.H=old.h;sc.cam=old.cam;sc.hintT=old.hint;sc.party=old.party;}
+    }finally{G.W=old.w;G.H=old.h;sc.cam=old.cam;sc.hintT=old.hint;sc.party=old.party;sc.grace=old.grace;}
+  },
+  heiwadaiLife(time){
+    if(arguments.length)HeiwadaiLife.clock=time;
+    const sc=G.scene,world=this.world(),r=G.canvas.getBoundingClientRect();return {...HeiwadaiLife.state(),night:DayTint.isNight(),cache:SvgCache.map.size,sceneryCache:[...SvgCache.map.keys()].filter(k=>/^(w:heiwadai_|heiwadai-life:|heiwadai-ground:)/.test(k)).length,sceneryLimit:HeiwadaiArt.entries.length+Object.keys(HEIWADAI_LAYOUT_DATA.patterns).length+3,npcs:sc?.mapId==='heiwadai'?sc.npcs.map(n=>({id:n.id,name:n.name,x:n.w.x,y:n.w.y,sp:n.sp,outfit:n.outfit,cx:r.left+((n.w.x+.5+(n.artOffset?.[0]||0))*TS-sc.cam.x+G.W/2)*G.cssPerUnit,cy:r.top+((n.w.y+.5+(n.artOffset?.[1]||0))*TS-sc.cam.y+G.H/2)*G.cssPerUnit})):[],...world};
   },
   heiwadaiState(){
     const m=Maps.get('heiwadai');return {size:[m.w,m.h],doors:m.doors.map(d=>({id:d.b.id,x:d.x,y:d.y,act:d.b.act})),safe:m.def.safeSpawn,aliases:m.def.idAliases};
@@ -356,6 +361,7 @@ const PokaDebug = {
     out.score = sc.stamp?.score ?? null;
     if (!t) return out;
     out.buttons = t.btns.filter((b) => !b.disabled).map((b) => ({ label: b.label || "", ...css(b.x + b.w / 2, b.y + b.h / 2) }));
+    if(sc.shopId==='cake')out.order={step:t.steps[t.step],want:{...t.want},made:{...t.made},labels:{base:CAKE_BASES.find(x=>x.id===t.want.base).name,cream:CAKE_CREAMS.find(x=>x.id===t.want.cream).name,fruit:CAKE_FRUITS.find(x=>x.id===t.want.fruit).name,count:t.want.count+'こ',candles:t.want.candles+'ほん'}};
     if (sc.shopId === "crepe") out.order = { want: t.want.map((id) => CREPE_TOPS.find((x) => x.id === id).name) };
     if (sc.shopId === "florist") out.order = { step: t.step, want: Object.entries(t.want).map(([k, n]) => ({ name: FLOWER_KINDS.find((f) => f.id === k).name, n })), ribbon: RIBBONS.find((r) => r.id === t.ribbon).name + "の リボン" };
     if (sc.shopId === "bakery") {

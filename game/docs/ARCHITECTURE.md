@@ -553,7 +553,7 @@ class NewTask extends TaskBase {
 
 ### 新しいお店（おてつだいミニゲーム）を足す
 
-1. `minigames.js` に `class XxxTask extends TaskBase`（§12 の約束どおり）、`MG_TASKS.xxx = XxxTask`。
+1. `js/mg-xxx.js` を作り index.html / sw.js の minigames.js の後に登録。`class XxxTask extends TaskBase`（§12 の約束どおり）、`MG_TASKS.xxx = XxxTask`。
 2. `SHOP_OWNERS.xxx`（店主の見た目）と `HOWTO.xxx`（はじめての説明3行ほど）。
 3. `data.js` の `SHOPS.xxx = { name, color, desc, perk }`。
 4. `save.js` の `Save.fresh().shops.xxx = { lv: 1, rep: 0, best: 0, plays: 0 }`（古いセーブには migrate が補う）。
@@ -657,8 +657,18 @@ TOWN-03で `heiwadai-assets-ab.js` を追加し、107種類・236パターンを
 ### 平和台の見本配置
 `heiwadai-layout-data.js` は `tools/build-heiwadai-layout.mjs` で見本JSONと描画コードから生成する。地面のSVGをPath2D・Canvas模様へ変換し、世界座標でチャンクに描く。建物・小物は元SVGの足もと原点を保持し、屋根・旗・電線を最後に重ねる。`heiwadai-town.js` が旧ID・入口・交通・祭り・宝箱を接続する。`PokaDebug.heiwadaiView` は比較画像用に一時カメラと3人の見本位置で描画し、実際の状態は戻す。
 
+`heiwadai-life.js` は8人の住民・5人の通行人、信号・電車・噴水・旗・ブランコと夜の光を担当する。ブランコだけ元SVGの座席と鎖を2組に分離し、支柱を含む3枚の有限キャッシュを回転して描く。住民は移動判定用の整数座標と描画用の小数オフセットを分ける。`PokaDebug.heiwadaiLife(time)` は検証時刻を固定でき、nullで実時間へ戻す。
+
+## ver2: お店ごとのファイル
+
+`minigames.js` は共通の絵・店主・ShopScene・ボタン・TaskBase・空の MG_TASKS を定義。その後の `mg-crepe.js` / `mg-dentist.js` / `mg-bakery.js` / `mg-florist.js` が元と同じクラスを定義し、それぞれ MG_TASKS に登録する。これらの後に world-expansion.js / arcade.js を読み込む。採点・注文・セーブの意味は変更しない。
+
 ## ver2: セーブのバックアップ
 
 `save-backup.js` は設定メニューの前に読み込む。SaveBackup.encode/decode がゲーム識別子・書式1のJSONを扱い、既知の型・部屋・所持数・3人・中断盤面を検証してからコピーへ Save.migrate を適用する。未知の追加項目も保持する。確認後の install は localStorage へ書き込み、同じ文字列を読み戻せたときだけ Save.d を置き換える。失敗時は元の保存文字列を戻す。読み込みはおうち・町・タイトルのみ。KEY と SCHEMA は変更しない。
 
 PokaDebug.backupText / backupDecode はテストで同じ処理を使う入口。`tools/check-save-backup.mjs` が旧セーブ・未知の追加項目・不正入力・容量不足を検査し、smoke はダウンロード→はじめから→キャンセル→ファイル復元をスマホ2サイズで検証する。
+
+## ver2: ケーキ屋
+
+`mg-cake.js` の CakeTask は TaskBase を継承。want/made の土台・クリーム・果物・個数・ろうそくを比較し、Lv1は果物、Lv2は土台とクリーム、Lv3以降はろうそくも選択する。Lv3〜5は注文が7/5/3.5秒で隠れ、再表示は既存の8点減点。CakeTaskの描画はCanvasと有限の果物アイコンのみ。店は町(10,32)の南向き入口から既存のStoreSceneへ入る。Save.shops.cake は追加項目で、旧所持金や既存の店記録は変えない。PokaDebug.mg().order に段階・注文・選択肢の名前を返す。

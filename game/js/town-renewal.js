@@ -3,6 +3,7 @@ const TownRenewal = (() => {
   const ids=["town","city","harbor","airport"], originals={};
   const common=["bench","planter","bicycles","postbox","recycle","bollard","newsbox","phone","hydrant","direction","streetclock"];
   const frontages={
+    town_cakery:["chalkboard","town_cakes","town_milk","planter"],
     city_puzzle:["city_billboard","city_screen","planter","city_bikerack"],city_deliveryhall:["city_delivery","city_kiosk","postbox","recycle"],
     town_home:["postbox","town_milk","planter","town_pinwheel"],town_tailor:["chalkboard","town_yarn","town_yarn","planter"],town_workshop:["chalkboard","town_watering","planter","postbox"],
     town_parlor:["chalkboard","table","town_milk","planter"],town_clinic:["phone","recycle","planter","bicycles"],town_bakery:["chalkboard","town_breadrack","town_milk","town_breadrack"],
@@ -89,6 +90,7 @@ const TownRenewal = (() => {
     b.road("garden-lane",[1,11],[1,39],2,0);
     b.building("home",3,4,6,4,"town_home");b.building("clothes",12,4,5,4,"town_tailor");b.building("furniture",21,4,6,4,"town_workshop");b.building("town_station",37,4,10,4,"town_station");
     b.building("crepe",3,18,6,4,"town_parlor");b.building("dentist",18,18,9,4,"town_clinic");b.building("florist",37,18,9,4,"town_greenhouse");
+    b.building("cake",10,32,6,4,"town_cakery",{label:"ケーキやさん",sign:"cake",act:{type:"work",shop:"cake"}});
     b.building("bakery",3,32,6,4,"town_bakery");b.building("market",17,32,10,4,"town_bazaar");
     b.rect(10,15,8,8,"p");b.rect(40,29,7,8,"-");
     b.prop("fountain",12,17,{id:"town_fountain",w:3,h:2,ground:"plaza",text:"しゅわーっ！ ふんすいに にじが みえる！"});
