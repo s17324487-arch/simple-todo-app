@@ -76,7 +76,7 @@ class StoreScene {
       // ③ みなとの マルシェでは りっぱな つりざおも かえる
       const pro=typeof Fishing!=="undefined"&&Fishing.proChoice(this);
       const choices=[...(retail?["かいものを する"]:[]),...(pro?[pro]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
-      const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${Save.d.shops[this.shopId].lv}`;
+      const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${ShopRewards.level(Save.d.shops[this.shopId])}`;
       const answer=await UI.ask(`${this.owner.name}\n${text}`,choices),picked=choices[answer];
       if(this.closed)return;
       if(retail&&picked==="かいものを する"){await ShopUI.open(this.shopId);Save.write();}
