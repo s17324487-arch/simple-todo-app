@@ -10,7 +10,7 @@ Claude Code が 見本を 作り、Codex が それを ゲームに 入れる（
 | ③ | 釣り（釣りざお・魚 50種・図鑑） | [`fishing/`](fishing/) | `img/fishing-flow.png`・`img/small-phone.png`・`img/fish-sheet-1〜3.png` | [`FISH_LIST.md`](fishing/FISH_LIST.md)・`fishing-data.js` | [`CODEX_TASK.md`](fishing/CODEX_TASK.md) | 3 |
 | ④ | 化石ほり（ピッケル・恐竜 10種の 骨 63こ） | [`fossils/`](fossils/) | `img/dig-flow.png`・`img/small-phone.png`・`img/dino-sheet.png`・`img/bone-sheet-1〜2.png` | [`FOSSIL_LIST.md`](fossils/FOSSIL_LIST.md)・`fossil-data.js` | [`CODEX_TASK.md`](fossils/CODEX_TASK.md) | 3 |
 | ⑤ | 水族館と 恐竜博物館（寄贈で 展示が ふえる・順路の ある 館内） | [`museum/`](museum/) | `img/aquarium-plan.png`・`img/museum-plan.png`・`img/phones.png`・`img/outside.png`・`img/small-phone.png` | [`MUSEUM_LIST.md`](museum/MUSEUM_LIST.md)・`museum-data.js` | [`CODEX_TASK.md`](museum/CODEX_TASK.md) | 3 |
-| ⑥ | 射撃場（エアガン 9種・主観の 的あて・1人が うって 2人が おうえん） | [`range/`](range/) | `img/range-flow.png`・`img/gun-sheet.png`・`img/small-phone.png` | [`GUN_LIST.md`](range/GUN_LIST.md)・`range-data.js` | [`CODEX_TASK.md`](range/CODEX_TASK.md) | 3 |
+| ⑥ | 射撃場（本格 エアソフトガン 9種・BB弾の 弾道・実際の 競技 6しゅもく・1人が 主観で うって 2人が おうえん） | [`range/`](range/) | `img/range-flow.png`・`img/gun-sheet.png`・`img/ballistics.png`・`img/small-phone.png` | [`GUN_LIST.md`](range/GUN_LIST.md)・`range-data.js` | [`CODEX_TASK.md`](range/CODEX_TASK.md) | 3 |
 
 見本を 作る 道具は [`../../../tools/feature-design/`](../../../tools/feature-design/)。作り直すときは `npm run design:features`（画像なしなら `-- --no-mock`）。
 
@@ -21,7 +21,7 @@ Claude Code が 見本を 作り、Codex が それを ゲームに 入れる（
 3. ③ の 1番（魚の データ・絵・ずかん）→ 2番（釣りの 画面）→ 3番（いけす・うる・つなぎ）
 4. ④ の 1番（骨の データ・絵・ノート）→ 2番（ほる）→ 3番（つなぎ）
 5. ⑤ の 1番（町の 建物と 館の 中）→ 2番（寄贈）→ 3番（しらべる と つなぎ）。**③④ の 1番が 入って から**
-6. ⑥ の 1番（絵と 町の 建物と ロビー）→ 2番（あそぶ 画面）→ 3番（おうえんと つなぎ）
+6. ⑥ の 1番（絵と 町の 建物と ロビー）→ 2番（あそぶ 画面）→ 3番（RO の 号令・おうえん・つなぎ）。⑥ だけは オーナーの 指示で AGENTS.md の 9（ほのぼの）を はずして いる（`range/CODEX_TASK.md` の さいしょ）
 
 平和台 v0.2（[`../towns/heiwadai/CODEX_TASK.md`](../towns/heiwadai/CODEX_TASK.md)）と 同時に すすめて よい。ただし 1つの PR に まぜない。
 
@@ -95,11 +95,12 @@ PR には 390×844 と 375×667 のスクリーンショットを付け、img/ph
 ### ⑥ の 依頼文（そのまま はる）
 
 ```text
-射撃場（エアガン9種・主観の的あて）を、デザイン見本のとおりに作ってください。
+射撃場（本格エアソフトガン9種・主観の射撃競技6種目）を、デザイン見本のとおりに作ってください。
+⑥だけは私の指示で AGENTS.md の9番（ほのぼの・こわくない）をはずし、実際のエアソフトガンと射撃競技に近い、ゲーム性の高いものにします。
 手順・互換・完了の条件は game/docs/design/features/range/CODEX_TASK.md にあります。
-AGENTS.md → CODEX_TASK.md（とくに「ほのぼのを まもる きまり」）→ GUN_LIST.md → game/tools/feature-design/gun-art-ref.js → range-ref.js の順に読み、
+AGENTS.md → CODEX_TASK.md（とくに「⑥ だけの きまり」）→ GUN_LIST.md → game/tools/feature-design/gun-art-ref.js → range-ref.js の順に読み、
 CODEX_TASK.md の「PR の分けかた」の 1番だけを、1つの PR にしてください。
-じゅうの絵は gun-art-ref.js（GunArtRef）を、しくみと画面は range-ref.js（RangeRef）をそのまま移し、データ（range-data.js）は手で直さずにそのままコピーすること。
+じゅうの絵は gun-art-ref.js（GunArtRef）を、弾道・しくみ・画面は range-ref.js（RangeRef）をそのまま移し、データ（range-data.js）は手で直さずにそのままコピーすること。弾道は GUN_LIST.md の表と同じ数になることをテストで確かめること。
 PR には 390×844 と 375×667 のスクリーンショットを付け、img/range-flow.png・img/gun-sheet.png の同じ場面と並べてください。
 終わったら、次の番号に進んでよいか私に聞いてください。
 ```

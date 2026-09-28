@@ -1,7 +1,7 @@
 // ⑥ エアガン 9しゅの 絵（見本の 実装・classic script）。右がわから 見た すがた（じゅうこうが ひだり）。
 // 実物の 長さ・高さ（mm）の 比の まま 描く（range-data.mjs の len / h・出典は GUN_LIST.md）。刻印・ロゴは 描かない。
-// じゅうこうの さきは オレンジ（おもちゃの しるし）。
-//   GunArtRef.svg(gun, { px, uid }) → SVG 文字列（viewBox は mm。px = 1mm が 何 px に なるか。線の 太さを そろえる）
+// じゅうこうの さきの オレンジは ふだんは 描かない（日本の エアソフトガンには ない）。{ tip: true } で 描く（アメリカの おもちゃの しるし）。
+//   GunArtRef.svg(gun, { px, uid, tip }) → SVG 文字列（viewBox は mm。px = 1mm が 何 px に なるか。線の 太さを そろえる）
 //   GunArtRef.parts(gun) → { grip: [x, y], fore: [x, y] | null, muzzle: [x, y], w, h }（手を そえる 場所。主観の 画面で つかう）
 const GunArtRef = (() => {
   const INK = "#1F1D1B";
@@ -12,7 +12,7 @@ const GunArtRef = (() => {
     fde: "#BCA37C", fde2: "#9A8360", blue: "#5AA0D8", blue2: "#3C7DB6", silver: "#DCE2EA", orange: "#F29A1F", rubber: "#2A2D33", glass: "#9ED8F4", red: "#E35D5B",
   };
   // k = 1px が 何 mm か（線の 太さ）
-  function kit(k) {
+  function kit(k, tipOn) {
     const sw = (w) => r1(w * k * 10) / 10;
     const st = (w = 1.7) => `stroke="${INK}" stroke-width="${sw(w)}" stroke-linejoin="round" stroke-linecap="round"`;
     const P = (d, fill, w = 1.7) => `<path d="${d}" fill="${fill}" ${st(w)}/>`;
@@ -27,7 +27,7 @@ const GunArtRef = (() => {
     const dots = (pts, step, col = "#FFFFFF") => { let s = ""; const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]); const inside = (x, y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; }; for (let y = Math.min(...ys) + step; y < Math.max(...ys); y += step) for (let x = Math.min(...xs) + step; x < Math.max(...xs); x += step) { const xx = x + ((Math.round(y / step) % 2) * step) / 2; if (inside(xx, y)) s += `<circle cx="${r1(xx)}" cy="${r1(y)}" r="${r1(step * 0.18)}" fill="${col}" opacity="0.18"/>`; } return s; };
     // あみめ（きの グリップの チェッカリング）
     const checker = (pts, step, col = "#5E3F22") => { const id = "ck" + Math.round(pts[0][0] * 7 + pts[0][1] * 13); const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]); const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys); let d = ""; for (let t = -(y1 - y0); t < x1 - x0; t += step) d += `M${r1(x0 + t)},${r1(y0)} L${r1(x0 + t + (y1 - y0))},${r1(y1)} M${r1(x0 + t + (y1 - y0))},${r1(y0)} L${r1(x0 + t)},${r1(y1)} `; return { id, s: `<clipPath id="${id}"><path d="M${pts.map((p) => p.map(r1).join(",")).join(" L")} Z"/></clipPath><g clip-path="url(#${id})">${L(d, col, 0.6, 0.55)}</g>` }; };
-    const tip = (x, y, w, h) => R(x, y, w, h, COL.orange, Math.min(w, h) * 0.3, 1.2);
+    const tip = (x, y, w, h) => (tipOn ? R(x, y, w, h, COL.orange, Math.min(w, h) * 0.3, 1.2) : "");
     // スコープ（まえの レンズ・つつ・うしろの レンズ・つまみ・マウント）
     const scope = (x0, x1, cy, big, mounts, bot) => {
       const ob = big * 1.0, tb = big * 0.55, oc = big * 0.8, l = x1 - x0;
@@ -292,7 +292,7 @@ const GunArtRef = (() => {
     bolt: { grip: [860, 110], fore: [480, 74], muzzle: [0, 46] }, heavy: { grip: [912, 140], fore: [520, 80], muzzle: [0, 48] }, semi: { grip: [730, 130], fore: [330, 60], muzzle: [0, 43] },
   };
   function svg(gun, o = {}) {
-    const b = BOX[gun.id], px = o.px || (gun.cat === "hand" ? 1.2 : 0.34), K = kit(1 / px);
+    const b = BOX[gun.id], px = o.px || (gun.cat === "hand" ? 1.2 : 0.34), K = kit(1 / px, !!o.tip);
     const body = DRAW[gun.id](K).replace(/id="ck/g, `id="ck${o.uid || ""}`).replace(/url\(#ck/g, `url(#ck${o.uid || ""}`);
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.join(" ")}" width="${r1(b[2] * px)}" height="${r1(b[3] * px)}">${body}</svg>`;
   }
