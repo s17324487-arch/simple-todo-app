@@ -147,7 +147,7 @@ folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
 ## 8. PR の 分けかた
 
 1. ✅ **町の人の セリフ**（済み: Claude Code。下の「実装メモ」）: `js/townsfolk-data.js`（index.html と sw.js の 両方。`talk.js`・`world-expansion.js`・`town-design.js` より あと）と `js/townsfolk.js` の セリフ・ひとこと 部分。`Talk.run` の 3・5。
-2. **おねがいの しくみ**: `Save.folk`・offer／answer／signal・`UI.ask` の 顔・ノート・しるし・PokaDebug・スモーク。まずは かいもの・でんごん・とどけもの・なぞなぞ・わらしべ。
+2. ✅ **おねがいの しくみ**（済み: Claude Code。下の「実装メモ」）: `Save.folk`・offer／answer／signal・`UI.ask` の 顔・ノート・しるし・PokaDebug・スモーク。まずは かいもの・でんごん・とどけもの・なぞなぞ・わらしべ。
 3. **さがす・さわる・つれていく・しゃしん・物々交換**: 小物の 絵・こねこ・しゃしんボタン・交換カード。
    （釣り・化石の おねがいは、③④ が できると 自動で 出る。）
 
@@ -161,6 +161,15 @@ folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
 - `Talk.run`: はじめての 会話と ボスの あとの `t.boss` は いまの まま。それ いがいは 3わり ヒント（`TALKS[npc].lines`）・7わり `TownFolk.line(n)`。会話まどの 名前は `TownFolk.name(n)`（町の なかまは `crowdNames`）。ひとことは 35% で `TownFolk.react(n)`。
 - テストの 入口: `PokaDebug.folkTalk(id)`（その人の となりへ 行って 話しかける。会話は テストの がわで すすめる）・`folkLast()`（さいごの `{ npc, line, react }`）・`folkLine(id)`。2番の `folk()`・`folkOffer()`・`folkSignal()`・`folkSpots()` は まだ。
 - 村長は はじめて 話すと プレゼントを くれる（いまの `TALKS.mayor.gift`）。テストで おかねを くらべる ときは その あとから。
+- 2番: `TownFolk` に offer／answer／signal／match／targets／rewards／bondOf（見本と 同じ 計算）と、会話・ノート・ボタンを 足した。絵は `js/townsfolk-art.js`（`TownFolkArt` を そのまま）。CSS は `folk-ui.css` を `css/style.css` の さいごに（「やめる」は 44px に した）。
+- いま すすめられる 手順は `TownFolk.STEPS`（buy・give・talk・quiz・trade）。**3番で find・tap・follow・photo を 足す**と、さがしもの・まいご・おそうじ・しゃしんの おねがいも 出る（catch・dig は ③④ が できると `needs` で 出る）。
+- `Talk.run` の 順番: はじめての あいさつ → プレゼント → `TownFolk.talked`（でんごん・わたす・わらしべ・なぞなぞの やりなおし・おわり）→ すすまなかった ときだけ ふつうの セリフ と `TownFolk.propose`（もちかける）→ 3人の ひとこと。はじめて 話した ときは もちかけない。
+- でんごんを つたえる 子は 3人の うち なかよし（`chars[id].bond`）が いちばん 高い 子。「〇〇さん！ 〈say〉！」→ あいては「わかった！ おしえて くれて ありがとう♪」。
+- おわると doneBy の 人の おれい → `Loot.give` → なかよし → トースト。家具・服・もちものは どこで つかうかも 会話まどで つたえる。
+- ノートを ひらく ときに `signal({do:"have"})` で かって ある ものを 数えなおす（お店や `Loot.give` には まだ 足して いない）。
+- 右上の ボタンは `TownFolk.mount(sc)`〜`unmount()` の あいだだけ 出す。`mount` は `WorldScene.enter` の 中（`G.scene` が かわる まえ）で よばれるので、`G.scene === sc` で きめない（お店・おうちから もどった ときに ボタンが 出なく なる）。
+- テストで おなじ 人に 2回 話すと、2回めは 何も すすまないので たまに べつの おねがいが 出る（10〜20%）。すすめる ための 会話は 1回に する（はじめての あいさつの あとでも すすむ）。
+- テストの 入口: `folk()`・`folkOffer(id)`（つぎに その人と 話すと かならず もちかける）・`folkSignal(sig)`（会話は またない）・`folkMarks()`（いまの マップの しるし）。`folkSpots()` は 3番。
 
 ## 9. やらないこと
 

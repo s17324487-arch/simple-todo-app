@@ -968,7 +968,9 @@ function checkHomeBubbles(s) {
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('townsfolk-lines-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','clear');
   const talk=async(id)=>{expect(await H.dbg('folkTalk',id),id+' に 話しかけられない');await H.wait(350);return H.dbg('folkLast');};
-  for(const id of ['mayor','town_walker0']){await talk(id);await H.dialogs();await H.idle();} // はじめては いまの あいさつ（村長の プレゼントも いまの まま）
+  // 会話を おえる（おねがいを もちかけられたら うける。村長は ev-msg-poster を もって いる）
+  const end=async()=>{for(let i=0;i<4;i++){await H.dialogs();if(!await H.page.$('.choices .btn'))break;await H.choose(0);}await H.idle();};
+  for(const id of ['mayor','town_walker0']){await talk(id);await end();} // はじめては いまの あいさつ（村長の プレゼントも いまの まま）
   const before=await H.dbg('saveData');
   let data=0,shot=false;
   for(let i=0;i<12;i++){
@@ -976,17 +978,79 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
     if(last.line){data++;const l=await H.dbg('folkLine',last.line),w=l.when||{};expect(l.npc==='mayor','村長で ない セリフ: '+l.text);
       expect(!w.time||w.time.includes('morning'),'あさ なのに ほかの 時間の セリフ: '+l.text);expect(!w.weather||w.weather.includes('clear'),'はれ なのに ほかの 天気の セリフ: '+l.text);expect(!w.bond,'なかよしの セリフが まだ 出る: '+l.text);
       if(!shot){shot=true;await H.wait(1200);await H.shot('mayor');}}
-    await H.dialogs();await H.idle();
+    await end();
     const r=(await H.dbg('folkLast')).react;if(r){const x=await H.dbg('folkLine',r);expect(x&&['wanko','gachan','goji'].includes(x.who)&&(!x.when.person||x.when.person.includes('mayor')),'3人の ひとことが 不正');}
   }
   expect(data>=5,'町の人の セリフが データから 出ない（'+data+'/12）');
   // 町の なかま（town_walker0）: 会話まどの 名前は 役の 名前、セリフは 役の もの
-  await talk('town_walker0');expect((await H.page.locator('.dlg-name').first().textContent())==='おさんぽの なかま','町の なかまの 名前が ちがう');await H.dialogs();await H.idle();
+  await talk('town_walker0');expect((await H.page.locator('.dlg-name').first().textContent())==='おさんぽの なかま','町の なかまの 名前が ちがう');await end();
   if((await H.dbg('folkLast')).line)expect((await H.dbg('folkLine',(await H.dbg('folkLast')).line)).npc==='town_walker','町の なかまが 役の セリフを つかわない');
-  let crowd=0;for(let i=0;i<6;i++){const last=await talk('town_walker0');if(last.line){crowd++;expect((await H.dbg('folkLine',last.line)).npc==='town_walker','町の なかまが 役の セリフを つかわない');if(crowd===1){await H.wait(1200);await H.shot('crowd');}}await H.dialogs();await H.idle();}
+  let crowd=0;for(let i=0;i<6;i++){const last=await talk('town_walker0');if(last.line){crowd++;expect((await H.dbg('folkLine',last.line)).npc==='town_walker','町の なかまが 役の セリフを つかわない');if(crowd===1){await H.wait(1200);await H.shot('crowd');}}await end();}
   expect(crowd>=2,'町の なかまの セリフが 出ない');
   const after=await H.dbg('saveData');for(const k of ['coins','bag','wardrobe','furn','rooms'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'会話で セーブが 変わる: '+k);
 },{viewport,full:viewport.width===375,timeout:150000});
+
+// ② 町の人の おねがい: もちかける → うける → ノート → かって わたす → ごほうび・なかよし／ことわると ！
+async function folkTalk(H,id,{greet=true}={}){expect(await H.dbg('folkTalk',id),id+' に 話しかけられない');await H.wait(300);if(greet){await H.dialogs();await H.idle();expect(await H.dbg('folkTalk',id),id+' に もう一度 話しかけられない');await H.wait(300);}}
+async function folkAnswer(H,i){await H.dialogs();await H.page.waitForSelector('.choices .btn',{timeout:8000});await H.choose(i);await H.wait(250);}
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('folk-requests-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
+  // かいもの: ひつじの メェ「ぎゅうにゅうを かって きて」
+  await H.dbg('folkOffer','ev-milk');await folkTalk(H,'sheep');await folkAnswer(H,0);await H.dialogs();await H.idle();
+  let f=await H.dbg('folk');expect(f.req.length===1&&f.req[0].id==='ev-milk','おねがいを うけられない');
+  // ことわる: ペンギンの ペン → ！ → つぎに 話すと もう一度
+  await H.dbg('folkOffer','ev-bread3');await folkTalk(H,'penguin');await folkAnswer(H,1);await H.dialogs();await H.idle();
+  expect((await H.dbg('folkMarks')).penguin==='offer','ことわった おねがいの ！ が 出ない');
+  expect(await H.dbg('folkTalk','penguin'),'ペンに 話しかけられない');await folkAnswer(H,0);await H.dialogs();await H.idle();
+  f=await H.dbg('folk');expect(f.req.map(r=>r.id).sort().join()==='ev-bread3,ev-milk','ことわった おねがいを もう一度 うけられない');
+  // ノート: 2つの カード・画面の 中・ボタンは 44px いじょう
+  await H.page.locator('.folk-note-btn').click();await H.wait(400);
+  const note=await H.eval(()=>{const r=e=>e.getBoundingClientRect();const cards=[...document.querySelectorAll('.folk-card')];return {n:cards.length,inside:cards.every(c=>{const b=r(c);return b.left>=0&&b.right<=innerWidth+1;}),quit:[...document.querySelectorAll('.folk-quit')].every(b=>r(b).height>=43.5),btn:r(document.querySelector('.folk-note-btn')).height>=43.5,text:document.querySelector('.panel').innerText};});
+  expect(note.n===2&&note.inside&&note.quit&&note.btn,'ノートの 表示が 不正 '+JSON.stringify({n:note.n,inside:note.inside,quit:note.quit,btn:note.btn}));
+  expect(/ぎゅうにゅう/.test(note.text)&&/メロンパン/.test(note.text),'ノートに おねがいが 出ない');
+  await H.shot('note');await H.page.getByRole('button',{name:'とじる',exact:true}).click();await H.wait(300);
+  // かって わたす → コイン +80・なかよし +2・おわり
+  const coins=(await H.dbg('state')).coins;await H.dbg('give','milk',1);
+  expect(await H.dbg('folkTalk','sheep'),'メェに 話しかけられない');await H.wait(400);await H.shot('done');await H.dialogs();await H.idle();
+  f=await H.dbg('folk');expect(f.done['ev-milk']&&f.bond.sheep===2&&!f.req.some(r=>r.id==='ev-milk'),'おねがいが おわらない');
+  expect((await H.dbg('state')).coins===coins+80,'おねがいの コインが もらえない');
+  expect(((await H.dbg('saveData')).bag.milk||0)===0,'わたした ぎゅうにゅうが へらない');
+  // セーブして 再開しても のこる
+  await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+  f=await H.dbg('folk');expect(f.req.length===1&&f.req[0].id==='ev-bread3'&&f.done['ev-milk']&&f.bond.sheep===2,'おねがいが セーブに のこらない');
+  // 町に もどった ときも 右上の ボタンが 出る（数は 1）
+  await H.until(()=>document.querySelector('.folk-note-btn b')?.textContent==='1',5000).catch(()=>{});
+  expect(await H.eval(()=>document.querySelector('.folk-note-btn b')?.textContent==='1'),'町に もどると おねがい ボタンが 出ない');
+},{viewport,full:viewport.width===375,timeout:150000});
+
+// ② でんごん・なぞなぞ・わらしべ（とどける もちものを つぎの 人へ）
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('folk-chain-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');let coins=(await H.dbg('state')).coins;
+  // でんごん: ミケ → ミミ → ミケ
+  await H.dbg('folkOffer','ev-msg-flower');await folkTalk(H,'cat');await folkAnswer(H,0);await H.dialogs();await H.idle();
+  expect((await H.dbg('folkMarks')).rabbit==='target','でんごんの あいてに ▼ が 出ない');
+  // ミミとは はじめて なので、あいさつの あとに そのまま でんごん
+  await folkTalk(H,'rabbit',{greet:false});for(let i=0;i<6&&!(await H.dbg('folkLast')).relay;i++){await H.dialogs(1);await H.wait(200);}
+  await H.wait(900);await H.shot('relay');await H.dialogs();await H.idle();const relay=(await H.dbg('folkLast')).relay||'';
+  await folkTalk(H,'cat',{greet:false});await H.dialogs();await H.idle();
+  let f=await H.dbg('folk');expect(f.done['ev-msg-flower']&&f.bond.cat===2&&f.bond.rabbit===2,'でんごんが おわらない');
+  expect((await H.dbg('state')).coins===coins+60,'でんごんの コインが ちがう');coins+=60;
+  // なぞなぞ: 3もん ぜんぶ あたり
+  await H.dbg('folkOffer','ev-quiz');await folkTalk(H,'mouse');await folkAnswer(H,0);
+  for(const ans of [0,1,0])await folkAnswer(H,ans);
+  await H.dialogs();await H.idle();f=await H.dbg('folk');expect(f.done['ev-quiz']&&(await H.dbg('state')).coins===coins+80,'なぞなぞが おわらない');coins+=80;
+  // わらしべ: たびの ひつじ → ミミ → ブー → そんちょう → たびの ひつじ（はとどけい ＋ 200）
+  const clocks=(await H.dbg('saveData')).furn.clock||0;
+  await H.dbg('folkOffer','ev-warashibe');await folkTalk(H,'traveler');await folkAnswer(H,0);await H.dialogs();await H.idle();
+  expect((await H.dbg('folk')).req.find(r=>r.id==='ev-warashibe').carry==='straw','わらしべを もらえない');
+  // こうかんは はじめての あいさつの あとでも すすむので 1回だけ 話す（2回めは 何も すすまず、たまに べつの おねがいが 出る）
+  for(const [id,carry] of [['rabbit','seeds'],['pig','bigcorn'],['mayor','cuckoo']]){await folkTalk(H,id,{greet:false});await H.dialogs();await H.idle();expect((await H.dbg('folk')).req.find(r=>r.id==='ev-warashibe').carry===carry,'わらしべの こうかんが すすまない: '+id);}
+  coins=(await H.dbg('state')).coins; // そんちょうは はじめて 話すと プレゼント（いまの まま）
+  await folkTalk(H,'traveler',{greet:false});await H.dialogs();await H.idle();
+  f=await H.dbg('folk');expect(f.done['ev-warashibe']==='once','わらしべが おわらない');
+  expect(((await H.dbg('saveData')).furn.clock||0)===clocks+1&&(await H.dbg('state')).coins===coins+200,'わらしべの ごほうび（はとどけい・200）が ちがう');
+  expect(/ミミさん/.test(relay),'でんごんを つたえる ことばが 出ない: '+relay);
+},{viewport,full:viewport.width===375,timeout:180000});
 
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{

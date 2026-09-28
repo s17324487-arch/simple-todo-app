@@ -372,3 +372,34 @@ html, body {
 .daily-stamp { border:2px dashed #C9BCA7; border-radius:50%; aspect-ratio:1; display:grid; place-items:center; font-size:22px; color:#AFA490; }
 .daily-stamp.stamped { border:3px solid #AF7744; color:#AF7744; background:#FFF0AD; transform:rotate(-8deg); }
 .daily-featured { padding:16px; border:3px solid var(--ink); border-radius:14px; background:#DFEFD0; font-size:20px; font-weight:900; text-align:center; }
+
+/* ② 町の人: おねがい・物々交換の 画面（見本 tools/feature-design/folk-ui.css。「やめる」は 指で おせる 44px に した） */
+.folk-note-btn { position: absolute; top: calc(60px + var(--safe-t)); right: 10px; min-height: 44px; padding: 4px 10px 4px 6px; display: flex; align-items: center; gap: 4px; font-size: 12px; background: #FFF4C2; }
+.folk-note-btn svg { width: 30px; height: 30px; }
+.folk-note-btn b { min-width: 20px; height: 20px; border-radius: 10px; background: #E35D5B; color: #FFF; border: 2px solid var(--ink); display: grid; place-items: center; font-size: 12px; line-height: 1; }
+/* こうかんの カード（UI.ask の 文の 下に 出す） */
+.folk-trade { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 8px 0 0; padding: 6px 8px; background: #FFF7E0; border: 2.5px dashed #D9B64A; border-radius: 14px; }
+.folk-trade .folk-it { position: relative; width: 52px; height: 52px; display: grid; place-items: center; background: var(--paper); border: 2.5px solid var(--ink); border-radius: 12px; }
+.folk-trade .folk-it svg { width: 42px; height: 42px; }
+.folk-trade .folk-it i { position: absolute; right: -8px; bottom: -8px; font-style: normal; font-weight: 800; font-size: 13px; background: var(--yellow); border: 2px solid var(--ink); border-radius: 9px; padding: 0 5px; }
+.folk-trade .folk-arrow { font-weight: 900; font-size: 20px; }
+.folk-trade .folk-lbl { font-size: 11px; font-weight: 800; text-align: center; margin-top: 2px; }
+/* おねがい ノート（UI.modal の 中身） */
+.folk-list { display: flex; flex-direction: column; gap: 10px; }
+.folk-card { display: grid; grid-template-columns: 56px 1fr; gap: 8px; align-items: start; padding: 8px 10px; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 3px 0 var(--ink); }
+.folk-card .folk-face { width: 56px; height: 56px; border-radius: 14px; background: var(--blue-l); border: 2.5px solid var(--ink); overflow: hidden; }
+.folk-card .folk-face svg { width: 100%; height: auto; transform: translateY(-4%) scale(1.25); transform-origin: 50% 20%; }
+.folk-card .folk-ttl { font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+.folk-card .folk-who { font-size: 11px; font-weight: 800; color: #8a7d6a; }
+.folk-card .folk-hint { font-size: 13px; font-weight: 700; margin-top: 3px; line-height: 1.45; }
+.folk-card .folk-prog { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 12px; font-weight: 800; }
+.folk-card .folk-bar { flex: 1; height: 10px; border: 2px solid var(--ink); border-radius: 6px; background: #FFF; overflow: hidden; }
+.folk-card .folk-bar i { display: block; height: 100%; background: #8BCB6B; }
+.folk-card .folk-carry { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 800; background: #FFF7E0; border: 2px solid var(--ink); border-radius: 10px; padding: 0 6px 0 2px; margin-top: 5px; }
+.folk-card .folk-carry svg { width: 22px; height: 22px; }
+.folk-card .folk-row { display: flex; justify-content: space-between; align-items: end; gap: 6px; }
+.folk-card .folk-quit { min-height: 44px; font-size: 12px; padding: 4px 12px; }
+.folk-empty { text-align: center; padding: 18px 8px; font-weight: 700; color: #8a7d6a; }
+/* おわった ときの ごほうび（UI.toast の 中身） */
+.toast .folk-reward { display: inline-flex; align-items: center; gap: 6px; }
+.toast .folk-reward svg { width: 24px; height: 24px; }

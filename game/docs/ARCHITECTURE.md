@@ -469,6 +469,7 @@ class NewTask extends TaskBase {
 | `fps(ms)` | 平均 FPS（Promise） |
 | `homeSay(id, text, kind)` / `homeTalkLog()` / `homeTalk(id)` / `homeLines(id)` | おうちで しゃべらせる／さいきん しゃべった もの（`line`・`talk` つき）／かけあいを 流す／会話データの 数・1つの セリフや かけあい |
 | `folkTalk(id)` / `folkLast()` / `folkLine(id)` | 町の人の となりへ 行って 話しかける（会話は H.dialogs で すすめる）／さいごの セリフと ひとことの id／データの セリフ 1つ |
+| `folk()` / `folkOffer(id)` / `folkSignal(sig)` / `folkMarks()` | おねがいの きろく／つぎに かならず もちかける／手順を すすめる（会話は またない）／いまの マップの しるし |
 
 新しいお店を足したら `mg()` にそのお店の `order`（注文の中身）を足す。
 
@@ -693,6 +694,9 @@ WebKitのオフライン模擬はfile://も遮断するため、ローカルフ�
 DailyPlay は U.today() を日単位の数値に変換し、最後の取得日より新しい日にだけ daily の記録を進める。7日ごとの報酬は coins と bag へ加算。daily は追加項目だけで旧セーブの値を保持する。おすすめは日付と実装済み店舗表から決まり、ShopScene.enter で倍率を固定する。PokaDebug.dailyVisit / dailyState で日付境界と再取得防止を検査する。
 ### 町の人のセリフ（FEAT-03）
 `townsfolk-data.js`（TOWNSFOLK_DATA・自動生成。元は `tools/feature-design/townsfolk-data.mjs`）と `townsfolk.js`（TownFolk）を daily-play.js の後に読む。Talk.run は初回とボス後は従来どおり、それ以外は3割がTALKSのヒント、7割がTownFolk.line（時間・天気・季節・おまつり・ボス・なかよし・施設の有無を U.condScore で比べ、人ごとに最近12件を避ける）。町のなかま（crowd）は役のセリフとcrowdNamesの名前。会話のあと35%で3人のひとこと（react・話した相手の person 条件あり）。PokaDebug.folkTalk / folkLast / folkLine で検査する。
+
+### 町の人のおねがい（FEAT-04）
+Save.fresh().folk（bond・req・done・barter・offered）を追加（migrateの補完だけ・SCHEMAは1のまま）。TownFolk.offerは1人1日1回、候補のchanceの最大値（10〜20%）で、3つまで。ことわると同じ日はもう一度たずねる（offered.wait）。signalは見本と同じ計算で手順を進め、Talk.runが会話・アイテムの消費・ごほうびを出す。いま進められる手順はTownFolk.STEPS（buy・give・talk・quiz・trade）。WorldSceneはTownFolk.mountで右上にノートのボタンを出し、drawNpcでTownFolkArt.marker（▼あいて・！まっている）を描く（白い「!」が優先）。UI.askにface・name・extraを追加。PokaDebug.folk / folkOffer / folkSignal / folkMarks。
 
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。

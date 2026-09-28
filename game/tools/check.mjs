@@ -618,6 +618,46 @@ if (ok(!!TF, "TOWNSFOLK_DATA が ない（js/townsfolk-data.js）")) {
   ok(folkFlow.okWhen, "町の人の セリフが 条件（時間・天気・なかよし・しせつ）に あわない");
   ok(folkFlow.fresh, "町の人の さいきんの セリフを くりかえした");
   ok(folkFlow.react, "3人の ひとことが 話した あいての 条件に あわない");
+  // おねがい（20種）: かくりつ 10〜20%・人と マップ・アイテム／家具／服・文の 長さ
+  const mapOf = Object.fromEntries(Object.entries(R.MAP_DEFS).flatMap(([m, d]) => (d.npcs || []).map((n) => [n.id, m])));
+  ok(TF.events.length >= 20 && new Set(TF.events.map((e) => e.id)).size === TF.events.length, `おねがいが 20 より すくない／id が かさなる（${TF.events.length}）`);
+  const item = (id) => !!TF.items[id] || !!R.BAG_INDEX[id];
+  for (const e of TF.events) {
+    const w = `おねがい ${e.id}`;
+    ok(e.chance >= 0.1 && e.chance <= 0.2, `${w}: 出る かくりつ ${e.chance} が 10〜20% で ない`);
+    ok(mapOf[e.giver] === e.map, `${w}: たのむ人 ${e.giver} が ${e.map} に いない`);
+    ok(mapOf[e.doneBy], `${w}: おわりの 人 ${e.doneBy} が いない`);
+    ok(["daily", "once"].includes(e.limit), `${w}: limit が 不正`);
+    for (const t of [e.lines.offer, e.lines.remind, e.lines.done]) { const rows = t.split("\n"); ok(rows.length <= 4 && rows.every((r) => width(r) <= 30), `${w}: 会話まどに 入らない「${t}」`); }
+    for (const st of e.steps) {
+      if (st.to) ok(!!mapOf[st.to] && (!st.map || mapOf[st.to] === st.map), `${w}: ${st.do} の あいて ${st.to} が ${st.map || "どこか"} に いない`);
+      if (st.item && ["buy", "give", "find"].includes(st.do)) ok(item(st.item), `${w}: アイテム ${st.item} が ない`);
+      if (st.do === "trade") for (const [npc, it, txt] of st.chain) { ok(!!mapOf[npc] && item(it), `${w}: わらしべの ${npc} / ${it} が ない`); ok(txt.split("\n").every((r) => width(r) <= 30), `${w}: わらしべの 文が ながい`); }
+      if (st.do === "quiz") for (const [q, ch, ans] of st.q) ok(ch.length >= 2 && ans >= 0 && ans < ch.length && width(q) <= 60, `${w}: なぞなぞ「${q}」が 不正`);
+    }
+    for (const r of [e.reward, e.reward.first || {}]) { if (r.bag) ok(!!R.BAG_INDEX[r.bag], `${w}: ごほうび ${r.bag} が ない`); if (r.furn) ok(!!R.FURN_INDEX[r.furn], `${w}: ごほうびの 家具 ${r.furn} が ない`); if (r.wear) ok(!!R.ITEM_INDEX[r.wear], `${w}: ごほうびの 服 ${r.wear} が ない`); }
+    for (const id of Object.keys(e.reward.bond || {})) ok(!!mapOf[id], `${w}: なかよしの ${id} が いない`);
+  }
+  // おねがいの ながれ（ゲームと 同じ 関数を VM で）: うける → かう → わたす → おわり・ことわると まつ・3つまで
+  const reqFlow = vm.runInContext(`(()=>{const old=Save.d,rnd=Math.random;Save.d=Save.fresh();const st=Save.d.folk;
+    const ev=TownFolk.event('ev-milk');TownFolk.answer({type:'event',ev},true);const took=st.req.length===1&&st.offered.sheep&&!st.offered.sheep.wait;
+    const none=TownFolk.signal({do:'talk',npc:'sheep',map:'town'}).length===0;Save.d.bag.milk=1;
+    const m=TownFolk.signal({do:'talk',npc:'sheep',map:'town'});const done=m.length===2&&m[1].done&&st.done['ev-milk']===TownFolk.today()&&st.req.length===0;
+    const rw=JSON.stringify(TownFolk.rewards(ev,true))==='[{"coins":80}]'&&TownFolk.bondOf(ev).sheep===2;
+    const b=TownFolk.event('ev-bread3');TownFolk.answer({type:'event',ev:b},false);const wait=st.offered.penguin.wait==='ev-bread3'&&TownFolk.markerOf('penguin','town')==='offer'&&TownFolk.offer('penguin').ev.id==='ev-bread3';
+    const again=TownFolk.offer('sheep')===null;
+    TownFolk.answer({type:'event',ev:TownFolk.event('ev-msg-flower')},true);const target=TownFolk.markerOf('rabbit','town')==='target';
+    TownFolk.answer({type:'event',ev:TownFolk.event('ev-letter')},true);TownFolk.answer({type:'event',ev:TownFolk.event('ev-quiz')},true);
+    Math.random=()=>0;const full=st.req.length===3&&TownFolk.offer('cat')===null&&TownFolk.offer('pig')===null;Math.random=rnd;
+    const carry=st.req.find(r=>r.id==='ev-letter').carry==='letter';
+    const ready=TOWNSFOLK_DATA.events.filter(e=>TownFolk.ready(e)).map(e=>e.id).length>=10;
+    Save.d=old;return {took,none,done,rw,wait,again,target,full,carry,ready};})()`, ctx);
+  ok(reqFlow.took && reqFlow.none && reqFlow.done, "おねがい（かう → わたす）の ながれが 不正");
+  ok(reqFlow.rw, "おねがいの ごほうび・なかよしが 不正");
+  ok(reqFlow.wait && reqFlow.again, "ことわった おねがいを まつ／1日 1回の きまりが 不正");
+  ok(reqFlow.target && reqFlow.carry, "おねがいの あいての しるし・とどける もちものが 不正");
+  ok(reqFlow.full, "おねがいが 3つを こえて もちかけられた");
+  ok(reqFlow.ready, "いま すすめられる おねがいが 10 より すくない");
 }
 
 finish();
