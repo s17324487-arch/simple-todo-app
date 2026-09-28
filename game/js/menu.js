@@ -75,6 +75,13 @@ const Menu = {
 
   bag(el) {
     const d = Save.d;
+    // ③ だいじな もの（つりざお）
+    const rod = typeof Fishing !== "undefined" && Fishing.rod();
+    if (rod) {
+      const key = U.el("div", { class: "key-item", html: `${Fishing.rodSvg()}<div><div class="nm"></div><div class="muted">みずべで みずの ほうを むくと「つる」が でるよ</div></div>` });
+      key.querySelector(".nm").textContent = `だいじな もの：${rod.name}`;
+      el.append(key);
+    }
     const ids = Object.keys(d.bag).filter((k) => d.bag[k] > 0 && BAG_INDEX[k]);
     if (!ids.length) { el.append(U.el("div", { class: "note", text: "もちものは からっぽ。スーパーで かえるよ。" })); return; }
     const grid = U.el("div", { class: "grid" });

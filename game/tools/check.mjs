@@ -745,6 +745,24 @@ if (ok(!!FD, "FISHING_DATA が ない（js/fishing-data.js）")) {
   ok(dexFlow.first && dexFlow.second && dexFlow.rec, "さかな ずかんの きろく（かず・いちばん 大きい・いけす）が 不正");
   ok(dexFlow.noRod && dexFlow.rod, "つりざおの ない あいだも ② の 釣りの 話・おねがいが 出る");
   ok(dexFlow.sizes, "魚の 大きさが データの はんいを こえる");
+  // 2番: 釣りの 画面・流れ（見本 FishingRef.Game の まま）。ぴんと ぐあいが 6わり より 下なら まく だけで、ひき 1〜5 の 魚が つれる（こどもが 遊べる かんたんさ）
+  ok(vm.runInContext(`typeof SCENES.fishing === "function" && SCENES.fishing === FishingScene`, ctx), "SCENES.fishing（FishingScene）が ない");
+  const reel = vm.runInContext(`(()=>{const rnd=TownFolk.rng("fishing-check"),out=[];
+    for(const rodPower of [1,1.6])for(let P=1;P<=5;P++){let ok=0;for(let k=0;k<40;k++){const g=new Fishing.Game({power:P},{rodPower,rand:rnd});g.update(0.1,{tap:true});
+      for(let t=0;(g.phase==="cast"||g.phase==="wait")&&t<30;t+=0.05)g.update(0.05,{});g.update(0.05,{tap:true});
+      for(let t=0;g.phase==="reel"&&t<90;t+=1/30)g.update(1/30,{hold:g.tension<0.6});if(g.phase==="caught")ok++;}out.push(rodPower+"/"+P+":"+ok);}
+    const e=new Fishing.Game({power:1},{rand:rnd});e.update(0.1,{tap:true});for(let t=0;e.phase==="cast"&&t<2;t+=0.05)e.update(0.05,{});e.update(0.05,{tap:true});
+    const l=new Fishing.Game({power:1},{rand:rnd});l.update(0.1,{tap:true});for(let t=0;l.phase!=="miss"&&t<30;t+=0.05)l.update(0.05,{});
+    return {out,early:e.phase==="miss"&&e.why==="early",late:l.phase==="miss"&&l.why==="late"};})()`, ctx);
+  ok(reel.out.every((x) => x.endsWith(":40")), `まく だけで つれない 魚が いる: ${reel.out.join(", ")}`);
+  ok(reel.early && reel.late, "はやすぎ（まつ の あいだに おす）・おそすぎ（ぐいっ！ で おさない）が にげる に ならない");
+  // 「つる」ボタン: 釣り場の マップで、さおが あって、水（'~'）を 向いて いる とき だけ
+  const btn = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const m=new WorldMap("town"),d=MAP_DEFS.town,D={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};let at=null;
+    for(let y=1;y<m.h-1&&!at;y++)for(let x=1;x<m.w-1&&!at;x++){if(m.isSolid(x,y))continue;for(const [dir,[dx,dy]] of Object.entries(D))if((d.rows[y+dy]||"")[x+dx]==="~"){at={x,y,dir};break;}}
+    const sc=(dir)=>({mapId:"town",map:m,party:[{tx:at.x,ty:at.y,dir,moving:false}]});const back={up:"down",down:"up",left:"right",right:"left"}[at.dir];
+    const noRod=!Fishing.spotAt(sc(at.dir));Save.d.fish.rod=1;const yes=!!Fishing.spotAt(sc(at.dir)),away=!Fishing.spotAt(sc(back))||(d.rows[at.y+D[back][1]]||"")[at.x+D[back][0]]==="~";
+    const city=!Fishing.spotAt({mapId:"city",map:new WorldMap("city"),party:[{tx:at.x,ty:at.y,dir:at.dir,moving:false}]});Save.d=old;return {noRod,yes,away,city};})()`, ctx);
+  ok(btn.noRod && btn.yes && btn.away && btn.city, "「つる」ボタンの 出る ときが 不正 " + JSON.stringify(btn));
 }
 
 finish();
