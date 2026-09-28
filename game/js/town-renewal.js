@@ -11,8 +11,8 @@ const TownRenewal = (() => {
     town_parlor:["chalkboard","table","town_milk","planter"],town_clinic:["phone","recycle","planter","bicycles"],town_bakery:["chalkboard","town_breadrack","town_milk","town_breadrack"],
     town_greenhouse:["chalkboard","town_herbs","town_watering","town_herbs"],town_bazaar:["chalkboard","town_milk","town_herbs","town_breadrack"],town_station:["newsbox","phone","bicycles","postbox"],town_riverside:["chalkboard","town_pinwheel","town_watering","town_herbs"],
     city_department:["city_screen","city_billboard","planter","city_bikerack"],city_arcade:["city_kiosk","city_delivery","recycle","city_coffee"],city_design:["chalkboard","city_billboard","planter","postbox"],city_cafe:["chalkboard","city_coffee","table","city_bikerack"],
-    city_station:["city_metro","city_screen","city_bikerack","newsbox"],city_library:["newsbox","planter","city_bikerack","chalkboard"],city_gallery:["city_billboard","chalkboard","planter","city_screen"],
-    harbor_ferry:["harbor_lifering","harbor_mooring","harbor_rope","direction"],harbor_hangar:["harbor_buoy","harbor_crates","harbor_rope","recycle"],harbor_fishmarket:["chalkboard","harbor_fishbasket","harbor_net","harbor_crates"],harbor_warehouse:["harbor_crates","harbor_net","harbor_rope","harbor_anchor"],harbor_customs:["postbox","direction","harbor_anchor","planter"],harbor_pavilion:["direction","harbor_lifering","harbor_rope","harbor_mooring"],
+    city_station:["city_metro","city_screen","city_bikerack","newsbox"],city_museum:["newsbox","planter","city_bikerack","chalkboard"],city_gallery:["city_billboard","chalkboard","planter","city_screen"],
+    harbor_ferry:["harbor_lifering","harbor_mooring","harbor_rope","direction"],harbor_hangar:["harbor_buoy","harbor_crates","harbor_rope","recycle"],harbor_fishmarket:["chalkboard","harbor_fishbasket","harbor_net","harbor_crates"],harbor_warehouse:["harbor_crates","harbor_net","harbor_rope","harbor_anchor"],harbor_aquarium:["postbox","direction","harbor_anchor","planter"],harbor_pavilion:["direction","harbor_lifering","harbor_rope","harbor_mooring"],
     airport_terminal:["airport_departures","airport_luggage","airport_scanner","airport_cart"],airport_station:["newsbox","airport_departures","airport_luggage","phone"],airport_cargo:["airport_cart","airport_tug","airport_cone","recycle"],airport_service:["airport_stairs","airport_tug","airport_beacon","airport_cone"],airport_museum:["chalkboard","airport_scanner","airport_luggage","planter"],airport_lounge:["chalkboard","table","airport_departures","planter"],
   };
   function begin(id,w,h,fill){
@@ -121,7 +121,8 @@ const TownRenewal = (() => {
     b.building("city_clothes",3,4,7,6,"city_department");b.building("city_market",29,5,8,5,"city_arcade");
     b.building("city_office",15,5,6,5,"city_design",{label:"まちの こうぼう"});
     b.building("link",40,5,6,5,"city_puzzle");
-    b.building("city_library",3,16,6,4,"city_library",{label:"まちの としょかん",act:{type:"visit",text:"ほんを ひらくと たびが はじまる。\n3にんで えほんを よもう！"}});
+    // ⑤ まちの としょかん（見学だけ）の 場所に きょうりゅう はくぶつかん（MUSEUM_DATA.buildings.museum.outside）
+    b.building("city_museum",3,16,6,4,"city_museum",{label:"きょうりゅう はくぶつかん",act:{type:"indoor",map:"museum"}});
     b.building("city_gallery",15,16,6,4,"city_salon",{label:"びようしつ",sign:"groom",act:{type:"work",shop:"groom"}});b.building("city_cafe",29,16,6,4,"city_cafe");
     b.building("city_furniture",3,31,7,5,"city_design");b.building("city_station",29,31,14,5,"city_station",{door:7});
     b.building("relay",39,16,7,4,"city_deliveryhall");
@@ -149,7 +150,7 @@ const TownRenewal = (() => {
     for(const y of [11,25,35]){b.rect(26,y-1,16,3,"b");d.surfaces.push({kind:"pier",x:26,y:y-1,w:16,h:3});for(let x=26;x<43;x++)b.keep(x,y);}
     b.rect(39,31,4,6,"b");d.surfaces.push({kind:"pier",x:39,y:31,w:4,h:6});
     b.building("harbor_market",2,4,7,4,"harbor_fishmarket");b.building("harbor_air",17,4,8,4,"harbor_hangar");
-    b.building("harbor_warehouse",2,18,7,4,"harbor_warehouse");b.building("harbor_ferry",17,18,8,4,"harbor_ferry");b.building("harbor_customs",2,29,7,3,"harbor_customs",{label:"みなとの しりょうかん"});
+    b.building("harbor_warehouse",2,18,7,4,"harbor_warehouse");b.building("harbor_ferry",17,18,8,4,"harbor_ferry");b.building("harbor_aquarium",2,29,7,3,"harbor_aquarium",{label:"ぽかぽか すいぞくかん",act:{type:"indoor",map:"aquarium"}}); // ⑤ みなとの しりょうかん（見学だけ）の 場所
     b.building("harbor_pier_north",33,9,5,2,"harbor_pavilion",{label:"きたの まちあい"});
     b.building("harbor_pier_south",33,23,6,2,"harbor_pavilion",{label:"みなみの まちあい"});
     b.building("harbor_pier_workshop",33,32,5,3,"harbor_warehouse",{label:"ふねの こうぼう"});

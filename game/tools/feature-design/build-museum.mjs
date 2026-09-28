@@ -9,7 +9,18 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { gameChars, itemIds, probeOutside, run } from "./game-vm.mjs";
 // いまの 町の 見学だけの 建物を おきかえる: 同じ 場所・大きさ・visit・もとの 町（作り直す まえ）には ない・入口の まえが 通れる
+// ⑤ の 1番が ゲームに 入った あと（MUSEUM_DATA が ある）は、おきかえた あとの 建物（outside.id・act: indoor）を しらべる
+const IN_GAME = run(`typeof MUSEUM_DATA !== "undefined"`);
 function probeReplace(o) {
+  if (IN_GAME) {
+    const b = run(`(MAP_DEFS[${JSON.stringify(o.map)}].buildings || []).find((b) => b.id === ${JSON.stringify(o.id)}) || null`), err = [];
+    if (!b) return { err: [`${o.id} が ${o.map} に ない（ゲームに 入れた ときの 建物）`] };
+    if (b.x !== o.x || b.y !== o.y || b.w !== o.w || b.h !== o.h) err.push(`${o.id} は (${b.x},${b.y}) ${b.w}×${b.h}（データは (${o.x},${o.y}) ${o.w}×${o.h}）`);
+    if (!b.act || b.act.type !== "indoor") err.push(`${o.id} の act が indoor で ない`);
+    const door = b.door != null ? b.door : Math.floor(b.w / 2), doorAt = [b.x + door, b.y + b.h - 1], front = [doorAt[0], doorAt[1] + 1];
+    if (run(`new WorldMap(${JSON.stringify(o.map)}).isSolid(${front[0]}, ${front[1]})`)) err.push(`入口の まえ (${front.join(",")}) が 通れない`);
+    return { err, door: doorAt, front, doorIdx: door };
+  }
   const err = [], b = run(`(MAP_DEFS[${JSON.stringify(o.map)}].buildings || []).find((b) => b.id === ${JSON.stringify(o.replace)}) || null`);
   if (!b) return { err: [`おきかえる 建物 ${o.replace} が ${o.map} に ない`] };
   if (b.x !== o.x || b.y !== o.y || b.w !== o.w || b.h !== o.h) err.push(`${o.replace} は (${b.x},${b.y}) ${b.w}×${b.h}（データは (${o.x},${o.y}) ${o.w}×${o.h}）`);
@@ -36,10 +47,12 @@ for (const [k, song] of Object.entries(SONGS)) for (const [i, tr] of song.tracks
   if (toks.length !== 8) errors.push(`song ${k} ${i}: ${bi + 1}小せつめが 8トークンで ない（${toks.length}）`);
   for (const tk of toks) if (!(tk === "." || tk === "_" || (tr.drum ? ["k", "s", "h"].includes(tk) : /^[A-G](#|b)?[0-8]$/.test(tk) && freqOk(tk)))) errors.push(`song ${k} ${i}: 「${tk}」が ならせない`);
 }
-if (run("Object.keys(SONGS)").some((k) => SONGS[k])) errors.push("BGM の なまえが いまの SONGS と ぶつかる");
+if (run("Object.keys(SONGS)").some((k) => SONGS[k] && !IN_GAME)) errors.push("BGM の なまえが いまの SONGS と ぶつかる");
 for (const [k, v] of Object.entries(INFO)) { longRow(`info ${k}`, v.text); if (v.text.split("\n").length > 4) errors.push(`info ${k}: 4行まで`); }
 const NEED_INFO = ["fossilwall", "jelly", "tunnel", "nest", "tower", "lab"];
-for (const ch of Object.keys(TILES)) { if (ch.length !== 1) errors.push(`マスの 文字「${ch}」は 1もじに する`); if (gameChars.has(ch)) errors.push(`マスの 文字「${ch}」が ゲームの いまの タイル文字と ぶつかる`); }
+// ゲームに 入った あとは、館いがいの マップ・館いがいの 地面の 文字と くらべる
+const otherChars = IN_GAME ? new Set(run(`[...Object.keys(GROUND).filter((k) => !String(GROUND[k]).startsWith("museum_")), ...Object.keys(OBJ_CH), ...Object.values(MAP_DEFS).filter((d) => !d.indoor).flatMap((d) => d.rows.join("").split(""))]`)) : gameChars;
+for (const ch of Object.keys(TILES)) { if (ch.length !== 1) errors.push(`マスの 文字「${ch}」は 1もじに する`); if (otherChars.has(ch)) errors.push(`マスの 文字「${ch}」が ゲームの いまの タイル文字と ぶつかる`); }
 const WALL = "X", EXIT = "E";
 export function build(b) {
   const rows = Array.from({ length: b.H }, () => Array(b.W).fill(WALL));

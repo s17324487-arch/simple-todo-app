@@ -51,6 +51,8 @@ const Save = {
       fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
       // ④ 化石: pick 0 なし／1 ピッケル・bones { "trex.skull": もって いる 数 }・dug { day, at: { site: ["x,y", …] } }（その日に ほった いわ）
       fossil: { pick: 0, bones: {}, dug: { day: "", at: {} } },
+      // ⑤ 水族館と 博物館: 寄贈した 魚・骨（日づけ）・そろった 恐竜・入った へや（案内は 1かい）・ぜんぶ そろった おいわい
+      museum: { fish: {}, bones: {}, done: {}, rooms: {}, all: {} },
       shops: {
         burger:{lv:1,rep:0,best:0,plays:0},
         groom: {lv:1,rep:0,best:0,plays:0},

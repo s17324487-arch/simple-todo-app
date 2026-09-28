@@ -174,11 +174,26 @@ museum: { fish: {}, bones: {}, done: {}, rooms: {}, all: {} },
 
 ## 11. PR の 分けかた
 
-1. **町の 建物と 館の 中**: `js/museum-data.js`・`js/museum-art.js`・`js/museum.js`（index.html と sw.js の 両方）、外がわ・かんばん・`indoor` の ドア・床と かべ・展示（寄贈 0 の すがた）・順路の 矢印・案内・BGM・`museumGo`・スモーク（入って 出る）。
+1. ✅ **町の 建物と 館の 中**（済み: Claude Code。下の「実装メモ」）: `js/museum-data.js`・`js/museum-art.js`・`js/museum.js`（index.html と sw.js の 両方）、外がわ・かんばん・`indoor` の ドア・床と かべ・展示（寄贈 0 の すがた）・順路の 矢印・案内・BGM・`museumGo`・スモーク（入って 出る）。
 2. **寄贈**: `Save.museum`・館の 人・寄贈の 画面・かんせい・展示に 反映（魚が およぐ・骨格）・PokaDebug・スモーク。
 3. **しらべる と つなぎ**: 展示の 説明・③ の ずかん・④ の ノート・② の `signal`。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
+
+## 実装メモ（Claude Code が 作った ときの きまり。つぎの 番号も これに あわせる）
+
+- 1番: `js/museum-data.js`（そのまま コピー）・`js/museum-art.js`（見本 `MuseumArtRef` を 名前だけ `MuseumArt` に、中の `FossilArtRef.svg` を `FossilArt.svg` に して そのまま）・`js/museum.js`（`Museum`）を、**`scene-title.js` の あと・`scene-world.js` の まえ**に 置いた（index.html と sw.js）。`music-arrangements.js` より まえに `SONGS` に 館の 曲を 足す ため。
+- `js/museum.js` の さいごで（`MUSEUM_DATA` が ある とき）: `GROUND[文字] = tiles.ground`・かべ `X` を `SOLID_CH` に、`MAP_DEFS.aquarium` / `MAP_DEFS.museum`（`indoor: true`・`bgm` は 館の id・展示は `kind: "exhibit"`・`ex` に もとの kind・`solid: !walk`）、`TALKS.aq_curator` / `TALKS.mu_doctor`（`first`・`lines`。寄贈は 2番で `Talk.run` の さいしょに `Museum.talk`）、`Object.assign(SONGS, MUSEUM_DATA.songs)`、`WorldArt.exhibit = (opt) => Museum.art(opt)`。
+- BGM: `music-arrangements.js` が すべての 曲を いまの 編曲に する（`tools/music-check.mjs` が modern を もとめる）ので、`profiles` に `aquarium`（76・**ニ長調 "D"**・mallet・quiet「すいそうの ひかり」）と `museum`（96・Am・piano・lounge「きょうりゅうの じだい」）を 足し、`harmonies` に "D" を 足した。
+- 町の 建物: `town-renewal.js` の `harbor_customs` / `city_library` の 行を `harbor_aquarium` / `city_museum`（`act: { type: "indoor", map }`）に おきかえ、店先の 小物の 表の キーも うつした。外がわは `town-renewal-art.js` の `facades` に `MuseumArt.facade200("aquarium" / "museum")`（もとの 2つの 絵は けした）。`SIGN_ICON.aquarium` / `.museum` も 足した（いまは 建物には つけて いない）。
+- ドア: `WorldScene.enterDoor` で `act.type === "indoor"` → `Museum.enter(scene, act)`（館の `arrive` へ `Game.goto("world", …, "circle")`）。館の 出口は データの `warps`（町の 入口の まえ）。
+- 床: `Tiles.drawGround` の さいしょで `map.def.indoor` なら `Museum.floor(...)`（見本 `floorTile` を canvas に した もの。`hash`・`shade` も 見本と おなじ）。かべ `X` は チャンクでは 下地（`#2A2630`）だけで、**高さは `Museum.wall` を y順の リストに 入れて 描く**（見本 `wallSprite`。うしろに いる 3人の 足もとが かべに かくれる）。
+- 展示: `spriteCanvas` で `objCanvas("exhibit", { id, bits: Museum.bits(o) })`（キーは 展示 70こ × 寄贈の ようす。有限）。`Museum.art` は 見本 `propOf` と おなじで、`MuseumArt.prop` の 外がわの `<svg>` を はずして `WorldArt` と おなじ 中身だけに する。`walk: true` の 展示（トンネル・矢印）は y順より まえに 床の 上へ、エスカレーターは y順（z を 40 さげる）。1番では 寄贈が ないので 水そうは 水と かざりだけ、骨格の 台は 点線と「あと n」。**魚が およぐ（`swim`）のは 2番**。
+- 館の 中: 天気は「そとの 〜」（`Weather.state` の indoors）・季節の はっぱと 夜の 色は なし（`Seasonal.draw`・`renderLight`）・画面の そとは `#2A2630`。敵は 出ない（`spawns: []`）。
+- へやの 案内: 先頭の 子の マスが はじめて `rooms` の はんいに 入った とき（`onArrive` と 館に 入った 0.5びょう あと）に `.museum-intro`（HUD と てんきの 下・4.5びょう）。`Save.d.museum.rooms["館.へや"] = true`。**`Save.fresh().museum`（`{ fish, bones, done, rooms, all }`）は 1番で 足した**（2番では 足さない）。
+- `tools/check.mjs`: 館の マップ（indoor）は 全体地図の 検査から はずし、館の 人（`role: "donate"`）は 町の人の セリフの 検査から はずした。建物の `act` に `indoor` を みとめる。館の 検査（魚 50・恐竜 10 が 1かいずつ・町の 建物と 出入り口・入口の へや・床の 文字・館の 人・曲・セーブ・展示の 絵 140まい・寄贈の ようすの 文字）を 足した。
+- `tools/feature-design/build-museum.mjs`: ゲームに 館が 入った あと（`MUSEUM_DATA` が ある）でも 見本を 作りなおせる ように、おきかえた あとの 建物（`outside.id`・`act: indoor`）を しらべ、マスの 文字と 曲の なまえは 館いがいと くらべる ように した。
+- テストの 入口（1番）: `PokaDebug.museumGo(id, room)`（へやの まんなかの 手前の 床）・`museumState()`（`{ fish, bones, done, rooms, intro }`）。スモーク `museum-visit-390`・`-375`（CODEX_TASK の 10 に ある 町の 座標は 古いので、いまは みなと (5, 32)・シティ (6, 20)）。
 
 ## 12. やらないこと
 

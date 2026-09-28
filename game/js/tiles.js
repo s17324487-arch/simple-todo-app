@@ -17,6 +17,7 @@ const Tiles = {
 
   // ---- 地面 ----
   drawGround(g, map, tx, ty, x, y, s) {
+    if (map.def.indoor && typeof Museum !== "undefined" && Museum.floor(g, map, tx, ty, x, y, s)) return; // ⑤ 館の 床
     const type = map.groundAt(tx, ty);
     const H = (k) => U.hash(tx, ty, k);
     const same = (dx, dy) => {
@@ -235,6 +236,9 @@ const WorldArt = {
 // ---- 建物 ----
 // spec: { w,h (タイル), roof, wall, door (ドアのタイル位置 x), sign, awning:[c1,c2], chimney }
 const SIGN_ICON = {
+  // ⑤ すいぞくかん・はくぶつかん（MuseumArt.signIcon。よぶ ときに あれば よい）
+  aquarium: (x, y) => (typeof MuseumArt !== "undefined" ? MuseumArt.signIcon.aquarium(x, y) : ""),
+  museum: (x, y) => (typeof MuseumArt !== "undefined" ? MuseumArt.signIcon.museum(x, y) : ""),
   burger:(x,y)=>`<g transform="translate(${x} ${y})"><rect x="-11" y="4" width="22" height="7" rx="3" fill="#E6BA76" ${OS(1)}/><path d="M-12,3 H12 M-11,0 H11" stroke="#946F58" stroke-width="4"/><path d="M-12,-3 Q-10,-20 0,-14 Q10,-20 12,-3 Z" fill="#E6BA76" ${OS(1)}/><path d="M-8,-2 L-3,2 L2,-1 L7,2 L11,-2" stroke="#A3BD81" stroke-width="3" fill="none"/></g>`,
   groom:(x,y)=>`<g transform="translate(${x} ${y})"><circle cx="-6" cy="5" r="4" fill="#D7BED8" ${OS(1.3)}/><circle cx="6" cy="5" r="4" fill="#D7BED8" ${OS(1.3)}/><path d="M-4,2 L7,-10 M4,2 L-7,-10" stroke="#716C73" stroke-width="2"/></g>`,
 

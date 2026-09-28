@@ -97,7 +97,7 @@ const Seasonal = {
     ctx.strokeStyle=autumn?"#865D3C":"#677E50";ctx.beginPath();ctx.moveTo(0,9);ctx.quadraticCurveTo(0,12,2,14);ctx.stroke();ctx.restore();
   },
   draw(ctx,sc,ox,oy) {
-    if(sc.map.baseGround==="cave")return;
+    if(sc.map.baseGround==="cave"||sc.map.def.indoor)return;
     const e=this.current();ctx.save();
     // 同じ地面に対して同じ軌道。秋は葉脈と葉柄のある2種類の落ち葉。
     for(const p of this.particles(sc)){

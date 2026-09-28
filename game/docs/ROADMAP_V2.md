@@ -229,7 +229,7 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 ### [x] FEAT-11 ④ ② との つなぎ（物々交換。おねがい「ほねを みせて」は FEAT-10 で うごく） ✅
 - 受け入れ条件: 同 3。
 
-### [ ] FEAT-12 ⑤ 町の 建物と 館の 中（水族館 10へや・博物館 7へや・順路・案内・BGM）
+### [x] FEAT-12 ⑤ 町の 建物と 館の 中（水族館 10へや・博物館 7へや・順路・案内・BGM） ✅
 - 受け入れ条件: [`museum/CODEX_TASK.md`](design/features/museum/CODEX_TASK.md)「PR の 分けかた」1。③④ の FEAT-06・FEAT-09 の あと。`img/outside.png`・`img/aquarium-plan.png`・`img/museum-plan.png` と 同じ 配置。
 
 ### [ ] FEAT-13 ⑤ 寄贈（魚が およぐ・骨格が そろう・かんせい）

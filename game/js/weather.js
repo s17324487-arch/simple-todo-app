@@ -10,7 +10,7 @@ const Weather = {
   },
   kind(date=this.date()) {return this.override||this.forDate(date);},
   state(map=G.sceneName==="world"?G.scene.mapId:null) {
-    const date=this.date(),kind=this.kind(date),indoors=!map||MAP_DEFS[map]?.baseGround==="cave";
+    const date=this.date(),kind=this.kind(date),indoors=!map||MAP_DEFS[map]?.baseGround==="cave"||!!MAP_DEFS[map]?.indoor;
     const forecast=Array.from({length:3},(_,i)=>{const at=new Date(date);at.setHours(Math.floor(date.getHours()/3)*3+i*3,0,0,0);const k=this.kind(at);return{hour:at.getHours(),day:at.getDate(),kind:k,name:this.kinds[k].name};});
     return {kind,...this.kinds[kind],indoors,particles:indoors?0:this.kinds[kind].particles,forecast,season:Seasonal.current(date).id};
   },

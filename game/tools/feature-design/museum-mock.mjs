@@ -145,10 +145,11 @@ for (const bid of ["aquarium", "museum"]) {
   was[bid] = await page.evaluate(({ o, art }) => {
     eval(art + ";window.__MA=MuseumArtRef;");
     // いまの 見学だけの 建物（o.replace）を 館に おきかえる。外がわは town-renewal-art.js と 同じ つつみかた（200×160 ＋ 入口の とびら）
-    const d = MAP_DEFS[o.map], b = d.buildings.find((x) => x.id === o.replace), label = b.label;
-    Object.assign(b, { id: o.id, label: o.label, style: o.style, act: { type: "indoor", map: o.facility } });
+    // ⑤ の 1番が ゲームに 入った あと（建物が もう o.id）は おきかえずに そのまま 撮る
+    const d = MAP_DEFS[o.map], done = d.buildings.find((x) => x.id === o.id), b = done || d.buildings.find((x) => x.id === o.replace), label = done ? { harbor_customs: "みなとの しりょうかん", city_library: "まちの としょかん" }[o.replace] || o.replace : b.label;
+    if (!done) Object.assign(b, { id: o.id, label: o.label, style: o.style, act: { type: "indoor", map: o.facility } });
     const base = WorldArt.building, R = (x, y, w, h, c, rx = 2) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${c}" ${OS(1.7)}/>`;
-    WorldArt.building = (sp) => {
+    if (!done) WorldArt.building = (sp) => {
       if (sp.style !== o.style) return base(sp);
       const w = sp.w * TS, h = sp.h * TS + 24, dx = ((sp.door + 0.5) / sp.w) * 200;
       const svg = __MA.facade200(o.facility) + R(dx - 12, 117, 24, 36, "#839FA3") + R(dx - 9, 121, 18, 19, "#B8DADF") + `<circle cx="${dx + 7}" cy="145" r="1.4" fill="#EDD5A4" ${OS(1.5)}/>` + R(dx - 16, 153, 32, 6, "#D4C4AE");
