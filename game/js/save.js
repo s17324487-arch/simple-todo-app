@@ -22,6 +22,7 @@ const Save = {
       created: Date.now(),
       last: Date.now(),
       coins: 150,
+      arcade: {active:null,settled:null,plays:0,wins:0},
       chars: { wanko: chara("wanko"), gachan: chara("gachan"), goji: chara("goji") },
       order: ["wanko", "gachan", "goji"],
       parents: {

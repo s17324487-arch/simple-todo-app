@@ -781,3 +781,4 @@ html, body {
 .town-quiz-prize { display:flex; gap:12px; align-items:center; padding:8px; border:1px solid #dac38b; border-radius:12px; background:#fff5d9; margin:8px 0; }
 .town-quiz-chat { border-left:3px solid #97b9a6; padding-left:12px; margin:14px 0; }
 .town-quiz-sources summary,.town-quiz-rules summary { min-height:44px; padding:10px 0; cursor:pointer; font-weight:700; }
+.prize-controls {position:absolute;bottom:8px;left:10px;right:10px;padding:8px;background:#fff8e9;border:2px solid #1f1d1b;border-radius:15px;pointer-events:auto}.prize-controls .note{padding:4px;font-size:12px;margin:0 0 5px}.prize-directions{display:flex;gap:5px;margin-bottom:5px}.prize-directions button{min-width:44px;min-height:44px;padding:7px}.prize-directions .yellow{flex:1}
