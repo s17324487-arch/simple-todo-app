@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node tools/serve.mjs 8080",
-    "check": "node tools/check.mjs && node tools/build-road-fixture.mjs --check && node tools/town-check.mjs && node tools/battle-check.mjs && node tools/music-check.mjs && node tools/puzzle-check.mjs && node tools/build-heiwadai-assets.mjs --check && node tools/build-heiwadai-assets.mjs --ab --check && node tools/build-heiwadai-layout.mjs --check && node tools/check-heiwadai.mjs && node tools/check-save-backup.mjs && node tools/check-save-v1.mjs && node tools/balance.mjs --check && node tools/check-mac.mjs",
+    "check": "node tools/check.mjs && node tools/build-road-fixture.mjs --check && node tools/town-check.mjs && node tools/battle-check.mjs && node tools/music-check.mjs && node tools/puzzle-check.mjs && node tools/build-heiwadai-assets.mjs --check && node tools/build-heiwadai-assets.mjs --ab --check && node tools/build-heiwadai-layout.mjs --check && node tools/check-heiwadai.mjs && node tools/check-save-backup.mjs && node tools/check-save-v1.mjs && node tools/balance.mjs --check && node tools/check-mac.mjs && node tools/check-venues.mjs",
     "test": "npm run check && node tests/smoke.mjs",
     "test:full": "npm run check && node tests/smoke.mjs --full --shots",
     "build:chara": "node tools/build-chara.mjs",

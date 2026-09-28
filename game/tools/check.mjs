@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap, STORE_INTERIORS, StoreArt, StoreScene,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, HomeDesign, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals, Weather, SeasonPalette, TownRoads, ShopDecor })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, HomeDesign, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, VenueHalls, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals, Weather, SeasonPalette, TownRoads, ShopDecor })`, ctx);
 
 // 道の判定はブラウザがなくても同じ。車道・歩道・隅切り・切り下げがタイルでつながる。
 const roadFixture=vm.runInNewContext(readFileSync(join(GAME,"tests/fixtures/roads-v02.js"),"utf8")+";ROAD_FIXTURE");
@@ -209,7 +209,7 @@ for (const id of Object.keys(R.MAP_DEFS)) {
   }
   for (const d of m.doors) {
     const a = d.b.act;
-    ok(a && (a.type === "house" || (a.type === "work" && R.SHOPS[a.shop]) || (a.type === "buy" && R.BUY_SHOPS[a.shop]) || (a.type === "transit" && R.Transit.stops[a.stop]?.map === id) || (a.type === "visit" && typeof a.text === "string") || (a.type === "indoor" && !!R.MAP_DEFS[a.map]?.indoor) || (a.type === "range" && typeof R.SCENES.range === "function")), `マップ ${id}: 建物 ${d.b.id} の act が不正`);
+    ok(a && (a.type === "house" || (a.type === "venue" && R.SCENES.venue && R.VenueHalls.defs[a.venue]) || (a.type === "work" && R.SHOPS[a.shop]) || (a.type === "buy" && R.BUY_SHOPS[a.shop]) || (a.type === "transit" && R.Transit.stops[a.stop]?.map === id) || (a.type === "visit" && typeof a.text === "string") || (a.type === "indoor" && !!R.MAP_DEFS[a.map]?.indoor) || (a.type === "range" && typeof R.SCENES.range === "function")), `マップ ${id}: 建物 ${d.b.id} の act が不正`);
     if(a?.type === "transit") {
       const arrival=R.Transit.arrival(a.stop);
       ok(!m.isSolid(arrival.x,arrival.y)&&!m.warpAt(arrival.x,arrival.y)&&R.Transit.destinations(a.stop).length>0, `${id}: のりばの着地点・路線が不正`);
