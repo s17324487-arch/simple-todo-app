@@ -1604,7 +1604,11 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg('range','long','bolt','goji','t2');await rangePlaying(H,'long');
   await H.dbg('rangeInput',{ads:true});await H.wait(700);
   s=await H.dbg('rangeState');expect(s.ads&&s.zoom>1,'のぞけない '+JSON.stringify(s));
-  const z0=s.zoom;await H.dbg('rangeInput',{zoomIn:true});await H.wait(300);
+  const z0=s.zoom;
+  // 入力は次の描画フレームで消費される。300msより遅い更新でも、反映を待ってから判定する。
+  await H.dbg('pause',true);expect(await H.dbg('rangeInput',{zoomIn:true}),'ズーム入力を受け付けない');
+  await H.eval(()=>{setTimeout(()=>PokaDebug.pause(false),450);});
+  await H.until(z=>PokaDebug.rangeState()?.zoom>z,3000,z0);
   s=await H.dbg('rangeState');expect(s.zoom>z0,'ズームが かわらない '+JSON.stringify([z0,s.zoom]));
   // ブザーの あと じゅうを あげる（0.3びょう）まで うてない
   await H.until(()=>{const s=PokaDebug.rangeState();return s.phase==='play'&&s.clock>0.45;},8000);
