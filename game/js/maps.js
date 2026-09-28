@@ -293,8 +293,10 @@ class WorldMap {
     }
     for (const b of d.buildings || []) {
       this.sprites.push({ kind: "building", spec: b, x: b.x, y: b.y + b.h - 1, tw: b.w, bx: b.x });
-      this.doors.push({ x: b.x + b.door, y: b.y + b.h - 1, b });
-      this.solidGrid[b.y + b.h - 1][b.x + b.door] = false;
+      for(const dx of b.doors || [b.door]) {
+        this.doors.push({x:b.x+dx,y:b.y+b.h-1,b});
+        this.solidGrid[b.y+b.h-1][b.x+dx]=false;
+      }
     }
     this.groundOverride = {};
     for (const o of d.objects || []) {

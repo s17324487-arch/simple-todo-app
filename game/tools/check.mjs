@@ -241,7 +241,7 @@ for (const id of Object.keys(R.MAP_DEFS)) {
   for (const s of m.signs) ok(near(s.x, s.y), `マップ ${id}: かんばん (${s.x},${s.y}) に たどりつけない`);
   for (const o of m.def.objects || []) if(o.text) {
     let reachable=false;
-    for(let y=o.y;y<o.y+o.h;y++)for(let x=o.x;x<o.x+o.w;x++)if(near(x,y))reachable=true;
+    for(let y=Math.floor(o.y);y<Math.ceil(o.y+o.h);y++)for(let x=Math.floor(o.x);x<Math.ceil(o.x+o.w);x++)if(near(x,y))reachable=true;
     ok(reachable, `マップ ${id}: あそべる ${o.id} に たどりつけない`);
   }
   for (const [x, y] of m.def.spawns || []) ok(seen.has(x + "," + y), `マップ ${id}: 敵の出現位置 (${x},${y}) が通れない/とどかない`);
@@ -309,7 +309,7 @@ for (const id of bagIds) svgOk(R.Art.iconSvg("bag", id), `アイコン ${id}`);
 for (const w of R.WALLPAPERS) svgOk(R.Art.iconSvg("wall", w.id), `かべがみ ${w.id}`);
 for (const f of R.FLOORS) svgOk(R.Art.iconSvg("floor", f.id), `ゆか ${f.id}`);
 for (const [id,d] of Object.entries(R.MAP_DEFS)) {
-  for(const b of d.buildings||[])svgOk(R.Art.worldSvg("building",b).full, `${id}: 建物 ${b.id}`);
+  for(const b of d.buildings||[])svgOk(R.Art.worldSvg(b.asset?"heiwadai_"+b.asset.replaceAll(".","_"):"building",b.asset?b.opts:b).full, `${id}: 建物 ${b.id}`);
   for(const o of d.objects||[])svgOk(R.Art.worldSvg(o.kind==="spring"?"well":o.kind).full, `${id}: オブジェクト ${o.kind}`);
 }
 

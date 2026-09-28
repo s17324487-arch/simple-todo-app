@@ -120,6 +120,18 @@ const PokaDebug = {
     if(G.sceneName!=="world")return null;
     return {camera:{...G.scene.cam},seasonal:Seasonal.particles(G.scene,time),wind:Seasonal.particles(G.scene,time,"wind")};
   },
+  heiwadaiView({cx=43.2,cy=27.4,width=390,height=844}={}) {
+    if(G.sceneName!=="world"||G.scene.mapId!=="heiwadai")throw Error("Enter Heiwadai first");
+    const sc=G.scene,canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+    canvas.width=width;canvas.height=height;
+    const old={w:G.W,h:G.H,cam:sc.cam,hint:sc.hintT,party:sc.party};
+    try{sc.party=[41.7,42.95,44.2].map(x=>new Walker(x-.5,29.25-27/32,'right'));G.W=360;G.H=height*360/width;sc.cam={x:Math.round(cx*TS-180)+180,y:Math.round(cy*TS-G.H/2)+G.H/2};sc.hintT=0;
+      ctx.scale(width/360,width/360);sc.render(ctx);return canvas.toDataURL();
+    }finally{G.W=old.w;G.H=old.h;sc.cam=old.cam;sc.hintT=old.hint;sc.party=old.party;}
+  },
+  heiwadaiState(){
+    const m=Maps.get('heiwadai');return {size:[m.w,m.h],doors:m.doors.map(d=>({id:d.b.id,x:d.x,y:d.y,act:d.b.act})),safe:m.def.safeSpawn,aliases:m.def.idAliases};
+  },
   async roadPreview(def, { cx=43.2,cy=27.4,width=390,height=844 }={}) {
     // 定義は開発ページから渡す。本編のMAP_DEFSやプレイデータには登録しない。
     await TownRoads.preload(def);
