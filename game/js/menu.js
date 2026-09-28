@@ -104,11 +104,12 @@ const Menu = {
   },
 
   dex(el, m, kind = this.dexKind || "enemy") {
-    // ③④ まもの／さかな／かせき（さかな ずかんは Fishing.dex、かせき ノートは Fossils.note）
-    const kinds = [["enemy", "まもの"], ...(typeof Fishing !== "undefined" && Fishing.data() ? [["fish", "さかな"]] : []), ...(typeof Fossils !== "undefined" && Fossils.data() ? [["fossil", "かせき"]] : [])];
+    // まもの・さかな・かせきに、家具と服のコレクションを並べる。
+    const kinds = [["enemy", "まもの"], ...(typeof Fishing !== "undefined" && Fishing.data() ? [["fish", "さかな"]] : []), ...(typeof Fossils !== "undefined" && Fossils.data() ? [["fossil", "かせき"]] : []), ["furn", "かぐ"], ["wear", "ふく"]];
+    if (!kinds.some(([key]) => key === kind)) kind = "enemy";
     if (kinds.length > 1) {
       const sw = U.el("div", { class: "tabs dex-kinds" });
-      sw.style.gridTemplateColumns = `repeat(${kinds.length}, 1fr)`;
+      sw.style.gridTemplateColumns = `repeat(${kinds.length}, minmax(0, 1fr))`;
       for (const [k, label] of kinds) {
         const b = U.el("button", { class: "tab" + (k === kind ? " on" : ""), text: label });
         b.dataset.k = k;
@@ -118,6 +119,7 @@ const Menu = {
       el.append(sw);
       if (kind === "fish") return Fishing.dex(el);
       if (kind === "fossil") return Fossils.note(el);
+      if (kind === "furn" || kind === "wear") return ItemDex.render(el, kind);
     }
     const d = Save.d;
     const all = Object.keys(ENEMIES);

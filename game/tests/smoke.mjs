@@ -2534,6 +2534,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 await (await import("./town-dialogue-smoke.mjs")).townDialogueSmoke({scenario,expect});
 
+await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});
+
 server.close();
 if(LIST)process.exit(0);
 if (!results.length) { console.error("検証対象がありません。--only の名前を確認してください。"); process.exit(1); }
