@@ -6,7 +6,7 @@ class PrizeMachineRound {
   indicator(){return (this.time*(this.type==='tripod'?.56:.38)+this.seed)%1;}
   drop(){
     if(this.done)return;const precision=U.clamp(1-Math.hypot(this.x-this.target.x,this.y-this.target.y)*2.5,0,1),phase=this.indicator();this.tries++;
-    if(this.type==='claw'){this.quality=precision;this.win=this.rng()<.12+.78*precision;this.done=true;}
+    if(this.type==='claw'){const timing=1-Math.abs(phase-.5)*2;this.quality=precision*(.55+.45*timing);this.win=this.rng()<.08+.75*this.quality;this.done=true;}
     else if(this.type==='ring'){const swing=Math.abs(Math.sin((phase-.5)*Math.PI*2));this.quality=precision*(1-.7*swing);this.win=this.rng()<.04+.86*this.quality;this.done=true;}
     else if(this.type==='sweet'){
       if(this.phase==='aim'){const offset=Math.abs(phase-.5);this.scoop=Math.round((1-offset*2)*precision*4);this.phase='push';}
@@ -32,7 +32,7 @@ const PrizeArcade={
     {type:'ring',name:'リングフック・がちゃん',prize:'ike_prize_4',qty:1},
     {type:'ring',name:'リングフック・まむまむ',prize:'prize_cookie',qty:12},
   ],
-  rules:{claw:'左右・前後で ねらって「おろす」。中心に 近いほど つかみやすいよ。アームの 強さには 運も あるよ。',sweet:'回る おかしの皿を ねらい「すくう」。次に、台が手前にくる 黄色の合図で「おとす」。3セットで おかしを 押し出そう。',tripod:'左右で 支えを えらび、前後で 中心を あわせる。回る光が 選んだ 支えに重なる とき「とめる」。6回までに 2本以上 はずそう。',ring:'左右・前後で フックを ねらう。リングの 揺れが 中心に戻る とき「おろす」。向きと タイミングが 大事だよ。'},
+  rules:{claw:'左右・前後で ねらい、黄色の合図で「おろす」。位置と タイミングで つかみやすさが 変わるよ。アームの 強さには 運も あるよ。',sweet:'回る おかしの皿を ねらい「すくう」。次に、台が手前にくる 黄色の合図で「おとす」。3セットで おかしを 押し出そう。',tripod:'左右で 支えを えらび、前後で 中心を あわせる。回る光が 選んだ 支えに重なる とき「とめる」。6回までに 2本以上 はずそう。',ring:'左右・前後で フックを ねらう。リングの 揺れが 中心に戻る とき「おろす」。向きと タイミングが 大事だよ。'},
   async open(machine,back){
     const m=this.machines[machine];if(!m)return;
     const active=Save.d.arcade.active;
@@ -87,7 +87,7 @@ class PrizeArcadeScene{
       const cx=W/2,cy=Y(.5),rad=Math.min(width*.32,hh*.3);for(let i=0;i<3;i++){const a=i*Math.PI*2/3;ctx.strokeStyle=r.supports[i]?'#AC8B65':'#D9D2CA';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*rad,cy+Math.sin(a)*rad);ctx.lineTo(cx+Math.cos(a)*rad*.3,cy+Math.sin(a)*rad*.3);ctx.stroke();ctx.fillStyle=Math.floor(r.x*3)===i?'#D06C8C':'#677D8B';ctx.font='bold 15px sans-serif';ctx.fillText(String(i+1),cx+Math.cos(a)*(rad+16),cy+Math.sin(a)*(rad+16));}const a=r.indicator()*Math.PI*2;ctx.fillStyle='#FFE56F';ctx.beginPath();ctx.arc(cx+Math.cos(a)*rad,cy+Math.sin(a)*rad,8,0,7);ctx.fill();
     }else if(r.type==='ring'){ctx.strokeStyle='#B58B4E';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(tx,ty-28);ctx.lineTo(tx,ty+8);ctx.arc(tx+7,ty+8,7,Math.PI,0,true);ctx.stroke();}
     const x=X(r.x),y=Y(r.y)+(this.dropAnim>0?Math.sin(this.dropAnim/.9*Math.PI)*32:0);ctx.strokeStyle='#667986';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,top+8);ctx.lineTo(x,y-14);ctx.stroke();ctx.strokeStyle='#D67D9B';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x+(r.type==='ring'?Math.sin((r.indicator()-.5)*Math.PI*2)*22:0),y,14,0,7);ctx.stroke();ctx.beginPath();ctx.moveTo(x-23,y);ctx.lineTo(x+23,y);ctx.moveTo(x,y-23);ctx.lineTo(x,y+23);ctx.stroke();
-    if(r.type==='sweet'||r.type==='ring'){ctx.fillStyle='#D4D8D7';ctx.fillRect(35,bottom+13,W-70,12);ctx.fillStyle='#F3D981';ctx.fillRect(W/2-20,bottom+13,40,12);ctx.fillStyle='#85668D';ctx.fillRect(35+r.indicator()*(W-70),bottom+9,5,20);}
+    if(r.type!=='tripod'){ctx.fillStyle='#D4D8D7';ctx.fillRect(35,bottom+13,W-70,12);ctx.fillStyle='#F3D981';ctx.fillRect(W/2-20,bottom+13,40,12);ctx.fillStyle='#85668D';ctx.fillRect(35+r.indicator()*(W-70),bottom+9,5,20);}
     Save.d.order.forEach((id,i)=>{const c=Save.d.chars[id];Chara.draw(ctx,id,{pose:'idle_01',dir:'down',face:r.done&&r.win?'happy':'normal',outfit:c.outfit,color:c.color},W/2+(i-1)*57,bottom+84,42);});
   }
 }
