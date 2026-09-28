@@ -22,7 +22,7 @@ const FILES = [
   "./js/annual-festivals.js",
   "./js/weather.js", "./js/battle-elements.js",
   "./js/modern-music.js", "./js/music-arrangements.js",
-  "./js/atlas-art.js", "./js/world-atlas.js",
+  "./js/atlas-art.js", "./js/world-atlas.js", "./js/district-travel.js",
 ];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));

@@ -53,7 +53,7 @@ const SaveBackup={
   decode(text){
     if(typeof text!=='string'||text.length>this.limit)throw Error('データが おおきすぎるよ。');
     let pack;try{pack=JSON.parse(text.trim().replace(/^\uFEFF/,''));}catch{throw Error('もじを ぜんぶ はりつけてね。よみこめなかったよ。');}
-    if(!pack||pack.game!=='pokapoka-town'||pack.format!==1)throw Error('ぽかぽかタウンの バックアップを えらんでね。');
+    if(!pack||pack.game!=='pokapoka-town'||pack.format!==1)throw Error('ネリカスタウンの バックアップを えらんでね。');
     return this.validate(pack.data);
   },
   install(data,storage=localStorage){

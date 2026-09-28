@@ -111,7 +111,7 @@
   air.finish();
 
   patch("town",(g,d)=>{
-    station(g,d,"town_station",30,1,"ぽかぽかえき");
+    station(g,d,"town_station",30,1,"ネリカスえき");
     road(g,[[32,4],[32,7]],1);
     road(g,[[24,21],[26,22],[26,26],[30,28]],1);
     d.objects[0].id="town_fountain"; d.objects[0].text="しゅわーっ！ ふんすいが たかく あがった！";
@@ -124,7 +124,7 @@
     for(let y=1;y<31;y++)for(let x=16;x<=18;x++)if(g[y][x]==="=")g[y][x]="v";
     road(g,[[11,2],[12,10],[14,11],[14,20],[11,22],[11,29]],1);
     road(g,[[21,8],[21,21],[33,21],[33,29]],1);
-    station(g,d,"city_station",10,25,"シティえき");
+    station(g,d,"city_station",10,25,"池袋えき");
     prop(d,"city_fountain","fountain",22,20,3,2,"ビルの あいだに みずの にじ！");
     prop(d,"city_clock","clocktower",12,21,1,1,"とけいが こつこつ。まちは きょうも にぎやか！");
     prop(d,"city_signal","signal",19,19,1,1,"あおに なったら みぎ ひだりを みて わたろう。");

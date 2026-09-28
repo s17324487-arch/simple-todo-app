@@ -1,7 +1,7 @@
 const Transit = {
   stops: {
-    town_station: { map:"town", label:"ぽかぽかえき", kind:"train" },
-    city_station: { map:"city", label:"シティえき", kind:"train" },
+    town_station: { map:"town", label:"ネリカスえき", kind:"train" },
+    city_station: { map:"city", label:"池袋えき", kind:"train" },
     heiwadai_station: { map:"heiwadai", label:"平和台えき", kind:"train" },
     airport_station: { map:"airport", label:"くうこうえき", kind:"train" },
     coast_ferry: { map:"coast", label:"ビーチの のりば", kind:"ferry" },
@@ -10,12 +10,19 @@ const Transit = {
     harbor_air: { map:"harbor", label:"みなとの すいじょうき", kind:"plane" },
   },
   names: { train:"でんしゃ", ferry:"ふね", plane:"ひこうき" },
+  fare(from,to) { return this.stops[from]?.kind==='train'&&to==='city_station'?500:0; },
+  pay(from,to) {
+    if(!this.stops[from]||!this.destinations(from).includes(to))return false;
+    const price=this.fare(from,to);if(Save.d.coins<price)return false;
+    Save.d.coins-=price;Save.write();UI.updateHud();return true;
+  },
   destinations(id) { const s=this.stops[id]; return Object.keys(this.stops).filter(k=>k!==id && this.stops[k].kind===s.kind); },
   arrival(id) { const s=this.stops[id],b=MAP_DEFS[s.map].buildings.find(b=>b.act?.stop===id); return {map:s.map,x:b.x+b.door,y:b.y+b.h,dir:"down",grace:4}; },
   async open(id) {
     const s=this.stops[id], ids=this.destinations(id);
-    const i=await UI.ask(`${s.label}\n${this.names[s.kind]}で どこへ いく？（むりょう）`,[...ids.map(k=>this.stops[k].label+"へ"),"やめておく"]);
+    const i=await UI.ask(`${s.label}\n${this.names[s.kind]}で どこへ いく？\n池袋へは 500コイン。かえりは むりょう。`,[...ids.map(k=>this.stops[k].label+"へ"+(this.fare(id,k)?`（${this.fare(id,k)}コイン）`:"")),"やめておく"]);
     if(i<0||i>=ids.length)return false;
+    if(!this.pay(id,ids[i])){await UI.say([{name:s.label,text:'500コインが ひつようだよ。'}]);return false;}
     Game.goto("travel",{from:id,to:ids[i],kind:s.kind},"circle"); return true;
   },
 };

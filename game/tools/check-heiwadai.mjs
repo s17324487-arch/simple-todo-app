@@ -16,7 +16,7 @@ for(const id of ['station','market','living','bread','diner','clock','fountain',
 assert.deepEqual(townFailures(townMetrics(m)),[]);
 assert(!m.isSolid(...d.safeSpawn));assert(m.isSolid(27,11));
 for(const b of d.buildings)if(b.act.type==='transit'){const p=R.Transit.arrival(b.act.stop);assert(!m.isSolid(p.x,p.y));}
-for(const id of ['city','airport']){const incoming=R.MAP_DEFS[id].warps.find(w=>w.to==='heiwadai');assert(!m.isSolid(incoming.tx,incoming.ty));assert.equal(incoming.ty,66);}
+for(const id of ['town','coast','airport']){const incoming=R.MAP_DEFS[id].warps.find(w=>w.to==='heiwadai');assert(!m.isSolid(incoming.tx,incoming.ty));assert.equal(incoming.ty,66);}
 const saved=R.Save.fresh();saved.coins=987654;saved.world={map:'heiwadai',x:27,y:11,dir:'down'};saved.flags.chests.heiwadai_lane=true;
 const migrated=R.Save.migrate(saved);assert.equal(migrated.coins,987654);assert(migrated.flags.chests.heiwadai_lane);assert.equal(R.Save.KEY,'pokapoka-town-save-v1');assert.equal(R.Save.SCHEMA,1);
 console.log('Heiwadai: exact placement / entrances / legacy IDs / routes / save compatibility OK');

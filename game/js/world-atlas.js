@@ -132,6 +132,6 @@ const WorldAtlas = {
     el.append(U.el("p",{class:"atlas-hint",text:`あるいて いける ばしょ：${neighbors.map(n=>MAP_DEFS[n].name).join(" ／ ")}`}));
     for(const b of d.buildings||[]) el.append(U.el("div",{class:"muted",text:`${b.label}：よこ ${b.x+b.door+1}・たて ${b.y+b.h}`}));
     const stops=Object.values(Transit.stops).filter(s=>s.map===id);
-    if(stops.length) el.append(U.el("p",{class:"atlas-hint",text:"のりものは のりばから。みんな むりょうで のれるよ。"}));
+    if(stops.length) el.append(U.el("p",{class:"atlas-hint",text:"のりものは のりばから。池袋へは でんしゃで 500コイン。かえりは むりょう。"}));
   },
 };

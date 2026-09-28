@@ -276,7 +276,7 @@ function helpers(page, name) {
   return H;
 }
 
-if(!LIST) console.log(`ぽかぽかタウン スモークテスト ${FULL ? "（full）" : ""}`);
+if(!LIST) console.log(`ネリカスタウン スモークテスト ${FULL ? "（full）" : ""}`);
 
 await scenario("現代的BGM・全曲の音声合成",async H=>{
   await H.newGameFast();await H.page.mouse.click(5,5);
@@ -501,7 +501,7 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
   await H.dbg("seedSave",fixture);await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle(30000);
   const preserved=d=>JSON.stringify({bag:d.bag,wardrobe:d.wardrobe,furn:d.furn,room:d.room,rooms:d.rooms,flags:d.flags,events:d.events,stats:d.stats,order:d.order,settings:d.settings,chars:Object.fromEntries(Object.entries(d.chars).map(([id,c])=>[id,{lv:c.lv,exp:c.exp,boost:c.boost,outfit:c.outfit,name:c.name,color:c.color}]))});
   const openSettings=async()=>{await H.page.getByRole("button",{name:"メニュー",exact:true}).click();await H.page.getByRole("button",{name:"せってい",exact:true}).click();};
-  const tapVersion=async n=>{await H.page.getByRole("button",{name:/ぽかぽかタウン ver/}).click({clickCount:n,delay:50});};
+  const tapVersion=async n=>{await H.page.getByRole("button",{name:/ネリカスタウン ver/}).click({clickCount:n,delay:50});};
   const entry=H.page.getByRole("button",{name:"かんりしゃ コマンド",exact:true});
   await openSettings();expect(await entry.count()===0,"通常の設定に管理者コマンドが出ている");
   await H.page.locator(".menu-version").scrollIntoViewIfNeeded();await H.shot("locked");
@@ -589,15 +589,15 @@ await scenario("新エリア・全体マップ・帰宅", async (H) => {
   await H.newGameFast();
   await H.dbg("teleport", "town", 46, 11);
   await H.until(() => PokaDebug.idle()); await H.dbg("walkTo", 47, 11);
-  await H.until(() => PokaDebug.state().map === "city" && PokaDebug.idle());
-  await H.shot("city");
+  await H.until(() => PokaDebug.state().map === "heiwadai" && PokaDebug.idle());
+  await H.shot("heiwadai");
   await H.page.getByRole("button", { name: "メニュー", exact: true }).click();
   await H.page.getByRole("button", { name: "ちず", exact: true }).click();
   expect(await H.page.getByRole("group", { name: "ぽかぽかの せかいの ちず", exact:true }).isVisible(), "全体マップがない");
-  expect(await H.page.locator('.atlas-marker.is-current').getAttribute('data-area') === "city", "入ったエリアが地図の現在地に反映されない");
+  expect(await H.page.locator('.atlas-marker.is-current').getAttribute('data-area') === "heiwadai", "入ったエリアが地図の現在地に反映されない");
   await H.shot("atlas"); await H.page.locator(".modal-wrap .close").last().click(); await H.wait(300);
-  await H.dbg("teleport", "city", 46, 24); await H.until(() => PokaDebug.idle());
-  await H.dbg("walkTo", 47, 24); await H.until(() => PokaDebug.state().map === "coast" && PokaDebug.idle());
+  await H.dbg("teleport", "heiwadai", 25, 66); await H.until(() => PokaDebug.idle());
+  await H.dbg("walkTo", 25, 67); await H.until(() => PokaDebug.state().map === "coast" && PokaDebug.idle());
   await H.shot("coast");
   await H.dbg("level", 24); await H.dbg("battle", [{ kind:"crab",lv:16 }], "coast");
   await H.page.getByRole("button", { name:"とくぎ",exact:true }).waitFor(); await H.shot("new-enemy");
@@ -713,7 +713,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.locator('.modal-wrap:not(.out) .close').last().click();await H.wait(200);await H.page.locator('.modal-wrap:not(.out) .close').last().click();await H.wait(200);
   await H.dbg('newGame');await H.idle();expect((await H.dbg('state')).coins===150,'はじめからにならない');
   await settings();await H.page.getByRole('button',{name:'セーブを よみこむ',exact:true}).click();const area=H.page.getByLabel('セーブの もじ',{exact:true}),review=H.page.getByRole('button',{name:'なかみを たしかめる',exact:true});
-  await area.fill('{"game":"other","format":1,"data":{}}');await review.click();await H.until(()=>document.querySelector('.save-backup [role=alert]')?.textContent.includes('ぽかぽかタウン'));expect((await H.dbg('state')).coins===150,'不正な読み込みで現在のデータが変わる');await H.shot('invalid');
+  await area.fill('{"game":"other","format":1,"data":{}}');await review.click();await H.until(()=>document.querySelector('.save-backup [role=alert]')?.textContent.includes('ネリカスタウン'));expect((await H.dbg('state')).coins===150,'不正な読み込みで現在のデータが変わる');await H.shot('invalid');
   await area.fill(text);await review.click();await H.choose(1);expect((await H.dbg('state')).coins===150,'キャンセルで上書きされた');
   await H.page.getByLabel('セーブの ファイル',{exact:true}).setInputFiles({name:'backup.txt',mimeType:'text/plain',buffer:Buffer.from(text)});await H.until(()=>document.querySelector('.save-backup-text').value.includes('987654'));await review.click();await H.shot('confirm');await H.choose(0);
   await H.until(()=>window.PokaDebug?.state().scene==='title'&&PokaDebug.idle(),20000);await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();const restored=await H.dbg('saveData');
@@ -819,7 +819,7 @@ await scenario("交通（電車・船・飛行機・中止・セーブ）", asyn
   const before=await H.dbg("state");await H.dbg("save");await H.page.reload();
   await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.until(()=>PokaDebug.state().scene==="world"&&PokaDebug.idle());
   const after=await H.dbg("state");expect(after.map==="airport"&&after.coins===before.coins,"交通の到着位置・コインのセーブに失敗");
-  await board("airport",6,22,"airport_station","ぽかぽかえきへ");
+  await board("airport",6,22,"airport_station","ネリカスえきへ");
   await H.until(()=>PokaDebug.state().scene==="travel"&&PokaDebug.idle());
   await H.page.getByRole("button",{name:"おうちへ",exact:true}).click();
   await H.until(()=>PokaDebug.state().scene==="house"&&PokaDebug.idle());
@@ -914,7 +914,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   }
   await atlas.locator(".atlas-select").selectOption("forest");
   expect(await atlas.getAttribute("data-selected")==="forest","エリア選択が反応しない");
-  const town=atlas.getByRole("button",{name:"ぽかぽかタウン",exact:true});
+  const town=atlas.getByRole("button",{name:"ネリカスタウン",exact:true});
   await town.focus(); await H.page.keyboard.press("Enter");
   expect(await atlas.getAttribute("data-selected")==="town","キーボードで選択できない");
   await atlas.getByRole("button",{name:"ちずを おおきく",exact:true}).click();
@@ -2246,6 +2246,19 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
   for(const key of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(saved[key])===JSON.stringify(before[key]),'持ち物が変化: '+key);
   await H.wait(2000);expect((await H.dbg('persistedSave')).coins===saved.coins,'途中終了で二重払い');
   await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();expect((await H.dbg('saveData')).coins===saved.coins,'再読み込みで報酬が消える');
+},{viewport,timeout:90000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('district-travel-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
+  const d=await H.dbg('saveData');d.coins=499;await H.dbg('seedSave',d);await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+  let t=await H.dbg('districtTravel');expect(t.names.town==='ネリカスタウン'&&t.names.city==='池袋'&&!t.walkIns.length,'地名/電車専用');expect(t.places.city.y===159&&t.places.heiwadai.y===358,'町の位置');
+  await H.dbg('station','town_station');await H.page.getByRole('button',{name:'池袋えきへ（500コイン）',exact:true}).click();await H.dialogs();expect((await H.dbg('saveData')).coins===499,'残高不足で差引');
+  await H.dbg('coins',501);const before=(await H.dbg('saveData')).coins;
+  await H.dbg('station','town_station');await H.page.getByRole('button',{name:'やめておく',exact:true}).click();expect((await H.dbg('saveData')).coins===before,'中止で差引');
+  await H.dbg('station','town_station');await H.page.getByRole('button',{name:'池袋えきへ（500コイン）',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='travel'&&PokaDebug.idle());await H.shot('train');
+  await H.until(()=>PokaDebug.state().map==='city'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-500,'運賃一回');
+  await H.dbg('station','city_station');await H.page.getByRole('button',{name:'ネリカスえきへ',exact:true}).click();await H.until(()=>PokaDebug.state().map==='town'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-500,'帰り無料');
+  await H.dbg('atlas');await H.shot('map');
 },{viewport,timeout:90000});
 
 server.close();

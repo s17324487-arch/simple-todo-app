@@ -5,7 +5,7 @@
 const MAP_DEFS = {};
 
 MAP_DEFS.town = {
-  name: "ぽかぽかタウン", bgm: "town", baseGround: "grass",
+  name: "ネリカスタウン", bgm: "town", baseGround: "grass",
   rows: [
     "TTTTTTTTTTTTTTTTTTTTTTTT",
     "T..,....T.......T..,...T",
@@ -52,10 +52,10 @@ MAP_DEFS.town = {
   ],
   objects: [
     { kind: "fountain", x: 11, y: 13, w: 3, h: 2, ground: "plaza" },
-    { kind: "gate", x: 10, y: 29, w: 5, h: 1, text: "ぽかぽかタウン" },
+    { kind: "gate", x: 10, y: 29, w: 5, h: 1, text: "ネリカスタウン" },
   ],
   signs: [
-    { x: 9, y: 8, text: "ここは ぽかぽかタウンの ひろば。\nおみせで おてつだいすると コインが もらえるよ。" },
+    { x: 9, y: 8, text: "ここは ネリカスタウンの ひろば。\nおみせで おてつだいすると コインが もらえるよ。" },
     { x: 15, y: 29, text: "⬇ この さき ぽかぽかはらっぱ\nまものが でるので きをつけてね！" },
   ],
   npcs: [
@@ -154,7 +154,7 @@ function genMeadow() {
   const def = {
     name: "ぽかぽかはらっぱ", bgm: "meadow", baseGround: "grass", area: "meadow",
     rows: null,
-    signs: [{ x: 12, y: 3, text: "⬇ どんぐりのもり\n⬆ ぽかぽかタウン\nくさむらには なにかが かくれているかも？" }],
+    signs: [{ x: 12, y: 3, text: "⬇ どんぐりのもり\n⬆ ネリカスタウン\nくさむらには なにかが かくれているかも？" }],
     chests: [
       { id: "m1", x: 5, y: 6, loot: { wear: "strawhat" } },
       { id: "m2", x: 26, y: 13, loot: { bag: "cake", n: 1 } },
