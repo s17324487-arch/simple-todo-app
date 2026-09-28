@@ -640,6 +640,23 @@ await scenario("ボスに勝つ（王冠がもらえる）", async (H) => {
   expect(r.boss && r.crown && r.trophy >= 1, "ボスの ほうしゅうが もらえていない " + JSON.stringify(r));
 }, { full: true, timeout: 150000 });
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('save-backup-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('level',20);await H.dbg('coins',987504);let fixture=await H.dbg('saveData');fixture.rooms.expanded.main=true;fixture.bag.apple=23;fixture.furn.plant=3;fixture.order=['goji','wanko','gachan'];await H.dbg('seedSave',fixture);
+  const settings=async()=>{await H.page.getByRole('button',{name:'メニュー',exact:true}).click();await H.page.getByRole('button',{name:'せってい',exact:true}).click();};
+  await settings();await H.page.getByRole('button',{name:'セーブを かきだす',exact:true}).click();const text=await H.page.getByLabel('かきだした セーブ',{exact:true}).inputValue();expect(JSON.parse(text).data.coins===987654,'所持金を正確に書き出せない');await H.shot('export');
+  const download=H.page.waitForEvent('download');await H.page.getByRole('button',{name:'ファイルに ほぞん',exact:true}).click();const file=await download;expect(file.suggestedFilename().endsWith('.txt'),'ファイルを書き出せない');expect(readFileSync(await file.path(),'utf8')===text,'ダウンロード内容が違う');
+  await H.page.locator('.modal-wrap:not(.out) .close').last().click();await H.wait(200);await H.page.locator('.modal-wrap:not(.out) .close').last().click();await H.wait(200);
+  await H.dbg('newGame');await H.idle();expect((await H.dbg('state')).coins===150,'はじめからにならない');
+  await settings();await H.page.getByRole('button',{name:'セーブを よみこむ',exact:true}).click();const area=H.page.getByLabel('セーブの もじ',{exact:true}),review=H.page.getByRole('button',{name:'なかみを たしかめる',exact:true});
+  await area.fill('{"game":"other","format":1,"data":{}}');await review.click();await H.until(()=>document.querySelector('.save-backup [role=alert]')?.textContent.includes('ぽかぽかタウン'));expect((await H.dbg('state')).coins===150,'不正な読み込みで現在のデータが変わる');await H.shot('invalid');
+  await area.fill(text);await review.click();await H.choose(1);expect((await H.dbg('state')).coins===150,'キャンセルで上書きされた');
+  await H.page.getByLabel('セーブの ファイル',{exact:true}).setInputFiles({name:'backup.txt',mimeType:'text/plain',buffer:Buffer.from(text)});await H.until(()=>document.querySelector('.save-backup-text').value.includes('987654'));await review.click();await H.shot('confirm');await H.choose(0);
+  await H.until(()=>window.PokaDebug?.state().scene==='title'&&PokaDebug.idle(),20000);await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();const restored=await H.dbg('saveData');
+  for(const k of ['coins','wardrobe','room','rooms','bag','furn','order'])expect(JSON.stringify(restored[k])===JSON.stringify(fixture[k]),'復元後の値が違う: '+k);
+  expect(restored.chars.wanko.lv===20&&restored.chars.gachan.lv===20&&restored.chars.goji.lv===20,'レベルが戻らない');await H.shot('restored');
+  if(viewport.width===390){const ctx=await browser.newContext({viewport,locale:'ja-JP'});try{await ctx.route(new RegExp("^https://fonts[.]"),r=>r.abort());const other=await ctx.newPage();await other.goto(url);await other.waitForFunction(()=>window.PokaDebug&&PokaDebug.idle());const imported=await other.evaluate(text=>PokaDebug.backupDecode(text),text);expect(imported.coins===987654&&JSON.stringify(imported.room)===JSON.stringify(fixture.room),'別ブラウザで文字列を読めない');}finally{await ctx.close();}}
+},{viewport,full:viewport.width===375,timeout:150000});
+
 await scenario("セーブ→つづきから", async (H) => {
   await H.newGameFast();
   await H.dbg("teleport", "town", 12, 24, "left");
