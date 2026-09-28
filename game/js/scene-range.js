@@ -6,6 +6,9 @@
 //   うえに かさねる .range-scene（DOM）が HUD（game.hud()）・そうさ（うつ／のぞく／ボルト・レバー・こめる／リロード／いき・ズーム・おわり・✕）と ねらいの ドラッグを うける。
 //   おわると けっか（.rg-result／.rg-sheet）・Save.d.range（plays・best）・コイン（GameEconomy.pay("range", 1, ★, むずかしさ)）。
 //   絵は SvgCache: 的は ShootingRange.artKeys（14こ）・主観の じゅうは "rg:" + じゅう + ":" + だれ + ":" + いろ（9×3×2）。
+// 3番: RO の 号令（.range-cmd: メイク レディ → アー ユー レディ？ → スタンバイ… → ブザー、おわると アンロード。ショウ クリア。→ けっか）・
+//   のこりの 2人の おうえん（.range-bubble: hit は 3かいに 1かい・combo は IPSC で A ゾーン 4はつ つづけて／スチールで のこしの ない ストリング・hurry は のこり 10びょう）・
+//   けっかの あとで ② の TownFolk.signal({ do: "range", stars })。
 class RangeScene {
   async enter(p = {}) {
     const D = RANGE_DATA, o = D.outside, m = RangeScene.memo || {};
@@ -134,6 +137,8 @@ class RangeScene {
     this.tone = who === "goji" ? Save.d.chars.goji.color || "soft" : "soft";
     this.game = new ShootingRange.Game(D, course, gunId, { seed: o.seed || `${course}:${gunId}:${Date.now()}`, W: G.W, H: G.H, who, hopStep: gun.cat === "hand" ? undefined : this.hopOf(gunId) });
     this.q = RangeScene.noInput(); this.firing = false; this.breathing = false; this.aimId = null; this.dbg = null; this.shown = {};
+    // RO の 号令（メイク レディ 0.8びょう → アー ユー レディ？ 0.8びょう → スタンバイ）。おうえんの かず
+    this.ro = { stage: "ready", t: 0.8 }; this.doneT = 0; this.cheerN = { hits: 0, aRun: 0, hurry: {} }; this.bubble = null;
     this.mode = "play";
     UI.showHud(false);
     this.mount();
@@ -191,7 +196,8 @@ class RangeScene {
     // おうえんの 2人（うしろで 見て いる）
     this.cheer = U.el("div", { class: "range-cheer" });
     this.buddies = Chara.IDS.filter((id) => id !== g.who).map((id) => { const b = U.el("div", { class: "range-buddy", html: this.heroImg(id, "normal") }); b.dataset.who = id; this.cheer.append(b); return b; });
-    root.append(ctrl, this.breathBtn, this.cheer);
+    this.cmdEl = U.el("div", { class: "range-cmd" });
+    root.append(ctrl, this.breathBtn, this.cheer, this.cmdEl);
     // ねらい: ボタンの そとで ゆびを うごかす（はなしても ねらいは その まま）
     root.addEventListener("pointerdown", (e) => {
       if (e.target.closest(".btn") || this.aimId != null) return;
@@ -224,17 +230,65 @@ class RangeScene {
   update(dt) {
     this.t += dt;
     if (!this.started && !Game.trans) { this.started = true; if (this.first) this.start(this.first); else this.lobby(); }
+    if (this.mode === "done" && !UI.busy && !Game.trans) { this.doneT -= dt; this.tick(dt); if (this.doneT <= 0) this.showResult(); return; }
     if (this.mode !== "play" || !this.game || UI.busy || Game.trans) return;
-    const g = this.game;
-    g.update(dt, this.input(dt));
+    const g = this.game, ro = this.ro;
+    if (ro) {
+      // メイク レディ・アー ユー レディ？ の あいだは スタンバイの 時間を とめる（じゅうを かまえて まつ）
+      const sb = g.standby;
+      g.update(dt, this.input(dt));
+      if (g.phase === "standby") g.standby = sb;
+      ro.t -= dt;
+      if (ro.t <= 0) this.ro = ro.stage === "ready" ? { stage: "areYou", t: 0.8 } : null;
+    } else g.update(dt, this.input(dt));
     this.events(g.take());
+    this.hurry();
+    this.tick(dt);
     this.refresh();
     if (g.phase === "end") this.finish();
   }
+  // おうえんの ふきだしを けす
+  tick(dt) {
+    const b = this.bubble;
+    if (b && (b.t -= dt) <= 0) { this.bubble = null; this.sayOn(b.who, null); }
+  }
+  // のこり 10びょう（ブルズアイ・10m は シリーズ ごと・IPSC は 60びょうまでの のこり）
+  hurry() {
+    const g = this.game, C = g.C, n = this.cheerN;
+    if (g.phase !== "play") return;
+    const left = C.time ? g.left : C.limit ? C.limit - g.clock : null, key = g.series || 0;
+    if (left != null && left <= 10 && !n.hurry[key]) { n.hurry[key] = true; this.cheerSay("hurry"); }
+  }
+  // 2人の どちらかが ひとこと（かおも かわる）
+  cheerSay(kind) {
+    if (!this.buddies || !this.buddies.length) return;
+    const D = RANGE_DATA, g = this.game, b = this.buddies[Math.floor(Math.random() * this.buddies.length)], who = b.dataset.who;
+    // スチールの combo は「A ゾーン」の ことばを つかわない（IPSC の ことば）
+    let lines = D.talk.cheer[who][kind] || [];
+    if (kind === "combo" && g.C.kind !== "ipsc") lines = lines.filter((t) => !/ゾーン/.test(t));
+    if (!lines.length) lines = D.talk.cheer[who].hit;
+    const text = lines[Math.floor(Math.random() * lines.length)];
+    if (this.bubble && this.bubble.who !== who) this.sayOn(this.bubble.who, null);
+    this.bubble = { who, text, kind, t: 1.8 };
+    this.sayOn(who, text, RangeScene.CHEER_FACE[kind][who]);
+  }
+  sayOn(who, text, face = "normal") {
+    const b = this.buddies && this.buddies.find((x) => x.dataset.who === who);
+    if (!b) return;
+    b.innerHTML = this.heroImg(who, face) + (text ? `<span class="range-bubble">${text}</span>` : "");
+  }
   // できごと → 音（スチール・ポッパー・かねは きょり ÷ 340m/s おくれて カーン）
   events(evs, quiet) {
-    const S = RANGE_DATA.sound;
+    const S = RANGE_DATA.sound, n = this.cheerN, ipsc = this.game.C.kind === "ipsc";
     for (const e of evs) {
+      // おうえん: あたり 3かいに 1かい・IPSC の A ゾーン 4はつ つづけて・スチールの のこしの ない ストリング
+      if (e.ev === "hit") {
+        n.hits++;
+        if (ipsc && e.kind !== "popper") n.aRun = e.zone === "A" ? n.aRun + 1 : 0;
+        if (ipsc && n.aRun === 4) this.cheerSay("combo");
+        else if (n.hits % 3 === 0) this.cheerSay("hit");
+      } else if (e.ev === "miss" && ipsc) n.aRun = 0;
+      else if (e.ev === "string" && !e.left) this.cheerSay("combo");
       if (quiet) continue;
       if (e.ev === "fire") Sound.se(S.fire[e.power]);
       else if (e.ev === "hit") { const se = S.hit[e.kind]; if (se) setTimeout(() => { if (!this.closed) Sound.se(se); }, Math.round((e.delay || 0) * 1000)); }
@@ -280,6 +334,17 @@ class RangeScene {
     this.put("fire", this.fireBtn, h.busy ? "…" : "うつ");
     this.breathBtn.classList.toggle("on", h.hold); this.breathBtn.classList.toggle("shake", h.shake);
     this.breathBtn.querySelector(".bar i").style.width = Math.round(h.stamina * 100) + "%";
+    const cmd = this.cmdHtml();
+    this.put("cmd", this.cmdEl, cmd);
+    this.cmdEl.style.display = cmd ? "" : "none";
+  }
+  // RO の 号令（.range-cmd）: メイク レディ → アー ユー レディ？ → スタンバイ…（ブザーまで）／おわると アンロード。ショウ クリア。
+  cmdHtml() {
+    const T = RANGE_DATA.talk.cmd, g = this.game;
+    if (this.mode === "done") return `<span>${T.done}</span>`;
+    if (this.ro) return `<span>${this.ro.stage === "ready" ? T.ready : T.areYou}</span>`;
+    if (g.phase === "standby") return `<span>${T.standby}</span><small>ブザーが なったら じゅうを あげて うつ</small>`;
+    return "";
   }
   put(k, el, html) { if (this.shown[k] !== html) { this.shown[k] = html; el.innerHTML = html; } }
   // ✕: たしかめて ロビーへ（コインは なし）
@@ -294,6 +359,7 @@ class RangeScene {
   // じどうで あそぶ（PokaDebug.rangeAuto）: 1/60 びょう ずつ sec びょう ぶん すすめる（音は ならさない）
   autoPlay(sec, skill) {
     const g = this.game;
+    this.ro = null;
     for (let i = 0; i < sec * 60 && g.phase !== "end"; i++) { g.update(1 / 60, ShootingRange.bot(g, skill)); this.events(g.take(), true); }
     this.refresh();
     if (g.phase === "end" && this.mode === "play") this.finish();
@@ -301,7 +367,7 @@ class RangeScene {
   // ---- けっか ----
   finish() {
     const D = RANGE_DATA, g = this.game, C = g.C, st = this.st(), key = g.cid + ":" + g.gun.id, old = st.best[key];
-    this.mode = "result"; this.unmount();
+    this.mode = "done"; this.ro = null; this.doneT = 1.2;
     const open = Object.keys(D.cats).filter((c) => !this.unlocked(c));
     // スチールは 5ストリング ぜんぶ うって はじめて きろく（とちゅうで おわると ★ も コインも なし）
     if (C.kind === "steel" && g.times.length < C.strings) g.stars = 0;
@@ -312,11 +378,20 @@ class RangeScene {
     const coins = GameEconomy.pay("range", 1, g.stars, Save.d.settings.difficulty);
     if (coins) Save.addCoins(coins);
     this.lastCoins = coins; Save.write();
+    this.done = { coins, record: better && !!old, opened: open.filter((c) => this.unlocked(c)) };
+    // ② 町の人の おねがい（しゃてきじょうで ★ いくつ）
+    if (typeof TownFolk !== "undefined" && TownFolk.data()) TownFolk.signal({ do: "range", stars: g.stars });
+    this.refresh();
+  }
+  // アンロード。ショウ クリア。の あと: けっか
+  showResult() {
+    const D = RANGE_DATA, g = this.game, d = this.done;
+    if (this.mode !== "done") return;
+    this.mode = "result"; this.unmount(); this.bubble = null;
     UI.showHud(true, D.outside.label);
     Sound.se(g.stars >= 3 ? D.sound.end[3] : D.sound.end.other);
-    const opened = open.filter((c) => this.unlocked(c));
-    this.result(g, coins, better && !!old);
-    for (const c of opened) UI.toast(`${D.cats[c].name}で あそべる ように なった！`, "good");
+    this.result(g, d.coins, d.record);
+    for (const c of d.opened) UI.toast(`${D.cats[c].name}で あそべる ように なった！`, "good");
   }
   result(g, coins, record) {
     const D = RANGE_DATA, C = g.C, gun = g.gun, body = U.el("div", { class: "rg-result" }), st = C.stars;
@@ -354,11 +429,12 @@ class RangeScene {
   state() {
     const g = this.game;
     if (!g) return { mode: this.mode, phase: null };
-    return { ...g.hud(), mode: this.mode, course: g.cid, gun: g.gun.id, who: g.who, result: g.result == null ? null : g.result, stars: g.stars == null ? null : g.stars, coins: this.lastCoins == null ? null : this.lastCoins, hop: g.hopStep };
+    return { ...g.hud(), mode: this.mode, course: g.cid, gun: g.gun.id, who: g.who, result: g.result == null ? null : g.result, stars: g.stars == null ? null : g.stars, coins: this.lastCoins == null ? null : this.lastCoins, hop: g.hopStep,
+      ro: this.ro ? this.ro.stage : null, bubble: this.bubble ? { who: this.bubble.who, kind: this.bubble.kind, text: this.bubble.text } : null, hits: this.cheerN ? this.cheerN.hits : 0 };
   }
   // ロビーの うしろ: コンクリートの かべ・まとの マーク・カウンターと RO の ラビ。あそぶ ときと けっかは 主観の 画面
   render(ctx) {
-    if (this.game && (this.mode === "play" || this.mode === "result")) { ShootingRange.draw(ctx, this.game, this.art()); return; }
+    if (this.game && (this.mode === "play" || this.mode === "done" || this.mode === "result")) { ShootingRange.draw(ctx, this.game, this.art()); return; }
     const W = G.W, H = G.H, g = ctx.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, "#4A4E55"); g.addColorStop(0.55, "#33363C"); g.addColorStop(1, "#22252B");
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -380,4 +456,5 @@ RangeScene.SCORE = { time: "タイム", points: "てん", hf: "ヒット ファ�
 RangeScene.POWER = { gbb: "ガス ブローバック", gas: "ガス", aeg: "でんどう", spring: "エアー コッキング" };
 RangeScene.ACTION = { semi: "セミオート", da: "ダブル アクション", auto: "フルオート", lever: "レバー", bolt: "ボルト", single: "1ぱつずつ" };
 RangeScene.ACT_LABEL = { bolt: "ボルト", lever: "レバー", single: "こめる" };
+RangeScene.CHEER_FACE = { hit: { wanko: "smile", gachan: "sparkle", goji: "love" }, combo: { wanko: "surprise", gachan: "sparkle", goji: "shout" }, hurry: { wanko: "surprise", gachan: "surprise", goji: "shout" } };
 SCENES.range = RangeScene;
