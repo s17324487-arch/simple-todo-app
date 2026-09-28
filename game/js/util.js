@@ -62,6 +62,32 @@ const U = {
     return d.getHours() + d.getMinutes() / 60;
   },
   svgUrl: (svg) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg),
+  // 会話の 条件（① おうちの 会話・② 町の人 で 共通）。when の 同じ キーの 中は「どれか」、ちがう キーは「ぜんぶ」。
+  // あわなければ -1、あえば あった キーの 数（feature は 数えない）。c の 値は 配列でも よい（近くの 家具・できごと など）
+  condScore(when, c) {
+    let n = 0;
+    for (const k in when || {}) {
+      const vals = when[k];
+      let ok;
+      if (k === "feature") ok = vals.every((v) => (v[0] === "!" ? !(c.feature || {})[v.slice(1)] : !!(c.feature || {})[v]));
+      else if (k === "bond") ok = vals.every((v) => (c.bond || 0) >= +v);
+      else { const have = [].concat(c[k] == null ? [] : c[k]); ok = vals.some((v) => have.includes(v)); }
+      if (!ok) return -1;
+      if (k !== "feature") n++;
+    }
+    return n;
+  },
+  // 条件に あう ものから 1つ。重み = 1 + 2 ×（あった キーの 数）。recent（id の 配列）に ある ものは なるべく さける
+  condPick(list, c, recent = [], rand = Math.random) {
+    let cand = [];
+    for (const l of list) { const s = this.condScore(l.when, c); if (s >= 0) cand.push([l, 1 + 2 * s]); }
+    const fresh = cand.filter(([l]) => !recent.includes(l.id));
+    if (fresh.length) cand = fresh;
+    if (!cand.length) return null;
+    let r = rand() * cand.reduce((a, [, w]) => a + w, 0);
+    for (const [l, w] of cand) { r -= w; if (r < 0) return l; }
+    return cand[cand.length - 1][0];
+  },
 };
 
 // SVG文字列 → canvas（端末ピクセル）のキャッシュ。家具・敵・NPC・アイコンで共用

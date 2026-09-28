@@ -6,14 +6,19 @@ const HomeLife = {
     goji: ["ガォー！ みんな だいすき", "ガゥー♪ なでて〜", "ガゥー、おひるね しよう", "ガォー！ あそんでー", "ぱぱ、だっこ〜", "ままの ごはん すき", "ガゥー、てを つなごう", "ぼくが みんなを まもるよ"],
   },
   rare: { wanko: "ゆめで おほしさまを つかまえた！", gachan: "しあわせは 3にんぶんより おおきいね", goji: "ガゥー……おつきさまも かぞくかな？" },
-  init(sc) { sc.life = { next: 4, bubbles: [], quarrel: false, elapsed: 0, furniture: {}, queue: [], talkWait: 0, log: [] }; ParentCare.init(sc); },
-  say(sc, id, text, rare = false, kind = "say") {
+  // time: この シーンで あそんだ 秒（メニュー中などは すすまない）。events: できごと → いつまで 覚えて いるか（time）
+  init(sc) {
+    sc.life = { next: 4, bubbles: [], quarrel: false, elapsed: 0, furniture: {}, queue: [], talkWait: 0, log: [],
+      time: 0, events: {}, recent: [], recentTalks: [], sniffs: [], aloneT: 0, aloneAt: -999, lastMode: null };
+    this.enterEvents(sc); ParentCare.init(sc);
+  },
+  say(sc, id, text, rare = false, kind = "say", meta = null) {
     sc.life.bubbles = sc.life.bubbles.filter(b => b.id !== id);
     kind = rare ? 'rare' : kind;
     const life = HomeBubbles.life(text);
     sc.life.bubbles.push({ id, text, kind, rare, born:G.t, life, left:life });
     if (sc.life.bubbles.length > 2) sc.life.bubbles.shift();
-    sc.life.log.push({id,text,kind,t:G.t});if(sc.life.log.length>80)sc.life.log.shift();
+    sc.life.log.push({id,text,kind,t:G.t,...(meta||{})});if(sc.life.log.length>80)sc.life.log.shift();
     if (rare) { Save.d.flags.rareChats = (Save.d.flags.rareChats || 0) + 1; Save.mark(); Sound.se("sparkle"); }
   },
   converse(sc, turns) {
@@ -21,44 +26,174 @@ const HomeLife = {
   },
   advance(sc,dt) {
     if(sc.life.queue.length && (sc.life.talkWait-=dt)<=1e-9){
-      const t=sc.life.queue.shift();this.say(sc,t.who,t.text,!!t.rare,t.kind||'say');sc.life.talkWait=1.3;
+      const t=sc.life.queue.shift();this.say(sc,t.who,t.text,!!t.rare,t.kind||'say',t.meta);sc.life.talkWait=1.3;
     }
   },
   event(sc, kind) {
-    const c = U.pick(sc.chars), d = Save.d.chars[c.id];
+    const D = this.data(), c = U.pick(sc.chars), d = Save.d.chars[c.id];
     if (kind === "quarrel") {
       sc.life.quarrel = true; sc.life.elapsed = 0;
-      this.say(sc, "wanko", "その おもちゃ つかいたい！");
-      this.say(sc, "gachan", "じゅんばんこに しようよ！");
-      sc.chars.slice(0, 2).forEach(c => { c.emo = "angry"; c.state = "idle"; c.t = 12; });
-    } else if (kind === "rare") this.say(sc, c.id, this.rare[c.id], true);
+      const t = this.triggerTalk("quarrel");
+      if (this.playTalk(sc, t)) sc.chars.filter(c => t.turns.some(x => x.who === c.id && x.kind === "shout")).forEach(c => { c.emo = "angry"; c.state = "idle"; c.t = 12; });
+      else {
+        this.say(sc, "wanko", "その おもちゃ つかいたい！");
+        this.say(sc, "gachan", "じゅんばんこに しようよ！");
+        sc.chars.slice(0, 2).forEach(c => { c.emo = "angry"; c.state = "idle"; c.t = 12; });
+      }
+    } else if (kind === "rare") { if (!this.sayLine(sc, this.pickLine(sc, c.id, ["rare"]))) this.say(sc, c.id, this.rare[c.id], true); }
     else if (kind === "chat") {
-      this.converse(sc,[{who:'wanko',text:'つぎは 3にんで なにする？'},{who:'gachan',text:'おはなを みに いこう♪'},{who:'goji',text:'ガゥー！ さんせい！'}]);
+      if (!this.chat(sc)) this.converse(sc,[{who:'wanko',text:'つぎは 3にんで なにする？'},{who:'gachan',text:'おはなを みに いこう♪'},{who:'goji',text:'ガゥー！ さんせい！'}]);
       sc.chars.forEach(c => sc.react(c, "happy", "note"));
-    } else if (kind === "weather") this.say(sc,c.id,Weather.comment(c.id));
-    else if (kind === "dance") {
+    } else if (kind === "weather") {
+      if (this.scared(sc)) return;
+      if (!this.sayLine(sc, this.pickLine(sc, c.id, ["context", "persona"], "weather"))) this.say(sc,c.id,Weather.comment(c.id));
+    } else if (kind === "dance") {
       sc.chars.forEach(c => sc.react(c, "happy", "note"));
       this.say(sc, c.id, "みんなで いち、に、さん♪");
     } else if (d.hunger < 25 || kind === "hungry") {
-      this.say(sc, c.id, "ぐぅー……おなか すいたよ"); Sound.se("tummy"); sc.fx("sweat", c);
-    } else if (d.hunger >= 90) this.say(sc,c.id,Care.fullText(c.id)+(d.wantsDeza?" デザは べつばら♪":""));
-    else if (d.wantsDeza) this.say(sc, c.id, c.id === "goji" ? "ガゥー、デザ たべたい！" : "ごはんの あとは デザ ほしいな♪");
+      if (!this.sayLine(sc, this.pickLine(sc, c.id, ["context", "persona"], "state"))) this.say(sc, c.id, "ぐぅー……おなか すいたよ", false, "cry");
+      Sound.se("tummy"); sc.fx("sweat", c);
+    } else if (D && (d.hunger >= 90 || d.wantsDeza) && U.chance(0.5)) {
+      if (!this.sayLine(sc, this.pickLine(sc, c.id, ["context", "persona"], "state"))) this.say(sc,c.id,Care.fullText(c.id));
+    } else if (!D && d.hunger >= 90) this.say(sc,c.id,Care.fullText(c.id)+(d.wantsDeza?" デザは べつばら♪":""));
+    else if (!D && d.wantsDeza) this.say(sc, c.id, c.id === "goji" ? "ガゥー、デザ たべたい！" : "ごはんの あとは デザ ほしいな♪");
+    else if (D) this.solo(sc);
     else this.say(sc, c.id, U.chance(.16)?Weather.comment(c.id):U.pick(this.lines[c.id]));
   },
   settle(sc, tapped = true) {
     if (!sc.life.quarrel) return false;
     sc.life.quarrel = false;
     sc.chars.forEach(c => { c.emo = null; sc.react(c, "happy", "heart"); });
-    this.say(sc, "wanko", "ごめんね。いっしょに あそぼ！");
-    this.say(sc, "gachan", tapped ? "なかなおり！ ありがとう♪" : "うん！ なかなおり♪");
+    if (!this.playTalk(sc, this.triggerTalk("settle"))) {
+      this.say(sc, "wanko", "ごめんね。いっしょに あそぼ！");
+      this.say(sc, "gachan", tapped ? "なかなおり！ ありがとう♪" : "うん！ なかなおり♪");
+    }
     if (tapped) Save.careAll({ mood: 2 });
     return true;
   },
+
+  // ---- 会話データ（HOME_TALK_DATA）から えらぶ（docs/design/features/home-talk/CODEX_TASK.md §3） ----
+  RETURN_SEC: 20, AFTER_SEC: 30, RECENT: 40, NEAR: 70,
+  data() { return typeof HOME_TALK_DATA !== "undefined" ? HOME_TALK_DATA : null; },
+  timeOfDay(h = U.hourNow()) { return h >= 5 && h < 10 ? "morning" : h >= 10 && h < 16 ? "day" : h >= 16 && h < 19 ? "evening" : h >= 19 && h < 23 ? "night" : "late"; },
+  // 家に 入った ときの できごと: return は いつも 20秒。win・work は 前に 家に いた ときより しょうり・おてつだいが ふえて いたら（セーブしない）
+  enterEvents(sc) {
+    const l = sc.life, wins = Save.d.stats?.wins || 0, plays = Object.values(Save.d.shops || {}).reduce((a, s) => a + (s.plays || 0), 0);
+    l.events.return = this.RETURN_SEC;
+    if (this.seen) { if (wins > this.seen.wins) l.events.win = this.AFTER_SEC; if (plays > this.seen.plays) l.events.work = this.AFTER_SEC; }
+    this.seen = { wins, plays };
+  },
+  // きがえ・もようがえが おわったら 30秒 覚える
+  watchMode(sc) {
+    const l = sc.life;
+    if (l.lastMode === sc.mode) return;
+    if (!sc.mode && (l.lastMode === "dress" || l.lastMode === "edit")) l.events[l.lastMode] = l.time + this.AFTER_SEC;
+    l.lastMode = sc.mode;
+  },
+  stateOf(id) {
+    const d = Save.d.chars[id], st = [];
+    if (!d) return st;
+    if (d.hunger < 30) st.push("hungry"); if (d.hunger >= 90) st.push("full"); if (d.wantsDeza) st.push("deza"); if (d.mood >= 80) st.push("happy"); if (d.mood < 30) st.push("sad");
+    return st;
+  },
+  // 話し手の まわり（when の キーと 同じ 名前）。c が ない（かけあい）ときと ぱぱ・ままの state は 3人の ようすを あわせた もの
+  talkCtx(sc, c) {
+    const l = sc.life, event = Object.keys(l.events).filter(k => l.events[k] > l.time);
+    if (sc.watching) event.push("watch");
+    const kid = c && Save.d.chars[c.id], all = (f) => [...new Set(sc.chars.filter(k => !k.hidden).flatMap(f))];
+    return { time: this.timeOfDay(), weather: Weather.kind(), season: Seasonal.current().id, festival: AnnualFestivals.current().id, room: Save.d.rooms.active,
+      near: c ? this.nearFurn(sc, c).map(n => n.key) : all(k => this.nearFurn(sc, k).map(n => n.key)), state: kid ? this.stateOf(c.id) : all(k => this.stateOf(k.id)), event };
+  },
+  // 話し手から 70 いないの 家具（へやの 座標で。ゆかの 家具は 足もとの 四角、かべの 家具は かべの 足もとの 点まで）
+  nearFurn(sc, c) {
+    const out = [];
+    for (const it of Save.d.room.items || []) {
+      const f = FURN_INDEX[it.id]; if (!f) continue;
+      let dx, dy;
+      if (f.kind === "wall") { const p = it.wallSide === "left" ? { x: 0, y: ROOM.WALL + it.x } : { x: it.x, y: ROOM.WALL }; dx = c.x - p.x; dy = c.y - p.y; }
+      else { const m = HomeDesign.model(it.id, it), a = sc.anchor(it); dx = Math.max(a.x - m.footW / 2 - c.x, 0, c.x - a.x - m.footW / 2); dy = Math.max(a.y - m.footD - c.y, 0, c.y - a.y); }
+      const d = Math.hypot(dx, dy);
+      if (d <= this.NEAR) out.push({ it, key: /^bed_/.test(it.id) ? "bed" : it.id, name: f.name, d });
+    }
+    return out.sort((a, b) => a.d - b.d);
+  },
+  // who の セリフから 1つ（groups の どれか・need の キーが ある ものだけ）。さいきん 40この id は さける
+  pickLine(sc, who, groups, need) {
+    const D = this.data(); if (!D) return null;
+    const c = sc.chars.find(x => x.id === who) || (sc.parents || []).find(x => x.id === who);
+    const list = D.lines.filter(l => l.who === who && groups.includes(l.group) && (!need || (l.when && l.when[need])));
+    return U.condPick(list, this.talkCtx(sc, c), sc.life.recent);
+  },
+  sayLine(sc, l) {
+    if (!l) return false;
+    const r = sc.life.recent; r.push(l.id); if (r.length > this.RECENT) r.shift();
+    this.say(sc, l.who, l.who === "goji" ? this.gojiVoice(l.text, l.kind) : l.text, l.group === "rare" || !!l.rare, l.kind || "say", { line: l.id });
+    return true;
+  },
+  // ごじの くせ: 8% で「ガウっ！ 」を 前に、12% で「 …ガゥ」を あとに（文に ガウ・ガゥ・ガォ が あれば つけない）
+  gojiVoice(text, kind = "say") {
+    const v = (this.data()?.voice || {}).goji || {}, has = (v.suffix?.skipIf || ["ガウ", "ガゥ", "ガォ"]).some(w => text.includes(w));
+    if (has) return text;
+    if (v.prefix && (v.prefix.kinds || ["say"]).includes(kind) && U.chance(v.prefix.chance)) return v.prefix.text + text;
+    if (v.suffix && U.chance(v.suffix.chance)) return text + v.suffix.text;
+    return text;
+  },
+  talkById(id) { return (this.data()?.talks || []).find(t => t.id === id) || null; },
+  triggerTalk(trigger) { return (this.data()?.talks || []).find(t => t.trigger === trigger) || null; },
+  // かけあいを 1.3秒おきに 流す（HomeLife.converse）
+  playTalk(sc, t) {
+    if (!t) return false;
+    const r = sc.life.recentTalks; r.push(t.id); if (r.length > 12) r.shift();
+    this.converse(sc, t.turns.map(x => ({ who: x.who, text: x.text, kind: x.kind || "say", meta: { talk: t.id } })));
+    return true;
+  },
+  // 条件に あう かけあい（trigger なし）を 1つ
+  chat(sc) {
+    const D = this.data(); if (!D) return false;
+    return this.playTalk(sc, U.condPick(D.talks.filter(t => !t.trigger), this.talkCtx(sc, null), sc.life.recentTalks));
+  },
+  // がちゃんは あめの 日 10% で かみなりが こわい（かけあい thunder）
+  scared(sc) {
+    const v = this.data()?.voice?.gachan?.scared;
+    return !!(v && sc.chars.some(c => c.id === "gachan" && !c.hidden) && v.weather.includes(Weather.kind()) && U.chance(v.chance) && this.playTalk(sc, this.talkById(v.talk)));
+  },
+  // ひとりごと: ぱぱ・まま（見えて いる とき 2わり）か 3人の だれか。くせ（わうーん・クンクン・かみなり）→ 性格 3わり・まわり 7わり
+  solo(sc) {
+    const D = this.data(), V = D.voice || {}, heads = this.heads(sc);
+    const parents = (sc.parents || []).filter(p => heads[p.id]);
+    if (parents.length && U.chance(0.2) && this.sayLine(sc, this.pickLine(sc, U.pick(parents).id, ["parent"]))) return;
+    const kids = sc.chars.filter(c => !c.hidden), c = U.pick(kids.length ? kids : sc.chars);
+    if (c.id === "wanko") {
+      const v = V.wanko || {}, near = this.nearFurn(sc, c)[0];
+      if (v.howl && U.chance(v.howl.chance)) { this.say(sc, "wanko", v.howl.text, false, v.howl.kind || "shout"); return; }
+      if (v.sniff && near && U.chance(v.sniff.chance)) { this.sniff(sc, near, v.sniff); return; }
+    }
+    if (c.id === "gachan" && this.scared(sc)) return;
+    this.sayLine(sc, this.pickLine(sc, c.id, [U.chance(0.3) ? "persona" : "context"]) || this.pickLine(sc, c.id, ["context", "persona"]));
+  },
+  // わんこの クンクン。60秒に 3回で ままに おこられる（かけあい sniff-scold）
+  sniff(sc, near, v) {
+    const l = sc.life;
+    l.sniffs = l.sniffs.filter(t => l.time - t < (v.scoldWindowSec || 60)); l.sniffs.push(l.time);
+    if (l.sniffs.length >= (v.scoldAfter || 3)) { l.sniffs = []; if (this.playTalk(sc, this.talkById(v.talk))) return; }
+    this.say(sc, "wanko", v.template.replace("{furn}", near.name), false, "say", { sniff: near.key });
+  },
+  // がちゃんが ほかの 2人から 120 いじょう はなれて 8秒 → かけあい not-alone（60秒に 1回まで）
+  alone(sc, dt) {
+    const v = this.data()?.voice?.gachan?.alone, l = sc.life; if (!v) return;
+    const g = sc.chars.find(c => c.id === "gachan"), others = sc.chars.filter(c => c.id !== "gachan" && !c.hidden);
+    const far = !!g && !g.hidden && others.length > 0 && others.every(o => Math.hypot(o.x - g.x, o.y - g.y) > v.distPx);
+    l.aloneT = far ? l.aloneT + dt : 0;
+    if (l.aloneT > v.sec && !l.queue.length && !l.quarrel && l.time - l.aloneAt > 60) { l.aloneT = 0; l.aloneAt = l.time; this.playTalk(sc, this.talkById(v.talk)); }
+  },
   update(sc, dt) {
     const l = sc.life;
+    this.watchMode(sc);
     if (document.hidden || UI.busy || sc.mode) { for(const b of l.bubbles)b.born+=dt; return; }
+    l.time += dt;
     l.bubbles = l.bubbles.filter(b => (b.left -= dt) > 0);
     this.advance(sc,dt);
+    this.alone(sc,dt);
     for (const uid in l.furniture) { l.furniture[uid] -= dt; if (l.furniture[uid] <= 0) delete l.furniture[uid]; }
     if (l.quarrel) { l.elapsed += dt; if (l.elapsed > 12) this.settle(sc, false); return; }
     if (!l.queue.length && (l.next -= dt) <= 0) {

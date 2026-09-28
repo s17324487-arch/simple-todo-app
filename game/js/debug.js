@@ -113,6 +113,15 @@ const PokaDebug = {
   feed(id, food) { return Care.feed(id, food); },
   homeSay(id,text,kind='say') {if(G.sceneName!=='house')return false;HomeLife.say(G.scene,id,String(text),kind==='rare',kind);return true;},
   homeTalkLog() {return G.sceneName==='house'?G.scene.life.log.map(x=>({...x})):[];},
+  // かけあいを 1つ 流す（HOME_TALK_DATA.talks の id）
+  homeTalk(id) {if(G.sceneName!=='house')return false;return HomeLife.playTalk(G.scene,HomeLife.talkById(id));},
+  // 会話データの 数。id を わたすと その セリフ／かけあい（テストで 条件を たしかめる）
+  homeLines(id) {
+    const D=HomeLife.data();if(!D)return null;
+    if(id)return JSON.parse(JSON.stringify(D.lines.find(l=>l.id===id)||D.talks.find(t=>t.id===id)||null));
+    const byWho={};for(const l of D.lines)byWho[l.who]=(byWho[l.who]||0)+1;
+    return {total:D.lines.length+D.talks.length,lines:D.lines.length,talks:D.talks.length,turns:D.talks.reduce((a,t)=>a+t.turns.length,0),byWho};
+  },
   homeBubbleFixture() {if(G.sceneName!=='house')return false;const sc=G.scene;sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});return true;},
   homeBubbleState() {if(G.sceneName!=='house')return null;const sc=G.scene;return {heads:HomeLife.heads(sc),boxes:HomeLife.bubbleLayout(sc,G.ctx),area:{...sc.view,left:8,right:G.W-8},watching:sc.watching};},
   family() {

@@ -526,6 +526,66 @@ ok(bubbleFlow.latest==='gachan,goji'&&bubbleFlow.replace,'吹き出しの2個上
 ok(bubbleFlow.first==='wanko'&&bubbleFlow.waiting&&bubbleFlow.second==='gachan'&&bubbleFlow.third==='goji','3人の順番・1.3秒間隔が不正');
 ok(bubbleFlow.unchanged,'吹き出しでおかねが変わった');
 
+// ① おうちの 会話データ（HOME_TALK_DATA）: 数・条件の キーと 値・同じ 文が ない・1行 26・かけあいの つながり
+const HT = vm.runInContext(`typeof HOME_TALK_DATA !== "undefined" ? HOME_TALK_DATA : null`, ctx);
+if (ok(!!HT, "HOME_TALK_DATA が ない（js/home-talk-data.js）")) {
+  const WHO = ["wanko", "gachan", "goji", "papa", "mama"], KIDS = WHO.slice(0, 3), KINDS = ["say", "shout", "cry", "think", "whisper"];
+  const VALUES = { time: ["morning", "day", "evening", "night", "late"], weather: Object.keys(R.Weather.kinds), season: ["spring", "summer", "autumn", "winter"],
+    festival: R.ANNUAL_EVENTS.map((e) => e.id), room: R.HomeRooms.catalog.map((r) => r.id), near: [...Object.keys(R.FURN_INDEX), "bed"],
+    state: ["hungry", "full", "deza", "happy", "sad"], event: ["return", "win", "work", "dress", "edit", "watch"] };
+  const width = (t) => [...t].reduce((a, c) => a + (c.charCodeAt(0) < 0x2000 ? 0.5 : 1), 0);
+  const whenOk = (w, where) => { for (const [k, vs] of Object.entries(w || {})) { if (!ok(!!VALUES[k], `${where}: 条件の キー ${k} が ない`)) continue; for (const v of vs) ok(VALUES[k].includes(v), `${where}: ${k} の 値 ${v} が ゲームに ない`); } };
+  const turns = HT.talks.reduce((a, t) => a + t.turns.length, 0);
+  ok(HT.lines.length + HT.talks.length >= 500, `おうちの 会話が 500 より すくない（${HT.lines.length}＋${HT.talks.length}）`);
+  const texts = new Set(), ids = new Set();
+  for (const l of HT.lines) {
+    ok(!ids.has(l.id), `おうちの セリフの id ${l.id} が かさなる`); ids.add(l.id);
+    ok(!texts.has(l.text), `おうちの セリフが かさなる: ${l.text}`); texts.add(l.text);
+    ok(WHO.includes(l.who) && KINDS.includes(l.kind || "say"), `${l.id}: who / kind が 不正`);
+    ok(["context", "persona", "parent", "rare"].includes(l.group) && ((l.group === "parent") === !KIDS.includes(l.who)), `${l.id}: group が 不正（parent は ぱぱ・ままだけ）`);
+    for (const row of l.text.split("\n")) ok(width(row) <= 26, `${l.id}: 1行が 26 より ながい「${row}」`);
+    whenOk(l.when, l.id);
+  }
+  const talkIds = new Set();
+  for (const t of HT.talks) {
+    ok(!talkIds.has(t.id), `かけあいの id ${t.id} が かさなる`); talkIds.add(t.id);
+    ok(t.turns.length >= 2 && t.turns.every((x) => WHO.includes(x.who) && KINDS.includes(x.kind || "say")), `かけあい ${t.id}: turns が 不正`);
+    ok(t.turns.some((x) => KIDS.includes(x.who)), `かけあい ${t.id}: 3人が だれも いない`);
+    for (const x of t.turns) for (const row of x.text.split("\n")) ok(width(row) <= 26, `かけあい ${t.id}: 1行が 26 より ながい「${row}」`);
+    whenOk(t.when, t.id);
+  }
+  for (const tr of ["quarrel", "settle", "sniff3", "alone", "thunder"]) ok(HT.talks.some((t) => t.trigger === tr), `trigger ${tr} の かけあいが ない`);
+  for (const [who, rules] of Object.entries(HT.voice)) for (const [name, r] of Object.entries(rules)) if (r.talk) ok(talkIds.has(r.talk), `voice ${who}.${name} の かけあい ${r.talk} が ない`);
+  ok(KIDS.every((id) => HT.lines.filter((l) => l.who === id && l.group === "persona").length >= 30), "3人の 性格の セリフが たりない");
+  ok(turns > 0, "かけあいの セリフが ない");
+  // えらびかたと くせ（ゲームと 同じ 関数を VM で うごかす）
+  const talkFlow = vm.runInContext(`(()=>{const old=Save.d,oldHour=U.hourNow,oldW=Weather.override,oldT=G.t,rnd=Math.random;Save.d=Save.fresh();const money=Save.d.coins;
+    const sc={chars:[{id:'wanko',x:200,y:430},{id:'gachan',x:280,y:465},{id:'goji',x:360,y:430}],parents:[],watching:false,anchor:(it)=>({x:it.x,y:it.y}),view:{top:120,bottom:700},actorScale:1,toScreen:(x,y)=>({x,y})};
+    HomeLife.init(sc);G.t=5;U.hourNow=()=>7;Weather.override='rain';
+    const t=[];for(let i=0;i<40;i++){const l=HomeLife.pickLine(sc,'wanko',['context','persona'],'time');if(l)t.push(l);}
+    const morning=t.length>0&&t.every(l=>l.when.time.includes('morning'));
+    const w=HomeLife.pickLine(sc,'gachan',['context','persona'],'weather');const rain=!!w&&w.when.weather.includes('rain');
+    const pool=HOME_TALK_DATA.lines.filter(l=>l.who==='goji'&&l.group==='context'&&U.condScore(l.when,HomeLife.talkCtx(sc,sc.chars[2]))>=0).length,n=Math.min(40,pool);
+    const recent=new Set();for(let i=0;i<n;i++){const l=HomeLife.pickLine(sc,'goji',['context']);HomeLife.sayLine(sc,l);recent.add(l.id);}const noRepeat=n>=10&&recent.size===n;
+    Math.random=()=>0;const pre=HomeLife.gojiVoice('あそぼう','say');const keep=HomeLife.gojiVoice('ガウー！ あそぼう','say');Math.random=()=>0.1;const suf=HomeLife.gojiVoice('あそぼう','say');Math.random=rnd;
+    Save.d.room.items=[{uid:1,id:'piano',x:200,y:425}];const near=HomeLife.nearFurn(sc,sc.chars[0]).map(n=>n.key).join();const far=HomeLife.nearFurn(sc,sc.chars[2]).length;
+    const v=HOME_TALK_DATA.voice.wanko.sniff;sc.life.queue=[];HomeLife.sniff(sc,{key:'piano',name:'ピアノ'},v);HomeLife.sniff(sc,{key:'piano',name:'ピアノ'},v);const two=sc.life.queue.length===0&&sc.life.log.at(-1).text.includes('ピアノ');
+    HomeLife.sniff(sc,{key:'piano',name:'ピアノ'},v);const scold=sc.life.log.at(-1).talk==='sniff-scold'&&sc.life.queue.some(x=>x.who==='mama');
+    sc.life.queue=[];sc.life.time=100;sc.chars[1].y=760;HomeLife.alone(sc,5);const notYet=sc.life.log.at(-1).talk!=='not-alone';HomeLife.alone(sc,4);const alone=sc.life.log.at(-1).talk==='not-alone';sc.chars[1].y=465;
+    sc.life.time=0;const ctxEv=HomeLife.talkCtx(sc,null).event.includes('return');sc.life.time=25;const ctxEnd=!HomeLife.talkCtx(sc,null).event.includes('return');
+    const unchanged=Save.d.coins===money;Save.d=old;U.hourNow=oldHour;Weather.override=oldW;G.t=oldT;
+    return {morning,rain,noRepeat,pre,keep,suf,near,far,two,scold,notYet,alone,ctxEv,ctxEnd,unchanged};})()`, ctx);
+  ok(talkFlow.morning, "あさ（7時）なのに あさ いがいの 時間の セリフを えらんだ");
+  ok(talkFlow.rain, "あめの 日に 天気の セリフを えらばない");
+  ok(talkFlow.noRepeat, "さいきん 40この セリフを くりかえした");
+  ok(talkFlow.pre === "ガウっ！ あそぼう" && talkFlow.keep === "ガウー！ あそぼう" && talkFlow.suf === "あそぼう …ガゥ", `ごじの くせが 不正（${talkFlow.pre} / ${talkFlow.keep} / ${talkFlow.suf}）`);
+  ok(talkFlow.near === "piano" && talkFlow.far === 0, `近くの 家具の 判定が 不正（${talkFlow.near} / ${talkFlow.far}）`);
+  ok(talkFlow.two && talkFlow.scold, "わんこの クンクン（3回で ままに おこられる）が 不正");
+  ok(talkFlow.notYet && talkFlow.alone, "がちゃんの ひとりは いや（120 はなれて 8秒）が 不正");
+  ok(talkFlow.ctxEv && talkFlow.ctxEnd, "帰って 20秒の できごと（return）が 不正");
+  ok(talkFlow.unchanged, "会話で おかねが 変わった");
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);
