@@ -330,3 +330,38 @@ html, body {
 .weather-forecast { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
 .weather-forecast div { display:grid; justify-items:center; gap:8px; border-radius:14px; background:#F6EDD8; padding:12px 4px; font-size:13px; }
 .weather-forecast svg { width:48px; height:48px; }
+/* なかよしパズル：受付と、盤面を完全に隠す中断画面。 */
+.puzzle-lobby { background:#f5f0e4; }
+.puzzle-intro { padding:16px; border-radius:14px; background:#263149; color:#fff3dc; margin-bottom:14px; }
+.puzzle-intro span,.puzzle-eyebrow { font-size:10px; letter-spacing:1.4px; color:#baa36a; font-weight:800; }
+.puzzle-intro h2 { font-size:20px; margin:10px 0; }
+.puzzle-intro p { font-size:12px; line-height:1.8; margin:8px 0 0; }
+.puzzle-howto { margin:12px 0; border:1px solid #c8c1b1; border-radius:10px; background:#fffaf0; color:#343b50; text-align:left; }
+.puzzle-howto summary { padding:14px 10px; cursor:pointer; font-weight:800; font-size:12px; min-height:44px; box-sizing:border-box; }
+.puzzle-rules { padding:0 12px 12px; font-size:12px; line-height:1.8; }
+.puzzle-rules p { margin:8px 0; }
+.puzzle-shape-list { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.puzzle-shape-list>div { background:#ece8f0; padding:8px; border-radius:8px; font-size:11px; }
+.puzzle-shape-list b { display:block; min-height:40px; font-family:monospace; line-height:10px; color:#76567e; margin:6px 0 12px; }
+.puzzle-shape-list strong { display:block; }
+.puzzle-prize { display:flex; align-items:center; gap:12px; padding:14px 10px; margin:10px 0; border:1px solid #cbbc94; border-radius:12px; background:linear-gradient(130deg,#fffbf0,#e9e6f0); text-align:left; }
+.puzzle-prize-art { width:92px; flex:0 0 92px; height:112px; display:flex; align-items:center; justify-content:center; position:relative; }
+.puzzle-prize-art svg { width:100%; height:100%; filter:drop-shadow(0 4px 4px #52617933); }
+.puzzle-prize-art:after { content:'✦'; position:absolute; top:4px; right:5px; color:#ac8833; animation:puzzle-twinkle 2s ease-in-out infinite alternate; }
+.puzzle-tier { color:#79623d; font-size:10px; font-weight:800; letter-spacing:.6px; }
+.puzzle-prize strong { display:block; font-size:13px; margin:4px 0; }
+.puzzle-prize p { font-size:11px; line-height:1.65; margin:4px 0; }
+.puzzle-prize small { font-size:10px; color:#666175; }
+.puzzle-prize.obtained { border-color:#88a28c; }
+.puzzle-entry { display:grid; gap:7px; width:100%; }
+.puzzle-entry .btn { margin:0; min-height:44px; }
+.puzzle-controls { position:absolute; left:14px; right:14px; bottom:max(12px,env(safe-area-inset-bottom)); display:flex; gap:10px; pointer-events:auto; }
+.puzzle-controls .btn { flex:1; min-height:44px; background:#f4eddc; font-size:12px; padding:9px 5px; }
+.puzzle-cover { position:absolute; inset:0; z-index:8; padding:20px 14px; background:#20283f; display:flex; align-items:center; justify-content:center; pointer-events:auto; box-sizing:border-box; }
+.puzzle-cover-card { width:100%; max-height:100%; overflow:auto; box-sizing:border-box; padding:22px 16px; border:1px solid #bbaa77; border-radius:18px; background:#f5f0e4; text-align:center; color:#283147; }
+.puzzle-cover-card h2 { margin:14px 0; font-size:24px; }
+.puzzle-cover-card>p { font-size:12px; line-height:1.8; }
+.puzzle-cover-card>.btn { display:block; width:100%; margin:10px 0 0; min-height:44px; }
+.puzzle-final-score { color:#54416f; font-size:34px; font-weight:900; }
+@keyframes puzzle-twinkle { from { opacity:.4; transform:scale(.7); } to { opacity:1; transform:scale(1.25); } }
+@media(prefers-reduced-motion:reduce) { .puzzle-prize-art:after { animation:none; } }

@@ -129,7 +129,7 @@ for (const id of R.Chara.IDS) {
 }
 for (const [k, s] of Object.entries(R.SKILLS)) if (s.user) ok(R.Chara.IDS.includes(s.user), `とくぎ ${k}: user "${s.user}" が不明`);
 const shopKeys = Object.keys(R.SHOPS).sort().join(",");
-ok(Object.keys(R.MG_TASKS).sort().join(",") === shopKeys, "SHOPS と MG_TASKS（js/minigames.js）の お店が一致しない");
+ok(Object.keys(R.MG_TASKS).sort().join(",") === Object.keys(R.SHOPS).filter(id=>!R.SHOPS[id].arcade).sort().join(","), "SHOPS と MG_TASKS（js/minigames.js）の お店が一致しない");
 ok(Object.keys(R.SHOP_OWNERS).sort().join(",") === shopKeys, "SHOPS と SHOP_OWNERS の お店が一致しない");
 ok(Object.keys(R.HOWTO).sort().join(",") === shopKeys, "SHOPS と HOWTO の お店が一致しない");
 ok(Object.keys(R.Save.fresh().shops).sort().join(",") === shopKeys, "SHOPS と Save.fresh().shops の お店が一致しない");
@@ -422,21 +422,6 @@ for (const [shop, Task] of Object.entries(R.MG_TASKS)) for (let lv = 1; lv <= 5;
     if (shop === "florist") { t.picked = Object.entries(t.want).flatMap(([k, n]) => Array(n).fill(k)); t.chosen = t.ribbon; perfect = t.score(); }
     if (shop === "bakery") { t.pen = 0; perfect = t.score(); }
     if (shop === "dentist") { t.killed = t.nGerm; t.dirt.forEach((d) => (d.hp = 0)); t.cav.forEach((c) => (c.fixed = true)); perfect = t.score(); }
-    if (shop === "link") {
-      for (let n = 0; n < 40 && t.collected < t.target; n++) {
-        const chain = t.legalMove(); ok(!!chain, "つなげる場所がなくなる");
-        t.down({ ...t.point(chain[0]), id: 1 });
-        chain.slice(1).forEach(i => t.move({ ...t.point(i), id: 1 }));
-        t.up({ ...t.point(chain[2]), id: 1 });
-        t.tick(.5);
-      }
-      perfect = t.score();
-      const before = t.collected, chain = t.legalMove();
-      t.down({ ...t.point(chain[0]), id: 1 }); chain.slice(1).forEach(i => t.move({ ...t.point(i), id: 1 })); t.up({ id: 1 }, true);
-      ok(t.collected === before && t.chain.length === 0, "ドラッグ中断が得点になる");
-      t.penalty = 3;
-      ok(t.score() === 97, "目標を多く超えるとシャッフル減点が消えてしまう");
-    }
     if (shop === "relay") {
       for (let n = 0; n < t.target; n++) {
         t.role = n % 3; t.lane = n % 3;
@@ -454,15 +439,14 @@ for (const [shop, Task] of Object.entries(R.MG_TASKS)) for (let lv = 1; lv <= 5;
   } catch (e) { err(`ミニゲーム ${shop} Lv${lv} で例外: ${e.message}`); }
 }
 // 報酬: 放置に報酬を出さず、難易度・店のレベル・評価に応じて増える。
-for (const shop of Object.keys(R.SHOPS)) for (let lv = 1; lv <= 5; lv++) {
+for (const shop of Object.keys(R.MG_TASKS)) for (let lv = 1; lv <= 5; lv++) {
   const pay = (rank, mode = "normal") => R.GameEconomy.pay(shop, lv, rank, mode);
   ok(pay(0) === 0 && pay(1) < pay(2) && pay(2) < pay(3), `${shop}: 評価に対する報酬が不正`);
   ok(pay(3, "easy") < pay(3) && pay(3) < pay(3, "hard"), `${shop}: 難易度で報酬が増えない`);
 }
-ok(R.GameEconomy.pay("link", 1, 3) > R.GameEconomy.pay("crepe", 1, 3) * 2, "高難度パズルの報酬が低い");
 for (let lv = 1; lv <= 5; lv++) {
   const shift = shop => R.GameEconomy.pay(shop, lv, 3) * (R.SHOPS[shop].rounds || 3 + Math.min(4, lv));
-  ok(shift("relay") > shift("link") && shift("link") > shift("dentist"), `Lv${lv}: 高難度新作の1回の総報酬が既存店より低い`);
+  ok(shift("relay") > shift("dentist"), `Lv${lv}: 高難度新作の1回の総報酬が既存店より低い`);
 }
 for (const id of [...Object.keys(R.SHOPS), ...Object.keys(R.BUY_SHOPS)]) ok(!!R.SONGS["shop_" + id], `${id}: 専用BGMがない`);
 // BGM の音符

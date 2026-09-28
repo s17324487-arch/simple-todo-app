@@ -72,7 +72,7 @@ const PokaDebug = {
     for(const n of sc.npcs)all.push({z:(n.y+1)*TS,draw:()=>sc.drawNpc(ctx,n,0,0)});
     all.sort((a,b)=>a.z-b.z);all.forEach(s=>s.draw());return cv.toDataURL("image/png");
   },
-  pause(value) { const previous = !!Game.paused; Game.paused = !!value; return previous; },
+  pause(value) { const previous = !!Game.paused; Game.paused = !!value; if(G.sceneName==="puzzle")G.scene.lastClock=performance.now(); return previous; },
   world() {
     if(G.sceneName!=="world")return null;
     const sc=G.scene,r=G.canvas.getBoundingClientRect();
@@ -258,9 +258,33 @@ const PokaDebug = {
   },
   shop(id = "crepe", lv) {
     if (!SHOPS[id]) throw new Error("unknown shop: " + id);
+    if (id === "link") return this.store("link", "city");
     if (lv) Save.d.shops[id].lv = U.clamp(lv, 1, 5);
     Game.trans = null;
     Game.goto("shop", { shop: id, back: { map: "town", x: 12, y: 21, dir: "down" } }, "none");
+  },
+  puzzleStart({practice=true,seed=1}={}) {
+    const door=Maps.get("city").doors.find(d=>d.b.act.shop==="link");
+    const run=PuzzleArcade.start({map:"city",x:door.x,y:door.y+1,dir:"down"},practice,seed);
+    if(!run)return false;Game.goto("puzzle",{run});return true;
+  },
+  puzzleState() {
+    if(G.sceneName!=="puzzle"||!(G.scene instanceof PuzzleScene)||!G.scene.model)return null;
+    const sc=G.scene,rect=G.canvas.getBoundingClientRect(),s=sc.model.snapshot();
+    return {...s,phase:sc.phase,practice:sc.run.practice,id:sc.run.id,chain:[...sc.chain],legal:sc.model.findMove(),
+      stage:sc.model.stage,types:sc.model.types,drain:sc.model.drain,preview:sc.model.preview(sc.chain),
+      cells:s.board.map((value,i)=>{const p=sc.point(i);return{i,value,cx:rect.left+p.x*G.cssPerUnit,cy:rect.top+p.y*G.cssPerUnit};}),
+      prizes:PUZZLE_PRIZES.map(p=>({...p,claimed:!!Save.d.puzzle.claimed[p.id],owned:Save.d.furn[p.id]||0}))};
+  },
+  puzzleBoard(board) {
+    if(G.sceneName!=="puzzle"||!["ready","paused"].includes(G.scene.phase))throw new Error("Pause the puzzle before setting a fixture");
+    if(!Array.isArray(board)||board.length!==36||board.some(v=>!Number.isInteger(v)||v<0||v>5))throw new Error("Invalid puzzle board");
+    G.scene.model.s.board=[...board];G.scene.model.s.cooldown=0;G.scene.cancelChain();G.scene.persist();return true;
+  },
+  puzzleClock(manual=false) { if(G.sceneName!=="puzzle")return false;G.scene.debugClock=!!manual;G.scene.lastClock=performance.now();return true; },
+  puzzleAdvance(seconds) {
+    if(G.sceneName!=="puzzle"||G.scene.phase!=="running"||!Number.isFinite(seconds)||seconds<0||seconds>181)return false;
+    G.scene.model.advance(seconds);G.scene.lastClock=performance.now();G.scene.persist();if(G.scene.model.s.done)G.scene.finish();return true;
   },
   store(id="clothes",map="town") {
     if(!STORE_INTERIORS[id])throw new Error("unknown store: "+id);
@@ -328,10 +352,7 @@ const PokaDebug = {
       for (const v of t.cav) if (!v.fixed) { const c = t.toothCenter(v.t); out.targets.push({ kind: "cavity", ...css(c.x, c.y) }); }
       out.order = { remaining: t.remaining(), mistakes: t.mistakes };
     }
-    if (sc.shopId === "link") {
-      out.order = { target: t.target, collected: t.collected, chain: [...t.chain], legal: t.legalMove(), shuffles: t.shuffles, fever: t.fever };
-      out.cells = t.board.map((value, i) => ({ i, value, ...css(t.point(i).x, t.point(i).y) }));
-    }
+
     if (sc.shopId === "relay") out.order = { target: t.target, caught: t.caught, misses: t.misses, lane: t.lane, role: t.role, shield: t.shield, items: t.items.map(it => ({ ...it, progress: (it.y - t.trackTop) / (t.trackBottom - t.trackTop) })) };
     return out;
   },

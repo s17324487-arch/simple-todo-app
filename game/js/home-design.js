@@ -47,10 +47,11 @@ const HomeDesign = {
   },
   dimensions(id) {
     const f=FURN_INDEX[id],special={bed_simple:[110,82,64],bed_royal:[124,92,88],table_wood:[88,68,53],chair_wood:[36,38,65],sofa:[112,64,67],cloudsofa:[116,66,67],bookshelf:[72,34,112],wardrobe_oak:[90,48,142],desk:[102,52,63],kitchen:[100,46,108],vanity:[90,42,102],piano:[108,44,93],tv:[78,38,82],fireplace:[98,44,91],toybox:[66,42,39],teacart:[83,48,74],plantshelf:[86,38,103],stool_oak:[38,38,53],birdcage_brass:[48,40,116],console_oak:[104,38,71],rug_round:[176,128,2],rug_star:[176,128,2],rug_kilim:[184,140,2]};
-    const [w,d,h]=special[id]||[f.w,Math.min(50,f.w*.7),f.h];return {w,d,h};
+    const [w,d,h]=special[id]||[f.w,f.depth||Math.min(50,f.w*.7),f.h];return {w,d,h};
   },
   model(id,opts={}) {
     const key=id+":"+!!opts.flip;if(this.models.has(key))return this.models.get(key);
+    if(FURN_INDEX[id]?.puzzlePrize){const m=PuzzlePrizeArt.model(id,opts);this.models.set(key,m);return m;}
     const f=FURN_INDEX[id],dim=this.dimensions(id),w=dim.w,d=dim.d,h=dim.h,points=[];
     const pt=(x,y,z=0)=>{const q=opts.flip?this.project(y+d/2,x-w/2,z):this.project(x,y,z);points.push(q);return q;};
     const poly=(vs,col,stroke=1.5)=>this.poly(vs.map(v=>pt(...v)),col,stroke);
