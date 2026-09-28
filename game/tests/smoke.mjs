@@ -1052,6 +1052,85 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(/ミミさん/.test(relay),'でんごんを つたえる ことばが 出ない: '+relay);
 },{viewport,full:viewport.width===375,timeout:180000});
 
+// ② さがす・つれていく・さわる: しらべる ばしょの となりへ 行って、きらきら・小物を タップする
+async function folkTapSpot(H,map,s,shot){
+  expect(s&&s.stand,'しらべる ばしょの となりに 立てない: '+JSON.stringify(s));
+  const [x,y]=s.stand,dir=x<s.x?'right':x>s.x?'left':y<s.y?'down':'up';
+  await H.dbg('teleport',map,x,y,dir);await H.until(m=>G.sceneName==='world'&&G.scene.mapId===m&&PokaDebug.idle(),10000,map);await H.wait(300);
+  const now=(await H.dbg('folkSpots',map)).find(q=>q.req===s.req&&q.i===s.i);expect(now&&now.cx>0&&now.cy>0,'しらべる ばしょが 画面に ない');
+  if(shot)await H.shot(shot);
+  await H.tap(now.cx,now.cy);await H.wait(400);
+}
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('folk-find-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
+  // まいごの こねこ（タウン）: はずれ →「ここには ない みたい…」→ あたり → うしろを ついて くる → ミケに 話すと おわり
+  await H.dbg('folkOffer','ev-lost-kitten');await folkTalk(H,'cat');await folkAnswer(H,0);await H.dialogs();await H.idle();
+  let coins=(await H.dbg('state')).coins,spots=await H.dbg('folkSpots','town');
+  expect(spots.length===3&&spots.filter(s=>s.hit).length===1&&spots.every(s=>s.prop==='sparkle'),'きらきらが 3つ（あたり 1つ）で ない');
+  const miss=spots.find(s=>!s.hit),hit=spots.find(s=>s.hit);
+  await folkTapSpot(H,'town',miss,'sparkle');await H.page.locator('.dlg-text').waitFor();
+  expect(/ここには ない/.test(await H.eval(()=>document.querySelector('.dlg-text').innerText)),'はずれの ことばが 出ない');
+  await H.dialogs();await H.idle();
+  spots=await H.dbg('folkSpots','town');expect(spots.length===2&&!spots.some(s=>s.i===miss.i),'しらべた きらきらが きえない');
+  await folkTapSpot(H,'town',hit);await H.until(()=>!!PokaDebug.folkKitten(),5000);
+  expect(!(await H.dbg('folkSpots','town')).length&&(await H.dbg('folk')).req[0].follow==='kitten','みつけた あとも きらきらが のこる');
+  // 歩くと 3人の うしろを ついて くる（はずれの ばしょまで もどる）
+  expect(await H.dbg('walkTo',miss.stand[0],miss.stand[1]),'はずれの ばしょへ 歩けない');
+  await H.until(([x,y])=>{const w=PokaDebug.world(),k=PokaDebug.folkKitten();return w&&w.party[0].x===x&&w.party[0].y===y&&k&&!k.trail;},30000,miss.stand);await H.wait(500);
+  const gap=await H.eval(()=>{const w=PokaDebug.world(),k=PokaDebug.folkKitten(),t=w.party[w.party.length-1];return Math.abs(k.x-t.x)+Math.abs(k.y-t.y);});
+  expect(gap<=2,'こねこが うしろに いない（はなれ '+gap+'）');await H.shot('kitten');
+  // おうちに もどって、また 町に 出ても ついて くる
+  await H.dbg('house');await H.until(()=>G.sceneName==='house'&&PokaDebug.idle(),10000);
+  await H.dbg('teleport','town',miss.stand[0],miss.stand[1],'down');await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);
+  expect(await H.dbg('folkKitten'),'マップを かえると こねこが いなくなる');
+  await folkTalk(H,'cat',{greet:false});await H.dialogs();await H.idle();
+  let f=await H.dbg('folk');expect(f.done['ev-lost-kitten']&&f.bond.cat===4&&!(await H.dbg('folkKitten')),'こねこの おねがいが おわらない');
+  expect((await H.dbg('state')).coins===coins+120,'こねこの コインが ちがう');
+  // むぎわら ぼうし（はらっぱ）: あたりを しらべる → ミミに わたす
+  await H.dbg('folkOffer','ev-lost-hat');await folkTalk(H,'rabbit');await folkAnswer(H,0);await H.dialogs();await H.idle();coins=(await H.dbg('state')).coins;
+  await folkTapSpot(H,'meadow',(await H.dbg('folkSpots','meadow')).find(s=>s.hit));
+  await H.until(()=>PokaDebug.folk().req.some(r=>r.id==='ev-lost-hat'&&r.carry==='hat'),5000);
+  await folkTalk(H,'rabbit',{greet:false});await H.dialogs();await H.idle();
+  f=await H.dbg('folk');expect(f.done['ev-lost-hat']&&f.bond.rabbit===3&&(await H.dbg('state')).coins===coins+90,'ぼうしの おねがいが おわらない');
+  // みずやり（タウン）: ミミの ちかくの かだん 3つ（みずを あげると 花が さく）→ ミミに 話す
+  await H.dbg('folkOffer','ev-water');await folkTalk(H,'rabbit',{greet:false});await folkAnswer(H,0);await H.dialogs();await H.idle();
+  coins=(await H.dbg('state')).coins;const apples=(await H.dbg('saveData')).bag.apple||0,beds=await H.dbg('folkSpots','town');
+  expect(beds.length===3&&beds.every(s=>s.prop==='flowerbed'),'かだんが 3つ ない');
+  for(let i=0;i<3;i++){
+    await folkTapSpot(H,'town',beds[i],i===1?'water':null);
+    await H.until(n=>{const r=PokaDebug.folk().req.find(r=>r.id==='ev-water');return r&&(r.n===n||r.step===1);},5000,i+1);
+    if(i===0){const b=(await H.dbg('folkSpots','town')).find(s=>s.i===beds[0].i);expect(b&&b.prop==='flowerbed_ok'&&b.tapped,'みずを あげた かだんが かわらない');}
+  }
+  f=await H.dbg('folk');expect(f.req.find(r=>r.id==='ev-water').step===1&&!(await H.dbg('folkSpots','town')).length,'みずやりが すすまない');
+  await folkTalk(H,'rabbit',{greet:false});await H.dialogs();await H.idle();
+  f=await H.dbg('folk');expect(f.done['ev-water']&&(await H.dbg('state')).coins===coins+70&&((await H.dbg('saveData')).bag.apple||0)===apples+1,'みずやりの ごほうびが ちがう');
+},{viewport,full:viewport.width===375,timeout:180000});
+
+// ② 物々交換（わたす → もらう の カード）と しゃしん（ふんすいの ちかくで ボタン → ひかる → あんないの ひとに 話す）
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('folk-photo-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
+  await H.dbg('give','corn',2);let d=await H.dbg('saveData');const corn=d.bag.corn||0,bread=d.bag.bread||0;
+  await H.dbg('folkOffer','bt-pig-corn');await folkTalk(H,'pig');await H.dialogs();await H.page.waitForSelector('.folk-trade',{timeout:8000});
+  const card=await H.eval(()=>{const e=document.querySelector('.folk-trade'),b=e.getBoundingClientRect();return {inside:b.left>=0&&b.right<=innerWidth+1&&b.bottom<=innerHeight+1,its:e.querySelectorAll('.folk-it svg').length,text:e.innerText};});
+  expect(card.inside&&card.its===2&&/とうもろこし/.test(card.text)&&/メロンパン/.test(card.text),'こうかんの カードが 不正 '+JSON.stringify(card));
+  await H.wait(500);await H.shot('barter');await H.choose(0);await H.dialogs();await H.idle();
+  d=await H.dbg('saveData');expect((d.bag.corn||0)===corn-2&&(d.bag.bread||0)===bread+1&&d.folk.barter['bt-pig-corn']===1,'こうかん できない');
+  // しゃしん（シティ）
+  await H.dbg('folkOffer','ev-photo');await folkTalk(H,'cityguide');await folkAnswer(H,0);await H.dialogs();await H.idle();
+  const tile=await H.dbg('folkPhotoTile','city');expect(tile,'しゃしんが とれる マスが ない');
+  await H.dbg('teleport','city',tile[0],tile[1],'up');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),10000);
+  await H.page.waitForSelector('.folk-photo-btn',{timeout:5000});await H.wait(300);
+  const btn=await H.eval(()=>{const r=(e)=>e.getBoundingClientRect(),b=r(document.querySelector('.folk-photo-btn')),o=[...document.querySelectorAll('.world-festival,.world-weather,.folk-note-btn')].map(r);
+    return {h:b.height,inside:b.left>=0&&b.right<=innerWidth+1&&b.top>=0&&b.bottom<=innerHeight+1,apart:o.every(q=>b.right<=q.left||b.left>=q.right||b.bottom<=q.top||b.top>=q.bottom)};});
+  expect(btn.h>=43.5&&btn.inside&&btn.apart,'しゃしんの ボタンが 不正 '+JSON.stringify(btn));
+  await H.shot('photo');const coins=(await H.dbg('state')).coins,posters=(await H.dbg('saveData')).furn.poster||0;
+  await H.page.locator('.folk-photo-btn').click();await H.page.waitForSelector('.folk-flash',{timeout:2000});
+  await H.until(()=>!document.querySelector('.folk-photo-btn')&&PokaDebug.folk().req.find(r=>r.id==='ev-photo')?.step===1,5000);
+  await folkTalk(H,'cityguide',{greet:false});await H.dialogs();await H.idle();
+  const f=await H.dbg('folk');d=await H.dbg('saveData');
+  expect(f.done['ev-photo']&&(await H.dbg('state')).coins===coins+100&&(d.furn.poster||0)===posters+1,'しゃしんの おねがいが おわらない');
+},{viewport,full:viewport.width===375,timeout:150000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');

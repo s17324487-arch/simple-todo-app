@@ -658,6 +658,45 @@ if (ok(!!TF, "TOWNSFOLK_DATA が ない（js/townsfolk-data.js）")) {
   ok(reqFlow.target && reqFlow.carry, "おねがいの あいての しるし・とどける もちものが 不正");
   ok(reqFlow.full, "おねがいが 3つを こえて もちかけられた");
   ok(reqFlow.ready, "いま すすめられる おねがいが 10 より すくない");
+  // 物々交換（16種）: 人・わたす／もらう もの・文の 長さ。さかな・ほねの こうかんは ③④ が できるまで needs で 出ない
+  ok(TF.barter.length >= 16 && new Set(TF.barter.map((b) => b.id)).size === TF.barter.length, `物々交換が 16 より すくない／id が かさなる（${TF.barter.length}）`);
+  for (const b of TF.barter) {
+    const w = `物々交換 ${b.id}`, needs = b.needs || [];
+    ok(!!mapOf[b.npc], `${w}: ${b.npc} が いない`);
+    for (const o of [b.give, b.get]) {
+      if (o.bag) ok(!!R.BAG_INDEX[o.bag], `${w}: もちもの ${o.bag} が ない`);
+      else if (o.furn) ok(!!R.FURN_INDEX[o.furn], `${w}: 家具 ${o.furn} が ない`);
+      else if (o.wear) ok(!!R.ITEM_INDEX[o.wear], `${w}: 服 ${o.wear} が ない`);
+      else ok((o.fish && needs.includes("fishing")) || (o.bone && needs.includes("fossil")), `${w}: さかな・ほねの こうかんに needs が ない`);
+    }
+    const rows = b.text.split("\n"); ok(rows.length <= 4 && rows.every((r) => width(r) <= 30), `${w}: 会話まどに 入らない「${b.text}」`);
+  }
+  // さがす・さわる ばしょ: 入口から 行ける マスに かずだけ・4マス いじょう はなれる・あたりは 1つ・その日の あいだ かわらない・小物の 絵が ある
+  const spotFlow = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const out=[];
+    for(const e of TOWNSFOLK_DATA.events){const i=e.steps.findIndex(s=>s.do==='find'||s.do==='tap');if(i<0)continue;const s=e.steps[i];
+      Save.d.folk.req=[{id:e.id,step:i,n:0,day:'2026-9-28',carry:null}];TownFolk.spotCache={};
+      const a=TownFolk.spotsOn(s.map);TownFolk.spotCache={};const b=TownFolk.spotsOn(s.map),need=s.do==='find'?s.spots:s.n,tiles=new Set(TownFolk.reach(s.map).tiles.map(p=>p+''));
+      out.push({id:e.id,n:a.length===need,apart:a.every((p,j)=>a.every((q,k)=>j===k||Math.abs(p.x-q.x)+Math.abs(p.y-q.y)>=4)),reach:a.every(p=>tiles.has(p.x+','+p.y)),
+        hit:s.do!=='find'||a.filter(p=>p.hit).length===1,same:JSON.stringify(a)===JSON.stringify(b),art:a.every(p=>!!TownFolkArt.PROP[p.prop])});}
+    Save.d.folk.req=[];TownFolk.spotCache={};Save.d=old;return out;})()`, ctx);
+  ok(spotFlow.length >= 7, `さがす・さわる おねがいが すくない（${spotFlow.length}）`);
+  for (const r of spotFlow) ok(r.n && r.apart && r.reach && r.hit && r.same && r.art, `おねがい ${r.id}: さがす／さわる ばしょが 不正 ${JSON.stringify(r)}`);
+  // さがす → とどける・こねこを つれて いく・さわる 3かい・しゃしんの ばしょ（ゲームと 同じ 関数で）
+  const stepFlow = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const st=Save.d.folk,take=(id)=>TownFolk.answer({type:'event',ev:TownFolk.event(id)},true);
+    take('ev-lost-hat');const hat=TownFolk.signal({do:'find',map:'meadow',item:'hat'}).length===1&&st.req[0].carry==='hat'&&st.req[0].step===1;st.req=[];
+    take('ev-lost-kitten');const found=TownFolk.signal({do:'find',map:'town',npc:'kitten'}).length===1&&TownFolk.following();
+    const kitten=found&&TownFolk.signal({do:'talk',npc:'cat',map:'town'}).some(m=>m.done)&&!TownFolk.following()&&st.done['ev-lost-kitten'];
+    take('ev-water');let n=0;for(let i=0;i<3;i++)n+=TownFolk.signal({do:'tap',target:'flowerbed',map:'town'}).length;
+    const water=n===3&&st.req.find(r=>r.id==='ev-water').step===1&&TownFolk.signal({do:'tap',target:'flowerbed',map:'town'}).length===0;
+    take('ev-photo');const m=Maps.get('city');let tile=null;for(let y=0;y<m.h&&!tile;y++)for(let x=0;x<m.w&&!tile;x++)if(!m.isSolid(x,y)&&TownFolk.photoSpot('city',x,y))tile=[x,y];
+    const photo=!!tile&&TownFolk.photoSpot('city',1,1)===null&&TownFolk.signal({do:'photo',map:'city',near:'city_fountain'}).length===1&&TownFolk.photoSpot('city',tile[0],tile[1])===null;
+    const ready=TOWNSFOLK_DATA.events.every(e=>TownFolk.ready(e));
+    const gated=TOWNSFOLK_DATA.events.every(e=>!e.steps.some(s=>s.do==='catch')||(e.needs||[]).includes('fishing'))&&TOWNSFOLK_DATA.events.every(e=>!e.steps.some(s=>s.do==='dig')||(e.needs||[]).includes('fossil'));
+    Save.d=old;return {hat,kitten,water,photo,ready,gated};})()`, ctx);
+  ok(stepFlow.hat && stepFlow.kitten, "さがす（ぼうし・こねこ）の ながれが 不正");
+  ok(stepFlow.water, "さわる（みずやり 3かい）の ながれが 不正");
+  ok(stepFlow.photo, "しゃしんの ばしょ・ながれが 不正");
+  ok(stepFlow.ready && stepFlow.gated, "すすめられない 手順の おねがいが ある／釣り・化石の おねがいに needs が ない");
 }
 
 finish();

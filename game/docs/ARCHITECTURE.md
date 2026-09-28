@@ -470,6 +470,7 @@ class NewTask extends TaskBase {
 | `homeSay(id, text, kind)` / `homeTalkLog()` / `homeTalk(id)` / `homeLines(id)` | おうちで しゃべらせる／さいきん しゃべった もの（`line`・`talk` つき）／かけあいを 流す／会話データの 数・1つの セリフや かけあい |
 | `folkTalk(id)` / `folkLast()` / `folkLine(id)` | 町の人の となりへ 行って 話しかける（会話は H.dialogs で すすめる）／さいごの セリフと ひとことの id／データの セリフ 1つ |
 | `folk()` / `folkOffer(id)` / `folkSignal(sig)` / `folkMarks()` | おねがいの きろく／つぎに かならず もちかける／手順を すすめる（会話は またない）／いまの マップの しるし |
+| `folkSpots(map)` / `folkKitten()` / `folkPhotoTile(map)` | さがす きらきら・さわる 小物（となりの 立てる マス `stand`・画面の 位置 `cx`/`cy`）／ついて くる こねこ／しゃしんが とれる マス。`folkOffer` は 物々交換の id（`bt-…`）も うけとる |
 
 新しいお店を足したら `mg()` にそのお店の `order`（注文の中身）を足す。
 
@@ -697,6 +698,9 @@ DailyPlay は U.today() を日単位の数値に変換し、最後の取得日�
 
 ### 町の人のおねがい（FEAT-04）
 Save.fresh().folk（bond・req・done・barter・offered）を追加（migrateの補完だけ・SCHEMAは1のまま）。TownFolk.offerは1人1日1回、候補のchanceの最大値（10〜20%）で、3つまで。ことわると同じ日はもう一度たずねる（offered.wait）。signalは見本と同じ計算で手順を進め、Talk.runが会話・アイテムの消費・ごほうびを出す。いま進められる手順はTownFolk.STEPS（buy・give・talk・quiz・trade）。WorldSceneはTownFolk.mountで右上にノートのボタンを出し、drawNpcでTownFolkArt.marker（▼あいて・！まっている）を描く（白い「!」が優先）。UI.askにface・name・extraを追加。PokaDebug.folk / folkOffer / folkSignal / folkMarks。
+
+### さがす・さわる・つれていく・しゃしん・物々交換（FEAT-05）
+TownFolk.STEPS に find・tap・follow・photo・catch・dig を足した（catch・dig は needs の fishing・fossil で ③④ まで出ない）。TownFolk.spotsOn(map) が見本 spots() と同じ選び方（reach は入口と町の人の足もとからの BFS、seed は eventId＋うけた日、spotCache で1日固定）で きらきら（あたり1つ）・小物を返し、WorldScene.render が TownFolkArt.prop を SvgCache「folk:prop:<id>」で描く。tapAt は spotAt を町の人・なかまより先に見て goInteract → TownFolk.investigate（はずれは r.checked、さわったものは r.tapped）。こねこは WorldScene.follower（Walker・0.72倍）で、stepParty がいちばん後ろの子の元のマスを trail にためて1マスずつたどる。しゃしんは onArrive → TownFolk.arrived → refreshPhoto で photoSpot の間だけ右下にボタン。物々交換はおねがいが出なかったとき BARTER_CHANCE（10%）で UI.ask に tradeCard を添える。
 
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。

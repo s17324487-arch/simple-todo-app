@@ -305,8 +305,24 @@ const PokaDebug = {
   folk() { return Save.d.folk ? JSON.parse(JSON.stringify(Save.d.folk)) : null; },
   // いまの マップの 町の人の しるし（{ npcId: "target" | "offer" }）
   folkMarks() { if (G.sceneName !== "world") return null; const out = {}; for (const n of G.scene.npcs) { const m = TownFolk.markerOf(n.id, G.scene.mapId); if (m) out[n.id] = m; } return out; },
-  // つぎに その人と 話した とき、かならず その おねがいを もちかける
-  folkOffer(id) { const ev = TownFolk.event(id); if (!ev) throw new Error("unknown folk event: " + id); TownFolk.forced = { npc: ev.giver, id }; return ev.giver; },
+  // ② その マップに 置いて いる きらきら（find）・小物（tap）。stand は となりの 立てる マス（よこ → うえ → した）。
+  // いまの マップなら 画面の 位置（cx, cy）も
+  folkSpots(map) {
+    const sc = G.sceneName === "world" ? G.scene : null, id = map || (sc && sc.mapId), r = G.canvas.getBoundingClientRect(); if (!id) return [];
+    const w = Maps.get(id), free = (x, y) => !w.isSolid(x, y) && !w.warpAt(x, y) && !(sc && sc.mapId === id && sc.blockedByNpc(x, y));
+    const at = (x, y) => (sc && sc.mapId === id ? { cx: r.left + (x * TS + 16 - sc.cam.x + G.W / 2) * G.cssPerUnit, cy: r.top + (y * TS + 16 - sc.cam.y + G.H / 2) * G.cssPerUnit } : {});
+    return TownFolk.spotsOn(id).map((s) => ({ ...s, stand: [[-1, 0], [1, 0], [0, -1], [0, 1]].map(([dx, dy]) => [s.x + dx, s.y + dy]).find(([x, y]) => free(x, y)) || null, ...at(s.x, s.y) }));
+  },
+  // ② しゃしんが とれる マス（手順が photo の とき。なければ null）
+  folkPhotoTile(map) { return TownFolk.reach(map).tiles.find(([x, y]) => TownFolk.photoSpot(map, x, y)) || null; },
+  // ② ついて きて いる こねこ（いなければ null）
+  folkKitten() { const k = G.sceneName === "world" && G.scene.follower; return k ? { x: k.w.tx, y: k.w.ty, trail: k.trail.length } : null; },
+  // つぎに その人と 話した とき、かならず その おねがい（ev-…）／物々交換（bt-…）を もちかける
+  folkOffer(id) {
+    const ev = TownFolk.event(id), bt = !ev && TOWNSFOLK_DATA.barter.find((b) => b.id === id), npc = ev ? ev.giver : bt && bt.npc;
+    if (!npc) throw new Error("unknown folk event: " + id);
+    TownFolk.forced = { npc, id }; return npc;
+  },
   // TownFolk.signal を よぶ（アイテムを へらす・ごほうび などの 会話も 出す。会話は またない）。すすんだ 手順を かえす
   folkSignal(sig) {
     const before = { ...Save.d.folk.done }, moved = TownFolk.signal(sig);

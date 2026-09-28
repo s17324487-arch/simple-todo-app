@@ -148,7 +148,7 @@ folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
 
 1. ✅ **町の人の セリフ**（済み: Claude Code。下の「実装メモ」）: `js/townsfolk-data.js`（index.html と sw.js の 両方。`talk.js`・`world-expansion.js`・`town-design.js` より あと）と `js/townsfolk.js` の セリフ・ひとこと 部分。`Talk.run` の 3・5。
 2. ✅ **おねがいの しくみ**（済み: Claude Code。下の「実装メモ」）: `Save.folk`・offer／answer／signal・`UI.ask` の 顔・ノート・しるし・PokaDebug・スモーク。まずは かいもの・でんごん・とどけもの・なぞなぞ・わらしべ。
-3. **さがす・さわる・つれていく・しゃしん・物々交換**: 小物の 絵・こねこ・しゃしんボタン・交換カード。
+3. ✅ **さがす・さわる・つれていく・しゃしん・物々交換**（済み: Claude Code。下の「実装メモ」）: 小物の 絵・こねこ・しゃしんボタン・交換カード。
    （釣り・化石の おねがいは、③④ が できると 自動で 出る。）
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
@@ -169,6 +169,14 @@ folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
 - ノートを ひらく ときに `signal({do:"have"})` で かって ある ものを 数えなおす（お店や `Loot.give` には まだ 足して いない）。
 - 右上の ボタンは `TownFolk.mount(sc)`〜`unmount()` の あいだだけ 出す。`mount` は `WorldScene.enter` の 中（`G.scene` が かわる まえ）で よばれるので、`G.scene === sc` で きめない（お店・おうちから もどった ときに ボタンが 出なく なる）。
 - テストで おなじ 人に 2回 話すと、2回めは 何も すすまないので たまに べつの おねがいが 出る（10〜20%）。すすめる ための 会話は 1回に する（はじめての あいさつの あとでも すすむ）。
+- 3番: `TownFolk.STEPS` に find・tap・follow・photo・catch・dig を 足した（catch・dig の おねがいは `needs` の fishing・fossil で、③④ が できるまで 出ない）。これで 20種 ぜんぶが 出る。
+- さがす・さわる ばしょは `TownFolk.spotsOn(map)`。見本 `spots()` と 同じ えらびかた（`reach()` は `build-townsfolk.mjs` と 同じ）で、たね は `eventId + ":" + うけた 日`（`r.day`）。1日の あいだは かわらない（`spotCache`）。あたりは `rng(eventId + ":" + r.day + ":hit")` で 1つ。はずれを しらべると `r.checked` に 入れて けす。さわった 小物は `r.tapped`（みずやりだけ flowerbed_ok に かわって のこる）。
+- 町の 画面（`WorldScene`）: タップは きらきら・小物を 町の人・なかまより 先に みる（頭が かさなっても しらべられる）→ となりまで 歩いて `TownFolk.investigate`。絵は `TownFolkArt.prop(id)` を `SvgCache` の `"folk:prop:" + id` で。
+- こねこ: `WorldScene.startFollower(x, y)` で `follower`（`Walker`・0.72 ばい・`Art.npcSvg({ sp: "cat", col: "#F6C28B", stripe: true })`）。3人の いちばん うしろの 子が 歩いた マスを `trail` に ためて 1マスずつ たどる（おくれたら 小走り）。マップを かえても `TownFolk.following()` なら うしろに 出る。ミケに 話すと follow が すすんで きえる。
+- しゃしん: `TownFolk.refreshPhoto()` が 1マス 歩く たびに（`onArrive` → `TownFolk.arrived`）`photoSpot` を みて、右下（おまつりの ボタンと おなじ 高さ）に「しゃしんを とる」（44px）を 出す。おすと `.folk-flash` で 白く ひかって 3人が 下を むいて はねる → `{do:"photo", map, near}`。
+- 物々交換: おねがいが 出なかった ときに `BARTER_CHANCE`（10%）。`UI.ask(text, ["こうかん する", "やめておく"], { face, name, extra: tradeCard })`。わたす もちものを へらして `Loot.give`。さかな・ほねの こうかん（fish・bone）は ③④ で `have()`・`canGive()`・`lootOf()` に 足す（いまは `needs` で 出ない）。
+- さわる・しゃしんが おわると「ぜんぶ できた！／しゃしんを とった！ 〇〇に はなしかけよう」の トースト。
+- テストの 入口（3番）: `folkSpots(map)`（`stand` は となりの 立てる マス、いまの マップなら `cx`・`cy`）・`folkKitten()`・`folkPhotoTile(map)`。`folkOffer(id)` は 物々交換の id（`bt-…`）も うけとる。
 - テストの 入口: `folk()`・`folkOffer(id)`（つぎに その人と 話すと かならず もちかける）・`folkSignal(sig)`（会話は またない）・`folkMarks()`（いまの マップの しるし）。`folkSpots()` は 3番。
 
 ## 9. やらないこと
