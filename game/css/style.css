@@ -694,3 +694,9 @@ html, body {
 /* ⑥ ゲームで 足した ところ: ロビーの 文は 文節で おりかえす（ことばの とちゅうで きれない）・したの ボタンは 48px */
 .rg-course .nm, .rg-course .sub, .rg-gun .nm, .rg-gun .sub, .rg-rule, .rg-detail .desc, .rg-detail .fact, .rg-who-card .ln, .rg-note, .rg-lock { word-break: keep-all; overflow-wrap: anywhere; }
 .panel-foot .rg-go { min-height: 48px; font-size: 16px; }
+/* ⑥ 2番: あそぶ 画面の 絵は #screen に 描く。.range-scene は その うえの HUD と そうさ だけ（すける）。けっかの したの 3つの ボタン */
+.range-scene.rg-live { background: transparent; }
+.rg-foot { display: flex; gap: 8px; flex: 1; }
+.rg-foot .btn { flex: 1; min-height: 48px; padding: 6px 2px; font-size: 13px; }
+.rg-result .rg-log { word-break: keep-all; overflow-wrap: anywhere; margin: 4px 0; }
+.rg-result .rg-record { color: #D9443F; }

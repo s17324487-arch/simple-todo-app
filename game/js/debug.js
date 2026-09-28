@@ -382,6 +382,20 @@ const PokaDebug = {
   // ⑤ 寄贈の きろく（2番で ふえる）と 入った へや
   museumState() { const st = Save.d.museum; return { fish: Object.keys(st.fish).length, bones: Object.keys(st.bones).length, done: Object.keys(st.done), rooms: Object.keys(st.rooms), intro: document.querySelector(".museum-intro")?.innerText || null }; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
+  // ⑥ 射撃場: ロビーを とばして あそびを はじめる（ロックは むし・もどり先は シティの 入口の まえ）
+  range(courseId = "steel", gunId = "auto", who = "wanko", seed) {
+    if (!RANGE_DATA.courses[courseId] || !RANGE_DATA.guns.some((g) => g.id === gunId) || !Save.d.chars[who]) throw new Error("unknown range: " + courseId + " / " + gunId + " / " + who);
+    Save.d.range.safety = true; Game.trans = null;
+    Game.goto("range", { start: { course: courseId, gun: gunId, who, seed: seed || "dbg:" + courseId + ":" + gunId } }, "none");
+    return true;
+  },
+  // 1フレームぶんの 入力 { dx, dy, fire, hold, ads, breath, action, reload, zoomIn, zoomOut, finish }（つぎの フレームで つかう）
+  rangeInput(inp = {}) { const s = G.scene; if (G.sceneName !== "range" || s.mode !== "play") return false; s.dbg = { ...(s.dbg || {}), ...inp }; return true; },
+  // じどうで あそぶ（ShootingRange.bot。1/60 びょう ずつ sec びょう ぶん すぐ すすめる）
+  rangeAuto(sec = 60, skill = "casual") { const s = G.scene; if (G.sceneName !== "range" || s.mode !== "play") return null; s.autoPlay(sec, skill); return this.rangeState(); },
+  // game.hud() ＋ { mode, course, gun, who, result, stars, coins, hop }
+  rangeState() { return G.sceneName === "range" ? G.scene.state() : null; },
+  rangeEnd() { const s = G.scene; if (G.sceneName !== "range" || s.mode !== "play") return null; s.game.finish(); s.finish(); return this.rangeState(); },
   rod(n = 1) { Save.d.fish.rod = n; Save.mark(); return n; },
   // 釣りの 画面を はじめる（fishId を わたすと その 魚が かかる）。もどり先は いまの 町の 場所
   fishing(place = "pond", fishId) {
