@@ -53,6 +53,8 @@ const PokaDebug = {
   townLayout(id) {
     const m=Maps.get(id);return {id,w:m.w,h:m.h,spawn:m.def.safeSpawn,views:m.def.views,doors:m.doors.map(d=>({id:d.b.id,x:d.x,y:d.y,act:d.b.act})),warps:m.warps};
   },
+  backupText(){return SaveBackup.encode();},
+  backupDecode(text){return SaveBackup.decode(text);},
   saveData() {return JSON.parse(JSON.stringify(Save.d));},
   persistedSave() { try { return JSON.parse(localStorage.getItem(Save.KEY)); } catch { return null; } },
   seedSave(data) {Save.d=Save.migrate(JSON.parse(JSON.stringify(data)));Save.write();return true;},
