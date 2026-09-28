@@ -755,7 +755,7 @@ class HouseScene {
     if (motion) {
       ctx.save();ctx.translate(p.x+motion.x*s,p.y+motion.y*s);ctx.rotate(motion.angle);ctx.scale(motion.sx,motion.sy);
       Chara.draw(ctx,c.id,this.charOpts(c,motion.pose,motion.dir,face),0,0,HOUSE_SIZE*s,alpha*motion.alpha);ctx.restore();
-      HomeActions.props(ctx,c,p,s);
+      HomeActions.props(this,ctx,c,p,s);
     } else Chara.draw(ctx, c.id, this.charOpts(c, pose, c.state === "sleep" ? "down" : c.dir, face), p.x, p.y - dy * s, HOUSE_SIZE * s, alpha);
     if (c.state === "eat" && c.food) {
       const k = 1 - Math.max(0, c.t) / 1.7;

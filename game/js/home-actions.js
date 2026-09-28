@@ -64,7 +64,7 @@ const HomeActions = {
     if(k==='stumble'){v.face='surprise';v.angle=.5*Math.sin(Math.PI*Math.min(1,t/1.7));v.y=7*Math.sin(Math.PI*Math.min(1,t/1.7));v.pose=t<1.5?'land_01':'idle_02';}
     if(k==='peek'){v.x=8*osc;v.sy=.87;v.dir=osc>0?'right':'left';}
     if(k==='sweep'){v.angle=osc*.08;v.dir='right';}
-    if(k==='water'){v.angle=.12;v.dir='left';}
+    if(k==='water'){v.angle=.12;v.dir='left';v.pose='jump_01';}
     if(k==='admire'){v.face='love';v.y=-Math.abs(Math.sin(t*2))*3;}
     if(k==='toy'){v.pose='land_01';v.sy=.92;v.dir=osc>0?'right':'left';}
     if(k==='exercise'){v.sy=1-.15*Math.max(0,osc);v.pose=osc>0?'land_01':'idle_02';}
@@ -72,7 +72,7 @@ const HomeActions = {
     if(k==='wave'){v.pose=osc>0?'jump_01':'idle_01';v.angle=osc*.05;}
     return v;
   },
-  props(ctx,c,p,s) {
+  props(sc,ctx,c,p,s) {
     const a=c.activity;if(!a||a.stage!=='act')return;
     const t=a.elapsed,k=a.id;ctx.save();ctx.translate(p.x,p.y);ctx.scale(s,s);ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.lineCap='round';
     if(k==='nap'||k==='yawn'){ctx.fillStyle=INK;ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText(k==='nap'?'z Z':'ふぁ…',25,-85-Math.sin(t*2)*4);}
@@ -84,6 +84,8 @@ const HomeActions = {
       const x=25+Math.sin(t*5)*8;ctx.strokeStyle='#956B44';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x-8,-44);ctx.lineTo(x+5,1);ctx.stroke();ctx.fillStyle='#DDBB79';ctx.beginPath();ctx.moveTo(x-3,-6);ctx.lineTo(x+11,-10);ctx.lineTo(x+20,3);ctx.lineTo(x-4,8);ctx.closePath();ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=1.5;ctx.stroke();
     }
     if(k==='water'){
+      const it=Save.d.room.items.find(it=>it.uid===a.uid);
+      if(it){const r=sc.itemRect(it);ctx.translate((r.x+r.w*.5-p.x)/s+54,(r.y+r.h*.3-p.y)/s+39);}
       ctx.fillStyle='#98C5C9';ctx.beginPath();ctx.roundRect(-42,-45,23,17,4);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-39,-31);ctx.lineTo(-53,-42);ctx.stroke();ctx.strokeStyle='#77ADCD';for(let i=0;i<3;i++){const y=(t*28+i*7)%21;ctx.beginPath();ctx.moveTo(-54-i*3,-39+y);ctx.lineTo(-55-i*3,-35+y);ctx.stroke();}
     }
     if(k==='toy'){
