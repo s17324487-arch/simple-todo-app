@@ -1,5 +1,7 @@
 // 店内は町とは別の、10×12マスの歩ける空間。セーブの座標は入口の外に保つ。
 const STORE_INTERIORS = {
+  cake: {wall:"#F2DEE5",floor:"#EFE2CA",accent:"#BC98AC",motif:"check",caption:"きねんびを いろどる デザ",fixtures:[
+    ["pastrycase",0,0,3,2,"ホールケーキの ショーケース"],["jars",8,0,2,2,"クリームと くだもの"],["pastrycase",0,5,3,2,"ちいさな デザ"],["decorating",7,5,3,2,"ケーキを かざる だい"],["cafe",0,9,3,1,"おいわいの せき"],["dessert",8,9,2,1,"おくりものの ケーキ"]]},
   clothes: { wall: "#F4DCE5", floor: "#EDDAC3", accent: "#B87893", motif: "stripe", caption: "とっておきの いちまい", fixtures: [
     ["rack",0,1,3,1,"ふくの ラック"], ["fitting",8,0,2,3,"しちゃくしつ"], ["mirror",0,4,2,1,"おおきな かがみ"], ["folded",7,5,3,2,"たたんだ おようふく"], ["mannequin",1,7,2,1,"きょうの おすすめ"], ["accessories",7,9,3,1,"ぼうしと リボン"] ] },
   furniture: { wall: "#E8DEC7", floor: "#CDA878", accent: "#7F9A88", motif: "wood", caption: "くらしの どうぐと ぬくもり", fixtures: [
@@ -63,6 +65,8 @@ const StoreArt = {
       case "waiting": a=p("M26,151 V180 M191,151 V180")+r(14,60,192,83,"#A6BEC1",12)+r(9,122,202,38,"#C0D4CD",10)+p("M75,66 V119 M141,66 V119");break;
       case "tooth": a=r(31,142,158,31,"#B7D7D3")+p("M110,48 C64,18 44,57 62,98 C78,151 83,137 93,109 Q110,78 126,112 C138,154 151,124 165,93 C190,48 160,15 110,48 Z","#FFFBEB")+p("M154,145 L189,44 M180,42 L202,49");break;
       case "oven": a=r(12,14,196,163,"#D6A88F",18)+p("M23,44 H193 M23,80 H193 M23,118 H193 M23,156 H193 M50,16 V43 M130,16 V43 M87,44 V79 M170,44 V79 M50,119 V154 M170,119 V154")+p("M46,152 V91 Q110,22 174,91 V152 Z","#624E43")+p("M63,144 Q80,122 89,133 Q96,94 111,126 Q137,110 150,144 Z","#EDB46C")+p("M34,163 H186");break;
+      case "pastrycase": a=base("#B99FA9")+r(14,17,192,93,"#D3E2E3",9)+p("M18,105 H201 M20,60 H202 M22,22 L46,19");for(let i=0;i<4;i++){const x=54+i%2*105,y=43+Math.floor(i/2)*43;a+=r(x-26,y,51,18,["#E5BAC8","#E6CF99"][i%2],5)+p(`M${x-26},${y+7} h51`,"none")+[x-16,x,x+16].map(cx=>c(cx,y-3,5,"#DB9C9B")).join("");}break;
+      case "decorating": a=base("#C2A7A8")+r(23,39,173,48,"#F0DECE")+r(59,33,75,43,"#EDD5A6",9)+p("M59,43 Q71,53 83,43 Q94,53 105,43 Q118,53 134,43","#F8CFD8")+c(78,32,6,"#D9A1AA")+c(111,32,6,"#D9A1AA")+p("M157,32 L178,42 L165,73 L153,65 Z","#F7EBD6")+r(23,88,172,11,"#D6B9A1");break;
       case "flour": a=p("M31,162 L25,77 Q64,51 96,78 L100,167 Z","#F0DEBB")+p("M110,168 L112,43 Q152,22 192,46 L190,166 Z","#E5D1A4")+p("M42,82 H86 M123,49 H180 M146,79 V137 M146,97 L131,86 M146,115 L164,100");break;
       case "bread": a=base("#C49969");for(let i=0;i<6;i++)a+=bread(49+i%3*61,48+Math.floor(i/3)*41);a+=p("M17,111 H201 M76,93 V108 M145,93 V108");break;
       case "dough": a=base()+`<ellipse cx="96" cy="76" rx="45" ry="21" fill="#F7E7B5"/>`+r(64,43,90,13,"#B98457",7)+p("M44,50 H64 M154,50 H176")+bottle(163,44,"#F4E4C3");break;
