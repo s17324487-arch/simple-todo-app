@@ -52,8 +52,12 @@ const UI = {
       box.append(face, name, text, next);
       const shade = U.el("div", { class: "dlg-shade" }, box);
       this.root.append(shade);
-      let i = 0, typing = null, full = "";
+      let i = 0, typing = null, full = "", settled = false;
+      const done = value => { if (settled) return; settled = true; clearInterval(typing); shade.remove(); this.layers--; resolve(value); };
+      const action = opts.action ? UI.btn(opts.action, () => done(true), "dialog-action") : null;
+      if (action) { action.addEventListener("pointerup", e => e.stopPropagation()); shade.append(action); }
       const show = () => {
+        if (action) action.classList.toggle("hidden", i !== lines.length - 1);
         let ln = lines[i];
         if (typeof ln === "string") ln = { text: ln };
         const who = ln.who || opts.who;
@@ -79,12 +83,11 @@ const UI = {
       };
       const adv = (e) => {
         e.preventDefault();
+        if (settled) return;
         if (typing) { clearInterval(typing); typing = null; text.textContent = full; next.classList.remove("hidden"); return; }
         i++;
         if (i >= lines.length) {
-          shade.remove();
-          this.layers--;
-          resolve();
+          done(false);
           return;
         }
         show();

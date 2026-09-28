@@ -2532,6 +2532,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();expect((await H.dbg('state')).map==='town','見学から再開できない');
 },{viewport,timeout:120000});
 
+await (await import("./town-dialogue-smoke.mjs")).townDialogueSmoke({scenario,expect});
+
 server.close();
 if(LIST)process.exit(0);
 if (!results.length) { console.error("検証対象がありません。--only の名前を確認してください。"); process.exit(1); }

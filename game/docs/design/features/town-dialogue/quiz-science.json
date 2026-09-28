@@ -1,0 +1,702 @@
+[
+  {
+    "id": "quiz01",
+    "level": 1,
+    "topic": "宇宙",
+    "prompt": "太陽系の惑星で、平均的な表面温度が最も高いのは？",
+    "choices": [
+      "水星",
+      "金星",
+      "地球",
+      "火星"
+    ],
+    "answer": 1,
+    "explanation": "正解は金星。厚い大気による強い温室効果で、太陽に最も近い水星よりも表面が高温になる。",
+    "sources": [
+      {
+        "title": "NASA — Venus Facts",
+        "url": "https://science.nasa.gov/venus/venus-facts/",
+        "evidence": "金星は太陽系で最も表面が高温の惑星。自転周期は約243地球日、公転周期は約225地球日。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ESA — Venusian geography",
+        "url": "https://www.esa.int/content/view/full/159717",
+        "evidence": "金星の高い表面温度を温室効果と関連づけ、自転約243日、公転約225日と説明している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz02",
+    "level": 1,
+    "topic": "地球",
+    "prompt": "水蒸気を除いた地球の空気で、体積の約78％を占める気体は？",
+    "choices": [
+      "窒素（ちっそ）",
+      "酸素",
+      "二酸化炭素",
+      "アルゴン"
+    ],
+    "answer": 0,
+    "explanation": "正解は窒素。乾燥した空気では、酸素は約21％で、窒素が最も多い。",
+    "sources": [
+      {
+        "title": "NOAA Global Monitoring Laboratory — Basics of the Carbon Cycle",
+        "url": "https://gml.noaa.gov/outreach/carbon_toolkit/",
+        "evidence": "大気成分の表は窒素78.1％、酸素20.9％と記載している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "NASA — A Violent Sun Affects the Earth's Ozone",
+        "url": "https://science.nasa.gov/earth/earth-observatory/a-violent-sun-affects-the-earths-ozone/",
+        "evidence": "窒素ガスが地球大気の78％を占めると説明している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz03",
+    "level": 1,
+    "topic": "化学",
+    "prompt": "ダイヤモンドと黒鉛（こくえん）。性質は違うけれど、どちらも何という元素からできている？",
+    "choices": [
+      "ケイ素",
+      "鉄",
+      "カルシウム",
+      "炭素"
+    ],
+    "answer": 3,
+    "explanation": "正解は炭素。同じ元素でも、原子の結びつき方や並び方が違うため、硬さなどの性質が大きく変わる。",
+    "sources": [
+      {
+        "title": "Royal Society of Chemistry — Allotropes of carbon",
+        "url": "https://edu.rsc.org/allotropes-of-carbon/allotropes-of-carbon/4012885.article",
+        "evidence": "炭素の同素体としてダイヤモンド、黒鉛、グラフェン、フラーレンを説明している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "Smithsonian Q?rius — Native Element Graphite",
+        "url": "https://qrius.si.edu/browse/object/10019548",
+        "evidence": "炭素は自然界で黒鉛とダイヤモンドという異なる形で存在すると説明している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz04",
+    "level": 1,
+    "topic": "生き物",
+    "prompt": "タコには、全身用とえら用を合わせて心臓がいくつある？",
+    "choices": [
+      "1つ",
+      "2つ",
+      "3つ",
+      "4つ",
+      "8つ"
+    ],
+    "answer": 2,
+    "explanation": "正解は3つ。1つは全身に、残りの2つはえらへ血液を送る。",
+    "sources": [
+      {
+        "title": "Natural History Museum — Octopuses keep surprising us",
+        "url": "https://www.nhm.ac.uk/discover/octopuses-keep-surprising-us-here-are-eight-examples-how.html",
+        "evidence": "タコの3つの心臓のうち1つは全身、2つはえらへの血液循環を担う。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "Monterey Bay Aquarium — Cephalopods",
+        "url": "https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/cephalopods",
+        "evidence": "タコを含む頭足類の体の説明に、外とう膜の中に3つの心臓があると記載している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz05",
+    "level": 1,
+    "topic": "生き物",
+    "prompt": "次のうち、卵を産む哺乳類（ほにゅうるい）は？",
+    "choices": [
+      "カワウソ",
+      "カモノハシ",
+      "ビーバー",
+      "コアラ"
+    ],
+    "answer": 1,
+    "explanation": "正解はカモノハシ。卵を産む一方で、かえった子には乳を与えて育てる。",
+    "sources": [
+      {
+        "title": "Australian Museum — Platypus",
+        "url": "https://australian.museum/learn/animals/mammals/platypus/",
+        "evidence": "カモノハシは卵を産む哺乳類である単孔類に分類され、ふ化後の子には乳を与える。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "Natural History Museum — The platypus puzzle",
+        "url": "https://www.nhm.ac.uk/discover/the-platypus-puzzle.html",
+        "evidence": "カモノハシは卵を産み、子に乳を与える動物として説明されている。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz06",
+    "level": 1,
+    "topic": "物理",
+    "prompt": "真空中の光が1秒間に進む距離は、およそどれくらい？",
+    "choices": [
+      "300メートル",
+      "300キロメートル",
+      "300万キロメートル",
+      "30万キロメートル"
+    ],
+    "answer": 3,
+    "explanation": "正解は約30万キロメートル。正確な光速は299,792,458メートル毎秒と定められている。",
+    "sources": [
+      {
+        "title": "NIST — Definitions of SI Base Units",
+        "url": "https://www.nist.gov/si-redefinition/definitions-si-base-units",
+        "evidence": "真空中の光速は299792458m/s。kgはプランク定数の固定値で定義し、1molの粒子数は正確に6.02214076×10^23。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "BIPM — The International System of Units: Defining constants",
+        "url": "https://www.bipm.org/en/measurement-units/si-defining-constants",
+        "evidence": "SIの定義定数一覧に光速299792458m/s、プランク定数、アボガドロ定数6.02214076×10^23mol^-1の固定値がある。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz07",
+    "level": 1,
+    "topic": "数学",
+    "prompt": "素数（そすう）について、正しい説明はどれ？",
+    "choices": [
+      "1は素数に含まれる",
+      "すべての奇数が素数である",
+      "偶数の素数は2だけである",
+      "0は最も小さい素数である"
+    ],
+    "answer": 2,
+    "explanation": "正解は「偶数の素数は2だけ」。素数は1より大きく、正の約数が1と自分自身だけの整数だ。",
+    "sources": [
+      {
+        "title": "Wolfram MathWorld — Even Prime",
+        "url": "https://mathworld.wolfram.com/EvenPrime.html",
+        "evidence": "2が唯一の偶数の素数で、それ以外の素数は奇数である。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "OpenStax — Elementary Algebra 2e: Introduction to Whole Numbers",
+        "url": "https://openstax.org/books/elementary-algebra-2e/pages/1-1-introduction-to-whole-numbers",
+        "evidence": "素数の定義と、偶数の素数は2のみであることを説明している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz08",
+    "level": 1,
+    "topic": "地球",
+    "prompt": "地球の淡水のうち、最も多くの量が蓄えられている場所は？",
+    "choices": [
+      "氷河や氷床",
+      "川",
+      "湖",
+      "大気中の水蒸気"
+    ],
+    "answer": 0,
+    "explanation": "正解は氷河や氷床。地球の淡水の約7割は、こうした氷として蓄えられている。",
+    "sources": [
+      {
+        "title": "USGS — Ice, Snow, and Glaciers and the Water Cycle",
+        "url": "https://www.usgs.gov/water-science-school/science/ice-snow-and-glaciers-and-water-cycle?page=1",
+        "evidence": "地球の淡水の68.7％が氷冠、氷河、万年雪に含まれるという分布表を掲載している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "UNESCO / WMO — International Year of Glaciers' Preservation 2025",
+        "url": "https://www.unesco.org/en/articles/unesco-and-wmo-launch-international-year-glaciers-preservation-2025?hub=103299",
+        "evidence": "世界の淡水の約70％は氷河と氷床に蓄えられている。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz09",
+    "level": 2,
+    "topic": "宇宙",
+    "prompt": "自転軸の傾きが約98度で、「横倒しで回る惑星」といわれるのは？",
+    "choices": [
+      "木星",
+      "土星",
+      "天王星",
+      "海王星"
+    ],
+    "answer": 2,
+    "explanation": "正解は天王星。自転軸が大きく傾いているため、横倒しのような姿勢で太陽の周りを回る。",
+    "sources": [
+      {
+        "title": "NASA — Uranus Facts",
+        "url": "https://science.nasa.gov/uranus/facts/",
+        "evidence": "天王星の自転軸の傾きは97.77度で、赤道面が軌道面に対してほぼ直角になる。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ESA — Uranus",
+        "url": "https://www.esa.int/ESA_Multimedia/Images/2003/05/Uranus2",
+        "evidence": "天王星の自転軸は98度傾き、ほぼ軌道面内に横たわると説明している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz10",
+    "level": 2,
+    "topic": "地球",
+    "prompt": "太陽の紫外線を吸収するオゾン層は、主に大気のどの層にある？",
+    "choices": [
+      "対流圏",
+      "成層圏",
+      "中間圏",
+      "熱圏"
+    ],
+    "answer": 1,
+    "explanation": "正解は成層圏。大気中のオゾンの約9割がこの層にあり、紫外線を吸収する。",
+    "sources": [
+      {
+        "title": "NASA Ozone Watch — Ozone facts",
+        "url": "https://ozonewatch.gsfc.nasa.gov/facts/",
+        "evidence": "大気中のオゾンの90％が成層圏にあり、太陽からの紫外線を吸収する。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "NOAA — Where is the ozone layer?",
+        "url": "https://www.boulder.noaa.gov/wp-content/uploads/2023/01/Where-is-the-ozone-layer_.pdf",
+        "evidence": "オゾン層は成層圏の一部で、大気中のオゾンの90％があると記載している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz11",
+    "level": 2,
+    "topic": "地球",
+    "prompt": "地球表面を動くプレートは、主に何を合わせた硬い岩石の層？",
+    "choices": [
+      "地殻と液体の外核",
+      "マントル全体と内核",
+      "海水と海底の砂",
+      "地殻とマントル最上部"
+    ],
+    "answer": 3,
+    "explanation": "正解は地殻とマントル最上部。合わせてリソスフェアと呼ばれ、いくつものプレートに分かれている。",
+    "sources": [
+      {
+        "title": "USGS — The Interior of the Earth",
+        "url": "https://pubs.usgs.gov/gip/interior/",
+        "evidence": "プレートは地殻と上部マントルの一部を含むと説明している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "British Geological Survey — What causes earthquakes?",
+        "url": "https://www.bgs.ac.uk/discovering-geology/earth-hazards/earthquakes/what-causes-earthquakes/",
+        "evidence": "プレートを形成するリソスフェアは地殻とマントルの上部からなる。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz12",
+    "level": 2,
+    "topic": "地球",
+    "prompt": "地震のS波が地球の外核を直接通り抜けられないのは、外核がどんな状態だから？",
+    "choices": [
+      "液体だから",
+      "固体だから",
+      "真空だから"
+    ],
+    "answer": 0,
+    "explanation": "正解は液体。S波は液体を伝わらず、この性質が外核の状態を調べる手がかりになった。",
+    "sources": [
+      {
+        "title": "USGS — P-wave and S-wave paths through the earth",
+        "url": "https://www.usgs.gov/media/images/p-wave-and-s-wave-paths-through-earth",
+        "evidence": "P波は固体と液体を伝わるがS波は液体を伝わらず、外核が液体であることの根拠になった。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "British Geological Survey — How are earthquakes detected?",
+        "url": "https://www.bgs.ac.uk/discovering-geology/earth-hazards/earthquakes/how-are-earthquakes-detected/",
+        "evidence": "S波は流体を伝わらないため、液体の外核中には存在しないと説明している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz13",
+    "level": 2,
+    "topic": "生き物",
+    "prompt": "DNAの通常の塩基対で、グアニン（G）と組になる塩基は？",
+    "choices": [
+      "アデニン（A）",
+      "チミン（T）",
+      "シトシン（C）",
+      "ウラシル（U）"
+    ],
+    "answer": 2,
+    "explanation": "正解はシトシン。DNAの基本的な組み合わせはAとT、GとCで、2本の鎖をつないでいる。",
+    "sources": [
+      {
+        "title": "NHGRI — Base Pair",
+        "url": "https://www.genome.gov/genetics-glossary/Base-Pair",
+        "evidence": "DNAの塩基対はアデニンとチミン、シトシンとグアニンの組み合わせになる。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "Wellcome Connecting Science — What is DNA?",
+        "url": "https://www.yourgenome.org/theme/what-is-dna/",
+        "evidence": "DNAの相補的な塩基対はAとT、CとGであると説明している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz14",
+    "level": 2,
+    "topic": "生き物",
+    "prompt": "ヒトのミトコンドリアDNAは、通常どちらの親から受け継がれる？",
+    "choices": [
+      "父親",
+      "母親",
+      "父母から半分ずつ"
+    ],
+    "answer": 1,
+    "explanation": "正解は母親。核のDNAとは異なり、ミトコンドリアDNAは通常、母親から受け継がれる。",
+    "sources": [
+      {
+        "title": "NHGRI — Mitochondrial DNA",
+        "url": "https://www.genome.gov/genetics-glossary/Mitochondrial-DNA",
+        "evidence": "子はミトコンドリアと、その内部のDNAを母親から受け継ぐと説明している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "NHS Genomics Education — Mitochondrial inheritance",
+        "url": "https://www.genomicseducation.hee.nhs.uk/genotes/knowledge-hub/visual-communication-aid-mitochondrial-inheritance/",
+        "evidence": "ミトコンドリアの遺伝子は母親から子に受け継がれると説明している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz15",
+    "level": 2,
+    "topic": "化学",
+    "prompt": "同じ元素の「同位体（どういたい）」どうしでは、原子核の何の数が異なる？",
+    "choices": [
+      "中性子",
+      "陽子",
+      "陽子と電子の両方",
+      "陽子と中性子の両方"
+    ],
+    "answer": 0,
+    "explanation": "正解は中性子。陽子の数は同じなので同じ元素だが、中性子の数が違うため質量数が異なる。",
+    "sources": [
+      {
+        "title": "U.S. Department of Energy — DOE Explains Isotopes",
+        "url": "https://www.energy.gov/science/doe-explainsisotopes",
+        "evidence": "同位体は陽子数が同じで、中性子数が異なる同じ元素の仲間と定義している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "IUPAC Gold Book — isotopes",
+        "url": "https://goldbook.iupac.org/terms/view/I03331",
+        "evidence": "同位体は原子番号が同じで質量数が異なる核種と定義している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz16",
+    "level": 2,
+    "topic": "数学",
+    "prompt": "円周率πの小数について、正しい説明はどれ？",
+    "choices": [
+      "いつか桁が終わる",
+      "同じ数字の並びを周期的に繰り返す",
+      "正確に22÷7と等しい",
+      "終わらず、周期的にも繰り返さない"
+    ],
+    "answer": 3,
+    "explanation": "正解は「終わらず、周期的にも繰り返さない」。πは整数どうしの比では表せない無理数で、22÷7は近似値だ。",
+    "sources": [
+      {
+        "title": "Wolfram MathWorld — Pi",
+        "url": "https://mathworld.wolfram.com/Pi.html",
+        "evidence": "円周率πが無理数であることと、その証明の歴史を記載している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "OpenStax — Rational and Irrational Numbers",
+        "url": "https://openstax.org/books/prealgebra/pages/7-1-rational-and-irrational-numbers",
+        "evidence": "πの小数は終わらず反復せず、整数の比で表せない無理数と説明している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz17",
+    "level": 2,
+    "topic": "地学",
+    "prompt": "鉱物のモース硬度が比べているのは、主にどんな性質？",
+    "choices": [
+      "割れにくさ",
+      "ひっかき傷のつきにくさ",
+      "熱で溶けにくさ",
+      "水に溶けにくさ"
+    ],
+    "answer": 1,
+    "explanation": "正解はひっかき傷のつきにくさ。モース硬度が高いことと、衝撃で割れにくいことは同じではない。",
+    "sources": [
+      {
+        "title": "U.S. National Park Service — Mohs Hardness Scale",
+        "url": "https://www.nps.gov/articles/mohs-hardness-scale.htm",
+        "evidence": "モース硬度は、既知の硬さの物質で引っかいた際の相対的な傷への抵抗を測る。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "Gemological Institute of America — How to Protect Your Diamond from Chipping",
+        "url": "https://www.gia.edu/gia-news-research/how-protect-diamond-chipping",
+        "evidence": "モース尺度の引っかき硬さと、破断・欠けへの抵抗である靱性を区別している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz18",
+    "level": 3,
+    "topic": "宇宙",
+    "prompt": "金星が恒星を基準に1回自転する時間は、太陽を1周する時間と比べて？",
+    "choices": [
+      "自転のほうが短い",
+      "ほぼ同じ",
+      "自転のほうが長い"
+    ],
+    "answer": 2,
+    "explanation": "正解は自転のほうが長い。地球の日で数えると自転は約243日、公転は約225日で、日の出から次の日の出までの長さとは別だ。",
+    "sources": [
+      {
+        "title": "NASA — Venus Facts",
+        "url": "https://science.nasa.gov/venus/venus-facts/",
+        "evidence": "金星は太陽系で最も表面が高温の惑星。自転周期は約243地球日、公転周期は約225地球日。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ESA — Venusian geography",
+        "url": "https://www.esa.int/content/view/full/159717",
+        "evidence": "金星の高い表面温度を温室効果と関連づけ、自転約243日、公転約225日と説明している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz19",
+    "level": 3,
+    "topic": "宇宙",
+    "prompt": "土星の衛星タイタン。その厚い大気の主成分は、次のうちどれ？",
+    "choices": [
+      "二酸化炭素",
+      "水素",
+      "酸素",
+      "メタン",
+      "窒素（ちっそ）"
+    ],
+    "answer": 4,
+    "explanation": "正解は窒素。メタンも含むが、大気の主成分は地球と同じ窒素だ。",
+    "sources": [
+      {
+        "title": "NASA — Titan Facts",
+        "url": "https://science.nasa.gov/saturn/moons/titan/facts/",
+        "evidence": "タイタンの大気は主に窒素で、少量のメタンなどを含むと説明している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "ESA — Titan's atmosphere",
+        "url": "https://www.esa.int/Science_Exploration/Space_Science/Cassini-Huygens/Titan_s_atmosphere",
+        "evidence": "地球と同様、タイタンの大気の大部分は窒素であり、メタンなども含む。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz20",
+    "level": 3,
+    "topic": "宇宙",
+    "prompt": "月が地球を1周するのは約27.3日。新月から次の新月までが平均約29.5日なのは、なぜ？",
+    "choices": [
+      "地球も太陽の周りを進むから",
+      "月が途中で2日ほど止まるから",
+      "地球の自転が毎月遅くなるから",
+      "月が毎月逆向きに回るから"
+    ],
+    "answer": 0,
+    "explanation": "正解は地球も太陽の周りを進むから。太陽・地球・月の位置関係が元に戻るまで、月は約2日余分に進む必要がある。",
+    "sources": [
+      {
+        "title": "NASA — Top Moon Questions",
+        "url": "https://science.nasa.gov/moon/top-moon-questions/",
+        "evidence": "月の公転は27.3日だが、地球も公転するため同じ月相に戻るには29.5日かかる。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "国立天文台 暦計算室 — 暦Wiki 月の満ち欠け・周期",
+        "url": "https://eco.mtk.nao.ac.jp/koyomi/wiki/B7EEA4CECBFEA4C1B7E7A4B12FBCFEB4FC.html",
+        "evidence": "恒星月約27.3日と朔望月平均約29.5日の差は、地球の公転により月が余分に進む必要があるため。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz21",
+    "level": 3,
+    "topic": "物理",
+    "prompt": "2019年からのキログラムの定義で、数値を固定した中心となる定数は？",
+    "choices": [
+      "重力定数",
+      "プランク定数",
+      "気体定数",
+      "リュードベリ定数"
+    ],
+    "answer": 1,
+    "explanation": "正解はプランク定数。国際キログラム原器という物体を基準にした定義から、自然定数に基づく定義へ変わった。",
+    "sources": [
+      {
+        "title": "NIST — Kilogram: The Present",
+        "url": "https://www.nist.gov/si-redefinition/kilogram/kilogram-present",
+        "evidence": "2019年5月20日以前はキログラムを原器で定義していたことと、自然定数のプランク定数に基づく定義への変更を説明している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "BIPM — The International System of Units: Base units",
+        "url": "https://www.bipm.org/en/measurement-units/si-base-units",
+        "evidence": "2018年のSI改定で、キログラムの定義はプランク定数の固定値に基づくものへ変更された。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz22",
+    "level": 3,
+    "topic": "化学",
+    "prompt": "1モルの水分子に含まれる「水分子の数」に最も近いのは？",
+    "choices": [
+      "6.02×10の12乗個",
+      "6.02×10の18乗個",
+      "6.02×10の30乗個",
+      "6.02×10の23乗個"
+    ],
+    "answer": 3,
+    "explanation": "正解は約6.02×10の23乗個。1モルは、指定した粒子が正確に6.02214076×10の23乗個集まった量だ。",
+    "sources": [
+      {
+        "title": "NIST — Definitions of SI Base Units",
+        "url": "https://www.nist.gov/si-redefinition/definitions-si-base-units",
+        "evidence": "真空中の光速は299792458m/s。kgはプランク定数の固定値で定義し、1molの粒子数は正確に6.02214076×10^23。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "BIPM — The International System of Units: Defining constants",
+        "url": "https://www.bipm.org/en/measurement-units/si-defining-constants",
+        "evidence": "SIの定義定数一覧に光速299792458m/s、プランク定数、アボガドロ定数6.02214076×10^23mol^-1の固定値がある。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz23",
+    "level": 3,
+    "topic": "化学",
+    "prompt": "十分に薄い水溶液で濃度による近似を使うと、pH3の水素イオン濃度はpH5の何倍？",
+    "choices": [
+      "2倍",
+      "10倍",
+      "100倍",
+      "1,000倍"
+    ],
+    "answer": 2,
+    "explanation": "正解は100倍。pHが1小さくなるごとに水素イオン濃度は10倍になるので、2の差では10×10となる。",
+    "sources": [
+      {
+        "title": "USGS — pH and Water",
+        "url": "https://www.usgs.gov/water-science-school/science/ph-and-water",
+        "evidence": "pHは対数尺度で、1の差が水素イオンの量の10倍の違いを表すと説明している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "OpenStax — Chemistry: Atoms First 2e: pH and pOH",
+        "url": "https://openstax.org/books/chemistry-atoms-first-2e/pages/14-2-ph-and-poh",
+        "evidence": "pH=-log[H3O+]、[H3O+]=10^-pHの濃度による式を示している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz24",
+    "level": 3,
+    "topic": "生き物",
+    "prompt": "緑の植物が光合成で放出する酸素。その酸素原子は、直接には何を分解して得られる？",
+    "choices": [
+      "水",
+      "二酸化炭素",
+      "ブドウ糖",
+      "窒素"
+    ],
+    "answer": 0,
+    "explanation": "正解は水。光を使う反応で水が分解され、酸素が生じる。",
+    "sources": [
+      {
+        "title": "OpenStax — Biology 2e: The Light-Dependent Reactions of Photosynthesis",
+        "url": "https://openstax.org/books/biology-2e/pages/8-2-the-light-dependent-reactions-of-photosynthesis",
+        "evidence": "光化学系IIが水を分解し、水2分子から酸素1分子を生じると説明している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "McEvoy et al. / RSC — The mechanism of photosynthetic water splitting",
+        "url": "https://pubs.rsc.org/en/content/articlehtml/2005/pp/b506755c",
+        "evidence": "酸素発生型光合成では水を酸化し、酸素発生複合体による分解で酸素ガスなどを生じる。",
+        "checked": "2026-09-29"
+      }
+    ]
+  },
+  {
+    "id": "quiz25",
+    "level": 3,
+    "topic": "数学",
+    "prompt": "穴のない凸（とつ）多面体に、頂点が12個、辺が30本ある。面はいくつ？",
+    "choices": [
+      "18面",
+      "22面",
+      "24面",
+      "32面",
+      "20面"
+    ],
+    "answer": 4,
+    "explanation": "正解は20面。オイラーの多面体公式「頂点−辺＋面＝2」から、12−30＋面＝2となる。",
+    "sources": [
+      {
+        "title": "Wolfram MathWorld — Polyhedral Formula",
+        "url": "https://mathworld.wolfram.com/PolyhedralFormula.html",
+        "evidence": "単連結な多面体の頂点V、辺E、面FについてV+F-E=2という公式を示している。",
+        "checked": "2026-09-29"
+      },
+      {
+        "title": "UC Irvine / David Eppstein — Twenty-one Proofs of Euler's Formula",
+        "url": "https://ics.uci.edu/~eppstein/junkyard/euler/",
+        "evidence": "凸多面体についてV-E+F=2が成り立つと説明し複数の証明を掲載している。",
+        "checked": "2026-09-29"
+      }
+    ]
+  }
+]

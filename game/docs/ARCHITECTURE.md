@@ -821,3 +821,11 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 ## マックさん
 
 平和台 heiwadai_diner の act.variant=mac を StoreScene→ShopScene に渡す。MacKitchenRound の同一tickで具材とフライヤーを進める。受け皿の左右・ドラッグ、6〜8秒の揚げ時、10秒後からの冷め、誤順の積み直しを評価。Sound.noiseの短い音と文字を共用し、確認・非表示時は進めない。既存 burger の評判・レベル・中止時精算を引き継ぐ。従来のBurgerTaskは他店で保持。PokaDebug.mac/macState/macAdvanceとcheck-mac・2サイズスモークで検証。
+
+## 町の長い会話とクイズ
+
+`town-dialogue-data.js` の60会話／8相談を `TownDialogue` が文脈ごとに選ぶ。`UI.say` の任意actionは最終行だけ表示し、通常の読み送りを変えない。Talkは初回・贈り物・既存おねがいを優先し、無関係なTownFolk.reactを後付けしない。相談は保存されたノードと選択経路を進め、結末別の再会台詞を読む。
+
+`town-quiz-data.js` はdocsの2JSONから生成。`TownQuiz` は既存town_walker3の会話を出題パネルへつなぐ。activeに出題時点の問題スナップショット・選択肢順・抽選済み景品・開始日を保存し、回答時にactive消去とlast／コイン／袋／家具を同時保存する。Save.writeの失敗が例外を返さないため保存結果のtokenを読み戻し、失敗時は状態を復元する。日次枠は回答した時に消費。UIを閉じてもactiveは保留として残る。
+
+限定家具5品はQuizPrizesへ登録し、HomeDesignと同じ投影で描画。5品×2方向の有限キャッシュ。PokaDebug.conversation／quizState／quizStart／quizAnswer／quizCancelを検証の入口とする。既存Save.KEY／SCHEMAは維持し、conversationsとtownQuizを追加する。

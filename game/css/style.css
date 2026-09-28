@@ -769,3 +769,30 @@ html, body {
 .shop-prize-card .note{padding:5px;margin:6px 0 0}
 
 .venue-controls{position:absolute;bottom:max(8px,env(safe-area-inset-bottom));left:8px;right:8px;display:flex;flex-wrap:wrap;gap:6px;background:#fff8e8ee;border:2px solid #1f1d1b;border-radius:15px;padding:8px}.venue-controls span{width:100%;font-size:11px;text-align:center}.venue-controls .btn{flex:1;min-height:44px;padding:7px;font-size:12px}
+
+/* 町の人の長い相談・大人向けクイズ。画面内で読む長さを選べる。 */
+.dialog-action { order:-1; align-self:flex-end; min-height:44px; margin:0 0 8px; max-width:100%; background:#f5e4b8; }
+.town-story, .town-quiz { max-height:calc(100dvh - 36px - var(--safe-b)); }
+.town-story .panel-body, .town-quiz .panel-body { min-height:0; overflow-y:auto; }
+.town-story-person { float:left; width:76px; height:80px; margin:0 12px 8px 0; }
+.town-story-person svg { width:100%; height:100%; }
+.town-story-body p { min-height:82px; line-height:1.7; }
+.town-story-choices, .town-quiz-actions { display:flex; flex-direction:column; gap:10px; clear:both; }
+.town-story-choice, .town-story-pause, .town-quiz-choice, .town-quiz-actions .btn { min-height:48px; height:auto; white-space:normal; text-align:left; line-height:1.6; padding:10px 14px; overflow-wrap:anywhere; }
+.town-story-pause { margin-top:10px; background:#efebe3; font-size:13px; }
+.town-quiz { background:#fcfaf2; }
+.town-quiz .panel-title { color:#344d59; }
+.town-quiz-note, .town-quiz-meta { font-size:13px; color:#53636b; line-height:1.7; }
+.town-quiz-result { padding:14px; border-radius:14px; background:#e9f1e3; line-height:1.8; margin:10px 0; }
+.town-quiz-sources { font-size:12px; line-height:1.7; overflow-wrap:anywhere; }
+.town-quiz-sources a { color:#285d72; text-decoration:underline; }
+.town-quiz p { line-height:1.8; }
+@media(max-height:700px) { .town-story .panel-head,.town-quiz .panel-head { padding-top:8px; padding-bottom:8px; } .town-quiz-actions { gap:7px; } }
+
+.town-quiz-host { display:flex; gap:12px; align-items:center; padding:8px 0; border-bottom:1px solid #ddd7c7; }
+.town-quiz-face { width:60px; height:64px; flex:none; overflow:hidden; border-radius:16px; background:#e0ece4; }
+.town-quiz-face svg { width:100%; height:100%; }
+.town-quiz-prompt { font-weight:800; font-size:18px; color:#263f4b; }
+.town-quiz-prize { display:flex; gap:12px; align-items:center; padding:8px; border:1px solid #dac38b; border-radius:12px; background:#fff5d9; margin:8px 0; }
+.town-quiz-chat { border-left:3px solid #97b9a6; padding-left:12px; margin:14px 0; }
+.town-quiz-sources summary,.town-quiz-rules summary { min-height:44px; padding:10px 0; cursor:pointer; font-weight:700; }
