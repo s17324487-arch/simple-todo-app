@@ -8,8 +8,10 @@ const Fossils = {
   st() { return Save.d.fossil; },
   // ある 恐竜の 骨が いくつ そろったか（own: { "trex.skull": もって いる 数 }）
   progress(dino, own) { const n = dino.art.parts.filter((p) => own[dino.id + "." + p.id]).length; return { n, total: dino.art.parts.length, done: n === dino.art.parts.length }; },
-  // もって いる 部品の id（FossilArt.svg の have に わたす）
-  have(dino) { const own = this.st().bones; return dino.art.parts.filter((p) => own[dino.id + "." + p.id]).map((p) => p.id); },
+  // もって いる 骨 ＋ ⑤ はくぶつかんに 寄贈した 骨（寄贈しても ノートや あつまりぐあいは へらない）
+  owned() { const own = { ...this.st().bones }; for (const k of Object.keys((Save.d.museum || {}).bones || {})) own[k] = Math.max(own[k] || 0, 1); return own; },
+  // もって いる（寄贈した ものも）部品の id（FossilArt.svg の have に わたす）
+  have(dino) { const own = this.owned(); return dino.art.parts.filter((p) => own[dino.id + "." + p.id]).map((p) => p.id); },
   // 骨の id「<恐竜>.<部品>」→ { dino, part }
   bone(key) { const [id, pid] = String(key).split("."), d = this.dino(id), p = d && d.art.parts.find((x) => x.id === pid); return p ? { dino: d, part: p } : null; },
   give(key, n = 1) { const st = this.st(); st.bones[key] = (st.bones[key] || 0) + n; Save.mark(); },
@@ -18,9 +20,11 @@ const Fossils = {
   boneName(key) { const b = this.bone(key); return b ? `${b.dino.name}の ${b.part.name}` : key; },
   // 3番: ② の 物々交換（ケロスケ「だぶった 骨 → 同じ 恐竜の まだ ない 骨」）。2こ いじょう ある 骨と、
   // その 恐竜の まだ ない 骨を データの じゅんで 1つずつ（{ give, get }）。そろった 恐竜の だぶりは つかわない。なければ null
+  // ⑤ 寄贈した 骨は わたせない（own は 寄贈して いない ぶん）・もって いる ことに なる（まだ ない 骨に しない）
   dupTrade(own = this.st().bones) {
+    const all = { ...this.owned(), ...Object.fromEntries(Object.entries(own).filter(([, n]) => n > 0)) };
     for (const d of this.data().dinos) {
-      const dup = d.art.parts.find((p) => (own[d.id + "." + p.id] || 0) >= 2), miss = d.art.parts.find((p) => !own[d.id + "." + p.id]);
+      const dup = d.art.parts.find((p) => (own[d.id + "." + p.id] || 0) >= 2), miss = d.art.parts.find((p) => !all[d.id + "." + p.id]);
       if (dup && miss) return { give: d.id + "." + dup.id, get: d.id + "." + miss.id };
     }
     return null;
@@ -223,7 +227,7 @@ const Fossils = {
       return null;
     }
     const R = this.rng(`${mapId}:${U.today()}:${rock ? rock.join(",") : "test"}`);
-    const got = key ? { ...this.bone(key), key } : this.pick(D, site || this.siteOf(mapId) || "cave", this.st().bones, R);
+    const got = key ? { ...this.bone(key), key } : this.pick(D, site || this.siteOf(mapId) || "cave", this.owned(), R);
     const stars = await this.digModal(got, R);
     if (!stars) return null;
     if (rock && mapId) {
@@ -236,7 +240,7 @@ const Fossils = {
       Save.mark(); Save.write();
       await UI.say([{ text: x.text }]);
     } else {
-      const first = !this.st().bones[got.key];
+      const first = !this.owned()[got.key];
       this.give(got.key); Save.write();
       await this.card(got, first);
     }
@@ -294,7 +298,7 @@ const Fossils = {
   // みつけた カード（見本 ④）: 骨の 絵・なまえ・じだいと ばしょ・あつまりぐあい・骨格の 小さい 絵（ない 骨は 点線）
   card(got, first) {
     return new Promise((done) => {
-      const d = got.dino, pr = this.progress(d, this.st().bones), body = U.el("div", { class: "bone-card" });
+      const d = got.dino, pr = this.progress(d, this.owned()), body = U.el("div", { class: "bone-card" });
       body.innerHTML = `<div class="art">${first ? '<span class="badge">はじめて！</span>' : ""}${FossilArt.partSvg(d, got.part.id)}</div><div class="nm"></div><div class="dn"></div>`
         + `<div class="prog"><span class="dnm"></span><div class="bar"><i style="width:${Math.round((pr.n / pr.total) * 100)}%"></i></div><span>${pr.n}/${pr.total}</span></div>`
         + FossilArt.svg(d, { have: this.have(d) }).replace("<svg ", '<svg class="mini" ') + `<div class="muted"></div>`;

@@ -68,6 +68,7 @@ class WorldScene {
     }
     // ④ きょうの「ひびの ある いわ」（どうくつ・もり・ビーチ。とおれない。3人が 立って いる マスには 出さない）
     this.rocks = typeof Fossils !== "undefined" ? Fossils.rocksOn(this.mapId).filter(([rx, ry]) => !this.party.some((w) => w.tx === rx && w.ty === ry)) : [];
+    this.exBits = {}; // ⑤ 展示の 寄贈の ようす（Museum.shown）
     this.npcs = (this.map.def.npcs || []).map((n) => ({ ...n, w: new Walker(n.x, n.y, n.dir), timer: U.rand(1, 3) }));
     this.enemies = [];
     this.spawnEnemies();
@@ -143,6 +144,7 @@ class WorldScene {
     for (const n of this.npcs) jobs.push(this.npcCanvas(n, n.w.dir, "idle_01", true));
     for (const e of this.enemies) jobs.push(this.enemyCanvas(e, true));
     if (this.rocks.length) jobs.push(SvgCache.ensure("fossil:rock", () => Fossils.rockSvg(), Math.ceil(TS * G.px), Math.ceil(TS * G.px)));
+    if (this.map.def.indoor && typeof Museum !== "undefined") jobs.push(...Museum.preload(this)); // ⑤ 寄贈した 魚
     jobs.push(this.objCanvas("chest", { open: false }, true), this.objCanvas("chest", { open: true }, true));
     await Promise.all(jobs);
   }
@@ -163,7 +165,7 @@ class WorldScene {
     if (s.kind === "building") return this.objCanvas("building", s.spec, ensure);
     if (s.kind === "gate") return this.objCanvas("gate", null, ensure);
     if (s.kind === "spring") return this.objCanvas("well", null, ensure);
-    if (s.kind === "exhibit") return this.objCanvas("exhibit", { id: s.o.id, bits: Museum.bits(s.o) }, ensure); // ⑤ 寄贈の ようすで 絵が かわる
+    if (s.kind === "exhibit") return this.objCanvas("exhibit", { id: s.o.id, bits: Museum.shown(this, s.o) }, ensure); // ⑤ 寄贈の ようすで 絵が かわる
     return this.objCanvas(s.kind, null, ensure);
   }
   npcCanvas(n, dir, pose, ensure) {
@@ -759,6 +761,7 @@ class WorldScene {
     let x = left + (tw * TS - a.w) / 2 - 2, y = bottom - a.h - 2;
     if (s.kind === "tree" || s.kind === "pine" || s.kind === "appletree") y += 2;
     ctx.drawImage(c, ox + x, oy + y, w, h);
+    if (s.kind === "exhibit" && a.slots) Museum.drawFish(ctx, a, ox + x + 2, oy + y + 2); // ⑤ 水そうで およぐ 魚
     WorldScenery.draw(ctx, s, ox, oy, bounds);
     if(s.kind === "building" && s.spec.terminal && !s.spec.style) {
       ctx.save();ctx.font="800 10px 'M PLUS Rounded 1c',sans-serif";ctx.textAlign="center";ctx.fillStyle=INK;

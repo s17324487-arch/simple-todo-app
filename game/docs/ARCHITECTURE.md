@@ -475,6 +475,7 @@ class NewTask extends TaskBase {
 | `rod(n)` / `fishing(place, fishId)` / `fishState()` / `fishInput(kind)` / `fishSkip()` / `fishShore(map)` | ③ さおを もたせる／釣りの 画面を はじめる（その 魚が かかる）／いまの ようす／なげる・まく・はなす／まつ を とばす／歩いて 行ける 水べと 向き |
 | `fossilGive(key, n)` | ④ 骨を もたせる（`"trex.skull"` など）。もって いる 数を かえす |
 | `pick(n)` / `fossilRocks(map)` / `fossilSpot(map)` | ④ ピッケルを もたせる（0／1）／きょうの いわ `[[x, y], ...]`（ほった ものは のぞく）／いわの となりの 立てる マス `{ x, y, dir, rock }` |
+| `museumGive(kind, key)` / `museumDonate()` / `museumPick(key)` / `museumConfirm()` | ⑤ 寄贈した ことに する（"all" で ぜんぶ）／館の 人に 話しかけて 寄贈の 画面へ／えらぶ／きふする（ありがとうの 会話は またない） |
 | `museumGo(id, room)` / `museumState()` | ⑤ 館（aquarium / museum）の 入口か へやの まんなかの 手前へ／`{ fish, bones, done, rooms, intro }` |
 | `fossilDig(site, key)` / `digTap(x, y)` / `digState()` / `fossilState()` | ④ ほる 画面を ひらく（key の 骨が 出る。いわとは むすばない）／マスを たたく（x 0〜6・y 0〜4）／`{ hp, area, taps, done, cols, rows }`／`{ pick, bones, dug }` の うつし |
 
@@ -728,6 +729,9 @@ TownFolk.have().bone は Save.d.fossil.bones。データの give.bone:"dup"／ge
 
 ### 水族館と 博物館: 町の 建物と 館の 中（FEAT-12）
 `museum-data.js`（MUSEUM_DATA・自動生成）・`museum-art.js`（MuseumArt。見本 MuseumArtRef と同じ）・`museum.js`（Museum）を scene-world.js の前に読む。museum.js が GROUND／SOLID_CH（かべ X）・MAP_DEFS.aquarium／museum（indoor）・TALKS（館の人）・SONGS（music-arrangements に aquarium／museum の profile と D の和音）・WorldArt.exhibit を足す。町は town-renewal.js の harbor_aquarium／city_museum（act: indoor）と town-renewal-art.js の facades。WorldScene: enterDoor の indoor → Museum.enter、drawGround の最初に Museum.floor、render は walk の展示を床の上に先に・かべ（Museum.wall）と展示を y順に、spriteCanvas の exhibit は objCanvas("exhibit", { id, bits })。館の中は天気・季節の葉・夜の色なし。へやの案内は Museum.arrived（onArrive）→ .museum-intro、Save.d.museum.rooms。
+
+### 水族館と 博物館: 寄贈（FEAT-13）
+Talk.run の最初で role: "donate" の人は Museum.talk（first／all／none／ask → Museum.donate の UI.modal。.dn-grid／.dn-list）。giveFish／giveBone は fish.keep／fossil.bones を減らして Save.d.museum に日づけ、骨がそろうと done と doneCard（.dn-done）。WorldScene.exBits と Museum.shown・refresh で寄贈の後に新しい絵を読んでから切りかえる。水そうは Museum.art の swim（魚なしの絵＋slots・water、id と bits でおぼえる）と drawStatic の後の Museum.drawFish。Fossils.owned（持っている＋寄贈した骨）をノート・カード・ほる・物々交換に使う。
 
 ### おうちの会話データ（FEAT-02）
 `home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。

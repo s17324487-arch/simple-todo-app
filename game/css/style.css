@@ -518,3 +518,42 @@ html, body {
 .museum-intro { position: absolute; left: 50%; top: calc(112px + var(--safe-t, 0px)); transform: translateX(-50%); max-width: 90%; width: max-content; background: #FFFDF6; border: 3px solid var(--ink); border-radius: 14px; padding: 6px 14px; font-weight: 800; font-size: 14px; line-height: 1.45; text-align: center; word-break: keep-all; box-shadow: 0 3px 0 var(--ink); pointer-events: none; z-index: 6; animation: museum-intro-in 0.25s ease-out; }
 .museum-intro .nm { font-size: 15px; font-weight: 900; }
 @keyframes museum-intro-in { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+/* ⑤ 2番: 寄贈の 画面・骨を えらぶ・かんせい（見本 tools/feature-design/museum-ui.css の dn-*） */
+.dn-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 0 2px 8px; }
+.dn-head .cnt { font-weight: 900; font-size: 16px; }
+.dn-foot { display: flex; gap: 8px; flex: 1; }
+.dn-foot .btn { min-height: 48px; }
+/* 魚を えらぶ（いけすの 中身） */
+.dn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.dn-cell { position: relative; font: inherit; color: var(--ink); background: #EAF6FB; border: 2.5px solid var(--ink); border-radius: 14px; padding: 6px 3px 5px; text-align: center; box-shadow: 0 3px 0 var(--ink); min-height: 92px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.dn-cell:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.dn-cell svg { width: 100%; height: 44px; }
+.dn-cell .nm { font-size: 10.5px; font-weight: 800; line-height: 1.2; letter-spacing: -0.2px; white-space: nowrap; }
+.dn-cell .n { position: absolute; right: 6px; top: 3px; font-size: 11px; font-weight: 800; }
+.dn-cell .tag { font-size: 10px; font-weight: 900; border: 2px solid var(--ink); border-radius: 8px; padding: 0 5px; background: #E4E0D8; }
+.dn-cell .tag.new { background: var(--pink); }
+.dn-cell.done { background: #F1EEE6; }
+.dn-cell.sel { background: var(--yellow-l); outline: 3px solid var(--orange); outline-offset: -7px; }
+/* 骨を えらぶ（恐竜ごとの あつまりぐあい） */
+.dn-list { display: flex; flex-direction: column; gap: 8px; }
+.dn-row { font: inherit; color: var(--ink); display: flex; align-items: center; gap: 8px; min-height: 64px; padding: 6px 10px 6px 6px; background: #FFF9EC; border: 2.5px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink); text-align: left; }
+.dn-row:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.dn-row.sel { background: var(--yellow-l); outline: 3px solid var(--orange); outline-offset: -7px; }
+.dn-row .ic { flex: 0 0 64px; height: 50px; display: grid; place-items: center; background: radial-gradient(circle at 50% 55%, #FFF6DE, #E9D6AE); border: 2px solid var(--ink); border-radius: 10px; }
+.dn-row .ic svg { width: 90%; height: 90%; }
+.dn-row .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.dn-row .tx b { font-size: 13px; font-weight: 900; line-height: 1.25; }
+.dn-row .pr { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: #8a7d6a; }
+.dn-row .pr .bar { flex: 1; height: 10px; border: 2px solid var(--ink); border-radius: 6px; background: #FFF; overflow: hidden; }
+.dn-row .pr .bar i { display: block; height: 100%; background: #C9A06A; }
+.dn-row .n { font-size: 13px; font-weight: 900; }
+/* 骨格が そろった とき */
+.dn-done { text-align: center; }
+.dn-done .art { margin: 2px auto 8px; width: 100%; max-width: 320px; aspect-ratio: 16 / 10; display: grid; place-items: center; background: radial-gradient(circle at 50% 60%, #FFF6DE, #E2CFA6); border: 3px solid var(--ink); border-radius: 18px; }
+.dn-done .art svg { width: 92%; height: 88%; }
+.dn-done .nm { font-size: 18px; font-weight: 900; line-height: 1.35; }
+.dn-done .dn { font-size: 13px; font-weight: 800; color: #8a7d6a; margin: 2px 0 8px; }
+.dn-done .fact { background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 12px; padding: 6px 10px; font-size: 13px; font-weight: 700; text-align: left; white-space: pre-line; line-height: 1.5; }
+.dn-done .fact b { display: block; font-size: 12px; color: #9a6a00; }
+/* 恐竜の 名前や ばしょは ながいので、ことばの きれめで おりかえす（「〇〇の がいこつが／かんせい！」） */
+.dn-done .nm, .dn-done .dn, .dn-row .tx b { word-break: keep-all; overflow-wrap: anywhere; }

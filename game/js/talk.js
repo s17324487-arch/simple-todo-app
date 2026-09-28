@@ -89,6 +89,7 @@ const Talk = {
     return t && t.first && !Save.d.flags.talked[n.id];
   },
   async run(n, scene) {
+    if (n.role === "donate" && typeof Museum !== "undefined" && Museum.data()) return Museum.talk(n, scene); // ⑤ 館の 人（寄贈）
     const t = TALKS[n.talk];
     if (!t) return;
     Sound.se("tap");

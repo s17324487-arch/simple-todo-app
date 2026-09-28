@@ -889,6 +889,23 @@ if (ok(!!MU, "MUSEUM_DATA が ない（js/museum-data.js）")) {
     Save.d.museum.fish.ayu="2026-9-28";Save.d.museum.bones["trex.skull"]="2026-9-28";const flow=os.find(o=>o.id==="aq_flow"),rex=os.find(o=>o.dino==="trex");
     const one=Museum.bits(flow)==="1000000"&&Museum.bits(rex).startsWith("1")&&Museum.bits(rex).slice(1).indexOf("1")<0;Save.d=old;return {zero,one};})()`, ctx);
   ok(bits.zero && bits.one, "展示の 寄贈の ようす（bits）が 不正 " + JSON.stringify(bits));
+  // 2番: 寄贈（1しゅ・1部品 1かい。いけす／骨が へる・骨格が そろうと done）・寄贈しても ノートの あつまりぐあいは へらない・寄贈した 骨は 物々交換で わたさない
+  const give = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();Save.d.fish.keep={ayu:2,magoi:1};Save.d.fossil.bones={"compso.head":1,"compso.body":1,"trex.skull":2};
+    const aq0=Museum.donatable("aquarium").join();Museum.giveFish("ayu");const aq1=Museum.donatable("aquarium").join(),keep=Save.d.fish.keep.ayu;
+    const mu0=Museum.donatable("museum").length,a=Museum.giveBone("compso.head"),b=Museum.giveBone("compso.body"),c=Fossils.dino("compso");
+    const done=!a.done&&b.done&&b.done.id==="compso"&&!!Save.d.museum.done.compso&&Museum.doneCount()===1,note=Fossils.have(c).length===2&&Save.d.fossil.bones["compso.head"]===0;
+    Museum.giveBone("trex.skull");const t=Fossils.dupTrade();Save.d.museum.bones["trex.neck"]="2026-9-28";const t2=Fossils.dupTrade();
+    const all=!Museum.complete("aquarium");for(const f of FISHING_DATA.fish)Save.d.museum.fish[f.id]="x";const full=Museum.complete("aquarium");
+    Save.d=old;return {aq0,aq1,keep,mu0,done,note,t:t&&t.give+">"+t.get,t2:t2&&t2.give+">"+t2.get,all,full};})()`, ctx);
+  ok(give.aq0 === "magoi,ayu" && give.aq1 === "magoi" && give.keep === 1 && give.mu0 === 3 && give.done && give.note, "寄贈の ながれが 不正 " + JSON.stringify(give));
+  ok(give.t === null && give.t2 === null && give.all && give.full, "寄贈と 物々交換・ぜんぶ そろった が 不正 " + JSON.stringify(give));
+  // 2番: 水そうで およぐ 魚（寄贈した 魚だけ・大きさは「ぜんぶ いる とき」まで・だいたい 水の 四角の 中。はみ出た ぶんは clip）
+  const swim = vm.runInContext(`(()=>{const out=[];for(const o of MUSEUM_DATA.buildings.aquarium.objects.filter(o=>o.fish&&o.kind!=="pedestal")){
+      const none=Museum.art({id:o.id,bits:"0".repeat(o.fish.length)}),one=Museum.art({id:o.id,bits:"1"+"0".repeat(o.fish.length-1)}),all=Museum.art({id:o.id,bits:"1".repeat(o.fish.length)});
+      const [wx,wy,ww,wh]=all.water||[0,0,0,0],inside=all.slots.every(s=>s.x>=wx-s.w/2&&s.x+s.w<=wx+ww+s.w/2&&s.y>=wy-s.h/2&&s.y+s.h<=wy+wh+s.h/2);
+      out.push({id:o.id,ok:none.slots.length===0&&one.slots.length===1&&one.slots[0].id===o.fish[0]&&all.slots.length===o.fish.length&&one.slots[0].w<=Math.max(...all.slots.map(s=>s.w))+0.01&&inside&&!/<image|mfish/.test(all.svg)});}
+    return out;})()`, ctx);
+  for (const r of swim) ok(r.ok, `水そう ${r.id}: およぐ 魚の 場所が 不正`);
 }
 
 finish();
