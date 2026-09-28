@@ -89,17 +89,30 @@ class ShopScene {
     this.owner = SHOP_OWNERS[this.shopId];
     this.layout();
     await this.preload();
-    this.homeBtn = UI.btn("おうちへ", () => {
-      if (UI.busy || Game.trans || this.closed) return;
-      this.closed = true;
-      UI.toast("おてつだいを やめて かえるよ。コインは さいごまで あそぶと もらえるよ");
-      Game.goto("house");
-    }, "home-shortcut small");
+    this.homeBtn = UI.btn("やめる", () => this.requestStop(), "home-shortcut small");
+    this.homeBtn.setAttribute("aria-label", "おてつだいを やめる");
     document.getElementById("ui").append(this.homeBtn);
     Sound.bgm("shop_" + this.shopId);
     this.flow().catch((e) => { console.error(e); Game.goto("world", this.back); });
   }
-  exit() { this.closed = true; this.homeBtn?.remove(); }
+  exit() {
+    this.closed = true; this.homeBtn?.remove();
+    this.finish?.(null);
+    if (this.tw) { const w = this.tw; this.tw = null; w.res(); }
+  }
+  async requestStop() {
+    if (UI.busy || Game.trans || this.closed || this.stopAsked || this.phase !== "work") return;
+    this.stopAsked = true;
+    this.task?.up?.(null, true);
+    const total = this.earn + this.tips;
+    const yes = await UI.confirm(
+      'おてつだいを ここで やめる？\nおわった ' + this.ranks.length + 'にんぶんの ' + total + 'コインを もらえるよ。\nいまの ちゅうもんは コインと ひょうばんに ならないよ。',
+      'ここで やめる', 'つづける');
+    this.stopAsked = false;
+    if (!yes || this.closed) return;
+    this.stopping = true;
+    this.finish?.(null);
+  }
   layout() {
     const W = G.W, H = G.H;
     this.viewH = Math.round(Math.min(H * 0.4, 330));
@@ -142,6 +155,7 @@ class ShopScene {
       this.phase = "enter";
       Sound.se("door");
       await this.tween(0.9, (k) => (this.cust.x = U.lerp(-60, this.custX, U.ease.outCubic(k))));
+      if (this.closed) return;
       this.task = new MG_TASKS[this.shopId](this, this.lv);
       this.task.layout(this.R);
       this.timeLimit = this.task.timeLimit * GameEconomy.mode(this.difficulty).time;
@@ -150,11 +164,14 @@ class ShopScene {
       Sound.se("pop");
       this.phase = "work";
       const score = await new Promise((res) => (this.finish = (sc) => { if (this.phase === "work") { this.phase = "judge"; res(sc); } }));
+      if (this.closed) return;
+      if (this.stopping) { await this.results(true); return; }
       await this.judge(Math.round(U.clamp(score, 0, 100)));
       if (this.closed) return;
       this.phase = "leave";
       await this.tween(0.8, (k) => (this.cust.x = U.lerp(this.custX, G.W + 70, k)));
       this.task = null;
+      if (this.closed) return;
     }
     if (!this.closed) await this.results();
   }
@@ -193,19 +210,22 @@ class ShopScene {
     await U.wait(1700);
     this.stamp = null;
   }
-  async results() {
+  async results(interrupted = false) {
+    if (this.paid) return;
+    this.paid = true; this.homeBtn?.remove();
     this.phase = "result";
     const total = this.earn + this.tips;
     Save.addCoins(total);
     const st = this.st;
-    st.plays++;
+    if (!interrupted) st.plays++;
     st.rep += this.rep;
     const perfect = this.ranks.filter((r) => r === 3).length;
     st.best = Math.max(st.best, total);
-    Save.d.stats.shifts++;
+    if (!interrupted) Save.d.stats.shifts++;
     Save.d.stats.perfects += perfect;
-    const good = this.ranks.filter((r) => r >= 2).length / this.ranks.length;
-    Save.careAll({ hunger: -6, mood: good >= 0.6 ? 4 : -2, bond: 1 });
+    const good = this.ranks.filter((r) => r >= 2).length / Math.max(1, this.ranks.length);
+    const fraction = interrupted ? this.ranks.length / this.total : 1;
+    if (fraction) Save.careAll({ hunger: -6 * fraction, mood: (good >= 0.6 ? 4 : -2) * fraction, bond: interrupted ? 0 : 1 });
     let lvUp = false;
     while (st.lv < 5 && st.rep >= SHOP_LV_REP[st.lv + 1]) { st.lv++; lvUp = true; }
     Save.mark();
@@ -213,7 +233,7 @@ class ShopScene {
     Sound.jingle("victory");
     const body = U.el("div");
     const cnt = [3, 2, 1, 0].map((r) => this.ranks.filter((x) => x === r).length);
-    body.append(U.el("div", { class: "result-big", text: `${this.S.name} おてつだい おわり！` }));
+    body.append(U.el("div", { class: "result-big", text: interrupted ? "ここまで おつかれさま！" : `${this.S.name} おてつだい おわり！` }));
     const rows = U.el("div", { class: "result-rows" });
     const next = st.lv < 5 ? SHOP_LV_REP[st.lv + 1] : null;
     rows.innerHTML = `<div class="r"><span>◎ ${cnt[0]}　○ ${cnt[1]}　△ ${cnt[2]}　× ${cnt[3]}</span></div>
@@ -222,9 +242,11 @@ class ShopScene {
       <div class="r"><span>もらった コイン</span><span><b>+${total}</b></span></div>
       <div class="r"><span>ひょうばん</span><span>+${this.rep}（${st.rep}${next ? " / " + next : ""}）</span></div>`;
     body.append(rows);
+    if (interrupted) body.append(U.el("div", { class: "note", text: `おわった ${this.ranks.length}にんぶんを うけとったよ。いまの ちゅうもんは ふくまれないよ。` }));
     body.append(U.el("div", { class: "muted", text: `あそびかた: ${GameEconomy.mode(this.difficulty).name}` }));
     if (lvUp) body.append(U.el("div", { class: "note", html: `<b>おみせが レベル${st.lv}に なった！</b><br>おきゃくさんが ふえて、ちゅうもんが むずかしく なるよ。そのぶん コインも たくさん もらえる！` }));
-    body.append(U.el("div", { class: "muted", style: "margin-top:8px", text: "はたらいたので おなかが すこし へった。" }));
+    if (fraction) body.append(U.el("div", { class: "muted", style: "margin-top:8px", text: "はたらいたので おなかが すこし へった。" }));
+    Save.write();
     await new Promise((res) => {
       const m = UI.modal({ title: "きょうの けっか", body, closable: false, footer: UI.btn(this.returnStore ? "てんないに もどる" : "まちに もどる", () => { Sound.se("ok"); m.close(); res(); }, "yellow wide") });
     });
@@ -243,6 +265,8 @@ class ShopScene {
 
   tween(dur, fn) { return new Promise((res) => (this.tw = { t: 0, dur, fn, res })); }
   update(dt) {
+    if (this.homeBtn) this.homeBtn.disabled = this.phase !== "work" || this.stopAsked;
+    if (this.closed || this.stopAsked) return;
     if (this.tw) { const w = this.tw; w.t += dt; w.fn(Math.min(1, w.t / w.dur)); if (w.t >= w.dur) { this.tw = null; w.res(); } }
     if (this.phase === "work") {
       this.timeLeft -= dt;

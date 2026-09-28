@@ -442,7 +442,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
     await H.dbg('store','crepe','town');await H.idle();await H.wait(3300);await H.shot('store-lv'+lv);
     await H.dbg('shop','crepe',lv);await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==='work');
     expect((await H.dbg('mg')).decorTier===lv,'おてつだいの飾りがレベルに対応しない');await H.shot('work-lv'+lv);
-    await H.page.getByRole('button',{name:'おうちへ',exact:true}).click();await H.idle();
+    await H.page.getByRole('button',{name:'おてつだいを やめる',exact:true}).click();await H.page.getByRole('button',{name:'ここで やめる',exact:true}).click();await H.page.getByRole('button',{name:'まちに もどる',exact:true}).click();await H.idle();
   }
   const hd=(await H.dbg('townLayout','heiwadai')).doors.find(d=>d.act.shop==='crepe');await H.dbg('teleport','heiwadai',hd.x,hd.y+1);await H.idle(30000);await H.wait(300);await H.shot('heiwadai-lv5');
   const keys=(await H.dbg('shopDecor','crepe')).keys;expect(keys.some(k=>k.startsWith('shop-decor:5:')),'平和台の原画に飾りを重ねられない');
@@ -610,8 +610,10 @@ await scenario("新エリア・全体マップ・帰宅", async (H) => {
   const coins=(await H.dbg("state")).coins;
   await H.dbg("shop","crepe",1); await H.until(()=>PokaDebug.state().scene==="shop"&&!PokaDebug.state().transitioning); await H.dialogs();
   await H.until(() => PokaDebug.mg()?.phase === "work");
-  await H.page.getByRole("button", { name:"おうちへ",exact:true }).click();
-  await H.until(() => PokaDebug.state().scene === "house" && PokaDebug.idle());
+  await H.page.getByRole("button", { name:"おてつだいを やめる",exact:true }).click();
+  await H.page.getByRole("button", { name:"ここで やめる",exact:true }).click();
+  await H.page.getByRole("button", { name:"まちに もどる",exact:true }).click();
+  await H.until(() => PokaDebug.state().scene === "world" && PokaDebug.idle());
   await H.wait(2000); expect((await H.dbg("state")).coins===coins,"途中退出で報酬が発生");
 }, {full:true});
 
@@ -2172,6 +2174,29 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg('homeLayout',[]);await H.dbg('homeBubbleFixture');expect(!(await H.dbg('homeAction','wanko','read')),'家具がないのに読書する');
   await H.dbg('pause',false);
 },{viewport,timeout:180000});
+for (const viewport of [{width:390,height:844},{width:375,height:667}]) await scenario('おてつだいの途中終了（'+viewport.width+'）', async H=>{
+  await H.newGameFast();await H.dbg('coins',12345);
+  const start=async()=>{await H.dbg('store','crepe');await H.idle();await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==='work');};
+  const quit=()=>H.page.getByRole('button',{name:'おてつだいを やめる',exact:true}).click();
+  const before=await H.dbg('saveData');await start();await H.shot('work');
+  await quit();const clock=(await H.dbg('mg')).timeLeft;await H.wait(1000);
+  expect((await H.dbg('mg')).timeLeft===clock,'終了確認中に時間が減る');await H.shot('confirm');
+  await H.page.getByRole('button',{name:'つづける',exact:true}).click();await H.wait(250);
+  expect((await H.dbg('mg')).timeLeft<clock,'続けるで時計が再開しない');
+  await quit();await H.page.getByRole('button',{name:'ここで やめる',exact:true}).click();await H.until(()=>PokaDebug.mg()?.phase==='result');
+  let saved=await H.dbg('persistedSave');expect(saved.coins===before.coins,'未完了の注文で報酬が出る');
+  expect(JSON.stringify(saved.shops)===JSON.stringify(before.shops),'未完了の注文で店の進行が変わる');
+  await H.page.getByRole('button',{name:'てんないに もどる',exact:true}).click();await H.idle();
+  expect((await H.dbg('storeState')).shop==='crepe','元の店内へ戻らない');
+  await start();const order=await H.dbg('mg');for(const label of order.order.want)await H.tapLabel(label);await H.tapLabel('できあがり！');
+  await H.until(()=>PokaDebug.mg()?.n===1&&PokaDebug.mg()?.phase==='work');
+  const round=await H.dbg('mg');await quit();await H.page.getByRole('button',{name:'ここで やめる',exact:true}).click();await H.until(()=>PokaDebug.mg()?.phase==='result');await H.shot('result');
+  saved=await H.dbg('persistedSave');expect(saved.coins===before.coins+round.earn+round.tips,'完了した注文だけの精算でない');
+  expect(saved.shops.crepe.rep>before.shops.crepe.rep&&saved.shops.crepe.plays===before.shops.crepe.plays,'ひょうばん/完走数の精算が違う');
+  for(const key of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(saved[key])===JSON.stringify(before[key]),'持ち物が変化: '+key);
+  await H.wait(2000);expect((await H.dbg('persistedSave')).coins===saved.coins,'途中終了で二重払い');
+  await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();expect((await H.dbg('saveData')).coins===saved.coins,'再読み込みで報酬が消える');
+},{viewport,timeout:90000});
 
 server.close();
 if(LIST)process.exit(0);
