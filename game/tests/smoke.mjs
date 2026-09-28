@@ -15,6 +15,9 @@ import { serve } from "../tools/serve.mjs";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
 const FULL = argv.includes("--full");
+// CIは1倍。負荷の高いPCでは待機上限だけを延ばせる（検証項目は同じ）。
+const WAIT_SCALE=Number((argv.find(a=>a.startsWith("--timeout-scale="))||"--timeout-scale=1").split("=")[1]);
+if(!Number.isFinite(WAIT_SCALE)||WAIT_SCALE<1||WAIT_SCALE>5)throw new Error("timeout-scale must be 1..5");
 const SHOTS = argv.includes("--shots") || FULL;
 const HEADED = argv.includes("--headed");
 const ONLY = (argv.find((a) => a.startsWith("--only=")) || "").slice(7);
@@ -58,7 +61,7 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   await context.route(/^https:\/\/fonts\.(?:googleapis|gstatic)\.com\//, route => route.abort());
   const page = await context.newPage();
   // SVGの初期描画や負荷のある実行環境でも、操作の待機を早く打ち切らない。
-  page.setDefaultTimeout(15000);
+  page.setDefaultTimeout(15000*WAIT_SCALE);
   const problems = [];
   page.on('crash',()=>problems.push('ブラウザの描画プロセスがクラッシュしました'));
   page.on("pageerror", (e) => problems.push("pageerror: " + e.stack));
@@ -70,7 +73,7 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   const t0 = Date.now();
   let timer;
   try {
-    await Promise.race([fn(H), new Promise((_, ng) => (timer = setTimeout(() => ng(new Error(`時間切れ（${timeout / 1000}秒）`)), timeout)))]);
+    await Promise.race([fn(H), new Promise((_, ng) => (timer = setTimeout(() => ng(new Error(`時間切れ（${timeout / 1000}秒）`)), timeout*WAIT_SCALE)))]);
     expect(!problems.length, "ブラウザでエラー: " + [...new Set(problems)].join(" | "));
     results.push({ name, ok: true, ms: Date.now() - t0 });
     console.log(`  ✓ ${name}（${((Date.now() - t0) / 1000).toFixed(1)}秒）`);
@@ -92,7 +95,7 @@ function helpers(page, name) {
     page,
     wait: (ms) => page.waitForTimeout(ms),
     eval: (fn, arg) => page.evaluate(fn, arg),
-    until: (fn, ms = 10000, arg) => page.waitForFunction(fn, arg, { timeout: ms, polling: 100 }),
+    until: (fn, ms = 10000, arg) => page.waitForFunction(fn, arg, { timeout: ms*WAIT_SCALE, polling: 100 }),
     dbg: (method, ...args) => page.evaluate(([m, a]) => window.PokaDebug[m](...a), [method, args]),
     async shot(label) {
       if (!SHOTS) return;
