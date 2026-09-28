@@ -77,6 +77,7 @@ const CUST_BODY = ["tshirt_blue", "stripe", "dress", "sweater", "overalls", null
 class ShopScene {
   async enter(p) {
     this.shopId = p.shop; this.back = p.back;
+    this.returnStore = !!p.returnStore;
     this.S = SHOPS[p.shop]; this.st = Save.d.shops[p.shop];
     this.lv = this.st.lv;
     this.total = this.S.rounds || 3 + Math.min(4, this.lv);
@@ -223,10 +224,12 @@ class ShopScene {
     if (lvUp) body.append(U.el("div", { class: "note", html: `<b>おみせが レベル${st.lv}に なった！</b><br>おきゃくさんが ふえて、ちゅうもんが むずかしく なるよ。そのぶん コインも たくさん もらえる！` }));
     body.append(U.el("div", { class: "muted", style: "margin-top:8px", text: "はたらいたので おなかが すこし へった。" }));
     await new Promise((res) => {
-      const m = UI.modal({ title: "きょうの けっか", body, closable: false, footer: UI.btn("まちに もどる", () => { Sound.se("ok"); m.close(); res(); }, "yellow wide") });
+      const m = UI.modal({ title: "きょうの けっか", body, closable: false, footer: UI.btn(this.returnStore ? "てんないに もどる" : "まちに もどる", () => { Sound.se("ok"); m.close(); res(); }, "yellow wide") });
     });
     if (lvUp) Sound.se("fanfare");
-    Game.goto("world", this.back, "fade");
+    Save.write();
+    if (this.returnStore) Game.goto("store", { shop: this.shopId, back: this.back, atCounter: true }, "fade");
+    else Game.goto("world", this.back, "fade");
   }
 
   // ---- 入力 ----

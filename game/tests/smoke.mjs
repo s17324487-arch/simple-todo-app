@@ -132,9 +132,9 @@ function helpers(page, name) {
       throw new Error(`おうちのボタン「${label}」がない`);
     },
     // お店を「正しい操作」で最後まで遊ぶ。ランクの配列を返す
-    async playShop(shop, lv) {
+    async playShop(shop, lv, fromStore = false) {
       H.shopGrades = [];
-      await H.dbg("shop", shop, lv);
+      if (!fromStore) await H.dbg("shop", shop, lv);
       await H.until(() => G.sceneName === "shop" && !Game.trans, 10000);
       await H.wait(300); await H.dialogs();
       for (let c = 0; c < 12; c++) {
@@ -198,7 +198,7 @@ function helpers(page, name) {
       const st = await H.dbg("mg");
       await H.shot(`${shop}_result`);
       await page.click(".modal-wrap .panel-foot .btn");
-      await H.until(() => G.sceneName === "world" && !Game.trans, 10000);
+      await H.until(scene => PokaDebug.state().scene === scene && PokaDebug.idle(), 10000, fromStore ? "store" : "world");
       return st.ranks;
     },
     // たたかう を押し続けて バトルを終わらせる
@@ -327,9 +327,9 @@ await scenario("まちへ→お店の入口", async (H) => {
   await H.shot("town");
   const door=(await H.dbg("townLayout","town")).doors.find(d=>d.id==="crepe");
   expect(await H.dbg("walkTo", door.x, door.y), "クレープやさんへの道が見つからない");
-  await H.page.waitForSelector(".choices .btn", { timeout: 12000 });
-  await H.choose(1); // やめておく
-  await H.until(() => PokaDebug.idle() && !G.scene.busy, 8000);
+  await H.until(() => PokaDebug.state().scene === "store" && PokaDebug.idle(), 12000);
+  await H.page.getByRole("button",{name:"おみせを でる",exact:true}).click();
+  await H.until(() => PokaDebug.state().scene === "world" && PokaDebug.idle(), 8000);
   const st = await H.dbg("state");
   expect(st.scene === "world" && st.map === "town", "お店をことわったあと 町に いない");
 });
@@ -1069,15 +1069,100 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
     const door=layout.doors.find(d=>d.act.type==="buy")||layout.doors.find(d=>d.act.type==="transit");
     await H.dbg("teleport",id,door.x,door.y+1,"up");await H.idle();
     expect(await H.dbg("walkTo",door.x,door.y),"入口へ歩けない");await H.wait(600);
-    expect(await H.page.locator('.modal-wrap,.choices').count()>0,"店/交通の入口が開かない");
-    if(door.act.type==="transit")await H.page.getByRole("button",{name:"やめておく",exact:true}).click();
-    else await H.page.locator('.modal-wrap .close').last().click();
+    if(door.act.type==="transit"){
+      expect(await H.page.locator('.choices').count()>0,"交通の入口が開かない");
+      await H.page.getByRole("button",{name:"やめておく",exact:true}).click();
+    } else {
+      await H.until(()=>PokaDebug.state().scene==="store"&&PokaDebug.idle());
+      await H.page.getByRole("button",{name:"おみせを でる",exact:true}).click();
+      await H.until(()=>PokaDebug.state().scene==="world"&&PokaDebug.idle());
+    }
     await H.dbg("teleport",id,...view);await H.idle();await H.dbg("save");await H.page.reload();
     await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.until(id=>PokaDebug.idle()&&PokaDebug.state().map===id,15000,id);
     expect((await H.dbg("state")).coins===987654,"更新後の再保存でコインが変わった");
   }
   expect(await H.dbg("fps",1000)>=20,"街区描画が20FPS未満");
 },{viewport,full:viewport.width===375,timeout:150000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`walk-in-stores-${viewport.width}`,async H=>{
+  await H.newGameFast();
+  const legacy=await H.dbg("saveData");legacy.coins=987654;
+  await H.dbg("seedSave",legacy);
+  for(const id of ["clothes","furniture","market","crepe","dentist","bakery","florist","link","relay"]){
+    const map=["link","relay"].includes(id)?"city":"town";
+    const door=(await H.dbg("townLayout",map)).doors.find(d=>d.act.shop===id);
+    expect(door,"お店の入口がない: "+id);
+    await H.dbg("teleport",map,door.x,door.y+1,"up");await H.idle();
+    expect(await H.dbg("walkTo",door.x,door.y),"入口に歩けない: "+id);
+    await H.until(()=>PokaDebug.state().scene==="store"&&PokaDebug.idle());
+    let s=await H.dbg("storeState");
+    expect(s.shop===id&&s.party.length===3,"店内/3人が不正");
+    expect(s.walkable.every(p=>p.reachable),"店内に到達できない床: "+id);
+    expect(s.music==="shop_"+id,"お店の曲が違う: "+id);
+    expect((await H.dbg("weather")).indoors,"店内に屋外の天気が残る");
+    expect(await H.page.locator(".modal-wrap,.choices").count()===0,"入店だけで購入/会話が始まった");
+    await H.shot(id);
+    for(const btn of await H.page.locator(".store-bar .btn,.store-home").all()){
+      const box=await btn.boundingBox();expect(box.height>=44&&box.x>=0&&box.x+box.width<=viewport.width,"操作ボタンが小さい/画面外");
+    }
+    const floor=s.walkable.find(p=>p.x===5&&p.y===8);await H.tap(floor.cx,floor.cy);
+    await H.until(()=>{const s=PokaDebug.storeState();return s&&s.party[0].y===8&&!s.party[0].moving&&!s.path;});
+    const fixture=s.fixtures[0];expect(!await H.dbg("storeWalkTo",fixture.x,fixture.y),"展示を通り抜ける");
+    await H.tap(s.keeper.cx,s.keeper.cy);
+    await H.page.waitForSelector(".choices");
+    s=await H.dbg("storeState");expect(s.party[0].x===5&&s.party[0].y===3,"店員の前まで歩いていない");
+    await H.page.getByRole("button",{name:"また あとで",exact:true}).click();await H.idle();
+    await H.page.getByRole("button",{name:"おみせを でる",exact:true}).click();
+    await H.until(()=>PokaDebug.state().scene==="world"&&PokaDebug.idle());
+    const w=await H.dbg("state");expect(w.map===map&&w.pos[0]===door.x&&w.pos[1]===door.y+1,"元のお店の出口へ戻らない");
+  }
+  const after=await H.dbg("saveData");
+  for(const key of ["coins","bag","furn","wardrobe","shops","rooms"])expect(JSON.stringify(after[key])===JSON.stringify(legacy[key]),"入退出で保存内容が変化: "+key);
+  await H.dbg("store","market","heiwadai");await H.idle();
+  const branch=(await H.dbg("storeState")).back;
+  await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  const st=await H.dbg("state");expect(st.scene==="world"&&st.map===branch.map&&st.pos[0]===branch.x&&st.pos[1]===branch.y,"店内から安全に再開できない");
+  expect(st.coins===987654,"再読み込みで所持金が変わった");
+},{viewport,full:viewport.width===375,timeout:180000});
+
+await scenario("店員から購入・保存・おてつだい",async H=>{
+  await H.newGameFast();await H.dbg("coins",5000);
+  const original=await H.dbg("saveData");
+  for(const [id,kind] of [["clothes","wardrobe"],["furniture","furn"],["market","bag"],["crepe","bag"],["bakery","bag"],["florist","furn"]]){
+    await H.dbg("store",id);await H.idle();
+    await H.page.getByRole("button",{name:"てんいんと はなす",exact:true}).click();
+    await H.page.getByRole("button",{name:"かいものを する",exact:true}).click();
+    const before=await H.dbg("saveData"),card=H.page.locator(".modal-wrap .card:not(.on)").first();
+    const price=Number((await card.locator(".price").textContent()).replace(/[^0-9]/g,""));
+    expect(price>0,"購入価格がない");await card.click();
+    await H.page.getByRole("button",{name:"かう",exact:true}).click();
+    if(id==="clothes"){await H.page.getByRole("button",{name:"あとで",exact:true}).click();}
+    await H.wait(220);
+    const saved=await H.dbg("persistedSave");
+    expect(saved.coins===before.coins-price,"購入金額が違う/未保存: "+id);
+    expect(JSON.stringify(saved[kind])!==JSON.stringify(before[kind]),"購入品が保存されない: "+id);
+    await H.page.locator(".modal-wrap .close").last().click();await H.idle();
+    expect((await H.dbg("state")).scene==="store","購入画面を閉じると店外へ出る");
+  }
+  let before=await H.dbg("saveData");await H.page.reload();
+  await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  let saved=await H.dbg("saveData");
+  for(const key of ["coins","bag","furn","wardrobe","rooms"])expect(JSON.stringify(saved[key])===JSON.stringify(before[key]),"購入後の再読み込みで変化: "+key);
+  expect(JSON.stringify(saved.rooms)===JSON.stringify(original.rooms),"部屋の保存が変わった");
+  await H.dbg("store","crepe");await H.idle();await H.dbg("needs",0);
+  await H.page.getByRole("button",{name:"てんいんと はなす",exact:true}).click();
+  await H.page.getByRole("button",{name:"おてつだいする",exact:true}).click();await H.dialogs();await H.idle();
+  expect((await H.dbg("state")).scene==="store","空腹でおてつだいを始めた");
+  await H.dbg("needs",100);
+  await H.page.getByRole("button",{name:"てんいんと はなす",exact:true}).click();
+  await H.page.getByRole("button",{name:"おてつだいする",exact:true}).click();
+  before=await H.dbg("saveData");
+  const ranks=await H.playShop("crepe",1,true);expect(ranks.every(r=>r>=2),"店内経由のおてつだいで採点が不正");
+  expect((await H.dbg("storeState")).shop==="crepe","おてつだいから店内に戻らない");
+  saved=await H.dbg("persistedSave");expect(saved.coins>before.coins&&saved.shops.crepe.plays===before.shops.crepe.plays+1,"報酬/お店の進行が保存されない");
+  await H.page.getByRole("button",{name:"おうちへ",exact:true}).click();await H.idle();
+  expect((await H.dbg("state")).scene==="house","店内から帰宅できない");
+},{timeout:180000});
 
 await browser.close();
 server.close();

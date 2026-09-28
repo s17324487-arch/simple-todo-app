@@ -406,26 +406,10 @@ class WorldScene {
       this.busy = false; this.stepOut(door); return;
     }
     if (act.type === "house") { this.busy = true; Game.goto("house", {}, "circle"); return; }
-    if (act.type === "buy") {
+    if (act.type === "buy" || act.type === "work") {
       this.busy = true;
-      await ShopUI.open(act.shop);
-      this.busy = false;
-      this.stepOut(door);
+      Game.goto("store", { shop: act.shop, back: out }, "circle");
       return;
-    }
-    if (act.type === "work") {
-      this.busy = true;
-      const s = Save.d.shops[act.shop];
-      const hungry = Chara.IDS.some((id) => Save.d.chars[id].hunger < 8);
-      const i = await UI.ask(`${SHOPS[act.shop].name}（Lv.${s.lv}）\n${SHOPS[act.shop].desc}。`, ["おてつだいする", "やめておく"]);
-      if (i === 0 && hungry) {
-        await UI.say([{ who: "wanko", emo: "sad", text: "おなかが ぺこぺこで ちからが でないよ〜。\nおうちで ごはんを たべてから にしよう。" }]);
-      } else if (i === 0) {
-        Game.goto("shop", { shop: act.shop, back: out });
-        return;
-      }
-      this.busy = false;
-      this.stepOut(door);
     }
   }
   stepOut(door) {

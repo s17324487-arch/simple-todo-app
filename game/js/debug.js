@@ -19,6 +19,9 @@ const PokaDebug = {
       "PokaDebug.musicCatalog()               曲名・楽器・小節数の一覧",
       "await PokaDebug.musicRender('town', 8)  同じ音源でオフライン合成・音量/負荷を検証",
       "PokaDebug.shop('crepe', 3)            お店ミニゲームを Lv3 で開始",
+      "PokaDebug.store('clothes', 'town')    歩ける店内へ（入口のある町を選べる）",
+      "PokaDebug.storeState()                店員・展示・通路・3人・出口の状態",
+      "PokaDebug.storeWalkTo(5, 3)           店内のマスまで実際に歩く",
       "PokaDebug.coins(1000)                 コインを足す",
       "PokaDebug.level(16)                   3人のレベルを設定して全回復",
       "PokaDebug.unlockAll()                 服・家具・壁紙・床を ぜんぶ持つ",
@@ -258,6 +261,24 @@ const PokaDebug = {
     if (lv) Save.d.shops[id].lv = U.clamp(lv, 1, 5);
     Game.trans = null;
     Game.goto("shop", { shop: id, back: { map: "town", x: 12, y: 21, dir: "down" } }, "none");
+  },
+  store(id="clothes",map="town") {
+    if(!STORE_INTERIORS[id])throw new Error("unknown store: "+id);
+    const door=Maps.get(map).doors.find(d=>d.b.act.shop===id);
+    if(!door)throw new Error("no store entrance: "+map+"/"+id);
+    Game.goto("store",{shop:id,back:{map,x:door.x,y:door.y+1,dir:"down"}});
+  },
+  storeWalkTo(x,y) { return G.sceneName==="store"&&!Game.inputLocked?G.scene.walkTo(x,y):false; },
+  storeState() {
+    if(G.sceneName!=="store")return null;
+    const sc=G.scene,rect=G.canvas.getBoundingClientRect();
+    const point=(x,y)=>{const p=sc.screen(x,y);return{cx:rect.left+p.x*G.cssPerUnit,cy:rect.top+p.y*G.cssPerUnit};};
+    const walkable=[];for(let y=0;y<12;y++)for(let x=0;x<10;x++)if(sc.walkable(x,y))walkable.push({x,y,...point(x,y),reachable:sc.route(x,y)!==null});
+    return {shop:sc.shopId,back:{...sc.back},music:Sound.cur?.name||Sound.want,owner:sc.owner.name,
+      party:sc.party.map((p,i)=>({id:Save.d.order[i],x:p.tx,y:p.ty,moving:p.moving})),
+      fixtures:sc.fixtures.map(f=>({...f,...point(f.x+(f.w-1)/2,f.y+f.d-1)})),walkable,
+      keeper:{...point(5,1),cy:point(5,1).cy-24*sc.scale*G.cssPerUnit},
+      path:sc.path.length,interacting:!!sc.interacting,exit:point(5,11),scale:sc.scale};
   },
   coins(n = 1000) { Save.addCoins(n); UI.updateHud(); return Save.d.coins; },
   level(lv = 10) {

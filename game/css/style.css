@@ -196,6 +196,10 @@ html, body {
 .who-tab.on { background: var(--yellow); transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
 
 /* ---- おうちのメニュー ---- */
+.store-bar { position:absolute; left:8px; right:8px; bottom:0; padding:8px 0 calc(10px + var(--safe-b)); display:grid; grid-template-columns:1.15fr 1fr; gap:6px; }
+.store-bar .btn, .store-home { min-height:44px; }
+.store-hint { grid-column:1/-1; text-align:center; font-size:12px; color:#514C43; background:#fff7e6e8; border-radius:10px; padding:5px 2px; }
+.store-home { position:absolute; right:10px; top:calc(60px + var(--safe-t)); font-size:12px; }
 .house-bar {
   position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 8px calc(10px + var(--safe-b));
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px;
