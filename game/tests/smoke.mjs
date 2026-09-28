@@ -1507,7 +1507,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(/0 \/ 8/.test(await H.eval(()=>document.querySelector('.fossil-detail').innerText)),'寄贈 0 の 台の 数が 不正');
 },{viewport,full:viewport.width===375,timeout:150000});
 
-// ⑥ 1番: 射撃場の ロビー。シティの 建物から 入る → RO の ラビの きまり（はじめて だけ）→ だれが うつ？ → しゅもくと じゅう（タブ・ロック・ホップ ダイヤル）→ ✕ で 町の 入口の まえ
+// ⑥ 1番: 射撃場の ロビー。シティの 建物から 入る → RO の ラビの きまり（はじめて だけ）→ だれが うつ？ → しゅもくと じゅう（タブ・ロック・ホップ ダイヤル）→ これで うつ（2番）→ ✕ で 町の 入口の まえ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('range-lobby-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
   await H.dbg('teleport','city',12,11,'up');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),10000);
@@ -1550,9 +1550,12 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.locator('.rg-hop-up').click();await H.page.locator('.rg-hop-up').click();await H.page.locator('.rg-hop-down').click();await H.wait(100);
   expect((await lobby()).hop==='11'&&await H.eval(()=>Save.d.range.hop.carbine===11),'ホップ ダイヤルが のこらない');
   await H.page.locator('.rg-detail').scrollIntoViewIfNeeded();await H.wait(200);await H.shot('rifle');
-  // これで うつ（1番は まだ じゅんび ちゅう）→ もどる → ✕ で だれが うつ？ → ✕ で 町の 入口の まえ
-  await H.page.getByRole('button',{name:'これで うつ',exact:true}).click();await H.wait(500);
-  expect(await H.eval(()=>G.sceneName==='range'&&!!document.querySelector('.rg-guns')&&/じゅんび/.test(document.querySelector('.toasts').innerText)),'これで うつ の あとが 不正');
+  // これで うつ → えらんだ 子・しゅもく・じゅう・ホップで あそぶ 画面（2番）→ ✕（たしかめ）で ロビー → ✕ で だれが うつ？ → ✕ で 町の 入口の まえ
+  await H.page.getByRole('button',{name:'これで うつ',exact:true}).click();
+  await H.until(()=>PokaDebug.rangeState()?.mode==='play'&&!!document.querySelector('.range-scene'),10000);
+  const s=await H.dbg('rangeState');expect(s.course==='practical'&&s.gun==='carbine'&&s.who==='goji'&&s.hop===11,'えらんだ ものと ちがう あそびが はじまる '+JSON.stringify(s));
+  await H.page.locator('.range-quit').click();await H.page.locator('.choices .btn').first().waitFor({timeout:6000});await H.choose(0);
+  await H.page.locator('.rg-guns').waitFor({timeout:8000});await H.wait(250);
   await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.page.locator('.rg-who').waitFor({timeout:6000});await H.wait(250);
   expect(await H.eval(()=>document.querySelector('.rg-who-card.on')?.dataset.who==='goji'),'えらんだ 子が もどる');
   await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();
@@ -1561,6 +1564,93 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   // 2かいめは きまりを 話さない・ホップ ダイヤルは のこる
   expect(await H.dbg('walkTo',12,9),'2かいめ 入口へ 歩けない');await H.until(()=>G.sceneName==='range'&&!Game.trans,15000);
   await H.page.locator('.rg-who').waitFor({timeout:8000});expect(!(await H.eval(()=>document.querySelector('.dlg-shade'))),'2かいめも きまりを 話す');
+},{viewport,full:viewport.width===375,timeout:150000});
+
+// ⑥ 2番: 射撃場で あそぶ。スチール（わんこ・オートマチック）を じどうで ★2 いじょう → けっかの シート・きろく・コイン・ライフルが あく。
+// ロングレンジ（ごじ・ボルトアクション）: のぞく・ズーム・うつと ボルト・ボルトを うごかす・かぜ。プラクティカル（がちゃん・カービン）: ヒット ファクター・もう いちど・✕ で ロビー
+const rangePlaying=(H,course)=>H.until(c=>{const s=PokaDebug.rangeState();return s&&s.mode==='play'&&s.course===c&&!Game.trans;},15000,course);
+const rangeHud=(H)=>H.eval(()=>{const r=e=>e.getBoundingClientRect(),q=s=>[...document.querySelectorAll(s)];return {top:document.querySelector('.range-top')?.innerText||'',sub:document.querySelector('.range-sub')?.innerText||'',
+  small:q('.range-scene .btn').filter(b=>r(b).width<44||r(b).height<44).map(b=>b.className),out:q('.range-scene .btn,.range-scene .pill,.range-monitor').filter(e=>r(e).left<-0.5||r(e).right>innerWidth+0.5||r(e).bottom>innerHeight+0.5||r(e).top<-0.5).map(e=>e.className),
+  over:(()=>{const bs=q('.range-top .pill,.range-top .btn,.range-sub .pill,.range-zoom,.range-monitor,.range-ctrl .btn,.range-breath');const bad=[];for(let i=0;i<bs.length;i++)for(let j=i+1;j<bs.length;j++){const a=r(bs[i]),b=r(bs[j]);if(a.left<b.right-1&&b.left<a.right-1&&a.top<b.bottom-1&&b.top<a.bottom-1)bad.push(bs[i].className+'/'+bs[j].className);}return bad;})(),
+  fire:Math.round(r(document.querySelector('.range-fire')).width),buddies:q('.range-buddy').map(b=>b.dataset.who),hud:document.querySelector('.hud').classList.contains('hidden'),wide:document.documentElement.scrollWidth>innerWidth};});
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('range-play-'+viewport.width,async H=>{
+  await H.newGameFast();const coins0=await H.eval(()=>Save.d.coins);
+  // シーンを きりかえて いる とちゅう（G.sceneName だけ さきに "range"）でも rangeState は null で こわれない
+  const mid=await H.eval(()=>{PokaDebug.range('steel','auto','wanko','t1');try{return PokaDebug.rangeState()===null&&PokaDebug.rangeInput({ads:true})===false&&PokaDebug.rangeAuto(1)===null;}catch(e){return 'throws: '+e.message;}});
+  expect(mid===true,'きりかえ ちゅうの 射撃場の PokaDebug が こわれる '+mid);
+  await rangePlaying(H,'steel');await H.wait(500);
+  let v=await rangeHud(H);
+  expect(/ストリング\s*1\/5/.test(v.top)&&/25/.test(v.top)&&!v.small.length&&!v.out.length&&!v.over.length&&v.fire>=92&&v.buddies.join()==='gachan,goji'&&v.hud&&!v.wide,'射撃場の HUD・そうさが 不正 '+JSON.stringify(v));
+  await H.shot('steel-standby');
+  await H.until(()=>PokaDebug.rangeState().phase==='play',8000);await H.dbg('rangeAuto',2.2,'good');await H.wait(200);await H.shot('steel-play');
+  let s=await H.dbg('rangeAuto',90,'good');
+  expect(s.phase==='end'&&s.stars>=2&&s.times.length===5,'スチールが おわらない／★が たりない '+JSON.stringify(s));
+  await H.page.locator('.rg-result').waitFor({timeout:8000});await H.wait(400);
+  v=await H.eval(()=>({rows:document.querySelectorAll('.rg-sheet tr').length,drop:document.querySelectorAll('.rg-sheet .drop').length,best:Save.d.range.best['steel:auto'],plays:Save.d.range.plays,coins:Save.d.coins,text:document.querySelector('.rg-result').innerText,
+    says:document.querySelectorAll('.rg-result .say img').length,btns:[...document.querySelectorAll('.rg-foot .btn')].map(b=>Math.round(b.getBoundingClientRect().height)),wide:document.documentElement.scrollWidth>innerWidth}));
+  expect(v.rows===7&&v.drop===1&&v.best&&v.best.stars>=2&&v.best.result===s.result&&v.plays===1&&v.coins>coins0&&/コイン/.test(v.text)&&/RO:/.test(v.text)&&v.says===3&&v.btns.length===3&&v.btns.every(h=>h>=44)&&!v.wide,'けっかが 不正 '+JSON.stringify(v));
+  await H.shot('steel-result');
+  // えらびなおす → しゅもくと じゅう（ハンドガンで ★ を とったので ライフルが あく）→ ✕ ✕ で 町
+  await H.page.getByRole('button',{name:'えらびなおす',exact:true}).click();await H.page.locator('.rg-guns').waitFor({timeout:8000});
+  expect(await H.eval(()=>!document.querySelector('.rg-tabs .tab[data-cat="rifle"]').classList.contains('lock')&&/★★/.test(document.querySelector('.rg-gun.on .best').innerText)),'★ の あと ライフルが あかない／★ が 出ない');
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.page.locator('.rg-who').waitFor({timeout:6000});await H.wait(250);
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),15000);
+  // ロングレンジ: のぞく → ズーム → うつと ボルトを ひく まで うてない → ボルト
+  await H.dbg('range','long','bolt','goji','t2');await rangePlaying(H,'long');
+  await H.dbg('rangeInput',{ads:true});await H.wait(700);
+  s=await H.dbg('rangeState');expect(s.ads&&s.zoom>1,'のぞけない '+JSON.stringify(s));
+  const z0=s.zoom;await H.dbg('rangeInput',{zoomIn:true});await H.wait(300);
+  s=await H.dbg('rangeState');expect(s.zoom>z0,'ズームが かわらない '+JSON.stringify([z0,s.zoom]));
+  // ブザーの あと じゅうを あげる（0.3びょう）まで うてない
+  await H.until(()=>{const s=PokaDebug.rangeState();return s.phase==='play'&&s.clock>0.45;},8000);
+  v=await rangeHud(H);expect(/いま\s*30m/.test(v.sub)&&/かぜ/.test(v.sub)&&!v.small.length&&!v.out.length&&!v.over.length,'ロングレンジの HUD が 不正 '+JSON.stringify(v));
+  // 文字が ひろい ブラウザ（WebKit など）でも うえの 列の ✕ は 44px の まま 画面の 中（字間を ひろげて たしかめる。ピルが いちばん 多い しゅもく。
+  // 3.4px は Chromium でも 列に はいりきらない ひろさ → ピルの ほうが ちぢむ ことを たしかめる）
+  v=await H.eval(()=>{document.body.style.letterSpacing='3.4px';const r=document.querySelector('.range-quit').getBoundingClientRect(),out={w:r.width,h:r.height,right:r.right,iw:innerWidth};document.body.style.letterSpacing='';return out;});
+  expect(v.w>=44&&v.h>=44&&v.right<=v.iw+0.5,'文字が ひろいと ✕ が つぶれる／はみ出す '+JSON.stringify(v));
+  await H.dbg('rangeInput',{fire:true});await H.wait(300);
+  s=await H.dbg('rangeState');expect(s.needAction===true&&s.shot===1,'うった あと ボルトが いらない '+JSON.stringify(s));
+  expect(await H.eval(()=>document.querySelector('.range-act').classList.contains('need')&&document.querySelector('.range-fire').classList.contains('wait')),'ボルトの ボタンが 光らない／うつ が まてに ならない');
+  await H.dbg('rangeInput',{fire:true});await H.wait(200);expect((await H.dbg('rangeState')).shot===1,'ボルトを ひく まえに 2はつめが うてる');
+  await H.shot('long-bolt');
+  await H.dbg('rangeInput',{action:true});await H.until(()=>PokaDebug.rangeState().needAction===false,3000);
+  s=await H.dbg('rangeAuto',150,'good');expect(s.phase==='end'&&s.shot===10,'ロングレンジが おわらない '+JSON.stringify(s));
+  await H.page.locator('.rg-result').waitFor({timeout:8000});
+  await H.page.getByRole('button',{name:'おわる',exact:true}).click();await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),15000);
+  const w=await H.dbg('world');expect(w.party.length===3&&w.party[0].x===12&&w.party[0].y===10,'けっかの あと 入口の まえに もどらない '+JSON.stringify(w.party[0]));
+  // プラクティカル: ヒット ファクター（A・C・D・ミス・NS）→ もう いちど → ✕（たしかめ）→ ロビー（コインは ふえない）
+  await H.dbg('range','practical','carbine','gachan','t3');await rangePlaying(H,'practical');
+  s=await H.dbg('rangeAuto',70,'good');expect(s.phase==='end'&&s.result>0,'プラクティカルが おわらない '+JSON.stringify(s));
+  await H.page.locator('.rg-sheet').waitFor({timeout:8000});await H.wait(300);
+  v=await H.eval(()=>document.querySelector('.rg-sheet').innerText);expect(/A/.test(v)&&/NS/.test(v)&&/ミス/.test(v)&&/じかん/.test(v),'IPSC の シートが 不正 '+v);
+  await H.shot('ipsc-result');
+  await H.page.getByRole('button',{name:'もう いちど',exact:true}).click();await rangePlaying(H,'practical');
+  // SvgCache の キーは 有限: 的は artKeys の 14こ だけ・主観の じゅうは いまの 1まい だけ（まえの じゅうの 絵は すてる）
+  v=await H.eval(()=>{const keys=[...SvgCache.map.keys()],art=new Set(ShootingRange.artKeys(RANGE_DATA).map(k=>k.key));return {fpv:keys.filter(k=>k.startsWith('rg:')&&!k.startsWith('rg:staff@')),rt:keys.filter(k=>k.startsWith('rt:')).every(k=>art.has(k.split('@')[0]))};});
+  expect(v.fpv.length===1&&v.fpv[0].startsWith('rg:carbine:gachan:soft@')&&v.rt,'射撃場の 絵の キャッシュが 不正 '+JSON.stringify(v));
+  const coins1=await H.eval(()=>Save.d.coins);
+  await H.page.locator('.range-quit').click();await H.page.locator('.choices .btn').first().waitFor({timeout:6000});await H.choose(0);
+  await H.page.locator('.rg-guns').waitFor({timeout:8000});
+  expect(await H.eval(c=>Save.d.coins===c&&G.scene.mode==='lobby',coins1),'✕ で やめても コインが ふえる／ロビーに もどらない');
+  // セーブして よみこんでも きろくと ホップは のこる
+  await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+  v=await H.eval(()=>({best:Object.keys(Save.d.range.best).sort().join(),plays:Save.d.range.plays}));
+  expect(v.best==='long:bolt,practical:carbine,steel:auto'&&v.plays===3,'射撃場の きろくが のこらない '+JSON.stringify(v));
+},{viewport,full:viewport.width===375,timeout:180000});
+
+// ⑥ 2番: サイトと スコープ（ブルズアイ: あかい ランプと スコア モニター・10m: ダイオプター・ムービング: スコープと まど）。じどうで さいごまで
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('range-sights-'+viewport.width,async H=>{
+  await H.newGameFast();
+  for(const [course,gun,who,kind] of [['bullseye','revolver','wanko','bull'],['precision','match','goji','issf'],['moving','semi','gachan','run']]){
+    await H.dbg('range',course,gun,who,'s-'+course);await rangePlaying(H,course);
+    await H.until(()=>PokaDebug.rangeState().phase==='play',8000);await H.dbg('rangeAuto',kind==='run'?9:4,'good');await H.wait(200);
+    const v=await rangeHud(H),mon=await H.eval(()=>document.querySelector('.range-monitor')?.innerText||'');
+    expect(!v.small.length&&!v.out.length&&!v.over.length&&!v.wide&&(kind==='run'?/ラン/.test(v.top)&&/かぜ/.test(v.sub):/ごうけい/.test(mon)),course+' の HUD が 不正 '+JSON.stringify(v)+mon);
+    await H.shot(course);
+    const s=await H.dbg('rangeAuto',300,'good');expect(s.phase==='end'&&s.stars>=1,course+' が おわらない '+JSON.stringify(s));
+    await H.page.locator('.rg-result').waitFor({timeout:8000});await H.wait(200);
+    await H.page.getByRole('button',{name:'おわる',exact:true}).click();await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),15000);
+  }
 },{viewport,full:viewport.width===375,timeout:150000});
 
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
