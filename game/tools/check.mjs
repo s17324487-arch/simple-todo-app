@@ -1125,6 +1125,35 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   ok(lv.interactive.length === 0, "タップで うごく はずの 家具が interactive で ない " + lv.interactive.join());
 }
 
+// ---------- ぱぱ・ままの おしごと（js/parent-work.js。ART-04）----------
+{
+  const pw = vm.runInContext(`(()=>{
+    const hours = Array.from({ length: 24 }, (_, h) => ParentWork.away(h)).map((a) => (a ? 1 : 0)).join("");
+    const lines = [...Object.entries(ParentWork.ALONE).flatMap(([id, ls]) => ls.map(([text, fx, where]) => ({ id, text, fx, where }))), ...ParentWork.TALKS.flat().map(([id, text, fx, where]) => ({ id, text, fx, where })), ...[9, 12, 15, 17].flatMap((h) => (ParentWork.timely(h, 45) || []).map(([id, text, fx, where]) => ({ id, text, fx, where }))), ...ParentWork.BYE.map(([id, text]) => ({ id, text })), ...ParentWork.HELLO.map(([id, text]) => ({ id, text }))];
+    // 12じに ParentCare.update を よぶと 2人とも おしごと（ほかの しくみが あとから ParentCare を つつんでも かわらない）
+    const hourNow = U.hourNow, d0 = Save.d;
+    let at12 = null;
+    try {
+      U.hourNow = () => 12; Save.d = Save.fresh();
+      const sc = { parents: ["papa", "mama"].map((id) => ({ id, x: 120, y: 320, state: "idle", anim: 0, queue: [] })), chars: [], life: { quarrel: false, queue: [] }, mode: null, parentTimer: 99, parentTurn: 0, parentSpeechTurn: 0 };
+      ParentCare.update(sc, 0.05);
+      at12 = { phase: sc.work && sc.work.phase, hidden: sc.parents.every((p) => p.hidden) };
+    } finally { U.hourNow = hourNow; Save.d = d0; }
+    return { hours, lines, wrapped: !!at12 && at12.phase === "away" && at12.hidden, talks: ParentWork.TALKS.length, alone: Object.fromEntries(Object.entries(ParentWork.ALONE).map(([k, v]) => [k, v.length])),
+      quiet: ["bath", "measure", "papa-sleep"].map((id) => HomeLife.talkById(id)).filter(Boolean).map((t) => HomeLife.playTalk({ work: { phase: "away" } }, t)) };
+  })()`, ctx);
+  ok(pw.hours === "000000000111111111000000", "ぱぱ・ままの おしごとの 時間が 9:00〜18:00 で ない " + pw.hours);
+  ok(pw.wrapped, "ParentCare が ParentWork で つつまれて いない（おしごと ちゅうも うごいて しまう）");
+  ok(pw.quiet.length === 3 && pw.quiet.every((r) => r === false), "おしごと ちゅうに ぱぱ・ままの かけあいが はじまる（見えない 人が しゃべる）");
+  ok(pw.talks >= 8 && ["wanko", "gachan", "goji"].every((id) => pw.alone[id] >= 8), "おるすばんの ことばが すくない " + JSON.stringify(pw.alone));
+  for (const l of pw.lines) {
+    ok(["wanko", "gachan", "goji", "all", "papa", "mama"].includes(l.id), `おるすばんの ことば: だれ？ ${l.id}`);
+    ok(!/[\u4E00-\u9FFF]/.test(l.text) && l.text.length <= 30, `おるすばんの ことばは ひらがなで 30もじ まで: ${l.text}`);
+    ok(!l.fx || ["heart", "note", "dots", "sweat", "anger"].includes(l.fx), `おるすばんの しぐさ ${l.fx} が ない`);
+    ok(!l.where || ["door", "window", "hug"].includes(l.where), `おるすばんの うごき ${l.where} が ない`);
+  }
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

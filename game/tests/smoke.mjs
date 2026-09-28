@@ -1764,8 +1764,44 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const after=await H.dbg('saveData');for(const k of ['coins','bag','wardrobe','furn','rooms'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'吹き出しでセーブが変わる: '+k);
 },{viewport,full:viewport.width===375,timeout:120000});
 
+// ART-04: ぱぱ・ままは 9〜18じ おしごとで いない。3人は おるすばん。18じに「ただいま」、9じに「いってきます」
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('parents-work-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);await H.wait(400);await H.dbg("needs",20);
+  let w=await H.dbg("parentWork");
+  expect(w.away&&w.phase==="away"&&w.visible.length===0,"12じ なのに ぱぱ・ままが いる "+JSON.stringify(w));
+  expect(w.label==="おしごと ちゅう","ボタンが「おしごと ちゅう」に ならない "+w.label);
+  const btn=H.page.getByRole("button",{name:"おしごと ちゅう",exact:true}),r=await btn.boundingBox();
+  expect(r&&r.height>=44&&r.x>=0&&r.x+r.width<=viewport.width,"「おしごと ちゅう」の ボタンが 小さい／はみ出す");
+  for(const b of await H.page.locator(".home-view-controls button").all()){const q=await b.boundingBox();expect(q.x+q.width<=r.x||q.x>=r.x+r.width||q.y+q.height<=r.y||q.y>=r.y+r.height,"ボタンが かさなる");}
+  await btn.click();await H.wait(250);
+  expect(await H.page.getByText("ぱぱと ままは おしごとに いって いるよ",{exact:false}).count()>0,"おしごとの せつめいが 出ない");
+  await H.shot("away-modal");await H.page.getByRole("button",{name:"わかった！",exact:true}).click();
+  const care=JSON.stringify((await H.dbg("family")).lastCare);
+  let start=(await H.dbg("homeTalkLog")).length;await H.dbg("parentWork","alone");await H.wait(2600);
+  let log=(await H.dbg("homeTalkLog")).slice(start);
+  expect(log.length>=1&&log.every(x=>["wanko","gachan","goji"].includes(x.id)),"おるすばんの ひとりごとが 出ない "+JSON.stringify(log));
+  start=(await H.dbg("homeTalkLog")).length;await H.dbg("parentWork","talk");await H.wait(8400);
+  log=(await H.dbg("homeTalkLog")).slice(start);expect(log.length>=3,"おるすばんの かけあいが 出ない "+JSON.stringify(log));
+  await H.shot("rusuban");
+  expect(JSON.stringify((await H.dbg("family")).lastCare)===care,"おしごと ちゅうに ぱぱ・ままが おせわ した");
+  start=(await H.dbg("homeTalkLog")).length;expect(await H.dbg("homeTalk","bath")===false,"おしごと ちゅうに ぱぱ・ままの かけあいが はじまる");await H.wait(1500);
+  expect(!(await H.dbg("homeTalkLog")).slice(start).some(x=>x.id==="papa"||x.id==="mama"),"いない ぱぱ・ままが しゃべった");
+  // PokaDebug.hour で とばすと すぐ かわる（えんしゅつなし）
+  await H.dbg("hour",19);await H.wait(300);w=await H.dbg("parentWork");
+  expect(!w.away&&w.phase==="home"&&w.visible.length===2&&w.label==="ぱぱ・まま","19じ なのに ぱぱ・ままが いない "+JSON.stringify(w));
+  // 18じの「ただいま」: ドアから 入って きて、3人が「おかえり」
+  start=(await H.dbg("homeTalkLog")).length;await H.dbg("parentWork","arrive");await H.wait(1200);await H.shot("tadaima");await H.wait(4600);
+  log=(await H.dbg("homeTalkLog")).slice(start);w=await H.dbg("parentWork");
+  expect(log.some(x=>x.id==="papa"&&/ただいま/.test(x.text))&&log.some(x=>/おかえり/.test(x.text))&&w.phase==="home"&&w.visible.length===2,"ただいまの ばめんが 出ない "+JSON.stringify([log,w]));
+  // 9じの「いってきます」: ドアへ あるいて いなく なる
+  await H.dbg("hour",10);await H.wait(300);start=(await H.dbg("homeTalkLog")).length;await H.dbg("parentWork","leave");await H.wait(1500);await H.shot("ittekimasu");await H.wait(4600);
+  log=(await H.dbg("homeTalkLog")).slice(start);w=await H.dbg("parentWork");
+  expect(log.some(x=>x.id==="papa"&&/いってきます/.test(x.text))&&log.some(x=>/いってらっしゃ/.test(x.text))&&w.phase==="away"&&w.visible.length===0,"いってきますの ばめんが 出ない "+JSON.stringify([log,w]));
+  await H.dbg("hour",null);
+},{viewport,full:viewport.width===375,timeout:90000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`ぱぱまま・吹き出し・セーブ（${viewport.width}）`,async H=>{
-  await H.newGameFast();await H.dbg("hour",12);await H.dbg("coins",987504);await H.dbg("needs",20);
+  await H.newGameFast();await H.dbg("hour",20);await H.dbg("coins",987504);await H.dbg("needs",20);
   const money=(await H.dbg("state")).coins;
   await H.until(()=>Object.values(PokaDebug.family().lastCare).some(n=>n>0),18000);
   expect((await H.dbg("family")).bag.onigiri===2,"自動のお世話で手持ちのごはんを使わない");
