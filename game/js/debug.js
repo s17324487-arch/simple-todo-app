@@ -390,12 +390,13 @@ const PokaDebug = {
     return true;
   },
   // 1フレームぶんの 入力 { dx, dy, fire, hold, ads, breath, action, reload, zoomIn, zoomOut, finish }（つぎの フレームで つかう）
-  rangeInput(inp = {}) { const s = G.scene; if (G.sceneName !== "range" || s.mode !== "play") return false; s.dbg = { ...(s.dbg || {}), ...inp }; return true; },
+  // シーンを きりかえて いる あいだは G.sceneName が さきに "range" に なるので、G.scene が RangeScene か で みる
+  rangeInput(inp = {}) { const s = G.scene; if (!(s instanceof RangeScene) || s.mode !== "play") return false; s.dbg = { ...(s.dbg || {}), ...inp }; return true; },
   // じどうで あそぶ（ShootingRange.bot。1/60 びょう ずつ sec びょう ぶん すぐ すすめる）
-  rangeAuto(sec = 60, skill = "casual") { const s = G.scene; if (G.sceneName !== "range" || s.mode !== "play") return null; s.autoPlay(sec, skill); return this.rangeState(); },
-  // game.hud() ＋ { mode, course, gun, who, result, stars, coins, hop }
-  rangeState() { return G.sceneName === "range" ? G.scene.state() : null; },
-  rangeEnd() { const s = G.scene; if (G.sceneName !== "range" || s.mode !== "play") return null; s.game.finish(); s.finish(); return this.rangeState(); },
+  rangeAuto(sec = 60, skill = "casual") { const s = G.scene; if (!(s instanceof RangeScene) || s.mode !== "play") return null; s.autoPlay(sec, skill); return this.rangeState(); },
+  // game.hud() ＋ { mode, course, gun, who, result, stars, coins, hop }（射撃場で ない ときと きりかえ ちゅうは null）
+  rangeState() { return G.scene instanceof RangeScene ? G.scene.state() : null; },
+  rangeEnd() { const s = G.scene; if (!(s instanceof RangeScene) || s.mode !== "play") return null; s.game.finish(); s.finish(); return this.rangeState(); },
   rod(n = 1) { Save.d.fish.rod = n; Save.mark(); return n; },
   // 釣りの 画面を はじめる（fishId を わたすと その 魚が かかる）。もどり先は いまの 町の 場所
   fishing(place = "pond", fishId) {

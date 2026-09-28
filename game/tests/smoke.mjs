@@ -1575,7 +1575,10 @@ const rangeHud=(H)=>H.eval(()=>{const r=e=>e.getBoundingClientRect(),q=s=>[...do
   fire:Math.round(r(document.querySelector('.range-fire')).width),buddies:q('.range-buddy').map(b=>b.dataset.who),hud:document.querySelector('.hud').classList.contains('hidden'),wide:document.documentElement.scrollWidth>innerWidth};});
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('range-play-'+viewport.width,async H=>{
   await H.newGameFast();const coins0=await H.eval(()=>Save.d.coins);
-  await H.dbg('range','steel','auto','wanko','t1');await rangePlaying(H,'steel');await H.wait(500);
+  // シーンを きりかえて いる とちゅう（G.sceneName だけ さきに "range"）でも rangeState は null で こわれない
+  const mid=await H.eval(()=>{PokaDebug.range('steel','auto','wanko','t1');try{return PokaDebug.rangeState()===null&&PokaDebug.rangeInput({ads:true})===false&&PokaDebug.rangeAuto(1)===null;}catch(e){return 'throws: '+e.message;}});
+  expect(mid===true,'きりかえ ちゅうの 射撃場の PokaDebug が こわれる '+mid);
+  await rangePlaying(H,'steel');await H.wait(500);
   let v=await rangeHud(H);
   expect(/ストリング\s*1\/5/.test(v.top)&&/25/.test(v.top)&&!v.small.length&&!v.out.length&&!v.over.length&&v.fire>=92&&v.buddies.join()==='gachan,goji'&&v.hud&&!v.wide,'射撃場の HUD・そうさが 不正 '+JSON.stringify(v));
   await H.shot('steel-standby');

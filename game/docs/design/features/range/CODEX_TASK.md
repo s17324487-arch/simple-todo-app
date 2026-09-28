@@ -190,7 +190,7 @@ range: { safety: false, plays: 0, best: {}, hop: {} },
 - けっか（`RangeScene.finish`）: `Save.d.range.plays++`・`best["しゅもく:じゅう"]`（time は 小さいほど、points / hf は 大きいほど、ブルズアイは おなじ てんなら X が 多いほど。`{ result, stars }`・ブルズアイは `xs` も）・コイン `GameEconomy.pay("range", 1, ★, むずかしさ)`（`GameEconomy.shopBase.range = 60`）。★3 は `fanfare`・ほかは `good`。あたらしく あいた しゅるいは トースト。
   - `.rg-result`: ★・きろく・しゅもくと じゅうと ★の めやす・シート（スチールは 5ストリング と いちばん おそい 1かいに 線・IPSC は A / C / D / ミス / NS / てん / じかん・ほかは 1ぱつずつの てん）・コイン・RO の ひとこと（`talk.result`）・3人の ひとこと（`talk.cheer[だれ].end[0]`）・もう いちど／えらびなおす／おわる（✕ は えらびなおす）。
   - スチールを 5ストリング うつ まえに おわった とき（`PokaDebug.rangeEnd`）は ★ も きろくも コインも なし。
-- `PokaDebug`: `range(course, gun, who, seed)`（ロビーと きまりを とばす・ロックは むし・もどり先は シティの 入口の まえ）・`rangeInput({ ... })`（つぎの フレームで つかう）・`rangeAuto(sec, skill)`（`ShootingRange.bot` で 1/60びょう ずつ すぐ すすめる・音なし）・`rangeState()`・`rangeEnd()`。
+- `PokaDebug`: `range(course, gun, who, seed)`（ロビーと きまりを とばす・ロックは むし・もどり先は シティの 入口の まえ）・`rangeInput({ ... })`（つぎの フレームで つかう）・`rangeAuto(sec, skill)`（`ShootingRange.bot` で 1/60びょう ずつ すぐ すすめる・音なし）・`rangeState()`・`rangeEnd()`。 どれも `G.scene instanceof RangeScene` で みる（シーンを きりかえて いる あいだは `G.sceneName` だけ さきに "range" に なり、`G.scene` は まえの シーンの まま。その あいだ `rangeState()` は null）。
 - `tools/check.mjs`: しゅもく × じゅう 18とおりを `bot("good")` で あそぶと おわって ★1 いじょう・ゲームの 弾道（`game.bal`）も 表と 同じ・コインが 0 / 27 / 60 / 90。
 - スモーク `range-play-*`（スチール → けっか・きろく・コイン・ライフルが あく／ロングレンジ: のぞく・ズーム・ボルト・かぜ／プラクティカル: ヒット ファクター・もう いちど・✕）と `range-sights-*`（ブルズアイ・10m・ムービングの サイトと HUD）。ロビーの スモークは「これで うつ」で えらんだ ものの あそびが はじまる ことも みる。スクリーンショットは `docs/screenshots/range-play/`。
 
