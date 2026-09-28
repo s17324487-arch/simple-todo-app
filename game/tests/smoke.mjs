@@ -1131,6 +1131,35 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(f.done['ev-photo']&&(await H.dbg('state')).coins===coins+100&&(d.furn.poster||0)===posters+1,'しゃしんの おねがいが おわらない');
 },{viewport,full:viewport.width===375,timeout:150000});
 
+// ③ さかな ずかん: fishGive で いけすに 入れると ずかんに のる。まもの／さかな・しぼりこみ・くわしい ページ
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('fish-dex-'+viewport.width,async H=>{
+  await H.newGameFast();
+  for(const [id,n] of [['magoi',1],['ayu',2],['kingyo',1],['madai',1],['aji',1]])await H.dbg('fishGive',id,n);
+  const d=await H.dbg('saveData');expect(d.fish.dex.ayu.n===2&&d.fish.keep.ayu===2&&d.fish.caught===6&&d.fish.rod===0,'fishGive で ずかん・いけすに のらない');
+  await H.page.locator('.menu-btn').click();await H.wait(300);
+  await H.page.locator('.menu-tabs .tab',{hasText:'ずかん'}).click();await H.wait(200);
+  expect(await H.eval(()=>document.querySelectorAll('.grid .card').length>0&&!!document.querySelector('.dex-kinds .tab.on[data-k="enemy"]')),'まものの ずかんが さいしょに 出ない');
+  await H.page.locator('.dex-kinds .tab[data-k="fish"]').click();await H.wait(400);
+  const view=()=>H.eval(()=>{const r=e=>e.getBoundingClientRect(),cells=[...document.querySelectorAll('.fish-cell')];
+    return {n:cells.length,ids:cells.map(c=>c.dataset.id),known:cells.filter(c=>!c.classList.contains('unknown')).map(c=>c.querySelector('.nm').textContent),hidden:cells.filter(c=>c.classList.contains('unknown')).every(c=>c.querySelector('.nm').textContent==='？？？'),
+      news:document.querySelectorAll('.fish-cell .new').length,cnt:document.querySelector('.fish-dex-head .cnt').textContent,inside:cells.every(c=>{const b=r(c);return b.left>=0&&b.right<=innerWidth+1;}),
+      tabs:[...document.querySelectorAll('.fish-dex-tabs .tab,.dex-kinds .tab')].every(b=>r(b).height>=43.5)};});
+  let v=await view();
+  expect(v.n===50&&v.known.length===5&&v.hidden&&v.news===5&&v.cnt.startsWith('5 / 50')&&v.inside&&v.tabs,'さかな ずかんの 表示が 不正 '+JSON.stringify({...v,ids:undefined}));
+  expect(['マゴイ','アユ','キンギョ','マダイ','マアジ'].every(n=>v.known.includes(n)),'つった 魚の なまえが 出ない '+v.known.join(','));
+  await H.shot('dex');
+  // しぼりこみ: かわ（かわの 魚 11しゅ）
+  await H.page.locator('.fish-dex-tabs .tab[data-k="river"]').click();await H.wait(300);
+  v=await view();expect(v.n===11&&v.ids.includes('ayu')&&!v.ids.includes('magoi')&&v.known.join()==='アユ','かわで しぼれない '+JSON.stringify({n:v.n,known:v.known}));
+  // くわしい ページ: アユ（すむ ところ・つった 数・まめちしき）
+  await H.page.locator('.fish-cell[data-id="ayu"]').click();await H.page.locator('.fish-detail').waitFor();await H.wait(300);
+  const page=await H.eval(()=>{const e=document.querySelector('.fish-detail'),b=e.getBoundingClientRect();return {text:e.innerText,inside:b.left>=0&&b.right<=innerWidth+1,svg:!!e.querySelector('.art svg')};});
+  expect(page.svg&&page.inside&&/アユ/.test(page.text)&&/かわ/.test(page.text)&&/2ひき つった/.test(page.text)&&/まめちしき/.test(page.text),'くわしい ページが 不正 '+JSON.stringify(page));
+  await H.shot('detail');
+  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);
+  expect(await H.eval(()=>!document.querySelector('.fish-detail')&&!!document.querySelector('.fish-dex')),'くわしい ページを とじると ずかんに もどらない');
+},{viewport,full:viewport.width===375,timeout:120000});
+
 // ① おうちの 会話データ: まわりの ようすで えらぶ・かけあいは 順番に・3人の くせ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');

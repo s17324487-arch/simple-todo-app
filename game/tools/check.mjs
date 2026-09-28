@@ -699,6 +699,54 @@ if (ok(!!TF, "TOWNSFOLK_DATA が ない（js/townsfolk-data.js）")) {
   ok(stepFlow.ready && stepFlow.gated, "すすめられない 手順の おねがいが ある／釣り・化石の おねがいに needs が ない");
 }
 
+// ③ 釣り（FISHING_DATA・FishArt・Fishing）: 50種の 値・どの 季節と 時間にも 2しゅ いじょう・文の 長さ・釣り場・絵・ずかんの きろく
+const FD = vm.runInContext(`typeof FISHING_DATA !== "undefined" ? FISHING_DATA : null`, ctx);
+if (ok(!!FD, "FISHING_DATA が ない（js/fishing-data.js）")) {
+  const PL = ["pond", "river", "stream", "beach", "harbor"], SE = ["spring", "summer", "autumn", "winter"], TI = ["morning", "day", "evening", "night", "late"];
+  const width = (t) => [...t].reduce((a, c) => a + (c.charCodeAt(0) < 0x2000 ? 0.5 : 1), 0);
+  const text = (t, where, maxW) => { const r = String(t || "").split("\n"); ok(!!t && r.length <= 2 && r.every((x) => width(x) <= maxW) && !/[a-zA-Z]{2,}/.test(t), `${where}: 文が ない／2行を こえる／1行が 長い「${t}」`); };
+  const vals = (v, all, where) => ok(v === "all" || (Array.isArray(v) && v.length > 0 && v.every((x) => all.includes(x))), `${where}: 値が 不正 ${JSON.stringify(v)}`);
+  ok(FD.fish.length === 50 && new Set(FD.fish.map((f) => f.id)).size === 50, `魚が 50しゅ で ない／id が かさなる（${FD.fish.length}）`);
+  const weathers = Object.keys(R.Weather.kinds);
+  for (const f of FD.fish) {
+    const w = `魚 ${f.id}`;
+    ok(PL.includes(f.place) && (f.also || []).every((a) => PL.includes(a) && a !== f.place), `${w}: place／also が 不正`);
+    vals(f.season, SE, w + " の season"); vals(f.time, TI, w + " の time"); if (f.weather) vals(f.weather, weathers, w + " の weather");
+    ok(f.rarity >= 1 && f.rarity <= 5 && f.power >= 1 && f.power <= 5 && f.size[0] > 0 && f.size[1] >= f.size[0] && f.sell > 0 && f.art && f.art.h > 0, `${w}: rarity／power／size／sell／art が 不正`);
+    text(f.desc, w + " の 説明", 22); text(f.fact, w + " の まめちしき", 23);
+  }
+  // どの 場所・季節・時間でも つれる（でんせつ rarity 5 と unlock を のぞいて 2しゅ いじょう。見本 build-fishing.mjs と おなじ）
+  const thin = vm.runInContext(`(()=>{const out=[];for(const p of ${JSON.stringify(PL)})for(const s of ${JSON.stringify(SE)})for(const t of ${JSON.stringify(TI)}){const n=Fishing.pool(p,{season:s,time:t,weather:"clear",rodPower:1},0).filter(x=>x.f.rarity<=4).length;if(n<2)out.push(p+"/"+s+"/"+t+":"+n);}return out;})()`, ctx);
+  ok(!thin.length, `つれる 魚が 2しゅ より すくない ときが ある: ${thin.join(", ")}`);
+  // 釣り場: マップが あって、水べ（'~' の となりの 歩ける マス）が 3 いじょう
+  for (const [map, sp] of Object.entries(FD.spots)) {
+    ok(PL.includes(sp.place) && !!R.MAP_DEFS[map], `釣り場 ${map}: マップ／place が 不正`);
+    if (!R.MAP_DEFS[map]) continue;
+    const shore = vm.runInContext(`(()=>{const m=new WorldMap(${JSON.stringify(map)}),d=MAP_DEFS[${JSON.stringify(map)}];let n=0;for(let y=1;y<m.h-1;y++)for(let x=1;x<m.w-1;x++){if(m.isSolid(x,y))continue;if([[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>(d.rows[y+dy]||"")[x+dx]==="~"))n++;}return n;})()`, ctx);
+    ok(shore >= 3, `釣り場 ${map}: 水べの マスが ${shore}（3 いじょう）`);
+  }
+  for (const p of PL) ok(Object.values(FD.spots).some((s) => s.place === p), `${p} の 釣り場が ない`);
+  ok(FD.rods.some((r) => r.id === "rod") && FD.rods.some((r) => r.id === "rod_pro"), "つりざお（rod・rod_pro）が ない");
+  // 絵: 50しゅ × ずかん・くわしい ページの uid と かげ 5つ。ちがう uid の 絵で id が かさならない
+  const arts = vm.runInContext(`FISHING_DATA.fish.map(f=>({id:f.id,d:FishArt.svg(f.art,{uid:"d"+f.id,flip:!!f.flip}),x:FishArt.svg(f.art,{uid:"x"+f.id,flip:!!f.flip})}))`, ctx);
+  const seenIds = new Set();
+  for (const a of arts) {
+    svgOk(a.d, `魚 ${a.id} の 絵`); svgOk(a.x, `魚 ${a.id} の 絵（くわしい ページ）`);
+    for (const svg of [a.d, a.x]) for (const m of svg.matchAll(/\bid="([^"]+)"/g)) { ok(!seenIds.has(m[1]), `魚の 絵の id ${m[1]} が かさなる`); seenIds.add(m[1]); }
+  }
+  for (const k of ["S", "M", "L", "XL", "thin"]) svgOk(vm.runInContext(`FishArt.shadow(${JSON.stringify(k)})`, ctx), `魚の かげ ${k}`);
+  // ずかんの きろく（Fishing.record）と、つりざおが ない あいだは ② の 釣りの 話が 出ない
+  const dexFlow = vm.runInContext(`(()=>{const old=Save.d;Save.d=Save.fresh();const st=Save.d.fish;
+    const first=Fishing.record("magoi",40.5)===true,second=Fishing.record("magoi",62)===false;
+    const rec=st.dex.magoi.n===2&&st.dex.magoi.max===62&&st.keep.magoi===2&&st.caught===2&&st.dex.magoi.first===U.today();
+    const noRod=!TownFolk.features().fishing;st.rod=1;const rod=TownFolk.features().fishing;
+    const sizes=FISHING_DATA.fish.every(f=>{const c=Fishing.size(f);return c>=f.size[0]&&c<=f.size[1];});
+    Save.d=old;return {first,second,rec,noRod,rod,sizes};})()`, ctx);
+  ok(dexFlow.first && dexFlow.second && dexFlow.rec, "さかな ずかんの きろく（かず・いちばん 大きい・いけす）が 不正");
+  ok(dexFlow.noRod && dexFlow.rod, "つりざおの ない あいだも ② の 釣りの 話・おねがいが 出る");
+  ok(dexFlow.sizes, "魚の 大きさが データの はんいを こえる");
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

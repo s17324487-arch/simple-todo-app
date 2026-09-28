@@ -9,7 +9,8 @@ const TownFolk = {
   // あとから できる しせつ・あそび（feature: の 条件）。できたかどうかは グローバル名と マップで 見る
   features() {
     return {
-      fishing: typeof FISHING_DATA !== "undefined", fossil: typeof FOSSIL_DATA !== "undefined",
+      // 釣りは つりざおを もって から（③ の 1番で FISHING_DATA だけ 先に 入る。つりざおは 2番で もらえる）
+      fishing: typeof FISHING_DATA !== "undefined" && ((Save.d.fish || {}).rod || 0) > 0, fossil: typeof FOSSIL_DATA !== "undefined",
       aquarium: !!MAP_DEFS.aquarium, museum: !!MAP_DEFS.museum, range: typeof RANGE_DATA !== "undefined",
       heiwadai2: ((MAP_DEFS.heiwadai || {}).rows || []).length >= 60, // 平和台 v0.2（64×68）が できたら
     };

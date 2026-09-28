@@ -89,11 +89,21 @@ fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
 
 ## 9. PR の 分けかた
 
-1. **魚の データ・絵・ずかん**: `js/fishing-data.js`・`js/fish-art.js`（index.html と sw.js の 両方）、ずかんの「さかな」タブ、`fishGive` で 見られる。
+1. ✅ **魚の データ・絵・ずかん**（済み: Claude Code。下の「実装メモ」）: `js/fishing-data.js`・`js/fish-art.js`（index.html と sw.js の 両方）、ずかんの「さかな」タブ、`fishGive` で 見られる。
 2. **釣りざおと 釣りの 画面**: `Save.fish`・ペンから もらう・「つる」ボタン・`FishingScene`・PokaDebug・スモーク。
 3. **いけす・うる・つなぎ**: いけすの 上限・うる・りっぱな つりざお（みなとの マルシェ）・② との つなぎ。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
+
+## 実装メモ（Claude Code が 作った ときの きまり。つぎの 番号も これに あわせる）
+
+- 1番: `js/fishing-data.js`（そのまま コピー）・`js/fish-art.js`（見本 `FishArtRef` を 名前だけ `FishArt` に して そのまま）・`js/fishing.js`（`Fishing`）を index.html・sw.js の `townsfolk.js` の あと、`debug.js` の まえに 置いた。
+- `Fishing` に 見本 `FishingRef` の `pool`・`pick`・`size`・`shadowOf`（おなじ 計算。`data` の 引数は なくして `FISHING_DATA` を 見る）と、`context()`（時間の くぎりは ①② と おなじ `U.dayPart()`・`Seasonal.current().id`・`Weather.kind()`）を 入れた。`FishingRef.period` は 移さない。**2番で `Game`・`SCENE`・`tint`・`heroSize`・`draw` を `Fishing` に 足し、`FishingScene` を 作る。**
+- `Save.fresh().fish`（`{ rod: 0, dex: {}, keep: {}, caught: 0 }`）は ずかんで つかうので 1番で 足した（2番では 足さない）。つった ときは `Fishing.record(id, cm)`（ずかんの `n`・`max`・`first` と `keep`・`caught`。はじめてなら true）。
+- ずかん: メニューの「ずかん」の 上に「まもの／さかな」（`.dex-kinds`）。さかなは `Fishing.dex(el)`（見本 ⑥）、つった 魚を おすと `Fishing.detail(id)`（⑦・`UI.modal`）。NEW は「きょう はじめて つった」（`dex[id].first === U.today()`。セーブは ふやさない）。DOM の 魚の 絵は `FishArt.svg(art, { uid })` を じかに 入れる（uid は ずかん `"d"+id`・くわしい ページ `"x"+id`。`Fishing.svgs` に 1回だけ 作って おく）。canvas で 描く ときは `SvgCache` の `"fish:"+id` と `"fishshadow:"+kind`（2番）。
+- しぼりこみの ボタンは 44px に して、375 はばでも 6つ ならぶ ように grid に した（見本は 36px・よこ スクロール）。
+- **② との きまり**: `TownFolk.features().fishing` は `FISHING_DATA` が あって **つりざおを もって いる（`Save.d.fish.rod > 0`）とき**だけ true（1番では まだ さおが もらえないので、アユの おねがいや 釣りの セリフは 出ない）。2番で ペンから さおを もらうと 出る ように なるので、**2番で つれた ときの `TownFolk.signal({ do: "catch", fish })` と、`TownFolk.have().fish` を `Save.d.fish.keep` に する ところまで 入れる**（アユを わたす おねがいが すすむ ように）。いけすから へらす・物々交換の さかなは 3番。
+- テストの 入口: `PokaDebug.fishGive(id, n)`（大きさは `Fishing.size`。ずかんの きろくと `keep` を かえす）。`rod(n)`・`fishing()`・`fishState()`・`fishInput()`・`fishSkip()` は 2番。
 
 ## 10. やらないこと
 
