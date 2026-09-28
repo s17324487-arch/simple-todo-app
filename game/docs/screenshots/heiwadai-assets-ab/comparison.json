@@ -1,0 +1,1136 @@
+{
+  "variants": 175,
+  "maxChannelDifference": 0,
+  "rows": [
+    {
+      "asset": "bld.mansion",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.office",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.koban",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.shop.florist",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.shop.books",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.shop.cafe",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.shop.wagashi",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.post",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.apartment",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.nursery",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.house.modern",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.house.modern",
+      "opts": {
+        "roof": [
+          "p-kawara-brown",
+          "#8B5E48"
+        ],
+        "wall": "#FBF3E6"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.house.modern",
+      "opts": {
+        "roof": [
+          "p-slate",
+          "#5F6A72"
+        ]
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.house.modern",
+      "opts": {
+        "door": "#5C7C8C",
+        "roof": [
+          "p-metal-roof",
+          "#8FA1AE"
+        ],
+        "wall": "#EEF3E6"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.house.hiraya",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.house.old",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.conbini",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.gas",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.bikeshed",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.toilet",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.bicycle",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#F1F3F4",
+        "dir": "n"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#3B78C4",
+        "dir": "s"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#F1F3F4",
+        "dir": "s"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#D8433C",
+        "dir": "n"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#3A3F44",
+        "dir": "n"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#8FC5E8",
+        "dir": "n"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#C9CED3",
+        "dir": "n"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#6FAE7E",
+        "dir": "s"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#E8D9B8",
+        "dir": "e"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#3B78C4",
+        "dir": "n"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.car",
+      "opts": {
+        "c": "#3A3F44",
+        "dir": "w"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.taxi",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.taxi",
+      "opts": {
+        "dir": "e"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.bus",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.bus",
+      "opts": {
+        "to": "くうこう"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.sign.stop",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.sign.cross",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.bench",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.trash",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.mailbox",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.phone",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.mirror",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.bollard",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.guardrail",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.planter",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.flowerbed",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.big",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.big",
+      "opts": {
+        "rope": true
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.big",
+      "opts": {
+        "c": "#4F8F57"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.sakura",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.pine",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.pine",
+      "opts": {
+        "c": "#4E9A52",
+        "flip": true
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.pine",
+      "opts": {
+        "c": "#4E9A52",
+        "flip": false
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.pine",
+      "opts": {
+        "flip": false
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.pine",
+      "opts": {
+        "flip": true
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.pine",
+      "opts": {
+        "c": "#5E9E5A",
+        "flip": false
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.pine",
+      "opts": {
+        "c": "#5E9E5A"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.hedge",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.hedge",
+      "opts": {
+        "len": 10
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.hedge",
+      "opts": {
+        "len": 8
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.hedge",
+      "opts": {
+        "dir": "v",
+        "len": 6
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.hedge",
+      "opts": {
+        "dir": "v",
+        "len": 11
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.hedge",
+      "opts": {
+        "len": 20
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.hedge",
+      "opts": {
+        "dir": "v",
+        "len": 19
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.hedge",
+      "opts": {
+        "len": 2
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.hedge",
+      "opts": {
+        "dir": "v",
+        "len": 4
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.shrub",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.shrub",
+      "opts": {
+        "flower": false
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.shrub",
+      "opts": {
+        "flower": true
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.shrub",
+      "opts": {
+        "c": "#4E9A52",
+        "flip": true
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.shrub",
+      "opts": {
+        "c": "#6AAE58",
+        "flip": false
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.tactile",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "shrine.lantern",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "shrine.komainu",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "shrine.komainu",
+      "opts": {
+        "flip": true
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "shrine.chozuya",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "shrine.ema",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "shrine.fence",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.sandbox",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.jungle",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.pond",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.bridge",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.drink",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.clock",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.dokan",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "rail.canopy",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 1
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 2
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 3
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 4
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 5
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 6
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 7
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 8
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 9
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 10
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 11
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 12
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 13
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 14
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 15
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 16
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 30
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 34
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 38
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 42
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 46
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 58
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 62
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 66
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 70
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 74
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bg.roofs",
+      "opts": {
+        "seed": 78
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.famires",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.wheelstop",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.kei",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.kei",
+      "opts": {
+        "dir": "s"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "veh.kei",
+      "opts": {
+        "dir": "e"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "dandelion",
+        "seed": 161
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "clover",
+        "seed": 86
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "grass",
+        "seed": 177
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "dandelion",
+        "seed": 160
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "grass",
+        "seed": 182
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "clover",
+        "seed": 110
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "grass",
+        "seed": 70
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "grass",
+        "seed": 180
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "grass",
+        "seed": 194
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "stone",
+        "seed": 193
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tuft",
+      "opts": {
+        "kind": "dandelion",
+        "seed": 184
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.arcade_sign",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.bunting",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.bunting",
+      "opts": {
+        "len": 6,
+        "sag": 8
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.aboard",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.gacha",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.manhole",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.manhole",
+      "opts": {
+        "plain": true
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.hydrant",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.garbage",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.notice",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.jizo",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.gatepost",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.gatepost",
+      "opts": {
+        "name": "たなか"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.gatepost",
+      "opts": {
+        "c": "#CFC8BB",
+        "name": "やまだ"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.gatepost",
+      "opts": {
+        "c": "#E6E1D6",
+        "name": "すずき"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.gatepost",
+      "opts": {
+        "name": "さとう"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.carport",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.carport",
+      "opts": {
+        "car": "#D8433C",
+        "dir": "s"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.carport",
+      "opts": {
+        "car": "#8FC5E8",
+        "dir": "s"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.laundry",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.pots",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.taxistand",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.bikerack",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.bikerack",
+      "opts": {
+        "cols": [
+          "#8E24AA",
+          "#FDD835",
+          "#3E2723",
+          "#1E88E5"
+        ]
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.bikerack",
+      "opts": {
+        "cols": [
+          "#E53935",
+          "#FFFFFF",
+          "#1E88E5",
+          "#43A047"
+        ]
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "rail.pole",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.azumaya",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.tetsubo",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.spring",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.spring",
+      "opts": {
+        "kind": "panda"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.spring",
+      "opts": {
+        "kind": "zou"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.spring",
+      "opts": {
+        "kind": "uma"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.seesaw",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.tires",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.sign",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.sign",
+      "opts": {
+        "name": "ようこそ へいわだい"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.sign",
+      "opts": {
+        "name": "さつき こうえん"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.ubollard",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.pigeons",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.pigeons",
+      "opts": {
+        "seed": 3
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.guidesign",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.guidesign",
+      "opts": {
+        "lines": [
+          [
+            "↑",
+            "へいわだい えき"
+          ],
+          [
+            "←",
+            "さつき どおり"
+          ]
+        ]
+      },
+      "pixelDifference": 0
+    }
+  ]
+}

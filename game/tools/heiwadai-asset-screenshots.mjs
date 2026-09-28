@@ -31,7 +31,7 @@ try{
   writeFileSync(join(dir,'comparison.json'),JSON.stringify(comparison,null,2));
   for(let i=0;i<await page.locator('article').count();i++)await page.locator('article').nth(i).screenshot({path:join(dir,'asset-'+String(i+1).padStart(2,'0')+'.png')});
   for(const viewport of [{width:390,height:844},{width:375,height:667}]){
-    await page.setViewportSize(viewport);await page.goto(pathToFileURL(join(root,'tools/heiwadai-preview.html')).href);await page.locator('img').first().waitFor();await page.evaluate(()=>Promise.all([...document.images].map(im=>im.decode())));
+    await page.setViewportSize(viewport);await page.goto(pathToFileURL(join(root,'tools/heiwadai-preview.html')).href+'?priority='+group);await page.locator('img').first().waitFor();await page.evaluate(()=>Promise.all([...document.images].map(im=>im.decode())));
     await page.screenshot({path:join(dir,viewport.width+'-preview.png')});
   }
   console.log('Heiwadai '+group+': '+comparison.variants+' SVG variants pixel-identical; phone previews saved.');
