@@ -1,11 +1,12 @@
-// ブラウザで実際に遊んで確かめる自動テスト（Playwright + Chromium）。
+// ブラウザで実際に遊んで確かめる自動テスト（Playwright + Chromium / WebKit）。
 //   npm test              … 静的チェック + ふだんのスモークテスト（約1〜2分）
 //   npm run test:full     … 4つのお店・ボス・小さい画面・夜 もふくむ（約4〜6分）、スクリーンショットも保存
 // オプション: --full（全部） --shots（tests/screenshots/ に画像を保存） --headed（画面を表示） --only=名前の一部
-// Chromium の場所を指定したいときは 環境変数 CHROMIUM_PATH。
+// --browser=webkit でWebKit。実行ファイルは CHROMIUM_PATH / WEBKIT_PATH。
+// --skip-missing はブラウザ未導入時だけ理由を表示して飛ばす（CIでは使わない）。
 // ゲーム内部の変数にはなるべく触らず、js/debug.js の PokaDebug と 実際のタップ操作で進める。
-import { chromium } from "playwright";
-import { mkdirSync, readdirSync, rmSync, readFileSync } from "node:fs";
+import { chromium, webkit } from "playwright";
+import { mkdirSync, readdirSync, rmSync, readFileSync, existsSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -17,13 +18,25 @@ const FULL = argv.includes("--full");
 const SHOTS = argv.includes("--shots") || FULL;
 const HEADED = argv.includes("--headed");
 const ONLY = (argv.find((a) => a.startsWith("--only=")) || "").slice(7);
-const SHOT_DIR = resolve(HERE, "screenshots");
+const ENGINE = (argv.find(a=>a.startsWith("--browser=")) || "--browser=chromium").slice(10);
+if (!["chromium","webkit"].includes(ENGINE)) throw new Error("--browser は chromium または webkit を指定してください");
+const BROWSER_TYPE = ENGINE === "webkit" ? webkit : chromium;
+const EXECUTABLE = process.env[ENGINE === "webkit" ? "WEBKIT_PATH" : "CHROMIUM_PATH"] || BROWSER_TYPE.executablePath();
+if (!existsSync(EXECUTABLE)) {
+  const msg = `${ENGINE} がありません。game/ で npx playwright install ${ENGINE} を実行してください。`;
+  if (argv.includes("--skip-missing")) { console.log("SKIP: " + msg); process.exit(0); }
+  throw new Error(msg);
+}
+const SHOT_DIR = resolve(HERE, "screenshots", ...(ENGINE === "webkit" ? ["webkit"] : []));
 mkdirSync(SHOT_DIR, { recursive: true });
 // 前回の画像が残っていると まぎらわしいので消す（--shots のときは全部、ふだんは失敗画像 FAIL_*.png だけ）
 for (const f of readdirSync(SHOT_DIR)) if (f.endsWith(".png") && (SHOTS || f.startsWith("FAIL_"))) rmSync(join(SHOT_DIR, f));
 
 const { server, url } = await serve({ port: 0, quiet: true });
-const browser = await chromium.launch({ headless: !HEADED, executablePath: process.env.CHROMIUM_PATH || undefined });
+let browser;
+try { browser = await BROWSER_TYPE.launch({ headless: !HEADED, executablePath: EXECUTABLE }); }
+catch(e) { server.close(); throw e; }
+console.log("検証ブラウザ: " + ENGINE);
 const results = [];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -1282,6 +1295,7 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
 
 await browser.close();
 server.close();
+if (!results.length) { console.error("検証対象がありません。--only の名前を確認してください。"); process.exit(1); }
 const bad = results.filter((r) => !r.ok);
 console.log(`\n${bad.length ? "✗" : "✓"} ${results.length - bad.length}/${results.length} シナリオ成功${SHOTS ? `（スクリーンショット: tests/screenshots/）` : ""}`);
 process.exit(bad.length ? 1 : 0);

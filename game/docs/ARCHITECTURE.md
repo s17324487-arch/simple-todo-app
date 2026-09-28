@@ -670,3 +670,6 @@ TOWN-03で `heiwadai-assets-ab.js` を追加し、107種類・236パターンを
 ## ver2: びようしつ
 
 `mg-groom.js` の GroomTask は指の移動線分を4px刻みで検査し、見本の輪郭に近い部分をカット済みにする。見本の到達率60点、3か所の乾燥20点、リボン20点から、はみ出しと時間の減点を引く。乾燥は押している間の実ゲーム時間で進む。Lvで輪郭・点数・許容幅・制限時間を変える。新規ショップは Save.fresh.shops.groom に追加。シティの建物 city_gallery のIDを保持して店の入口に変更し、旧位置が重なる場合は既存の安全な位置への補正を使う。PokaDebug.mg().order は線・乾燥位置をCSS座標で返す。
+
+### WebKit のスモークテスト（T-02）
+`npx playwright install --with-deps webkit` の後、`npm run test:webkit` / `npm run test:webkit:full` を実行する。`tests/smoke.mjs --browser=webkit` はChromiumと同じPokaDebug/入力/シナリオを使用し、画像を `tests/screenshots/webkit/` に分ける。独自実行ファイルは `WEBKIT_PATH`。導入できない環境に限り `--skip-missing` で未導入を明示して終了できる（CIには付けない）。これは実機Safari/iPhoneの確認を代替しない。GitHub Actionsは両エンジンの全シナリオを必須として実行する。
