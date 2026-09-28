@@ -1,0 +1,404 @@
+{
+  "variants": 61,
+  "maxChannelDifference": 0,
+  "rows": [
+    {
+      "asset": "bld.station",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.supermarket",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.shrine",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.shop.greengrocer",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.shop.bakery",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.shop.diner",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.shop.furniture",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "bld.sento",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.vending",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.vending",
+      "opts": {
+        "c": "#2E6DB4"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.vending",
+      "opts": {
+        "c": "#D8433C"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.vending",
+      "opts": {
+        "c": "#F4F4F2"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.pole",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.pole",
+      "opts": {
+        "trans": true
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.pole",
+      "opts": {
+        "trans": false
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.lamp",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.signal",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.signal",
+      "opts": {
+        "flip": true
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.busstop",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.busstop",
+      "opts": {
+        "no": "1"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.busstop",
+      "opts": {
+        "no": "2"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.busstop",
+      "opts": {
+        "no": "3"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.street",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.street",
+      "opts": {
+        "c": "#4E9A52",
+        "flip": false
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.street",
+      "opts": {
+        "c": "#5E9E5A",
+        "flip": false
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.street",
+      "opts": {
+        "c": "#6AAE58",
+        "flip": false
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.street",
+      "opts": {
+        "c": "#4E9A52",
+        "flip": true
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.street",
+      "opts": {
+        "c": "#6AAE58"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.street",
+      "opts": {
+        "c": "#4F9A52"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "nat.tree.street",
+      "opts": {
+        "c": "#5E9E5A"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "shrine.torii",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.swing",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.slide",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.fountain",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "rail.train",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.arcade_gate",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.nobori",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.nobori",
+      "opts": {
+        "c": "#3BAA6A",
+        "t": "おでん"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.nobori",
+      "opts": {
+        "c": "#E53935",
+        "t": "やさい"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.nobori",
+      "opts": {
+        "c": "#F28C28",
+        "t": "やきたて"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.nobori",
+      "opts": {
+        "c": "#D9607E",
+        "t": "はな"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.nobori",
+      "opts": {
+        "c": "#E53935",
+        "t": "ランチ"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.nobori",
+      "opts": {
+        "c": "#43A047",
+        "t": "だんご"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.nobori",
+      "opts": {
+        "c": "#D84A3F",
+        "t": "セルフ"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.nobori",
+      "opts": {
+        "c": "#F2B23A",
+        "t": "せんしゃ"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.stall",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.stall",
+      "opts": {
+        "c": "#E53935",
+        "label": "たこやき"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.stall",
+      "opts": {
+        "c": "#1E88E5",
+        "label": "たいやき"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.suzuran",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.suzuran",
+      "opts": {
+        "c": "#3D8FC6"
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.wall",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.wall",
+      "opts": {
+        "kind": "fence",
+        "len": 64
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.wall",
+      "opts": {
+        "kind": "fence",
+        "len": 16
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.wall",
+      "opts": {
+        "kind": "block",
+        "len": 1
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.wall",
+      "opts": {
+        "kind": "wood",
+        "len": 2
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.wall",
+      "opts": {
+        "dir": "v",
+        "kind": "fence",
+        "len": 4
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.wall",
+      "opts": {
+        "kind": "fence",
+        "len": 1
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.wall",
+      "opts": {
+        "kind": "fence",
+        "len": 2
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.wall",
+      "opts": {
+        "kind": "fence",
+        "len": 6
+      },
+      "pixelDifference": 0
+    },
+    {
+      "asset": "prop.mapboard",
+      "opts": {},
+      "pixelDifference": 0
+    },
+    {
+      "asset": "park.fujidana",
+      "opts": {},
+      "pixelDifference": 0
+    }
+  ]
+}

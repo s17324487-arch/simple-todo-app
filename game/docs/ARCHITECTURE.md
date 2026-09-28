@@ -647,3 +647,7 @@ PokaDebug.music(name|null)で試聴/停止、引数なしは再生状態。music
 
 試聴専用の `?audio-preview=1` はDOMContentLoadedでSave.fresh()をメモリに用意するだけで、Game.bootを呼ばない。保存読込・自動保存・visibility/pagehide保存の登録をしない。PokaDebug.persistedSave()でlocalStorageの内容を読み、通常ゲームから試聴→21秒待機→閉じる前後で保存内容の完全一致を検証する。
 mg() の score は採点中の点数、歯医者の order.mistakes は誤操作数。テスト失敗時に残り秒数と合わせて表示する。動くばい菌はPokaDebugで座標を取得した同じフレーム内でDOMのPointerEventを送り、テスト環境の通信遅延をゲームの操作ミスにしない。
+
+## 平和台の見本SVG
+
+`heiwadai-art.js` と `heiwadai-assets-s.js` は WorldArt のあとに読み込み、見本の26種類・61パターンを登録する。元のSVGはtoolsから生成し、実行時はclassic scriptのデータを読むだけ。`HeiwadaiArt.model()` の originX/originY は元の足もとからの描画位置、footW/footHは地面の占有寸法。通常のviewBoxは asset-bbox.json を使用。座標・時刻をキーに含めない。素材の優先度とID対応は ASSET_KINDS.md、比較の再現は node tools/heiwadai-asset-screenshots.mjs。

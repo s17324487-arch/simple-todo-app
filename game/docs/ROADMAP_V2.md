@@ -178,7 +178,7 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - 受け入れ条件: CODEX_TASK.md「PR の 分けかた」1 の とおり。道の ない 町の 見た目は 変わらない。
 - `tools/roads-preview.html` / `PokaDebug.roadPreview` で見本①②と同じ座標を確認。`Tiles.chunk` の世界座標描画、見本SVGの模様、マスの判定と道路の接続、スマホ2サイズを検証。現在の平和台48×44の配置とセーブは維持（町の密度の合格は TOWN-04）。
 
-### [ ] TOWN-02 アセット 優先度 S を WorldArt へ（見本の SVG を そのまま）
+### [x] TOWN-02 アセット 優先度 S を WorldArt へ（見本の SVG を そのまま）
 - 受け入れ条件: 部品の 一覧ページで `img/asset_sheet_*.png` と 同じ 形・色・細部。`SvgCache` の キーが 有限。
 
 ### [ ] TOWN-03 アセット 優先度 A・B を WorldArt へ
