@@ -24,7 +24,16 @@ const VenueHallArt={
     else a=r(7,25,114,48,'#D2C1A4')+r(2,17,124,12,'#EEE4D0')+p('M15 48h98m-51-17v37');
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -4 128 82">${a}</svg>`;
   },
+  floorCache:[],
   floor(ctx,r,floor,time){
+    // 床・看板・吹き抜けは静止画。大きなモールでも毎フレーム全タイルを描き直さない。
+    const ready=!r.hole||SvgCache.get('venue:fountain',()=>this.svg('fountain'),256,164);
+    if(!ready){this.paintFloor(ctx,r,floor,time);return;}
+    const scale=Math.min(2,G.px||1);let hit=this.floorCache.find(c=>c.room===r&&c.floor===floor&&c.scale===scale);
+    if(!hit){const canvas=document.createElement('canvas');canvas.width=r.w*32*scale;canvas.height=r.h*32*scale;const ink=canvas.getContext('2d');ink.scale(scale,scale);this.paintFloor(ink,r,floor,time);hit={room:r,floor,scale,canvas};this.floorCache.push(hit);if(this.floorCache.length>2)this.floorCache.shift();}
+    ctx.drawImage(hit.canvas,0,0,r.w*32,r.h*32);
+  },
+  paintFloor(ctx,r,floor,time){
     const W=r.w*32,H=r.h*32;ctx.fillStyle=r.wall||'#E7E6D9';ctx.fillRect(0,0,W,H);ctx.fillStyle=r.floor||'#DBCCB4';ctx.fillRect(16,96,W-32,H-112);
     ctx.strokeStyle='#FFFFFF33';ctx.lineWidth=1;for(let y=96;y<H-16;y+=32)for(let x=16;x<W-16;x+=32){ctx.strokeRect(x,y,32,32);if(r.wood){ctx.beginPath();ctx.moveTo(x+5,y+7);ctx.lineTo(x+23,y+7);ctx.stroke();}}
     ctx.fillStyle=r.accent||'#8EA99E';ctx.fillRect(12,82,W-24,14);ctx.fillStyle=INK;ctx.textAlign='center';ctx.font='bold 19px sans-serif';ctx.fillText(r.title||'',W/2,42);ctx.font='bold 12px sans-serif';ctx.fillText(floor+'F',W/2,65);

@@ -27,9 +27,13 @@ class VenueScene {
   screen(x,y){const p=this.point(x,y);return {x:p.x-this.cam.x+G.W/2,y:p.y-this.cam.y+G.H/2};}
   walkable(x,y){const r=this.room;return x>=1&&x<r.w-1&&y>=3&&y<r.h-1&&!this.fixtures.some(f=>!f.hidden&&!f.walk&&x>=f.x&&x<f.x+f.w&&y>=f.y&&y<f.y+f.h)&&!(r.hole&&x>=r.hole.x&&x<r.hole.x+r.hole.w&&y>=r.hole.y&&y<r.hole.y+r.hole.h);}
   route(x,y){
-    if(!this.walkable(x,y))return null;const l=this.party[0],queue=[[l.tx,l.ty]],prev=new Map([[l.tx+','+l.ty,null]]);
-    for(let i=0;i<queue.length;i++){const [cx,cy]=queue[i];if(cx===x&&cy===y){const path=[];let k=x+','+y;while(prev.get(k)!==null){path.unshift(k.split(',').map(Number));k=prev.get(k);}return path;}
-      for(const [dx,dy]of Object.values(DIRS)){const nx=cx+dx,ny=cy+dy,k=nx+','+ny;if(this.walkable(nx,ny)&&!prev.has(k)){prev.set(k,cx+','+cy);queue.push([nx,ny]);}}}return null;
+    if(!this.walkable(x,y))return null;const l=this.party[0],key=l.tx+','+l.ty+':'+this.fixtures.map(f=>f.hidden?'1':'0').join('');
+    if(!this.routeCache||this.routeCache.room!==this.room||this.routeCache.key!==key){
+      const queue=[[l.tx,l.ty]],prev=new Map([[l.tx+','+l.ty,null]]);
+      for(let i=0;i<queue.length;i++){const [cx,cy]=queue[i];for(const [dx,dy]of Object.values(DIRS)){const nx=cx+dx,ny=cy+dy,k=nx+','+ny;if(this.walkable(nx,ny)&&!prev.has(k)){prev.set(k,cx+','+cy);queue.push([nx,ny]);}}}
+      this.routeCache={key,room:this.room,prev};
+    }
+    const prev=this.routeCache.prev;let k=x+','+y;if(!prev.has(k))return null;const path=[];while(prev.get(k)!==null){path.unshift(k.split(',').map(Number));k=prev.get(k);}return path;
   }
   walkTo(x,y,action=null){const path=this.route(x,y);if(!path)return false;this.path=path;this.pending=action;return true;}
   request(f){
@@ -78,7 +82,7 @@ class VenueScene {
   render(ctx){
     ctx.fillStyle='#DDD7CC';ctx.fillRect(0,0,G.W,G.H);
     const layer=(room,fixtures,party,cam,floor,offset)=>{ctx.save();ctx.beginPath();ctx.rect(0,offset,G.W,G.H);ctx.clip();ctx.translate(G.W/2-cam.x,G.H/2-cam.y+offset);VenueHallArt.floor(ctx,room,floor,this.clock);
-      const list=fixtures.filter(f=>!f.hidden).map(f=>({z:(f.y+f.h)*32,draw:()=>VenueHallArt.fixture(ctx,f,this.clock)}));
+      const list=fixtures.filter(f=>!f.hidden&&f.x*32<cam.x+G.W/2+64&&(f.x+f.w)*32>cam.x-G.W/2-64&&(f.y+f.h)*32>cam.y-G.H/2-32&&f.y*32<cam.y+G.H/2+128).map(f=>({z:(f.y+f.h)*32,draw:()=>VenueHallArt.fixture(ctx,f,this.clock)}));
       party.forEach((p,i)=>list.push({z:p.y*32+27,draw:()=>{const q=this.point(p.x,p.y),id=Save.d.order[i],c=Save.d.chars[id];ctx.fillStyle='#45392B22';ctx.beginPath();ctx.ellipse(q.x,q.y,15,5,0,0,7);ctx.fill();Chara.draw(ctx,id,{pose:p.pose(),dir:p.dir,face:this.sitting>0?'happy':'normal',outfit:c.outfit,color:c.color},q.x,q.y+(this.sitting>0?5:0),46);}}));list.sort((a,b)=>a.z-b.z).forEach(o=>o.draw());ctx.restore();};
     let offset=0;if(this.lift>0&&this.previous){const t=U.clamp(1-this.lift/1.2,0,1),ease=t*t*(3-2*t),p=this.previous;offset=(1-ease)*G.H*this.liftDirection;layer(p.room,p.fixtures,p.party,p.cam,p.floor,-ease*G.H*this.liftDirection);}
     layer(this.room,this.fixtures,this.party,this.cam,this.floor,offset);
