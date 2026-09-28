@@ -20,6 +20,7 @@ class StoreScene {
     const retail=BUY_SHOPS[p.shop];
     this.owner=retail?{...retail.keeper,name:retail.keeperName}:SHOP_OWNERS[p.shop];
     this.name=(retail||SHOPS[p.shop]).name;
+    if(p.shop==='burger'&&this.back.map==='heiwadai')this.name='マックさん';
     this.fixtures=this.design.fixtures.map(([kind,x,y,w,d,label])=>({kind,x,y,w,d,label}));
     this.fixtures.push({kind:"counter",x:4,y:2,w:3,d:1,label:"レジ"});
     this.party=Save.d.order.map((id,i)=>new Walker(5-i,p.atCounter?4:10,"up"));
@@ -83,7 +84,7 @@ class StoreScene {
       else if(pro&&picked===pro){await Fishing.buyPro(this.owner);Save.write();}
       else if(work&&picked==="おてつだいする"){
         if(Chara.IDS.some(id=>Save.d.chars[id].hunger<8))await UI.say([{who:"wanko",emo:"sad",text:"おなかが ぺこぺこだよ〜。\nごはんを たべてから おてつだい しよう。"}]);
-        else Game.goto("shop",{shop:this.shopId,back:this.back,returnStore:true});
+        else Game.goto("shop",{shop:this.shopId,back:this.back,returnStore:true,variant:this.shopId==="burger"&&this.back.map==="heiwadai"?"mac":null});
       }
     } finally { this.interacting=false; }
   }

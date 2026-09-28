@@ -2261,6 +2261,16 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg('atlas');await H.shot('map');
 },{viewport,timeout:90000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('mac-kitchen-'+viewport.width,async H=>{
+ await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');await H.dbg('teleport','heiwadai',27,32,'up');await H.idle();await H.shot('outside');
+ await H.dbg('mac',2);await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning);await H.dialogs();await H.until(()=>!!PokaDebug.macState());
+ const money=(await H.dbg('saveData')).coins;let s=await H.dbg('macState');expect(s.want.length===6&&s.buttons.every(b=>b.w>=44&&b.h>=44),'注文と操作サイズ');
+ await H.tapLabel('◀');expect((await H.dbg('macState')).plate<s.plate,'受け皿が左へ動かない');await H.tapLabel('▶');
+ await H.tapLabel('あげる');await H.until(()=>PokaDebug.macState()?.stage==='gold',12000);await H.shot('gold');await H.tapLabel('ひきあげる');s=await H.dbg('macState');expect(s.fries.score===100&&s.fries.state==='done','音の合図でカリッと揚がらない');
+ expect(s.time>6&&s.falling.length>0,'ポテト中にバーガーが止まる');
+ await H.page.getByRole('button',{name:'おてつだいを やめる',exact:true}).click();const paused=await H.dbg('macState');await H.wait(1000);expect((await H.dbg('macState')).time===paused.time,'中止確認中に調理時計が進む');await H.page.getByRole('button',{name:'ここで やめる',exact:true}).click();await H.until(()=>PokaDebug.mg()?.phase==='result');expect((await H.dbg('saveData')).coins===money,'未完成の注文が報酬になる');
+},{viewport,timeout:90000});
+
 server.close();
 if(LIST)process.exit(0);
 if (!results.length) { console.error("検証対象がありません。--only の名前を確認してください。"); process.exit(1); }
