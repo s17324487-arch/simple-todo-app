@@ -2174,6 +2174,18 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg('homeLayout',[]);await H.dbg('homeBubbleFixture');expect(!(await H.dbg('homeAction','wanko','read')),'家具がないのに読書する');
   await H.dbg('pause',false);
 },{viewport,timeout:180000});
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('slow-life-prices-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('coins',987504);await H.dbg('save');const before=await H.dbg('saveData'),prices=await H.dbg('shopPrices');
+  const price=(kind,id)=>prices[kind].find(p=>p.id===id).price;
+  expect(price('furniture','chair_wood')===320&&price('furniture','bed_royal')===5600&&price('wear','ribbon_pink')===150,'新しい販売価格でない');
+  expect(price('wear','crown')===0&&price('wall','wp_cream')===0&&price('food','onigiri')===20,'非売品・初期内装・食事を値上げした');
+  await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle(30000);
+  const after=await H.dbg('saveData');for(const key of ['coins','furn','wardrobe','bag','room','rooms','shops'])expect(JSON.stringify(after[key])===JSON.stringify(before[key]),'アップデートで既存財産が変わる: '+key);
+  expect(JSON.stringify(await H.dbg('shopPrices'))===JSON.stringify(prices),'再読み込みで値上げが累積する');
+  await H.dbg('store','furniture');await H.idle(30000);await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'かいものを する',exact:true}).click();await H.shot('catalog');
+  const card=H.page.locator('.modal-wrap .card:not(.on)').first();const cost=Number((await card.locator('.price').textContent()).replace(/[^0-9]/g,''));expect(cost>=320,'家具屋の表示に値上げが反映されない');await card.click();await H.shot('confirm');await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.wait(250);
+  const saved=await H.dbg('persistedSave');expect(saved.coins===before.coins-cost,'表示価格と差し引き額が違う');expect(JSON.stringify(saved.furn)!==JSON.stringify(before.furn),'購入家具を受け取れない');
+},{viewport,timeout:120000});
 for (const viewport of [{width:390,height:844},{width:375,height:667}]) await scenario('おてつだいの途中終了（'+viewport.width+'）', async H=>{
   await H.newGameFast();await H.dbg('coins',12345);
   const start=async()=>{await H.dbg('store','crepe');await H.idle();await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==='work');};
