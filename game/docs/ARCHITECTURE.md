@@ -668,3 +668,7 @@ TOWN-03で `heiwadai-assets-ab.js` を追加し、107種類・236パターンを
 `save-backup.js` は設定メニューの前に読み込む。SaveBackup.encode/decode がゲーム識別子・書式1のJSONを扱い、既知の型・部屋・所持数・3人・中断盤面を検証してからコピーへ Save.migrate を適用する。未知の追加項目も保持する。確認後の install は localStorage へ書き込み、同じ文字列を読み戻せたときだけ Save.d を置き換える。失敗時は元の保存文字列を戻す。読み込みはおうち・町・タイトルのみ。KEY と SCHEMA は変更しない。
 
 PokaDebug.backupText / backupDecode はテストで同じ処理を使う入口。`tools/check-save-backup.mjs` が旧セーブ・未知の追加項目・不正入力・容量不足を検査し、smoke はダウンロード→はじめから→キャンセル→ファイル復元をスマホ2サイズで検証する。
+
+## ver2: ケーキ屋
+
+`mg-cake.js` の CakeTask は TaskBase を継承。want/made の土台・クリーム・果物・個数・ろうそくを比較し、Lv1は果物、Lv2は土台とクリーム、Lv3以降はろうそくも選択する。Lv3〜5は注文が7/5/3.5秒で隠れ、再表示は既存の8点減点。CakeTaskの描画はCanvasと有限の果物アイコンのみ。店は町(10,32)の南向き入口から既存のStoreSceneへ入る。Save.shops.cake は追加項目で、旧所持金や既存の店記録は変えない。PokaDebug.mg().order に段階・注文・選択肢の名前を返す。

@@ -148,6 +148,13 @@ function helpers(page, name) {
         if (shop === "crepe") {
           for (const nm of st.order.want) await H.tapLabel(nm);
           await H.tapLabel("できあがり！");
+        } else if(shop==='cake'){
+          for(let step=0;step<4;step++){
+            const m=await H.dbg('mg'),o=m.order;if(m.phase!=='work')break;
+            if(o.step==='fruit'){await H.tapLabel(o.labels.fruit);await H.tapLabel(o.labels.count);}
+            else await H.tapLabel(o.labels[o.step]);
+            const now=await H.dbg('mg');if(c===0&&!now.buttons.some(b=>b.label==='つぎへ ▶'))await H.shot('cake_prepared');await H.tapLabel(now.buttons.some(b=>b.label==='つぎへ ▶')?'つぎへ ▶':'できあがり！');
+          }
         } else if (shop === "florist") {
           for (const { name: nm, n } of st.order.want) for (let i = 0; i < n; i++) await H.tapLabel(nm);
           await H.tapLabel("リボンを えらぶ ▶");
@@ -345,6 +352,17 @@ await scenario("クレープやさん（正しく作れば ◎）", async (H) =>
   const c1 = await H.eval(() => Save.d.coins);
   expect(c1 > c0, "コインが増えていない");
 });
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('cake-shop-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('coins',987504);const before=await H.dbg('saveData');
+  const layout=await H.dbg('townLayout','town'),door=layout.doors.find(d=>d.id==='cake');expect(door,'町にケーキ屋がない');
+  await H.dbg('teleport','town',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);
+  await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),20000);expect((await H.dbg('storeState')).party.length===3,'3人で入れない');await H.shot('interior');
+  await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle());
+  const ranks=await H.playShop('cake',3);expect(ranks.length===6&&ranks.every(r=>r===3),'ケーキの正解で◎にならない: '+JSON.stringify(H.shopGrades));
+  const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.cake.plays===1,'報酬・お店の記録が残らない');
+  for(const k of ['bag','wardrobe','furn','rooms'])expect(JSON.stringify(before[k])===JSON.stringify(after[k]),'ケーキ屋で既存の所持品が変わる');
+},{viewport,full:viewport.width===375,timeout:150000});
 
 for (const shop of ["dentist", "bakery", "florist"]) {
   await scenario(`${shop}（Lv3・正しく操作すれば ◎）`, async (H) => {
