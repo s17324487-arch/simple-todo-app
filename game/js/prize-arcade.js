@@ -66,7 +66,15 @@ class PrizeArcadeScene{
     this.action=UI.btn('おろす',()=>this.drop(),'yellow');controls.append(this.action);this.bar.append(controls);
     this.backButton=UI.btn('店内に もどる',()=>this.leave(),'wide');this.bar.append(this.backButton);UI.root.append(this.bar);this.refresh();
   }
-  refresh(){const r=this.round;this.status.textContent=r.done?(r.win?'とれた！ '+VenueHalls.item(this.machine.prize).name+' ×'+this.machine.qty:'おしい！ また チャレンジしよう。'):`あと ${Math.max(0,40-r.time).toFixed(1)}秒 ／ ${r.type==='tripod'?'支え '+r.score+'/2本・操作 '+r.tries+'/6回':r.type==='sweet'?'押し出し '+r.score.toFixed(1)+'・'+Math.floor(r.tries/2)+'/3セット':'左右・前後を あわせて タイミングよく！'}`;this.action.textContent=r.type==='sweet'?(r.phase==='aim'?'すくう':'おとす'):r.type==='tripod'?'とめる':'おろす';this.action.disabled=r.done;this.backButton.textContent=r.done?'店内に もどる':'中断して 店内へ';}
+  refresh(){
+    const r=this.round,text=(el,value)=>{if(el.textContent!==value)el.textContent=value;};
+    // 押している途中のDOMを作り直さない。WebKitでもクリックを取りこぼさず、連打中も1回ずつ受け付ける。
+    text(this.status,r.done?(r.win?'とれた！ '+VenueHalls.item(this.machine.prize).name+' ×'+this.machine.qty:'おしい！ また チャレンジしよう。'):`あと ${Math.max(0,40-r.time).toFixed(1)}秒 ／ ${r.type==='tripod'?'支え '+r.score+'/2本・操作 '+r.tries+'/6回':r.type==='sweet'?'押し出し '+r.score.toFixed(1)+'・'+Math.floor(r.tries/2)+'/3セット':'左右・前後を あわせて タイミングよく！'}`);
+    text(this.action,r.type==='sweet'?(r.phase==='aim'?'すくう':'おとす'):r.type==='tripod'?'とめる':'おろす');
+    const disabled=r.done||this.dropAnim>0;if(this.action.disabled!==disabled)this.action.disabled=disabled;
+    text(this.backButton,r.done?'店内に もどる':'中断して 店内へ');
+  }
+
   persist(){if(this.round.done)return;this.run.state=JSON.parse(JSON.stringify(this.round));Save.d.arcade.active=this.run;Save.write();}
   drop(){if(this.round.done||this.dropAnim>0)return;this.round.drop();this.dropAnim=.9;this.run.state=JSON.parse(JSON.stringify(this.round));Save.d.arcade.active=this.run;Save.write();Sound.se('tap');this.refresh();this.action.disabled=true;this.backButton.disabled=true;}
   finish(){this.run.state=JSON.parse(JSON.stringify(this.round));PrizeArcade.finish(this.run);Sound.se(this.round.win?'fanfare':'bad');UI.updateHud();this.refresh();}
