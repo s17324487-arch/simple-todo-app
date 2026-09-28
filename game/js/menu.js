@@ -112,7 +112,7 @@ const Menu = {
     el.append(grid);
   },
 
-  settings(el) {
+  settings(el, menu = this.m) {
     const s = Save.d.settings;
     const row = (label, key) => {
       const b = UI.btn(`${label}: ${s[key] ? "ON" : "OFF"}`, () => { s[key] = !s[key]; Save.mark(); Sound.applySettings(); b.innerHTML = `${label}: ${s[key] ? "ON" : "OFF"}`; Sound.se("tap"); }, "wide");
@@ -138,6 +138,55 @@ const Menu = {
     }, "wide");
     del.style.marginTop = "18px"; del.style.background = "#FFD6D6";
     el.append(del);
-    el.append(U.el("div", { class: "muted", style: "margin-top:14px;text-align:center", html: `ぽかぽかタウン ver ${GAME_VERSION}<br>キャラクター: わんこ・がちゃん・ごじ` }));
+    const version = U.el("button", { type: "button", class: "menu-version muted", html: `ぽかぽかタウン ver ${GAME_VERSION}<br>キャラクター: わんこ・がちゃん・ごじ` });
+    const hidden = U.el("div");
+    let taps = 0, first = 0, last = 0, unlocked = false;
+    version.addEventListener("click", () => {
+      if (unlocked) return;
+      const now = performance.now();
+      if (!taps || now - last > 1500 || now - first > 6000) { taps = 0; first = now; }
+      last = now;
+      if (++taps < 7) return;
+      unlocked = true;
+      const entry = UI.btn("かんりしゃ コマンド", () => this.admin(menu), "wide admin-entry");
+      hidden.append(entry); Sound.se("ok"); entry.scrollIntoView({ block: "nearest" });
+    });
+    el.append(version, hidden);
+  },
+
+  admin(parent) {
+    const save = Save.d, body = U.el("div"), balance = U.el("div", { class: "note" });
+    let running = false, closed = false;
+    const panel = UI.modal({ title: "かんりしゃ コマンド", body, cls: "admin-commands", onClose: () => { closed = true; } });
+    const available = () => ["house", "world"].includes(G.sceneName);
+    const commands = [
+      { label: "おかねを 99,999にする", question: () => `おかねを ${U.fmt(save.coins)} → 99,999 コインに する？`, apply: () => { save.coins = 99999; } },
+      { label: "3にんの HP・SPを ぜんかいふく", question: () => "3にんの HP・SPを ぜんかいふくする？", care: true, apply: () => Save.healAll() },
+      { label: "おなか・ごきげんを 100にする", question: () => "3にんの おなか・ごきげんを 100に する？", care: true, apply: () => {
+        for (const id of Chara.IDS) { save.chars[id].hunger = 100; save.chars[id].mood = 100; }
+      } },
+    ];
+    const buttons = [];
+    const refresh = () => {
+      balance.textContent = `いまの おかね：${U.fmt(save.coins)} コイン`;
+      buttons.forEach((button, i) => { button.disabled = running || (commands[i].care && !available()); });
+    };
+    body.append(balance);
+    for (const command of commands) {
+      const button = UI.btn(command.label, async () => {
+        if (running || closed || button.disabled) return;
+        running = true; refresh();
+        try {
+          if (!await UI.confirm(command.question(), "じっこう", "やめる")) return;
+          if (closed || Save.d !== save || !parent.el.isConnected || parent.el.closest(".out") || (command.care && !available())) return;
+          command.apply(); Save.mark(); Save.write(); UI.updateHud(); G.scene?.updateCare?.();
+          Sound.se("ok"); UI.toast("へんこうして セーブしたよ", "good");
+        } finally { running = false; refresh(); }
+      }, "wide");
+      buttons.push(button); body.append(button);
+    }
+    if (!available()) body.append(U.el("div", { class: "note", text: "かいふくは おうちや まちで つかえるよ。" }));
+    body.append(U.el("div", { class: "note", text: "じっこうすると じどうで セーブするよ。\nメニューを とじると コマンドは かくれるよ。" }), UI.btn("もどる", () => panel.close(), "wide"));
+    refresh();
   },
 };

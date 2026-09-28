@@ -392,6 +392,48 @@ for (const shop of ["link", "relay"]) for (const viewport of [{ width: 390, heig
   await H.until(() => PokaDebug.state().scene === "world" && PokaDebug.idle());
 }, { full: true, viewport, timeout: 180000 });
 
+for (const viewport of [{width:390,height:844},{width:375,height:667}]) await scenario(`隠し管理者コマンド（${viewport.width}）`, async H => {
+  await H.newGameFast();await H.dbg("level",1);
+  const fixture=await H.dbg("saveData"),fullHealth=Object.fromEntries(Object.entries(fixture.chars).map(([id,c])=>[id,{hp:c.hp,sp:c.sp}]));
+  fixture.parents.auto=false;
+  for(const c of Object.values(fixture.chars)){c.hp=1;c.sp=0;c.hunger=12;c.mood=14;}
+  await H.dbg("seedSave",fixture);await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
+  const preserved=d=>JSON.stringify({bag:d.bag,wardrobe:d.wardrobe,furn:d.furn,room:d.room,rooms:d.rooms,flags:d.flags,events:d.events,stats:d.stats,order:d.order,settings:d.settings,chars:Object.fromEntries(Object.entries(d.chars).map(([id,c])=>[id,{lv:c.lv,exp:c.exp,boost:c.boost,outfit:c.outfit,name:c.name,color:c.color}]))});
+  const openSettings=async()=>{await H.page.getByRole("button",{name:"メニュー",exact:true}).click();await H.page.getByRole("button",{name:"せってい",exact:true}).click();};
+  const tapVersion=async n=>{for(let i=0;i<n;i++)await H.page.getByRole("button",{name:/ぽかぽかタウン ver/}).tap();};
+  const entry=H.page.getByRole("button",{name:"かんりしゃ コマンド",exact:true});
+  await openSettings();expect(await entry.count()===0,"通常の設定に管理者コマンドが出ている");
+  await H.page.locator(".menu-version").scrollIntoViewIfNeeded();await H.shot("locked");
+  await tapVersion(6);expect(await entry.count()===0,"6回で隠しコマンドが開いた");
+  await H.wait(1650);await tapVersion(1);expect(await entry.count()===0,"間を空けた操作が連続タップに数えられた");
+  await tapVersion(6);expect(await entry.count()===1,"7回で入口が出ない");
+  await tapVersion(2);expect(await entry.count()===1,"入口が重複する");await H.shot("unlocked");
+  await entry.tap();const admin=H.page.locator(".admin-commands"),money=admin.getByRole("button",{name:"おかねを 99,999にする",exact:true});
+  for(const b of await admin.getByRole("button").all()){const box=await b.boundingBox();expect(box.height>=44&&box.x>=0&&box.x+box.width<=viewport.width,"管理者ボタンが小さい/画面外");}
+  await H.shot("commands");let before=await H.dbg("saveData");
+  await money.tap();expect(await money.isDisabled(),"確認中にコマンドが連打できる");await H.choose(1);
+  expect((await H.dbg("state")).coins===before.coins&&preserved(await H.dbg("saveData"))===preserved(before),"キャンセルでデータが変わった");
+  await money.tap();await H.choose(0);
+  expect((await H.dbg("state")).coins===99999&&(await H.dbg("persistedSave")).coins===99999,"所持金が99999にならない/即時保存されない");
+  expect(preserved(await H.dbg("saveData"))===preserved(before),"所持金設定で進行・所持品・配置・獲得コイン統計が変わった");
+  expect((await H.page.locator(".hud .coins").textContent()).includes("99,999"),"HUDのコインが更新されない");
+  await H.dbg("coins",100001);before=await H.dbg("saveData");await money.tap();
+  expect((await H.page.locator(".dlg-text").last().textContent()).includes("200,000 → 99,999"),"減額になる場合の確認がない");
+  await H.choose(0);expect((await H.dbg("state")).coins===99999&&preserved(await H.dbg("saveData"))===preserved(before),"99999への設定が加算になった/ほかのデータを変えた");
+  await admin.getByRole("button",{name:"3にんの HP・SPを ぜんかいふく",exact:true}).tap();await H.choose(0);
+  let saved=await H.dbg("persistedSave");
+  expect(Object.entries(fullHealth).every(([id,c])=>saved.chars[id].hp===c.hp&&saved.chars[id].sp===c.sp),"3人のHP/SPが回復・保存されない");
+  await admin.getByRole("button",{name:"おなか・ごきげんを 100にする",exact:true}).tap();await H.choose(0);saved=await H.dbg("persistedSave");
+  // 自動セーブの20秒周期をまたぐと実時間ぶんわずかに減るため、その自然減少だけ許容する。
+  expect(Object.values(saved.chars).every(c=>c.hunger>=99.9&&c.hunger<=100&&c.mood>=99.9&&c.mood<=100)&&saved.coins===99999&&preserved(saved)===preserved(before),"おなか/ごきげんの設定が不正/ほかのデータが変わった: "+JSON.stringify({needs:Object.fromEntries(Object.entries(saved.chars).map(([id,c])=>[id,[c.hunger,c.mood]])),coins:saved.coins,otherDataPreserved:preserved(saved)===preserved(before)}));
+  await H.shot("saved");await admin.getByRole("button",{name:"もどる",exact:true}).click();await H.wait(220);
+  await H.page.getByRole("button",{name:"ようす",exact:true}).click();await H.page.getByRole("button",{name:"せってい",exact:true}).click();
+  expect(await entry.count()===0,"タブ切替で解除状態が残る");await tapVersion(7);
+  await H.page.locator(".modal-wrap:not(.out) .close").click();await H.wait(220);await openSettings();expect(await entry.count()===0,"メニューを閉じてもコマンドが隠れない");
+  await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();await openSettings();
+  expect(await entry.count()===0&&(await H.dbg("state")).coins===99999&&preserved(await H.dbg("saveData"))===preserved(before),"再開で解除状態/所持金/既存データが不正");
+},{viewport,full:viewport.width===375,timeout:120000});
+
 await scenario("難易度の設定と保存", async (H) => {
   await H.newGameFast();
   await H.page.getByRole("button", { name: "メニュー", exact: true }).click();
