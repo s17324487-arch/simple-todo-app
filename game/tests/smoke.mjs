@@ -28,6 +28,17 @@ const results = [];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function expect(cond, msg) { if (!cond) throw new Error(msg); }
+// おうちの 吹き出し（PokaDebug.family()）: 2つまで・画面の 中・重ならない・しっぽの 先が 話し手の 頭から 30px いない・話し手の 顔に かからない
+function expectBubbles(f) {
+  expect(f.bubbles.length <= 2, `吹き出しが 3つ いじょう 出て いる（${f.bubbles.length}）`);
+  const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  for (const b of f.bubbles) {
+    expect(b.x >= 0 && b.y >= 0 && b.x + b.w <= f.width && b.y + b.h <= f.height, "吹き出しが画面からはみ出す");
+    expect(b.head && Math.hypot(b.anchor.x - b.head.x, b.anchor.y - b.head.y) <= 30, `${b.id} の しっぽの 先が 頭から はなれて いる`);
+    for (const o of f.bubbles) { const r = o.head.r; expect(!hit(b, { x: o.head.x - r * 0.9, y: o.head.y + 2, w: r * 1.8, h: r * 1.5 }), `${b.id} の 吹き出しが ${o.id} の 顔に かかる`); }
+  }
+  for (let i = 0; i < f.bubbles.length; i++) for (let j = i + 1; j < f.bubbles.length; j++) expect(!hit(f.bubbles[i], f.bubbles[j]), "吹き出しが重なる");
+}
 
 async function scenario(name, fn, { viewport = { width: 390, height: 844 }, timeout = 90000, full = false } = {}) {
   if (full && !FULL) return;
@@ -900,6 +911,26 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.page.locator(".atlas-marker.is-current").getAttribute("data-area")==="heiwadai","再度開いた地図の現在地が古い");
 },{viewport,full:viewport.width===375,timeout:90000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`吹き出しの 形と 場所（${viewport.width}）`,async H=>{
+  await H.newGameFast();await H.dbg("hour",12);
+  // 形 6しゅ（ふつう・さけぶ・なく・こころの こえ・ひそひそ・めずらしい）を 2つずつ、ふつう と みまもり で
+  const pairs=[[["wanko","わうーん！ おさんぽ いきたい！","shout"],["gachan","ままー たすけてー","cry"]],[["goji","おっきく なりたいな …ガゥ","think"],["wanko","ないしょの はなし だよ","whisper"]],[["gachan","きょうは いい ひ だね","say"],["goji","ゆめで おほしさまを つかまえた！","rare"]]];
+  for(const watch of [false,true]){
+    if(watch)await H.houseButton("みまもる");
+    for(const [i,pair] of pairs.entries()){
+      await H.dbg("pause",false);for(const [id,text,kind] of pair)await H.dbg("homeSay",id,text,kind);
+      await H.wait(400);await H.dbg("pause",true);
+      const f=await H.dbg("family");
+      expect(f.bubbles.length===2,`2つの 吹き出しが 出ない（${f.bubbles.map(b=>b.id).join(",")}）`);
+      expect(pair.every(([id,,kind])=>f.bubbles.some(b=>b.id===id&&(kind==="rare"?b.rare:b.kind===kind&&!b.rare))),"吹き出しの 形が ちがう");
+      expectBubbles(f);
+      await H.shot(`${watch?"watch":"normal"}-${i+1}`);
+    }
+    await H.dbg("pause",false);
+  }
+  const log=await H.dbg("homeTalkLog");expect(pairs.flat().every(([id,text])=>log.some(x=>x.id===id&&x.text===text)),"しゃべった ものが のこらない");
+},{viewport});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`ぱぱまま・吹き出し・セーブ（${viewport.width}）`,async H=>{
   await H.newGameFast();await H.dbg("hour",12);await H.dbg("coins",987504);await H.dbg("needs",20);
   const money=(await H.dbg("state")).coins;
@@ -918,10 +949,12 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(((await H.dbg("family")).bag.onigiri||0)===0,"3人のお世話で食事の数が合わない");
   expect((await H.dbg("state")).coins===money,"お世話や着せ替えでおかねが減った");
   await H.until(()=>PokaDebug.family().parents.every(p=>!p.target),10000);
-  await H.houseButton("みまもる");await H.dbg("homeLife","chat");await H.dbg("pause",true);
-  const f=await H.dbg("family");expect(f.bubbles.length===3,"3人の会話がない");
-  for(const b of f.bubbles){expect(b.x>=0&&b.y>=0&&b.x+b.w<=f.width&&b.y+b.h<=f.height,"吹き出しが画面からはみ出す");expect(Number.isFinite(b.anchor.x)&&Number.isFinite(b.anchor.y),"話者へ向くしっぽがない");}
-  for(let i=0;i<f.bubbles.length;i++)for(let j=i+1;j<f.bubbles.length;j++){const a=f.bubbles[i],b=f.bubbles[j];expect(!(a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y),"吹き出しが重なる");}
+  // かけあいは 2つまで 同時・1つずつ 順番に 出る。6びょう いないに 3人とも しゃべる
+  await H.houseButton("みまもる");const since=(await H.dbg("homeTalkLog")).reduce((m,x)=>Math.max(m,x.n),0);await H.dbg("homeLife","chat");
+  const spoke=new Set(),t0=Date.now();
+  while(Date.now()-t0<6000&&spoke.size<3){expectBubbles(await H.dbg("family"));for(const x of await H.dbg("homeTalkLog"))if(x.n>since&&["wanko","gachan","goji"].includes(x.id))spoke.add(x.id);await H.wait(150);}
+  expect(spoke.size===3,"3人の かけあいが 6びょうで そろわない");
+  await H.dbg("pause",true);const f=await H.dbg("family");expect(f.bubbles.length>=1,"かけあいの 吹き出しが ない");expectBubbles(f);
   await H.shot("family-bubbles");await H.dbg("pause",false);
   await H.dbg("needs",100);await H.dbg("give","onigiri",2);
   expect(/はらぺん|はらぱん/.test((await H.dbg("feed","gachan","onigiri")).text),"満腹時のことばがない");

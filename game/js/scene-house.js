@@ -179,9 +179,7 @@ class HouseScene {
   showBar(on) { this.bar.classList.toggle("hidden", !on); this.care.classList.toggle("hidden", !on); this.parentButton.classList.toggle("hidden", !on); this.viewControls.classList.toggle("hidden", !on && this.mode !== "edit"); }
 
   async intro() {
-    HomeLife.say(this,"wanko","ここが ぼくたちの おうち！");
-    HomeLife.say(this,"gachan","ごはんボタンで ごはんを たべよう♪");
-    HomeLife.say(this,"goji","ぼくたちを タップして なでてね！");
+    HomeLife.talk(this,[{who:"wanko",text:"ここが ぼくたちの おうち！"},{who:"gachan",text:"ごはんボタンで ごはんを たべよう♪"},{who:"goji",text:"ぼくたちを タップして なでてね！"}]);
   }
 
   // ---- ごはん ----
@@ -223,17 +221,18 @@ class HouseScene {
       c.x = c.tx; c.y = c.ty;
     }
     for (let i = 0; i < 3; i++) { Sound.se("eat"); await U.wait(520); }
-    const res = [];
+    const res = [], said = [];
     for (const id of ids) {
       const c = this.chars.find((x) => x.id === id);
       const r = Care.feed(id, foodId);
       c.food = null;
       if (!r) continue;
       res.push(`${Save.d.chars[id].name}: ${r.text.split("\n")[0]}`);
-      HomeLife.say(this,id,r.dislike?"からいのは にがて……":(Save.d.chars[id].hunger>=90?Care.fullText(id):"おいしい！")+(Save.d.chars[id].wantsDeza?" デザ ほしいな♪":""));
+      said.push({who:id,text:r.dislike?"からいのは にがて……":(Save.d.chars[id].hunger>=90?Care.fullText(id):"おいしい！")+(Save.d.chars[id].wantsDeza?" デザ ほしいな♪":""),kind:r.dislike?"cry":"say"});
       this.react(c, r.emo, r.dislike ? "anger" : "heart");
       if (r.like) Sound.voice(id);
     }
+    HomeLife.talk(this, said, 1);
     Save.d.flags.fedOnce = true;
     this.updateCare();
     await U.wait(400);
@@ -295,7 +294,7 @@ class HouseScene {
         Sound.voice(c.id);
         H.found++;
       }
-      for(const c of who)HomeLife.say(this,c.id,"みつかった〜！");
+      HomeLife.talk(this,who.map(c=>({who:c.id,text:"みつかった〜！",kind:"shout"})),0.8);
       UI.toast(`あと ${this.chars.filter((c) => c.hidden).length}にん`);
     } else {
       Sound.se("miss");

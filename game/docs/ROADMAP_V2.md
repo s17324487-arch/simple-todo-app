@@ -196,7 +196,7 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 
 見本と 作業指示: [`design/features/README.md`](design/features/README.md)。上から 順に 1つずつ PR に する。
 
-### [ ] FEAT-01 ① おうちの 吹き出しの 描きかた（話し手の 真上・短い しっぽ・名札の 色・形 6種・2つまで）
+### [x] FEAT-01 ① おうちの 吹き出しの 描きかた（話し手の 真上・短い しっぽ・名札の 色・形 6種・2つまで） ✅
 - 受け入れ条件: [`home-talk/CODEX_TASK.md`](design/features/home-talk/CODEX_TASK.md)「PR の 分けかた」1。390×844・375×667 × ふつう／みまもり で `img/before-after.png` の 右と 同じ 見え方。
 
 ### [ ] FEAT-02 ① おうちの 会話データと えらびかた（718種・まわりの ようす・3人の 性格と くせ）

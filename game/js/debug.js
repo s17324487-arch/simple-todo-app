@@ -107,12 +107,22 @@ const PokaDebug = {
     const l = G.scene.life;
     return { watching: !!G.scene.watching, quarrel: l.quarrel, bubbles: l.bubbles.map(b => ({ ...b })), room: Save.d.rooms.active, owned: { ...Save.d.rooms.owned }, coins: Save.d.coins, rare: Save.d.flags.rareChats || 0, furniture: { ...l.furniture }, chars: Object.fromEntries(Chara.IDS.map(id => [id, { ...Save.d.chars[id] }])) };
   },
+  // おうちで しゃべらせる（kind: say／shout／cry／think／whisper／rare）。いま 見えて いる 吹き出しを かえす
+  homeSay(id, text, kind = "say") {
+    if (G.sceneName !== "house") return null;
+    const rare = kind === "rare", l = G.scene.life; // テストの あいだ ふだんの おしゃべりと ぱぱ・ままの おせわを 10秒 まつ
+    l.next = Math.max(l.next, 10); G.scene.parentTimer = Math.max(G.scene.parentTimer || 0, 10);
+    HomeLife.say(G.scene, id, text, rare, rare ? "say" : kind);
+    return this.family().bubbles;
+  },
+  // さいきん しゃべった もの（シーンの 中だけ・40こまで）
+  homeTalkLog() { return G.sceneName === "house" ? G.scene.life.log.map(x => ({ ...x })) : null; },
   feed(id, food) { return Care.feed(id, food); },
   family() {
     if(G.sceneName!=="house")return null;
     const sc=G.scene;
     return {looks:{papa:ParentCare.look("papa"),mama:ParentCare.look("mama")},auto:Save.d.parents.auto,lastCare:{...Save.d.parents.lastCare},bag:{...Save.d.bag},
-      parents:sc.parents.map(p=>({...p})),bubbles:HomeLife.bubbleLayout(sc,G.ctx).map(b=>({id:b.id,text:b.text,x:b.x,y:b.y,w:b.w,h:b.h,anchor:b.anchor})),width:G.W,height:G.H};
+      parents:sc.parents.map(p=>({...p})),bubbles:HomeLife.bubbleLayout(sc,G.ctx).map(b=>({id:b.id,text:b.text,kind:b.kind,rare:b.rare,side:b.side,x:b.x,y:b.y,w:b.w,h:b.h,anchor:b.anchor,tail:b.tail,head:b.head})),view:{...sc.view},width:G.W,height:G.H};
   },
   annual() {
     const s=AnnualFestivals.state();return {...s,events:ANNUAL_EVENTS.map(e=>({id:e.id,month:e.month,name:e.name})),inventory:{wear:!!Save.d.wardrobe[s.items.wear],furn:Save.d.furn[s.items.furn]||0,food:Save.d.bag[s.items.food]||0}};

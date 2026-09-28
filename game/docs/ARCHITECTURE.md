@@ -467,6 +467,7 @@ class NewTask extends TaskBase {
 | `mg()` | お店ミニゲームの状態（注文・ボタンの画面上の位置など）。正解の操作をテストするため |
 | `hour(h)` | 時刻を固定（null で戻す） |
 | `fps(ms)` | 平均 FPS（Promise） |
+| `homeSay(id, text, kind)` / `homeTalkLog()` | おうちで しゃべらせる（kind: say・shout・cry・think・whisper・rare。10秒 ふだんの おしゃべりと ぱぱ・ままの おせわを 止める）／ さいきん しゃべった もの `[{ n, id, text, kind, rare, t }]` |
 
 新しいお店を足したら `mg()` にそのお店の `order`（注文の中身）を足す。
 
@@ -601,7 +602,7 @@ migrate(d) {
 
 ParentCareはシーン内の親の位置とidle/walk/care・お世話順を持つ。親は13〜18秒ごとに順番に3人へ近づき、おなか70未満なら所持している普段のごはんを1個、なければなでなで。限定品・デザ・とっくん品・辛い食事を選ばずコインは使わない。3人をまとめてお世話する操作も可能。キャラごとに30秒の効果間隔を保存し、再起動による連続効果を防ぐ。メニュー中・他のお世話中・非表示タブでは進めない。外見とポーズの有限な組み合わせでSVGをキャッシュする。
 
-HomeLife.bubbleLayoutは話者の頭の位置に合わせ、文字を折り返し、3つまでの吹き出しの重なりを避けて配置。しっぽは話者の方向へ最大26px。ごはん・なでる・ひとりごと・遊びの発言を統一。PokaDebug.family()は外見・親の行動・食事数・吹き出し矩形の読み取り、needs(hunger,mood)はお世話検証の準備用。スマホ2サイズで自動お世話、3人分の食事消費、無料の外見変更、吹き出し、再開時のコイン987654維持を確認する。
+吹き出しは home-life.js の HomeSpeechBubble（見本 `docs/design/features/home-talk` の HomeBubbleRef を移したもの）が描く。HomeLife.bubbleLayout は話し手の頭の真上を中心に 62 の候補から、顔・ほかの吹き出し・しっぽの交差を点数で避けて選ぶ（2つ出すときは 62×62 の組み合わせ）。同時に2つまで、かけあいは HomeLife.talk で 1.3秒おきに1つずつ。形は say・shout・cry・think・whisper・rare。年齢はシーンの時計 life.clock（メニュー中・一時停止中・もようがえ/ねる/きがえ/おでかけ中は止まる）で数える。ごはん・なでる・ひとりごと・遊びの発言を統一。PokaDebug.family()は外見・親の行動・食事数・吹き出し矩形の読み取り、needs(hunger,mood)はお世話検証の準備用。スマホ2サイズで自動お世話、3人分の食事消費、無料の外見変更、吹き出し、再開時のコイン987654維持を確認する。
 
 HomeLife はシーン内の会話・けんか・家具アニメーションを管理。HomeRooms は room を現在の部屋として保持し、rooms.stored に非表示の部屋を保存する（同じ家具は全室の配置数で管理）。Save.KEY と schema 1 を維持し、wantsDeza と rooms は migrate の補完で追加。home-catalog.js は art.js の後に読み、服22点・家具12点・壁紙4点・床3点・食べ物6点を追加。PokaDebug.homeLife(event)、feed(id,item)、wins(n)、homePoint(x,y) を生活テストに使用。
 

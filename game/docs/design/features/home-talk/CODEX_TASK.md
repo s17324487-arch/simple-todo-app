@@ -118,10 +118,18 @@
 
 ## 6. PR の 分けかた
 
-1. **吹き出しの 描きかた**: `HomeBubbleRef` の 移植・`say` の `kind`・PokaDebug・スモークの 直し。セリフは いまの まま。
+1. ✅ **吹き出しの 描きかた**（済み。Claude Code が 実装: `js/home-life.js` の `HomeSpeechBubble`・`HomeLife.say(…, kind)`・`HomeLife.talk`・`PokaDebug.homeSay` / `homeTalkLog`・スモーク「吹き出しの 形と 場所」）: `HomeBubbleRef` の 移植・`say` の `kind`・PokaDebug・スモークの 直し。セリフは いまの まま。
 2. **会話データと えらびかた**: `js/home-talk-data.js`（index.html と sw.js の 両方に、`home-life.js` より 前）・条件・くせ・かけあい・check.mjs。
 
 それぞれ `CHANGELOG.md` の `2.0.0-dev` に 1行、`docs/ROADMAP_V2.md` の M8 に ✅。
+
+## 実装メモ（1番を Claude Code が 作った ときに 見本から かえた ところ）
+
+- 吹き出しの 年齢は `G.t` では なく シーンの 時計 `sc.life.clock` で 数える。`update` が 動く ときだけ すすむので、メニュー（`UI.busy`）・`PokaDebug.pause`・もようがえ／ねる／きがえ／おでかけ の あいだは 止まる（ごはん・かくれんぼ・ボールの あいだは すすむ）。
+- 動いて いる あいだ 吹き出しが ぴょこぴょこ 跳ばないように、前の フレームと 同じ 候補に −30 点（`keep`）。
+- 3人が 同時に しゃべって いた ところ（さいしょの あいさつ・ごはん・かくれんぼで みつかった・chat・けんか・なかなおり）は `HomeLife.talk(sc, turns, gap)` で 順番に 出す。けんかの わんこと chat の ごじは `shout`、おなかが すいた ひとことと からい ごはんは `cry`。
+- `PokaDebug.homeSay` は テストが ぶれないように、ふだんの おしゃべり（`life.next`）と ぱぱ・ままの おせわ（`parentTimer`）を 10秒 まつ。`family().bubbles` には `kind`・`rare`・`side`・`tail`・`head` も 入る。`homeTalkLog()` の 各行には 通し番号 `n` が ある。
+- 2番で `talks` を 流すときも `HomeLife.talk` を つかう（`turns` の 形が 同じ）。
 
 ## 7. やらないこと
 
