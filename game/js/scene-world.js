@@ -137,7 +137,8 @@ class WorldScene {
 
   // ---- スプライト取得 ----
   objCanvas(kind, opt, ensure) {
-    const cacheOpt=kind==="building"&&opt.style?{style:opt.style,w:opt.w,h:opt.h,door:opt.door}:opt;
+    opt=ShopDecor.options(kind,opt);
+    const cacheOpt=kind==="building"&&opt.style?{style:opt.style,w:opt.w,h:opt.h,door:opt.door,shopTier:opt.shopTier}:opt;
     const key = "w:" + kind + ":" + JSON.stringify(cacheOpt || {}) + (SeasonPalette.vegetation(kind)?":"+SeasonPalette.id():"");
     const a = SeasonPalette.object(kind,Art.worldSvg(kind, opt));
     const pw = Math.ceil((a.w + 4) * G.px), ph = Math.ceil((a.h + 4) * G.px);

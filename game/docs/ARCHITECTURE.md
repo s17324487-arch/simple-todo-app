@@ -679,3 +679,6 @@ PokaDebug.backupText / backupDecode はテストで同じ処理を使う入口�
 
 ### バーガー屋（V2-05）
 `mg-burger.js` の `BurgerTask` は TaskBase を継承し、3〜7段の具材を下から積む。`want` / `made` は具材IDの配列で、順番違い・注文の見直し・時間経過を採点する。店内・専用BGM・購入食品を登録。シティ南の `city_reading` はIDと入口を維持してダイナーへ改装し、北側の図書館は維持。セーブは `shops.burger` の既定値追加だけ。PokaDebug.mg().order が注文名と積んだIDを返す。
+
+### お店のレベル装飾（V2-06）
+`ShopDecor` は既存の `shops[id].lv` から1/3/5の段階を求める。通常建物のSVGへ星・鉢植え・旗を加え、WorldSceneのキャッシュキーに有限の `shopTier` を追加。平和台は見本のSVGを変えず、別の有限キャッシュで重ねる。店内とミニゲームも同じ段階で描画。セーブ・建物寸法・通行判定は変わらない。PokaDebug.shopDecor(id)は段階と関係するキャッシュキーを返す。

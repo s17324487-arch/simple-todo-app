@@ -115,6 +115,7 @@ class StoreScene {
     ctx.fillStyle="#EDE5D4";ctx.fillRect(0,0,G.W,G.H);
     ctx.save();ctx.translate(this.ox,this.oy);ctx.scale(this.scale,this.scale);
     const bg=this.background();if(bg)ctx.drawImage(bg,0,0,352,512);
+    ShopDecor.store(ctx,ShopDecor.level(this.shopId));
     const objects=this.fixtures.map(f=>({z:112+(f.y+f.d)*32,draw:()=>this.drawProp(ctx,f)}));
     objects.push({z:this.point(5,1).y,draw:()=>this.drawKeeper(ctx)});
     this.party.forEach((w,i)=>objects.push({z:this.point(w.x,w.y).y,draw:()=>{

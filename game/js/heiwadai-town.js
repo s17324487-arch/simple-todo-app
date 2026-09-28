@@ -49,6 +49,7 @@ const HeiwadaiTown={
     if(it.asset==='prop.bunting')ctx.scale(1,HeiwadaiLife.state().flagScale);
     if(it.asset==='park.swing')HeiwadaiLife.drawSwing(ctx,scene.objectActive?.until>G.t&&scene.objectActive.id===it.id);
     else ctx.drawImage(c,a.originX-2,a.originY-2,a.w+4,a.h+4);
+    if(it.act?.type==='work')ShopDecor.overlay(ctx,ShopDecor.level(it.act.shop),a.originX,a.originY,a.w,a.h);
     HeiwadaiLife.effect(ctx,it,scene.objectActive?.until>G.t&&scene.objectActive.id===it.id);ctx.restore();
   },
   overhead(ctx,scene,ox,oy,bounds){

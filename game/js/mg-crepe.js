@@ -36,12 +36,12 @@ class CrepeTask extends TaskBase {
   serve() { Sound.se("swish"); this.served = true; this.sc.finish(this.score()); }
   timeout() { return this.score() - 25; }
   drawOrder(ctx, x, y, w, h) {
-    const n = this.want.length, s = Math.min(40, (w - 8) / n - 6);
-    this.want.forEach((id, i) => {
-      const cx = x + w / 2 + (i - (n - 1) / 2) * (s + 8);
-      topIcon(ctx, id, cx, y + h * 0.42, s);
-      ctx.fillStyle = INK; ctx.font = "800 9px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(CREPE_TOPS.find((t) => t.id === id).name, cx, y + h * 0.42 + s / 2 + 10);
+    const n=this.want.length,cols=Math.min(2,n),rows=Math.ceil(n/cols),cw=w/cols,rh=h/rows,s=Math.min(30,cw-10,rh-15);
+    this.want.forEach((id,i)=>{
+      const cx=x+(i%cols+.5)*cw,top=y+Math.floor(i/cols)*rh;
+      topIcon(ctx,id,cx,top+s/2+1,s);
+      ctx.fillStyle=INK;ctx.font="800 9px 'M PLUS Rounded 1c', sans-serif";ctx.textAlign='center';
+      ctx.fillText(CREPE_TOPS.find(t=>t.id===id).name,cx,top+rh-2,cw-4);
     });
   }
   draw(ctx) {

@@ -68,7 +68,7 @@ for (const f of scripts) {
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
   ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap, STORE_INTERIORS, StoreArt, StoreScene,
-  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, HomeDesign, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals, Weather, SeasonPalette, TownRoads })`, ctx);
+  Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, HomeDesign, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals, Weather, SeasonPalette, TownRoads, ShopDecor })`, ctx);
 
 // 道の判定はブラウザがなくても同じ。車道・歩道・隅切り・切り下げがタイルでつながる。
 const roadFixture=vm.runInNewContext(readFileSync(join(GAME,"tests/fixtures/roads-v02.js"),"utf8")+";ROAD_FIXTURE");
@@ -248,6 +248,14 @@ for (const id of Object.keys(R.MAP_DEFS)) {
   if (m.def.boss) ok(near(m.def.boss.x, m.def.boss.y), `マップ ${id}: ボスに たどりつけない`);
 }
 
+// 店のレベルは有限の3段階だけ。Lv1は元のSVGを変えず、通行・セーブ値も変えない。
+for(const [lv,tier]of [[1,1],[2,1],[3,3],[4,3],[5,5]])ok(R.ShopDecor.tier(lv)===tier,'店の装飾段階が不正');
+const decorSave=JSON.stringify(R.Save.d),decorSpec=R.MAP_DEFS.town.buildings.find(b=>b.act.shop==='crepe');
+const decorImages=[1,3,5].map(shopTier=>R.Art.worldSvg('building',{...decorSpec,shopTier}));
+ok(new Set(decorImages.map(a=>a.full)).size===3,'店のLv1/3/5が同じ絵');
+ok(decorImages.every(a=>a.w===decorImages[0].w&&a.h===decorImages[0].h),'店の飾りで建物の寸法が変わる');
+ok(R.ShopDecor.exterior(1,200,160)===''&&JSON.stringify(R.Save.d)===decorSave,'店の飾りで元の絵やセーブが変わる');
+
 // ---------- 7. SVG の生成 ----------
 const TAGS = ["svg", "g", "defs", "clipPath", "pattern", "linearGradient", "radialGradient"];
 function svgOk(svg, what) {
@@ -262,6 +270,7 @@ function svgOk(svg, what) {
   }
   for (const m of svg.matchAll(/url\(#([^)]+)\)/g)) if (!svg.includes(`id="${m[1]}"`)) { err(`${what}: url(#${m[1]}) の参照先がない`); return; }
 }
+decorImages.forEach((a,i)=>svgOk(a.full,'店のレベル装飾 '+[1,3,5][i]));
 // 全体地図が実際のエリア・徒歩の接続と食い違わないこと。
 const atlasSvg=R.AtlasArt.svg(), atlasAgain=R.AtlasArt.svg();
 svgOk(atlasSvg,"全体地図");
