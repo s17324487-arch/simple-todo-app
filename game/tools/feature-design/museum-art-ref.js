@@ -2,7 +2,7 @@
 // prop(kind, o) → { w, h, svg }（px。足もとの 左下が 置く マスの 左下。w = マス数 × 32）。ゲームでは WorldArt と 同じ ように y順で 描く。
 // o.swim = true の ときは 魚を 描かずに { …, water: [x, y, w, h], slots: [{ id, x, y, w, h, flip }] } を かえす（魚は ゲームが うごかして 描く）。
 // 魚は FishArtRef、骨格は FossilArtRef を つかう（先に 読みこんで おく）。SvgCache の キーは kind ＋ 展示の id ＋ 寄贈の ビット（有限）。
-// facade(sp) は 町に たつ 建物の 外がわ（WorldArt.building と 同じ 形）、signIcon は かんばんの アイコン（SIGN_ICON と 同じ 形）。
+// facade200(kind) は 町に たつ 建物の 外がわ（js/town-renewal-art.js の facades と 同じ 200×160）。facade(sp) は まえの 形（WorldArt.building）・signIcon は かんばんの アイコン。
 const MuseumArtRef = (() => {
   const TS = 32, INK = "#1F1D1B";
   const r1 = (n) => Math.round(n * 10) / 10;
@@ -201,6 +201,33 @@ const MuseumArtRef = (() => {
     }
     return { w: W, h: H + top, top, svg: s };
   }
-  return { prop, THEME, facade, signIcon };
+  // 町の 建物の 外がわ（js/town-renewal-art.js の facades と 同じ 200×160 の デザイン。入口の とびらは つつむ 関数が 下の まんなかに 描く）
+  //   aquarium: ガラスの ドームと なみの おび・まるい まど／museum: さんかくの 屋根・はしら・屋根の うしろから のぞく ブラキオサウルス
+  function facade200(kind) {
+    const R = (x, y, w, h, c, rx = 2) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${c}" ${st(1.7)}/>`;
+    const P = (d, c = "none", sw = 1.7) => `<path d="${d}" fill="${c}" ${st(sw)}/>`;
+    const C = (x, y, z, col) => `<circle cx="${x}" cy="${y}" r="${z}" fill="${col}" ${st(1.5)}/>`;
+    const banner = (txt, x, y, w) => R(x, y, w, 19, "#FFF6DF", 5) + `<text x="${x + w / 2}" y="${y + 13.5}" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="${INK}">${txt}</text>`;
+    let s = "";
+    if (kind === "aquarium") {
+      s += R(8, 64, 184, 88, "#EEF7F8", 4) + P("M18,66 A82,60 0 0 1 182,66 Z", "#A9DCF0");
+      for (const k of [0.36, 0.7]) s += `<path d="M${r1(100 - 82 * k)},66 A${r1(82 * k)},60 0 0 1 ${r1(100 + 82 * k)},66" fill="none" stroke="#FFFFFF" stroke-width="1.4" opacity="0.75"/>`;
+      s += `<path d="M100,66 V7" stroke="#FFFFFF" stroke-width="1.4" opacity="0.75"/><path d="M40,28 Q70,12 96,10" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.8"/>`;
+      for (const [fx, fy, k] of [[62, 44, 1], [132, 34, 0.75], [118, 54, 0.6]]) s += `<path transform="translate(${fx},${fy}) scale(${k})" d="M-14,0 C-9,-7 4,-7 9,-1 L15,-5 L13,0 L15,5 L9,1 C4,7 -9,7 -14,0 Z" fill="#3F7FB0" opacity="0.55"/>`;
+      let wv = "M8,90"; for (let x = 8; x < 192; x += 16) wv += " q4,-5 8,0 q4,5 8,0";
+      s += P(wv + " L192,100 L8,100 Z", "#8FD0F0", 1.4) + banner("すいぞくかん", 58, 70, 84);
+      for (const x of [34, 166]) s += C(x, 122, 11, "#BFE6FF") + `<path d="M${x - 5},${118} q3,-3 7,-2" fill="none" stroke="#FFFFFF" stroke-width="1.6"/>`;
+      s += `<path d="M60,112 q6,-4 12,0 M128,112 q6,-4 12,0" fill="none" stroke="#7EC8E0" stroke-width="2"/>`;
+    } else if (kind === "museum") {
+      s += P("M150,44 C152,22 162,8 174,6 C184,4 190,10 184,15 C178,18 174,20 172,30 L168,48 Z", "#9CC08A") + C(179, 9, 1.4, INK) + P("M186,13 q-4,2 -8,1", "none", 1.2);
+      s += R(10, 60, 180, 92, "#F3E7CC", 3) + P("M0,62 L100,16 L200,62 Z", "#D9B47A") + P("M24,57 L100,24 L176,57 Z", "#E8CC96", 1.3) + R(0, 60, 200, 10, "#FFF8E8", 1);
+      s += banner("はくぶつかん", 62, 38, 76);
+      for (const x of [22, 50, 78, 150, 178]) s += R(x - 6, 72, 12, 70, "#FFFDF6", 1) + R(x - 8, 70, 16, 5, "#EFE3C8", 1) + `<path d="M${x - 2},${78} V${138} M${x + 2},${78} V${138}" stroke="#E2D6BC" stroke-width="1.2"/>`;
+      s += R(2, 142, 196, 6, "#E2D6BC", 1) + R(-2, 148, 204, 6, "#D2C4A6", 1);
+      s += `<path d="M96,92 q6,-10 14,-2 M104,104 q8,-6 12,2" fill="none" stroke="#C9B28A" stroke-width="2"/>`;
+    }
+    return s;
+  }
+  return { prop, THEME, facade, facade200, signIcon };
 })();
 if (typeof module !== "undefined") module.exports = MuseumArtRef;

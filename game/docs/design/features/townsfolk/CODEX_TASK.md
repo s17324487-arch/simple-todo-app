@@ -35,8 +35,10 @@
 ## 2. データの 形（`TOWNSFOLK_DATA`）
 
 ```js
-{ version: 1, tipShare: 0.3, maxActive: 3, barterChance: 0.1,
-  lines:  [{ id: "tf0001", npc: "mayor", group: "line"|"bond", text, when }],         // 町の人の セリフ
+{ version: 2, tipShare: 0.3, maxActive: 3, barterChance: 0.1,
+  lines:  [{ id: "tf0001", npc: "mayor", group: "line"|"bond"|"crowd", text, when }], // 町の人の セリフ（crowd は npc が 役の 名前）
+  crowd:  { town_walker0: "town_walker", city_local3: "city_local", ... },            // 町の なかま（町の 作り直しで ふえた 人）→ 役
+  crowdNames: { town_walker: "おさんぽの なかま", ... },                              // 役ごとの 会話まどの 名前
   react:  [{ id: "tr0231", who: "wanko", text, when }],                                 // 話した あとの 3人の ひとこと
   barter: [{ id, npc, give: {bag|fish|bone, n}, get: {bag|wear|furn, n}, once?, repeat?, text, needs: [] }],
   events: [{ id, kind, title, giver, map, chance, limit: "daily"|"once", when, steps: [...], reward: {coins, bag, n, furn, wear, bond, first}, lines: {offer, remind, done}, needs: [], doneBy }],
@@ -88,6 +90,8 @@ folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
      つれていく(follow)… こねこが ぴょんと もどる
    おわったら doneBy の 人が lines.done → Loot.give(TownFolkRef.rewards(ev, はじめて)) → なかよし +（bondOf）→ トースト「おねがい かなえた！」
 3. ふつうの セリフ: 30% は いまの TALKS[npc].lines（あそびかたの ヒント）、70% は lines から pick。
+   町の なかま（`crowd[npc]` が ある 人。`js/town-renewal.js` の `town_walker0` など）は、`lines` の `npc === crowd[npc]`（役）から pick し、会話まどの 名前は `crowdNames[役]`。
+   いまの TALKS の 1行（「いろんな けしきが あって おさんぽが たのしいね。」）は 30% の がわに のこす。
 4. もちかける: TownFolkRef.offer(...) →
      おねがい: UI.ask(offer, ["うん、まかせて！", "あとでね"], {face, name}) → answer(ok)
                うけたら トースト「おねがい ノートに かいたよ」。なぞなぞは その場で はじめる
@@ -133,7 +137,7 @@ folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
 
 ## 7. テスト
 
-- `tools/check.mjs`: `TOWNSFOLK_DATA` が ある・おねがい 20 いじょう・chance 0.1〜0.2・人／マップ／アイテム／家具／服／小物の id が ゲームに ある・たのむ人が その マップに いる・文の 長さ（1行 30・会話まどで 4行 まで）。
+- `tools/check.mjs`: `TOWNSFOLK_DATA` が ある・おねがい 20 いじょう・chance 0.1〜0.2・人／マップ／アイテム／家具／服／小物の id が ゲームに ある・たのむ人が その マップに いる・町の人 みんなに セリフが ある（町の なかまは `crowd` の 役で）・文の 長さ（1行 30・会話まどで 4行 まで）。
 - スモーク「町の人の おねがい」（390×844・375×667）:
   1. `folkOffer("ev-milk")` → `folkTalk("sheep")` → 「うん、まかせて！」→ `folk().req` に ある → ノートを ひらいて スクリーンショット・はみ出しなし。
   2. `give("milk", 1)` → `folkTalk("sheep")` → コイン +80・`folk().done["ev-milk"]`・なかよし +2。

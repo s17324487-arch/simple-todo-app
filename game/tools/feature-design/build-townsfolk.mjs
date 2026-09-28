@@ -6,7 +6,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import vm from "node:vm";
-import { NPC_LINES, BOND_LINES, REACT, BARTER, EVENTS, ITEMS } from "./townsfolk-data.mjs";
+import { NPC_LINES, CROWD_LINES, BOND_LINES, REACT, BARTER, EVENTS, ITEMS } from "./townsfolk-data.mjs";
 export const OUT = new URL("../../docs/design/features/townsfolk/", import.meta.url).pathname;
 const GAME = new URL("../../", import.meta.url).pathname;
 mkdirSync(OUT + "img", { recursive: true });
@@ -66,12 +66,22 @@ function check(text, where, { unique = true, maxLines = 2, maxW = 30 } = {}) {
 // ---- 会話 ----
 const lines = [];
 let n = 0;
+// 町の なかま（town_walker0・heiwadai_walker_3 など）は id の うしろの 数字を とった 役（town_walker・heiwadai_walker）の セリフを つかう
+const roleOf = (id) => id.replace(/_?\d+$/, "");
 for (const [npc, v] of Object.entries(NPC_LINES)) {
   if (!GD.npcs[npc]) errors.push(`NPC_LINES: ゲームに いない 人 ${npc}`);
   const all = [...v.lines.map((l) => [...l, "line"]), ...(BOND_LINES[npc] || []).map((l) => [...l, "bond"])];
   for (const [text, w, group] of all) { check(text, `${npc}`); lines.push({ id: `tf${String(++n).padStart(4, "0")}`, npc, group, text, when: parseWhen(w, `${npc}「${text}」`) }); }
 }
-for (const npc of Object.keys(GD.npcs)) if (!NPC_LINES[npc]) errors.push(`NPC_LINES: ${npc} の セリフが ない`);
+for (const [role, v] of Object.entries(CROWD_LINES)) {
+  if (NPC_LINES[role]) errors.push(`CROWD_LINES: ${role} は NPC_LINES にも ある`);
+  if (!Object.keys(GD.npcs).some((id) => !NPC_LINES[id] && roleOf(id) === role)) errors.push(`CROWD_LINES: ${role} の 人が ゲームに いない`);
+  check(v.name, `crowd ${role} の 名前`, { unique: false, maxLines: 1, maxW: 14 });
+  for (const [text, w] of v.lines) { check(text, `${role}`); lines.push({ id: `tf${String(++n).padStart(4, "0")}`, npc: role, group: "crowd", text, when: parseWhen(w, `${role}「${text}」`) }); }
+  if (v.lines.length < 8) errors.push(`CROWD_LINES: ${role} は 8つ いじょう`);
+}
+for (const npc of Object.keys(GD.npcs)) if (!NPC_LINES[npc] && !CROWD_LINES[roleOf(npc)]) errors.push(`NPC_LINES: ${npc} の セリフが ない（CROWD_LINES の 役 ${roleOf(npc)} も ない）`);
+const crowd = Object.fromEntries(Object.keys(GD.npcs).filter((id) => !NPC_LINES[id] && CROWD_LINES[roleOf(id)]).map((id) => [id, roleOf(id)]));
 for (const npc of Object.keys(BOND_LINES)) if (!NPC_LINES[npc]) errors.push(`BOND_LINES: ${npc} は NPC_LINES に ない`);
 const react = [];
 for (const [who, arr] of Object.entries(REACT)) for (const [text, w] of arr) { check(text, `react/${who}`); react.push({ id: `tr${String(++n).padStart(4, "0")}`, who, text, when: parseWhen(w, `react/${who}「${text}」`) }); }
@@ -154,7 +164,7 @@ for (const e of events) for (const s of e.steps) if (s.do === "find" || s.do ===
 }
 
 // ---- 20 の おねがいを 動かしてみる ----
-const DATA = { version: 1, lines, react, barter, events, items: ITEMS, tipShare: Ref.TIP_SHARE, maxActive: Ref.MAX_ACTIVE, barterChance: Ref.BARTER_CHANCE };
+const DATA = { version: 2, lines, crowd, crowdNames: Object.fromEntries(Object.entries(CROWD_LINES).map(([k, v]) => [k, v.name])), react, barter, events, items: ITEMS, tipShare: Ref.TIP_SHARE, maxActive: Ref.MAX_ACTIVE, barterChance: Ref.BARTER_CHANCE };
 const sim = [];
 for (const e of events) {
   const st = { bond: {}, req: [], done: {}, barter: {}, offered: {} }, have = { bag: {}, fish: {}, bone: {} }, today = "2026-9-27", log = [];
@@ -214,9 +224,13 @@ const HERO = { wanko: "わんこ", gachan: "がちゃん", goji: "ごじ" };
 const cond = (w) => Object.entries(w || {}).map(([k, v]) => `${k}:${v.join("/")}`).join(" ") || "いつでも";
 const thing = (o) => !o ? "" : o.bag ? `${vm.runInContext(`BAG_INDEX[${JSON.stringify(o.bag)}].name`, ctx)}×${o.n || 1}` : o.wear ? `服「${vm.runInContext(`ITEM_INDEX[${JSON.stringify(o.wear)}].name`, ctx)}」` : o.furn ? `家具「${vm.runInContext(`FURN_INDEX[${JSON.stringify(o.furn)}].name`, ctx)}」` : o.fish ? `さかな ${o.fish}×${o.n}` : o.bone ? (o.bone === "dup" ? "だぶった ほね×1" : o.bone === "missing-same-dino" ? "おなじ きょうりゅうの まだ ない ほね×1" : `ほね ${o.bone}`) : "";
 const stepText = (s) => ({ buy: () => `かう: ${thing({ bag: s.item, n: s.n })}`, give: () => `わたす → ${NAME[s.to]}（${s.fish ? "さかな " + s.fish : ITEMS[s.item] ? ITEMS[s.item].name : thing({ bag: s.item, n: s.n })}）`, talk: () => `はなす → ${NAME[s.to]}${s.say ? `「${s.say}」` : ""}`, find: () => `さがす: ${s.map} の ${s.spots}かしょ（${s.item ? ITEMS[s.item].name : "こねこ"}）`, follow: () => `つれていく → ${NAME[s.to]}`, tap: () => `さわる: ${s.map} の ${s.target}×${s.n}`, photo: () => `しゃしん: ${s.map} の ${s.near}（${s.r}マス いない）`, catch: () => `つる: ${s.fish}×${s.n}`, dig: () => `ほる: ほね×${s.n || 1}`, quiz: () => `なぞなぞ ${s.q.length}もん`, trade: () => `わらしべ: ${ITEMS[s.start].name} → ${s.chain.map(([n, it]) => `${NAME[n]}（${it ? ITEMS[it].name : ""}）`).join(" → ")}` })[s.do]();
-let md = `# 町の人の 会話 一覧（自動生成）\n\n- 町の人の セリフ **${lines.length}** 種（${Object.keys(NPC_LINES).length}人・なかよし ${lines.filter((l) => l.group === "bond").length} を ふくむ）＋ 3にんの ひとこと **${react.length}** 種 ＝ **${lines.length + react.length}** 種\n- 人ごと: ${Object.entries(npcFreq).map(([k, v]) => `${NAME[k]} ${v}`).join("、")}\n- 条件の 書きかたは [CODEX_TASK.md](CODEX_TASK.md) の「条件」を 見る。x: は しせつが できてから、b: は なかよし ポイント。\n`;
+let md = `# 町の人の 会話 一覧（自動生成）\n\n- 町の人の セリフ **${lines.length}** 種（${Object.keys(NPC_LINES).length}人・なかよし ${lines.filter((l) => l.group === "bond").length}・町の なかま ${Object.keys(CROWD_LINES).length}役 ${Object.keys(crowd).length}人ぶん ${lines.filter((l) => l.group === "crowd").length} を ふくむ）＋ 3にんの ひとこと **${react.length}** 種 ＝ **${lines.length + react.length}** 種\n- 人ごと: ${Object.entries(npcFreq).map(([k, v]) => `${CROWD_LINES[k] ? CROWD_LINES[k].name : NAME[k]} ${v}`).join("、")}\n- 条件の 書きかたは [CODEX_TASK.md](CODEX_TASK.md) の「条件」を 見る。x: は しせつが できてから、b: は なかよし ポイント。\n`;
 for (const [npc, v] of Object.entries(NPC_LINES)) {
   md += `\n## ${NAME[npc]}（${npc}・${GD.npcs[npc].map}）— ${v.voice}\n\n| id | 文 | 条件 |\n| --- | --- | --- |\n` + lines.filter((l) => l.npc === npc).map((l) => `| ${l.id} | ${l.text} | ${cond(l.when)} |`).join("\n") + "\n";
+}
+for (const [role, v] of Object.entries(CROWD_LINES)) {
+  const who = Object.entries(crowd).filter(([, r]) => r === role).map(([id]) => `${id}（${GD.npcs[id].map}）`).join("・");
+  md += `\n## ${v.name}（町の なかま \`${role}\`: ${who}）— ${v.voice}\n\n| id | 文 | 条件 |\n| --- | --- | --- |\n` + lines.filter((l) => l.npc === role).map((l) => `| ${l.id} | ${l.text} | ${cond(l.when)} |`).join("\n") + "\n";
 }
 md += `\n## 3にんの ひとこと（話した あと）\n\n| id | だれ | 文 | 条件 |\n| --- | --- | --- | --- |\n` + react.map((l) => `| ${l.id} | ${HERO[l.who]} | ${l.text} | ${cond(l.when)} |`).join("\n") + "\n";
 writeFileSync(OUT + "LINES.md", md);

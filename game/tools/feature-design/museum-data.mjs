@@ -25,7 +25,7 @@ export const TILES = {
 
 export const BUILDINGS = {
   aquarium: {
-    name: "ぽかぽか すいぞくかん", W: 36, H: 39, outside: { map: "harbor", id: "harbor_aquarium", x: 14, y: 1, w: 7, h: 4, label: "ぽかぽか すいぞくかん", roof: "#7EC8E0", facility: "aquarium" },
+    name: "ぽかぽか すいぞくかん", W: 36, H: 39, outside: { map: "harbor", id: "harbor_aquarium", replace: "harbor_customs", x: 2, y: 29, w: 7, h: 3, label: "ぽかぽか すいぞくかん", roof: "#7EC8E0", facility: "aquarium", style: "harbor_aquarium" },
     rooms: [
       { id: "entrance", name: "いりぐち", x: 1, y: 33, w: 8, h: 5, f: "0", intro: "ようこそ！ みずの たびに でかけよう。" },
       { id: "tunnel", name: "アクアトンネル", x: 2, y: 12, w: 4, h: 21, f: "1", intro: "あたまの うえを さかなが およいで いるよ。" },
@@ -72,7 +72,7 @@ export const BUILDINGS = {
     route: ["entrance", "tunnel", "esc", "stream", "river", "pond", "ring", "tide", "deep", "shop"],
   },
   museum: {
-    name: "きょうりゅう はくぶつかん", W: 36, H: 34, outside: { map: "city", id: "city_museum", x: 28, y: 9, w: 7, h: 4, label: "きょうりゅう はくぶつかん", roof: "#D9B47A", facility: "museum" },
+    name: "きょうりゅう はくぶつかん", W: 36, H: 34, outside: { map: "city", id: "city_museum", replace: "city_library", x: 3, y: 16, w: 6, h: 4, label: "きょうりゅう はくぶつかん", roof: "#D9B47A", facility: "museum", style: "city_museum" },
     rooms: [
       { id: "entrance", name: "いりぐち", x: 14, y: 28, w: 8, h: 5, f: "0", intro: "ようこそ！ きょうりゅうの じだいへ でかけよう。" },
       { id: "esc", name: "エスカレーター", x: 16, y: 20, w: 4, h: 8, f: "2", intro: "ながい エスカレーターで むかしへ おりて いこう。" },

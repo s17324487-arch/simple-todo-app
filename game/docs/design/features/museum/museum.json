@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "tiles": {
   "0": {
    "name": "タイルの ゆか",
@@ -672,21 +672,23 @@
    "outside": {
     "map": "harbor",
     "id": "harbor_aquarium",
-    "x": 14,
-    "y": 1,
+    "replace": "harbor_customs",
+    "x": 2,
+    "y": 29,
     "w": 7,
-    "h": 4,
+    "h": 3,
     "label": "ぽかぽか すいぞくかん",
     "roof": "#7EC8E0",
     "facility": "aquarium",
+    "style": "harbor_aquarium",
     "door": 3,
     "doorAt": [
-     17,
-     4
+     5,
+     31
     ],
     "front": [
-     17,
-     5
+     5,
+     32
     ]
    },
    "arrive": {
@@ -701,8 +703,8 @@
      "w": 2,
      "h": 1,
      "to": "harbor",
-     "tx": 17,
-     "ty": 5,
+     "tx": 5,
+     "ty": 32,
      "dir": "down"
     },
     {
@@ -711,8 +713,8 @@
      "w": 2,
      "h": 1,
      "to": "harbor",
-     "tx": 17,
-     "ty": 5,
+     "tx": 5,
+     "ty": 32,
      "dir": "down"
     }
    ],
@@ -1196,21 +1198,23 @@
    "outside": {
     "map": "city",
     "id": "city_museum",
-    "x": 28,
-    "y": 9,
-    "w": 7,
+    "replace": "city_library",
+    "x": 3,
+    "y": 16,
+    "w": 6,
     "h": 4,
     "label": "きょうりゅう はくぶつかん",
     "roof": "#D9B47A",
     "facility": "museum",
+    "style": "city_museum",
     "door": 3,
     "doorAt": [
-     31,
-     12
+     6,
+     19
     ],
     "front": [
-     31,
-     13
+     6,
+     20
     ]
    },
    "arrive": {
@@ -1225,8 +1229,8 @@
      "w": 2,
      "h": 1,
      "to": "city",
-     "tx": 31,
-     "ty": 13,
+     "tx": 6,
+     "ty": 20,
      "dir": "down"
     },
     {
@@ -1235,8 +1239,8 @@
      "w": 2,
      "h": 1,
      "to": "city",
-     "tx": 31,
-     "ty": 13,
+     "tx": 6,
+     "ty": 20,
      "dir": "down"
     }
    ],

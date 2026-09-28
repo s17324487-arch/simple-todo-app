@@ -5,8 +5,20 @@
 // ・ことば（寄贈・へやの 案内・展示の 説明）が 1行 30もじ（半角は 0.5）まで
 // ・館の マスの 文字が ゲームの いまの タイル文字と ぶつからない・人の 服が ゲームに ある
 // ・町に たてる 場所（outside）が あいた 地面で、たてた あとも 町の 入口から 館の 入口・ほかの ドア・ワープ・人・宝箱に 歩いて 行ける
+//   outside.replace が ある ときは、町の 作り直しで できた 見学だけの 建物（act: visit・もとの 町に なかった もの）を おきかえる（同じ 場所・大きさ）
 import { writeFileSync, mkdirSync } from "node:fs";
 import { gameChars, itemIds, probeOutside, run } from "./game-vm.mjs";
+// いまの 町の 見学だけの 建物を おきかえる: 同じ 場所・大きさ・visit・もとの 町（作り直す まえ）には ない・入口の まえが 通れる
+function probeReplace(o) {
+  const err = [], b = run(`(MAP_DEFS[${JSON.stringify(o.map)}].buildings || []).find((b) => b.id === ${JSON.stringify(o.replace)}) || null`);
+  if (!b) return { err: [`おきかえる 建物 ${o.replace} が ${o.map} に ない`] };
+  if (b.x !== o.x || b.y !== o.y || b.w !== o.w || b.h !== o.h) err.push(`${o.replace} は (${b.x},${b.y}) ${b.w}×${b.h}（データは (${o.x},${o.y}) ${o.w}×${o.h}）`);
+  if (!b.act || b.act.type !== "visit") err.push(`${o.replace} は 見学だけの 建物で ない（act: ${b.act && b.act.type}）`);
+  if (run(`typeof TownRenewal !== "undefined" && (TownRenewal.originals[${JSON.stringify(o.map)}] || { buildings: [] }).buildings.some((b) => b.id === ${JSON.stringify(o.replace)})`)) err.push(`${o.replace} は もとの 町から ある 建物（おきかえない）`);
+  const door = b.door != null ? b.door : Math.floor(b.w / 2), doorAt = [b.x + door, b.y + b.h - 1], front = [doorAt[0], doorAt[1] + 1];
+  if (run(`new WorldMap(${JSON.stringify(o.map)}).isSolid(${front[0]}, ${front[1]})`)) err.push(`入口の まえ (${front.join(",")}) が 通れない`);
+  return { err, door: doorAt, front, doorIdx: door };
+}
 import { BUILDINGS, TILES, TALK, INFO, SONGS } from "./museum-data.mjs";
 import { FISH } from "./fish-data.mjs";
 import { DINOS } from "./fossil-data.mjs";
@@ -61,7 +73,7 @@ for (const [bid, b] of Object.entries(BUILDINGS)) {
   if (bid === "museum") for (const d of dinoIds) if (!used.has(d)) errors.push(`博物館: 恐竜 ${d} の 台が ない`);
   for (const n of b.npcs) { if (!free(n.x, n.y)) errors.push(`${w} ${n.id}: (${n.x},${n.y}) が 床で ない`); if (!TALK[n.talk]) errors.push(`${w} ${n.id}: ことば TALK.${n.talk} が ない`); for (const it of Object.values(n.outfit || {})) if (!itemIds.has(it)) errors.push(`${w} ${n.id}: 服 ${it} が ゲームに ない`); }
   // 町に たてる 場所
-  const pr = probeOutside(b.outside);
+  const pr = b.outside.replace ? probeReplace(b.outside) : probeOutside(b.outside);
   for (const e of pr.err) errors.push(`${w}（${b.outside.map} の ${b.outside.x},${b.outside.y}）: ${e}`);
   const start0 = b.exits.find((e) => e.role === "in");
   const arrive = { x: start0.x, y: start0.y - 1, dir: "up" };
@@ -72,17 +84,17 @@ for (const [bid, b] of Object.entries(BUILDINGS)) {
   for (const r of b.rooms) { let ok = false; for (let y = r.y; y < r.y + r.h && !ok; y++) for (let x = r.x; x < r.x + r.w; x++) if (seen.has(x + "," + y)) { ok = true; break; } if (!ok) errors.push(`${w}: 入口から「${r.name}」に 行けない`); }
   for (const e of b.exits) if (!seen.has(`${e.x},${e.y - 1}`)) errors.push(`${w}: 出口 (${e.x},${e.y}) に 行けない`);
   for (const id of b.route) if (!b.rooms.some((r) => r.id === id)) errors.push(`${w}: 順路の ${id} が ない`);
-  OUTB[bid] = { name: b.name, W: b.W, H: b.H, rows, rooms: b.rooms.map(({ id, name, x, y, w, h, intro }) => ({ id, name, x, y, w, h, intro })), objects, npcs: b.npcs, exits: b.exits, route: b.route, outside: { ...b.outside, door: Math.floor(b.outside.w / 2), doorAt: pr.door, front: pr.front }, arrive, warps, reach: seen.size };
+  OUTB[bid] = { name: b.name, W: b.W, H: b.H, rows, rooms: b.rooms.map(({ id, name, x, y, w, h, intro }) => ({ id, name, x, y, w, h, intro })), objects, npcs: b.npcs, exits: b.exits, route: b.route, outside: { ...b.outside, door: pr.doorIdx != null ? pr.doorIdx : Math.floor(b.outside.w / 2), doorAt: pr.door, front: pr.front }, arrive, warps, reach: seen.size };
 }
 if (errors.length) { console.log(errors.join("\n")); process.exit(1); }
-const DATA = { version: 1, tiles: TILES, buildings: OUTB, info: INFO, talk: TALK, songs: SONGS };
+const DATA = { version: 2, tiles: TILES, buildings: OUTB, info: INFO, talk: TALK, songs: SONGS };
 writeFileSync(OUT + "museum.json", JSON.stringify(DATA, null, 1));
 writeFileSync(OUT + "museum-data.js", `// 水族館と 恐竜博物館の データ（⑤ 館内の 地図・展示・順路・寄贈の ことば）。docs/design/features/museum/ から 自動生成。手で 直さず、tools/feature-design/museum-data.mjs を 直して npm run design:features\n// ゲームに 入れるとき: js/museum-data.js に 置き、index.html と sw.js の 両方に 登録（museum.js より 前）。\nconst MUSEUM_DATA = ${JSON.stringify(DATA)};\n`);
 // 一覧
 const FN = Object.fromEntries(FISH.map((f) => [f.id, f.name])), DN = Object.fromEntries(DINOS.map((d) => [d.id, d.name]));
 let md = `# 水族館と 恐竜博物館（自動生成）\n\n地図は \`museum.json\` の \`buildings.<館>.rows\`（1文字 = 1マス）。${Object.entries(TILES).map(([k, v]) => `\`${k}\` ${v.name}`).join("・")}（ゲームの いまの タイル文字と ぶつからない 文字。\`X\` だけ 通れない）。展示物は \`objects\`（足もとの 左上 x,y と 大きさ w,h）。\n`;
 for (const [bid, b] of Object.entries(OUTB)) {
-  md += `\n## ${b.name}（${b.W}×${b.H}）\n\n**町に たてる 場所**: \`${b.outside.map}\` の (${b.outside.x}, ${b.outside.y}) から ${b.outside.w}×${b.outside.h}マス（建物 id \`${b.outside.id}\`・入口 (${b.outside.doorAt.join(", ")})・入口の まえ (${b.outside.front.join(", ")})）。館に 入ると (${b.arrive.x}, ${b.arrive.y}) に 上むきで 立つ。\n\n**順路**: ${b.route.map((id) => b.rooms.find((r) => r.id === id).name).join(" → ")}\n\n| へや | 入った ときの 案内（intro） |\n| --- | --- |\n${b.route.map((id) => b.rooms.find((r) => r.id === id)).map((r) => `| ${r.name} | ${r.intro} |`).join("\n")}\n\n| 展示 id | しゅるい | なまえ | へや | 寄贈で ふえる もの |\n| --- | --- | --- | --- | --- |\n`;
+  md += `\n## ${b.name}（${b.W}×${b.H}）\n\n**町に たてる 場所**: \`${b.outside.map}\` の (${b.outside.x}, ${b.outside.y}) から ${b.outside.w}×${b.outside.h}マス（${b.outside.replace ? `いまの 見学だけの 建物 \`${b.outside.replace}\` を おきかえる・` : ""}建物 id \`${b.outside.id}\`・外がわ \`${b.outside.style || b.outside.facility}\`・入口 (${b.outside.doorAt.join(", ")})・入口の まえ (${b.outside.front.join(", ")})）。館に 入ると (${b.arrive.x}, ${b.arrive.y}) に 上むきで 立つ。\n\n**順路**: ${b.route.map((id) => b.rooms.find((r) => r.id === id).name).join(" → ")}\n\n| へや | 入った ときの 案内（intro） |\n| --- | --- |\n${b.route.map((id) => b.rooms.find((r) => r.id === id)).map((r) => `| ${r.name} | ${r.intro} |`).join("\n")}\n\n| 展示 id | しゅるい | なまえ | へや | 寄贈で ふえる もの |\n| --- | --- | --- | --- | --- |\n`;
   const roomOf = (o) => (b.rooms.find((r) => o.x >= r.x && o.x < r.x + r.w && o.y >= r.y && o.y < r.y + r.h) || {}).name || "";
   md += b.objects.filter((o) => !["arrow", "bench", "plant"].includes(o.kind)).map((o) => `| ${o.id} | ${o.kind} | ${o.label || o.text || ""} | ${roomOf(o)} | ${o.fish ? o.fish.map((f) => FN[f]).join("・") : o.dino ? DN[o.dino] + "（骨 " + DINOS.find((d) => d.id === o.dino).art.parts.length + "こ）" : o.info ? "（説明: " + INFO[o.info].name + "）" : "（かざり）"} |`).join("\n") + "\n";
   md += `\n\`\`\`text\n${b.rows.join("\n")}\n\`\`\`\n`;

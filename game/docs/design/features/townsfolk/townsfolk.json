@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "lines": [
   {
    "id": "tf0001",
@@ -2369,29 +2369,2180 @@
      "10"
     ]
    }
+  },
+  {
+   "id": "tf0231",
+   "npc": "heiwadai_person_1",
+   "group": "line",
+   "text": "おはよう。あさの みちは くるまが おおいから きを つけて",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0232",
+   "npc": "heiwadai_person_1",
+   "group": "line",
+   "text": "しんごうが あおでも、みぎ・ひだり・みぎ だよ",
+   "when": {}
+  },
+  {
+   "id": "tf0233",
+   "npc": "heiwadai_person_1",
+   "group": "line",
+   "text": "よるは ひかる ものを みに つけると あんしんだね",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0234",
+   "npc": "heiwadai_person_1",
+   "group": "line",
+   "text": "あめの ひは、みちが すべるから ゆっくり あるこう",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0235",
+   "npc": "heiwadai_person_1",
+   "group": "line",
+   "text": "ゆきの ひは、こうばんの まえを ゆきかき したよ",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0236",
+   "npc": "heiwadai_person_1",
+   "group": "line",
+   "text": "はなびの ひは、まいごに ならないように ね",
+   "when": {
+    "festival": [
+     "fireworks"
+    ]
+   }
+  },
+  {
+   "id": "tf0237",
+   "npc": "heiwadai_person_1",
+   "group": "line",
+   "text": "こうばんの まえの おはな、わたしが うえたんだ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0238",
+   "npc": "heiwadai_person_1",
+   "group": "line",
+   "text": "なつは あついから、こまめに みずを のんでね",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0239",
+   "npc": "heiwadai_person_1",
+   "group": "line",
+   "text": "おとしものを とどけて くれて ありがとう",
+   "when": {}
+  },
+  {
+   "id": "tf0240",
+   "npc": "heiwadai_person_1",
+   "group": "line",
+   "text": "3にん いっしょなら あんしんだね",
+   "when": {}
+  },
+  {
+   "id": "tf0241",
+   "npc": "heiwadai_person_2",
+   "group": "line",
+   "text": "でんしゃは まもなく まいります",
+   "when": {}
+  },
+  {
+   "id": "tf0242",
+   "npc": "heiwadai_person_2",
+   "group": "line",
+   "text": "あさの でんしゃは、つうきんの ひとで いっぱい",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0243",
+   "npc": "heiwadai_person_2",
+   "group": "line",
+   "text": "さいごの でんしゃは、よるの 10じ です",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0244",
+   "npc": "heiwadai_person_2",
+   "group": "line",
+   "text": "あめの ひも、でんしゃは ちゃんと はしります",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0245",
+   "npc": "heiwadai_person_2",
+   "group": "line",
+   "text": "ゆきで でんしゃが おくれて、ごめんなさい",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0246",
+   "npc": "heiwadai_person_2",
+   "group": "line",
+   "text": "ホームでは、きいろい せんの うちがわへ",
+   "when": {}
+  },
+  {
+   "id": "tf0247",
+   "npc": "heiwadai_person_2",
+   "group": "line",
+   "text": "シティえきまで、ひとえきで つきますよ",
+   "when": {}
+  },
+  {
+   "id": "tf0248",
+   "npc": "heiwadai_person_2",
+   "group": "line",
+   "text": "はなびの ひは、とくべつな でんしゃが でます",
+   "when": {
+    "festival": [
+     "fireworks"
+    ]
+   }
+  },
+  {
+   "id": "tf0249",
+   "npc": "heiwadai_person_2",
+   "group": "line",
+   "text": "えきの つばめの す、ことしも できました",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0250",
+   "npc": "heiwadai_person_2",
+   "group": "line",
+   "text": "おしょうがつは、はつもうでの おきゃくさんで にぎやか",
+   "when": {
+    "festival": [
+     "newyear"
+    ]
+   }
+  },
+  {
+   "id": "tf0251",
+   "npc": "heiwadai_person_3",
+   "group": "line",
+   "text": "いらっしゃい！ きょうの やさいは ピカイチだよ",
+   "when": {}
+  },
+  {
+   "id": "tf0252",
+   "npc": "heiwadai_person_3",
+   "group": "line",
+   "text": "はるは たけのこ！ ほくほくで おいしいよ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0253",
+   "npc": "heiwadai_person_3",
+   "group": "line",
+   "text": "なつは トマトと きゅうり。つめたく ひやしてね",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0254",
+   "npc": "heiwadai_person_3",
+   "group": "line",
+   "text": "あきは さつまいも。やきいもに すると あまいぞ",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0255",
+   "npc": "heiwadai_person_3",
+   "group": "line",
+   "text": "ふゆは だいこん。おでんに ぴったり！",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0256",
+   "npc": "heiwadai_person_3",
+   "group": "line",
+   "text": "あさいちで しいれた、とれたて だよ",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0257",
+   "npc": "heiwadai_person_3",
+   "group": "line",
+   "text": "ゆうがたは おまけ しちゃおうかな",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0258",
+   "npc": "heiwadai_person_3",
+   "group": "line",
+   "text": "あめの ひは、おきゃくさんが すくないなあ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0259",
+   "npc": "heiwadai_person_3",
+   "group": "line",
+   "text": "にんじん、ちゃんと たべてるかい？",
+   "when": {}
+  },
+  {
+   "id": "tf0260",
+   "npc": "heiwadai_person_3",
+   "group": "line",
+   "text": "となりの パンやさんと、なかよし なんだ",
+   "when": {}
+  },
+  {
+   "id": "tf0261",
+   "npc": "heiwadai_person_4",
+   "group": "line",
+   "text": "いらっしゃい。あったかい おふろが わいてるよ",
+   "when": {}
+  },
+  {
+   "id": "tf0262",
+   "npc": "heiwadai_person_4",
+   "group": "line",
+   "text": "さむい ひは、ゆっくり つかって おいき",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0263",
+   "npc": "heiwadai_person_4",
+   "group": "line",
+   "text": "なつは、おふろあがりの ぎゅうにゅうが いちばん",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0264",
+   "npc": "heiwadai_person_4",
+   "group": "line",
+   "text": "ゆずゆの ひは、いい かおりが するよ",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0265",
+   "npc": "heiwadai_person_4",
+   "group": "line",
+   "text": "あめの ひの おふろも、また いいもんだねえ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0266",
+   "npc": "heiwadai_person_4",
+   "group": "line",
+   "text": "むかしの しょうてんがいの はなし、きかせて あげようか",
+   "when": {}
+  },
+  {
+   "id": "tf0267",
+   "npc": "heiwadai_person_4",
+   "group": "line",
+   "text": "よるの ちょうちん、あったかい いろでしょう",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0268",
+   "npc": "heiwadai_person_4",
+   "group": "line",
+   "text": "はるは、おふろやの まえの さくらが きれいでねえ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0269",
+   "npc": "heiwadai_person_4",
+   "group": "line",
+   "text": "あさぶろは、からだが しゃきっと するよ",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0270",
+   "npc": "heiwadai_person_4",
+   "group": "line",
+   "text": "3にんとも、げんきに おおきく なってねえ",
+   "when": {}
+  },
+  {
+   "id": "tf0271",
+   "npc": "heiwadai_person_5",
+   "group": "line",
+   "text": "いっしょに ブランコ しよう！",
+   "when": {}
+  },
+  {
+   "id": "tf0272",
+   "npc": "heiwadai_person_5",
+   "group": "line",
+   "text": "ふんすいの しぶき、つめたくて きもちいい！",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0273",
+   "npc": "heiwadai_person_5",
+   "group": "line",
+   "text": "すなばで おしろを つくったよ",
+   "when": {}
+  },
+  {
+   "id": "tf0274",
+   "npc": "heiwadai_person_5",
+   "group": "line",
+   "text": "あめの ひは、みずたまりで ぴちゃぴちゃ！",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0275",
+   "npc": "heiwadai_person_5",
+   "group": "line",
+   "text": "ゆきだるま、いっしょに つくろう！",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0276",
+   "npc": "heiwadai_person_5",
+   "group": "line",
+   "text": "おちばの やまに、とびこみたいな",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0277",
+   "npc": "heiwadai_person_5",
+   "group": "line",
+   "text": "はるの こうえんは、たんぽぽが いっぱい",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0278",
+   "npc": "heiwadai_person_5",
+   "group": "line",
+   "text": "もう ゆうがた… おうちに かえらなきゃ",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0279",
+   "npc": "heiwadai_person_5",
+   "group": "line",
+   "text": "おにごっこ、つぎは だれが おに？",
+   "when": {}
+  },
+  {
+   "id": "tf0280",
+   "npc": "heiwadai_person_5",
+   "group": "line",
+   "text": "こどもの ひの こいのぼり、おおきかった！",
+   "when": {
+    "festival": [
+     "children"
+    ]
+   }
+  },
+  {
+   "id": "tf0281",
+   "npc": "heiwadai_person_6",
+   "group": "line",
+   "text": "ようこそ おまいり くださいました",
+   "when": {}
+  },
+  {
+   "id": "tf0282",
+   "npc": "heiwadai_person_6",
+   "group": "line",
+   "text": "あけまして おめでとう ございます。よい としに",
+   "when": {
+    "festival": [
+     "newyear"
+    ]
+   }
+  },
+  {
+   "id": "tf0283",
+   "npc": "heiwadai_person_6",
+   "group": "line",
+   "text": "せつぶんには、まめまきを しますよ",
+   "when": {
+    "festival": [
+     "setsubun"
+    ]
+   }
+  },
+  {
+   "id": "tf0284",
+   "npc": "heiwadai_person_6",
+   "group": "line",
+   "text": "あめの じんじゃは、こけが きれいです",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0285",
+   "npc": "heiwadai_person_6",
+   "group": "line",
+   "text": "なつまつりの じゅんびで、いそがしく なりますね",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0286",
+   "npc": "heiwadai_person_6",
+   "group": "line",
+   "text": "みのりの おまつりでは、ことしの めぐみに かんしゃ します",
+   "when": {
+    "festival": [
+     "harvest"
+    ]
+   }
+  },
+  {
+   "id": "tf0287",
+   "npc": "heiwadai_person_6",
+   "group": "line",
+   "text": "ふゆの さんどうは、しんと して いますね",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0288",
+   "npc": "heiwadai_person_6",
+   "group": "line",
+   "text": "あさの おまいりは、こころが すっきり します",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0289",
+   "npc": "heiwadai_person_6",
+   "group": "line",
+   "text": "しちごさんの こどもたち、かわいいですね",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0290",
+   "npc": "heiwadai_person_6",
+   "group": "line",
+   "text": "ゆっくり して いって くださいね",
+   "when": {}
+  },
+  {
+   "id": "tf0291",
+   "npc": "heiwadai_person_7",
+   "group": "line",
+   "text": "バス、まだかなあ",
+   "when": {}
+  },
+  {
+   "id": "tf0292",
+   "npc": "heiwadai_person_7",
+   "group": "line",
+   "text": "つぎの バスは、あと 5ふん ぐらい",
+   "when": {}
+  },
+  {
+   "id": "tf0293",
+   "npc": "heiwadai_person_7",
+   "group": "line",
+   "text": "あめの ひの バスまちは、ちょっと たいへん",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0294",
+   "npc": "heiwadai_person_7",
+   "group": "line",
+   "text": "バスで シティまで おかいもの なの",
+   "when": {}
+  },
+  {
+   "id": "tf0295",
+   "npc": "heiwadai_person_7",
+   "group": "line",
+   "text": "ゆきの ひは、バスが ゆっくり くるの",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0296",
+   "npc": "heiwadai_person_7",
+   "group": "line",
+   "text": "あさの バスは、がっこうの こで にぎやか",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0297",
+   "npc": "heiwadai_person_7",
+   "group": "line",
+   "text": "ゆうやけを みながら まつのも すき",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0298",
+   "npc": "heiwadai_person_7",
+   "group": "line",
+   "text": "バスていの よこの おはな、さいたね",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0299",
+   "npc": "heiwadai_person_7",
+   "group": "line",
+   "text": "なつの バスは、れいぼうが きいて すずしい",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0300",
+   "npc": "heiwadai_person_7",
+   "group": "line",
+   "text": "のりおくれても、つぎの バスを まてば いいの",
+   "when": {}
+  },
+  {
+   "id": "tf0301",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "おさんぽ びより だね。どこまで いこうかな",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   }
+  },
+  {
+   "id": "tf0302",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "あさの おさんぽは、くうきが おいしいよ",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0303",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "ゆうがたの まちは、パンの においが するね",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0304",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "あめでも かさを さして おさんぽ するの",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0305",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "さくらなみきを ぐるっと ひとまわり",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0306",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "あつい ひは こかげを えらんで あるくよ",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0307",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "おちばを ふむと、かさかさ いうね",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0308",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "ゆきの あしあと、だれの かな？",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0309",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "はしを わたると シティに いけるよ",
+   "when": {}
+  },
+  {
+   "id": "tf0310",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "つりざおを もった こを よく みかけるね",
+   "when": {
+    "feature": [
+     "fishing"
+    ]
+   }
+  },
+  {
+   "id": "tf0311",
+   "npc": "town_walker",
+   "group": "crowd",
+   "text": "ぽかぽかえきから でんしゃに のった こと ある？",
+   "when": {}
+  },
+  {
+   "id": "tf0312",
+   "npc": "town_neighbor",
+   "group": "crowd",
+   "text": "こんにちは。きょうも げんき そうね",
+   "when": {
+    "time": [
+     "day"
+    ]
+   }
+  },
+  {
+   "id": "tf0313",
+   "npc": "town_neighbor",
+   "group": "crowd",
+   "text": "おはよう。ゴミだしの ひは あしただよ",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0314",
+   "npc": "town_neighbor",
+   "group": "crowd",
+   "text": "よるは しずかに ね。みんな ねてるから",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0315",
+   "npc": "town_neighbor",
+   "group": "crowd",
+   "text": "せんたくもの、あめで しまわなきゃ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0316",
+   "npc": "town_neighbor",
+   "group": "crowd",
+   "text": "かぜが つよいと、ぼうしが とばされるよ",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "tf0317",
+   "npc": "town_neighbor",
+   "group": "crowd",
+   "text": "クレープやさん、きょうも ならんでたよ",
+   "when": {}
+  },
+  {
+   "id": "tf0318",
+   "npc": "town_neighbor",
+   "group": "crowd",
+   "text": "おまつりの ちょうちん、きれいだね",
+   "when": {
+    "festival": [
+     "fireworks"
+    ]
+   }
+  },
+  {
+   "id": "tf0319",
+   "npc": "town_neighbor",
+   "group": "crowd",
+   "text": "こたつで みかん… これが ふゆの たのしみ",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0320",
+   "npc": "town_neighbor",
+   "group": "crowd",
+   "text": "うちの まどから、なつの ほしが よく みえるの",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0321",
+   "npc": "town_neighbor",
+   "group": "crowd",
+   "text": "3にんは いつも なかよしで いいね",
+   "when": {}
+  },
+  {
+   "id": "tf0322",
+   "npc": "town_riverwalk",
+   "group": "crowd",
+   "text": "ケロ。かわの おとって おちつくね",
+   "when": {}
+  },
+  {
+   "id": "tf0323",
+   "npc": "town_riverwalk",
+   "group": "crowd",
+   "text": "あめの ひは ケロケロ ごきげん！",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0324",
+   "npc": "town_riverwalk",
+   "group": "crowd",
+   "text": "かわに さかなの かげが みえたよ",
+   "when": {
+    "feature": [
+     "fishing"
+    ]
+   }
+  },
+  {
+   "id": "tf0325",
+   "npc": "town_riverwalk",
+   "group": "crowd",
+   "text": "はるの かわべは、つくしが いっぱい",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0326",
+   "npc": "town_riverwalk",
+   "group": "crowd",
+   "text": "なつの よるは、ホタルを さがしに くるの",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0327",
+   "npc": "town_riverwalk",
+   "group": "crowd",
+   "text": "かわの みずが つめたく なって きた",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0328",
+   "npc": "town_riverwalk",
+   "group": "crowd",
+   "text": "ふゆは ちょっと ねむいケロ…",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0329",
+   "npc": "town_riverwalk",
+   "group": "crowd",
+   "text": "ゆうやけが かわに うつって きれい",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0330",
+   "npc": "town_riverwalk",
+   "group": "crowd",
+   "text": "かわの アトリエで、えを かいて いる ひとが いるよ",
+   "when": {}
+  },
+  {
+   "id": "tf0331",
+   "npc": "town_riverwalk",
+   "group": "crowd",
+   "text": "くもりの ひは、カエルの ひ ケロ",
+   "when": {
+    "weather": [
+     "cloudy"
+    ]
+   }
+  },
+  {
+   "id": "tf0332",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "シティは いつも にぎやかでしょ？",
+   "when": {}
+  },
+  {
+   "id": "tf0333",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "デパートの エスカレーター、ながいよね",
+   "when": {}
+  },
+  {
+   "id": "tf0334",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "マルシェで とれたての やさいを かったの",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0335",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "よるの シティは、あかりが きらきら",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0336",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "あめの ひは ろじうら カフェで ひとやすみ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0337",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "ビルかぜが つよい ひは、まえに すすめない",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "tf0338",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "ふんすいの にじ、みた？",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   }
+  },
+  {
+   "id": "tf0339",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "クリスマスの イルミネーション、たのしみ",
+   "when": {
+    "festival": [
+     "christmas"
+    ]
+   }
+  },
+  {
+   "id": "tf0340",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "きょうりゅう はくぶつかん、もう いった？",
+   "when": {
+    "feature": [
+     "museum"
+    ]
+   }
+  },
+  {
+   "id": "tf0341",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "しゃてきじょうの カーンって おと、ここまで きこえるよ",
+   "when": {
+    "feature": [
+     "range"
+    ]
+   }
+  },
+  {
+   "id": "tf0342",
+   "npc": "city_local",
+   "group": "crowd",
+   "text": "なかよし パズル、きょうは なんてん だった？",
+   "when": {}
+  },
+  {
+   "id": "tf0343",
+   "npc": "city_commuter",
+   "group": "crowd",
+   "text": "おはようございます！ でんしゃに おくれちゃう",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0344",
+   "npc": "city_commuter",
+   "group": "crowd",
+   "text": "シティえきは、あさが いちばん こむんだ",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0345",
+   "npc": "city_commuter",
+   "group": "crowd",
+   "text": "おひるは ろじうらの カフェに きめた",
+   "when": {
+    "time": [
+     "day"
+    ]
+   }
+  },
+  {
+   "id": "tf0346",
+   "npc": "city_commuter",
+   "group": "crowd",
+   "text": "おしごと おわり！ ゆうやけが まぶしい",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0347",
+   "npc": "city_commuter",
+   "group": "crowd",
+   "text": "かさを わすれた… あめ やまないかな",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0348",
+   "npc": "city_commuter",
+   "group": "crowd",
+   "text": "ゆきの ひは でんしゃが ゆっくりに なるよ",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0349",
+   "npc": "city_commuter",
+   "group": "crowd",
+   "text": "つうきんの とちゅうで、ほんを よむのが すき",
+   "when": {}
+  },
+  {
+   "id": "tf0350",
+   "npc": "city_commuter",
+   "group": "crowd",
+   "text": "なつは ネクタイを はずして いいんだって",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0351",
+   "npc": "city_commuter",
+   "group": "crowd",
+   "text": "へいわだいの まち、きれいに なったね",
+   "when": {
+    "feature": [
+     "heiwadai2"
+    ]
+   }
+  },
+  {
+   "id": "tf0352",
+   "npc": "city_commuter",
+   "group": "crowd",
+   "text": "いそがしい ときこそ、ちょっと ひとやすみ",
+   "when": {}
+  },
+  {
+   "id": "tf0353",
+   "npc": "city_editor",
+   "group": "crowd",
+   "text": "まちの ざっしを つくって いるの",
+   "when": {}
+  },
+  {
+   "id": "tf0354",
+   "npc": "city_editor",
+   "group": "crowd",
+   "text": "つぎの とくしゅうは「シティの おいしい みせ」",
+   "when": {}
+  },
+  {
+   "id": "tf0355",
+   "npc": "city_editor",
+   "group": "crowd",
+   "text": "3にんの しゃしん、ざっしに のせても いい？",
+   "when": {}
+  },
+  {
+   "id": "tf0356",
+   "npc": "city_editor",
+   "group": "crowd",
+   "text": "しめきりが ちかくて、ねむれない…",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0357",
+   "npc": "city_editor",
+   "group": "crowd",
+   "text": "はるの とくしゅうは、さくらの めいしょ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0358",
+   "npc": "city_editor",
+   "group": "crowd",
+   "text": "すいぞくかんの とくしゅう、にんきだったの",
+   "when": {
+    "feature": [
+     "aquarium"
+    ]
+   }
+  },
+  {
+   "id": "tf0359",
+   "npc": "city_editor",
+   "group": "crowd",
+   "text": "はくぶつかんの きょうりゅう、ひょうしに したい",
+   "when": {
+    "feature": [
+     "museum"
+    ]
+   }
+  },
+  {
+   "id": "tf0360",
+   "npc": "city_editor",
+   "group": "crowd",
+   "text": "あめの ひは、へやで げんこうを かくの",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0361",
+   "npc": "city_editor",
+   "group": "crowd",
+   "text": "みのりの おまつりの きじ、しゃしんが たりない…",
+   "when": {
+    "festival": [
+     "harvest"
+    ]
+   }
+  },
+  {
+   "id": "tf0362",
+   "npc": "city_editor",
+   "group": "crowd",
+   "text": "いい ネタが あったら おしえてね",
+   "when": {}
+  },
+  {
+   "id": "tf0363",
+   "npc": "city_musician",
+   "group": "crowd",
+   "text": "♪ ラララ… まちかどの コンサートへ ようこそ",
+   "when": {}
+  },
+  {
+   "id": "tf0364",
+   "npc": "city_musician",
+   "group": "crowd",
+   "text": "あさの うたは、ゆっくり やさしく",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0365",
+   "npc": "city_musician",
+   "group": "crowd",
+   "text": "ゆうがたは しっとりした きょくを ひくよ",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0366",
+   "npc": "city_musician",
+   "group": "crowd",
+   "text": "あめの おとも、りっぱな がっきだよ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0367",
+   "npc": "city_musician",
+   "group": "crowd",
+   "text": "かぜが つよいと、がくふが とんじゃう",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "tf0368",
+   "npc": "city_musician",
+   "group": "crowd",
+   "text": "はなびの よるに えんそう するんだ",
+   "when": {
+    "festival": [
+     "fireworks"
+    ]
+   }
+  },
+  {
+   "id": "tf0369",
+   "npc": "city_musician",
+   "group": "crowd",
+   "text": "クリスマスの うた、れんしゅう ちゅう",
+   "when": {
+    "festival": [
+     "christmas"
+    ]
+   }
+  },
+  {
+   "id": "tf0370",
+   "npc": "city_musician",
+   "group": "crowd",
+   "text": "きみたちの ための きょく、つくろうかな",
+   "when": {}
+  },
+  {
+   "id": "tf0371",
+   "npc": "city_musician",
+   "group": "crowd",
+   "text": "はくしゅ ありがとう！ メェ〜",
+   "when": {}
+  },
+  {
+   "id": "tf0372",
+   "npc": "city_musician",
+   "group": "crowd",
+   "text": "ふゆは ゆびが つめたくて ひきにくいね",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0373",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "みなとの あさは、ふねの きてきで はじまる",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0374",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "うみかぜが きもちいいね",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   }
+  },
+  {
+   "id": "tf0375",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "くもりの ひは、ふねが ゆっくり はいって くるよ",
+   "when": {
+    "weather": [
+     "cloudy"
+    ]
+   }
+  },
+  {
+   "id": "tf0376",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "かぜの つよい ひは、ふねも おやすみ なんだ",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "tf0377",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "みなと マルシェの さかな、しんせんだよ",
+   "when": {}
+  },
+  {
+   "id": "tf0378",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "なつの うみは、キラキラ ひかって まぶしい",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0379",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "ふゆの うみは、なみが たかいから きを つけて",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0380",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "すいじょうきが とぶ ところ、みた？",
+   "when": {}
+  },
+  {
+   "id": "tf0381",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "すいぞくかんが できて、みなとが にぎやかに なった",
+   "when": {
+    "feature": [
+     "aquarium"
+    ]
+   }
+  },
+  {
+   "id": "tf0382",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "さんばしで つりを する ひとが ふえたね",
+   "when": {
+    "feature": [
+     "fishing"
+    ]
+   }
+  },
+  {
+   "id": "tf0383",
+   "npc": "port_local",
+   "group": "crowd",
+   "text": "ゆうひが うみに しずむ じかんが すき",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0384",
+   "npc": "port_sailor",
+   "group": "crowd",
+   "text": "ペンギンの ふなのり さ。うみは ともだち",
+   "when": {}
+  },
+  {
+   "id": "tf0385",
+   "npc": "port_sailor",
+   "group": "crowd",
+   "text": "いかりを あげろー！ …なんてね",
+   "when": {}
+  },
+  {
+   "id": "tf0386",
+   "npc": "port_sailor",
+   "group": "crowd",
+   "text": "きょうは なみが おだやか。いい こうかい びより",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   }
+  },
+  {
+   "id": "tf0387",
+   "npc": "port_sailor",
+   "group": "crowd",
+   "text": "あめの うみも わるくないよ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0388",
+   "npc": "port_sailor",
+   "group": "crowd",
+   "text": "かぜが つよい ひは、ほを たたむんだ",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "tf0389",
+   "npc": "port_sailor",
+   "group": "crowd",
+   "text": "ゆきの うみは、しずかで きれいだ",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0390",
+   "npc": "port_sailor",
+   "group": "crowd",
+   "text": "よるの うみは、ほしが みちしるべ",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0391",
+   "npc": "port_sailor",
+   "group": "crowd",
+   "text": "とおくの しまの はなしを して あげようか",
+   "when": {}
+  },
+  {
+   "id": "tf0392",
+   "npc": "port_sailor",
+   "group": "crowd",
+   "text": "うみの そこには、ふしぎな さかなが いるんだ",
+   "when": {
+    "feature": [
+     "fishing"
+    ]
+   }
+  },
+  {
+   "id": "tf0393",
+   "npc": "port_sailor",
+   "group": "crowd",
+   "text": "ロープの むすびかた、おしえて あげる",
+   "when": {}
+  },
+  {
+   "id": "tf0394",
+   "npc": "air_local",
+   "group": "crowd",
+   "text": "ひこうきの おと、いつ きいても わくわく",
+   "when": {}
+  },
+  {
+   "id": "tf0395",
+   "npc": "air_local",
+   "group": "crowd",
+   "text": "てんぼうデッキから ひこうきが みえるよ",
+   "when": {}
+  },
+  {
+   "id": "tf0396",
+   "npc": "air_local",
+   "group": "crowd",
+   "text": "はれた ひは、とおくの やままで みえる",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   }
+  },
+  {
+   "id": "tf0397",
+   "npc": "air_local",
+   "group": "crowd",
+   "text": "くもりの ひは、ひこうきが くもに かくれるね",
+   "when": {
+    "weather": [
+     "cloudy"
+    ]
+   }
+  },
+  {
+   "id": "tf0398",
+   "npc": "air_local",
+   "group": "crowd",
+   "text": "ゆきの ひは、ひこうきの ゆきかきが たいへん",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "tf0399",
+   "npc": "air_local",
+   "group": "crowd",
+   "text": "よるの かっそうろ、あかりが ならんで きれい",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0400",
+   "npc": "air_local",
+   "group": "crowd",
+   "text": "そらの はくぶつかんに、むかしの ひこうきが あるよ",
+   "when": {}
+  },
+  {
+   "id": "tf0401",
+   "npc": "air_local",
+   "group": "crowd",
+   "text": "なつやすみは、りょこうの ひとで いっぱい",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0402",
+   "npc": "air_local",
+   "group": "crowd",
+   "text": "にもつセンターは、いつも いそがしそう",
+   "when": {}
+  },
+  {
+   "id": "tf0403",
+   "npc": "air_local",
+   "group": "crowd",
+   "text": "あさいちばんの びんは、はやおき しないと",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0404",
+   "npc": "air_passenger",
+   "group": "crowd",
+   "text": "これから たびに でるの。どきどき！",
+   "when": {}
+  },
+  {
+   "id": "tf0405",
+   "npc": "air_passenger",
+   "group": "crowd",
+   "text": "パスポート、どこに いれたっけ…",
+   "when": {}
+  },
+  {
+   "id": "tf0406",
+   "npc": "air_passenger",
+   "group": "crowd",
+   "text": "おみやげ、なにが いいかな？",
+   "when": {}
+  },
+  {
+   "id": "tf0407",
+   "npc": "air_passenger",
+   "group": "crowd",
+   "text": "あめで ひこうきが おくれて いるみたい",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0408",
+   "npc": "air_passenger",
+   "group": "crowd",
+   "text": "まどがわの せきが とれたんだ",
+   "when": {}
+  },
+  {
+   "id": "tf0409",
+   "npc": "air_passenger",
+   "group": "crowd",
+   "text": "ゆきの くにへ いくの。あったかい ふく もった！",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0410",
+   "npc": "air_passenger",
+   "group": "crowd",
+   "text": "なつの うみへ いくの。みずぎ いれたかな",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0411",
+   "npc": "air_passenger",
+   "group": "crowd",
+   "text": "おしょうがつは、ふるさとに かえるよ",
+   "when": {
+    "festival": [
+     "newyear"
+    ]
+   }
+  },
+  {
+   "id": "tf0412",
+   "npc": "air_passenger",
+   "group": "crowd",
+   "text": "たびの しゃしん、あとで みせるね",
+   "when": {}
+  },
+  {
+   "id": "tf0413",
+   "npc": "air_passenger",
+   "group": "crowd",
+   "text": "ひこうきに のる まえの よるは、いつも ねむれない",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0414",
+   "npc": "air_welcome",
+   "group": "crowd",
+   "text": "くうこうへ ようこそ！ ごあんない します",
+   "when": {}
+  },
+  {
+   "id": "tf0415",
+   "npc": "air_welcome",
+   "group": "crowd",
+   "text": "そらの ターミナルは、まっすぐ すすんで ください",
+   "when": {}
+  },
+  {
+   "id": "tf0416",
+   "npc": "air_welcome",
+   "group": "crowd",
+   "text": "くうこうえきから でんしゃにも のれますよ",
+   "when": {}
+  },
+  {
+   "id": "tf0417",
+   "npc": "air_welcome",
+   "group": "crowd",
+   "text": "てんぼうラウンジからは、そらが よく みえます",
+   "when": {}
+  },
+  {
+   "id": "tf0418",
+   "npc": "air_welcome",
+   "group": "crowd",
+   "text": "おわすれものに ごちゅうい ください",
+   "when": {}
+  },
+  {
+   "id": "tf0419",
+   "npc": "air_welcome",
+   "group": "crowd",
+   "text": "おはようございます。きょうも よい たびを",
+   "when": {
+    "time": [
+     "morning"
+    ]
+   }
+  },
+  {
+   "id": "tf0420",
+   "npc": "air_welcome",
+   "group": "crowd",
+   "text": "こんばんは。さいしゅうびんは もうすぐ です",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0421",
+   "npc": "air_welcome",
+   "group": "crowd",
+   "text": "あめの ひは、あしもとに おきを つけて",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0422",
+   "npc": "air_welcome",
+   "group": "crowd",
+   "text": "クリスマスの かざり、わたしが つけたんです",
+   "when": {
+    "festival": [
+     "christmas"
+    ]
+   }
+  },
+  {
+   "id": "tf0423",
+   "npc": "air_welcome",
+   "group": "crowd",
+   "text": "また きて くださいね",
+   "when": {}
+  },
+  {
+   "id": "tf0424",
+   "npc": "heiwadai_walker",
+   "group": "crowd",
+   "text": "しょうてんがいの コロッケ、たべた？",
+   "when": {}
+  },
+  {
+   "id": "tf0425",
+   "npc": "heiwadai_walker",
+   "group": "crowd",
+   "text": "せんとうの まえの おみせで、ラムネを かったの",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0426",
+   "npc": "heiwadai_walker",
+   "group": "crowd",
+   "text": "へいわだいの まちは、よりみちが たのしい",
+   "when": {}
+  },
+  {
+   "id": "tf0427",
+   "npc": "heiwadai_walker",
+   "group": "crowd",
+   "text": "でんしゃの おとが きこえると、わくわく するね",
+   "when": {}
+  },
+  {
+   "id": "tf0428",
+   "npc": "heiwadai_walker",
+   "group": "crowd",
+   "text": "あめの しょうてんがいは、ひさしの したを あるくよ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0429",
+   "npc": "heiwadai_walker",
+   "group": "crowd",
+   "text": "よるの ちょうちん、ぽっと あかるいね",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "tf0430",
+   "npc": "heiwadai_walker",
+   "group": "crowd",
+   "text": "はるは、じんじゃの さくらが みごとだよ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0431",
+   "npc": "heiwadai_walker",
+   "group": "crowd",
+   "text": "あきの おさんぽは、きんもくせいの かおり",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0432",
+   "npc": "heiwadai_walker",
+   "group": "crowd",
+   "text": "ふゆの おさんぽは、たいやきが たのしみ",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0433",
+   "npc": "heiwadai_walker",
+   "group": "crowd",
+   "text": "こうえんの ふんすい、みた？",
+   "when": {
+    "weather": [
+     "clear"
+    ]
+   }
+  },
+  {
+   "id": "tf0434",
+   "npc": "air_traveler",
+   "group": "crowd",
+   "text": "せかいじゅうを たびして いるんだ",
+   "when": {}
+  },
+  {
+   "id": "tf0435",
+   "npc": "air_traveler",
+   "group": "crowd",
+   "text": "いちばん すきな まちは… ここかもね",
+   "when": {}
+  },
+  {
+   "id": "tf0436",
+   "npc": "air_traveler",
+   "group": "crowd",
+   "text": "たびの コツ？ にもつは すくなく！",
+   "when": {}
+  },
+  {
+   "id": "tf0437",
+   "npc": "air_traveler",
+   "group": "crowd",
+   "text": "みなみの しまの うみは、とうめい なんだ",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "tf0438",
+   "npc": "air_traveler",
+   "group": "crowd",
+   "text": "きたの くにの オーロラ、みせたいなあ",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "tf0439",
+   "npc": "air_traveler",
+   "group": "crowd",
+   "text": "あきの たびは、たべものが おいしい",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "tf0440",
+   "npc": "air_traveler",
+   "group": "crowd",
+   "text": "はるの たびは、はなを さがして あるくよ",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "tf0441",
+   "npc": "air_traveler",
+   "group": "crowd",
+   "text": "あめの ひは、くうこうで ひとやすみ",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "tf0442",
+   "npc": "air_traveler",
+   "group": "crowd",
+   "text": "つぎは どこへ いこうかな",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "tf0443",
+   "npc": "air_traveler",
+   "group": "crowd",
+   "text": "きみたちも いつか たびに でて ごらん",
+   "when": {}
   }
  ],
+ "crowd": {
+  "town_walker0": "town_walker",
+  "town_walker1": "town_walker",
+  "town_walker2": "town_walker",
+  "town_walker3": "town_walker",
+  "town_neighbor0": "town_neighbor",
+  "town_neighbor1": "town_neighbor",
+  "town_neighbor2": "town_neighbor",
+  "town_neighbor3": "town_neighbor",
+  "town_riverwalk0": "town_riverwalk",
+  "town_riverwalk1": "town_riverwalk",
+  "town_riverwalk2": "town_riverwalk",
+  "city_local0": "city_local",
+  "city_local1": "city_local",
+  "city_local2": "city_local",
+  "city_local3": "city_local",
+  "city_local4": "city_local",
+  "city_local5": "city_local",
+  "city_local6": "city_local",
+  "city_local7": "city_local",
+  "city_local8": "city_local",
+  "city_commuter0": "city_commuter",
+  "city_commuter1": "city_commuter",
+  "city_commuter2": "city_commuter",
+  "city_commuter3": "city_commuter",
+  "city_editor": "city_editor",
+  "city_musician": "city_musician",
+  "heiwadai_walker_0": "heiwadai_walker",
+  "heiwadai_walker_1": "heiwadai_walker",
+  "heiwadai_walker_2": "heiwadai_walker",
+  "heiwadai_walker_3": "heiwadai_walker",
+  "heiwadai_walker_4": "heiwadai_walker",
+  "port_local1": "port_local",
+  "port_local2": "port_local",
+  "port_local3": "port_local",
+  "port_local4": "port_local",
+  "port_local5": "port_local",
+  "port_local6": "port_local",
+  "port_local7": "port_local",
+  "port_sailor0": "port_sailor",
+  "port_sailor1": "port_sailor",
+  "port_sailor2": "port_sailor",
+  "port_sailor3": "port_sailor",
+  "port_sailor4": "port_sailor",
+  "port_sailor5": "port_sailor",
+  "air_local1": "air_local",
+  "air_local2": "air_local",
+  "air_local3": "air_local",
+  "air_local4": "air_local",
+  "air_local5": "air_local",
+  "air_local6": "air_local",
+  "air_passenger0": "air_passenger",
+  "air_passenger1": "air_passenger",
+  "air_passenger2": "air_passenger",
+  "air_passenger3": "air_passenger",
+  "air_passenger4": "air_passenger",
+  "air_passenger5": "air_passenger",
+  "air_welcome": "air_welcome",
+  "air_traveler": "air_traveler"
+ },
+ "crowdNames": {
+  "town_walker": "おさんぽの なかま",
+  "town_neighbor": "おとなりさん",
+  "town_riverwalk": "かわべの カエルさん",
+  "city_local": "シティの なかま",
+  "city_commuter": "つうきんの ネズミさん",
+  "city_editor": "ざっしの へんしゅうしゃ",
+  "city_musician": "まちかどの ミュージシャン",
+  "port_local": "みなとの なかま",
+  "port_sailor": "ふなのりの ペンギン",
+  "air_local": "くうこうの なかま",
+  "air_passenger": "たびの ひつじさん",
+  "air_welcome": "あんないの うさぎさん",
+  "heiwadai_walker": "おさんぽの ひと",
+  "air_traveler": "たびびとの ネズミさん"
+ },
  "react": [
   {
-   "id": "tr0231",
+   "id": "tr0444",
    "who": "wanko",
    "text": "クンクン… この ひと、やさしい においが する！",
    "when": {}
   },
   {
-   "id": "tr0232",
+   "id": "tr0445",
    "who": "wanko",
    "text": "まかせて！ こまってる ひとは ほっとけない",
    "when": {}
   },
   {
-   "id": "tr0233",
+   "id": "tr0446",
    "who": "wanko",
    "text": "ふむふむ… いい こと きいちゃった",
    "when": {}
   },
   {
-   "id": "tr0234",
+   "id": "tr0447",
    "who": "wanko",
    "text": "クンクン… パンの におい！ ポケットに はいってる？",
    "when": {
@@ -2401,25 +4552,25 @@
    }
   },
   {
-   "id": "tr0235",
+   "id": "tr0448",
    "who": "wanko",
    "text": "わうーん！ よろしくね！",
    "when": {}
   },
   {
-   "id": "tr0236",
+   "id": "tr0449",
    "who": "wanko",
    "text": "おれいの コイン、はんぶん おやつに… なんてね",
    "when": {}
   },
   {
-   "id": "tr0237",
+   "id": "tr0450",
    "who": "wanko",
    "text": "この まちの ひと、みんな やさしいね",
    "when": {}
   },
   {
-   "id": "tr0238",
+   "id": "tr0451",
    "who": "wanko",
    "text": "あとで おふろで きょうの はなし しよう",
    "when": {
@@ -2429,7 +4580,7 @@
    }
   },
   {
-   "id": "tr0239",
+   "id": "tr0452",
    "who": "wanko",
    "text": "クンクン… おはなの におい！",
    "when": {
@@ -2439,13 +4590,13 @@
    }
   },
   {
-   "id": "tr0240",
+   "id": "tr0453",
    "who": "wanko",
    "text": "せいぎの みかた わんこ、しっかり おぼえた！",
    "when": {}
   },
   {
-   "id": "tr0241",
+   "id": "tr0454",
    "who": "wanko",
    "text": "ねこさん、また ねむそう だね",
    "when": {
@@ -2455,7 +4606,7 @@
    }
   },
   {
-   "id": "tr0242",
+   "id": "tr0455",
    "who": "wanko",
    "text": "たんけんの はなし、もっと ききたい！",
    "when": {
@@ -2465,31 +4616,31 @@
    }
   },
   {
-   "id": "tr0243",
+   "id": "tr0456",
    "who": "gachan",
    "text": "…ちょっと きんちょう しちゃった",
    "when": {}
   },
   {
-   "id": "tr0244",
+   "id": "tr0457",
    "who": "gachan",
    "text": "やさしい ひとで よかった…",
    "when": {}
   },
   {
-   "id": "tr0245",
+   "id": "tr0458",
    "who": "gachan",
    "text": "みんなが いるから、はなしかけられたよ",
    "when": {}
   },
   {
-   "id": "tr0246",
+   "id": "tr0459",
    "who": "gachan",
    "text": "ぴよっ！ おぼえたよ！",
    "when": {}
   },
   {
-   "id": "tr0247",
+   "id": "tr0460",
    "who": "gachan",
    "text": "おはな、きれい… わたしも そだてて みたいな",
    "when": {
@@ -2499,7 +4650,7 @@
    }
   },
   {
-   "id": "tr0248",
+   "id": "tr0461",
    "who": "gachan",
    "text": "よるの そとは… こわいね。はやく かえろ？",
    "when": {
@@ -2509,13 +4660,13 @@
    }
   },
   {
-   "id": "tr0249",
+   "id": "tr0462",
    "who": "gachan",
    "text": "おてつだい、わたしも がんばる… たぶん",
    "when": {}
   },
   {
-   "id": "tr0250",
+   "id": "tr0463",
    "who": "gachan",
    "text": "くまさん、おおきくて… ちょっと びっくり",
    "when": {
@@ -2525,7 +4676,7 @@
    }
   },
   {
-   "id": "tr0251",
+   "id": "tr0464",
    "who": "gachan",
    "text": "あめ… かみなり なりませんように",
    "when": {
@@ -2535,37 +4686,37 @@
    }
   },
   {
-   "id": "tr0252",
+   "id": "tr0465",
    "who": "gachan",
    "text": "ままにも おしえて あげよう",
    "when": {}
   },
   {
-   "id": "tr0253",
+   "id": "tr0466",
    "who": "gachan",
    "text": "てを つないで いこうね。はぐれないように",
    "when": {}
   },
   {
-   "id": "tr0254",
+   "id": "tr0467",
    "who": "gachan",
    "text": "ふふ、なかよく なれたかな",
    "when": {}
   },
   {
-   "id": "tr0255",
+   "id": "tr0468",
    "who": "goji",
    "text": "ガウっ！（よろしく）",
    "when": {}
   },
   {
-   "id": "tr0256",
+   "id": "tr0469",
    "who": "goji",
    "text": "……（こくり） …ガゥ",
    "when": {}
   },
   {
-   "id": "tr0257",
+   "id": "tr0470",
    "who": "goji",
    "text": "ごじも おっきく なったら、たんけんかに なる",
    "when": {
@@ -2575,13 +4726,13 @@
    }
   },
   {
-   "id": "tr0258",
+   "id": "tr0471",
    "who": "goji",
    "text": "ひとりでも とどけられるよ。…でも みんなで いこ",
    "when": {}
   },
   {
-   "id": "tr0259",
+   "id": "tr0472",
    "who": "goji",
    "text": "おさかな… おいしそう …ガゥ",
    "when": {
@@ -2591,7 +4742,7 @@
    }
   },
   {
-   "id": "tr0260",
+   "id": "tr0473",
    "who": "goji",
    "text": "ガウっ！ おなか すいた",
    "when": {
@@ -2601,7 +4752,7 @@
    }
   },
   {
-   "id": "tr0261",
+   "id": "tr0474",
    "who": "goji",
    "text": "ひこうき、ごじより おっきい？",
    "when": {
@@ -2611,7 +4762,7 @@
    }
   },
   {
-   "id": "tr0262",
+   "id": "tr0475",
    "who": "goji",
    "text": "ふね、ぼーっ！ ガウっ！",
    "when": {
@@ -2621,25 +4772,25 @@
    }
   },
   {
-   "id": "tr0263",
+   "id": "tr0476",
    "who": "goji",
    "text": "むずかしい はなし… でも わかった ふり …ガゥ",
    "when": {}
   },
   {
-   "id": "tr0264",
+   "id": "tr0477",
    "who": "goji",
    "text": "ガウっ！ まかせて。ごじ、きようだから",
    "when": {}
   },
   {
-   "id": "tr0265",
+   "id": "tr0478",
    "who": "goji",
    "text": "おっきく なる ひみつ、きけば よかった",
    "when": {}
   },
   {
-   "id": "tr0266",
+   "id": "tr0479",
    "who": "goji",
    "text": "ねむい… …ガゥ",
    "when": {
@@ -3698,16 +5849,16 @@
    "map": "town",
    "spots": [
     [
-     27,
-     3
+     40,
+     23
     ],
     [
-     5,
-     8
+     35,
+     29
     ],
     [
-     26,
-     16
+     21,
+     10
     ]
    ]
   },
@@ -3715,24 +5866,24 @@
    "map": "heiwadai",
    "spots": [
     [
-     34,
-     18
-    ],
-    [
-     24,
-     17
-    ],
-    [
-     17,
-     28
-    ],
-    [
-     19,
+     22,
      19
     ],
     [
-     28,
-     31
+     22,
+     25
+    ],
+    [
+     31,
+     17
+    ],
+    [
+     27,
+     20
+    ],
+    [
+     31,
+     21
     ]
    ]
   },
@@ -3740,15 +5891,15 @@
    "map": "town",
    "spots": [
     [
-     5,
-     23
+     11,
+     31
     ],
     [
-     16,
-     10
+     27,
+     20
     ],
     [
-     9,
+     6,
      21
     ]
    ]
