@@ -176,6 +176,7 @@ folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
 - しゃしん: `TownFolk.refreshPhoto()` が 1マス 歩く たびに（`onArrive` → `TownFolk.arrived`）`photoSpot` を みて、右下（おまつりの ボタンと おなじ 高さ）に「しゃしんを とる」（44px）を 出す。おすと `.folk-flash` で 白く ひかって 3人が 下を むいて はねる → `{do:"photo", map, near}`。
 - 物々交換: おねがいが 出なかった ときに `BARTER_CHANCE`（10%）。`UI.ask(text, ["こうかん する", "やめておく"], { face, name, extra: tradeCard })`。わたす もちものを へらして `Loot.give`。さかな・ほねの こうかん（fish・bone）は ③④ で `have()`・`canGive()`・`lootOf()` に 足す（いまは `needs` で 出ない）。
 - さわる・しゃしんが おわると「ぜんぶ できた！／しゃしんを とった！ 〇〇に はなしかけよう」の トースト。
+- ③ 釣りの 1番から: `features().fishing` は `FISHING_DATA` が あって つりざおを もって いる（`Save.d.fish.rod > 0`）とき だけ（さおが ない うちに アユの おねがいが 出ないように）。
 - テストの 入口（3番）: `folkSpots(map)`（`stand` は となりの 立てる マス、いまの マップなら `cx`・`cy`）・`folkKitten()`・`folkPhotoTile(map)`。`folkOffer(id)` は 物々交換の id（`bt-…`）も うけとる。
 - テストの 入口: `folk()`・`folkOffer(id)`（つぎに その人と 話すと かならず もちかける）・`folkSignal(sig)`（会話は またない）・`folkMarks()`（いまの マップの しるし）。`folkSpots()` は 3番。
 

@@ -47,6 +47,8 @@ const Save = {
       rooms: { active: "main", owned: { main: true }, stored: {}, expanded: {} },
       // ② 町の人: なかよし・うけて いる おねがい（3つまで）・おわった 日・物々交換の 回数・その日に もちかけた 人
       folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
+      // ③ 釣り: rod 0 なし／1 つりざお／2 りっぱな つりざお・dex { id: { n, max, first } }・keep { id: いけすの 数 }・caught つった 数
+      fish: { rod: 0, dex: {}, keep: {}, caught: 0 },
       shops: {
         burger:{lv:1,rep:0,best:0,plays:0},
         groom: {lv:1,rep:0,best:0,plays:0},

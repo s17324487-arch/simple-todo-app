@@ -317,6 +317,12 @@ const PokaDebug = {
   folkPhotoTile(map) { return TownFolk.reach(map).tiles.find(([x, y]) => TownFolk.photoSpot(map, x, y)) || null; },
   // ② ついて きて いる こねこ（いなければ null）
   folkKitten() { const k = G.sceneName === "world" && G.scene.follower; return k ? { x: k.w.tx, y: k.w.ty, trail: k.trail.length } : null; },
+  // ③ 釣り: いけすに 入れる（ずかんにも のる。大きさは Fishing.size）。いまの ずかんの きろくを かえす
+  fishGive(id, n = 1) {
+    const f = Fishing.fish(id); if (!f) throw new Error("unknown fish: " + id);
+    for (let i = 0; i < n; i++) Fishing.record(id, Fishing.size(f));
+    return { ...Save.d.fish.dex[id], keep: Save.d.fish.keep[id] };
+  },
   // つぎに その人と 話した とき、かならず その おねがい（ev-…）／物々交換（bt-…）を もちかける
   folkOffer(id) {
     const ev = TownFolk.event(id), bt = !ev && TOWNSFOLK_DATA.barter.find((b) => b.id === id), npc = ev ? ev.giver : bt && bt.npc;
