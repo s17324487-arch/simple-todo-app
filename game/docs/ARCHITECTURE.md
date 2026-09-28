@@ -841,3 +841,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 `town-quiz-data.js` はdocsの2JSONから生成。`TownQuiz` は既存town_walker3の会話を出題パネルへつなぐ。activeに出題時点の問題スナップショット・選択肢順・抽選済み景品・開始日を保存し、回答時にactive消去とlast／コイン／袋／家具を同時保存する。Save.writeの失敗が例外を返さないため保存結果のtokenを読み戻し、失敗時は状態を復元する。日次枠は回答した時に消費。UIを閉じてもactiveは保留として残る。
 
 限定家具5品はQuizPrizesへ登録し、HomeDesignと同じ投影で描画。5品×2方向の有限キャッシュ。PokaDebug.conversation／quizState／quizStart／quizAnswer／quizCancelを検証の入口とする。既存Save.KEY／SCHEMAは維持し、conversationsとtownQuizを追加する。
+
+## ネリカスタウンの実寸アセット
+
+`nerikasu-neighborhood.js` の後に `nerikasu-town-art.js` → `nerikasu-town.js`。原画は `tools/town-design/nerikasu-assets.mjs` / `nerikasu-props.mjs` / `nerikasu-buildings.mjs`、生成は `tools/build-nerikasu-town.mjs`。HeiwadaiArtの既存bboxモデルへ別IDで登録し、共通defsは維持する。NerikasuTownは22棟と駅前の歩道・小物を接続する。駅14×5と駅東の1戸の敷地のみ変更し、入口と営業機能を既存IDで維持。昼夜は2状態の原画を先読みし、列車は座標だけを動かして線路内へクリップする。PokaDebug.nerikasuArtは描画寸法と有限キャッシュの読取用。

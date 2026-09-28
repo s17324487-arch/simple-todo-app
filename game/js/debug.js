@@ -77,6 +77,10 @@ const PokaDebug = {
   townLayout(id) {
     const m=Maps.get(id);return {id,w:m.w,h:m.h,spawn:m.def.safeSpawn,views:m.def.views,doors:m.doors.map(d=>({id:d.b.id,x:d.x,y:d.y,act:d.b.act})),warps:m.warps};
   },
+  nerikasuArt() {
+    return {night:DayTint.isNight(),buildings:MAP_DEFS.town.buildings.map(b=>({id:b.id,asset:b.asset,x:b.x,y:b.y,w:b.w,h:b.h,door:b.door,model:HeiwadaiArt.model(b.asset,{})})).map(({model,...b})=>({...b,origin:[model.originX,model.originY],size:[model.w,model.h]})),
+      cached:[...SvgCache.map.keys()].filter(k=>k.includes('heiwadai_nerikasu'))};
+  },
   backupText(){return SaveBackup.encode();},
   backupDecode(text){return SaveBackup.decode(text);},
   dailyVisit(day) {return DailyPlay.visit(day);},
