@@ -34,6 +34,7 @@
 <script src="../js/seasonal-catalog.js"></script>
 <script src="../js/home-design.js"></script>
 <script src="../js/puzzle-prizes.js"></script>
+<script src="../js/shop-rewards.js"></script>
 <script src="../js/tiles.js"></script>
 <script src="../js/world-art.js"></script>
 <script src="../js/store-interiors.js"></script>
@@ -67,6 +68,11 @@
   const cell = (svg, w, label) => `<div class="cell">${svg.replace("<svg ", `<svg width="${w}" `)}<div>${label}</div></div>`;
   const row = (items) => `<div class="row">${items.join("")}</div>`;
   function render() {
+    if(new URLSearchParams(location.search).has("shop-rewards")){
+      ctrl.hidden=true;
+      out.innerHTML=Object.entries(ShopRewards.themes).map(([shop,t])=>'<h2>'+t.name+'</h2>'+row(ShopRewards.prizes.filter(p=>p.shop===shop).map(p=>'<div class="cell" style="width:220px">'+ShopRewardArt.model(p.id).full.replace('<svg ','<svg width="210" height="160" ')+ '<div>Lv.'+p.level+' '+p.name+'</div></div>'))).join('');
+      return;
+    }
     let h = '<h2>ぜんたい ちず（オリジナル地形）</h2><div style="max-width:800px">'+AtlasArt.svg()+'</div>';
     h += '<h2>12かげつのおまつり</h2>'+row(ANNUAL_EVENTS.map(e=>cell(AnnualArt.svg(e),96,e.month+'月 '+e.name)));
     h += '<h2>広いおうち・左右の壁と床</h2>'+row([['wp_cream','fl_wood'],['wp_sage_panel','fl_walnut'],['wp_blue_panel','fl_parquet']].map(([wall,floor])=>cell(HomeDesign.roomSvg(wall,floor),380,wall+' / '+floor)));

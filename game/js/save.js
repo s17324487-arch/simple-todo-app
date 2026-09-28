@@ -55,6 +55,7 @@ const Save = {
       museum: { fish: {}, bones: {}, done: {}, rooms: {}, all: {} },
       // ⑥ 射撃場: safety は RO の きまりを きいた・best は しゅもく:じゅう ごとの いちばん よい きろく・hop は じゅう ごとの ホップ ダイヤル
       range: { safety: false, plays: 0, best: {}, hop: {} },
+      shopRewards: {},
       shops: {
         burger:{lv:1,rep:0,best:0,plays:0},
         groom: {lv:1,rep:0,best:0,plays:0},

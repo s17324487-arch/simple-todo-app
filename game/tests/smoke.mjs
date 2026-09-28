@@ -1604,7 +1604,11 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg('range','long','bolt','goji','t2');await rangePlaying(H,'long');
   await H.dbg('rangeInput',{ads:true});await H.wait(700);
   s=await H.dbg('rangeState');expect(s.ads&&s.zoom>1,'のぞけない '+JSON.stringify(s));
-  const z0=s.zoom;await H.dbg('rangeInput',{zoomIn:true});await H.wait(300);
+  const z0=s.zoom;
+  // 入力は次の描画フレームで消費される。300msより遅い更新でも、反映を待ってから判定する。
+  await H.dbg('pause',true);expect(await H.dbg('rangeInput',{zoomIn:true}),'ズーム入力を受け付けない');
+  await H.eval(()=>{setTimeout(()=>PokaDebug.pause(false),450);});
+  await H.until(z=>PokaDebug.rangeState()?.zoom>z,3000,z0);
   s=await H.dbg('rangeState');expect(s.zoom>z0,'ズームが かわらない '+JSON.stringify([z0,s.zoom]));
   // ブザーの あと じゅうを あげる（0.3びょう）まで うてない
   await H.until(()=>{const s=PokaDebug.rangeState();return s.phase==='play'&&s.clock>0.45;},8000);
@@ -2152,6 +2156,40 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
   const items=state.prizes.slice(0,3).map((p,i)=>({id:p.id,x:90+i*140,y:450,uid:i+1}));await H.dbg("homeLayout",items);await H.wait(400);await H.shot("rare-room");
 },{viewport,timeout:240000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario("shop-rewards-"+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg("pause",true);
+  const legacy=await H.dbg("saveData");legacy.coins=987654;delete legacy.shopRewards;
+  legacy.shops.crepe.lv=5;legacy.shops.crepe.rep=1600;
+  await H.dbg("seedSave",legacy);await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle(30000);await H.dbg("pause",true);
+  let data=await H.dbg("saveData");for(const k of ["coins","bag","wardrobe","furn","shops"])expect(JSON.stringify(data[k])===JSON.stringify(legacy[k]),"古いセーブが変化: "+k);
+  expect(Object.keys(data.shopRewards).length===0,"旧データの受取記録が不正");
+  await H.dbg("shopRewardOpen","crepe");await H.shot("level5");
+  const claim=H.page.getByRole("button",{name:"ごほうびを うけとる",exact:true});await claim.click();expect(await claim.isDisabled(),"受け取り後に再配布できる");
+  let stored=await H.dbg("persistedSave");expect(stored.coins===987654&&stored.furn.shop_crepe_5===1&&stored.shopRewards.shop_crepe_5,"レベル5報酬か保存が不正");
+  await H.page.getByRole("button",{name:"とじる",exact:true}).last().click();
+  const levels=(await H.dbg("shopRewards","crepe")).levels;
+  data=await H.dbg("saveData");for(const shop of ["burger","groom","cake","crepe","dentist","bakery","florist","relay"]){data.shops[shop].lv=5;data.shops[shop].rep=levels[30];}
+  await H.dbg("seedSave",data);
+  for(const shop of ["burger","groom","cake","crepe","dentist","bakery","florist","relay"]){
+    const got=await H.dbg("shopRewardClaim",shop);expect(got.length===(shop==="crepe"?3:4),"過去の評判からの報酬不足: "+shop);
+    expect((await H.dbg("shopRewardClaim",shop)).length===0,"報酬の二重配布");
+  }
+  stored=await H.dbg("persistedSave");expect(stored.coins===987654&&Object.keys(stored.shopRewards).length===32,"おかねか報酬数が不正");
+  await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle(30000);await H.dbg("pause",true);
+  expect((await H.dbg("shopRewardClaim","crepe")).length===0,"再読み込みで重複");
+  await H.dbg("shopRewardOpen","crepe");const cards=H.page.locator(".shop-prize-card");await cards.last().scrollIntoViewIfNeeded();await H.shot("level30");
+  expect(await H.eval(()=>document.documentElement.scrollWidth<=innerWidth),"横にはみ出す");
+  await H.page.getByRole("button",{name:"とじる",exact:true}).last().click();
+  const rows=(await H.dbg("shopRewards","crepe")).rows;await H.dbg("homeLayout",rows.map((p,i)=>({id:p.id,x:65+i*90,y:450})));await H.wait(700);await H.shot("rare-room");
+  await H.dbg("pause",false);
+  if(viewport.width===390){
+    const step=await H.dbg("saveData");step.shops.crepe={lv:4,rep:1599,plays:1,best:0};delete step.shopRewards.shop_crepe_5;delete step.furn.shop_crepe_5;
+    await H.dbg("seedSave",step);await H.playShop("crepe",4);
+    const earned=await H.dbg("persistedSave");expect(earned.shops.crepe.lv===5&&earned.shopRewards.shop_crepe_5&&earned.furn.shop_crepe_5===1,"レベルアップ時の自動配布が不正");
+  }
+  await H.dbg("shop","crepe",30);await H.until(()=>PokaDebug.state().scene==="shop"&&!PokaDebug.state().transitioning,30000);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==="work",30000);
+  const mg=await H.dbg("mg");expect(mg.lv===30&&mg.workLv===5&&mg.total===7,"Lv30で難易度や客数が際限なく上がる");await H.shot("work-lv30");
+},{viewport,timeout:180000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-idle-life-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('pause',true);await H.dbg('homeBubbleFixture');await H.dbg('homeActionSchedule');

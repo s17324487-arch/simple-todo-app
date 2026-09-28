@@ -35,6 +35,7 @@ const Menu = {
   status(el) {
     const d = Save.d;
     el.append(UI.btn("まいにち スタンプ",()=>DailyPlay.open(),"wide yellow"));
+    el.append(UI.btn("おみせの ごほうび",()=>ShopRewards.open(),"wide"));
     d.order.forEach((id, idx) => {
       const c = d.chars[id];
       const card = U.el("div", { class: "chara-card" });

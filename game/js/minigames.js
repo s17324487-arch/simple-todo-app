@@ -79,7 +79,7 @@ class ShopScene {
     this.shopId = p.shop; this.back = p.back;
     this.returnStore = !!p.returnStore;
     this.S = SHOPS[p.shop]; this.st = Save.d.shops[p.shop];
-    this.lv = this.st.lv; this.dailyBoost = DailyPlay.boost(this.shopId);
+    this.lv = ShopRewards.level(this.st); this.workLv = Math.min(5, this.lv); this.dailyBoost = DailyPlay.boost(this.shopId);
     this.total = this.S.rounds || 3 + Math.min(4, this.lv);
     this.difficulty = Save.d.settings.difficulty;
     this.n = 0; this.earn = 0; this.tips = 0; this.rep = 0; this.ranks = [];
@@ -156,7 +156,7 @@ class ShopScene {
       Sound.se("door");
       await this.tween(0.9, (k) => (this.cust.x = U.lerp(-60, this.custX, U.ease.outCubic(k))));
       if (this.closed) return;
-      this.task = new MG_TASKS[this.shopId](this, this.lv);
+      this.task = new MG_TASKS[this.shopId](this, this.workLv);
       this.task.layout(this.R);
       this.timeLimit = this.task.timeLimit * GameEconomy.mode(this.difficulty).time;
       this.timeLeft = this.timeLimit;
@@ -190,8 +190,8 @@ class ShopScene {
     if (this.shopId === "dentist") R.line = ["まだ いたいよ〜……", "ちょっと すっきり", "ピカピカ！ ありがとう！", "ピカピカ〜！ いたくない！"][rank];
     if (this.shopId === "florist") R.line = ["ちゅうもんと ちがう……", "うーん、まあまあかな", "きれい！ ありがとう！", "すてき！ さいこうの はなたば！"][rank];
     if (["link", "relay"].includes(this.shopId)) R.line = ["つぎは いっしょに がんばろう！", "もうすこし！", "たくさん あつまったね！", "すごい！ だいせいこう！"][rank];
-    const base = GameEconomy.shopBase[this.shopId] * (1 + 0.28 * (this.lv - 1)) * GameEconomy.mode(this.difficulty).reward;
-    let pay = GameEconomy.pay(this.shopId, this.lv, rank, this.difficulty);
+    const base = GameEconomy.shopBase[this.shopId] * (1 + 0.28 * (this.workLv - 1)) * GameEconomy.mode(this.difficulty).reward;
+    let pay = GameEconomy.pay(this.shopId, this.workLv, rank, this.difficulty);
     let tip = 0;
     if (rank === 3 && this.timeLeft / this.timeLimit > 0.35) tip += Math.round(base * 0.5);
     let perkMul = 0;
@@ -226,8 +226,10 @@ class ShopScene {
     const good = this.ranks.filter((r) => r >= 2).length / Math.max(1, this.ranks.length);
     const fraction = interrupted ? this.ranks.length / this.total : 1;
     if (fraction) Save.careAll({ hunger: -6 * fraction, mood: (good >= 0.6 ? 4 : -2) * fraction, bond: interrupted ? 0 : 1 });
-    let lvUp = false;
-    while (st.lv < 5 && st.rep >= SHOP_LV_REP[st.lv + 1]) { st.lv++; lvUp = true; }
+    const previousLevel = st.lv;
+    st.lv = ShopRewards.level(st);
+    const lvUp = st.lv > previousLevel;
+    const prizes = this.ranks.length ? ShopRewards.claim(this.shopId) : [];
     Save.mark();
     Sound.stopBgm();
     Sound.jingle("victory");
@@ -235,7 +237,7 @@ class ShopScene {
     const cnt = [3, 2, 1, 0].map((r) => this.ranks.filter((x) => x === r).length);
     body.append(U.el("div", { class: "result-big", text: interrupted ? "ここまで おつかれさま！" : `${this.S.name} おてつだい おわり！` }));
     const rows = U.el("div", { class: "result-rows" });
-    const next = st.lv < 5 ? SHOP_LV_REP[st.lv + 1] : null;
+    const next = st.lv < ShopRewards.maxLevel ? SHOP_LV_REP[st.lv + 1] : null;
     rows.innerHTML = `<div class="r"><span>◎ ${cnt[0]}　○ ${cnt[1]}　△ ${cnt[2]}　× ${cnt[3]}</span></div>
       <div class="r"><span>うりあげ</span><span>+${this.earn}</span></div>
       <div class="r"><span>チップ</span><span>+${this.tips}</span></div>
@@ -244,7 +246,8 @@ class ShopScene {
     body.append(rows);
     if (interrupted) body.append(U.el("div", { class: "note", text: `おわった ${this.ranks.length}にんぶんを うけとったよ。いまの ちゅうもんは ふくまれないよ。` }));
     body.append(U.el("div", { class: "muted", text: `あそびかた: ${GameEconomy.mode(this.difficulty).name}` }));
-    if (lvUp) body.append(U.el("div", { class: "note", html: `<b>おみせが レベル${st.lv}に なった！</b><br>おきゃくさんが ふえて、ちゅうもんが むずかしく なるよ。そのぶん コインも たくさん もらえる！` }));
+    if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！ ${st.lv <= 5 ? "ちゅうもんが むずかしく なって、コインも ふえるよ。" : "つぎの ごほうびを めざそう！"}` }));
+    for (const p of prizes) body.append(U.el("div", { class: "note", text: `Lv.${p.level}の ごほうび！ 「${p.name}」を もらったよ。` }));
     if (fraction) body.append(U.el("div", { class: "muted", style: "margin-top:8px", text: "はたらいたので おなかが すこし へった。" }));
     Save.write();
     await new Promise((res) => {

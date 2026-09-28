@@ -705,3 +705,9 @@ html, body {
 .rg-foot .btn { flex: 1; min-height: 48px; padding: 6px 2px; font-size: 13px; }
 .rg-result .rg-log { word-break: keep-all; overflow-wrap: anywhere; margin: 4px 0; }
 .rg-result .rg-record { color: #D9443F; }
+
+/* おみせの節目の非売品家具 */
+.shop-prize-card{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #d9cfbd}
+.shop-prize-picture{height:124px;display:flex;align-items:center;justify-content:center;background:#f5efdd;border-radius:14px}
+.shop-prize-picture svg{width:90px;height:116px;overflow:visible}
+.shop-prize-card .note{padding:5px;margin:6px 0 0}
