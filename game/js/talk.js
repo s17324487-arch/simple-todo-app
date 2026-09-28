@@ -93,7 +93,7 @@ const Talk = {
     const t = TALKS[n.talk];
     if (!t) return;
     Sound.se("tap");
-    const face = Art.npcSvg({ sp: n.sp, col: n.col, stripe: n.stripe, outfit: n.outfit, emo: "happy" });
+    const face = Art.npcSvg({ sp: n.sp, col: n.col, col2: n.col2, stripe: n.stripe, outfit: n.outfit, look: n.look, emo: "happy" });
     const folk = typeof TownFolk !== "undefined" ? TownFolk : null;
     const f = Save.d.flags, name = folk ? folk.name(n) : n.name, who = { name, face };
     const first = !f.talked[n.id] && !!t.first;

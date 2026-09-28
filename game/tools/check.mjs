@@ -1052,6 +1052,22 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   ok(k.river === "river" && k.bend === "river" && k.lake === "lake" && k.sea === "sea" && k.pool === "lake" && k.fixed === "lake", "水の 見わけ（川・海・湖・def.waterKind）が 形と あわない " + JSON.stringify(k));
 }
 
+// ---------- 町の人の 見た目（js/npc-art.js・js/npc-cast.js）: 35しゅ・おなじ 見た目や 名前の 人が いない ----------
+{
+  const cast = vm.runInContext(`(()=>{const r=NpcCast.report();const bad=[];
+    for(const d of Object.values(MAP_DEFS))for(const n of d.npcs||[]){if(!NpcArt.SP[n.sp])bad.push(n.id+":sp");for(const k of ["eye","brow","mouth","cheek","tuft"]){const v=(n.look||{})[k];if(v&&![...NpcArt.EYE,...NpcArt.BROW,...NpcArt.MOUTH,...NpcArt.CHEEK,...NpcArt.TUFT].includes(v))bad.push(n.id+":"+k+"="+v);}}
+    const cust=NpcCast.customers.map(c=>NpcCast.keyOf(c)),custSil=NpcCast.customers.map(c=>NpcCast.silhouette(c));
+    const town=new Set();for(const d of Object.values(MAP_DEFS))for(const n of d.npcs||[])town.add(NpcCast.silhouette(n));
+    return {...r,bad,species:Object.keys(NpcArt.SP).length,cust:cust.length,custUnique:new Set(cust).size===cust.length&&new Set(custSil).size===custSil.length,custApart:custSil.every(k=>!town.has(k)),
+      svg:Object.keys(NpcArt.SP).map(sp=>Art.npcSvg({sp,look:{eye:"sparkle",brow:"up",cheek:"freckle",pattern:"spots",tuft:"bow"}}))};})()`, ctx);
+  ok(cast.species >= 35 && cast.people >= 80, `町の人の 種が すくない（${cast.species}しゅ／${cast.people}人）`);
+  ok(!cast.sameLook.length, "おなじ 見た目の 町の人が いる: " + cast.sameLook.slice(0, 5).join(", "));
+  ok(!cast.sameName.length, "おなじ 名前の 町の人が いる: " + cast.sameName.slice(0, 5).join(", "));
+  ok(!cast.bad.length, "町の人の 種・look が 不正: " + cast.bad.slice(0, 5).join(", "));
+  ok(cast.cust === 60 && cast.custUnique && cast.custApart, `お店の お客さん 60人が そろわない／町の人と おなじ 見た目（${cast.cust}）`);
+  cast.svg.forEach((svg, i) => svgOk(svg, "町の人の 絵（もよう・かざり つき）" + i));
+}
+
 finish();
 function finish() {
   for (const w of warns) console.log("⚠ " + w);

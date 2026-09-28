@@ -989,7 +989,9 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   }
   expect(data>=5,'町の人の セリフが データから 出ない（'+data+'/'+tries+'）');
   // 町の なかま（town_walker0）: 会話まどの 名前は 役の 名前、セリフは 役の もの
-  await talk('town_walker0');expect((await H.page.locator('.dlg-name').first().textContent())==='おさんぽの なかま','町の なかまの 名前が ちがう');await end();
+  // 町の なかまは 1人ずつ 名前を もつ（役の まえの ことば ＋ 名前。セリフは 役の もの）
+  const walker=await H.dbg('cast','town_walker0');
+  await talk('town_walker0');expect(walker.given&&walker.name.startsWith('おさんぽの ')&&(await H.page.locator('.dlg-name').first().textContent())===walker.name,'町の なかまの 名前が ちがう '+JSON.stringify(walker));await end();
   if((await H.dbg('folkLast')).line)expect((await H.dbg('folkLine',(await H.dbg('folkLast')).line)).npc==='town_walker','町の なかまが 役の セリフを つかわない');
   let crowd=0;for(let i=0;i<20&&crowd<2;i++){const last=await talk('town_walker0');if(last.line){crowd++;expect((await H.dbg('folkLine',last.line)).npc==='town_walker','町の なかまが 役の セリフを つかわない');if(crowd===1){await H.wait(1200);await H.shot('crowd');}}await end();}
   expect(crowd>=2,'町の なかまの セリフが 出ない');
@@ -1276,6 +1278,21 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   }
   for(const map of ['town','forest','coast','meadow','cave','harbor']){const w=await H.dbg('water',map);expect(!w.any||w.mismatch===0,map+': マスの まんなかの 見た目と 水の マスが ずれる '+w.mismatch);}
   await H.dbg('weather','rain');await H.wait(900);await H.shot('rain');
+},{viewport,full:viewport.width===375,timeout:90000});
+
+// 町の人（モブ）: 35しゅ・おなじ 見た目や 名前の 人が いない。町の なかまに 話すと 自分の 名前と 顔。お店の お客さんも きまった 60人から（ちがう 見た目）
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('npc-cast-'+viewport.width,async H=>{
+  await H.newGameFast();
+  const c=await H.dbg('cast');
+  expect(c.species>=35&&c.people>=80&&!c.sameLook.length&&!c.sameName.length&&c.customers===60,'町の人の 見た目・名前が かさなる '+JSON.stringify(c).slice(0,300));
+  // シティの なかまに 話す（名前は 1人ずつ・顔の 絵が 出る）
+  const who=await H.dbg('cast','city_local0');expect(who&&who.given&&who.name.startsWith('シティの '),'シティの なかまに 名前が ない '+JSON.stringify(who));
+  expect(await H.dbg('folkTalk','city_local0'),'シティの なかまに 話しかけられない');await H.page.locator('.dlg-name').first().waitFor({timeout:8000});await H.wait(400);
+  const v=await H.eval(()=>({name:document.querySelector('.dlg-name').textContent,face:!!document.querySelector('.dlg-face svg')}));
+  expect(v.name===who.name&&v.face,'会話まどの 名前・顔が ちがう '+JSON.stringify(v));await H.shot('talk');
+  // お店の お客さん: つづけて 6人 ちがう 人
+  const cust=await H.eval(()=>{const out=[];for(let i=0;i<6;i++)out.push(NpcCast.customer().cid);return out;});
+  expect(new Set(cust).size===6,'お客さんが つづけて おなじ 人 '+cust);
 },{viewport,full:viewport.width===375,timeout:90000});
 
 // ④ かせき ノート: fossilGive で 骨を もつと ノートに のる。まもの／さかな／かせき・そろった！・くわしい ページ
