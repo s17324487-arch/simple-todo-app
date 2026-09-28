@@ -711,3 +711,5 @@ html, body {
 .shop-prize-picture{height:124px;display:flex;align-items:center;justify-content:center;background:#f5efdd;border-radius:14px}
 .shop-prize-picture svg{width:90px;height:116px;overflow:visible}
 .shop-prize-card .note{padding:5px;margin:6px 0 0}
+
+.venue-controls{position:absolute;bottom:max(8px,env(safe-area-inset-bottom));left:8px;right:8px;display:flex;flex-wrap:wrap;gap:6px;background:#fff8e8ee;border:2px solid #1f1d1b;border-radius:15px;padding:8px}.venue-controls span{width:100%;font-size:11px;text-align:center}.venue-controls .btn{flex:1;min-height:44px;padding:7px;font-size:12px}

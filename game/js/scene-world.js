@@ -437,6 +437,7 @@ class WorldScene {
     const act = b.act;
     Sound.se("door");
     const out = { map: this.mapId, x: door.x, y: door.y + 1, dir: "down" };
+    if(act.type==='venue'&&VenueHalls.enter(act.venue,out)){this.busy=true;return;}
     if (act.type === "transit" || act.type === "visit") {
       this.busy = true;
       if (act.type === "transit" && await Transit.open(act.stop)) return;
