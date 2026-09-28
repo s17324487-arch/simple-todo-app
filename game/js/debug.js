@@ -23,6 +23,8 @@ const PokaDebug = {
       "PokaDebug.water('coast', 30, 10)   水の かたまりの しゅるい（川・海・湖）・岸・その マスの 色",
       "PokaDebug.cast('town_walker0')   町の人の 名前・種・見た目（id なしで 全員の ようす）",
       "PokaDebug.house()                     おうちへ",
+      "PokaDebug.fishSpawn('magoi', 60)      3人の ちかくに 魚の かげ（cm で ながさが きまる）。fishAuto(false, true) で かってに 出さない",
+      "PokaDebug.fishAim()                   かげの あたまの まえ（ながおしする 画面の ばしょ）。fishState() で うき・かげ・じまんの ようす",
       "PokaDebug.smaho('map')                すまほを ひらく（アプリ id: map・status・bag・dex・event・rally・hint・fortune・rewards・music。なしで ホーム・null で とじる）",
       "PokaDebug.smahoState()                すまほの ようす（ひらいて いるか・アプリ・ボタンの ばしょ・しるし）",
       "PokaDebug.fortune('2026-9-28')        その日の うらない（日づけ なしで きょう）",
@@ -508,18 +510,41 @@ const PokaDebug = {
   rangeState() { return G.scene instanceof RangeScene ? G.scene.state() : null; },
   rangeEnd() { const s = G.scene; if (!(s instanceof RangeScene) || s.mode !== "play") return null; s.game.finish(); s.finish(); return this.rangeState(); },
   rod(n = 1) { Save.d.fish.rod = n; Save.mark(); return n; },
-  // 釣りの 画面を はじめる（fishId を わたすと その 魚が かかる）。もどり先は いまの 町の 場所
-  fishing(place = "pond", fishId) {
-    const sc = G.sceneName === "world" ? G.scene : null, L = sc && sc.party[0];
-    const back = L ? { map: sc.mapId, x: L.tx, y: L.ty, dir: L.dir } : { ...Save.d.world };
-    Game.trans = null; Game.goto("fishing", { place, fish: fishId || null, back }, "none");
-    return true;
+  // ③ UI-02: 見おろしの まま つる（FishLine）。fishState は つりの ようす（町・フィールドで ない ときは null）
+  fishState() { return G.sceneName === "world" ? FishLine.state(G.scene) : null; },
+  // かってに 魚が 出る／出ない（テストは false に して fishSpawn で 出す）。clear で いまの かげを けす
+  fishAuto(on = true, clear = false) { if (G.sceneName !== "world") return null; const S = FishLine.st(G.scene); S.auto = !!on; S.first = false; if (clear) S.shadows = []; return S.auto; },
+  // 3人の ちかく（1.6〜3.6マス）に 魚の かげを 1ぴき（あたまが 3人の ほう）。o: { nibbles（ちょんの かず・1）, fickle（0）, swim（true で およぐ。ふつうは うきに 気づく まで とまって いる） }
+  fishSpawn(id, cm, o = {}) {
+    if (G.sceneName !== "world") return null;
+    const sc = G.scene, S = FishLine.st(sc), f = Fishing.fish(id); if (!S.spot) return null; if (!f) throw new Error("unknown fish: " + id);
+    cm = cm || Fishing.size(f);
+    const len = FishLine.shadowLen(cm), wid = FishLine.shadowWid(f, len), p = sc.party[0].feet(), py = p.y - 12;
+    let best = null;
+    for (const [tx, ty] of FishLine.waterTiles(sc.map)) for (const [ox, oy] of [[16, 16], [8, 16], [24, 16], [16, 8], [16, 24]]) {
+      const x = tx * TS + ox, y = ty * TS + oy, d = Math.hypot(x - p.x, y - py);
+      if (d < 1.6 * TS || d > 3.6 * TS) continue;
+      for (let k = 0; k < 16; k++) {
+        const a = (k * Math.PI) / 8, hx = x + (Math.cos(a) * len) / 2, hy = y + (Math.sin(a) * len) / 2, bx = hx + Math.cos(a) * 18, by = hy + Math.sin(a) * 18;
+        if (!FishLine.fits(sc.map, x, y, a, len, wid) || !FishLine.water(sc.map, bx, by) || Math.hypot(bx - p.x, by - py) > FishLine.CAST_MAX - 8 || Math.hypot(bx - p.x, by - py) < FishLine.CAST_MIN + 4) continue;
+        const score = (-(Math.cos(a) * (x - p.x) + Math.sin(a) * (y - py)) / d) * 2 - Math.abs(d - 2.6 * TS) / TS;
+        if (!best || score > best.score) best = { x, y, a, score };
+      }
+    }
+    if (!best) return null;
+    const sh = FishLine.spawn(sc, { fish: id, cm, nibbles: o.nibbles != null ? o.nibbles : 1, fickle: o.fickle || 0, alpha: 1, life: 900, at: best });
+    if (sh && !o.swim) sh.pause = 999;
+    return sh ? FishLine.state(sc).shadows.find((x) => x.uid === sh.uid) : null;
   },
-  fishState() { if (G.sceneName !== "fishing") return null; const s = G.scene, g = s.game; return { phase: g.phase, tension: g.tension, prog: g.prog, fish: s.fish.id, place: s.place, busy: !!s.busy, msg: s.msg }; },
-  // "tap"（なげる・つる！）／"hold"（まく）／"release"（はなす）
-  fishInput(kind) { if (G.sceneName !== "fishing") return false; const s = G.scene; if (kind === "tap") s.tapQ = true; else if (kind === "hold") s.hold = true; else if (kind === "release") s.hold = false; return true; },
-  // まつ を とばして すぐ ぐいっ！
-  fishSkip() { if (G.sceneName !== "fishing") return false; const g = G.scene.game; if (g.phase !== "wait") return false; g.nibbles = 0; g.t = g.waitFor + 0.01; return true; },
+  // その かげの あたまの すこし まえ（うきを おとす ところ）。x・y は 画面の CSS px（page.mouse で ながおし する ばしょ）
+  fishAim(uid) {
+    const st = this.fishState(), s = st && (st.shadows.find((x) => x.uid === uid) || st.shadows[0]); if (!s) return null;
+    const wx = s.head.x + Math.cos(s.a) * 18, wy = s.head.y + Math.sin(s.a) * 18, r = G.canvas.getBoundingClientRect();
+    return { x: r.left + (s.sx - s.x + wx) * G.cssPerUnit, y: r.top + (s.sy - s.y + wy) * G.cssPerUnit, wx, wy };
+  },
+  // テストの 近道: ながおしと おなじ ところへ なげる（world の px）／「つる」ボタンと おなじ
+  fishCast(wx, wy) { return G.sceneName === "world" ? FishLine.aim(G.scene, wx, wy) : false; },
+  fishPull() { return G.sceneName === "world" ? FishLine.pull(G.scene) : false; },
   // 釣り場の 水べ（歩いて 行ける マスと、水の ほうの 向き）
   fishShore(map = "town") {
     const m = Maps.get(map), d = MAP_DEFS[map], D = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };

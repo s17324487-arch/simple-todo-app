@@ -1237,59 +1237,80 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.eval(()=>!document.querySelector('.fish-detail')&&!!document.querySelector('.fish-dex')),'くわしい ページを とじると ずかんに もどらない');
 },{viewport,full:viewport.width===375,timeout:120000});
 
-// ③ 釣り: なげる → まつ（とばす）→ つる！ → まく（ぴんと ぐあいを みて おす／はなす）→ つれた カード
-// 釣りの ボタンは force で おす。「つる！」は ぷるぷる うごく（見本の fishPulse）うえ、その あいだに animations:"disabled" で
-// スクリーンショットを とると、Playwright が もどした アニメーションが クラスを かえても のこって ボタンが 止まらなく なる（テストの 道具の くせ）
-// force は 上に かさなった ものを たしかめないので、つれた カードの まく（.modal-wrap）が きえてから おす
-const fishPress=async(H)=>{await H.until(()=>!document.querySelector('.modal-wrap'),3000);await H.page.locator('.fish-btn').click({force:true});};
-async function fishCatch(H,shot){
-  await fishPress(H);await H.until(()=>PokaDebug.fishState()?.phase==='wait',5000);
-  await H.dbg('fishSkip');await H.until(()=>PokaDebug.fishState()?.phase==='bite',5000);
+// ③ 釣り（UI-02）: 見おろしの まま つる。水を ながおし（page.mouse・0.45びょう より ながく）→ うき → ちょんちょん → しずむ → 「つる」→ ズームで じまん → いけす
+// 魚の かげは fishSpawn で 3人の ちかくに 出す（かってには 出さない）。「つる」ボタンは しずむと ぷるぷる うごくので force で おす
+async function fishCast(H,aim=null,ms=650){const a=aim||await H.dbg('fishAim');expect(a,'魚の かげが ない');await H.page.mouse.move(a.x,a.y);await H.page.mouse.down();await H.wait(ms);await H.page.mouse.up();await H.until(()=>!!PokaDebug.fishState()?.line,3000);}
+async function fishCatch(H,id,cm,{nibbles=1,shot=false}={}){
+  await H.dbg('fishAuto',false,true);
+  expect(await H.dbg('fishSpawn',id,cm,{nibbles}),id+' の かげが 出ない');
+  await fishCast(H);
+  await H.until(()=>PokaDebug.fishState()?.line==='bite',15000);
   if(shot)await H.shot('bite');
-  await fishPress(H);await H.until(()=>PokaDebug.fishState()?.phase==='reel',3000);
-  let snapped=false;
-  for(let i=0;i<600;i++){const s=await H.dbg('fishState');if(!s||s.phase!=='reel')break;await H.dbg('fishInput',s.tension<0.6?'hold':'release');if(shot&&!snapped&&s.prog>0.45){snapped=true;await H.shot('reel');}await H.wait(50);}
-  await H.dbg('fishInput','release');await H.page.locator('.fish-card').waitFor({timeout:8000});await H.wait(300);
+  await H.page.locator('.fish-go-btn').click({force:true});
+  await H.until(()=>PokaDebug.fishState()?.brag?.talking,6000);await H.wait(300);
 }
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('fishing-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
-  // タウンの いけの ペンが つりざおを くれる（はじめての あいさつの あと）
+  // タウンの ペンが つりざおを くれる（はじめての あいさつの あと）
   expect(await H.dbg('folkTalk','penguin'),'ペンに 話しかけられない');await H.dialogs();await H.idle();
   expect((await H.dbg('saveData')).fish.rod===1,'ペンから つりざおが もらえない');
-  // 水べで 水を 向くと「つる」（44px いじょう）→ 釣りの 画面（いけ）→ やめると もとの 場所
   const shore=await H.dbg('fishShore','town');expect(shore,'タウンに 水べが ない');
   await H.dbg('teleport','town',shore.x,shore.y,shore.dir);await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);
-  await H.page.locator('.fish-go-btn').waitFor({timeout:5000});
-  const go=await H.eval(()=>{const r=document.querySelector('.fish-go-btn').getBoundingClientRect();return {h:r.height,inside:r.left>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1};});
-  expect(go.h>=43.5&&go.inside,'「つる」ボタンが 不正 '+JSON.stringify(go));
-  await H.shot('shore');
-  await H.page.locator('.fish-go-btn').click();await H.until(()=>G.sceneName==='fishing'&&PokaDebug.idle(),10000);
-  expect((await H.dbg('fishState')).place==='pond','タウンで いけの 釣りに ならない');
-  await H.wait(400);await H.shot('ready');
-  await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);
-  let w=await H.dbg('world');expect(w.map==='town'&&w.party[0].x===shore.x&&w.party[0].y===shore.y,'やめると もとの 場所に もどらない');
-  // マゴイを つる → はじめて！ の カード → いけすへ
-  await H.dbg('fishing','pond','magoi');await H.until(()=>G.sceneName==='fishing'&&PokaDebug.idle(),10000);
-  const ui=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),b=r(document.querySelector('.fish-btn')),t=r(document.querySelector('.fish-top'));return {w:b.width,h:b.height,inside:b.left>=0&&b.right<=innerWidth+1&&b.bottom<=innerHeight+1&&t.top>=0&&t.right<=innerWidth+1};});
-  expect(ui.w>=130&&ui.h>=130&&ui.inside,'釣りの ボタンが 不正 '+JSON.stringify(ui));
-  await fishCatch(H,true);
-  const card=await H.eval(()=>{const e=document.querySelector('.fish-card'),b=e.getBoundingClientRect(),acts=[...e.querySelectorAll('.acts .btn')];return {text:e.innerText,first:!!e.querySelector('.badge'),inside:b.left>=0&&b.right<=innerWidth+1,acts:acts.map(a=>a.textContent),tall:acts.every(a=>a.getBoundingClientRect().height>=43.5)};});
-  expect(/マゴイ/.test(card.text)&&/cm/.test(card.text)&&/まめちしき/.test(card.text)&&card.first&&card.inside&&card.tall&&card.acts.length===3&&card.acts[0]==='いけすへ'&&card.acts[1]==='にがす'&&/^うる \d+$/.test(card.acts[2]),'つれた カードが 不正 '+JSON.stringify(card));
-  await H.shot('card');
-  await H.page.getByRole('button',{name:'いけすへ',exact:true}).click();await H.until(()=>PokaDebug.fishState()?.phase==='ready'&&!PokaDebug.fishState().busy,8000);
+  await H.dbg('fishAuto',false,true);await H.wait(300);
+  // 水べに 立っても「つる」ボタンは 出ない（なげて から だけ）
+  expect(await H.page.locator('.fish-go-btn').count()===0,'なげる まえから「つる」ボタンが ある');
+  // 魚の かげ: ながさは cm × 0.8px（マゴイ 60cm → 48px）
+  const sh=await H.dbg('fishSpawn','magoi',60,{nibbles:2});
+  expect(sh&&Math.abs(sh.len-48)<0.01&&sh.wid<sh.len,'かげの ながさが cm に 比例 しない '+JSON.stringify(sh));
+  await H.wait(300);await H.shot('shadow');
+  // ながおし: わが たまって → さおを ふって なげる
+  const aim=await H.dbg('fishAim');
+  await H.page.mouse.move(aim.x,aim.y);await H.page.mouse.down();await H.wait(250);
+  expect((await H.dbg('fishState')).press,'ながおしの わが 出ない');
+  await H.wait(400);await H.page.mouse.up();
+  await H.until(()=>!!PokaDebug.fishState()?.line,3000);
+  await H.page.locator('.fish-go-btn').waitFor({timeout:3000});
+  const ui=await H.eval(()=>{const r=document.querySelector('.fish-go-btn').getBoundingClientRect(),s=PokaDebug.fishState(),L=G.scene.party[0].feet(),cv=G.canvas.getBoundingClientRect(),u=G.cssPerUnit,ox=G.W/2-G.scene.cam.x,oy=G.H/2-G.scene.cam.y;
+    const kid={x:cv.left+(ox+L.x)*u,y:cv.top+(oy+L.y-20)*u},bob={x:cv.left+s.bobber.sx*u,y:cv.top+s.bobber.sy*u},inR=(p)=>p.x>=r.left&&p.x<=r.right&&p.y>=r.top&&p.y<=r.bottom;
+    return {w:r.width,h:r.height,inside:r.left>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1,kid:inR(kid),bob:inR(bob)};});
+  expect(ui.w>=44&&ui.h>=44&&ui.inside&&!ui.kid,'「つる」ボタンが 不正（ちいさい・はみ出す・3人に かさなる） '+JSON.stringify(ui));
+  await H.until(()=>PokaDebug.fishState()?.line==='float',4000);await H.shot('float');
+  // ちょんちょん 2かい → しずむ（「！」・ボタンが きいろ）
+  await H.until(()=>PokaDebug.fishState()?.line==='bite',15000);
+  let st=await H.dbg('fishState');
+  expect(st.nibbled===2&&st.button&&st.button.bite,'ちょんちょん 2かい → しずむ に ならない '+JSON.stringify({n:st.nibbled,b:st.button}));
+  await H.shot('bite');
+  await H.page.locator('.fish-go-btn').click({force:true});
+  // つりあげる → カメラが せんとうの 子に ズーム → 魚を かかげて じまん
+  await H.until(()=>PokaDebug.fishState()?.brag?.talking,6000);await H.wait(400);
+  st=await H.dbg('fishState');
+  await H.page.locator('.dlg-next:not(.hidden)').waitFor({timeout:5000});
+  const text=await H.eval(()=>document.querySelector('.dlg-text')?.textContent||'');
+  expect(st.zoom>1.8&&st.brag.id==='magoi'&&st.brag.held===48,'じまんで ズーム しない '+JSON.stringify(st.brag)+st.zoom);
+  expect(/わん！ マゴイを つりあげた！/.test(text)&&/まごまご/.test(text)&&/60cm/.test(text),'じまんの ことばが 出ない '+text);
+  await H.shot('brag');
+  await H.dialogs();await H.until(()=>!PokaDebug.fishState()?.brag,5000);
   let d=await H.dbg('saveData');expect(d.fish.dex.magoi.n===1&&d.fish.keep.magoi===1&&d.fish.caught===1,'つった マゴイが ずかん・いけすに のらない');
-  // にげても なにも なくならない（ぐいっ！ で おさない）
-  await fishPress(H);await H.until(()=>PokaDebug.fishState()?.phase==='wait',5000);
-  await H.dbg('fishSkip');await H.until(()=>PokaDebug.fishState()?.phase==='miss',5000);
-  expect(/にげちゃった/.test((await H.dbg('fishState')).msg||''),'にげた ときの ことばが 出ない');
-  await H.until(()=>PokaDebug.fishState()?.phase==='ready',5000);
-  d=await H.dbg('saveData');expect(d.fish.keep.magoi===1&&d.fish.caught===1,'にげて いけすが かわった');
-  // ② アユの おねがい: つる → さんぽの ミントに わたす（いけすから へる）
+  st=await H.dbg('fishState');expect(st.zoom===1&&!st.line&&(await H.page.locator('.fish-go-btn').count())===0,'じまんの あと もとに もどらない');
+  // はやすぎ: ちょん で おすと にげる
+  await H.dbg('fishSpawn','kingyo',12,{nibbles:3});await fishCast(H);
+  await H.until(()=>PokaDebug.fishState()?.nibbled>=1,15000);
+  await H.page.locator('.fish-go-btn').click({force:true});
+  await H.until(()=>/はやすぎ/.test(PokaDebug.fishState()?.last||'')&&!PokaDebug.fishState()?.line,4000);
+  // おそすぎ: しずんでも おさないと にげられる（うきは のこる → おすと もどす）
+  await H.dbg('fishAuto',false,true);await H.dbg('fishSpawn','kingyo',12,{nibbles:0});await fishCast(H);
+  await H.until(()=>PokaDebug.fishState()?.line==='bite',15000);
+  await H.until(()=>PokaDebug.fishState()?.escaped===1,3000);
+  expect(/にげられ/.test((await H.dbg('fishState')).last||'')&&(await H.dbg('fishState')).line==='float','にげられた ときの ことばが 出ない');
+  await H.page.locator('.fish-go-btn').click({force:true});await H.until(()=>!PokaDebug.fishState()?.line,3000);
+  d=await H.dbg('saveData');expect(d.fish.keep.magoi===1&&!d.fish.keep.kingyo&&d.fish.caught===1,'にげても いけすが かわった');
+  // ② アユの おねがい: はらっぱの かわで つる → ミントに わたす（いけすから へる）
   await H.dbg('folkOffer','ev-fish-ayu');await folkTalk(H,'parkcat');await folkAnswer(H,0);await H.dialogs();await H.idle();
   expect((await H.dbg('folk')).req.some(r=>r.id==='ev-fish-ayu'),'アユの おねがいを うけられない');
-  await H.dbg('fishing','river','ayu');await H.until(()=>G.sceneName==='fishing'&&PokaDebug.idle(),10000);
-  await fishCatch(H,false);await H.page.getByRole('button',{name:'いけすへ',exact:true}).click();
-  await H.until(()=>PokaDebug.fishState()?.phase==='ready'&&!PokaDebug.fishState().busy,8000);await H.dialogs();
+  const river=await H.dbg('fishShore','meadow');expect(river,'はらっぱに 水べが ない');
+  await H.dbg('teleport','meadow',river.x,river.y,river.dir);await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='meadow'&&PokaDebug.idle(),20000);
+  expect((await H.dbg('fishState')).spot==='river','はらっぱが かわの 釣り場に ならない');
+  await fishCatch(H,'ayu',20);await H.dialogs();await H.until(()=>!PokaDebug.fishState()?.brag,5000);await H.dialogs();await H.idle();
   expect((await H.dbg('folk')).req.find(r=>r.id==='ev-fish-ayu').step===1&&(await H.dbg('saveData')).fish.keep.ayu===1,'アユを つっても おねがいが すすまない');
   const coins=(await H.dbg('state')).coins;
   await folkTalk(H,'parkcat',{greet:false});await H.dialogs();await H.idle();
@@ -1297,28 +1318,41 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(d.folk.done['ev-fish-ayu']&&(d.fish.keep.ayu||0)===0&&(await H.dbg('state')).coins===coins+160,'アユを わたしても おねがいが おわらない');
 },{viewport,full:viewport.width===375,timeout:180000});
 
-// ③ いけす・うる・りっぱな つりざお: うると コイン・いけすが いっぱい（30ぴき）なら「いけすが いっぱい」→ にがす／うる・みなとの マルシェで さおを かう
-const fishReady=(H)=>H.until(()=>PokaDebug.fishState()?.phase==='ready'&&!PokaDebug.fishState().busy,8000);
+// ③ いけす・うる・りっぱな つりざお: うるのは スーパー（1ぴき／ぜんぶ・すいぞくかんに まだ いない 魚に しるし）・いけすが いっぱい（30ぴき）なら つっても にがす・みなとの マルシェで さおを かう
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('fish-keep-'+viewport.width,async H=>{
-  await H.newGameFast();await H.dbg('rod',1);
-  // うる: コイン +ねだん・いけすには 入らない（ずかんには のる）
-  await H.dbg('fishing','pond','kingyo');await H.until(()=>G.sceneName==='fishing'&&PokaDebug.idle(),10000);
-  let coins=(await H.dbg('state')).coins;await fishCatch(H,false);
-  const acts=await H.eval(()=>[...document.querySelectorAll('.fish-card .acts .btn')].map(b=>({t:b.textContent,off:b.disabled})));
-  const sell=Number((acts[2]||{t:''}).t.replace(/[^0-9]/g,''));
-  expect(acts.length===3&&acts[0].t==='いけすへ'&&!acts[0].off&&acts[1].t==='にがす'&&/^うる \d+$/.test(acts[2].t)&&sell>0,'つれた カードの ボタンが 不正 '+JSON.stringify(acts));
-  await H.page.getByRole('button',{name:acts[2].t,exact:true}).click();await fishReady(H);
-  let d=await H.dbg('saveData');
-  expect((await H.dbg('state')).coins===coins+sell&&!d.fish.keep.kingyo&&d.fish.dex.kingyo.n===1,'うっても コインが ふえない／いけすに 入った');
-  // いけすが いっぱい: いけすへ の かわりに「いけすが いっぱい」（おせない）→ にがす
-  await H.dbg('fishGive','ginbuna',30);await fishCatch(H,false);
-  const full=await H.eval(()=>{const bs=[...document.querySelectorAll('.fish-card .acts .btn')];return {t:bs.map(b=>b.textContent),off:bs.map(b=>b.disabled),ok:bs.every(b=>{const r=b.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.height>=43.5;})};});
-  expect(full.t[0]==='いけすが いっぱい'&&full.off[0]&&!full.off[1]&&!full.off[2]&&full.ok,'いけすが いっぱいの カードが 不正 '+JSON.stringify(full));
-  await H.shot('full');
-  await H.page.getByRole('button',{name:'にがす',exact:true}).click();await fishReady(H);
-  d=await H.dbg('saveData');expect(Object.values(d.fish.keep).reduce((a,n)=>a+n,0)===30&&d.fish.dex.kingyo.n===2,'いけすが 30ぴきを こえた');
+  await H.newGameFast();await H.dbg('rod',1);await H.dbg('hour',11);
+  await H.dbg('fishGive','kingyo',2);await H.dbg('fishGive','ayu');await H.dbg('museumGive','fish','ayu');
+  let coins=(await H.dbg('state')).coins;
+  const price=await H.eval(()=>Object.fromEntries(FISHING_DATA.fish.map(f=>[f.id,f.sell])));
+  // スーパー（タウン）で「さかなを うる」
+  await H.dbg('store','market','town');await H.idle();
+  await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.waitForSelector('.choices .btn',{timeout:8000});
+  await H.page.getByRole('button',{name:'さかなを うる',exact:true}).click();await H.page.locator('.fish-sell').waitFor({timeout:5000});await H.wait(300);
+  const rows=await H.eval(()=>[...document.querySelectorAll('.fish-sell-row')].map(r=>{const b=r.querySelector('.btn').getBoundingClientRect(),q=r.getBoundingClientRect();return {id:r.dataset.id,aq:r.classList.contains('aq'),h:b.height,inside:q.left>=0&&q.right<=innerWidth+1&&b.right<=innerWidth+1};}));
+  expect(rows.length===2&&rows.find(r=>r.id==='kingyo')?.aq&&!rows.find(r=>r.id==='ayu')?.aq&&rows.every(r=>r.h>=43.5&&r.inside),'さかなを うる がめんが 不正 '+JSON.stringify(rows));
+  await H.shot('sell');
+  await H.page.locator('.fish-sell-row[data-id="kingyo"] .btn').click();await H.wait(200);
+  let d=await H.dbg('saveData');expect((await H.dbg('state')).coins===coins+price.kingyo&&d.fish.keep.kingyo===1,'1ぴき うっても コインが ふえない');
+  // ぜんぶ うる（すいぞくかんに まだ いない 魚が いるので たしかめる → はい）
+  await H.page.getByRole('button',{name:/^ぜんぶ うる/}).click();await H.choose(0);await H.wait(300);
+  d=await H.dbg('saveData');expect((await H.dbg('state')).coins===coins+price.kingyo*2+price.ayu&&!d.fish.keep.kingyo&&!d.fish.keep.ayu&&d.fish.dex.kingyo.n===2,'ぜんぶ うっても いけすが からに ならない');
+  await H.page.locator('.modal-wrap:not(.out) .close').last().click();await H.idle();
+  // いけすが からの ときは「さかなを うる」が 出ない
+  await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.waitForSelector('.choices .btn',{timeout:8000});
+  expect(!(await H.eval(()=>[...document.querySelectorAll('.choices .btn')].some(b=>/さかなを うる/.test(b.textContent)))),'いけすが からでも「さかなを うる」が 出る');
+  await H.page.getByRole('button',{name:'また あとで',exact:true}).click();await H.idle();
+  await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),15000);
+  // いけすが いっぱい: つって じまんした あと にがす（いけすは 30 の まま・ずかんは ふえる）
+  await H.dbg('fishGive','ginbuna',30);
+  const shore=await H.dbg('fishShore','town');await H.dbg('teleport','town',shore.x,shore.y,shore.dir);await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);
+  await fishCatch(H,'kingyo',12);
+  let full=false;
+  for(let i=0;i<8&&!full;i++){full=/いけすが いっぱい/.test(await H.eval(()=>document.querySelector('.dlg-text')?.textContent||''));if(!full){await H.eval(()=>document.querySelector('.dlg-shade')?.dispatchEvent(new PointerEvent('pointerup',{bubbles:true})));await H.wait(250);}}
+  expect(full,'いけすが いっぱいの ときに ことばが 出ない');
+  await H.page.locator('.dlg-next:not(.hidden)').waitFor({timeout:5000});await H.shot('full');
+  await H.dialogs();await H.until(()=>!PokaDebug.fishState()?.brag,5000);
+  d=await H.dbg('saveData');expect(Object.values(d.fish.keep).reduce((a,n)=>a+n,0)===30&&d.fish.dex.kingyo.n===3,'いけすが 30ぴきを こえた／ずかんに のらない');
   // ずかんに いけすの かず
-  await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);
   await H.phone('ずかん');
   await H.page.locator('.dex-kinds .tab[data-k="fish"]').click();await H.wait(300);
   expect(/30 \/ 30/.test(await H.eval(()=>document.querySelector('.fish-keep')?.textContent||'')),'ずかんに いけすの かずが 出ない');
