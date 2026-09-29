@@ -166,12 +166,13 @@ const HomeLife = {
     papa:['この のんびりした じかんが すきだな','つぎの おやすみ、どこへ いこうかな'],
     mama:['みんなの えがおが いちばんの ごほうび','あとで いっしょに デザを たべようかな'],
   },
+  thoughtLines() {return Object.entries(this.thoughts).flatMap(([who,lines])=>lines.map((text,i)=>({id:`thought-${who}-${i}`,who,text,kind:'think',group:'thought',when:{}})));},
   thought(sc,id,index=null) {
     const c=[...sc.chars,...sc.parents].find(c=>c.id===id&&!c.hidden);if(!c||!this.thoughts[id])return false;
     const list=this.thoughts[id],last=sc.life.lastThought?.[id];
     const n=Number.isInteger(index)?index:list.findIndex((text,i)=>i!==last);
     if(!list[n])return false;
-    (sc.life.lastThought||={})[id]=n;this.say(sc,id,list[n],false,'think',{thought:id+'-'+n});return true;
+    (sc.life.lastThought||={})[id]=n;this.say(sc,id,list[n],false,'think',{line:`thought-${id}-${n}`,thought:id+'-'+n});return true;
   },
   solo(sc) {
     const D = this.data(), V = D.voice || {}, heads = this.heads(sc);

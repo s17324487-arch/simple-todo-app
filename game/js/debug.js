@@ -195,7 +195,7 @@ const PokaDebug = {
   homeTalk(id) {if(G.sceneName!=='house')return false;return HomeLife.playTalk(G.scene,HomeLife.talkById(id));},
   // 会話データの 数。id を わたすと その セリフ／かけあい（テストで 条件を たしかめる）
   homeLines(id) {
-    const D=HomeLife.data();if(!D)return null;
+    const source=HomeLife.data();if(!source)return null;const D={...source,lines:[...source.lines,...HomeLife.thoughtLines()]};
     if(id)return JSON.parse(JSON.stringify(D.lines.find(l=>l.id===id)||D.talks.find(t=>t.id===id)||null));
     const byWho={};for(const l of D.lines)byWho[l.who]=(byWho[l.who]||0)+1;
     return {total:D.lines.length+D.talks.length,lines:D.lines.length,talks:D.talks.length,turns:D.talks.reduce((a,t)=>a+t.turns.length,0),byWho};

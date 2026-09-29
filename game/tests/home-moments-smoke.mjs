@@ -11,6 +11,7 @@ export async function homeMomentsSmoke({scenario,expect}) {
     if(kind==='sit'){expect(c.activity.lift>0&&c.y<layout[0].y,'床に立ったまま');expect(!await H.dbg('homeAction',who==='wanko'?'mama':'wanko','sit'),'同じ椅子の二重使用');}
     await H.dbg('homeAdvance',.4);await H.dbg('homeThought',who,kind==='sit'?0:1);await H.wait(350);
     const bubble=(await H.dbg('homeBubbleState')).boxes.find(b=>b.id===who);expect(bubble?.kind==='think'&&bubble.w<=172,'雲のこころの声でない');
+    const entry=(await H.dbg('homeTalkLog')).at(-1),line=await H.dbg('homeLines',entry.line);expect(line?.who===who&&line.text===entry.text&&line.kind==='think','こころの声を会話データから追跡できない');
     if(who==='goji'||who==='mama')await H.shot(who+'-'+kind);
     await H.dbg('homeAdvance',8);expect(!(await state(who)).activity,'動作が終了しない');
   }
