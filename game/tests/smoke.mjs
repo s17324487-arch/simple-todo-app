@@ -419,16 +419,16 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('groom-shop-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);const before=await H.dbg('saveData');
-  const layout=await H.dbg('townLayout','city'),door=layout.doors.find(d=>d.act.shop==='groom');expect(door,'びようしつの入口がない');
-  await H.dbg('teleport','city',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
+  const layout=await H.dbg('townLayout','town'),door=layout.doors.find(d=>d.act.shop==='groom');expect(door,'びようしつの入口がない');
+  await H.dbg('teleport','town',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
   expect((await H.dbg('storeState')).party.length===3,'3人で入れない');await H.shot('interior');await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle());
   const ranks=await H.playShop('groom',3);expect(ranks.length===6&&ranks.every(r=>r===3),'正しいカットで◎にならない: '+JSON.stringify(H.shopGrades));
   const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.groom.plays===1,'美容室の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(H.kept(before,after,k),'美容室で所持品が変わる');
 },{viewport,full:viewport.width===375,timeout:180000});
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('burger-shop-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);const before=await H.dbg('saveData');
-  const layout=await H.dbg('townLayout','city'),door=layout.doors.find(d=>d.act.shop==='burger');expect(door,'バーガーやさんの入口がない');
-  await H.dbg('teleport','city',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
+  const layout=await H.dbg('townLayout','town'),door=layout.doors.find(d=>d.act.shop==='burger');expect(door,'バーガーやさんの入口がない');
+  await H.dbg('teleport','town',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
   expect((await H.dbg('storeState')).party.length===3,'3人で入れない');await H.shot('interior');await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle());
   const ranks=await H.playShop('burger',3);expect(ranks.length===6&&ranks.every(r=>r===3),'正しい順番で◎にならない: '+JSON.stringify(H.shopGrades));
   const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.burger.plays===1,'バーガー屋の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(H.kept(before,after,k),'バーガー屋で所持品が変わる');
@@ -1359,10 +1359,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);
   // りっぱな つりざお: シティの マルシェには ない・みなとの マルシェで 1200コイン
   await H.dbg('coins',1200);
-  await H.dbg('store','market','city');await H.idle();
-  await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.waitForSelector('.choices .btn',{timeout:8000});
-  expect(!(await H.eval(()=>[...document.querySelectorAll('.choices .btn')].some(b=>/りっぱな/.test(b.textContent)))),'シティの マルシェで りっぱな つりざおが かえる');
-  await H.page.getByRole('button',{name:'また あとで',exact:true}).click();await H.idle();
+  await H.dbg('venue','mall',3);await H.idle();expect(!(await H.dbg('venueState')).fixtures.some(f=>/りっぱな/.test(f.label)),'池袋のマルシェで港限定の竿が買える');
   await H.dbg('store','market','harbor');await H.idle();
   await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();
   const pro=H.page.locator('.choices .btn',{hasText:'りっぱな つりざお'});await pro.waitFor({timeout:8000});await H.wait(300);await H.shot('marche');
@@ -2318,7 +2315,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const legacy=await H.dbg("saveData");legacy.coins=987654;
   await H.dbg("seedSave",legacy);
   for(const id of ["clothes","furniture","market","crepe","dentist","bakery","florist","link","relay"]){
-    const map=["link","relay"].includes(id)?"city":"town";
+    const map=id==="link"?"city":"town";
     const door=(await H.dbg("townLayout",map)).doors.find(d=>d.act.shop===id);
     expect(door,"お店の入口がない: "+id);
     await H.dbg("teleport",map,door.x,door.y+1,"up");await H.idle();
@@ -2567,6 +2564,73 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 },{viewport,timeout:120000});
 
 await (await import("./town-dialogue-smoke.mjs")).townDialogueSmoke({scenario,expect});
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('ikebukuro-retail-'+viewport.width,async H=>{
+ await H.newGameFast();await H.dbg('coins',199850);await H.dbg('hour',12);const before=await H.dbg('saveData');
+ await H.dbg('teleport','city',43,53,'up');await H.idle();await H.wait(300);await H.shot('sunshine-street');
+ await H.dbg('venue','electronics');await H.idle();let s=await H.dbg('venueState');expect(s.floor===2&&s.party.length===3,'家電2F');
+ await H.dbg('venueVisit','ドラム洗濯機');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor();await H.shot('washer-display');await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.idle();
+ expect((await H.dbg('saveData')).furn.ike_washer_0===1,'展示から洗濯機を購入');
+ await H.dbg('venueVisit','エレベーター 2F／10F');await H.page.getByRole('button',{name:'10F',exact:true}).click();await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===10&&!s.changingFloor;},20000);await H.shot('electronics-10f');
+ await H.dbg('venueVisit','星あかりスマホ');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor();await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.page.getByRole('button',{name:'きる！',exact:true}).click();await H.idle();expect((await H.dbg('saveData')).wardrobe.ike_phone_0,'スマホ購入');
+ await H.dbg('venue','mall');await H.idle();await H.dbg('venueVisit','ふんすい広場');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();await H.shot('mall-atrium');
+ await H.dbg('venueVisit','2Fへ のぼる');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===2&&!s.changingFloor;},20000);await H.shot('mall-2f');
+ await H.dbg('venueVisit','すばーたっくすの テーブル');await H.page.getByRole('button',{name:/ふわラテ/}).click();await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();
+ await H.dbg('venueVisit','3Fへ のぼる');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===3&&!s.changingFloor;},20000);s=await H.dbg('venueState');expect(s.fixtures.some(f=>f.action==='puzzle'),'3Fパズル');await H.shot('mall-3f');
+ await H.dbg('venue','office');await H.until(()=>document.querySelector('.dlg-text')?.textContent.includes('あいにきたよー')); await H.dialogs();await H.idle();await H.dbg('venueVisit','まま');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();await H.shot('mama-office');
+ await H.dbg('hour',18);await H.wait(200);expect(!(await H.dbg('mamaWork'))&&(await H.dbg('venueState')).fixtures.find(f=>f.kind==='parent').hidden,'18時退勤');
+ const after=await H.dbg('saveData');expect(after.coins===before.coins-7200-9000-390,'購入・食事の合計');await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();const saved=await H.dbg('saveData');expect(saved.coins===after.coins&&saved.furn.ike_washer_0===1&&saved.wardrobe.ike_phone_0,'買い物の保存');
+},{viewport,timeout:180000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('ikebukuro-arcade-'+viewport.width,async H=>{
+ // クレーンゲーム（crane-*.js）: 8台・4しゅるいを ボタンで あそぶ・100コイン・ごほうび・中断して つづきから
+ await H.newGameFast();await H.dbg('coins',9850);await H.dbg('venue','arcade');await H.idle();
+ const s=await H.dbg('venueState');expect(s.fixtures.filter(f=>f.action==='crane').length===8,'8台の筐体');await H.shot('hall');
+ const vis=s.fixtures.filter(f=>f.action==='crane'&&f.screen.x>0&&f.screen.x<viewport.width);expect(vis.length>=4,'店に はいった ところで 台が 見えない '+vis.length);
+ // そうさばん: はみ出さない・ボタンは 44px いじょう・ことばが 1ぎょう
+ const panel=async()=>H.eval(()=>{const p=document.querySelector('.crane-panel').getBoundingClientRect(),bs=[...document.querySelectorAll('.crane-panel button')].filter(b=>b.offsetParent).map(b=>b.getBoundingClientRect()),st=document.querySelector('.crane-status');return {p:[p.left,p.top,p.right,p.bottom],w:innerWidth,h:innerHeight,small:bs.filter(r=>r.width<44||r.height<44).length,n:bs.length,over:st.scrollWidth>st.clientWidth+1||st.scrollHeight>st.clientHeight+2};});
+ const okPanel=async(tag)=>{const q=await panel();expect(q.p[0]>=0&&q.p[1]>=64&&q.p[2]<=q.w+0.5&&q.p[3]<=q.h+0.5&&q.small===0&&!q.over&&q.n>=2,'そうさばんが 不正 '+tag+' '+JSON.stringify(q));};
+ const start=async(i)=>{const before=(await H.dbg('saveData')).coins;expect(await H.dbg('arcadeStart',i),'100コインで 開始 '+i);await H.until(()=>PokaDebug.arcadeState()&&!PokaDebug.state().transitioning);expect((await H.dbg('arcadeState')).coins===before-100,'100コイン '+i);await H.wait(500);};
+ const done=async(i,ms=45000)=>{await H.dbg('arcadeFast',4);await H.until(()=>{const r=PokaDebug.arcadeState();return r&&r.finished;},ms);const r=await H.dbg('arcadeState');expect(await H.page.getByRole('button',{name:'おみせに もどる',exact:true}).isVisible()&&await H.page.getByRole('button',{name:/もういちど/}).isVisible(),'けっかの ボタン '+i);return r;};
+ const back=async()=>{await H.page.getByRole('button',{name:'おみせに もどる',exact:true}).click();await H.idle();expect((await H.dbg('state')).scene==='venue','店に もどらない');};
+ // 1) 3本アーム: やじるしを おしつづけると うごく・タップで すこし・カメラ・つかむ → けっか
+ await start(0);await okPanel('claw');await H.shot('claw');
+ let a=await H.dbg('arcadeState');expect(a.type==='claw'&&a.phase==='move'&&a.time>25&&/のこり/.test(a.status),'3本アームの はじめ '+JSON.stringify(a));
+ const right=await H.page.getByRole('button',{name:'みぎ',exact:true}).boundingBox();await H.hold(right.x+right.width/2,right.y+right.height/2,700);
+ const back1=await H.page.getByRole('button',{name:'おく',exact:true}).boundingBox();await H.hold(back1.x+back1.width/2,back1.y+back1.height/2,500);
+ let b=await H.dbg('arcadeState');expect(b.claw.x>a.claw.x+3&&b.claw.z>a.claw.z+2,'やじるしで アームが うごかない '+JSON.stringify([a.claw,b.claw]));
+ await H.page.getByRole('button',{name:'カメラ',exact:true}).click();await H.wait(300);expect((await H.dbg('arcadeState')).camera==='side','よこの カメラに ならない');await H.shot('claw-side');
+ await H.page.getByRole('button',{name:'まえから',exact:true}).click();await H.wait(200);expect((await H.dbg('arcadeState')).camera==='front','まえの カメラに もどらない');
+ // ねらって（テスト用に アームは つよく）つかむ。とれたら ほしの ソファが ふえる
+ let won=false;
+ for(let k=0;k<3&&!won;k++){
+  if(k)await start(0);
+  await H.dbg('arcadeAim',k);await H.dbg('arcadeLuck',true);const furn=(await H.dbg('saveData')).furn.ike_prize_0||0;
+  await H.page.getByRole('button',{name:'つかむ',exact:true}).click();await H.wait(400);expect((await H.dbg('arcadeState')).phase!=='move','つかむで おりない');
+  const r=await done(0);if(k===0)await H.shot('claw-result');
+  const now=(await H.dbg('saveData')).furn.ike_prize_0||0;expect(now===furn+r.got,'ごほうびの かずが ちがう '+JSON.stringify([furn,now,r.got]));won=r.got>0;
+  await back();
+ }
+ expect(won,'つよい アームで ねらっても 3かい とれない');
+ // 2) トライポッド: ひかりが アームの ところで「とめる」→ アームが おちる（3かい）
+ await start(4);await okPanel('tripod');await H.shot('tripod');
+ // ひかりが まわる はやさは 人の ゆびの ため。テストでは アームの ランプに おいて、おなじ しゅんかんに ボタンを おす
+ for(let k=0;k<3;k++){await H.until(()=>PokaDebug.arcadeState().phase==='spin',12000);await H.eval(()=>{const r=PokaDebug.arcadeState();PokaDebug.arcadeLight(r.arms.indexOf(1)*2);document.querySelector('.crane-go').click();});await H.wait(150);expect((await H.dbg('arcadeState')).arms.filter(x=>!x).length===k+1,'とめるで アームが おちない '+k);}
+ let t=await done(4);expect(t.arms.filter(x=>!x).length>=2&&t.stops===0,'トライポッドの アームが おちない '+JSON.stringify(t));await back();
+ // 3) スウィートランド: すくう → おとす を 3かい
+ await start(2);await okPanel('sweet');await H.shot('sweet');
+ for(let k=0;k<3;k++){await H.until(()=>PokaDebug.arcadeState().phase==='swing',20000);await H.wait(700);await H.page.getByRole('button',{name:'すくう',exact:true}).click();await H.until(()=>PokaDebug.arcadeState().phase==='swing2',20000);await H.wait(600);await H.page.getByRole('button',{name:'おとす',exact:true}).click();await H.wait(300);}
+ const sw=await done(2,60000);expect(sw.scoops===0,'スウィートを 3かい できない');const uma=(await H.dbg('saveData')).bag.prize_uma||0;expect(uma===sw.got,'おかしの かず '+JSON.stringify([uma,sw.got]));await back();
+ // 4) リングフック: リングに ねらって つかむ
+ await start(6);await okPanel('ring');await H.dbg('arcadeAim',0);await H.shot('ring');await H.page.getByRole('button',{name:'つかむ',exact:true}).click();const rg=await done(6);await H.shot('ring-result');await back();
+ const save=await H.dbg('saveData');expect(save.arcade.plays>=4&&save.arcade.boards[0]&&save.arcade.boards[4]&&save.arcade.boards[2],'プレイ記録・台の ようす '+JSON.stringify({plays:save.arcade.plays,b:Object.keys(save.arcade.boards)}));
+ // 5) 中断して つづきから（おかねは もう はらわない・おなじ 台・アームの ばしょ）
+ await start(7);await H.hold(right.x+right.width/2,right.y+right.height/2,500);await H.wait(900);const mid=await H.dbg('arcadeState'),paid=(await H.dbg('saveData')).coins; // はなしても すこし すべる（とまるまで まつ）
+ await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+ await H.dbg('venue','arcade');await H.idle();await H.dbg('venueVisit','つかむ 1');await H.page.getByRole('button',{name:'つづける',exact:true}).click();await H.until(()=>PokaDebug.arcadeState()&&!PokaDebug.state().transitioning);
+ const re=await H.dbg('arcadeState');expect(re.machine===7&&(await H.dbg('saveData')).coins===paid&&Math.abs(re.claw.x-mid.claw.x)<0.6,'つづきから: 台・おかね・アームの ばしょ '+JSON.stringify([mid.claw,re.claw]));
+ await H.page.getByRole('button',{name:'つかむ',exact:true}).click();await done(7);await back();
+ const end=await H.dbg('saveData');expect(end.arcade.plays===save.arcade.plays+1&&end.arcade.active===null,'中断のあとの 精算');
+},{viewport,timeout:240000});
 
 await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});
 
