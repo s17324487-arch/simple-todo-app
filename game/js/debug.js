@@ -51,6 +51,7 @@ const PokaDebug = {
       "PokaDebug.cast('town_walker0')   町の人の 名前・種・見た目（id なしで 全員の ようす）",
       "PokaDebug.house()                     おうちへ",
       "PokaDebug.worldZoom(0.5)              町の ズーム（0.5〜1.5・なしで ようす・第2引数 true で ゆっくり）。worldPoint(x, y) で マスの 画面の 位置",
+      "PokaDebug.homeDoors()                 おうちの ドア（おでかけ・おへや・おにわの うらぐち）の 画面の ばしょと いける へや",
       "PokaDebug.fishSpawn('magoi', 60)      3人の ちかくに 魚の かげ（cm で ながさが きまる）。fishAuto(false, true) で かってに 出さない",
       "PokaDebug.fishAim()                   かげの あたまの まえ（ながおしする 画面の ばしょ）。fishState() で うき・かげ・じまんの ようす",
       "PokaDebug.smaho('map')                すまほを ひらく（アプリ id: map・status・bag・dex・event・rally・hint・fortune・rewards・music。なしで ホーム・null で とじる）",
@@ -285,6 +286,8 @@ const PokaDebug = {
   groundImage(mapId="town",cx=1,cy=1) { return Tiles.chunk(Maps.get(mapId),cx,cy).toDataURL(); },
   needs(hunger,mood=70) { for(const c of Object.values(Save.d.chars)){c.hunger=U.clamp(hunger,0,100);c.mood=U.clamp(mood,0,100);}Save.mark();if(G.sceneName==="house")G.scene.updateCare(); },
   wins(n) { Save.d.stats.wins = Math.max(0, Math.floor(n)); Save.mark(); },
+  // おうちの ドア（UI-09）: ドアの ばしょ（CSS の px・cx, cy は タップする ところ）・いける へや・あるいて いるか
+  homeDoors() { return G.sceneName === "house" ? HomeDoors.state(G.scene) : null; },
   homePoint(x, y) { const p = G.scene.toScreen(x, y), r = G.canvas.getBoundingClientRect(); return { x: r.left + p.x * G.cssPerUnit, y: r.top + p.y * G.cssPerUnit }; },
   homeDesign() {
     if(G.sceneName !== "house")return null;

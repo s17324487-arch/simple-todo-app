@@ -151,6 +151,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 20 | `scene-battle.js` | `ALLY_SIZE`, `FOE_SIZE`, `BOSS_SIZE`, `BattleScene` |
 | 21 | `minigames.js` | `MG_ART`, `CREPE_TOPS`, `BREADS`, `BREAD_TOPS`, `FLOWER_KINDS`, `RIBBONS`, `SHOP_OWNERS`, `HOWTO`, `CUST_*`, `ShopScene`, `TaskBase`, `CrepeTask`, `DentistTask`, `BakeryTask`, `FloristTask`, `MG_TASKS`, 補助関数 `breadSvg` `flowerIconSvg` `mgCanvas` `mgIcon` `topIcon` `mgBtn` `inBtn` `gridBtns` |
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
+| — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -923,6 +924,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 画面に そのまま 描く もの: 天気（雨・雪）と スティック（ズームの あとに 描く）。はじめの「タップで いどう」の ヒントは ズーム ちゅうは 出さない。
 - 入力: `screenToTile`・`clampCam` は 町の 見える はばで。ピンチの 2ほんめの ゆびが おりたら スティック・タップを やめる（つりの ながおしも）。ピンチの ゆびを はなしても タップに しない。
 - テスト: `PokaDebug.worldZoom(z, animate)`（ようす・倍率）・`PokaDebug.worldPoint(x, y)`（マスの 画面の 位置。ズームを ふくむ）。`PokaDebug.world()`・`npcLife()`・`folkSpots()`・`fishAim()` の 画面の 位置も ズームを ふくむ。スモーク「world-zoom-390 / 375」。
+
+## おうちの ドア（UI-09）
+
+`home-doors.js`（`HomeDoors`）は `parent-work.js` の あと。HouseScene を 外から つつむ（`up`・`update`・`pose`・`enter`・`exit`）。`scene-house.js` は へやの 絵を 描いた あとに `HomeDoors.drawSigns` を よぶ 1行だけ。
+
+- ドアの ばしょ（`HomeDoors.list()`）: へやの 絵（`HomeDesign.roomSvg`）の ドアと おなじ。ひだりの かべ u=30〜94「おでかけ」・みぎの かべ u=W−124〜W−60「おへや」、おにわ（`HomeGarden.svg`）は ひだりの うらぐち u=43〜102「おうち」。まえの ばしょ `front` は へやの 座標。
+- タップ: 3人・さわれる かぐが かさなって いれば そちらが さき（ぱぱ まま は タップしても なにも しないので ドアが さき）。はばは 44px（CSS）いじょう。もようがえ・みまもり・けんか ちゅうは うごかない。
+- うごく: 「おへや」は もって いる ほかの へや（1つなら すぐ・2つ いじょうは `UI.ask`）→ 3人で ドアまで あるく（`mode = "door"`・はやさ 150・2.6びょうで うちきり）→ `HomeRooms.switchTo` → `Game.goto("house", { door })`。あたらしい へやでは `HomeDoors.arrive` が ドアの まえに ならべて 中へ あるかせる。「おでかけ」は たしかめて から `goOut()`。
+- ふだは 画面の 大きさ（10px）で ドアの うえに つるす（へやの 絵・SvgCache の キーは かわらない）。
+- テスト: `PokaDebug.homeDoors()`（ドアの 画面の ばしょ・いける へや・3人）。スモーク「home-doors-390 / 375」。
 
 ### 町の人の生活動作（NpcLife）
 

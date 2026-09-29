@@ -699,6 +699,7 @@ class HouseScene {
       ctx.save(); ctx.shadowColor = "rgba(69,49,29,.22)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 10;
       ctx.drawImage(bg, this.ox + b.x * this.s, this.oy + b.y * this.s, b.w * this.s, b.h * this.s); ctx.restore();
     }
+    if (typeof HomeDoors !== "undefined") HomeDoors.drawSigns(ctx, this); // ドアの うえの ふだ（かべに はる）
     if (this.mode === "edit") this.drawEditOverlay(ctx);
     const s = this.s;
     const list = [];
