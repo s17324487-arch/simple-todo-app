@@ -360,6 +360,7 @@ class ShopScene {
       else if (this.shopId === "dentist") { ctx.fillStyle = "#FFFFFF"; U.rr(ctx, x - 8, y1 - 12, 16, 20, 6); ctx.fill(); ctx.stroke(); ctx.fillStyle = ["#7EC8F0", "#F48FB1", "#8BCB6B", "#FFD54F", "#B388FF"][i]; U.rr(ctx, x - 2, y2 - 22, 4, 26, 2); ctx.fill(); ctx.stroke(); }
     }
     ShopDecor.interior(ctx,this.lv,W,cy);
+    MG_TASKS[this.shopId]?.backdrop?.(ctx, this, W, cy); // お店ごとの たなの しなもの（ガソリンスタンド・ゆうびんきょく）
     // かんばん
     ctx.fillStyle = "#FFF7E0"; U.rr(ctx, 10, 8, W - 115, 26, 8); ctx.fill(); ctx.stroke();
     ctx.fillStyle = INK; ctx.font = "900 13px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";

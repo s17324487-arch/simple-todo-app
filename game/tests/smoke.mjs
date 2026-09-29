@@ -250,6 +250,50 @@ function helpers(page, name) {
             }
             else await H.hold(t.cx, t.cy, 1100);
           }
+        } else if (shop === "gasstand") {
+          // ちゅうもんの ノズル → ながおしで ちゅうもんの りょう（まんたんは カチッと とまる）→ よごれを こする →（Lv.3 から）ぺしゃんこの タイヤを ながおし
+          if (st.order.choose) await H.tapLabel(st.order.fuelName);
+          await page.locator("#screen").evaluate(async (canvas) => {
+            const m = PokaDebug.mg(), b = m.buttons.find((x) => x.label === "ながおしで きゅうゆ"), a = m.order.amount, goal = a.hi >= 1 ? 1 : (a.lo + a.hi) / 2, t0 = performance.now();
+            const send = (type) => canvas.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerId: 93, pointerType: "touch", clientX: b.cx, clientY: b.cy }));
+            send("pointerdown");
+            while ((PokaDebug.mg()?.order?.fill ?? 1) < goal - 0.004 && performance.now() - t0 < 9000) await new Promise((r) => requestAnimationFrame(r));
+            send("pointerup");
+          });
+          if (c === 0) await H.shot("gasstand_fuel");
+          await H.tapLabel("つぎへ ▶");
+          await page.locator("#screen").evaluate(async (canvas) => {
+            const send = (type, q) => canvas.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerId: 94, pointerType: "touch", clientX: q.cx, clientY: q.cy }));
+            const n = PokaDebug.mg().order.spots.length, t0 = performance.now();
+            for (let i = 0; i < n; i++) while ((PokaDebug.mg()?.order?.spots?.[i]?.dirt ?? 0) > 0 && performance.now() - t0 < 12000) {
+              const q = PokaDebug.mg().order.spots[i]; send("pointerdown", q);
+              for (let k = 0; k < 6; k++) { send("pointermove", { cx: q.cx + (k % 2 ? -12 : 12), cy: q.cy + ((k % 3) - 1) * 4 }); await new Promise((r) => requestAnimationFrame(r)); }
+              send("pointerup", q);
+            }
+          });
+          if (c === 0) await H.shot("gasstand_wash");
+          if ((await H.dbg("mg")).order.tires.some((x) => x.flat)) {
+            await H.tapLabel("つぎへ ▶");
+            await page.locator("#screen").evaluate(async (canvas) => {
+              for (const q of PokaDebug.mg().order.tires.filter((x) => x.flat)) {
+                const i = PokaDebug.mg().order.tires.findIndex((x) => x.cx === q.cx), t0 = performance.now(), ev = { bubbles: true, pointerId: 95, pointerType: "touch", clientX: q.cx, clientY: q.cy };
+                canvas.dispatchEvent(new PointerEvent("pointerdown", ev));
+                while ((PokaDebug.mg()?.order?.tires?.[i]?.air ?? 1) < 1 && performance.now() - t0 < 5000) await new Promise((r) => requestAnimationFrame(r));
+                canvas.dispatchEvent(new PointerEvent("pointerup", ev));
+              }
+            });
+            if (c === 0) await H.shot("gasstand_tires");
+          }
+          await H.tapLabel("できあがり！");
+        } else if (shop === "postoffice") {
+          // けしいんを おす → あてさきの はこ（Lv.4 から てがみは しるしだけ）
+          for (let k = 0; k < 10; k++) {
+            const m = await H.dbg("mg"); if (!m || m.phase !== "work" || m.n !== st.n || !m.order.cur) break;
+            const o = m.order; if (o.flying) { await H.wait(80); continue; }
+            if (!o.cur.stamped) { await H.tapLabel("けしいんを おす"); if (c === 0 && k === 0) await H.shot("postoffice_stamp"); }
+            await H.tapLabel(o.cur.name);
+            await H.until((i) => { const q = PokaDebug.mg(); return !q || q.phase !== "work" || q.order.index !== i; }, 4000, o.index);
+          }
         }
         await H.until(() => { const m = PokaDebug.mg(); return m && m.phase !== "work"; }, 8000);
         const grade = await H.dbg("mg");
@@ -2793,6 +2837,7 @@ await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});
 await (await import("./nerikasu-town-smoke.mjs")).nerikasuTownSmoke({scenario,expect});
 
 await (await import("./nerikasu-shops-smoke.mjs")).nerikasuShopsSmoke({scenario,expect});
+await (await import("./nerikasu-work-smoke.mjs")).nerikasuWorkSmoke({scenario,expect});
 
 await (await import("./world-zoom-smoke.mjs")).worldZoomSmoke({scenario,expect});
 
