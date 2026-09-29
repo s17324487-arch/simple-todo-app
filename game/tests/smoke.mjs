@@ -2070,7 +2070,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("discLuck",true);const ranks=await H.playShop("crepe",1);expect(ranks.every(r=>r===3),"クレープが ◎ に ならない "+ranks);
   expect(/ディスク「あまい カフェ」/.test(H.shopResult)&&/ラジカセ/.test(H.shopResult),"おてつだいの けっかに ディスクが 出ない "+H.shopResult);
   await H.dbg("house");await H.until(()=>G.sceneName==="house"&&!Game.trans,15000);await H.wait(300);
-  d=await H.dbg("discs");expect(d.owned.includes("disc_shop_crepe")&&d.owned.includes("disc_twinkle")&&d.players.player_boombox===1,"ディスク・ラジカセが セーブに ない "+JSON.stringify(d));
+  d=await H.dbg("discs");expect(d.owned.includes("disc_shop_crepe")&&d.owned.includes("disc_twinkle")&&d.owned.includes("disc_theme")&&d.players.player_boombox===1,"ディスク・ラジカセ（3にんの テーマ・きらきらぼし つき）が セーブに ない "+JSON.stringify(d));
   const chest=await H.dbg("discDrop","chest","forest");expect(chest.some(t=>/もりの こもれび/.test(t)),"たからばこで その ばしょの ディスクが 出ない "+JSON.stringify(chest));
   await H.dbg("homeLayout",[{id:"player_boombox",x:110,y:560},{id:"rug_round",x:300,y:560}]);await H.dbg("homeBubbleFixture");await H.wait(500);
   let a=await H.dbg("furnLive","player_boombox");expect(a&&a.tap,"ラジカセを タップできない");
@@ -2085,13 +2085,18 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   d=await H.dbg("discs");expect(!d.playing&&d.song==="house","とめても おうちの きょくに もどらない "+JSON.stringify(d));
   // 8まいで ジュークボックス、ちくおんきは たからばこ（3まい いじょう）
   for(const shop of ["bakery","florist","dentist","cake","groom"])await H.dbg("discDrop","shop",shop);
-  d=await H.dbg("discs");expect(d.owned.length>=8&&d.players.player_jukebox===1&&d.owned.includes("disc_turkish"),"8まいで ジュークボックスが もらえない "+JSON.stringify(d));
-  await H.dbg("discDrop","chest","cave");d=await H.dbg("discs");expect(d.players.player_gramophone===1&&d.owned.includes("disc_nacht"),"たからばこで ちくおんき（アイネ クライネ つき）が 出ない "+JSON.stringify(d));
+  d=await H.dbg("discs");expect(d.owned.length>=8&&d.players.player_jukebox===1&&d.owned.includes("disc_turkish")&&d.owned.includes("disc_march"),"8まいで ジュークボックス（ぽかぽか マーチ・トルコ こうしんきょく つき）が もらえない "+JSON.stringify(d));
+  await H.dbg("discDrop","chest","cave");d=await H.dbg("discs");expect(d.players.player_gramophone===1&&d.owned.includes("disc_nacht")&&d.owned.includes("disc_lullaby"),"たからばこで ちくおんき（ほしぞら ララバイ・アイネ クライネ つき）が 出ない "+JSON.stringify(d));
   await H.dbg("homeLayout",[{id:"player_gramophone",x:210,y:560},{id:"player_jukebox",x:400,y:560},{id:"player_boombox",x:80,y:560}]);await H.dbg("homeBubbleFixture");await H.wait(500);
   a=await H.dbg("furnLive","player_jukebox");await H.tap(a.tap.x,a.tap.y);await H.wait(350);
   await H.page.getByRole("button",{name:"トルコ こうしんきょく",exact:true}).click();await H.wait(900);
   d=await H.dbg("discs");expect(d.song==="disc_turkish","ジュークボックスで ディスクだけの 名曲が ながれない "+JSON.stringify(d));
   await H.shot("jukebox");
+  // ぽかぽかの きょく（この ゲームの ために つくった きょく）も ちくおんきで きける（3人が まえに こないよう おきなおす）
+  await H.dbg("homeLayout",[{id:"player_gramophone",x:400,y:560},{id:"player_jukebox",x:210,y:560},{id:"player_boombox",x:80,y:560}]);await H.dbg("homeBubbleFixture");await H.wait(500);
+  a=await H.dbg("furnLive","player_gramophone");await H.tap(a.tap.x,a.tap.y);await H.wait(350);
+  await H.page.getByRole("button",{name:"ほしぞら ララバイ",exact:true}).click();await H.wait(700);
+  d=await H.dbg("discs");expect(d.song==="disc_lullaby","ちくおんきで ぽかぽかの きょく「ほしぞら ララバイ」が ながれない "+JSON.stringify(d));
   // ほんとうの たからばこ（はらっぱの m1）: 中みの あとに ディスクの ページが べつに 出る
   await H.dbg("teleport","meadow",5,7,"up");await H.idle();await H.wait(400);await H.page.keyboard.press("z");
   const pages=[];

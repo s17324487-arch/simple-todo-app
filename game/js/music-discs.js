@@ -1,7 +1,7 @@
 // レアの 音楽プレイヤーと ディスク（ROADMAP M9 の ART-05）。
 // プレイヤー 3しゅ（ラジカセ・ちくおんき・ジュークボックス）を へやに おいて タップ → もって いる ディスクを えらぶと その きょくが ながれる。
 // ディスクは おてつだいの ほうび（その おみせの きょく）と、たんけんの たからばこ（その ばしょの きょく）で 手に入る。
-// はじめての ディスクで ラジカセ、ディスク 3まいから たからばこで まれに ちくおんき、8まいで ジュークボックス（それぞれ 名曲の ディスクが 1まい つく）。
+// はじめての ディスクで ラジカセ、ディスク 3まいから たからばこで まれに ちくおんき、8まいで ジュークボックス（それぞれ ぽかぽかの きょくと 名曲の ディスクが 1まいずつ つく）。
 // セーブは Save.d.discs（id → 手に入れた 日）だけ。プレイヤーは ふつうの 家具（Save.d.furn）。
 const MusicDiscs = (() => {
   // ---- ディスクだけの きょく: 作曲者が なくなって 70年 いじょう たった 名曲（パブリックドメイン）----
@@ -45,9 +45,36 @@ const MusicDiscs = (() => {
     { drum: true, vol: 0.024, pan: 0.3, notes: "h h h h h h h h" },
   ], 0.03);
 
+  // ---- ディスクだけの ぽかぽかの きょく（この ゲームの ために つくった きょく。original: true）----
+  // 名曲と いっしょに のこす（オーナーの 指示: 自作の 曲は けさなくて よい）。ModernMusic の 形（1トークン = 8分音符・8小節で 1まわり）
+  const bar = (chords, pat) => chords.map((c) => pat.replaceAll("X", c)).join(" | ");
+  const bassOf = (chords, pat) => chords.map((c) => { const n = c.split("+"), root = n[0].replace(/(\d)$/, (d) => d - 1), fifth = n[2].replace(/(\d)$/, (d) => d - 1); return pat.replaceAll("{r}", root).replaceAll("{f}", fifth); }).join(" | ");
+  const song = (title, bpm, key, lead, melody, chords, groove) => {
+    const quiet = groove === "quiet", drive = groove === "drive";
+    return { bpm, title, modern: true, swing: quiet ? 0.06 : 0.04, key, groove, disc: true, original: true, tracks: [
+      { instrument: lead, vol: quiet ? 0.16 : 0.18, gate: lead === "pluck" ? 0.67 : 0.86, pan: 0.16, notes: melody },
+      { instrument: quiet ? "piano" : "epiano", vol: 0.13, pan: -0.22, gate: 0.86, notes: bar(chords, drive ? "X . _ X _ X . _" : "X . . . _ X . .") },
+      { instrument: "bass", vol: quiet ? 0.18 : 0.25, pan: 0, gate: 0.8, notes: bassOf(chords, drive ? "{r} . _ {f} {r} . {f} _" : "{r} . . _ {f} . {r} _") },
+      { instrument: "pad", vol: quiet ? 0.065 : 0.045, pan: -0.06, gate: 0.95, notes: bar(chords, "X . . . . . . .") },
+      { drum: true, vol: quiet ? 0.05 : drive ? 0.18 : 0.14, notes: drive ? "k _ s k k _ s _" : quiet ? "k _ _ _ s _ _ _" : "k _ s _ k _ s _" },
+      { drum: true, vol: quiet ? 0.012 : 0.026, pan: 0.3, notes: quiet ? "_ _ h _ _ _ h _" : "h h h h h h h h" },
+    ] };
+  };
+  const C = ["C3+E3+G3+B3", "A2+C3+E3+G3", "F2+A2+C3+E3", "G2+B2+D3+F3"];
+  SONGS.disc_theme = song("3にんの テーマ", 112, "C", "pluck",
+    "E4 G4 C5 . B4 A4 G4 . | A4 G4 E4 . D4 E4 C4 . | F4 A4 C5 . D5 C5 A4 . | G4 . E4 . G4 _ _ _ | E4 G4 C5 . D5 E5 D5 C5 | A4 C5 A4 G4 E4 . D4 . | F4 . A4 . G4 . B4 . | C5 . . . _ _ _ _",
+    [C[0], C[1], C[2], C[3], C[0], C[1], C[2], "C3+E3+G3+B3"], "pop");
+  SONGS.disc_lullaby = song("ほしぞら ララバイ", 72, "F", "mallet",
+    "C5 . A4 . F4 . A4 . | G4 . . . F4 . E4 . | F4 . A4 . C5 . F5 . | E5 . . . _ . . . | D5 . C5 . A4 . F4 . | G4 . A4 . Bb4 . G4 . | A4 . F4 . G4 . E4 . | F4 . . . _ . . .",
+    ["F3+A3+C4+E4", "C3+E3+G3+Bb3", "F3+A3+C4+E4", "C3+E3+G3+Bb3", "Bb2+D3+F3+A3", "G2+Bb2+D3+F3", "C3+E3+G3+Bb3", "F3+A3+C4+E4"], "quiet");
+  SONGS.disc_march = song("ぽかぽか マーチ", 124, "G", "piano",
+    "G4 . G4 B4 D5 . B4 . | C5 . A4 . F#4 . D4 . | G4 . B4 . D5 . G5 . | F#5 . E5 . D5 . _ . | E5 . C5 . D5 . B4 . | C5 . A4 . B4 . G4 . | A4 . F#4 . A4 . C5 . | B4 . G4 . G4 . _ .",
+    ["G2+B2+D3+F#3", "D3+F#3+A3+C4", "G2+B2+D3+F#3", "D3+F#3+A3+C4", "C3+E3+G3+B3", "G2+B2+D3+F#3", "D3+F#3+A3+C4", "G2+B2+D3+F#3"], "drive");
+
   // ---- ディスク（どこで 手に入るか）----
   const shopDisc = (shop, color) => ({ id: "disc_shop_" + shop, song: "shop_" + shop, color, from: { shop } });
   const DISCS = [
+    { id: "disc_theme", song: "disc_theme", color: "#F2A7B8", from: { starter: true } },
     { id: "disc_twinkle", song: "disc_twinkle", color: "#F7D56A", from: { starter: true } },
     shopDisc("crepe", "#F8A5C2"), shopDisc("bakery", "#F2C27B"), shopDisc("florist", "#B5E08A"), shopDisc("dentist", "#8FD3F4"),
     shopDisc("cake", "#EDBAC6"), shopDisc("groom", "#BFDED7"), shopDisc("burger", "#E5C69F"), shopDisc("relay", "#AEBFDF"),
@@ -62,7 +89,9 @@ const MusicDiscs = (() => {
     { id: "disc_coast", song: "coast", color: "#9CD8E0", from: { town: true } },
     { id: "disc_house", song: "house", color: "#F4E1B8", from: { town: true } },
     { id: "disc_aquarium", song: "aquarium", color: "#5FAFCB", from: { town: true } },
+    { id: "disc_lullaby", song: "disc_lullaby", color: "#6C7FD1", from: { gramophone: true } },
     { id: "disc_nacht", song: "disc_nacht", color: "#B69BD8", from: { gramophone: true } },
+    { id: "disc_march", song: "disc_march", color: "#E5735C", from: { jukebox: true } },
     { id: "disc_turkish", song: "disc_turkish", color: "#F29A5B", from: { jukebox: true } },
   ];
   const INDEX = Object.fromEntries(DISCS.map((d) => [d.id, d]));
@@ -82,7 +111,20 @@ const MusicDiscs = (() => {
   const has = (id) => !!Save.d.discs?.[id];
   const count = () => DISCS.filter((d) => has(d.id)).length;
   const giveFurn = (id) => { Save.d.furn[id] = (Save.d.furn[id] || 0) + 1; return `かぐ「${FURN_INDEX[id].name}」を てにいれた！ おうちの「もようがえ」で おけるよ。`; };
-  // ディスクを 1まい。はじめての ディスクで ラジカセと「3にんの テーマ」、8まいで ジュークボックスと「ぽかぽか マーチ」
+  // プレイヤーに ついて くる ディスク（ぽかぽかの きょくと 名曲）。「「A」と「B」」の ように かえす（もう あれば ""）
+  const bonus = (kind) => DISCS.filter((d) => d.from[kind] && !has(d.id)).map((d) => { Save.d.discs[d.id] = U.today(); return `「${title(d)}」`; }).join("と ");
+  // まえから もって いる プレイヤーにも おまけの ディスクを たす（ぽかぽかの きょくを もどす まえの セーブ）。ことばの 1ぎょうずつ を かえす
+  function backfill() {
+    if (!Save.d.discs) return [];
+    const out = [];
+    for (const [kind, pid] of [["starter", "player_boombox"], ["gramophone", "player_gramophone"], ["jukebox", "player_jukebox"]]) {
+      if (!Save.d.furn[pid]) continue;
+      const b = bonus(kind); if (b) out.push(`${FURN_INDEX[pid].name}に ディスク${b}が はいって いた！`);
+    }
+    if (out.length) Save.mark();
+    return out;
+  }
+  // ディスクを 1まい。はじめての ディスクで ラジカセと「3にんの テーマ」「きらきらぼし」、8まいで ジュークボックスと「ぽかぽか マーチ」「トルコ こうしんきょく」
   function grant(id) {
     const d = INDEX[id];
     if (!d || has(id)) return [];
@@ -91,12 +133,13 @@ const MusicDiscs = (() => {
     const out = [`ディスク「${title(d)}」を てにいれた！`];
     if (!Save.d.furn.player_boombox && !Object.keys(PLAYERS).some((p) => Save.d.furn[p])) {
       out.push(giveFurn("player_boombox") + " ディスクは ラジカセで きけるよ。");
-      if (!has("disc_twinkle")) { Save.d.discs.disc_twinkle = U.today(); out.push(`おまけの ディスク「${title(INDEX.disc_twinkle)}」も ついて きた！`); }
+      const b = bonus("starter"); if (b) out.push(`おまけの ディスク${b}も ついて きた！`);
     }
     if (count() >= 8 && !Save.d.furn.player_jukebox) {
       out.push(giveFurn("player_jukebox"));
-      if (!has("disc_turkish")) { Save.d.discs.disc_turkish = U.today(); out.push(`ディスク「${title(INDEX.disc_turkish)}」も もらった！`); }
+      const b = bonus("jukebox"); if (b) out.push(`ディスク${b}も もらった！`);
     }
+    out.push(...backfill());
     Save.mark();
     return out;
   }
@@ -120,14 +163,14 @@ const MusicDiscs = (() => {
     else if (town.length && r < 0.55) out.push(...grant(pick(town, rnd).id));
     if (count() >= 3 && !Save.d.furn.player_gramophone && rnd() < 0.25) {
       out.push(giveFurn("player_gramophone"));
-      if (!has("disc_nacht")) { Save.d.discs.disc_nacht = U.today(); out.push(`ちくおんきに ディスク「${title(INDEX.disc_nacht)}」が はいって いた！`); }
+      const b = bonus("gramophone"); if (b) out.push(`ちくおんきに ディスク${b}が はいって いた！`);
       Save.mark();
     }
     return out;
   }
 
   // ---- きく ----
-  const art = (d, size = 40) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-22 -22 44 44" width="${size}" height="${size}"><circle r="20" fill="#2E2B38" stroke="${INK}" stroke-width="2"/><circle r="15" fill="none" stroke="#4A4658" stroke-width="1"/><circle r="11" fill="none" stroke="#4A4658" stroke-width="1"/><circle r="8" fill="${d.color}" stroke="${INK}" stroke-width="1.4"/><circle r="1.8" fill="#FFFFFF"/><path d="M-14,-9 A17,17 0 0 1 -4,-16" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-opacity=".5"/></svg>`;
+  const art = (d, size = 40) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-22 -22 44 44" width="${size}" height="${size}" style="flex:none"><circle r="20" fill="#2E2B38" stroke="${INK}" stroke-width="2"/><circle r="15" fill="none" stroke="#4A4658" stroke-width="1"/><circle r="11" fill="none" stroke="#4A4658" stroke-width="1"/><circle r="8" fill="${d.color}" stroke="${INK}" stroke-width="1.4"/><circle r="1.8" fill="#FFFFFF"/><path d="M-14,-9 A17,17 0 0 1 -4,-16" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-opacity=".5"/></svg>`;
   function play(sc, it, d) {
     Sound.bgm(d.song);
     sc.music = { uid: it.uid, id: it.id, disc: d.id, song: d.song, t0: G.t, next: 5 };
@@ -136,14 +179,16 @@ const MusicDiscs = (() => {
   }
   function stop(sc) { sc.music = null; Sound.bgm("house"); }
   function open(sc, it) {
+    const found = backfill();
     const owned = DISCS.filter((d) => has(d.id)), playing = sc.music && sc.music.uid === it.uid ? INDEX[sc.music.disc] : null;
     const body = U.el("div", { class: "disc-picker" });
+    for (const t of found) body.append(U.el("p", { class: "note", text: t }));
     body.append(U.el("p", { text: playing ? `いまは「${title(playing)}」が ながれて いるよ。` : owned.length ? "きく ディスクを えらんでね。" : "ディスクが まだ ないよ。おてつだい や たんけんの たからばこで みつけよう！" }));
     const grid = U.el("div", { style: "display:grid;grid-template-columns:1fr 1fr;gap:8px" });
     let m = null;
     for (const d of owned) {
       const b = UI.btn(`${art(d, 34)}<span>${title(d)}</span>`, () => { Sound.se("ok"); play(sc, it, d); m.close(); }, playing === d ? "yellow" : "");
-      b.style.cssText = "min-height:52px;display:flex;align-items:center;gap:6px;text-align:left;padding:6px 8px;font-size:14px;line-height:1.2";
+      b.style.cssText = "min-height:52px;display:flex;align-items:center;gap:6px;text-align:left;padding:6px 8px;font-size:14px;line-height:1.2;word-break:keep-all;overflow-wrap:anywhere";
       b.setAttribute("aria-label", title(d));
       grid.append(b);
     }
@@ -276,5 +321,5 @@ const MusicDiscs = (() => {
     };
   }
 
-  return { DISCS, INDEX, PLAYERS, has, count, grant, fromShop, fromChest, open, play, stop, title, art, luck(on) { lucky = !!on; return lucky; } };
+  return { DISCS, INDEX, PLAYERS, has, count, grant, backfill, fromShop, fromChest, open, play, stop, title, art, luck(on) { lucky = !!on; return lucky; } };
 })();

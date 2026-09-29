@@ -1247,12 +1247,18 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
       Save.d = Save.fresh();
       const first = MusicDiscs.fromShop("crepe", [3, 3, 3], always), low = MusicDiscs.fromShop("bakery", [1, 1, 3], always), boombox = Save.d.furn.player_boombox || 0;
       for (const s of ["bakery", "florist", "dentist", "cake", "groom", "burger"]) MusicDiscs.fromShop(s, [3, 3, 3], always);
-      const jukebox = Save.d.furn.player_jukebox || 0, march = MusicDiscs.has("disc_turkish"), chest = MusicDiscs.fromChest("cave", always);
-      flow = { first, low, boombox, jukebox, march, chest, gramophone: Save.d.furn.player_gramophone || 0, nacht: MusicDiscs.has("disc_nacht"), again: MusicDiscs.grant("disc_shop_crepe").length, saved: Object.keys(Save.d.discs).length };
+      const theme = MusicDiscs.has("disc_twinkle") && MusicDiscs.has("disc_theme"), jukebox = Save.d.furn.player_jukebox || 0, march = MusicDiscs.has("disc_turkish") && MusicDiscs.has("disc_march"), chest = MusicDiscs.fromChest("cave", always);
+      const gramophone = Save.d.furn.player_gramophone || 0, nacht = MusicDiscs.has("disc_nacht") && MusicDiscs.has("disc_lullaby"), again = MusicDiscs.grant("disc_shop_crepe").length;
+      const saved = Object.keys(Save.d.discs).length;
+      // まえの セーブ（ラジカセ・ジュークボックスは ある・ぽかぽかの きょくは ない）: つぎに ひらくと おまけの ディスクが はいって いる（1かいだけ）
+      Save.d = Save.fresh(); Save.d.furn.player_boombox = 1; Save.d.furn.player_jukebox = 1; Save.d.discs = { disc_twinkle: "2026-09-28", disc_turkish: "2026-09-28", disc_shop_crepe: "2026-09-28" };
+      const back = MusicDiscs.backfill(), backfill = { lines: back, again: MusicDiscs.backfill().length, theme: MusicDiscs.has("disc_theme"), march: MusicDiscs.has("disc_march"), lullaby: MusicDiscs.has("disc_lullaby") };
+      flow = { first, low, boombox, backfill, theme, jukebox, march, chest, gramophone, nacht, again, saved };
     } finally { Save.d = d0; }
     // ディスクだけの きょくは 既存の 名曲（作曲者が 1967年 までに なくなった パブリックドメイン）。出典つき
-    const classics = Object.entries(SONGS).filter(([, s]) => s.disc).map(([id, s]) => ({ id, title: s.title, source: s.source || null }));
-    return { discs, players, flow, classics, shops: Object.keys(SHOPS).filter((id) => MG_TASKS[id]), chestMaps: Object.keys(MAP_DEFS).filter((id) => (MAP_DEFS[id].chests || []).length), fresh: JSON.stringify(Save.fresh().discs) };
+    const classics = Object.entries(SONGS).filter(([, s]) => s.disc && !s.original).map(([id, s]) => ({ id, title: s.title, source: s.source || null }));
+    const originals = Object.entries(SONGS).filter(([, s]) => s.disc && s.original).map(([id]) => id);
+    return { discs, players, flow, classics, originals, shops: Object.keys(SHOPS).filter((id) => MG_TASKS[id]), chestMaps: Object.keys(MAP_DEFS).filter((id) => (MAP_DEFS[id].chests || []).length), fresh: JSON.stringify(Save.fresh().discs) };
   })()`, ctx);
   const kanji = /[\u4E00-\u9FFF]/;
   ok(md.discs.length >= 20 && new Set(md.discs.map((d) => d.id)).size === md.discs.length, "ディスクが すくない か id が かさなる");
@@ -1266,6 +1272,8 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   for (const s of md.shops) ok(md.discs.some((d) => d.from.shop === s), `おてつだいの おみせ ${s} の ディスクが ない`);
   ok(["starter", "town", "jukebox", "gramophone"].every((k) => md.discs.some((d) => d.from[k])), "はじめ・町・ちくおんき・ジュークボックスの ディスクが そろわない");
   ok(md.classics.length >= 4, "ディスクだけの 名曲が すくない");
+  // この ゲームの ために つくった きょく（けさない。名曲と いっしょに プレイヤーの おまけ）
+  ok(["disc_theme", "disc_lullaby", "disc_march"].every((id) => md.originals.includes(id) && md.discs.some((d) => d.song === id)), "ぽかぽかの きょく 3つ（3にんの テーマ・ほしぞら ララバイ・ぽかぽか マーチ）の ディスクが ない " + md.originals);
   for (const c of md.classics) {
     const died = Number((/[（(]\d{4}-(\d{4})[)）]/.exec(c.source?.composer || "") || [])[1]);
     ok(c.source && c.source.work && c.source.score && c.source.license, `ディスクの 名曲 ${c.id}: 出典（作品・楽譜・ライセンス）が ない`);
@@ -1279,11 +1287,12 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   }
   ok(md.players.filter((p) => p.live).length >= 2, "ちくおんき・ジュークボックスの うごく 絵（live）が ない");
   const f = md.flow;
-  ok(f.first.some((t) => /ディスク「/.test(t)) && f.first.some((t) => /ラジカセ/.test(t)) && f.boombox === 1, "はじめての ディスクで ラジカセが もらえない " + JSON.stringify(f.first));
+  ok(f.first.some((t) => /ディスク「/.test(t)) && f.first.some((t) => /ラジカセ/.test(t)) && f.boombox === 1 && f.theme && f.first.some((t) => /「3にんの テーマ」と ?「きらきらぼし」/.test(t)), "はじめての ディスクで ラジカセと「3にんの テーマ」「きらきらぼし」が もらえない " + JSON.stringify(f.first));
   ok(f.low.length === 0, "○ が すくない おてつだいでも ディスクが 出る");
-  ok(f.jukebox === 1 && f.march, "ディスク 8まいで ジュークボックスと「トルコ こうしんきょく」が もらえない");
-  ok(f.chest.some((t) => /どうくつの しずく/.test(t)) && f.gramophone === 1 && f.nacht, "たからばこで その ばしょの ディスクと ちくおんき（アイネ クライネ つき）が 出ない " + JSON.stringify(f.chest));
-  ok(f.again === 0 && f.saved === 11, "おなじ ディスクを 2かい もらえる か セーブの かずが ちがう " + f.saved);
+  ok(f.jukebox === 1 && f.march, "ディスク 8まいで ジュークボックスと「ぽかぽか マーチ」「トルコ こうしんきょく」が もらえない");
+  ok(f.chest.some((t) => /どうくつの しずく/.test(t)) && f.gramophone === 1 && f.nacht, "たからばこで その ばしょの ディスクと ちくおんき（ほしぞら ララバイ・アイネ クライネ つき）が 出ない " + JSON.stringify(f.chest));
+  ok(f.backfill.lines.length === 2 && f.backfill.lines.every((t) => /ディスク「/.test(t) && !kanji.test(t)) && f.backfill.again === 0 && f.backfill.theme && f.backfill.march && !f.backfill.lullaby, "まえの セーブの プレイヤーに ぽかぽかの きょくが はいらない " + JSON.stringify(f.backfill));
+  ok(f.again === 0 && f.saved === 14, "おなじ ディスクを 2かい もらえる か セーブの かずが ちがう " + f.saved);
   ok(md.fresh === "{}", "Save.fresh() に discs が ない");
 }
 
