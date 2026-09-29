@@ -1,6 +1,7 @@
 // きせかえ画面
 const DressUp = {
   open(startWho) {
+    if(["papa","mama"].includes(startWho))return ParentWardrobe.open(startWho);
     return new Promise((resolve) => {
       const d = Save.d;
       let who = startWho || d.order[0];
@@ -39,6 +40,8 @@ const DressUp = {
           wt.append(b);
         }
       };
+      const drawChildren=drawWho;
+      const drawFamily=()=>{drawChildren();for(const id of ["papa","mama"]){const b=U.el("button",{class:"who-tab",html:ParentCare.svg(id,ParentCare.look(id))+ParentCare.name(id)});b.onclick=()=>{m.close();ParentWardrobe.open(id);};wt.append(b);}};
       const statLine = (id) => {
         const k = ["hp", "sp", "atk", "def", "spd"], nm = { hp: "HP", sp: "SP", atk: "こうげき", def: "ぼうぎょ", spd: "すばやさ" };
         return k.map((s) => { const e = Stats.equip(id, s); return `${nm[s]} ${Stats.max(id, s)}${e ? `<span style="color:${e > 0 ? "#2e7d32" : "#c62828"}">(${e > 0 ? "+" : ""}${e})</span>` : ""}`; }).join("<br>");
@@ -97,7 +100,7 @@ const DressUp = {
         }, "small pink"));
         tools.append(UI.btn("ぜんぶ ぬぐ", () => { d.chars[who].outfit = { head: null, face: null, neck: null, body: null, back: null }; Sound.se("tap"); Save.mark(); drawAll(); }, "small"));
       };
-      const drawAll = () => { drawWho(); drawStage(); drawTabs(); drawGrid(); drawTools(); };
+      const drawAll = () => { drawFamily(); drawStage(); drawTabs(); drawGrid(); drawTools(); };
       drawAll();
     });
   },

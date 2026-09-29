@@ -26,8 +26,8 @@ const Save = {
       chars: { wanko: chara("wanko"), gachan: chara("gachan"), goji: chara("goji") },
       order: ["wanko", "gachan", "goji"],
       parents: {
-        papa: { outfit:"casual",color:"blue",face:"smile",hair:"short",accessory:"glasses",skin:"light" },
-        mama: { outfit:"casual",color:"pink",face:"smile",hair:"bob",accessory:"flower",skin:"light" },
+        papa: { outfit:"casual",color:"blue",face:"smile",hair:"short",accessory:"glasses",skin:"light",hairColor:"brown",equipment:{head:null,face:null,neck:null,body:null,back:null} },
+        mama: { outfit:"casual",color:"pink",face:"smile",hair:"bob",accessory:"flower",skin:"light",hairColor:"brown",equipment:{head:null,face:null,neck:null,body:null,back:null} },
         auto:true, lastCare:{wanko:0,gachan:0,goji:0},
       },
       bag: { onigiri: 3, apple: 2, bandaid: 2 },
