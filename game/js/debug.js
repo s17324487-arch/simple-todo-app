@@ -19,6 +19,14 @@ const PokaDebug = {
   mamaWork(){return MamaSchedule.working();},
   venue(id='school',floor){const b=MAP_DEFS.town.buildings.find(b=>b.act.venue===id)||MAP_DEFS.city.buildings.find(b=>b.act.venue===id);if(!b)return false;Game.goto('venue',{venue:id,floor,back:{map:MAP_DEFS.town.buildings.includes(b)?'town':'city',x:b.x+b.door,y:b.y+b.h,dir:'down'}},'none');return true;},
   venueState(){if(G.sceneName!=='venue'||!G.scene?.room)return null;const sc=G.scene;return {id:sc.id,floor:sc.floor,name:sc.def.name,changingFloor:sc.lift>0,party:sc.party.map(p=>({x:p.x,y:p.y})),fixtures:sc.fixtures.map(f=>({...f,screen:sc.screen(f.x+f.w/2-.5,f.y+f.h-1)})),coins:Save.d.coins,walkable:sc.room.w*sc.room.h,routeCount:sc.fixtures.filter(f=>f.action).map(f=>({label:f.label,reachable:Array.from({length:f.h+2},(_,j)=>Array.from({length:f.w+2},(_,i)=>sc.route(f.x-1+i,f.y-1+j)!==null)).flat().some(Boolean)}))};},
+  indoorState(){
+    if(!['store','venue'].includes(G.sceneName)||!G.scene?.party)return null;
+    const sc=G.scene,l=sc.party[0],r=G.canvas.getBoundingClientRect(),u=G.cssPerUnit;
+    const screen=(x,y)=>{const p=sc.screen(x,y);return{x:r.left+p.x*u,y:r.top+p.y*u};},at=screen(l.tx,l.ty);
+    return {scene:G.sceneName,iso:!!sc.iso,floor:sc.floor,joy:!!sc.joy,path:sc.path.length,pending:!!sc.pending,
+      party:sc.party.map(p=>({x:p.tx,y:p.ty,moving:p.moving})),
+      directions:Object.entries(DIRS).map(([key,[dx,dy]])=>{let free=0;while(free<80&&sc.walkable(l.tx+dx*(free+1),l.ty+dy*(free+1)))free++;const q=screen(l.tx+dx,l.ty+dy);return{key,dx,dy,free,screen:q,vector:{x:q.x-at.x,y:q.y-at.y}};})};
+  },
   venueVisit(label){if(G.sceneName!=='venue')return false;const f=G.scene.fixtures.find(f=>f.label===label);return !!f&&G.scene.request(f);},
   // 斜めの 館（サンシャインいけぶ）: 床の マス (x, y) の まんなか、または 什器の 見えて いる ところの 画面の 位置（CSS の px）。タップの テストに
   venuePoint(x,y,label){if(G.sceneName!=='venue'||!G.scene.iso)return null;const sc=G.scene,rc=G.canvas.getBoundingClientRect(),u=G.cssPerUnit;let q;if(label){const f=sc.fixtures.find(f=>f.label===label);if(!f)return null;const r=IsoVenue.rectOf(IsoVenue.hull(f));q=sc.toScreen({x:r.x+r.w/2,y:r.y+r.h*0.55});}else q=sc.screen(x,y);return {x:rc.left+q.x*u,y:rc.top+q.y*u};},

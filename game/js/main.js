@@ -203,7 +203,7 @@ const Game = {
       G.keys[k] = false;
       if (G.scene && G.scene.key) G.scene.key(k, false);
     });
-    window.addEventListener("blur", () => { G.keys = {}; });
+    window.addEventListener("blur", () => { G.keys = {}; if (G.scene && G.scene.cancel) for (const p of this.pointers.values()) G.scene.cancel(p); this.pointers.clear(); });
   },
 
   openMenu() { if (!this.inputLocked) Menu.open(); },

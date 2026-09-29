@@ -97,12 +97,12 @@ function helpers(page, name) {
     eval: (fn, arg) => page.evaluate(fn, arg),
     until: (fn, ms = 10000, arg) => page.waitForFunction(fn, arg, { timeout: ms*WAIT_SCALE, polling: 100 }),
     dbg: (method, ...args) => page.evaluate(([m, a]) => window.PokaDebug[m](...a), [method, args]),
-    async shot(label) {
+    async shot(label, {pause=true} = {}) {
       if (!SHOTS) return;
       // フォント/描画待ちでゲームの制限時間を消費しない。
-      const previous = await H.dbg("pause", true);
+      const previous = pause ? await H.dbg("pause", true) : null;
       try { await page.screenshot({ path: join(SHOT_DIR, `${name}_${label}.png`), animations: "disabled" }); }
-      finally { await H.dbg("pause", previous); }
+      finally { if(pause) await H.dbg("pause", previous); }
     },
     async open() {
       await page.goto(url + "index.html");
@@ -2712,6 +2712,8 @@ await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});
 await (await import("./nerikasu-town-smoke.mjs")).nerikasuTownSmoke({scenario,expect});
 
 await (await import("./npc-life-smoke.mjs")).npcLifeSmoke({scenario,expect});
+
+await (await import("./indoor-walk-smoke.mjs")).indoorWalkSmoke({scenario,expect});
 
 server.close();
 if(LIST)process.exit(0);

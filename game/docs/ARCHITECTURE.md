@@ -888,3 +888,9 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 しぐさは10種類で10〜18秒の休憩をはさむ。NpcArt.svg の gesture は有限名、表情とポーズも既存の有限名。通常姿勢を先読みし、新しい身ぶりの初回生成中にも人物を描く。StoreScene の店員は stationaryActor を使う。ゲームを閉じれば動作状態は消え、Save.KEY/SCHEMA・所持品には変更しない。
 
 テスト入口は PokaDebug.npcLife（状態・画面位置）、npcLifeAct（しぐさ）、npcLifeAdvance（最大60秒の動作更新）、npcLifeApproach（本編と同じ接近経路）。
+
+### 室内のスライド移動
+
+`indoor-walk.js` の `IndoorWalk` は StoreScene / VenueScene / IsoVenueScene の画面座標のスティックを共用する。12論理pxで開始、10px未満は停止。斜め視点では IsoVenue.inv で床の軸へ方向を変換し、既存の walkable と Walker で1マスずつ3人が歩く。床・展示のタップは短い非ドラッグ入力のみ。会話・階移動・pointercancel・blur・退室で解除し、保存データに入力状態は持たない。
+
+検証API `PokaDebug.indoorState()` は store / venue の3人の位置、入力・経路・各方向の通行可能マス数と画面ベクトルを返す。`tests/indoor-walk-smoke.mjs` は実Pointer入力で9か所×スマホ2サイズを検証する。

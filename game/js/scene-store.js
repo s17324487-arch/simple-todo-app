@@ -30,14 +30,14 @@ class StoreScene {
     await this.preload();
     Sound.bgm("shop_"+this.shopId); UI.showHud(true,this.name);
     this.bar=U.el("div",{class:"store-bar"});
-    this.hint=U.el("div",{class:"store-hint",text:"ゆかを タップで あるく・てんいんに はなそう"});
+    this.hint=U.el("div",{class:"store-hint",text:"スライド・タップで あるく・てんいんに はなそう"});
     this.talkButton=UI.btn("てんいんと はなす",()=>this.request("talk"),"yellow");
     this.bar.append(this.hint,this.talkButton,UI.btn("おみせを でる",()=>this.request("exit")));
     UI.root.append(this.bar);
     this.homeButton=UI.btn("おうちへ",()=>{if(!Game.inputLocked&&!this.interacting){Save.write();Game.goto("house",{},"circle");}},"store-home small");
     UI.root.append(this.homeButton);
   }
-  exit() { this.closed=true;this.bar?.remove();this.homeButton?.remove();UI.showHud(false); }
+  exit() { this.cancel();this.closed=true;this.bar?.remove();this.homeButton?.remove();UI.showHud(false); }
   resize() {
     this.scale=Math.min((G.W-10)/352,(G.H-206)/512,1.3);
     this.ox=(G.W-352*this.scale)/2; this.oy=114+(G.H-206-512*this.scale)/2;
@@ -94,8 +94,11 @@ class StoreScene {
   }
   leave() { if(this.closed||Game.trans)return;Save.write();Sound.se("door");Game.goto("world",this.back); }
   key(k,down) { if(down&&k==="ok")this.request("talk"); }
+  down(p) { IndoorWalk.down(this,p); }
+  move(p) { IndoorWalk.move(this,p); }
+  cancel() { IndoorWalk.cancel(this); }
   up(p,cancel) {
-    if(cancel||!p.tap||this.interacting)return;
+    if(!IndoorWalk.release(this,p,cancel))return;
     const x=(p.x-this.ox)/this.scale,y=(p.y-this.oy)/this.scale,keeper=this.point(5,1);
     // 店員の絵とカウンターをまとめて大きいタップ領域にする。
     if(x>=144&&x<=240&&y>=keeper.y-80&&y<=223){this.request("talk");return;}
@@ -108,10 +111,10 @@ class StoreScene {
   }
   update(dt) {
     NpcLife.updateStationary(this.keeperActor,dt,!!this.interacting);
-    if(Game.inputLocked||this.interacting)return;
+    if(IndoorWalk.blocked(this)){this.cancel();return;}
     for(const w of this.party)w.update(dt);
     const l=this.party[0];if(l.moving)return;
-    const key=Object.keys(DIRS).find(d=>G.keys[d]);
+    const key=IndoorWalk.direction(this);
     if(key){const [dx,dy]=DIRS[key];this.path=[];this.pending=null;l.dir=key;if(this.walkable(l.tx+dx,l.ty+dy))this.path=[[l.tx+dx,l.ty+dy]];}
     if(this.path.length){
       const [x,y]=this.path.shift();
@@ -137,6 +140,7 @@ class StoreScene {
     ctx.fillStyle="#FFF7D9";ctx.strokeStyle=INK;ctx.lineWidth=1.4;U.rr(ctx,k.x-29,k.y-75+bob,58,21,9);ctx.fill();ctx.stroke();
     ctx.fillStyle=INK;ctx.font="bold 10px sans-serif";ctx.textAlign="center";ctx.fillText("はなす",k.x,k.y-61+bob);
     ctx.restore();
+    IndoorWalk.render(this,ctx);
   }
   shadow(ctx,x,y,r) { ctx.fillStyle="rgba(62,49,32,.15)";ctx.beginPath();ctx.ellipse(x,y,r,r*.23,0,0,Math.PI*2);ctx.fill(); }
   drawProp(ctx,f) {
