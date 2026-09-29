@@ -1,4 +1,4 @@
-// クレーンゲームの 機械 8台（アーム・台・景品の おき方）と 1かいの あそび（CraneRound）。絵と ボタンは crane-scene.js。
+// クレーンゲームの 機械 12台（アーム・台・景品の おき方）と 1かいの あそび（CraneRound）。絵と ボタンは crane-scene.js、景品は arcade-prizes.js。
 // たんい: cm・びょう。x = 左→右・y = 下→上・z = 手前→おく。おとしぐちに 落ちた 景品が「とれた」。
 // 物理は CranePhys（crane-physics.js）。おなじ ばめんからは おなじ けっかに なる（Math.random を つかわない）。
 const CraneMachines = (() => {
@@ -63,6 +63,30 @@ const CraneMachines = (() => {
   // 大きい ぬいぐるみ（おなじ 形を k ばい）
   const scaled = (name, k) => () => { const S = SHAPES[name](); return { ...S, parts: S.parts.map((a) => ({ x: a.x * k, y: a.y * k, z: a.z * k, r: a.r * k, m: a.m })), art: S.art && S.art.map((v) => v * k), size: S.size.map((v) => v * k), ring: S.ring && S.ring.map((v) => v * k) }; };
   SHAPES.wankoBig = scaled("wanko", 1.35);
+
+  // ---- Meeときょれじゃ の 景品（js/arcade-prizes.js の ぬいぐるみ・マスコット・コイン）----
+  // 絵の はんい（viewBox）から art を きめる。xref・refY: 大きい ぬいぐるみの 絵で 形の 原点に あたる ところ・bottom: 足もと・k: cm / 絵の 1
+  const HERO_ART = { wanko: { xref: 105, refY: 114.07, bottom: 207, k: 24.4 / 192 }, gachan: { xref: 100, refY: 122.16, bottom: 207, k: 20.6 / 172 }, goji: { xref: 106, refY: 123.4, bottom: 211, k: 31 / 186 } };
+  const artOf = (it, H, k) => { const [x, y, w, h] = it.crop, u = H.k * k, cy = H.refY + ((it.feet || H.bottom) - H.bottom); return [(x + w / 2 - H.xref) * u, (cy - (y + h / 2)) * u, w * u, h * u]; };
+  // がちゃんの からだ だけ（タグと リングを のぞく）
+  const gachanBody = () => { const S = SHAPES.gachan(); return { ...S, parts: S.parts.slice(0, 9), ring: undefined }; };
+  // 3人の ちいさな ぬいぐるみ（大きい ぬいぐるみの 0.6ばい。表情ごとに 絵が ちがう）
+  for (const who of ["wanko", "gachan", "goji"]) for (let v = 0; v < 4; v++) SHAPES[`chibi_${who}_${v}`] = () => {
+    const S = who === "gachan" ? gachanBody() : SHAPES[who](), k = who === "goji" ? 0.52 : 0.6, it = ArcadePrizes.INDEX[`ike_chibi_${who}_${v}`];
+    return { ...S, parts: S.parts.map((a) => ({ x: a.x * k, y: a.y * k, z: a.z * k, r: a.r * k, m: a.m })), size: S.size.map((q) => q * k), look: `chibi-${who}-${v}`, art: artOf(it, HERO_ART[who], k), prize: it.id };
+  };
+  // ミニマスコット（スウィートランド。まるい かたまり）
+  for (const who of ["wanko", "gachan", "goji"]) SHAPES[`mini_${who}`] = () => {
+    const it = ArcadePrizes.INDEX[`ike_mini_${who}`], [, , w, h] = it.crop, H = 7.2;
+    return { parts: lattice(5.8, 6.2, 4.4, [2, 2, 2]), stiff: 0.9, fric: 0.6, look: `mini-${who}`, art: [0, 0.4, (w / h) * H, H], size: [5.8, 6.2, 4.4], prize: it.id };
+  };
+  // 町の人の ぬいぐるみ。くま（2本アーム）: あたまが 大きい 形・パンダ（トライポッド）: 大きい わんこと おなじ 形・ぺんぎん（リング）: がちゃんと おなじ 形
+  SHAPES.bearBig = () => { const S = SHAPES.goji(), [, , w, h] = ArcadePrizes.INDEX.ike_plush_bear.crop, H = 34; return { ...S, look: "bear-big", art: [0, 1.2, (w / h) * H, H], prize: "ike_plush_bear" }; };
+  SHAPES.pandaBig = () => { const S = SHAPES.wankoBig(), [, , w, h] = ArcadePrizes.INDEX.ike_plush_panda.crop, H = S.art[3] * 1.04; return { ...S, look: "panda-big", art: [0, S.art[1], (w / h) * H, H], prize: "ike_plush_panda" }; };
+  SHAPES.penguinRing = () => { const S = SHAPES.gachan(), [, , w, h] = ArcadePrizes.INDEX.ike_plush_penguin.crop, H = 20.2; return { ...S, look: "penguin", art: [0, -0.6, (w / h) * H, H], prize: "ike_plush_penguin" }; };
+  // コイン メダル（うすい えんばん。おもて・うらは まるい 絵）と コインの たからばこ（クッキーの はこと おなじ 形＋リング）
+  SHAPES.medal = () => ({ parts: lattice(6, 6, 1.8, [3, 3, 1]), stiff: 1, fric: 0.42, look: "medal", slab: [6, 6, 1.8], size: [6, 6, 1.8] });
+  SHAPES.chest = () => ({ ...SHAPES.cookie(), look: "chest" });
 
   // ---- アーム（2本・3本。ツメの 先は ゴム）----
   class ClawRig {
@@ -205,24 +229,36 @@ const CraneMachines = (() => {
     for (const g of ch.guards || []) W.collider({ k: "box", c: g.c, h: g.h, fr: 0.3 });
   };
 
-  // ---- 8台 ----
+  // ---- アーム（3本・2本・リングの フック）----
   const CLAW3 = { yaws: [90, 210, 330], pivot: 3.1, drop: 2.6, segs: [{ len: 10.5, r: 0.75, fr: 0.5 }, { len: 5.2, bend: 45, r: 0.85, fr: 0.9, grip: 1.6 }], rest: -2 * D2R, open: 41 * D2R, release: 62 * D2R, closed: -2 * D2R, wOpen: 1.6, wClose: 1.05, force: 2.2, headR: 4.4, accel: 70, swingDamp: 1.3, cable: 8 };
   const CLAW2 = { yaws: [0, 180], pivot: 4, drop: 3, segs: [{ len: 22, r: 1, fr: 0.5 }, { len: 6.5, bend: 50, r: 1.05, fr: 0.9, grip: 1.6 }], rest: 0, open: 48 * D2R, release: 64 * D2R, closed: 0, wOpen: 1.2, wClose: 0.75, force: 3.2, headR: 5.4, accel: 60, swingDamp: 1.2, cable: 9 };
   // フックづめ: よこむきの フック（7cm）が リングの あなに はいる。ねもとは 外がわ（リングの まえで とまる）
   const HOOK2 = { yaws: [90, 270], pivot: 5, drop: 2.5, segs: [{ len: 10, r: 0.6, fr: 0.5 }, { len: 7, bend: 80, r: 0.5, fr: 0.8, grip: 1.3 }, { len: 2.2, bend: 100, r: 0.45, fr: 0.8 }], rest: -3 * D2R, open: 38 * D2R, release: 60 * D2R, closed: -3 * D2R, wOpen: 1.5, wClose: 1.0, force: 1.4, headR: 3.8, accel: 70, swingDamp: 1.1, cable: 8, hookFree: true };
+  // 12台（番号は PrizeArcade.machines と 館の 什器 machine と おなじ）。id が かわった 台の ふるい セーブ（台の ようす）は つかわない。
+  // legacy: まえの 8台の ときと おなじ 台（1・4・6）。ふるい セーブの 台の ようす・とちゅうの 1かいを そのまま つかう
+  const CHUTE_CLAW3 = { x0: 0, x1: 17, z0: 0, z1: 17, guards: [{ c: [17.4, 3.5, 8.5], h: [0.4, 3.5, 8.5] }, { c: [8.7, 3.5, 17.4], h: [8.7, 3.5, 0.4] }] };
+  const CHUTE_CLAW2 = { x0: 11, x1: 45, z0: 0, z1: 21, guards: [{ c: [10.6, 2, 10.5], h: [0.4, 2, 10.5] }, { c: [45.4, 2, 10.5], h: [0.4, 2, 10.5] }, { c: [28, 1.4, 21.4], h: [17.4, 1.4, 0.4] }] };
+  const CHUTE_RING = { x0: 0, x1: 17, z0: 0, z1: 16, guards: [{ c: [17.4, 3, 8], h: [0.4, 3, 8] }, { c: [8.7, 3, 16.4], h: [8.7, 3, 0.4] }] };
+  const claw3 = (id, theme, who) => ({ id, type: "claw", theme, rig: CLAW3, box: { w: 60, d: 48, h: 64 }, chute: CHUTE_CLAW3, home: { x: 8.5, z: 8.5 }, top: 50, minY: 14, moveTime: 30,
+    fill: { mix: [0, 1, 2, 3].map((v) => `chibi_${who}_${v}`), n: 12, keep: 9, area: [21, 57, 4, 45] }, got: "win" });
+  const claw2 = (id, theme, shape, extra = {}) => ({ id, type: "claw", theme, rig: CLAW2, box: { w: 56, d: 50, h: 76 }, chute: CHUTE_CLAW2, home: { x: 28, z: 10 }, top: 60, minY: 16, moveTime: 30,
+    fill: { shape, n: 1, keep: 1, upright: true, at: [[31, 34, 0.35]] }, got: "win", ...extra });
+  const ring = (id, theme, fill, minY, extra = {}) => ({ id, type: "ring", theme, rig: HOOK2, box: { w: 60, d: 48, h: 62 }, chute: CHUTE_RING, home: { x: 8.5, z: 8 }, top: 50, minY, moveTime: 30, fill, got: "win", ...extra });
+  const sweet = (id, theme, pieces) => ({ id, type: "sweet", theme, box: { w: 64, d: 62, h: 66 }, sweet: pieces, got: "piece", sub: 3 });
+  const tripod = (id, theme, prize, extra = {}) => ({ id, type: "tripod", theme, box: { w: 60, d: 56, h: 52 }, prize, got: "win", ...extra });
   const DEFS = [
-    { type: "claw", theme: "star", rig: CLAW3, box: { w: 60, d: 48, h: 64 }, chute: { x0: 0, x1: 17, z0: 0, z1: 17, guards: [{ c: [17.4, 3.5, 8.5], h: [0.4, 3.5, 8.5] }, { c: [8.7, 3.5, 17.4], h: [8.7, 3.5, 0.4] }] }, home: { x: 8.5, z: 8.5 }, top: 50, minY: 14, moveTime: 30,
-      fill: { shape: "star", n: 12, keep: 9, area: [21, 57, 4, 45] }, got: "win" },
-    { type: "claw", theme: "goji", rig: CLAW2, box: { w: 56, d: 50, h: 76 }, chute: { x0: 11, x1: 45, z0: 0, z1: 21, guards: [{ c: [10.6, 2, 10.5], h: [0.4, 2, 10.5] }, { c: [45.4, 2, 10.5], h: [0.4, 2, 10.5] }, { c: [28, 1.4, 21.4], h: [17.4, 1.4, 0.4] }] }, home: { x: 28, z: 10 }, top: 60, minY: 16, moveTime: 30,
-      fill: { shape: "goji", n: 1, keep: 1, upright: true, at: [[31, 34, 0.35]] }, got: "win" },
-    { type: "sweet", theme: "candy", box: { w: 64, d: 62, h: 66 }, sweet: "stick", got: "piece", sub: 3 },
-    { type: "sweet", theme: "pie", box: { w: 64, d: 62, h: 66 }, sweet: "pie", got: "piece", sub: 3 },
-    { type: "tripod", theme: "circus", box: { w: 60, d: 56, h: 52 }, prize: "carousel", got: "win" },
-    { type: "tripod", theme: "wanko", box: { w: 60, d: 56, h: 52 }, prize: "wankoBig", got: "win" },
-    { type: "ring", theme: "chick", rig: HOOK2, box: { w: 60, d: 48, h: 62 }, chute: { x0: 0, x1: 17, z0: 0, z1: 16, guards: [{ c: [17.4, 3, 8], h: [0.4, 3, 8] }, { c: [8.7, 3, 16.4], h: [8.7, 3, 0.4] }] }, home: { x: 8.5, z: 8 }, top: 50, minY: 39, moveTime: 30,
-      fill: { shape: "gachan", n: 3, keep: 3, upright: true, gap: 15, at: [[30, 22, 0.25], [45, 29, -0.3], [29, 38, 0.1], [44, 40, 0.2]] }, got: "win" },
-    { type: "ring", theme: "cookie", rig: HOOK2, box: { w: 60, d: 48, h: 62 }, chute: { x0: 0, x1: 17, z0: 0, z1: 16, guards: [{ c: [17.4, 3, 8], h: [0.4, 3, 8] }, { c: [8.7, 3, 16.4], h: [8.7, 3, 0.4] }] }, home: { x: 8.5, z: 8 }, top: 50, minY: 26.7, moveTime: 30,
-      fill: { shape: "cookie", n: 4, keep: 4, upright: true, gap: 13, at: [[30, 20, 0.1], [48, 22, -0.15], [30, 35, -0.1], [47, 37, 0.12]] }, got: "win" },
+    claw3("chibi-wanko", "paw", "wanko"),
+    claw2("goji-big", "goji", "goji", { legacy: true }),
+    sweet("mini", "candy", ["mini_wanko", "mini_gachan", "mini_goji"]),
+    sweet("medal", "gold", "medal"),
+    tripod("wanko-big", "wanko", "wankoBig", { legacy: true }),
+    tripod("panda-big", "bamboo", "pandaBig"),
+    ring("gachan-ring", "chick", { shape: "gachan", n: 3, keep: 3, upright: true, gap: 15, at: [[30, 22, 0.25], [45, 29, -0.3], [29, 38, 0.1], [44, 40, 0.2]] }, 39, { legacy: true }),
+    ring("coin-chest", "treasure", { shape: "chest", n: 4, keep: 4, upright: true, gap: 13, at: [[30, 20, 0.1], [48, 22, -0.15], [30, 35, -0.1], [47, 37, 0.12]] }, 26.7),
+    claw3("chibi-gachan", "sunny", "gachan"),
+    claw3("chibi-goji", "jungle", "goji"),
+    claw2("bear-big", "forest", "bearBig"),
+    ring("penguin-ring", "snow", { shape: "penguinRing", n: 3, keep: 3, upright: true, gap: 15, at: [[30, 22, 0.25], [45, 29, -0.3], [29, 38, 0.1], [44, 40, 0.2]] }, 39),
   ];
 
   // ---- 1かいの あそび ----
@@ -230,9 +266,13 @@ const CraneMachines = (() => {
     // i: 台の 番号・board: セーブされた 台の ようす（なければ はじめから）・luck: アームが つよいか
     constructor(i, board, o = {}) {
       // たねは 台と その ようすで きまる（おなじ 台・おなじ そうさ → おなじ けっか。テストでも くりかえせる）
-      this.i = i; this.def = DEFS[i]; this.type = this.def.type; this.seed = o.seed != null ? o.seed : o.cp && o.cp.seed != null ? o.cp.seed : 1234 + i * 77 + ((board && board.n) || 0) * 7919;
+      this.i = i; this.def = DEFS[i]; this.type = this.def.type;
+      // ほかの 台の ようす（台の いれかえの まえの セーブ）は つかわない。legacy の 台は id の ない ふるい ようすも つかう
+      const fits = (b) => b && (b.id ? b.id === this.def.id : !!this.def.legacy);
+      if (!fits(board)) board = null; if (o.cp && !fits(o.cp.board)) o = { ...o, cp: null };
+      this.seed = o.seed != null ? o.seed : o.cp && o.cp.seed != null ? o.cp.seed : 1234 + i * 77 + ((board && board.n) || 0) * 7919;
       this.rand = rng(this.seed); this.strong = o.strong != null ? !!o.strong : true; this.t = 0; this.pt = 0; this.phase = "move"; this.done = false;
-      this.got = []; this.events = []; this.acc = 0; this.frames = 0; this.presses = 0; this.msg = "";
+      this.got = []; this.gotShapes = []; this.events = []; this.acc = 0; this.frames = 0; this.presses = 0; this.msg = "";
       this.build(board);
       if (this.type === "claw" || this.type === "ring") { this.time = this.def.moveTime; this.rig.power = this.strong || this.type === "ring" ? 1 : 0.34; }
       if (this.type === "tripod") { this.phase = "spin"; this.stops = 3; }
@@ -278,6 +318,8 @@ const CraneMachines = (() => {
       // q で 回した ぶん rest は もとに もどって いる（world.body が 回転を とりのぞく）
       this.bodies.push(b); return b;
     }
+    // まぜて おく 景品（ぬいぐるみの 表情・ミニマスコット）から 1つ（きまった たねの 乱数）
+    pick(list) { return Array.isArray(list) ? list[Math.floor(this.rand() * list.length) % list.length] : list; }
     randQ(upright) {
       const r = this.rand;
       if (upright) return CP.qaxis(0, 1, 0, (r() - 0.5) * 0.9);
@@ -290,8 +332,8 @@ const CraneMachines = (() => {
       else {
         // まわる 台の 上に 20こ・おしだし台に 12こ
         const o = this.rig.o, st = this.stage;
-        for (let k = 0; k < 20; k++) { const a = (k / 20) * Math.PI * 2 * 3 + r() * 0.4, rr = 7.5 + ((k * 7) % 5) * 1.2; this.add(d.sweet, [o.cx + Math.cos(a) * rr, o.top + 2 + Math.floor(k / 7) * 3, o.cz + Math.sin(a) * rr], CP.qaxis(0, 1, 0, -a + (r() - 0.5) * 0.5)); }
-        for (let k = 0; k < 12; k++) this.add(d.sweet, [st.cx - st.w / 2 + 7 + ((k % 4) + 0.3 + r() * 0.4) * (st.w - 14) / 4, st.top + 2 + (k % 2) * 2.5, st.z0 + 4 + Math.floor(k / 4) * 3.2 + r() * 1.2], CP.qaxis(0, 1, 0, (r() - 0.5) * 0.5));
+        for (let k = 0; k < 20; k++) { const a = (k / 20) * Math.PI * 2 * 3 + r() * 0.4, rr = 7.5 + ((k * 7) % 5) * 1.2; this.add(this.pick(d.sweet), [o.cx + Math.cos(a) * rr, o.top + 2 + Math.floor(k / 7) * 3, o.cz + Math.sin(a) * rr], CP.qaxis(0, 1, 0, -a + (r() - 0.5) * 0.5)); }
+        for (let k = 0; k < 12; k++) this.add(this.pick(d.sweet), [st.cx - st.w / 2 + 7 + ((k % 4) + 0.3 + r() * 0.4) * (st.w - 14) / 4, st.top + 2 + (k % 2) * 2.5, st.z0 + 4 + Math.floor(k / 4) * 3.2 + r() * 1.2], CP.qaxis(0, 1, 0, (r() - 0.5) * 0.5));
       }
       this.settle(3);
     }
@@ -300,17 +342,17 @@ const CraneMachines = (() => {
       const d = this.def, f = d.fill, r = this.rand, alive = this.bodies.filter((b) => b.alive).length;
       if (!first && alive >= f.keep) return 0;
       const want = first ? f.n : f.n - alive;
-      const low = f.upright ? -Math.min(...SHAPES[f.shape]().parts.map((a) => a.y - a.r)) + 0.25 : 0; // たてて おく ものは ゆかに そっと おく
+      const shape0 = f.shape || f.mix[0], low = f.upright ? -Math.min(...SHAPES[shape0]().parts.map((a) => a.y - a.r)) + 0.25 : 0; // たてて おく ものは ゆかに そっと おく
       for (let k = 0; k < want; k++) {
         if (f.at) {
           // きまった ばしょ（あいて いる ところだけ）
           const free = f.at.filter(([x, z]) => this.list().every((b) => { const c = this.W.centroid(b); return Math.hypot(c[0] - x, c[2] - z) > (f.gap || 14); }));
           const [x, z, yaw] = first ? f.at[k % f.at.length] : free.length ? free[Math.floor(r() * free.length)] : f.at[k % f.at.length];
-          this.add(f.shape, [x, f.upright ? low : 20, z], CP.qaxis(0, 1, 0, yaw)); if (!first) this.settle(0.6); continue;
+          this.add(f.shape || this.pick(f.mix), [x, f.upright ? low : 20, z], CP.qaxis(0, 1, 0, yaw)); if (!first) this.settle(0.6); continue;
         }
         // 上から 1こずつ おとして 山に する（かさなって おくと はじける）
         const [x0, x1, z0, z1] = f.area, x = mix(x0, x1, r()), z = mix(z0, z1, first ? r() : 0.55 + r() * 0.45);
-        this.add(f.shape, [x, 30 + r() * 4, z], this.randQ(false)); this.settle(0.5);
+        this.add(f.shape || this.pick(f.mix), [x, 30 + r() * 4, z], this.randQ(false)); this.settle(0.5);
       }
       return want;
     }
@@ -318,12 +360,12 @@ const CraneMachines = (() => {
     refillTable() {
       const o = this.rig.o, r = this.rand, on = this.list().filter((b) => { const c = this.W.centroid(b); return c[1] < 14 && Math.hypot(c[0] - o.cx, c[2] - o.cz) < o.rad + 1; }).length;
       if (on >= 14) return 0;
-      for (let k = 0; k < 20 - on; k++) { const a = r() * Math.PI * 2, rr = 7.5 + r() * (o.rad - 10); this.add(this.def.sweet, [o.cx + Math.cos(a) * rr, o.top + 6 + (k % 3) * 3, o.cz + Math.sin(a) * rr], CP.qaxis(0, 1, 0, -a + (r() - 0.5) * 0.5)); }
+      for (let k = 0; k < 20 - on; k++) { const a = r() * Math.PI * 2, rr = 7.5 + r() * (o.rad - 10); this.add(this.pick(this.def.sweet), [o.cx + Math.cos(a) * rr, o.top + 6 + (k % 3) * 3, o.cz + Math.sin(a) * rr], CP.qaxis(0, 1, 0, -a + (r() - 0.5) * 0.5)); }
       this.settle(2.5); this.refilled = 20 - on; return this.refilled;
     }
     placeTripodPrize() {
       const o = this.rig.o, S = SHAPES[this.def.prize](), hy = S.size[1] / 2;
-      this.add(this.def.prize, [o.cx, o.y + o.armR + hy + (this.def.prize === "wankoBig" ? 2 : 0.2), o.cz], CP.qaxis(0, 1, 0, 0.2));
+      this.add(this.def.prize, [o.cx, o.y + o.armR + hy + (this.def.prize === "wankoBig" || this.def.prize === "pandaBig" ? 2 : 0.2), o.cz], CP.qaxis(0, 1, 0, 0.2));
     }
     // しずまるまで すすめる（はじめの ならべ・ほじゅうの あと）
     settle(sec) { for (let i = 0; i < sec * 60; i++) { this.W.step(DT); if (this.W.B.every((b) => !b.alive || b.sleep)) break; } this.W.events.length = 0; this.bodies = this.bodies.filter((b) => b.alive); }
@@ -342,7 +384,7 @@ const CraneMachines = (() => {
     // セーブ用（まん中と 向きだけ。0.1cm・0.001）
     board() {
       const b = this.bodies.filter((b) => b.alive).map((b) => { const c = this.W.centroid(b); return [b.data.sid, b.data.shape, ...c.map((v) => Math.round(v * 10) / 10), ...b.q.map((v) => Math.round(v * 1000) / 1000)]; });
-      return { v: 1, n: this.sid, b, s: this.rig.save() };
+      return { v: 1, id: this.def.id, n: this.sid, b, s: this.rig.save() };
     }
     // ---- そうさ ----
     // dx・dz: -1〜1（よこ・おく）
@@ -377,7 +419,7 @@ const CraneMachines = (() => {
     }
     // つづきから あそべる ように（セーブ用）。board は 台の ようす
     snap() {
-      const R = this.rig, o = { v: 1, type: this.type, phase: this.phase, got: this.got.slice(), seed: this.seed, strong: this.strong, board: this.board() };
+      const R = this.rig, o = { v: 1, type: this.type, phase: this.phase, got: this.got.slice(), gs: this.gotShapes.slice(), seed: this.seed, strong: this.strong, board: this.board() };
       if (this.type === "claw" || this.type === "ring") Object.assign(o, { time: +this.time.toFixed(2), x: +R.x.toFixed(2), z: +R.z.toFixed(2), drop: this.phase !== "move" });
       if (this.type === "tripod") o.stops = this.stops;
       if (this.type === "sweet") o.scoops = this.scoops;
@@ -385,7 +427,7 @@ const CraneMachines = (() => {
     }
     resume(cp) {
       if (!cp) return;
-      this.got = Array.isArray(cp.got) ? cp.got.slice() : [];
+      this.got = Array.isArray(cp.got) ? cp.got.slice() : []; this.gotShapes = Array.isArray(cp.gs) ? cp.gs.slice(0, this.got.length) : [];
       if (this.type === "claw" || this.type === "ring") {
         this.time = clamp(+cp.time || 0, 0, this.def.moveTime); const R = this.rig; R.load({ x: +cp.x || R.x, z: +cp.z || R.z });
         if (cp.drop) { this.go("stop"); this.events.push({ e: "replay" }); } // おりる とちゅうだった → もういちど おろす
@@ -411,7 +453,7 @@ const CraneMachines = (() => {
     // おとしぐちに おちた（とれた）
     collect(b) {
       const d = this.def;
-      this.got.push(b.data.sid); this.events.push({ e: "got", sid: b.data.sid, look: b.data.look }); this.bodies = this.bodies.filter((x) => x !== b);
+      this.got.push(b.data.sid); this.gotShapes.push(b.data.shape); this.events.push({ e: "got", sid: b.data.sid, look: b.data.look, shape: b.data.shape }); this.bodies = this.bodies.filter((x) => x !== b);
       if (d.got === "win" && this.type !== "tripod" && this.phase !== "done") this.won = true;
       if (this.type === "tripod") this.won = true;
     }
@@ -420,7 +462,7 @@ const CraneMachines = (() => {
       const o = this.rig.o, r = this.rand;
       for (const b of this.list()) {
         if (!b.sleep) continue; const c = this.W.centroid(b);
-        if (c[1] < 5 && Math.hypot(c[0] - o.cx, c[2] - o.cz) > o.rad + 0.5) { this.W.remove(b); this.bodies = this.bodies.filter((x) => x !== b); const a = r() * Math.PI * 2, rr = 7 + r() * 6; this.add(this.def.sweet, [o.cx + Math.cos(a) * rr, o.top + 9, o.cz + Math.sin(a) * rr], CP.qaxis(0, 1, 0, r() * 3), { sid: b.data.sid }); }
+        if (c[1] < 5 && Math.hypot(c[0] - o.cx, c[2] - o.cz) > o.rad + 0.5) { this.W.remove(b); this.bodies = this.bodies.filter((x) => x !== b); const a = r() * Math.PI * 2, rr = 7 + r() * 6; this.add(b.data.shape, [o.cx + Math.cos(a) * rr, o.top + 9, o.cz + Math.sin(a) * rr], CP.qaxis(0, 1, 0, r() * 3), { sid: b.data.sid }); }
       }
     }
     clawTick() {
