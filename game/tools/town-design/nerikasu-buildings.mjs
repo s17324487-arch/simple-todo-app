@@ -151,6 +151,193 @@ function korokoro(w,h,d,n){
   s+=door(d,h-2,n)+drain(w,h)+lamp(d-24,68,n)+planter(12,h-12,Math.min(26,bw-4));
   return s;
 }
+// ---- 2026-09-29 配置イメージの 新しい 建物（コンビニ 2つ・ファミレス・ガソリンスタンド・アパート・郵便局・お届けセンター・サロン・中華料理屋・家 3つ） ----
+// ガラスの 店さき: たなの しなもの（夜は 店内が あかるい）
+function glassFront(x0,x1,y0,y1,n,goods=['#E27A6E','#F2C45E','#8FC39A','#7FA8D8','#F3F0E4']){
+  let s=R(x0,y0,x1-x0,y1-y0,n?'#FFF1CE':'#D5E8EF',{sw:.9,stroke:ink});
+  const rows=Math.max(2,Math.floor((y1-y0-6)/13));
+  for(let r=0;r<rows;r++){const y=y0+6+r*((y1-y0-8)/rows);s+=L(x0+2,y+9,x1-2,y+9,n?'#E0C58E':'#A9C3C9',.8);for(let x=x0+4,i=0;x<x1-6;x+=7,i++)s+=Rn(x,y+(i%3),5,8-(i%3),goods[(i+r)%goods.length],{op:n?1:.85});}
+  s+=Pth(`M${x0+3},${y1-3} L${x0+(x1-x0)*.42},${y0+3} h${(x1-x0)*.14} L${x0+(x1-x0)*.17},${y1-3}Z`,'#FFFFFF',{sw:0,op:n?.12:.4});
+  for(let x=x0+(x1-x0)/3;x<x1-4;x+=(x1-x0)/3)s+=L(x,y0,x,y1,ink,.9);
+  return s;
+}
+// ガラスの 自動ドア
+function autoDoor(x,bottom,n,w=40){return R(x-w/2-4,bottom-60,w+8,60,'#B7C2C7',{sw:.9})+R(x-w/2,bottom-56,w/2,52,n?'#FFF1CE':'#CFE3EA',{sw:.8})+R(x,bottom-56,w/2,52,n?'#FFF1CE':'#CFE3EA',{sw:.8})+L(x-w/4,bottom-40,x-w/4,bottom-26,'#8F9BA1',1.6)+L(x+w/4,bottom-40,x+w/4,bottom-26,'#8F9BA1',1.6)+Pth(`M${x-w/2+3},${bottom-8} l${w*.2},-40`,'none',{sw:2,stroke:'#FFFFFF',op:.5})+R(x-w/2-8,bottom-2,w+16,3,'#CCC2AA',{sw:.6});}
+function flatTop(w,c,edge){return R(-2,12,w+4,10,edge,{sw:1.1})+Rn(0,22,w,4,'#332B20',{op:.15})+R(0,20,w,8,c,{sw:.9});}
+function conbini(kind,w,h,d,n){
+  const lawson=kind==='lawson';let s=wall(w,h,'#F6F7F3')+flatTop(w,'#E9ECE8','#C9CFCC');
+  s+=R(w-78,-2,46,15,'#C7CDD0',{sw:.8})+C(w-66,5,5,'#9CA6AB',{sw:.6})+C(w-44,5,5,'#9CA6AB',{sw:.6});
+  if(lawson){
+    const blue='#3F7FC4';
+    s+=R(-3,24,w+6,26,blue,{sw:1.2})+Rn(-3,44,w+6,3,'#FFFFFF')+Rn(-3,28,w+6,2,'#8FC0EA');
+    // ミルクの びんの マーク
+    const bx=w/2-66;s+=Pth(`M${bx},${47} v-13 q0,-4 3,-6 v-5 h8 v5 q3,2 3,6 v13Z`,'#FFFFFF',{sw:.9})+Rn(bx+3,26,8,3,'#8FC0EA')+C(bx+7,40,2.2,blue,{sw:0});
+    s+=T(w/2+10,42,'ローリソン',{size:16,fill:'#FFFFFF'});
+  }else{
+    for(const [y,c]of [[24,'#F08A24'],[31,'#2F9E5A'],[38,'#D83C3C']])s+=R(-3,y,w+6,7,c,{sw:.7});
+    s+=R(w/2-50,22,100,26,'#FFFFFF',{sw:1,rx:3})+T(w/2,40,'せぶんぶん',{size:15,fill:'#2F9E5A',stroke:'#FFFFFF',sw:.5})+C(w/2-40,35,6,'#F08A24',{sw:.6})+Pth(`M${w/2-43},35 l3,3 5,-6`,'none',{sw:1.3,stroke:'#FFFFFF'});
+  }
+  s+=R(-3,50,w+6,6,'#E3E8EA',{sw:.8});
+  const gy=60,gb=h-24;
+  s+=glassFront(12,d-26,gy,gb,n,lawson?['#E27A6E','#F2C45E','#7FA8D8','#F7F2E6','#9AC7A2']:['#F08A24','#2F9E5A','#D83C3C','#F4E3B8','#8DB6D6']);
+  s+=glassFront(d+26,w-14,gy,gb,n,lawson?['#7FA8D8','#E9B6C8','#F2C45E','#FFFFFF']:['#F4C66E','#E27A6E','#2F9E5A','#F8F1DF']);
+  s+=autoDoor(d,h-2,n,40);
+  // ポスター（あたらしい しなもの）
+  s+=R(20,gy+4,22,28,'#FFFFFF',{sw:.6})+C(31,gy+15,6,lawson?'#F2C45E':'#F08A24',{sw:.5})+Rn(24,gy+24,14,3,lawson?'#3F7FC4':'#D83C3C');
+  s+=R(w-44,gy+4,24,16,lawson?'#3F7FC4':'#2F9E5A',{sw:.6})+T(w-32,gy+15,'24',{size:8,fill:'#FFFFFF'});
+  return s;
+}
+function bikkupo(w,h,d,n){
+  const red='#B5433A',cream2='#F6E8D2';let s=wall(w,h,cream2);
+  s+=roof(0,-14,w,48,red,true);
+  // やねの うえの かんばん（びっくぽ と マスコットの ぽっくん）
+  s+=R(w/2-70,-44,140,30,'#F7D35C',{sw:1.2,rx:6})+R(w/2-66,-40,132,22,'#D9453B',{sw:.8,rx:4})+T(w/2+12,-23,'びっくぽ',{size:15,fill:'#FFFFFF'});
+  const mx=w/2-48,my=-30;s+=C(mx,my,11,'#E9A969',{sw:1})+Pth(`M${mx-10},${my-6} q0,-12 10,-12 q10,0 10,12Z`,'#FFFFFF',{sw:.8})+C(mx-4,my,1.6,ink,{sw:0})+C(mx+4,my,1.6,ink,{sw:0})+Pth(`M${mx-4},${my+4} q4,4 8,0`,'none',{sw:.9})+E(mx-7,my+3,2.2,1.2,'#F29FAF',{sw:0})+E(mx+7,my+3,2.2,1.2,'#F29FAF',{sw:0});
+  s+=L(w/2-54,-14,w/2-54,-4,ink,1.6)+L(w/2+54,-14,w/2+54,-4,ink,1.6);
+  // おおきな まど: 赤い ボックスせきと テーブルの あかり
+  const wy=58,wb=h-30;
+  for(const [x0,x1]of [[14,d-40],[d+40,w-16]]){
+    s+=R(x0,wy,x1-x0,wb-wy,n?'#FBE3B0':'#CFE3E6',{sw:1});
+    for(let x=x0+6;x<x1-20;x+=30){s+=Rn(x,wb-22,24,18,'#C8483F',{op:.95})+Rn(x+2,wb-28,20,6,'#E2665B')+Rn(x+6,wb-30,12,3,'#F4E6CC')+C(x+12,wy+10,3,n?'#FFE6A0':'#F5E0A8',{sw:.4})+L(x+12,wy,x+12,wy+7,ink,.6);}
+    for(let x=x0+(x1-x0)/3;x<x1-4;x+=(x1-x0)/3)s+=L(x,wy,x,wb,wood,1.6);
+    s+=Pth(`M${x0+3},${wb-3} L${x0+(x1-x0)*.4},${wy+3} h${(x1-x0)*.12} L${x0+(x1-x0)*.16},${wb-3}Z`,'#FFFFFF',{sw:0,op:n?.12:.35})+R(x0-3,wb,x1-x0+6,5,wood,{sw:.7});
+  }
+  // 入口の ひさし（小さな 切妻）と ガラスの ドア・メニュー
+  s+=Pth(`M${d-38},58 L${d},30 L${d+38},58Z`,red,{sw:1.1})+R(d-34,58,68,5,shade(red,-.3),{sw:.7})+R(d-30,63,60,h-65,cream,{sw:.9});
+  s+=autoDoor(d,h-2,n,34)+R(d-22,70,44,10,'#FFFFFF',{sw:.6,rx:2})+T(d,78,'ようこそ',{size:6,fill:red});
+  s+=planter(16,h-12,34)+planter(w-50,h-12,34)+lamp(d-44,66,n)+lamp(d+44,66,n);
+  return s;
+}
+function gasStation(w,h,d,n){
+  const green='#2F8F5B',yellow='#F2C94C';
+  // キャノピーの したの コンクリート（あぶらの しみ）と 給油機の しま
+  let s=Pth(`M${w-6},30 l12,8 V${h+6} H12 L2,${h-2}Z`,'#312619',{sw:0,op:.12})+R(2,30,194,h-31,'#E6E3DA',{sw:1});
+  for(const [x,y]of [[40,h-18],[118,h-26],[158,h-14]])s+=E(x,y,9,3,'#CFC9BA',{sw:0,op:.8});
+  for(const x of [46,126]){s+=R(x-8,h-44,42,14,'#C9C3B4',{sw:.8})+Rn(x-6,h-32,38,3,yellow);
+    s+=R(x,h-96,26,52,'#F4F2EA',{sw:1})+R(x+3,h-91,20,12,n?'#BFE7C9':'#9FCFB0',{sw:.6})+T(x+13,h-83,'160',{size:6,fill:'#2E3B36'})+R(x+3,h-74,9,16,yellow,{sw:.5})+R(x+14,h-74,9,16,'#D9534F',{sw:.5})+Pth(`M${x+26},${h-80} q12,4 8,26`,'none',{sw:1.8,stroke:ink})+R(x+30,h-58,7,9,'#2E3B36',{sw:.5});}
+  // きゅうゆ ちゅうの くるま（ひだりの 給油機）
+  const cx=4,cy=h-30;s+=R(cx,cy-24,38,22,'#D8433C',{sw:1,rx:6})+R(cx+6,cy-34,26,12,'#D8433C',{sw:1,rx:4})+R(cx+9,cy-31,20,8,n?'#FFE6A6':'#CFE6EF',{sw:.6,rx:2})+C(cx+9,cy-2,5,'#3A3F44',{sw:.8})+C(cx+30,cy-2,5,'#3A3F44',{sw:.8})+Rn(cx+34,cy-18,4,4,'#FFF3C4');
+  // おおきな キャノピー（屋根）と 柱・かげ
+  s+=R(-2,-14,202,34,'#F7F7F2',{sw:1.3})+Rn(-2,4,202,9,green)+Rn(-2,13,202,3,yellow)+T(99,0,'ネリカス オイル',{size:12,fill:green})+Rn(0,20,198,8,'#332B20',{op:.14});
+  for(const x of [14,100,186])s+=R(x-4,20,8,h-22,'#D8D6CD',{sw:.9});
+  if(n){s+=Rn(4,22,190,6,'#FFF5CC',{op:.85});for(const x of [46,126])s+=C(x+13,h-60,28,'#FFF5CC',{sw:0,op:.22});}
+  // ねだんの かんばん（いちばん ひだりの 柱）
+  s+=R(-6,26,32,30,'#2E3B36',{sw:.8})+T(10,36,'レギュラー',{size:4.2,fill:'#FFFFFF'})+T(10,50,'160',{size:10,fill:n?'#FFD66B':yellow});
+  // じむしょ（右）: ガラスの 店と 入口・せんしゃの おしらせ
+  const ox=196;s+=R(ox,18,w-ox-6,h-18,'#F4F1E8',{sw:1.1})+R(ox-2,12,w-ox-2,10,green,{sw:.9})+Rn(ox,22,w-ox-6,3,yellow);
+  s+=glassFront(ox+6,d-20,40,h-24,n,['#F2C94C','#2F8F5B','#D9534F','#F4EFE0'])+autoDoor(d,h-2,n,30)+R(d+20,40,w-d-32,30,'#FFFFFF',{sw:.6})+T(d+20+(w-d-32)/2,52,'せんしゃ',{size:6,fill:green})+Pth(`M${d+28},62 q6,-6 12,0 q6,-6 12,0`,'none',{sw:1.2,stroke:'#7FB6D6'});
+  return s;
+}
+function apartment(w,h,d,n){
+  let s=wall(w,h,'#EDE3CF');
+  s+=roof(0,-10,w,40,'#8E7C69');
+  const mid=Math.round(28+(h-28)*.47);
+  // 2かいの ろうか・てすり・部屋の ドアと まど
+  s+=R(4,mid-6,w-10,6,'#B7AD9A',{sw:.8});
+  for(let i=0;i<3;i++){const x=16+i*72;s+=R(x,44,26,mid-54,'#9AA9AD',{sw:.9})+C(x+21,44+(mid-54)/2,1.6,'#E3D9C2',{sw:0})+pane(x+34,48,26,26,n)+Rn(x+34,48,26,4,'#A99C83');}
+  for(let x=10;x<w-10;x+=8)s+=L(x,mid-22,x,mid-6,'#6E6A63',1.1);s+=L(8,mid-22,w-10,mid-22,'#6E6A63',1.6);
+  // せんたくもの と うえきばち
+  for(const [x,c]of [[70,'#E8A7B5'],[82,'#9FC7E0'],[154,'#F2D27E'],[166,'#FFFFFF']])s+=Pth(`M${x},${mid-24} l-5,4 v10 h10 v-10Z`,c,{sw:.6});
+  s+=C(222,mid-26,5,'#87A269',{sw:.6})+R(217,mid-24,10,6,'#C59A76',{sw:.5});
+  // 1かい: 部屋の ドア 3つ（101・102・103）・まど・ポスト
+  for(let i=0;i<3;i++){const x=16+i*72,dx=i===1?d-13:x;if(i!==1){s+=R(dx,mid+8,26,h-mid-12,'#9AA9AD',{sw:.9})+C(dx+21,mid+8+(h-mid-12)/2,1.6,'#E3D9C2',{sw:0});}s+=pane(x+34,mid+10,26,26,n)+R(x+32,mid+36,30,4,wood,{sw:.5})+T(x+13,mid+6,'10'+(i+1),{size:5,fill:ink});}
+  s+=door(d,h-2,n,26);
+  s+=R(w/2-60,mid+2,30,12,'#C2B59B',{sw:.6});for(let i=0;i<4;i++)s+=Rn(w/2-58+i*7,mid+4,5,8,'#E6DCC6');
+  // そとの てつの かいだん（右）
+  s+=Pth(`M${w-40},${h-2} L${w-10},${mid}`,'none',{sw:3,stroke:'#6E6A63'});for(let i=1;i<7;i++){const t=i/7;s+=L(w-40+30*t-6,h-2-(h-2-mid)*t,w-40+30*t+6,h-2-(h-2-mid)*t,'#6E6A63',1.4);}
+  s+=R(w/2-44,18,88,16,'#FFF6E0',{sw:.8,rx:2})+T(w/2,29,'ひだまり アパート',{size:7,fill:ink});
+  return s;
+}
+function postOffice(w,h,d,n){
+  const red='#E0553A';let s=wall(w,h,'#F7F4EE')+flatTop(w,'#ECE7DE','#CFC8BA');
+  s+=R(-3,24,w+6,26,red,{sw:1.2})+C(30,37,10,'#FFFFFF',{sw:.8})+Pth('M24,31 h12 M24,35 h12 M30,35 v10','none',{sw:2,stroke:red})+T(w/2+14,42,'ゆうびんきょく',{size:12,fill:'#FFFFFF'});
+  s+=R(-3,50,w+6,6,'#EFE3DC',{sw:.8});
+  s+=glassFront(12,d-24,60,h-24,n,['#F4E3C4','#E0553A','#FFFFFF','#9FC3D9']);
+  s+=R(d+24,60,w-d-38,h-84,'#DCE6E3',{sw:.9})+R(d+30,66,w-d-50,22,'#4F7FA6',{sw:.7})+T(d+30+(w-d-50)/2,81,'ATM',{size:9,fill:'#FFFFFF'})+R(d+34,92,w-d-58,10,n?'#FFF1CE':'#BFD6DF',{sw:.6});
+  s+=autoDoor(d,h-2,n,36)+R(18,64,20,24,'#FFFFFF',{sw:.6})+Rn(21,68,14,10,'#E8C06A')+Rn(21,80,14,3,red);
+  return s;
+}
+function deliveryCenter(w,h,d,n){
+  const blue='#5E8FA8',yellow='#F2C14E';
+  let s=Pth(`M${w-6},27 l13,9 V${h+7} H13 L3,${h-3}Z`,'#312619',{sw:0,op:.14})+R(4,22,w-10,h-23,'#C9D6DC',{sw:1.2});
+  for(let x=10;x<w-10;x+=6)s+=L(x,24,x,h-4,'#B2C2CA',.7);
+  s+=Pth(`M-2,24 Q${w/2},-18 ${w+2},24Z`,'#A9BCC6',{sw:1.2});for(let i=1;i<10;i++)s+=L(i*w/10,24-Math.sin(i/10*Math.PI)*36+4,i*w/10,24,'#93A8B3',.7);
+  s+=R(w/2-78,26,156,22,blue,{sw:1,rx:3})+T(w/2+10,41,'おとどけ センター',{size:11,fill:'#FFFFFF'});
+  const lx=w/2-66,ly=37;s+=R(lx-8,ly-7,14,12,yellow,{sw:.7})+L(lx-8,ly-1,lx+6,ly-1,ink,.6)+Pth(`M${lx+6},${ly-3} q8,-6 14,-2 q-6,1 -8,5Z`,'#FFFFFF',{sw:.6});
+  // シャッター（ひだりは あいて にもつが みえる・みぎは しまって いる）
+  for(const [x0,open]of [[14,true],[d+30,false]]){const sw2=d-44-14;
+    s+=R(x0,56,sw2,h-60,open?'#6D7A80':'#D6DDE0',{sw:1});
+    if(open){for(let r=0;r<3;r++)for(let c=0;c<4;c++)s+=R(x0+6+c*(sw2-12)/4,h-26-r*18,(sw2-12)/4-3,15,['#D8B27A','#C99E66','#E3C58F'][(r+c)%3],{sw:.6})+L(x0+6+c*(sw2-12)/4,h-19-r*18,x0+6+c*(sw2-12)/4+(sw2-12)/4-3,h-19-r*18,'#A8834F',.6);s+=R(x0,56,sw2,14,'#D6DDE0',{sw:.9});for(let y=58;y<70;y+=4)s+=L(x0+2,y,x0+sw2-2,y,'#B9C3C7',.6);if(n)s+=Rn(x0+2,70,sw2-4,h-74,'#FFE6A6',{op:.25});}
+    else{for(let y=60;y<h-6;y+=5)s+=L(x0+2,y,x0+sw2-2,y,'#B9C3C7',.7);s+=C(x0+sw2/2,h-46,13,yellow,{sw:.8})+Pth(`M${x0+sw2/2-6},${h-50} h12 v10 h-12Z M${x0+sw2/2-6},${h-45} h12`,'none',{sw:.8});}
+  }
+  s+=door(d,h-2,n,28)+lamp(d-26,62,n);
+  s+=R(d+20,h-24,16,20,'#C99E66',{sw:.6})+L(d+20,h-14,d+36,h-14,'#A8834F',.6);
+  return s;
+}
+function salon(w,h,d,n){
+  const mauve='#C79BB8';let s=wall(w,h,'#F4EAF0');
+  s+=R(-2,4,w+4,24,'#E9D6E2',{sw:1.1})+R(-2,-2,w+4,8,'#B785A6',{sw:.9});for(let x=10;x<w;x+=22)s+=C(x,-4,4,'#9DBF8E',{sw:.5});
+  s+=pane(20,38,40,28,n)+pane(w-60,38,40,28,n)+R(18,66,44,5,'#FFFFFF',{sw:.5})+R(w-62,66,44,5,'#FFFFFF',{sw:.5});
+  s+=sign(w/2-54,74,108,'おしゃれサロン','HAIR & SALON','#9C6B8E');
+  // 大きな まど: かがみ・いす・うえき
+  s+=R(12,102,d-32-12,h-126,n?'#FBE7C8':'#E4EEF0',{sw:1})+R(24,108,26,32,'#D4AF78',{sw:.8,rx:8})+R(28,112,18,24,'#DCECEC',{sw:.6,rx:6})+R(56,124,20,14,'#7A6E7A',{sw:.7,rx:3})+R(62,114,10,12,'#8E818E',{sw:.6,rx:2});
+  s+=awning(8,96,d-26,mauve);
+  s+=door(d,h-2,n,30);
+  // サインポール（あか・あお・しろ）
+  const px=w-26;s+=R(px-5,h-64,10,40,'#FFFFFF',{sw:.9,rx:5});for(let i=0;i<4;i++)s+=Pth(`M${px-5},${h-60+i*9} l10,-5 v4 l-10,5Z`,i%2?'#3E73B8':'#D8433C',{sw:0});s+=C(px,h-66,5,'#D6B36F',{sw:.7})+C(px,h-22,5,'#D6B36F',{sw:.7});
+  s+=planter(w-62,h-12,26);
+  return s;
+}
+function chuka(w,h,d,n){
+  const red='#C6453C',gold='#E8B74A';let s=wall(w,h,'#F3E3CF');
+  s+=R(-3,14,w+6,24,'#3E5C50',{sw:1.1});for(let x=0;x<w;x+=10)s+=Pth(`M${x},14 q5,-6 10,0`,'none',{sw:1,stroke:'#2C443B'});s+=R(-5,36,w+10,5,'#2C443B',{sw:.8});
+  s+=R(w/2-62,44,124,22,'#2A2622',{sw:1,rx:2})+T(w/2,60,'ちゅうか ねりかす',{size:11,fill:gold});
+  // ちょうちん
+  for(const x of [18,w-18]){s+=L(x,41,x,48,ink,.8)+E(x,58,8,10,n?'#FF8A6A':red,{sw:.9})+Rn(x-6,50,12,2,gold)+Rn(x-6,65,12,2,gold);if(n)s+=C(x,58,14,'#FFB08A',{sw:0,op:.25});}
+  // たべものの みほん（ラーメン・ぎょうざ）
+  const sx=30,sy=74;s+=R(sx,sy,d-34-sx,h-98,n?'#FBE7C0':'#E6EEEA',{sw:.9});
+  for(let i=0;i<2;i++){const x=sx+12+i*28;s+=Pth(`M${x-10},${sy+22} q10,12 20,0Z`,'#F5F1E6',{sw:.7})+Pth(`M${x-8},${sy+22} q8,-4 16,0`,'none',{sw:1.2,stroke:'#E8C06A'})+C(x+4,sy+18,2.5,'#F2D27E',{sw:.4});}
+  s+=Pth(`M${sx+64},${sy+26} q6,-8 12,0 q6,-8 12,0`,'#EACB8F',{sw:.7});
+  // のれん（入口）
+  s+=door(d,h-2,n,32)+R(d-22,70,44,22,red,{sw:.8});for(const x of [d-11,d+11])s+=L(x,72,x,92,'#9E342D',.8);s+=T(d,84,'らーめん',{size:6,fill:'#FFFFFF'});
+  s+=R(w-58,74,40,30,'#FFFFFF',{sw:.6})+T(w-38,86,'ぎょうざ',{size:5.5,fill:red})+T(w-38,97,'チャーハン',{size:5,fill:red});
+  return s;
+}
+function newHouse(kind,w,h,d,n){
+  let s='';
+  if(kind==='house_a'){
+    // ようふうの 2かいだて: スレートの 屋根・まえむきの 切妻・ポーチの 柱・出窓・えんとつ
+    s=wall(w,h,'#F4F1EA')+roof(0,-13,w,45,'#6C7F92');
+    s+=brick(w-54,-40,16,32)+R(w-57,-43,22,5,'#9C6E58',{sw:.8});
+    s+=Pth(`M${d-40},34 V2 L${d},-26 L${d+40},2 V34Z`,'#F4F1EA',{sw:1})+Pth(`M${d-44},4 L${d},-30 L${d+44},4`,'none',{sw:3.5,stroke:'#55667A'})+pane(d-16,0,32,24,n);
+    s+=R(12,56,d-50,56,'#E6E0D3',{sw:1})+pane(16,60,(d-58)/3-2,46,n)+pane(16+(d-58)/3,60,(d-58)/3-2,46,n)+pane(16+2*(d-58)/3,60,(d-58)/3-2,46,n)+R(10,112,d-46,5,wood,{sw:.6});
+    s+=pane(d+34,58,w-d-52,36,n)+R(d+30,58,5,36,'#7B8FA5',{sw:.4})+R(w-20,58,5,36,'#7B8FA5',{sw:.4});
+    s+=Pth(`M${d-30},${h-66} L${d},${h-82} L${d+30},${h-66}Z`,'#55667A',{sw:1})+R(d-28,h-66,4,62,'#FFFFFF',{sw:.7})+R(d+24,h-66,4,62,'#FFFFFF',{sw:.7});
+    s+=door(d,h-2,n,26)+planter(w-50,h-12,30)+lamp(d-34,h-60,n);
+  }else if(kind==='house_b'){
+    // モダンな しろい 家: 陸屋根・木の たて格子・大きな まど・ガラスの バルコニー
+    s=Pth(`M${w-6},20 l13,9 V${h+7} H13 L3,${h-3}Z`,'#312619',{sw:0,op:.14})+R(4,4,w-10,h-5,'#F3F3EF',{sw:1.2})+R(0,-2,w+2,8,'#D9DAD4',{sw:1});
+    s+=R(w-76,10,64,h-14,'#C39A6B',{sw:1});for(let x=w-70;x<w-14;x+=7)s+=L(x,12,x,h-6,'#A57E54',1);
+    s+=R(14,20,w-100,40,n?'#FBE3B0':'#BFD8DE',{sw:1})+L(14+(w-100)/2,20,14+(w-100)/2,60,ink,.9)+R(10,58,w-92,6,'#DCDDD8',{sw:.8});for(let x=14;x<w-86;x+=6)s+=L(x,64,x,76,'#9FB9C0',.6);s+=R(10,64,w-92,12,'#CFE3E8',{sw:.7,op:.6});
+    s+=R(14,86,d-40,h-98,n?'#FBE3B0':'#C6DEE3',{sw:1})+L(14+(d-40)/2,86,14+(d-40)/2,h-12,ink,.9)+Pth(`M18,${h-16} l${(d-40)*.35},-40`,'none',{sw:2,stroke:'#FFFFFF',op:.5});
+    s+=R(d-16,h-60,32,58,'#4A5256',{sw:1})+L(d+9,h-36,d+9,h-26,'#C9B98E',1.6)+R(d-20,h-2,40,3,'#CCC2AA',{sw:.6});
+    s+=C(w-90,h-8,4,n?'#FFE39A':'#EFE6C8',{sw:.6})+L(w-90,h-4,w-90,h-1,ink,.8);
+  }else{
+    // わふうの 家: かわらの 切妻（のきの そり・棟の おにがわら）・しっくいと 木の はしら・えんがわと しょうじ・こうしの 引き戸
+    s=wall(w,h,'#F4EFE3');
+    s+=Pth(`M-6,36 Q-2,28 18,-12 H${w-18} Q${w+2},28 ${w+6},36Z`,'#5D6468',{sw:1.3});
+    for(let yy=-4;yy<34;yy+=6){const k=(yy+12)/48;s+=L(18-24*k,yy,w-18+24*k,yy,'#4A5054',.8);}
+    for(let i=1;i<14;i++){const t=i/14;s+=L(18+t*(w-36),-11,-6+t*(w+12),34,'#6C7377',.5);}
+    s+=R(12,-18,w-24,7,'#454B4F',{sw:.9})+C(12,-15,5,'#454B4F',{sw:.8})+C(w-12,-15,5,'#454B4F',{sw:.8})+R(-8,34,w+16,5,'#454B4F',{sw:.9});
+    for(const x of [8,d-26,d+26,w-12])s+=R(x,39,6,h-40,'#6F5641',{sw:.7});
+    s+=R(14,52,d-44,h-86,'#FAF6EA',{sw:.9});for(let x=14;x<d-30;x+=9)s+=L(x,52,x,h-34,'#B9A889',.6);for(let y=52;y<h-34;y+=10)s+=L(14,y,d-30,y,'#B9A889',.6);if(n)s+=Rn(15,53,d-46,h-88,'#FFE0A0',{op:.45});
+    s+=R(8,h-32,d-36,8,'#9C7A55',{sw:.8});for(let x=12;x<d-28;x+=8)s+=L(x,h-32,x,h-24,'#7B5E40',.6);
+    s+=R(d-20,h-60,40,58,'#8E6E4E',{sw:1});for(let x=d-16;x<d+18;x+=5)s+=L(x,h-58,x,h-4,'#5E4631',1);if(n)s+=Rn(d-18,h-58,36,54,'#FFE0A0',{op:.35});s+=R(d-24,h-2,48,3,'#CCC2AA',{sw:.6});
+    s+=pane(d+34,56,w-d-52,30,n)+R(d+32,86,w-d-48,4,wood,{sw:.5});
+    s+=R(w-44,h-20,26,16,'#B98C5E',{sw:.6})+C(w-31,h-26,9,'#5E8A52',{sw:.6})+C(w-37,h-30,6,'#6E9A5E',{sw:.5});
+  }
+  return s;
+}
 const specs=[
  ['home','みんなのおうち',6,4,3,'home','切妻・花箱・玄関灯・郵便受け'],
  ['clothes','いととはな・洋服店',5,4,2,'tailor','三角の切妻・ハンガーの丸看板・仕立て屋の服・しまの日よけ'],
@@ -172,6 +359,18 @@ const specs=[
  ['nerikasu_home4','テラスの家',7,5,3,'terrace','時計切妻と異なる高窓・縁側の格子'],
  ['nerikasu_home5','ころころフルーツ（パズルの おてつだい）',6,5,3,'korokoro','りんごの 丸看板・棟に すわる 3人の かお・玉が つみかさなる ガラスの 箱・しまの 日よけ・くだものの 木箱'],
  ['nerikasu_home6','通学路の長屋',7,5,3,'row','二つの切妻・花のプランター'],
- ['nerikasu_home7','画家の家',8,5,4,'studio','大きな仕事窓・片側の屋上・窓辺の花']
+ ['nerikasu_home7','画家の家',8,5,4,'studio','大きな仕事窓・片側の屋上・窓辺の花'],
+ ['neri_lawson','コンビニ ローリソン',8,4,4,'lawson','あおい 看板の 帯・ミルクの びんの マーク・ガラスの 店さき・たなの しなもの・自動ドア・屋上の 室外機'],
+ ['neri_sevenbun','コンビニ せぶんぶん',7,4,3,'sevenbun','だいだい・みどり・あかの 3本の 帯・しろい 看板・ガラスの 店さき・自動ドア'],
+ ['neri_bikkupo','レストラン びっくぽ',9,5,4,'bikkupo','かわらの 屋根・屋根の 上の 看板と マスコット・赤い ボックスせきが みえる 大きな まど・入口の ひさし'],
+ ['neri_gas','ネリカス ガソリンスタンド',9,5,6,'gas','しろい キャノピー・給油機 2だい・ねだんの かんばん・ガラスの じむしょ・せんしゃの おしらせ'],
+ ['neri_apartment','ひだまり アパート',8,6,4,'apartment','2かいだて・ろうかの てすり・せんたくもの・へやの ドア 101〜103・てつの そとかいだん・ポスト'],
+ ['neri_post','ネリカス ゆうびんきょく',7,4,3,'post','〒の 帯・ガラスの 店さき・ATMの まど・切手の ポスター'],
+ ['neri_delivery','おとどけ センター',9,5,4,'delivery','まるい 屋根の そうこ・あいた シャッターの にもつ・しまった シャッターの マーク・はねの ある にもつの ロゴ'],
+ ['neri_salon','おしゃれサロン',6,5,3,'salon','やねの うえの みどり・かがみと いすの まど・しまの 日よけ・サインポール'],
+ ['neri_chuka','ちゅうか ねりかす',7,4,3,'chuka','みどりの かわら・ちょうちん・ラーメンと ぎょうざの みほん・のれん'],
+ ['neri_house_a','スレート屋根の 洋館',7,5,3,'house_a','まえむきの 切妻・ポーチの 柱・出窓・れんがの えんとつ'],
+ ['neri_house_b','しろい モダンな 家',7,5,3,'house_b','陸屋根・木の たて格子・大きな まど・ガラスの バルコニー'],
+ ['neri_house_c','かわら屋根の 和の 家',7,5,3,'house_c','かわらの 屋根・しっくいと 木の はしら・えんがわと しょうじ・こうしの 引き戸']
 ];
-export const NERIKASU_BUILDINGS=specs.map(([buildingId,name,w,h,d,kind,detail])=>({id:'nerikasu.bld_'+buildingId,buildingId,name,category:'住宅・お店・学校',w,h,door:d,bbox:[-10,-49,w*32+15,h*32+12],details:detail.split('・'),states:['day','night'],draw:o=>{const args=[w*32,h*32,(d+.5)*32,!!o?.night];return kind==='korokoro'?korokoro(...args):kind==='school'?school(...args):kind==='nursery'?nursery(...args):kind==='gazebo'?gazebo(...args):['home','row','modern','tile','terrace','courtyard','studio'].includes(kind)?home(kind,...args):shop(kind,...args);}}));
+export const NERIKASU_BUILDINGS=specs.map(([buildingId,name,w,h,d,kind,detail])=>({id:'nerikasu.bld_'+buildingId,buildingId,name,category:'住宅・お店・学校',w,h,door:d,bbox:[-10,-49,w*32+15,h*32+12],details:detail.split('・'),states:['day','night'],draw:o=>{const args=[w*32,h*32,(d+.5)*32,!!o?.night];return ['lawson','sevenbun'].includes(kind)?conbini(kind,...args):kind==='bikkupo'?bikkupo(...args):kind==='gas'?gasStation(...args):kind==='apartment'?apartment(...args):kind==='post'?postOffice(...args):kind==='delivery'?deliveryCenter(...args):kind==='salon'?salon(...args):kind==='chuka'?chuka(...args):kind.startsWith('house_')?newHouse(kind,...args):kind==='korokoro'?korokoro(...args):kind==='school'?school(...args):kind==='nursery'?nursery(...args):kind==='gazebo'?gazebo(...args):['home','row','modern','tile','terrace','courtyard','studio'].includes(kind)?home(kind,...args):shop(kind,...args);}}));

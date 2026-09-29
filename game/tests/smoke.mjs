@@ -595,7 +595,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.page.locator(".smaho-draw").count()===0&&await H.page.locator(".smaho-omikuji.show").count()===1,"2かい うらなえる");
   // Esc で とじる → 町で ひらく（おまつり ボタンは ない）
   await H.page.keyboard.press("Escape");await H.wait(300);expect(!(await H.dbg("smahoState")).open,"Esc で とじない");
-  await H.dbg("teleport","town",12,16);await H.idle();await H.wait(400);
+  await H.dbg("teleport","town",20,60);await H.idle();await H.wait(400);
   s=await H.dbg("smahoState");
   expect(s.button&&s.button.x<=12&&s.button.y+s.button.h<=viewport.height-50,"町の すまほ ボタンが 左下に ない "+JSON.stringify(s));
   expect(await H.page.locator(".world-festival").count()===0,"おまつり ボタンが のこって いる");
@@ -658,8 +658,8 @@ await scenario("おうちの生活・デザ・増築", async (H) => {
 
 await scenario("新エリア・全体マップ・帰宅", async (H) => {
   await H.newGameFast();
-  await H.dbg("teleport", "town", 62, 11);
-  await H.until(() => PokaDebug.idle()); await H.dbg("walkTo", 63, 11);
+  await H.dbg("teleport", "town", 48, 3, "up"); // 大通りの 北の はし → 平和台
+  await H.until(() => PokaDebug.idle()); await H.dbg("walkTo", 48, 0);
   await H.until(() => PokaDebug.state().map === "heiwadai" && PokaDebug.idle());
   await H.shot("heiwadai");
   await H.phone("ちず");
@@ -810,7 +810,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 await scenario("セーブ→つづきから", async (H) => {
   await H.newGameFast();
-  await H.dbg("teleport", "town", 12, 24, "left");
+  await H.dbg("teleport", "town", 20, 60, "left");
   await H.until(() => G.sceneName === "world" && !Game.trans, 10000);
   await H.dbg("coins", 777);
   await H.dbg("save");
@@ -821,7 +821,7 @@ await scenario("セーブ→つづきから", async (H) => {
   await H.page.click(".title-ui .btn");
   await H.until(() => G.sceneName === "world" && !Game.trans, 10000);
   const st = await H.dbg("state");
-  expect(st.map === "town" && st.pos[0] === 12 && st.pos[1] === 24, "つづきから の位置がちがう " + JSON.stringify(st));
+  expect(st.map === "town" && st.pos[0] === 20 && st.pos[1] === 60, "つづきから の位置がちがう " + JSON.stringify(st));
   expect(st.coins >= 777 + 150, "コインが保存されていない");
 });
 
@@ -855,7 +855,7 @@ await scenario("小さい画面（375×667）", async (H) => {
 await scenario("夜の町", async (H) => {
   await H.newGameFast();
   await H.dbg("hour", 21);
-  await H.dbg("teleport", "town", 12, 17);
+  await H.dbg("teleport", "town", 44, 60);
   await H.until(() => G.sceneName === "world" && !Game.trans, 10000);
   await H.wait(800);
   await H.shot("night");
@@ -872,10 +872,10 @@ await scenario("交通（電車・船・飛行機・中止・セーブ）", asyn
     const p=(await H.dbg("world")).stops.find(s=>s.id===stop);
     await H.tap(p.cx,p.cy); await H.page.getByRole("button",{name:choice,exact:true}).click();
   };
-  await board("town",32,4,"town_station","やめておく");
-  await H.idle();expect((await H.dbg("state")).map==="town","乗車中止で移動した");
+  await board("heiwadai",0,0,"heiwadai_station","やめておく");
+  await H.idle();expect((await H.dbg("state")).map==="heiwadai","乗車中止で移動した");
   for(const [map,x,y,stop,choice,destination,kind] of [
-    ["town",32,4,"town_station","平和台えきへ","heiwadai","train"],
+    ["heiwadai",0,0,"heiwadai_station","くうこうえきへ","airport","train"],
     ["coast",24,23,"coast_ferry","みなとの のりばへ","harbor","ferry"],
     ["harbor",21,9,"harbor_air","そらいろくうこうへ","airport","plane"],
   ]) {
@@ -889,7 +889,7 @@ await scenario("交通（電車・船・飛行機・中止・セーブ）", asyn
   const before=await H.dbg("state");await H.dbg("save");await H.page.reload();
   await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.until(()=>PokaDebug.state().scene==="world"&&PokaDebug.idle());
   const after=await H.dbg("state");expect(after.map==="airport"&&after.coins===before.coins,"交通の到着位置・コインのセーブに失敗");
-  await board("airport",6,22,"airport_station","ネリカスえきへ");
+  await board("airport",6,22,"airport_station","平和台えきへ");
   await H.until(()=>PokaDebug.state().scene==="travel"&&PokaDebug.idle());
   await H.page.getByRole("button",{name:"おうちへ",exact:true}).click();
   await H.until(()=>PokaDebug.state().scene==="house"&&PokaDebug.idle());
@@ -926,7 +926,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`町の景観としかけ（${viewport.width}）`,async H=>{
   await H.newGameFast();await H.dbg("hour",12);
-  for(const [map,x,y] of [["heiwadai",31,14],["heiwadai",9,50],["town",12,16],["city",10,45],["harbor",19,23],["airport",25,20],["meadow",10,10],["forest",14,14],["cave",12,12]]){
+  for(const [map,x,y] of [["heiwadai",31,14],["heiwadai",9,50],["town",42,24],["city",10,45],["harbor",19,23],["airport",25,20],["meadow",10,10],["forest",14,14],["cave",12,12]]){
     await H.dbg("teleport",map,x,y);await H.until(m=>PokaDebug.state().map===m&&PokaDebug.idle(),15000,map);
     await H.shot(`${map}-${x}`);
   }
@@ -952,7 +952,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
       await H.until(id=>!!PokaDebug.festival().stamps[id],10000,t.id);
     }
     // 記念品の検証は安全な町で行う。草原で敵が近づくまでの時間に依存させない。
-    await H.dbg("teleport","town",12,16);await H.idle();
+    await H.dbg("teleport","town",20,60);await H.idle();
     await H.phone("スタンプラリー");await H.page.getByRole("button",{name:"きせつの スタンプ",exact:true}).click();await H.shot(initial.id+"-rewards");
     await H.page.getByRole("button",{name:"きねんひんを うけとる",exact:true}).click();
     const s=await H.dbg("festival");expect(s.count===3&&s.claimed&&s.inventory.wear&&s.inventory.furn===1&&s.inventory.food===3,"記念品がそろわない");
@@ -967,7 +967,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`地形の全体マップ（${viewport.width}）`,async H=>{
   await H.newGameFast(); await H.dbg("hour",12);
-  await H.dbg("teleport","town",12,16); await H.idle();
+  await H.dbg("teleport","town",20,60); await H.idle();
   const before=await H.dbg("state");
   await H.page.keyboard.press("Escape");
   await H.page.getByRole("button",{name:"ちず",exact:true}).click();
@@ -1969,7 +1969,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const money=(await H.dbg("state")).coins;
   for(const month of viewport.width===390?Array.from({length:12},(_,i)=>i+1):[7,10]) {
     await H.dbg("calendar",`2026-${String(month).padStart(2,"0")}-15`);
-    await H.dbg("teleport","town",12,16);await H.idle();
+    await H.dbg("teleport","town",20,60);await H.idle();
     await H.phone("イベント");
     expect(await H.page.locator(".annual-months .btn").count()===12,"年間予定が12種類ない");
     await H.page.getByRole("button",{name:"この おまつりに さんか",exact:true}).click();await H.idle();
@@ -2002,7 +2002,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`天気・四季・予報（${viewport.width}）`,async H=>{
   await H.newGameFast();await H.dbg("hour",12);await H.dbg("coins",987504);
-  await H.dbg("teleport","town",12,16);await H.idle();await H.wait(3200);
+  await H.dbg("teleport","town",20,60);await H.idle();await H.wait(3200);
   const money=(await H.dbg("state")).coins,palettes=[];
   for(const [kind,date] of [["clear","2026-04-15"],["cloudy","2026-06-15"],["rain","2026-06-15"],["snow","2026-12-15"],["wind","2026-10-15"]]) {
     await H.dbg("calendar",date);await H.dbg("weather",kind);await H.wait(400);
@@ -2023,7 +2023,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect((await H.dbg("weather")).particles===0,"洞窟に雨が降る");
   await H.dbg("house");await H.idle();expect((await H.dbg("weather")).indoors&&await H.page.locator(".world-weather").count()===0,"家に屋外ボタン/天気が残る");
   await H.dbg("homeLife","weather");{const x=(await H.dbg("homeTalkLog")).at(-1),l=x&&x.line?await H.dbg("homeLines",x.line):null;expect(x&&(x.talk==="thunder"||(l&&l.when&&l.when.weather&&l.when.weather.includes("rain"))||/あめ|しずく/.test(x.text)),"天気のひとことがない");}
-  await H.dbg("teleport","town",12,16);await H.idle();expect((await H.dbg("weather")).particles===48,"外で雨が復帰しない");
+  await H.dbg("teleport","town",20,60);await H.idle();expect((await H.dbg("weather")).particles===48,"外で雨が復帰しない");
   await H.dbg("calendar",null);const natural=await H.dbg("weather",null);await H.dbg("save");
   await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
   const restored=await H.dbg("weather"),samePeriod=restored.forecast[0].day===natural.forecast[0].day&&restored.forecast[0].hour===natural.forecast[0].hour;
@@ -2573,12 +2573,12 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
   const d=await H.dbg('saveData');d.coins=499;await H.dbg('seedSave',d);await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
   let t=await H.dbg('districtTravel');expect(t.names.town==='ネリカスタウン'&&t.names.city==='池袋'&&!t.walkIns.length,'地名/電車専用');expect(t.places.city.y===159&&t.places.heiwadai.y===358,'町の位置');
-  await H.dbg('station','town_station');await H.page.getByRole('button',{name:'池袋えきへ（500コイン）',exact:true}).click();await H.dialogs();expect((await H.dbg('saveData')).coins===499,'残高不足で差引');
+  await H.dbg('station','heiwadai_station');await H.page.getByRole('button',{name:'池袋えきへ（500コイン）',exact:true}).click();await H.dialogs();expect((await H.dbg('saveData')).coins===499,'残高不足で差引');
   await H.dbg('coins',501);const before=(await H.dbg('saveData')).coins;
-  await H.dbg('station','town_station');await H.page.getByRole('button',{name:'やめておく',exact:true}).click();expect((await H.dbg('saveData')).coins===before,'中止で差引');
-  await H.dbg('station','town_station');await H.page.getByRole('button',{name:'池袋えきへ（500コイン）',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='travel'&&PokaDebug.idle());await H.shot('train');
+  await H.dbg('station','heiwadai_station');await H.page.getByRole('button',{name:'やめておく',exact:true}).click();expect((await H.dbg('saveData')).coins===before,'中止で差引');
+  await H.dbg('station','heiwadai_station');await H.page.getByRole('button',{name:'池袋えきへ（500コイン）',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='travel'&&PokaDebug.idle());await H.shot('train');
   await H.until(()=>PokaDebug.state().map==='city'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-500,'運賃一回');
-  await H.dbg('station','city_station');await H.page.getByRole('button',{name:'ネリカスえきへ',exact:true}).click();await H.until(()=>PokaDebug.state().map==='town'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-500,'帰り無料');
+  await H.dbg('station','city_station');await H.page.getByRole('button',{name:'平和台えきへ',exact:true}).click();await H.until(()=>PokaDebug.state().map==='heiwadai'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-500,'帰り無料');
   await H.dbg('atlas');await H.shot('map');
 },{viewport,timeout:90000});
 
@@ -2595,7 +2595,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('nerikasu-school-'+viewport.width,async H=>{
  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');await H.dbg('coins',9000);const before=await H.dbg('saveData');
  const layout=await H.dbg('townLayout','town');expect(layout,'町の配置');
- await H.dbg('teleport','town',15,64,'up');await H.idle();await H.shot('school-street');await H.dbg('walkTo',15,61);await H.until(()=>PokaDebug.state().scene==='venue'&&PokaDebug.idle(),20000);
+ const sd=layout.doors.find(d=>d.act.venue==='school');await H.dbg('teleport','town',sd.x+2,sd.y+1,'left');await H.idle();await H.shot('school-street');await H.dbg('walkTo',sd.x,sd.y);await H.until(()=>PokaDebug.state().scene==='venue'&&PokaDebug.idle(),20000);
  let s=await H.dbg('venueState');expect(s.id==='school'&&s.party.length===3&&s.routeCount.every(x=>x.reachable),'学校の通路');await H.dbg('venueVisit','こくばん');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();await H.shot('classroom');
  await H.page.getByRole('button',{name:'たてものを でる',exact:true}).click();await H.until(()=>PokaDebug.state().map==='town'&&PokaDebug.idle());
  await H.dbg('venue','nursery');await H.idle();await H.dbg('venueVisit','つみき');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();await H.shot('nursery');s=await H.dbg('venueState');expect(s.id==='nursery'&&s.party.length===3&&s.routeCount.every(x=>x.reachable),'保育園の通路');

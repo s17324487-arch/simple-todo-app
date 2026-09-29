@@ -1,12 +1,12 @@
 export async function npcLifeSmoke({scenario,expect}){
   for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('npc-life-'+viewport.width,async H=>{
     await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
-    await H.dbg('teleport','town',12,10,'up');await H.idle();const before=await H.dbg('saveData');
+    await H.dbg('teleport','town',36,40,'up');await H.idle();const before=await H.dbg('saveData');
     const start=await H.dbg('npcLife');await H.dbg('npcLifeAdvance',40);const moving=await H.dbg('npcLife');
     expect(moving.filter(n=>start.some(o=>o.id===n.id&&(o.x!==n.x||o.y!==n.y))).length>=5,'住民が散歩しない');
     await H.shot('walking');
     // 原点に戻したあと、実際のタップ経路で話しかける。相手は選択中に逃げない。
-    await H.dbg('teleport','town',12,10,'up');await H.idle();await H.wait(3300);
+    await H.dbg('teleport','town',36,40,'up');await H.idle();await H.wait(3300);
     for(const action of ['wave','stretch','think','yawn','hum','laugh','look','admire','shy','bow']){
       expect(await H.dbg('npcLifeAct','cat',action),'しぐさを開始できない');await H.wait(400);const n=(await H.dbg('npcLife')).find(n=>n.id==='cat');expect(n.action===action,'しぐさが再生されない');
       if(['wave','stretch','think','yawn'].includes(action))await H.shot(action);
