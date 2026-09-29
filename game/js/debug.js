@@ -4,6 +4,7 @@
 // ここの関数名と引数は「約束」なので、変えるときは tests/smoke.mjs と docs も直すこと。
 const PokaDebug = {
   version: GAME_VERSION,
+  roomPresets(){return JSON.parse(JSON.stringify(RoomPresets.list()));},
   cityCatalog(){return IkebukuroCatalog.groups;},
   // クレーン（crane-scene.js）。arcadeState: いまの 台の ようす・arcadeMove: アームを dx・dz cm うごかす（うごかせる ときだけ）
   arcadeState(){const s=G.sceneName==='prize'?G.scene:null,r=s&&s.round;if(!r)return null;const R=r.rig,claw=r.type==='claw'||r.type==='ring';return{machine:s.i,type:r.type,phase:r.phase,done:r.done,finished:!!s.finished,got:r.got.length,time:claw?+r.time.toFixed(2):null,claw:claw?{x:+R.x.toFixed(2),y:+R.y.toFixed(2),z:+R.z.toFixed(2)}:null,stops:r.stops??null,scoops:r.scoops??null,arms:r.type==='tripod'?R.arms.map(a=>a.up?1:0):null,light:r.type==='tripod'?R.cell():null,strong:r.strong,camera:s.camMode,bodies:r.list().length,coins:Save.d.coins,status:s.status.textContent};},
@@ -89,6 +90,7 @@ const PokaDebug = {
     const sc = G.scene;
     return {
       version: GAME_VERSION,
+  roomPresets(){return JSON.parse(JSON.stringify(RoomPresets.list()));},
       scene: G.sceneName,
       map: sc && sc.mapId ? sc.mapId : null,
       pos: sc && sc.party ? [sc.party[0].tx, sc.party[0].ty] : null,

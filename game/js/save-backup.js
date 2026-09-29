@@ -32,6 +32,14 @@ const SaveBackup={
       if(!Number.isInteger(r.nextUid)||r.nextUid<=Math.max(0,...ids))bad();
     };room(data.room);
     for(const r of Object.values(data.rooms?.stored||{}))room(r);
+    for(const list of Object.values(data.rooms?.presets||{})){
+      if(!Array.isArray(list)||list.length>6)bad();
+      for(const p of list){if(p==null)continue;
+        if(!object(p)||typeof p.name!=='string'||p.name.length>20||!object(p.size)||!Number.isFinite(p.size.w)||!Number.isFinite(p.size.d)||p.size.w<=0||p.size.d<=0||!Array.isArray(p.items)||p.items.length>64||!WALL_INDEX[p.wall]||!FLOOR_INDEX[p.floor])bad();
+        for(const it of p.items)if(!object(it)||!FURN_INDEX[it.id]||!Number.isFinite(it.x)||!Number.isFinite(it.y))bad();
+      }
+    }
+
     if(data.rooms&&(!HomeRooms.catalog.some(r=>r.id===data.rooms.active)||!data.rooms.owned[data.rooms.active]))bad();
     if(data.world&&(!MAP_DEFS[data.world.map]||!Number.isInteger(data.world.x)||!Number.isInteger(data.world.y)))bad();
     if(data.daily){const d=data.daily;if(!['stamps','total','cycles'].every(k=>Number.isSafeInteger(d[k])&&d[k]>=0)||d.stamps!==(d.total?(d.total-1)%7+1:0)||d.cycles!==Math.floor(d.total/7)||(d.last!==''&&DailyPlay.dayIndex(d.last)===null))bad();}

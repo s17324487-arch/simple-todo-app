@@ -259,7 +259,7 @@ const HomeRooms = {
     expand.disabled = !!expanded || Save.d.coins < price;
     card.append(expand);
     if (!expanded && Save.d.coins < price) card.append(U.el("div", { text: `あと ${price - Save.d.coins} コイン ためよう。` }));
-    body.append(card, U.el("strong", { text: "べつの おへや" }));
+    body.append(UI.btn("かぐの プリセット",()=>{m.close();RoomPresets.open(sc);},"wide yellow"),card, U.el("strong", { text: "べつの おへや" }));
     for (const r of this.catalog) {
       const own = Save.d.rooms.owned[r.id];
       const card = U.el("div", { class: "note", "data-room": r.id });

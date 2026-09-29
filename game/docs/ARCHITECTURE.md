@@ -894,3 +894,6 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 `indoor-walk.js` の `IndoorWalk` は StoreScene / VenueScene / IsoVenueScene の画面座標のスティックを共用する。12論理pxで開始、10px未満は停止。斜め視点では IsoVenue.inv で床の軸へ方向を変換し、既存の walkable と Walker で1マスずつ3人が歩く。床・展示のタップは短い非ドラッグ入力のみ。会話・階移動・pointercancel・blur・退室で解除し、保存データに入力状態は持たない。
 
 検証API `PokaDebug.indoorState()` は store / venue の3人の位置、入力・経路・各方向の通行可能マス数と画面ベクトルを返す。`tests/indoor-walk-smoke.mjs` は実Pointer入力で9か所×スマホ2サイズを検証する。
+
+### 部屋のプリセット
+`RoomPresets` / `rooms.presets[roomId]` は各部屋6件までの配置メモ。所有権は含めず、呼出前に別室の使用数を差し引く。wall/floor/items/size/name を保存し、適用時は新しいuidを採番。SaveBackup.install の検証・原子的保存を共用し、保存失敗時は現状を維持する。
