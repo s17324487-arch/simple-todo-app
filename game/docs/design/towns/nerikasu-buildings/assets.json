@@ -536,5 +536,312 @@
       "day",
       "night"
     ]
+  },
+  {
+    "id": "nerikasu.bld_neri_lawson",
+    "buildingId": "neri_lawson",
+    "name": "コンビニ ローリソン",
+    "category": "住宅・お店・学校",
+    "w": 8,
+    "h": 4,
+    "door": 4,
+    "bbox": [
+      -10,
+      -49,
+      271,
+      140
+    ],
+    "details": [
+      "あおい 看板の 帯",
+      "ミルクの びんの マーク",
+      "ガラスの 店さき",
+      "たなの しなもの",
+      "自動ドア",
+      "屋上の 室外機"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_sevenbun",
+    "buildingId": "neri_sevenbun",
+    "name": "コンビニ せぶんぶん",
+    "category": "住宅・お店・学校",
+    "w": 7,
+    "h": 4,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      239,
+      140
+    ],
+    "details": [
+      "だいだい",
+      "みどり",
+      "あかの 3本の 帯",
+      "しろい 看板",
+      "ガラスの 店さき",
+      "自動ドア"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_bikkupo",
+    "buildingId": "neri_bikkupo",
+    "name": "レストラン びっくぽ",
+    "category": "住宅・お店・学校",
+    "w": 9,
+    "h": 5,
+    "door": 4,
+    "bbox": [
+      -10,
+      -49,
+      303,
+      172
+    ],
+    "details": [
+      "かわらの 屋根",
+      "屋根の 上の 看板と マスコット",
+      "赤い ボックスせきが みえる 大きな まど",
+      "入口の ひさし"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_gas",
+    "buildingId": "neri_gas",
+    "name": "ネリカス ガソリンスタンド",
+    "category": "住宅・お店・学校",
+    "w": 9,
+    "h": 5,
+    "door": 6,
+    "bbox": [
+      -10,
+      -49,
+      303,
+      172
+    ],
+    "details": [
+      "しろい キャノピー",
+      "給油機 2だい",
+      "ねだんの かんばん",
+      "ガラスの じむしょ",
+      "せんしゃの おしらせ"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_apartment",
+    "buildingId": "neri_apartment",
+    "name": "ひだまり アパート",
+    "category": "住宅・お店・学校",
+    "w": 8,
+    "h": 6,
+    "door": 4,
+    "bbox": [
+      -10,
+      -49,
+      271,
+      204
+    ],
+    "details": [
+      "2かいだて",
+      "ろうかの てすり",
+      "せんたくもの",
+      "へやの ドア 101〜103",
+      "てつの そとかいだん",
+      "ポスト"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_post",
+    "buildingId": "neri_post",
+    "name": "ネリカス ゆうびんきょく",
+    "category": "住宅・お店・学校",
+    "w": 7,
+    "h": 4,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      239,
+      140
+    ],
+    "details": [
+      "〒の 帯",
+      "ガラスの 店さき",
+      "ATMの まど",
+      "切手の ポスター"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_delivery",
+    "buildingId": "neri_delivery",
+    "name": "おとどけ センター",
+    "category": "住宅・お店・学校",
+    "w": 9,
+    "h": 5,
+    "door": 4,
+    "bbox": [
+      -10,
+      -49,
+      303,
+      172
+    ],
+    "details": [
+      "まるい 屋根の そうこ",
+      "あいた シャッターの にもつ",
+      "しまった シャッターの マーク",
+      "はねの ある にもつの ロゴ"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_salon",
+    "buildingId": "neri_salon",
+    "name": "おしゃれサロン",
+    "category": "住宅・お店・学校",
+    "w": 6,
+    "h": 5,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      207,
+      172
+    ],
+    "details": [
+      "やねの うえの みどり",
+      "かがみと いすの まど",
+      "しまの 日よけ",
+      "サインポール"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_chuka",
+    "buildingId": "neri_chuka",
+    "name": "ちゅうか ねりかす",
+    "category": "住宅・お店・学校",
+    "w": 7,
+    "h": 4,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      239,
+      140
+    ],
+    "details": [
+      "みどりの かわら",
+      "ちょうちん",
+      "ラーメンと ぎょうざの みほん",
+      "のれん"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_house_a",
+    "buildingId": "neri_house_a",
+    "name": "スレート屋根の 洋館",
+    "category": "住宅・お店・学校",
+    "w": 7,
+    "h": 5,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      239,
+      172
+    ],
+    "details": [
+      "まえむきの 切妻",
+      "ポーチの 柱",
+      "出窓",
+      "れんがの えんとつ"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_house_b",
+    "buildingId": "neri_house_b",
+    "name": "しろい モダンな 家",
+    "category": "住宅・お店・学校",
+    "w": 7,
+    "h": 5,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      239,
+      172
+    ],
+    "details": [
+      "陸屋根",
+      "木の たて格子",
+      "大きな まど",
+      "ガラスの バルコニー"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
+  },
+  {
+    "id": "nerikasu.bld_neri_house_c",
+    "buildingId": "neri_house_c",
+    "name": "かわら屋根の 和の 家",
+    "category": "住宅・お店・学校",
+    "w": 7,
+    "h": 5,
+    "door": 3,
+    "bbox": [
+      -10,
+      -49,
+      239,
+      172
+    ],
+    "details": [
+      "かわらの 屋根",
+      "しっくいと 木の はしら",
+      "えんがわと しょうじ",
+      "こうしの 引き戸"
+    ],
+    "states": [
+      "day",
+      "night"
+    ]
   }
 ]

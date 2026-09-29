@@ -10,7 +10,8 @@ for(const id of R.TownRenewal.ids){
   const pictures=styles.map(style=>R.Art.worldSvg('building',{style,w:6,h:4,door:3}).full);
   assert.equal(new Set(pictures).size,styles.length,id+': renamed identical building art');
   assert(new Set(d.objects.filter(o=>R.TownRenewalArt.exclusive(id).includes(o.kind)).map(o=>o.kind)).size>=6,id+': exclusive props');
-  for(const b of old.buildings){const n=d.buildings.find(n=>n.id===b.id);assert(n,id+': lost building '+b.id);assert.equal(JSON.stringify(n.act),JSON.stringify(id==='city'&&R.IkebukuroDistrict.changed[b.id]?{type:'venue',venue:R.IkebukuroDistrict.changed[b.id]}:b.act),id+': changed shop/transit');}
+  for(const b of old.buildings){const n=d.buildings.find(n=>n.id===b.id);if(!n&&id==='town'&&R.NerikasuLayout.REMOVED[b.id])continue; // オーナーが「なくても よい」と した 建物（js/nerikasu-layout.js）
+    assert(n,id+': lost building '+b.id);assert.equal(JSON.stringify(n.act),JSON.stringify(id==='city'&&R.IkebukuroDistrict.changed[b.id]?{type:'venue',venue:R.IkebukuroDistrict.changed[b.id]}:b.act),id+': changed shop/transit');}
   for(const o of old.objects.filter(o=>o.id))assert(d.objects.some(n=>n.id===o.id),id+': lost object '+o.id);
   for(const n of old.npcs)assert(d.npcs.some(a=>a.id===n.id),id+': lost NPC '+n.id);
   for(const c of old.chests){const n=d.chests.find(n=>n.id===c.id);assert(n,id+': lost chest');assert.deepEqual(n.loot,c.loot,id+': changed chest reward');}

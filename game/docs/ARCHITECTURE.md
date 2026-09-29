@@ -153,6 +153,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
+| — | `nerikasu-layout.js`（nerikasu-town.js の あと） | `NerikasuLayout` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -902,6 +903,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 ## ネリカスタウンの実寸アセット
 
 `nerikasu-neighborhood.js` の後に `nerikasu-town-art.js` → `nerikasu-town.js`。原画は `tools/town-design/nerikasu-assets.mjs` / `nerikasu-props.mjs` / `nerikasu-buildings.mjs`、生成は `tools/build-nerikasu-town.mjs`。HeiwadaiArtの既存bboxモデルへ別IDで登録し、共通defsは維持する。NerikasuTownは22棟と駅前の歩道・小物を接続する。駅14×5と駅東の1戸の敷地のみ変更し、入口と営業機能を既存IDで維持。昼夜は2状態の原画を先読みし、列車は座標だけを動かして線路内へクリップする。PokaDebug.nerikasuArtは描画寸法と有限キャッシュの読取用。
+
+## ネリカスタウン（配置イメージどおり・TOWN-NERI-01）
+
+`nerikasu-town.js` の あとに `nerikasu-layout.js`（`NerikasuLayout`）。`NerikasuLayout.install()` が `MAP_DEFS.town` を 78×72 で 作りなおす（まえの 町は `NerikasuLayout.previous`）。設計は [ネリカスタウン](design/towns/nerikasu/README.md)。
+
+- 道は `ROADS`（ななめの 大通り〔北東で 半径 6 の 弧で 北へ〕・左の たての 道・よこの 道 2本・右の たての 道・ななめの 道 3本・こみち）を TownRoads へ。`TownRoads.grid` の 車道（`road`）には 小物を おかない（`free()`。マンホールなど 歩ける 小物だけ よい）。
+- 建物は `BUILDINGS`（id・場所・入口・絵）。旧IDは act・label を そのまま うつす（家は「まちの おうち」と ちがう ことば）。バーガーの おてつだいは `neri_bikkupo` へ。オーナーが「なくても よい」と した 建物は `REMOVED`（理由つき。`town-check` は これだけ ゆるす）。ネリカスえきが ない ので `Transit.stops.town_station` を けす（でんしゃは 平和台えきから）。
+- あたらしい 建物の 型（`town_lawson` など）は `STYLE_ASSET` で 原画を かえす（`WorldArt.building` を つつむ。型ごとに ちがう 絵）。
+- 池は 3つ（地面の `~`）。`FISHING_DATA.spots.town`（pond）で どこでも つれる。公園の 遊具・ベンチは `park.*`／`prop.*` の 原画。
+- 住人は 小物の あとに `NPC_SPOTS`（ID → 場所）へ。ふさがって いれば いちばん ちかい あいた マス（車道・入口の まえ・小物・かんばんは さける）。
+- テスト: `tools/check-nerikasu-town.mjs`（配置イメージの ならび・原画の 大きさ・他の家の 絵・旧IDと お店・池と 釣り・森・住人・まえの 町の セーブの 位置）・`town-check`（密度・道の つながり・スマホの 画面）。PokaDebug `fishShore(map, near)`（ちかくの 水べ）。スモーク「nerikasu-plan・nerikasu-art-390 / 375」。
 
 ## 池袋の 町（配置イメージどおり・TOWN-IKE-01）
 

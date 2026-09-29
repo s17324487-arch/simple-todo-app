@@ -633,12 +633,16 @@ const PokaDebug = {
   // テストの 近道: ながおしと おなじ ところへ なげる（world の px）／「つる」ボタンと おなじ
   fishCast(wx, wy) { return G.sceneName === "world" ? FishLine.aim(G.scene, wx, wy) : false; },
   fishPull() { return G.sceneName === "world" ? FishLine.pull(G.scene) : false; },
-  // 釣り場の 水べ（歩いて 行ける マスと、水の ほうの 向き）
-  fishShore(map = "town") {
+  // 釣り場の 水べ（歩いて 行ける マスと、水の ほうの 向き）。near [x, y] を わたすと その ちかくの 水べ（池が いくつも ある 町）
+  fishShore(map = "town", near = null) {
     const m = Maps.get(map), d = MAP_DEFS[map], D = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
     const npc = (x, y) => (d.npcs || []).some((n) => Math.abs(n.x - x) + Math.abs(n.y - y) < 2);
-    for (const [x, y] of TownFolk.reach(map).tiles) for (const [dir, [dx, dy]] of Object.entries(D)) if ((d.rows[y + dy] || "")[x + dx] === "~" && !m.warpAt(x, y) && !m.doorAt(x, y) && !npc(x, y)) return { x, y, dir };
-    return null;
+    let best = null, bd = Infinity;
+    for (const [x, y] of TownFolk.reach(map).tiles) for (const [dir, [dx, dy]] of Object.entries(D)) if ((d.rows[y + dy] || "")[x + dx] === "~" && !m.warpAt(x, y) && !m.doorAt(x, y) && !npc(x, y)) {
+      if (!near) return { x, y, dir };
+      const n = Math.abs(x - near[0]) + Math.abs(y - near[1]); if (n < bd) { bd = n; best = { x, y, dir }; }
+    }
+    return best;
   },
   // つぎに その人と 話した とき、かならず その おねがい（ev-…）／物々交換（bt-…）を もちかける
   folkOffer(id) {
