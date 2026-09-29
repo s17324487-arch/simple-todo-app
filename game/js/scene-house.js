@@ -603,7 +603,7 @@ class HouseScene {
     if (this.life.quarrel && HomeLife.settle(this)) return;
     const actors = [...this.chars, ...this.parents].filter(c => !c.hidden).sort((a, b) => this.depth(b) - this.depth(a));
     const c = actors.find(c => this.contains(this.actorRect(c, this.parents.includes(c)), p));
-    if (c) { if (this.parents.includes(c)) ParentCare.open(this, c.id); else this.pet(c); return; }
+    if (c) { if (!this.parents.includes(c)) this.pet(c); return; }
     const it = this.hitItem(r.x, r.y);
     if (it && FURN_INDEX[it.id].interactive) {
       if (typeof FurnLive !== "undefined" && FurnLive.tap(this, it)) return;

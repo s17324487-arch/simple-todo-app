@@ -897,3 +897,6 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 ### 部屋のプリセット
 `RoomPresets` / `rooms.presets[roomId]` は各部屋6件までの配置メモ。所有権は含めず、呼出前に別室の使用数を差し引く。wall/floor/items/size/name を保存し、適用時は新しいuidを採番。SaveBackup.install の検証・原子的保存を共用し、保存失敗時は現状を維持する。
+
+### ぱぱ・ままの所持服
+`ParentWardrobe` は parents.papa/mama.equipment の5スロットを共有 wardrobe と照合し、人間用アンカーで既存 WEAR を合成する。旧 outfit（基本服の文字列）は維持。追加 hairColor と equipment は migrate で補完。ParentCare.svg は有限の表情・髪型・服を描画する。人物タップは設定を開かず、家族ボタン・きがえ画面の家族タブから開く。

@@ -171,6 +171,7 @@ const ParentWork = {
     const pics = U.el("div", { class: "parent-preview", html: `<div style="display:flex;justify-content:center;gap:6px">${["papa", "mama"].map((id) => `<div style="width:42%">${ParentCare.svg(id, { ...ParentCare.look(id), outfit: "suit" }, "wave")}</div>`).join("")}</div>` });
     body.append(pics, U.el("p", { text: `ぱぱと ままは おしごとに いって いるよ。${this.END}じに かえって くるよ。` }), U.el("p", { class: "note", text: `あと ${hh ? hh + "じかん " : ""}${mm}ふん。3にんで なかよく おるすばん しようね。` }));
     const m = UI.modal({ title: "おしごと ちゅう", body, cls: "full" });
+    body.append(UI.btn("きがえ・みため",()=>ParentWardrobe.open("papa"),"wide"));
     body.append(UI.btn("わかった！", () => m.close(), "wide yellow"));
     return m;
   },
