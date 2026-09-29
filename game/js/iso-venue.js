@@ -81,7 +81,7 @@ class IsoVenueScene extends VenueScene {
     if (this.def.iso) {
       UI.showHud(true, this.def.name + " " + this.floor + "F");
       if (this.room.bgm) Sound.bgm(this.room.bgm);
-      this.bar?.querySelector("span")?.replaceChildren("ゆかを タップで あるく・おみせや ものを しらべる");
+      this.bar?.querySelector("span")?.replaceChildren("スライド・タップで あるく・おみせや ものを しらべる");
       await this.prepareIso();
     }
   }
@@ -133,7 +133,7 @@ class IsoVenueScene extends VenueScene {
   floorAt(px, py) { const q = IsoVenue.inv((px - G.W / 2) / this.s + this.cam.x, (py - G.H / 2) / this.s + this.cam.y); return { x: Math.floor(q.x), y: Math.floor(q.y), fx: q.x, fy: q.y }; }
   up(p, cancel) {
     if (!this.iso) return super.up(p, cancel);
-    if (cancel || !p.tap || Game.inputLocked || this.busy) return;
+    if (!IndoorWalk.release(this, p, cancel)) return;
     const f = this.fixtureAt(p.x, p.y);
     if (f) { this.request(f); return; }
     const t = this.floorAt(p.x, p.y); if (!this.walkTo(t.x, t.y)) this.walkNear(t.fx, t.fy);
@@ -233,6 +233,7 @@ class IsoVenueScene extends VenueScene {
     this.drawn = this.layerIso(ctx, this.room, this.fixtures, this.party, this.cam, this.floor, offset);
     if (!this.isoReady) { ctx.fillStyle = "rgba(47,42,54,.55)"; ctx.fillRect(0, 0, G.W, G.H); }
     if (art.hud) art.hud(ctx, this);
+    IndoorWalk.render(this, ctx);
   }
   resize() { super.resize(); if (this.iso) this.prepareIso(); }
 }

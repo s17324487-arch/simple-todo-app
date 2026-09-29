@@ -10,16 +10,16 @@ class VenueScene {
     this.loadFloor(this.floor);Save.d.world={...this.back};Save.write();
     await Chara.preload(Save.d.order.flatMap(id=>Object.keys(DIRS).flatMap(dir=>['idle_01','walk_01','walk_02'].map(pose=>[id,{dir,pose,outfit:Save.d.chars[id].outfit,color:Save.d.chars[id].color}]))),46);
     UI.showHud(true,this.def.name);Sound.bgm(this.def.bgm||'house');
-    this.bar=U.el('div',{class:'venue-controls'});this.guide=U.el('span',{text:'ゆかを タップで あるく・展示を しらべる'});
+    this.bar=U.el('div',{class:'venue-controls'});this.guide=U.el('span',{text:'スライド・タップで あるく・展示を しらべる'});
     this.bar.append(this.guide,UI.btn('フロア案内',()=>this.guideMenu()),UI.btn('たてものを でる',()=>this.leave()));UI.root.append(this.bar);
     this.home=UI.btn('おうちへ',()=>{if(!this.busy&&!Game.inputLocked)Game.goto('house',{},'circle');},'store-home small');UI.root.append(this.home);
     if(this.def.arrive)this.def.arrive(this);
   }
   loadFloor(floor,spawn){
-    this.floor=floor;this.room=this.def.floors[floor];this.fixtures=this.room.fixtures.map(f=>({...f}));this.path=[];this.pending=null;
+    this.cancel();this.floor=floor;this.room=this.def.floors[floor];this.fixtures=this.room.fixtures.map(f=>({...f}));this.path=[];this.pending=null;
     const at=spawn||this.room.spawn||[Math.floor(this.room.w/2),this.room.h-3];this.party=Save.d.order.map((id,i)=>new Walker(at[0]-i,at[1],'up'));this.snap();
   }
-  exit(){this.closed=true;this.bar?.remove();this.home?.remove();UI.showHud(false);}
+  exit(){this.cancel();this.closed=true;this.bar?.remove();this.home?.remove();UI.showHud(false);}
   resize(){this.snap();}
   cameraTarget(){const p=this.party[0],r=this.room;return {x:U.clamp(p.x*32+16,G.W/2,r.w*32-G.W/2),y:U.clamp(p.y*32+16,G.H/2-50,Math.max(G.H/2-50,r.h*32-G.H/2+95))};}
   snap(){if(this.party)this.cam=this.cameraTarget();}
@@ -69,11 +69,14 @@ class VenueScene {
   }
   leave(){if(this.busy||Game.inputLocked)return;Save.write();Game.goto('world',this.back,'circle');}
   key(k,down){if(down&&k==='ok'){const l=this.party[0],[dx,dy]=DIRS[l.dir];const f=this.fixtures.find(f=>l.tx+dx>=f.x&&l.tx+dx<f.x+f.w&&l.ty+dy>=f.y&&l.ty+dy<f.y+f.h);if(f)this.request(f);}}
-  up(p,cancel){if(cancel||!p.tap||Game.inputLocked||this.busy)return;const x=(p.x-G.W/2+this.cam.x)/32,y=(p.y-G.H/2+this.cam.y)/32;
+  down(p) { IndoorWalk.down(this,p); }
+  move(p) { IndoorWalk.move(this,p); }
+  cancel() { IndoorWalk.cancel(this); }
+  up(p,cancel){if(!IndoorWalk.release(this,p,cancel))return;const x=(p.x-G.W/2+this.cam.x)/32,y=(p.y-G.H/2+this.cam.y)/32;
     const f=[...this.fixtures].reverse().find(f=>f.action&&!f.hidden&&x>=f.x-.2&&x<f.x+f.w+.2&&y>=f.y-.7&&y<f.y+f.h+.2);if(f)this.request(f);else this.walkTo(Math.floor(x),Math.floor(y));}
   update(dt){
-    if(Game.inputLocked||this.busy||document.hidden)return;this.clock+=dt;if(this.lift>0){this.lift-=dt;return;}if(this.sitting>0)this.sitting-=dt;
-    for(const p of this.party)p.update(dt);const l=this.party[0];if(!l.moving){const key=Object.keys(DIRS).find(k=>G.keys[k]);if(key){const [dx,dy]=DIRS[key];l.dir=key;this.path=[];this.pending=null;if(this.walkable(l.tx+dx,l.ty+dy))this.path=[[l.tx+dx,l.ty+dy]];}
+    if(Game.inputLocked||this.busy||document.hidden){this.cancel();return;}this.clock+=dt;if(this.lift>0){this.cancel();this.lift-=dt;return;}if(this.sitting>0)this.sitting-=dt;
+    for(const p of this.party)p.update(dt);const l=this.party[0];if(!l.moving){const key=IndoorWalk.direction(this);if(key){const [dx,dy]=DIRS[key];l.dir=key;this.path=[];this.pending=null;if(this.walkable(l.tx+dx,l.ty+dy))this.path=[[l.tx+dx,l.ty+dy]];}
       if(this.path.length){const [x,y]=this.path.shift();for(let i=2;i>0;i--)this.party[i].moveTo(this.party[i-1].tx,this.party[i-1].ty,WALK_DUR);l.moveTo(x,y,WALK_DUR);this.sitting=0;}
       else if(this.pending){const f=this.pending;this.pending=null;this.interact(f);}}
     const desired=this.cameraTarget();this.cam.x=U.lerp(this.cam.x,desired.x,Math.min(1,dt*12));this.cam.y=U.lerp(this.cam.y,desired.y,Math.min(1,dt*12));
@@ -86,6 +89,7 @@ class VenueScene {
       party.forEach((p,i)=>list.push({z:p.y*32+27,draw:()=>{const q=this.point(p.x,p.y),id=Save.d.order[i],c=Save.d.chars[id];ctx.fillStyle='#45392B22';ctx.beginPath();ctx.ellipse(q.x,q.y,15,5,0,0,7);ctx.fill();Chara.draw(ctx,id,{pose:p.pose(),dir:p.dir,face:this.sitting>0?'happy':'normal',outfit:c.outfit,color:c.color},q.x,q.y+(this.sitting>0?5:0),46);}}));list.sort((a,b)=>a.z-b.z).forEach(o=>o.draw());ctx.restore();};
     let offset=0;if(this.lift>0&&this.previous){const t=U.clamp(1-this.lift/1.2,0,1),ease=t*t*(3-2*t),p=this.previous;offset=(1-ease)*G.H*this.liftDirection;layer(p.room,p.fixtures,p.party,p.cam,p.floor,-ease*G.H*this.liftDirection);}
     layer(this.room,this.fixtures,this.party,this.cam,this.floor,offset);
+    IndoorWalk.render(this,ctx);
   }
 }
 SCENES.venue=VenueScene;

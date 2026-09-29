@@ -18,7 +18,7 @@ const FILES = [
   "./js/world-art.js", "./js/world-expansion.js",
   "./js/economy.js", "./js/arcade.js",
   "./js/puzzle-engine.js", "./js/puzzle-prizes.js", "./js/scene-puzzle.js",
-  "./js/store-interiors.js", "./js/scene-store.js",
+  "./js/indoor-walk.js", "./js/store-interiors.js", "./js/scene-store.js",
   "./js/world-scenery.js", "./js/town-design.js", "./js/town-renewal-art.js", "./js/town-renewal.js", "./js/heiwadai-layout-data.js", "./js/heiwadai-ground.js", "./js/heiwadai-town.js", "./js/heiwadai-life.js", "./js/transit.js",
   "./js/seasonal-catalog.js", "./js/seasonal.js",
   "./js/annual-festivals.js", "./js/food-art.js",
