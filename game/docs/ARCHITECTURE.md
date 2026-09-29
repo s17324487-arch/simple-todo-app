@@ -859,6 +859,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - PokaDebug: `arcadeStart(台)`・`arcadeState()`・`arcadeMove(dx, dz)`（cm）・`arcadeDrop()`・`arcadeAim(景品)`・`arcadeLuck(つよい)`・`arcadeFast(ばい)`・`arcadeCam('front'|'side')`。
 
 
+## ころころ フルーツ（ネリカスタウンの パズルの おてつだい・MG-01）
+
+- 物理 `KorokoroWorld`（`js/korokoro-physics.js`）: はこの 単位は はば 100・たかさ 110（画面の 大きさに よらない）。1/480 びょうの ステップで 位置の かさなりを なおし（重さ = 半径²）→ 速さに もどし → はねかえり（はやく ぶつかった ときだけ）と まさつ（ころがる 回転も）。かさなりを なおした ぶんで はじけ とばない ように、はなれる はやさは `depen` まで。おなじ だんが ふれると（すきま 0.4 まで）フレームの おわりに 1つに（1つの 玉は 1フレームに 1かい。大きく なる とちゅうは がったい しない）。すいか どうしは はじけて きえる。ふちより 上に 玉の てっぺんが 2びょう いると `overflow` → `spill()` で ゆかを ひらいて ぜんぶ おとす。描画・時計・セーブに 依存しないので Node の 検査と おなじ けっか（`rng` は おちてくる だんだけ）。
+- だん（`KOROKORO_TIERS`）: さくらんぼ・わんこ・いちご・がちゃん・ごじ・みかん・りんご・なし・もも・メロン・すいか。おちてくるのは 小さい 5しゅ（くだもの 2・かお 3）。ポイントは (だん+1)(だん+2)/2。
+- 絵 `KorokoroArt`（`js/korokoro-art.js`）: くだものは 100×100 の SVG（かお つき・線は 画面で 1.1〜2px）。3人の かおの 玉は `CHARA_DATA` の あたま・みみ（ごじは 目の でっぱり）と 表情の ぶひん（`faceOf`）で、からだは 描かない。表情は normal・happy（がったい した すぐ）・surprise（おちている・ぶつかった）・sad（ふちの ちかく・あふれそう）・sleep（12びょう しずか）。キャッシュの キーは `koro:だん:表情:ピクセル` だけ。回転と 大きく なる とちゅうは drawImage の 変形。
+- おてつだい: `KorokoroTask`（TaskBase）が おきゃくさん 1にんの ちゅうもん（`KOROKORO_ORDERS`: レベルごとの だんと じかん）。はこは `ShopScene.board`（`KorokoroBoard`）で、おきゃくさんが かわっても のこる（ShopScene は work いがいの フェーズでも `board.tick`・`board.render` を よぶ）。ちゅうもんの だんが はこに できると とどく（まえから のこって いた 玉でも よい）。点は 100 − 時間 − あふれ×30。時間ぎれは とどいた かずと はこの いちばん 大きい 玉の ちかさで 10〜58。もも・メロン・すいかで チップ（`task.bonusTip` を ShopScene.judge が たす）。2つの かおが がったいすると その子が カウンターで よろこぶ。ことばは `SHOPS.korokoro.lines`、けっかの ポイントと さいこうは `board.summary()`（`shops.korokoro.pts`）。
+- 町: `KorokoroTown`（`js/korokoro-town.js`）が `NerikasuTown.install` の まえに nerikasu_home5 を お店に する（足もと・入口・大きさは そのまま）。建物の 絵は `tools/town-design/nerikasu-buildings.mjs` の `korokoro()` → `node tools/build-nerikasu-town.mjs` で `js/nerikasu-town-art.js` に 生成。
+- PokaDebug: `shop('korokoro', lv)`・`mg().order`（はこの CSS 座標 `box.x0`/`y0`/`unit`・`bodies`・`held`/`next`・`canDrop`・`want`・`spills`・`points`・`made`）・`koroSetup({ bodies: [[だん, x, y], …], held, next, seed })`。
+- 検査: `tools/check-korokoro.mjs`（物理・がったい・あふれ・ちゅうもん・こどもの はやさの ボットの バランス・絵・お店・町・セーブ・BGM）・スモーク `nerikasu-korokoro-390` / `-375`。
+
 ## サンシャインいけぶ（斜めの 館・UI-04）
 
 読み込み順は `iso-venue.js` → `mall-art.js` → `mall-music.js` → `ike-mall.js`（crane-scene.js の あと、item-dex-sources.js の まえ）。服の 絵の `ike-wear.js` は `ikebukuro-catalog.js` の すぐ まえ。トップレベル名は `IsoVenue`・`IsoVenueScene`・`MallArt`・`MallMusic`・`IkeMall`・`MallGuide`・`IkeWear`・`WearMannequin`。

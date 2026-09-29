@@ -68,6 +68,7 @@ const PokaDebug = {
       "PokaDebug.musicCatalog()               曲名・楽器・小節数の一覧",
       "await PokaDebug.musicRender('town', 8)  同じ音源でオフライン合成・音量/負荷を検証",
       "PokaDebug.shop('crepe', 3)            お店ミニゲームを Lv3 で開始",
+      "PokaDebug.koroSetup({bodies:[[4,40,100],[4,60,100]]}) ころころ フルーツの 箱に 玉を おく（seed・held・next も）",
       "PokaDebug.store('clothes', 'town')    歩ける店内へ（入口のある町を選べる）",
       "PokaDebug.storeState()                店員・展示・通路・3人・出口の状態",
       "PokaDebug.storeWalkTo(5, 3)           店内のマスまで実際に歩く",
@@ -749,8 +750,29 @@ const PokaDebug = {
       out.order = { remaining: t.remaining(), mistakes: t.mistakes };
     }
 
+    // ころころ フルーツ: 箱（CSS の 座標と 1たんいの 大きさ）・玉・いまの 玉と つぎ・ちゅうもん
+    if (sc.shopId === "korokoro") {
+      const b = t.board, w = b.world, rim = css(b.bx, b.by);
+      out.order = { want: t.want.map((x) => ({ tier: x.tier, name: KOROKORO_TIERS[x.tier].name, done: x.done })), held: b.held, next: b.next, aim: b.aim, cool: b.cool, canDrop: b.canDrop(), drops: b.drops,
+        points: b.points, spills: b.spills, coins: b.coins, bonusTip: t.bonusTip, made: { ...b.made }, danger: w.danger, topGap: w.topGap, floorOpen: w.floorOpen,
+        box: { x0: rim.cx, y0: rim.cy, unit: b.s * G.cssPerUnit, w: w.W, h: w.H, dropY: css(0, b.by - b.top / 2).cy },
+        bodies: w.bodies.map((o) => ({ tier: o.tier, x: o.x, y: o.y, r: o.r, landed: o.landed, grow: o.grow, ...css(b.px(o.x), b.py(o.y)) })) };
+    }
     if (sc.shopId === "relay") out.order = { target: t.target, caught: t.caught, misses: t.misses, lane: t.lane, role: t.role, shield: t.shield, items: t.items.map(it => ({ ...it, progress: (it.y - t.trackTop) / (t.trackBottom - t.trackTop) })) };
     return out;
+  },
+  // ころころ フルーツの 箱を ととのえる（テスト用・おてつだい中だけ）。bodies: [[だん, x, y], …]（箱の 単位: はば 100）
+  koroSetup({ bodies = [], held = null, next = null, clear = true, seed = null } = {}) {
+    const sc = G.scene;
+    if (G.sceneName !== "shop" || sc.shopId !== "korokoro" || !(sc.board instanceof KorokoroBoard)) throw new Error("koroSetup は ころころ フルーツの おてつだい中だけ");
+    const b = sc.board;
+    if (clear) b.world.bodies = [];
+    for (const [tier, x, y] of bodies) b.world.add(tier, x, y, { landed: true });
+    if (seed != null) b.world.rng = (seed >>> 0) || 1; // つぎから おちてくる だんの ならびを きめる
+    if (held != null) b.held = held;
+    if (next != null) b.next = next;
+    b.cool = 0;
+    return b.world.bodies.length;
   },
   hour(h) {
     if (!PokaDebug._hourNow) PokaDebug._hourNow = U.hourNow;

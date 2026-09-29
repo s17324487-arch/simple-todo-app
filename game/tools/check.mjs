@@ -446,6 +446,12 @@ for (const [shop, Task] of Object.entries(R.MG_TASKS)) for (let lv = 1; lv <= 5;
     if (shop === "florist") { t.picked = Object.entries(t.want).flatMap(([k, n]) => Array(n).fill(k)); t.chosen = t.ribbon; perfect = t.score(); }
     if (shop === "bakery") { t.pen = 0; perfect = t.score(); }
     if (shop === "dentist") { t.killed = t.nGerm; t.dirt.forEach((d) => (d.hp = 0)); t.cav.forEach((c) => (c.fixed = true)); perfect = t.score(); }
+    if (shop === "korokoro") {
+      // 箱に ちゅうもんの くだものが できれば おきゃくさんに とどいて 100点（くわしくは tools/check-korokoro.mjs）
+      t.want.forEach((w, i) => t.board.world.add(w.tier, 22 + i * 50, 80));
+      for (let k = 0; k < 3; k++) t.tick(1 / 60);
+      perfect = t.want.every((w) => w.done) ? t.score() : -1;
+    }
     if (shop === "relay") {
       for (let n = 0; n < t.target; n++) {
         t.role = n % 3; t.lane = n % 3;
@@ -1098,7 +1104,7 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
     Save.d=prior;return {valid,boundaries,once,preserved,ledger,cap,unique:new Set(ids).size,count:ids.length};
   })()`,ctx);
   for(const k of ["valid","boundaries","once","preserved","cap"])ok(rewards[k],"お店のレベル報酬: "+k);
-  ok(rewards.count===32&&rewards.unique===32&&rewards.ledger===32,"お店8種×4段階の非売品が一度ずつ");
+  ok(rewards.count===36&&rewards.unique===36&&rewards.ledger===36,"お店9種×4段階の非売品が一度ずつ");
 }
 
 // ---------- 水の 絵（川・海・湖。js/water-art.js）----------

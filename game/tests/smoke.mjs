@@ -2487,13 +2487,13 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   let stored=await H.dbg("persistedSave");expect(stored.coins===987654&&stored.furn.shop_crepe_5===1&&stored.shopRewards.shop_crepe_5,"レベル5報酬か保存が不正");
   await H.page.getByRole("button",{name:"とじる",exact:true}).last().click();
   const levels=(await H.dbg("shopRewards","crepe")).levels;
-  data=await H.dbg("saveData");for(const shop of ["burger","groom","cake","crepe","dentist","bakery","florist","relay"]){data.shops[shop].lv=5;data.shops[shop].rep=levels[30];}
+  data=await H.dbg("saveData");for(const shop of ["burger","groom","cake","crepe","dentist","bakery","florist","relay","korokoro"]){data.shops[shop].lv=5;data.shops[shop].rep=levels[30];}
   await H.dbg("seedSave",data);
-  for(const shop of ["burger","groom","cake","crepe","dentist","bakery","florist","relay"]){
+  for(const shop of ["burger","groom","cake","crepe","dentist","bakery","florist","relay","korokoro"]){
     const got=await H.dbg("shopRewardClaim",shop);expect(got.length===(shop==="crepe"?3:4),"過去の評判からの報酬不足: "+shop);
     expect((await H.dbg("shopRewardClaim",shop)).length===0,"報酬の二重配布");
   }
-  stored=await H.dbg("persistedSave");expect(stored.coins===987654&&Object.keys(stored.shopRewards).length===32,"おかねか報酬数が不正");
+  stored=await H.dbg("persistedSave");expect(stored.coins===987654&&Object.keys(stored.shopRewards).length===36,"おかねか報酬数が不正");
   await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle(30000);await H.dbg("pause",true);
   expect((await H.dbg("shopRewardClaim","crepe")).length===0,"再読み込みで重複");
   await H.dbg("shopRewardOpen","crepe");const cards=H.page.locator(".shop-prize-card");await cards.last().scrollIntoViewIfNeeded();await H.shot("level30");
@@ -2729,6 +2729,59 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.page.getByRole('button',{name:'つかむ',exact:true}).click();await done(7);await back();
  const end=await H.dbg('saveData');expect(end.arcade.plays===save.arcade.plays+1&&end.arcade.active===null,'中断のあとの 精算');
 },{viewport,timeout:240000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('nerikasu-korokoro-'+viewport.width,async H=>{
+ // ころころ フルーツ（mg-korokoro.js）: ネリカスタウンの お店 → レジで おてつだい → くだもの と 3人の かおの 玉を ゆびで おとす → がったい → ちゅうもんが とどく
+ await H.newGameFast();const before=await H.dbg('saveData');
+ const layout=await H.dbg('townLayout','town'),door=layout.doors.find(d=>d.act.shop==='korokoro');expect(door&&door.id==='nerikasu_home5','ネリカスタウンの お店 '+JSON.stringify(door));
+ await H.dbg('teleport','town',door.x,door.y+1);await H.idle(30000);await H.wait(600);await H.shot('outside');
+ await H.dbg('store','korokoro','town');await H.idle();await H.wait(500);expect((await H.dbg('storeState')).owner==='りすの コロン','店主');await H.shot('store');
+ await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();
+ await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning,15000);await H.wait(300);await H.dialogs();
+ await H.until(()=>PokaDebug.mg()?.phase==='work',15000);await H.wait(500);
+ let m=await H.dbg('mg');const box=m.order.box;
+ expect(m.shop==='korokoro'&&m.total===4&&m.order.want.length===1&&m.order.want[0].name==='みかん'&&m.buttons.length===0,'Lv1 の ちゅうもんは みかん '+JSON.stringify(m.order.want));
+ expect(box.x0>=8&&box.x0+box.w*box.unit<=viewport.width-50&&box.y0+box.h*box.unit<=viewport.height-4&&box.unit>=2.2,'箱が 画面から はみ出す／ちいさすぎる '+JSON.stringify(box));
+ expect(await H.eval(()=>Sound.want||Sound.cur?.name)==='shop_korokoro','お店の BGM');await H.shot('start');
+ // 1にんめ: ゆびで おとす（おなじ だんの 玉の 上か、いちばん ひくい ところ）。3人の かおも おちてくる
+ const R=[4.6,6,7.2,8.6,10,11.8,13.8,15.8,18,20.6,23.6],held=[];
+ await H.dbg('koroSetup',{seed:20260929,held:0,next:1}); // おちてくる ならびを きめる（さくらんぼ → わんこ → …）
+ const aim=o=>{const r=R[o.held];let x=null,best=-1;for(const q of o.bodies)if(q.tier===o.held&&q.grow>=1&&q.y>best){best=q.y;x=q.x;}
+  if(x==null){let by=-1e9;for(let i=0;i<=20;i++){const xx=r+(100-2*r)*i/20;let y=110-r;for(const q of o.bodies){const dx=Math.abs(q.x-xx),rs=r+q.r;if(dx<rs)y=Math.min(y,q.y-Math.sqrt(rs*rs-dx*dx));}if(y>by){by=y;x=xx;}}}return x;};
+ for(let k=0;k<80;k++){
+  m=await H.dbg('mg');if(m.phase!=='work'||m.n!==0)break;
+  if(!m.order.canDrop){await H.wait(60);continue;}
+  held.push(m.order.held);const x=aim(m.order);await H.tap(box.x0+x*box.unit,m.order.box.dropY);await H.wait(380);
+  if(k===4)await H.shot('play');
+ }
+ await H.until(()=>PokaDebug.mg().ranks.length>=1,20000);m=await H.dbg('mg');
+ expect(m.ranks[0]>=2&&held.length>=3&&held.some(t=>[1,3,4].includes(t))&&held.some(t=>[0,2].includes(t)),'ゆびで あそんで みかんが とどかない／かおが おちてこない '+JSON.stringify({ranks:m.ranks,held}));
+ expect(m.order&&m.order.points>0&&Object.keys(m.order.made).length>=2,'がったいの ポイント '+JSON.stringify(m.order&&m.order.made));await H.shot('judge');
+ // 2にんめ: ごじ 2つを ならべると みかんに なって とどく
+ await H.until(()=>PokaDebug.mg()?.phase==='work'&&PokaDebug.mg().n===1,20000);
+ await H.dbg('koroSetup',{bodies:[[4,40,100],[4,59.8,100]]});await H.until(()=>PokaDebug.mg().ranks.length>=2,8000);
+ m=await H.dbg('mg');expect(m.ranks[1]===3,'ごじ 2つで みかんが できない '+m.ranks);
+ // 3にんめ: あふれ → 箱が からっぽ → あふれの 減点（それでも とどけられる）
+ await H.until(()=>PokaDebug.mg()?.phase==='work'&&PokaDebug.mg().n===2,20000);
+ await H.dbg('koroSetup',{bodies:Array.from({length:10},(_,i)=>[(Math.floor(i/2)+i%2)%2?9:10,24+(i%2)*52,86.4-Math.floor(i/2)*44])});
+ await H.until(()=>PokaDebug.mg().order.spills===1,8000);await H.wait(300);await H.shot('overflow');
+ await H.until(()=>{const o=PokaDebug.mg().order;return !o.floorOpen&&o.bodies.length===0;},8000);
+ await H.dbg('koroSetup',{bodies:[[4,40,100],[4,59.8,100]]});await H.until(()=>PokaDebug.mg().ranks.length>=3,8000);
+ m=await H.dbg('mg');expect(m.ranks[2]===1,'あふれの 減点が ない '+m.ranks);
+ // 4にんめ: メロンを つくると チップ（大きな くだもの）
+ await H.until(()=>PokaDebug.mg()?.phase==='work'&&PokaDebug.mg().n===3,20000);
+ await H.dbg('koroSetup',{bodies:[[8,30,90],[8,65.8,90],[4,40,40],[4,59.8,40]]});await H.until(()=>PokaDebug.mg().ranks.length>=4,8000);
+ m=await H.dbg('mg');expect(m.ranks[3]===3&&m.tips>=4,'メロンの チップ '+JSON.stringify([m.ranks,m.tips]));
+ await H.until(()=>!!document.querySelector('.modal-wrap .panel-foot .btn'),15000);
+ const text=await H.eval(()=>document.querySelector('.modal-wrap').textContent);expect(/ころころ ポイント/.test(text)&&/さいこう/.test(text),'けっかに ポイントが ない '+text);await H.shot('result');
+ await H.page.getByRole('button',{name:'てんないに もどる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),15000);
+ const after=await H.dbg('saveData');
+ expect(after.coins>before.coins&&after.shops.korokoro.plays===1&&after.shops.korokoro.pts>0&&after.shops.korokoro.rep>0,'コイン・ひょうばん・ポイントの きろく '+JSON.stringify(after.shops.korokoro));
+ // レジの かいもの（くだものと ジュース）
+ await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'かいものを する',exact:true}).click();
+ await H.page.locator('.modal-wrap .grid > *').first().waitFor();expect(await H.eval(()=>document.querySelectorAll('.modal-wrap .grid > *').length)===3,'レジの しなもの');
+ await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.idle();
+},{viewport,timeout:180000});
 
 await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});
 

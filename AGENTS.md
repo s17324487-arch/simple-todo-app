@@ -125,6 +125,7 @@
 | `js/ike-wear.js` / `js/mall-music.js` | サンシャインいけぶの 服 9ちゃくの 絵（そで・うしろ すがた・よこむき。`IkeWear`）と 店に かざる マネキン（`WearMannequin`）、フロアごとの 店内 BGM（パブリックドメインの 名曲 3きょく・出典つき。`MallMusic`） |
 | `js/aqua-art.js` / `js/ike-aquarium.js` | サンシャインいけぶ 12F・13F の すいぞくかん（みなとから おひっこし）。かべの 水そう・トンネル・そらの テラスの 絵（`AquaArt`）と、ぐるっと 一周 できる 順路・へやの 案内・きふ（`IkeAquarium`） |
 | `js/arcade-prizes.js` / `js/crane-physics.js` / `js/crane-art.js` / `js/crane-machines.js` / `js/crane-scene.js` | クレーンゲーム（池袋 Meeときょれじゃ の 12台）。景品の ぬいぐるみ（3人の 表情・ポーズ ちがい・町の人・ミニマスコット）と コインの 上限（`ArcadePrizes`）・物理（`CranePhys`）・景品と 台の 絵（`CraneArt`）・12台の しかけと 1かいの あそび（`CraneMachines`・`CraneRound`）・画面と 100コイン・ごほうび・つづきから（`SCENES.prize`・`PrizeArcade`） |
+| `js/korokoro-physics.js` / `js/korokoro-art.js` / `js/mg-korokoro.js` / `js/korokoro-town.js` | ころころ フルーツ（ネリカスタウンの パズルの おてつだい。スイカゲームの ような おちもの パズル）。玉の 物理・がったい・あふれ（`KorokoroWorld`）・くだもの と 3人の かおの 玉の 絵（`KorokoroArt`）・はこと ちゅうもん（`KorokoroBoard`・`KorokoroTask`）・お店（nerikasu_home5 を かえる `KorokoroTown`。建物の 原画は `tools/town-design/nerikasu-buildings.mjs`） |
 | `js/arcade-art.js` / `js/ike-arcade.js` | Meeときょれじゃ の 館（サンシャインいけぶ と おなじ 斜め上）。台・ガチャ・ぷりくら・カウンターの 絵（`ArcadeArt`）と 28×22 マスの 配置・フロアマップ・こうかんの 店・BGM（`IkeArcade`） |
 | `js/maps.js` | マップ（町は ASCII の手描き、外の世界は `FieldGen` で決まった形に生成） |
 | `js/save.js` | セーブ（`Save`）、ステータス計算（`Stats`）、お世話（`Care`） |

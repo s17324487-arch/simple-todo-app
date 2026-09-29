@@ -120,7 +120,7 @@ class ShopScene {
     this.R = { x: 10, y: this.viewH + 40, w: W - 20, h: H - this.viewH - 52 };
     this.custX = W * 0.29;
   }
-  resize() { this.layout(); if (this.task && this.task.layout) this.task.layout(this.R); }
+  resize() { this.layout(); if (this.task && this.task.layout) this.task.layout(this.R); else if (this.board?.layout) this.board.layout(this.R); }
   async preload() {
     const list = [];
     for (const t of this.team) {
@@ -191,11 +191,14 @@ class ShopScene {
     if (this.shopId === "dentist") R.line = ["まだ いたいよ〜……", "ちょっと すっきり", "ピカピカ！ ありがとう！", "ピカピカ〜！ いたくない！"][rank];
     if (this.shopId === "florist") R.line = ["ちゅうもんと ちがう……", "うーん、まあまあかな", "きれい！ ありがとう！", "すてき！ さいこうの はなたば！"][rank];
     if (["link", "relay"].includes(this.shopId)) R.line = ["つぎは いっしょに がんばろう！", "もうすこし！", "たくさん あつまったね！", "すごい！ だいせいこう！"][rank];
+    if (this.S.lines) R.line = this.S.lines[rank];
     const base = GameEconomy.shopBase[this.shopId] * (1 + 0.28 * (this.workLv - 1)) * GameEconomy.mode(this.difficulty).reward;
     let pay = GameEconomy.pay(this.shopId, this.workLv, rank, this.difficulty);
     if(this.variant==='mac'&&rank>=2)pay=Math.round(pay*1.4);
     let tip = 0;
     if (rank === 3 && this.timeLeft / this.timeLimit > 0.35) tip += Math.round(base * 0.5);
+    // おてつだいの とちゅうの ごほうび（ころころ フルーツの 大きな くだもの など）
+    tip += Math.max(0, Math.round(this.task?.bonusTip || 0));
     let perkMul = 0;
     if (Stats.perk(this.S.perk)) perkMul += 0.2;
     if (Stats.perk("shop")) perkMul += 0.1;
@@ -223,6 +226,7 @@ class ShopScene {
     st.rep += this.rep;
     const perfect = this.ranks.filter((r) => r === 3).length;
     st.best = Math.max(st.best, total);
+    const boardNote = this.board?.summary ? this.board.summary(st) : "";
     if (!interrupted) Save.d.stats.shifts++;
     Save.d.stats.perfects += perfect;
     const good = this.ranks.filter((r) => r >= 2).length / Math.max(1, this.ranks.length);
@@ -246,6 +250,7 @@ class ShopScene {
       <div class="r"><span>もらった コイン</span><span><b>+${total}</b></span></div>
       <div class="r"><span>ひょうばん</span><span>+${this.rep}（${st.rep}${next ? " / " + next : ""}）</span></div>`;
     body.append(rows);
+    if (boardNote) body.append(U.el("div", { class: "note", text: boardNote }));
     if (interrupted) body.append(U.el("div", { class: "note", text: `おわった ${this.ranks.length}にんぶんを うけとったよ。いまの ちゅうもんは ふくまれないよ。` }));
     body.append(U.el("div", { class: "muted", text: `あそびかた: ${GameEconomy.mode(this.difficulty).name}` }));
     if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！ ${st.lv <= 5 ? "ちゅうもんが むずかしく なって、コインも ふえるよ。" : "つぎの ごほうびを めざそう！"}` }));
@@ -278,7 +283,7 @@ class ShopScene {
       this.orderT += dt;
       if (this.task) this.task.update(dt);
       if (this.timeLeft <= 0 && this.task) { this.timeLeft = 0; this.finish(this.task.timeout()); }
-    }
+    } else if (this.board && !this.paid) this.board.tick(dt, false); // おきゃくさんの あいだも 箱の 中は うごく（ころころ フルーツ）
     for (const t of this.team) { if (t.turn > 0) t.turn -= dt; if (t.jump >= 0) { t.jump += dt; if (t.jump > 0.7) t.jump = -1; } }
     if (this.stamp) this.stamp.t += dt;
     this.coinsFx = this.coinsFx.filter((c) => (c.t += dt) < 1.4);
@@ -309,6 +314,7 @@ class ShopScene {
     U.rr(ctx, R.x, R.y, R.w, R.h, 18);
     ctx.fillStyle = "#FFFDF6"; ctx.fill(); ctx.lineWidth = 3; ctx.stroke();
     if (this.task && (this.phase === "work" || this.phase === "judge")) this.task.render(ctx);
+    else if (this.board && this.phase !== "result") this.board.render(ctx, null);
     else if (this.phase === "intro" || this.phase === "enter") {
       ctx.fillStyle = "#8A7D6A"; ctx.font = "800 15px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "center";
       ctx.fillText(this.phase === "enter" ? "おきゃくさんが きたよ！" : "じゅんびちゅう……", W / 2, R.y + R.h / 2);
