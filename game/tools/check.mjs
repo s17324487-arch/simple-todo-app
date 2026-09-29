@@ -946,7 +946,8 @@ if (ok(!!MU, "MUSEUM_DATA が ない（js/museum-data.js）")) {
       for(const x of b.objects){for(const f of x.fish||[]){if(FI.has(f))dupF.push(f);FI.add(f);}if(x.dino){if(DI.has(x.dino))dupD.push(x.dino);DI.add(x.dino);}}
       const door=tb&&[tb.x+tb.door,tb.y+tb.h-1],front=door&&[door[0],door[1]+1];
       out[id]={map:!!d&&d.indoor&&d.rows.join()===b.rows.join()&&d.bgm===id&&!d.spawns.length,
-        building:!!tb&&tb.x===o.x&&tb.y===o.y&&tb.w===o.w&&tb.h===o.h&&tb.act?.type==="indoor"&&tb.act.map===id&&tb.label===o.label,
+        // UI-05: すいぞくかんは サンシャインいけぶ 12F へ おひっこし（みなとの 建物は おしらせだけ）
+        building:!!tb&&tb.x===o.x&&tb.y===o.y&&tb.w===o.w&&tb.h===o.h&&(id==="aquarium"?tb.act?.type==="visit"&&/12かい/.test(tb.act.text)&&!!VenueHalls.defs.mall.floors[12]?.aqua:tb.act?.type==="indoor"&&tb.act.map===id&&tb.label===o.label),
         front:!!front&&!tm.isSolid(front[0],front[1]),warps:b.warps.length>=2&&b.warps.every(w=>w.to===o.map&&front&&w.tx===front[0]&&w.ty===front[1]&&m.warpAt(w.x,w.y)),
         arrive:!m.isSolid(b.arrive.x,b.arrive.y)&&!m.warpAt(b.arrive.x,b.arrive.y)&&Museum.roomAt(id,b.arrive.x,b.arrive.y)?.id==="entrance",
         tiles:Object.entries(MUSEUM_DATA.tiles).every(([ch,t])=>GROUND[ch]===t.ground&&SOLID_CH.has(ch)===!!t.solid),

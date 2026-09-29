@@ -1520,6 +1520,38 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.eval(()=>!TownFolk.canGive(TOWNSFOLK_DATA.barter.find(b=>b.id==='bt-explorer-bone').give)),'だぶりが ないのに こうかん できる');
 },{viewport,full:viewport.width===375,timeout:120000});
 
+// ⑤ 1番（UI-05）: すいぞくかんは サンシャインいけぶ 12F。みなとの 建物は おひっこしの おしらせ → いけぶの エレベーターで 12F → いりぐちの 案内・BGM → 13F の へや → エレベーターで 1F → 外（池袋）
+async function aquaVisit(H){
+  await H.dbg('teleport','harbor',5,32,'up');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='harbor'&&PokaDebug.idle(),10000);
+  const hb=await H.eval(()=>{const b=G.scene.map.def.buildings.find(b=>b.id==='harbor_aquarium');return b&&{label:b.label,act:b.act};});
+  expect(hb&&hb.act.type==='visit'&&/12かい/.test(hb.act.text)&&/おひっこし/.test(hb.label),'みなとの すいぞくかんが おひっこしの おしらせに なって いない '+JSON.stringify(hb));
+  await H.dbg('venue','mall',1);await H.idle();await H.until(()=>PokaDebug.venueIso()?.ready,20000);
+  await H.dbg('venueVisit','エレベーター');await H.page.getByRole('button',{name:/^12F/}).click();
+  await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===12&&!s.changingFloor;},20000);await H.until(()=>PokaDebug.venueIso()?.ready&&PokaDebug.idle(),20000);await H.wait(1200);
+  const inside=await H.eval(()=>{const r=document.querySelector('.museum-intro')?.getBoundingClientRect();return {bgm:Sound.cur?.name||Sound.want,hud:document.querySelector('.hud').innerText,intro:document.querySelector('.museum-intro')?.innerText||'',introIn:!!r&&r.left>=0&&r.right<=innerWidth+1,leader:PokaDebug.venueIso().leader,wide:document.documentElement.scrollWidth>innerWidth};});
+  expect(inside.bgm==='aquarium'&&/12F/.test(inside.hud)&&/いりぐち/.test(inside.intro)&&inside.introIn&&inside.leader.join()==='2,12'&&!inside.wide,'12F の すいぞくかんが 不正 '+JSON.stringify(inside));
+  await H.shot('aquarium-entrance');
+  // ぐるっと 一周: 12F の トンネルの さきの かいだんで 13F へ → 13F の かいだんで 12F の おみやげの よこへ おりる
+  const at=async(fl,xy)=>{await H.until(f=>{const s=PokaDebug.venueState();return s?.floor===f&&!s.changingFloor&&PokaDebug.idle();},30000,fl);const v=await H.dbg('venueIso');expect(v.leader.join()===xy,fl+'F の かいだんの ついた 場所 '+v.leader);};
+  expect(await H.dbg('venueVisit','13Fへ のぼる'),'13F への かいだんが ない');await at(13,'30,23');
+  expect(await H.dbg('venueVisit','12Fへ おりる'),'12F への かいだんが ない');await at(12,'21,23');
+  // フロアマップ: 13F の テラスを えらぶと かいだんで 13F へ いって あるく（13F へは エレベーターが いかない）
+  await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
+  const tabs=await H.eval(()=>[...document.querySelectorAll('.mall-guide .mg-tabs .btn')].map(b=>b.textContent).join());expect(tabs==='1F,2F,3F,12F,13F','フロアマップの 階 '+tabs);
+  await H.page.getByRole('button',{name:'13F',exact:true}).click();await H.page.locator('.mall-guide .mg-spot[data-label="てんくうの テラス"]').click();
+  await H.until(()=>{const s=PokaDebug.venueState(),v=PokaDebug.venueIso();return s?.floor===13&&!s.changingFloor&&v.leader[0]<10&&PokaDebug.idle();},30000);await H.wait(900);
+  expect((await H.dbg('museumState')).rooms.includes('aquarium.ike13_sky'),'テラスの 案内が 出ない');
+  await H.shot('aquarium-terrace');
+  // 13F の へや（案内は 1かいだけ）
+  await H.dbg('museumGo','aquarium','river');await H.until(()=>PokaDebug.venueState()?.floor===13&&PokaDebug.idle(),20000);await H.wait(1400);
+  expect((await H.dbg('museumState')).rooms.includes('aquarium.ike13_river'),'13F の へやの 案内が 出ない');
+  await H.shot('aquarium-river');
+  await H.dbg('museumGo','aquarium');await H.until(()=>PokaDebug.venueState()?.floor===12&&PokaDebug.idle(),20000);await H.wait(500);
+  expect(!(await H.dbg('museumState')).intro,'2かいめも 入口の 案内が 出る');
+  // エレベーターで 1F → 外へ（池袋の サンシャインいけぶの まえ）
+  await H.dbg('venueVisit','エレベーター');await H.page.getByRole('button',{name:'1F',exact:true}).click();await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===1&&!s.changingFloor;},20000);await H.idle();
+  await H.dbg('venueVisit','たてものを でる');await H.until(()=>PokaDebug.state().map==='city'&&PokaDebug.idle(),20000);
+}
 // ⑤ 1番: すいぞくかん・はくぶつかんに 入って 出る（町の 入口 → 館の 入口と 案内 → へや → 出口 → 町の 入口の まえ）。3人いっしょ・敵なし・館の BGM
 async function museumVisit(H,{map,door,front,id,label,arrive,exit,room}){
   await H.dbg('teleport',map,front[0],front[1],'up');await H.until(m=>G.sceneName==='world'&&G.scene.mapId===m&&PokaDebug.idle(),10000,map);
@@ -1547,18 +1579,19 @@ async function museumVisit(H,{map,door,front,id,label,arrive,exit,room}){
 }
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('museum-visit-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
-  await museumVisit(H,{map:'harbor',door:[5,31],front:[5,32],id:'aquarium',label:'ぽかぽか すいぞくかん',arrive:[4,37],exit:[4,38],room:'river'});
+  await aquaVisit(H);
   await museumVisit(H,{map:'city',door:[6,19],front:[6,20],id:'museum',label:'きょうりゅう はくぶつかん',arrive:[17,32],exit:[17,33],room:'hall'});
   // セーブして よみこんでも 入った へやの きろくは のこる
+  const seen=(await H.dbg('museumState')).rooms;expect(['aquarium.ike12_lobby','aquarium.ike13_river','aquarium.ike13_sky','museum.entrance','museum.hall'].every(k=>seen.includes(k)),'入った へやの きろく '+seen);
   await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
-  expect((await H.dbg('museumState')).rooms.length===4,'入った へやの きろくが きえる');
+  expect((await H.dbg('museumState')).rooms.join()===seen.join(),'入った へやの きろくが きえる');
 },{viewport,full:viewport.width===375,timeout:180000});
 
 // ⑤ 2番: 寄贈。いけすの アユを かんちょうに → 水そうで およぐ・いけすから へる。コンプソグナトゥスの 骨 2つを はかせに → かんせい。寄贈しても ノートは そろった まま
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('museum-donate-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
   await H.dbg('fishGive','ayu',2);await H.dbg('fishGive','magoi');
-  await H.dbg('museumGo','aquarium');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='aquarium'&&PokaDebug.idle(),10000);await H.wait(800);
+  await H.dbg('museumGo','aquarium');await H.until(()=>G.sceneName==='venue'&&PokaDebug.venueState()?.floor===12&&PokaDebug.idle(),20000);await H.wait(800);
   expect(await H.dbg('museumDonate'),'かんちょうに 話しかけられない');await H.dialogs();
   await H.page.locator('.dn-grid').waitFor({timeout:8000});await H.wait(300);
   let v=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),cells=[...document.querySelectorAll('.dn-cell')],go=document.querySelector('.dn-foot .btn');
@@ -1572,10 +1605,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   v=await H.eval(()=>[...document.querySelectorAll('.dn-cell')].map(c=>[c.dataset.key,c.querySelector('.tag').textContent,c.disabled]));
   expect(v.find(c=>c[0]==='ayu')[1]==='きふずみ'&&v.find(c=>c[0]==='ayu')[2],'寄贈した 魚が「きふずみ」に ならない '+JSON.stringify(v));
   await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.idle();
-  // 水そう（かわの ながれ）に アユが およぐ
-  const swim=await H.eval(()=>{const s=G.scene.map.sprites.find(x=>x.o?.id==='aq_flow'),a=Museum.art({id:'aq_flow',bits:Museum.shown(G.scene,s.o)});return {bits:Museum.shown(G.scene,s.o),slots:(a.slots||[]).map(x=>x.id),img:!!(a.slots&&a.slots[0]&&Museum.fishImg(a.slots[0],false))};});
-  expect(swim.bits==='1000000'&&swim.slots.join()==='ayu'&&swim.img,'水そうに アユが いない '+JSON.stringify(swim));
-  await H.dbg('museumGo','aquarium','river');await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);await H.wait(1200);await H.shot('swim');
+  // 水そう（13F かわの ながれ）に アユが およぐ
+  await H.dbg('museumGo','aquarium','river');await H.until(()=>G.sceneName==='venue'&&PokaDebug.venueState()?.floor===13&&PokaDebug.idle(),20000);await H.wait(1400);
+  const swim=await H.dbg('aquaTank','aq_flow');expect(swim&&swim.here&&swim.floor===13&&swim.fish.join()==='ayu','水そうに アユが いない '+JSON.stringify(swim));
+  await H.shot('swim');
   // はかせ: コンプソグナトゥスの あたまと からだ → かんせい
   await H.dbg('fossilGive','compso.head');await H.dbg('fossilGive','compso.body');
   await H.dbg('museumGo','museum');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='museum'&&PokaDebug.idle(),10000);await H.wait(800);
@@ -1611,17 +1644,17 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
   await H.dbg('fishGive','ayu');await H.dbg('museumGive','fish','ayu');await H.dbg('museumGive','bone','trex.skull');
   // かわの ながれ（aq_flow: 13〜23, 1〜2）の まえで 上を むいて ok
-  await H.dbg('teleport','aquarium',18,3,'up');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='aquarium'&&PokaDebug.idle(),10000);await H.wait(800);
-  await H.page.keyboard.press('Enter');await H.page.locator('.ex-card').waitFor({timeout:6000});await H.wait(300);
+  await H.dbg('museumGo','aquarium','river');await H.until(()=>G.sceneName==='venue'&&PokaDebug.venueState()?.floor===13&&PokaDebug.idle(),20000);await H.wait(1400);
+  expect(await H.dbg('museumShow','aq_flow'),'水そうを しらべられない');await H.page.locator('.ex-card').waitFor({timeout:6000});await H.wait(300);
   let v=await H.eval(()=>{const e=document.querySelector('.ex-card'),b=e.getBoundingClientRect(),fish=[...e.querySelectorAll('.ex-fish')];return {say:e.querySelector('.say').innerText,plate:e.querySelector('.plate').innerText,fish:fish.map(x=>[x.dataset.key,x.innerText,x.disabled]),inside:b.left>=0&&b.right<=innerWidth+1,tall:fish.every(x=>x.getBoundingClientRect().height>=43.5),svg:!!e.querySelector('.art svg')};});
-  expect(/7しゅの うち 1しゅ/.test(v.say)&&v.plate==='さとの かわ'&&v.fish.length===7&&v.fish[0][1]==='アユ'&&!v.fish[0][2]&&v.fish.slice(1).every(x=>x[1]==='？？？'&&x[2])&&v.inside&&v.tall&&v.svg,'水そうの 説明が 不正 '+JSON.stringify(v));
+  expect(/7しゅの うち 1しゅ/.test(v.say)&&v.plate==='かわと たき'&&v.fish.length===7&&v.fish[0][1]==='アユ'&&!v.fish[0][2]&&v.fish.slice(1).every(x=>x[1]==='？？？'&&x[2])&&v.inside&&v.tall&&v.svg,'水そうの 説明が 不正 '+JSON.stringify(v));
   await H.shot('tank');
   await H.page.locator('.ex-fish[data-key="ayu"]').click();await H.page.locator('.fish-detail').waitFor({timeout:6000});await H.wait(300);
   expect(/すいぞくかんに いるよ/.test(await H.eval(()=>document.querySelector('.fish-detail').innerText)),'ずかんに「すいぞくかんに いるよ」が ない');
   await H.shot('dex');
   await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(250);await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.idle();
   // 展示を タップ（ほんとうの タップ）→ となりまで 歩いて 説明（かわの そこ aq_bed）
-  const bed=(await H.dbg('world')).objects.find(o=>o.id==='aq_bed');await H.tap(bed.cx,bed.cy);
+  const bed=await H.dbg('venuePoint',0,0,'かわの そこ');await H.page.touchscreen.tap(bed.x,bed.y);
   await H.page.locator('.ex-card').waitFor({timeout:10000});await H.wait(300);
   expect(/かわの そこ/.test(await H.eval(()=>document.querySelector('.modal-wrap:not(.out) .panel-title').innerText)),'タップした 展示の 説明が 出ない');
   await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.idle();
@@ -2609,7 +2642,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  // フロアマップ: 3F の パズルへ（エレベーターで いって あるく）
  await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
  const g=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.mall-guide .btn')];return {tabs:[...document.querySelectorAll('.mall-guide .mg-tabs .btn')].map(b=>b.textContent).join(),small:bs.filter(b=>r(b).height<43.5).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5).length,over:bs.filter(b=>b.scrollWidth>b.clientWidth+1).length,spots:document.querySelectorAll('.mall-guide .mg-spot').length};});
- expect(g.tabs==='1F,2F,3F'&&!g.small&&!g.out&&!g.over&&g.spots>=8,'フロアマップの ボタン '+JSON.stringify(g));await H.shot('mall-map');
+ expect(g.tabs==='1F,2F,3F,12F,13F'&&!g.small&&!g.out&&!g.over&&g.spots>=8,'フロアマップの ボタン '+JSON.stringify(g));await H.shot('mall-map');
  await H.page.getByRole('button',{name:'3F',exact:true}).click();await H.page.locator('.mall-guide .mg-spot[data-label="なかよしパズル"]').click();
  await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===3&&!s.changingFloor;},20000);await H.until(()=>{const v=PokaDebug.venueIso();return v.leader[1]>=5&&v.leader[1]<=7&&v.leader[0]>=12&&v.leader[0]<=19;},20000);
  v=await H.dbg('venueIso');expect(v.holes>=2,'3Fの ふきぬけ');await H.shot('mall-3f');

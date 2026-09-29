@@ -170,10 +170,10 @@ const IkeMall = {
 };
 // フロアマップ（サンシャインシティの 案内図の ように 上から 見た 図・店の いろ・マーク）。えらぶと そこまで あるく（ちがう 階は エレベーターで）
 const MallGuide = {
-  MARK: { elevatorCall: "elev", toiletDoor: "wc", info: "info", aed: "aed", locker: "locker", exitMat: "exit", stage: "stage", fountain: "fountain", escalator: "esc", guide: "here" },
+  MARK: { elevatorCall: "elev", toiletDoor: "wc", info: "info", aed: "aed", locker: "locker", exitMat: "exit", stage: "stage", fountain: "fountain", escalator: "esc", stairs: "stairs", guide: "here" },
   places(r) {
     const out = [];
-    for (const z of r.zones || []) { const f = r.fixtures.find((f) => f.action && f.x >= z.x && f.x < z.x + z.w && f.y >= z.y && f.y < z.y + z.h && (f.action === "shop" || f.action === "eat" || f.action === "puzzle" || f.action === "info" || f.action === "buy")); if (f) out.push({ label: z.label, f, zone: z }); }
+    for (const z of r.zones || []) { const f = r.fixtures.find((f) => f.action && f.x >= z.x && f.x < z.x + z.w && f.y >= z.y && f.y < z.y + z.h && ["shop", "eat", "puzzle", "info", "buy", "tank", "curator", "sit"].includes(f.action)); if (f) out.push({ label: z.label, f, zone: z }); }
     for (const f of r.fixtures) if (this.MARK[f.kind] && f.label && f.kind !== "guide") out.push({ label: f.label, f });
     return out;
   },
@@ -182,7 +182,10 @@ const MallGuide = {
     let s = R(0, 0, W, H, "#F7F2E8", `rx="6"`);
     for (const h of r.holes || []) s += h.kind === "ellipse" ? `<circle cx="${h.x * S}" cy="${h.y * S}" r="${h.r * S}" fill="#DCEFF3" stroke="${INK}" stroke-width="1.2" stroke-dasharray="4 3"/>` : R(h.x * S, h.y * S, h.w * S, h.h * S, "#E5E0D6", `stroke-dasharray="3 2"`);
     if (r.id === "ike1") { const a = IkeMall.AT; s += `<circle cx="${a.x * S}" cy="${a.y * S}" r="${6.2 * S}" fill="#F0E3C9" stroke="#C9B28C" stroke-width="1.2"/><circle cx="${a.x * S}" cy="${a.y * S}" r="${2.4 * S}" fill="#9FD3E0" stroke="${INK}" stroke-width="1.2"/>`; }
-    (r.zones || []).forEach((z, i) => { const sh = MallArt.SHOP[z.shop], name = z.label.length > 7 ? z.label.split(" ") : [z.label]; s += R(z.x * S + 1, z.y * S + 1, z.w * S - 2, z.h * S - 2, sh.c[0], `rx="3"`) + `<circle cx="${z.x * S + 9}" cy="${z.y * S + 9}" r="7" fill="#355C7D"/><text x="${z.x * S + 9}" y="${z.y * S + 12.5}" font-size="9" font-weight="900" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif">${i + 1}</text>` + name.map((t, k) => `<text x="${(z.x + z.w / 2) * S}" y="${(z.y + z.h / 2) * S + 4 + (k - (name.length - 1) / 2) * 11}" font-size="${z.w < 8 ? 8 : 10}" font-weight="800" text-anchor="middle" fill="${INK}" font-family="'M PLUS Rounded 1c',sans-serif">${t}</text>`).join(""); });
+    (r.zones || []).forEach((z, i) => { const sh = MallArt.SHOP[z.shop]; s += R(z.x * S + 1, z.y * S + 1, z.w * S - 2, z.h * S - 2, sh.c[0], `rx="3"`) + `<circle cx="${z.x * S + 9}" cy="${z.y * S + 9}" r="7" fill="#355C7D"/><text x="${z.x * S + 9}" y="${z.y * S + 12.5}" font-size="9" font-weight="900" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif">${i + 1}</text>`; });
+    // 順路の やじるし（すいぞくかん）は 店の なまえの した
+    for (const d of r.decals || []) if (d.kind === "arrow") { const ang = d.dir === "x" ? (d.back ? Math.PI : 0) : d.back ? -Math.PI / 2 : Math.PI / 2; s += `<g transform="translate(${d.x * S} ${d.y * S}) rotate(${(ang * 180) / Math.PI})"><path d="M8,0 L-4,-6 L-1,0 L-4,6 Z" fill="#E8575A"/></g>`; }
+    (r.zones || []).forEach((z) => { const sh = MallArt.SHOP[z.shop], name = z.label.length > 7 ? z.label.split(" ") : [z.label]; s += name.map((t, k) => `<text x="${(z.x + z.w / 2) * S}" y="${(z.y + z.h / 2) * S + 4 + (k - (name.length - 1) / 2) * 11}" font-size="${z.w < 8 ? 8 : 10}" font-weight="800" text-anchor="middle" fill="${INK}" stroke="${sh.c[0]}" stroke-width="3" stroke-linejoin="round" paint-order="stroke" font-family="'M PLUS Rounded 1c',sans-serif">${t}</text>`).join(""); });
     // 通りの なまえ（サンシャインシティの 案内図の ように）
     if (r.id === "ike1") s += `<text x="${4 * S}" y="${7.4 * S}" font-size="9" font-weight="800" fill="#7C6B55" font-family="'M PLUS Rounded 1c',sans-serif">おおどおり</text><text x="${IkeMall.AT.x * S}" y="${(IkeMall.AT.y + 4.4) * S}" font-size="9" font-weight="800" text-anchor="middle" fill="#7C6B55" font-family="'M PLUS Rounded 1c',sans-serif">ふんすい ひろば</text>`;
     for (const f of r.fixtures) { const m = this.MARK[f.kind]; if (!m || m === "fountain" || m === "stage") continue; s += this.icon(m, (f.x + f.w / 2) * S, (f.y + f.h / 2) * S); }
@@ -198,6 +201,7 @@ const MallGuide = {
     if (m === "locker") return box("#8D949B", `<rect x="3" y="3" width="4" height="10" fill="#fff"/><rect x="9" y="3" width="4" height="10" fill="#fff"/>`);
     if (m === "exit") return box("#6BAA75", `<path d="M3,8 H11 M8,4 L12,8 L8,12" stroke="#fff" stroke-width="2" fill="none"/>`);
     if (m === "esc") return box("#C98A52", `<path d="M3,12 H6 L11,5 H13" stroke="#fff" stroke-width="2" fill="none"/>`);
+    if (m === "stairs") return box("#8C7A64", `<path d="M3,13 H6 V10 H9 V7 H12 V4 H13" stroke="#fff" stroke-width="2" fill="none"/>`);
     return "";
   },
   async open(sc) {
@@ -216,7 +220,10 @@ const MallGuide = {
       m && m.close(); sc.busy = false;
       if (fl === sc.floor) { walk(p); return; }
       // ちがう 階: エレベーターで いって から あるく
-      const r = sc.def.floors[fl]; Sound.se("good"); sc.changeFloor(fl, r.elevatorSpawn || r.spawn); sc.afterLift = () => walk(p);
+      // エレベーターの ない 階（13F）は、エレベーターで いける 階の かいだんを のぼった ところから
+      const r = sc.def.floors[fl], up = r.noElevator && Object.values(sc.def.floors).flatMap((q) => (q.noElevator ? [] : q.fixtures)).find((q) => q.action === "floor" && q.to === fl);
+      Sound.se("good"); if (up) UI.toast("かいだんで " + fl + "F へ");
+      sc.changeFloor(fl, up ? up.spawn : r.elevatorSpawn || r.spawn); sc.afterLift = () => walk(p);
     };
     const render = () => {
       tabs.replaceChildren(...Object.keys(sc.def.floors).map((k) => { const b = UI.btn(k + "F", () => { floor = +k; Sound.se("tap"); render(); }, "small" + (+k === floor ? " yellow" : "")); return b; }));

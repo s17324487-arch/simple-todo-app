@@ -496,6 +496,16 @@ const PokaDebug = {
   },
   // ⑤ 館（aquarium / museum）へ。room を わたすと その へやの まんなかの 手前（下の ほう）の 床に（展示の うしろに かくれない）
   museumGo(id = "aquarium", room) {
+    // UI-05: すいぞくかんは サンシャインいけぶ 12F・13F（room は あたらしい へや。むかしの へやの 名前も うけつける）
+    if (id === "aquarium" && typeof IkeAquarium !== "undefined") {
+      const old = { entrance: "lobby", tunnel: "tunnel", esc: "tunnel", stream: "river", river: "river", pond: "pond", ring: "sea", tide: "iso", deep: "deep", shop: "shop" }, zid = old[room] || room || "lobby";
+      const fl = IkeAquarium.ZONES[13].some((z) => z.id === zid) ? 13 : 12, z = IkeAquarium.ZONES[fl].find((q) => q.id === zid); if (!z) throw new Error("unknown room: " + room);
+      const r = VenueHalls.defs.mall.floors[fl], sc = new SCENES.venue(); sc.room = r; sc.fixtures = r.fixtures; let best = null;
+      for (let y = z.y; y < z.y + z.h; y++) for (let x = z.x; x < z.x + z.w; x++) if (sc.walkable(x, y)) { const d = Math.abs(x - (z.x + z.w / 2)) + Math.abs(y - (z.y + z.h - 2)); if (!best || d < best[2]) best = [x, y, d]; }
+      const b = MAP_DEFS.city.buildings.find((b) => b.id === "ike_mall"); Game.trans = null;
+      Game.goto("venue", { venue: "mall", floor: fl, at: best ? [best[0], best[1]] : null, back: { map: "city", x: b.x + b.door, y: b.y + b.h, dir: "down" } }, "none");
+      return { floor: fl, x: best && best[0], y: best && best[1] };
+    }
     const b = Museum.building(id); if (!b) throw new Error("unknown museum: " + id);
     let x = b.arrive.x, y = b.arrive.y;
     if (room) {
@@ -517,6 +527,7 @@ const PokaDebug = {
   },
   // ⑤ 館の 人に 話しかけて 寄贈の 画面へ（会話は テストが すすめる）。museumPick(key) → museumConfirm()
   museumDonate() {
+    if (G.sceneName === "venue" && G.scene.room && G.scene.room.aqua) { const sc = G.scene, f = sc.fixtures.find((f) => f.action === "curator"); if (!f || sc.busy) return false; IkeAquarium.interact(sc, f); return true; }
     const sc = G.sceneName === "world" ? G.scene : null, n = sc && sc.map.def.indoor && sc.npcs.find((x) => x.role === "donate");
     if (!n || sc.busy) return false;
     sc.interact({ type: "npc", npc: n });
@@ -526,7 +537,17 @@ const PokaDebug = {
   // きふする（ありがとうの 会話は テストが すすめる ので またない）
   museumConfirm() { if (!Museum.picking || !Museum.picking.sel()) return false; Museum.picking.confirm(); return true; },
   // ⑤ 展示の 説明を ひらく（objId は "aq_flow"・"mu_trex"・"mu_f1" など）
-  museumShow(objId) { const o = Museum.object(objId); if (!o) throw new Error("unknown exhibit: " + objId); return !!Museum.show(G.sceneName === "world" ? G.scene : null, o); },
+  museumShow(objId) {
+    const o = Museum.object(objId); if (!o) throw new Error("unknown exhibit: " + objId);
+    if (o.map === "aquarium" && typeof IkeAquarium !== "undefined") { const f = [12, 13].flatMap((fl) => VenueHalls.defs.mall.floors[fl].fixtures).find((f) => f.obj === objId && f.action === "tank"); return !!(f && IkeAquarium.show(f)); }
+    return !!Museum.show(G.sceneName === "world" ? G.scene : null, o);
+  },
+  // UI-05: 12F・13F の 水そうで およいで いる 魚（寄贈した 魚だけ・絵が よみこめて いるか）
+  aquaTank(objId) {
+    const f = G.sceneName === "venue" && G.scene.fixtures.find((f) => f.obj === objId), sc = G.scene, o = IkeAquarium.obj(objId); if (!o) return null;
+    const wall = sc && sc.room && [...(sc.room.walls?.north || []), ...(sc.room.walls?.west || [])].find((p) => p.obj === objId);
+    return { here: !!(f || wall), floor: G.sceneName === "venue" ? sc.floor : null, fish: o.fish.filter((id) => Museum.gaveFish(id)) };
+  },
   // ⑤ 寄贈の きろく（2番で ふえる）と 入った へや
   museumState() { const st = Save.d.museum; return { fish: Object.keys(st.fish).length, bones: Object.keys(st.bones).length, done: Object.keys(st.done), rooms: Object.keys(st.rooms), intro: document.querySelector(".museum-intro")?.innerText || null }; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
