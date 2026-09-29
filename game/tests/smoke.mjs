@@ -2625,6 +2625,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.dbg('venue','mall');await H.idle();await H.until(()=>PokaDebug.venueIso()?.ready,20000);let v=await H.dbg('venueIso');expect(v.iso&&v.floor===1&&v.crowd>=4&&v.holes===0,'1Fが 斜めの 館で ない '+JSON.stringify(v));
  const ui=async()=>H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.venue-controls .btn,.store-home')];return {small:bs.filter(b=>r(b).height<44).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5||r(b).bottom>innerHeight+0.5).length,wide:document.documentElement.scrollWidth>innerWidth};});
  let u=await ui();expect(!u.small&&!u.out&&!u.wide,'そうさの ボタン '+JSON.stringify(u));await H.shot('mall-1f');
+ // 店内 BGM は フロアの 名曲（1F ガヴォット）。服の 台は マネキン（わんこの ミニモデルを つかわない）
+ const bgm=()=>H.eval(()=>Sound.cur?.name||Sound.want);expect(await bgm()==='mall_1f','1F の BGM '+await bgm());
+ const mq=await H.eval(()=>{const k=[...SvgCache.map.keys()];return {mq:new Set(k.filter(x=>x.startsWith('mannequin:')).map(x=>x.split('@')[0])).size,wanko:k.filter(x=>x.startsWith('mallwear:')).length};});
+ expect(mq.mq>=9&&!mq.wanko,'服の 台が マネキンで ない '+JSON.stringify(mq));
  // ゆかを タップして あるく
  const tapTile=async(x,y)=>{const p=await H.dbg('venuePoint',x,y);await H.page.touchscreen.tap(p.x,p.y);};
  await tapTile(5,21);await H.until(()=>{const v=PokaDebug.venueIso();return v.leader[0]===5&&v.leader[1]===21;},15000);
@@ -2636,6 +2640,9 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  const shown=await H.eval(()=>document.querySelector('.panel')?.textContent||''),wear=wears.find(f=>shown.includes(f.label));expect(wear,'タップした 台の 品物が 出ない '+shown.slice(0,80));
  await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.wait(300);
  const kiru=H.page.getByRole('button',{name:'きる！',exact:true});if(await kiru.count())await kiru.click();await H.idle();expect((await H.dbg('saveData')).wardrobe[wear.item],'台から かえない '+wear.item);
+ // レジの 画面でも フロアの 曲の まま（とちゅうから やりなおさない）
+ await H.dbg('venueVisit','はねーずの レジ');const closeBtn=H.page.getByRole('button',{name:'とじる',exact:true}).last();await closeBtn.waitFor();expect(await bgm()==='mall_1f','レジの 画面の BGM '+await bgm());
+ await closeBtn.click();await H.idle();expect(await bgm()==='mall_1f','レジを とじた あとの BGM '+await bgm());
  // ステージ・ふんすい
  await H.dbg('venueVisit','ステージ');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();
  await H.dbg('venueVisit','ふんすい ひろば');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();await H.shot('mall-fountain');
@@ -2644,10 +2651,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  const g=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.mall-guide .btn')];return {tabs:[...document.querySelectorAll('.mall-guide .mg-tabs .btn')].map(b=>b.textContent).join(),small:bs.filter(b=>r(b).height<43.5).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5).length,over:bs.filter(b=>b.scrollWidth>b.clientWidth+1).length,spots:document.querySelectorAll('.mall-guide .mg-spot').length};});
  expect(g.tabs==='1F,2F,3F,12F,13F'&&!g.small&&!g.out&&!g.over&&g.spots>=8,'フロアマップの ボタン '+JSON.stringify(g));await H.shot('mall-map');
  await H.page.getByRole('button',{name:'3F',exact:true}).click();await H.page.locator('.mall-guide .mg-spot[data-label="なかよしパズル"]').click();
- await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===3&&!s.changingFloor;},20000);await H.until(()=>{const v=PokaDebug.venueIso();return v.leader[1]>=5&&v.leader[1]<=7&&v.leader[0]>=12&&v.leader[0]<=19;},20000);
- v=await H.dbg('venueIso');expect(v.holes>=2,'3Fの ふきぬけ');await H.shot('mall-3f');
+ await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===3&&!s.changingFloor;},20000);await H.until(()=>{const v=PokaDebug.venueIso();return v.leader[1]>=7&&v.leader[1]<=10&&v.leader[0]>=14&&v.leader[0]<=23;},20000);
+ v=await H.dbg('venueIso');expect(v.holes>=2,'3Fの ふきぬけ');expect(await bgm()==='mall_3f','3F の BGM '+await bgm());await H.shot('mall-3f');
  // エスカレーターで 2F・エレベーターで 1F
- await H.dbg('venueVisit','2Fへ おりる');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===2&&!s.changingFloor;},20000);await H.idle();await H.shot('mall-2f');
+ await H.dbg('venueVisit','2Fへ おりる');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===2&&!s.changingFloor;},20000);await H.idle();expect(await bgm()==='mall_2f','2F の BGM '+await bgm());await H.shot('mall-2f');
  await H.dbg('venueVisit','すばーたっくすの テーブル');await H.page.getByRole('button',{name:/ふわラテ/}).click();await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();
  await H.dbg('venueVisit','エレベーター');await H.page.getByRole('button',{name:'1F',exact:true}).click();await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===1&&!s.changingFloor;},20000);await H.idle();
  expect((await H.dbg('venueIso')).leader.join()==='2,12','エレベーターを おりた 場所');

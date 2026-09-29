@@ -52,19 +52,35 @@ const IsoVenue = {
     }
     return out;
   },
-  // 静止画（床・かべ）を 部屋ごとに 1まい。大きさは 端末の こまかさで 上限を つける
+  // 静止画（床・かべ）を 部屋ごとに 1まい 描いて、TILE の 四角に きりわける（大きすぎる canvas は まいかい 描くのが とても おそい）
   cache: [],
+  TILE: 1024,
   async build(sc, r) {
     const hit = this.cache.find((c) => c.room === r && c.k === sc.k); if (hit) return hit;
-    // 大きな 1まい なので こまかさに 上限（3ばいの 画面でも 1.2）。メモリは 1フロア 35MB くらいまで
+    // こまかさに 上限（3ばいの 画面でも 1.2）。メモリは 1フロア 45MB くらいまで
     const art = sc.def.art, b = this.bounds(r), k = Math.min(sc.k, 1.2), cv = document.createElement("canvas");
     if (art && art.prepare) await art.prepare(r, sc);
     cv.width = Math.ceil(b.w * k); cv.height = Math.ceil(b.h * k);
     const g = cv.getContext("2d"); g.setTransform(k, 0, 0, k, -b.x * k, -b.y * k);
     if (art && art.paint) art.paint(g, r, sc); else this.plainPaint(g, r);
-    const out = { room: r, k: sc.k, b, cv };
+    const tiles = [], T = this.TILE;
+    for (let y = 0; y < cv.height; y += T) for (let x = 0; x < cv.width; x += T) {
+      const t = document.createElement("canvas"); t.width = Math.min(T, cv.width - x); t.height = Math.min(T, cv.height - y);
+      t.getContext("2d").drawImage(cv, x, y, t.width, t.height, 0, 0, t.width, t.height); tiles.push({ x, y, cv: t });
+    }
+    cv.width = cv.height = 0;
+    const out = { room: r, k: sc.k, b, px: k, tiles };
     this.cache.push(out); if (this.cache.length > 2) this.cache.shift();
     return out;
+  },
+  // 静止画を 画面に（見える タイルだけ）。q は 静止画の 左上の 画面の 位置、s は 投影 → 画面
+  drawStatic(ctx, hit, q, s) {
+    const f = s / hit.px;
+    for (const t of hit.tiles) {
+      const x = q.x + t.x * f, y = q.y + t.y * f, w = t.cv.width * f, h = t.cv.height * f;
+      if (x > G.W || y > G.H || x + w < 0 || y + h < 0) continue;
+      ctx.drawImage(t.cv, x, y, w + 0.5, h + 0.5);
+    }
   },
   plainPaint(g, r) {
     const P = (x, y, z) => this.p(x, y, z), poly = (pts, fill) => { g.beginPath(); pts.forEach((q, i) => (i ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y))); g.closePath(); g.fillStyle = fill; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.5; g.stroke(); };
@@ -192,7 +208,7 @@ class IsoVenueScene extends VenueScene {
   layerIso(ctx, room, fixtures, party, cam, floor, offset) {
     const keep = this.cam; this.cam = cam;
     const hit = IsoVenue.cache.find((c) => c.room === room && c.k === this.k), s = this.s;
-    if (hit) { const b = hit.b, q = this.toScreen({ x: b.x, y: b.y }, offset); ctx.drawImage(hit.cv, q.x, q.y, b.w * s, b.h * s); }
+    if (hit) IsoVenue.drawStatic(ctx, hit, this.toScreen({ x: hit.b.x, y: hit.b.y }, offset), s);
     const art = this.def.art;
     if (art.under) art.under(ctx, this, room, floor, offset);
     const view = { x0: cam.x - G.W / 2 / s - 200, x1: cam.x + G.W / 2 / s + 200, y0: cam.y - G.H / 2 / s - 400, y1: cam.y + G.H / 2 / s + 400 };
@@ -200,11 +216,11 @@ class IsoVenueScene extends VenueScene {
       if (o.who) return true; const r = IsoVenue.rectOf(IsoVenue.shape(o)); return r.x < view.x1 && r.x + r.w > view.x0 && r.y < view.y1 && r.y + r.h > view.y0;
     });
     const sorted = IsoVenue.order(list);
-    // 3人の まえに ある 大きな もの は すける（うしろに かくれて 見えなく ならない ように）
+    // 3人の まえに ある 大きな もの（と 頭の 上の いた fadeOver）は すける（うしろに かくれて 見えなく ならない ように）
     const members = sorted.filter((o) => o.who).map((o) => ({ o, r: this.memberRect(party[Save.d.order.indexOf(o.who)]) }));
     for (const o of sorted) {
       o.offset = offset; o.alpha = 1;
-      if (!o.who && o.f && (o.f.height ?? 40) > 70 && !o.f.noFade) {
+      if (!o.who && o.f && ((o.f.height ?? 40) > 70 || o.f.fadeOver) && !o.f.noFade) {
         const r = IsoVenue.rectOf(IsoVenue.shape(o)), i = sorted.indexOf(o);
         if (members.some((m) => sorted.indexOf(m.o) < i && m.r.x < r.x + r.w && m.r.x + m.r.w > r.x && m.r.y < r.y + r.h && m.r.y + m.r.h > r.y && this.coversMember(o, m))) o.alpha = 0.42;
       }

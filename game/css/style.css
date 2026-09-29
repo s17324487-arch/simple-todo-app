@@ -238,6 +238,8 @@ html, body {
 .row.wrap { flex-wrap: wrap; }
 .spacer { flex: 1; }
 .note { background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 12px; padding: 8px 10px; font-size: 13px; font-weight: 700; margin: 8px 0; }
+/* 品物の せつめい（かう まえの 画面）は 文節の すきまで おりかえす */
+.dress-stage ~ .note { word-break: keep-all; overflow-wrap: anywhere; }
 
 /* ---- 着せ替え ---- */
 .dress-stage { position: relative; height: 230px; border: 3px solid var(--ink); border-radius: 18px; background: linear-gradient(#dff3ff, #fff3c4); overflow: hidden; margin-bottom: 10px; }

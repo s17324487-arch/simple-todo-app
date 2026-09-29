@@ -122,6 +122,7 @@
 | `js/water-art.js` | 水の 絵（川・海・湖。なめらかな 岸・ふかさ・ながれ・波。マスの 形は かえない） |
 | `js/npc-art.js` / `js/npc-cast.js` | 町の人の 絵（35しゅ・顔の ぶひん・もよう）と、1人ずつの 見た目・名前（おなじ 人は いない）・お店の お客さん 60人 |
 | `js/iso-venue.js` / `js/mall-art.js` / `js/ike-mall.js` | サンシャインいけぶ（池袋の モール）を おうちと おなじ 斜め上から 見る 館に。投影・奥行き・タップ（`IsoVenue`・`IsoVenueScene`）・内装の 絵と 買い物の 人（`MallArt`）・1F〜3F の 配置と フロアマップ（`IkeMall`・`MallGuide`） |
+| `js/ike-wear.js` / `js/mall-music.js` | サンシャインいけぶの 服 9ちゃくの 絵（そで・うしろ すがた・よこむき。`IkeWear`）と 店に かざる マネキン（`WearMannequin`）、フロアごとの 店内 BGM（パブリックドメインの 名曲 3きょく・出典つき。`MallMusic`） |
 | `js/aqua-art.js` / `js/ike-aquarium.js` | サンシャインいけぶ 12F・13F の すいぞくかん（みなとから おひっこし）。かべの 水そう・トンネル・そらの テラスの 絵（`AquaArt`）と、ぐるっと 一周 できる 順路・へやの 案内・きふ（`IkeAquarium`） |
 | `js/crane-physics.js` / `js/crane-art.js` / `js/crane-machines.js` / `js/crane-scene.js` | クレーンゲーム（池袋 Meeときょれじゃ の 8台）。物理（`CranePhys`）・景品と 台の 絵（`CraneArt`）・8台の しかけと 1かいの あそび（`CraneMachines`・`CraneRound`）・画面と 100コイン・ごほうび・つづきから（`SCENES.prize`・`PrizeArcade`） |
 | `js/maps.js` | マップ（町は ASCII の手描き、外の世界は `FieldGen` で決まった形に生成） |

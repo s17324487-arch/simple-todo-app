@@ -206,6 +206,8 @@ const MallArt = {
   // 奥の かべ（北は x に そって、西は y に そって）。店の うしろの かべ・かんばん・エレベーター は かべの 絵。
   // かべの 中の 高さは z（床から）で きめる: v = H - z。店の かべは z 0〜250、その 上は 天じょうの ふち（1F は 2かい・3がいの てすり）
   ZTOP: 250,
+  // 店の 入口の はしらと 名前の いたの 高さ（店の 中の マネキンや 家具に かからない ように 高め）
+  FRONT: 236,
   wallSvg(r, side) {
     const L = (side === "north" ? r.w : r.h) * IsoVenue.T, H = r.wallH || 300, parts = (r.walls && r.walls[side]) || [], V = (z) => H - z, zt = this.ZTOP;
     let s = `<rect width="${L}" height="${H}" fill="${r.wallColor || this.C.wall}"/>`;
@@ -407,13 +409,13 @@ const MallArt = {
     },
     // 店の まえの 名前の いた（頭の 上。はしらは post）
     fascia(S, f) {
-      const sh = MallArt.SHOP[f.shop] || { c: ["#E7DDCB", "#DCCFB8", "#B9A487"] }, c = sh.c, z = f.z || 190;
+      const sh = MallArt.SHOP[f.shop] || { c: ["#E7DDCB", "#DCCFB8", "#B9A487"] }, c = sh.c, z = f.z || MallArt.FRONT;
       return f.w >= f.h ? S.box(0, 0.3, f.w, 0.34, z, 36, ["#FFF8EA", c[0], c[1]]) + S.box(0.2, 0.62, f.w - 0.4, 0.04, z + 6, 24, ["#FFFDF6", "#FFFDF6", c[1]], 1.2) : S.box(0.3, 0, 0.34, f.h, z, 36, ["#FFF8EA", c[1], c[0]]);
     },
     // 店の かどの はしら
     post(S, f) {
       const sh = MallArt.SHOP[f.shop] || { c: ["#E7DDCB", "#DCCFB8", "#B9A487"] }, c = sh.c;
-      return S.box(0.34, 0.34, 0.32, 0.32, 0, 190, [c[0], c[1], c[2]]) + S.box(0.28, 0.28, 0.44, 0.44, 0, 12, ["#CDBB9C", "#BCA886", "#A99573"]);
+      return S.box(0.34, 0.34, 0.32, 0.32, 0, MallArt.FRONT, [c[0], c[1], c[2]]) + S.box(0.28, 0.28, 0.44, 0.44, 0, 12, ["#CDBB9C", "#BCA886", "#A99573"]);
     },
     // 服の ラック
     rack(S, f) {
@@ -435,10 +437,10 @@ const MallArt = {
       if (f.low) return S.box(0.06, 0.06, f.w - 0.12, f.h - 0.12, 0, 10, ["#D9BD92", "#C3A375", "#AD8E63"]) + S.poly([[0.3, 0.3, 10.5], [f.w - 0.3, 0.3, 10.5], [f.w - 0.3, f.h - 0.3, 10.5], [0.3, f.h - 0.3, 10.5]], sh.c[0], 1.2) + S.box(f.w - 0.62, f.h - 0.34, 0.34, 0.06, 10, 18, ["#FFFFFF", "#FFFFFF", "#E8E0D0"], 1);
       return S.ellipse(f.w / 2, f.h / 2, 0, Math.max(f.w, f.h) * 0.45, "#00000012", 0) + S.box(0.08, 0.08, f.w - 0.16, f.h - 0.16, 0, 30, ["#FFFBF2", sh.c[0], sh.c[1]]);
     },
-    // まるい 台（マネキンの かわりに キャラの ミニモデル）
+    // まるい 台（上に 服を きた マネキン）
     pedestal(S, f) {
       const sh = MallArt.SHOP[f.shop] || { c: ["#F1E7D6", "#E1D3BC", "#C9B79B"] };
-      return S.ellipse(0.5, 0.5, 0, 0.46, "#00000014", 0) + S.cyl(0.5, 0.5, 0.4, 0, 24, ["#FFFBF2", sh.c[0]]) + S.ellipse(0.5, 0.5, 24, 0.3, sh.c[1], 1.2);
+      return S.ellipse(0.5, 0.5, 0, 0.5, "#00000014", 0) + S.cyl(0.5, 0.5, 0.46, 0, 20, ["#FFFBF2", sh.c[0]]) + S.ellipse(0.5, 0.5, 20, 0.36, sh.c[1], 1.2) + S.ellipse(0.5, 0.5, 20, 0.2, "#FFFFFF66", 0);
     },
     // インフォメーション（まるい カウンター・「？」）
     info(S, f) {
@@ -636,7 +638,7 @@ const MallArt = {
       else MallArt.planeText(ctx, sc, off, "x", f.x + 0.57, f.y + f.h / 2, z, f.text || "", 17, (f.h - 0.3) * IsoVenue.T, "#FFFFFF");
     },
     fascia(ctx, sc, f, off) {
-      const z = (f.z || 190) + 18, name = f.label || (MallArt.SHOP[f.shop] || {}).name || "";
+      const z = (f.z || MallArt.FRONT) + 18, name = f.label || (MallArt.SHOP[f.shop] || {}).name || "";
       if (f.w >= f.h) MallArt.planeText(ctx, sc, off, "y", f.x + f.w / 2, f.y + 0.67, z, name, 20, (f.w - 0.6) * IsoVenue.T);
       else MallArt.planeText(ctx, sc, off, "x", f.x + 0.65, f.y + f.h / 2, z, name, 20, (f.h - 0.6) * IsoVenue.T);
     },
@@ -675,15 +677,17 @@ const MallArt = {
     band(P(0, r.h - 0.12, 16), P(r.w - 0.12, r.h - 0.12, 16), P(r.w, r.h, 16), P(0, r.h, 16), "#F4EEE2");
     band(P(r.w - 0.12, 0, 16), P(r.w, 0, 16), P(r.w, r.h, 16), P(r.w - 0.12, r.h - 0.12, 16), "#F4EEE2");
   },
-  // 品物（台の 上）: 家具は おうちと おなじ 立体、服は わんこの ミニモデル、たべものは アイコン
+  // 服の マネキン（台の 上に たつ）の 大きさ。3人より すこし 大きく して 服を 見やすく
+  mannequinSize(sc) { return sc.charSize() * 1.34; },
+  // 品物（台の 上）: 家具は おうちと おなじ 立体、服は マネキンが きて いる（WearMannequin）、たべものは アイコン
   drawItem(ctx, sc, f, off) {
     const s = sc.s, it = VenueHalls.item(f.item); if (!it) return;
-    const z = f.kind === "pedestal" ? 24 : f.low ? 10 : 30, q = sc.toScreen(IsoVenue.p(f.x + f.w / 2, f.y + f.h / 2 + (f.kind === "stand" && FURN_INDEX[f.item] ? 0.35 : 0), z), off);
+    const z = f.kind === "pedestal" ? 20 : f.low ? 10 : 30, q = sc.toScreen(IsoVenue.p(f.x + f.w / 2, f.y + f.h / 2 + (f.kind === "stand" && FURN_INDEX[f.item] ? 0.35 : 0), z), off);
     if (FURN_INDEX[f.item]) {
       const m = HomeDesign.model(f.item), pw = Math.ceil(m.w * sc.k), ph = Math.ceil(m.h * sc.k), img = SvgCache.get("mallfurn:" + f.item, () => m.full, pw, ph);
       if (img) ctx.drawImage(img, q.x + m.x * s, q.y + m.y * s, m.w * s, m.h * s);
     } else if (ITEM_INDEX[f.item]) {
-      const size = sc.charSize() * 0.9, pw = Chara.pxSize(size), ph = Math.round((pw * VB.h) / VB.w), img = SvgCache.get("mallwear:" + f.item, () => Chara.svg("wanko", { outfit: { [it.slot]: it.id }, face: "happy" }), pw, ph);
+      const size = this.mannequinSize(sc), pw = Chara.pxSize(size), ph = Math.round((pw * VB.h) / VB.w), img = SvgCache.get("mannequin:" + f.item, () => WearMannequin.svg(f.item), pw, ph);
       if (img) { const w = size, h = (size * VB.h) / VB.w; ctx.drawImage(img, q.x - ((FOOT.x - VB.x) / VB.w) * w, q.y - ((FOOT.y - VB.y) / VB.h) * h, w, h); }
     } else {
       const sz = 34 * s, img = SvgCache.get("mallbag:" + f.item, () => Art.iconSvg("bag", f.item), Math.ceil(sz * G.px), Math.ceil(sz * G.px));
@@ -695,7 +699,7 @@ const MallArt = {
     for (const f of r.fixtures) {
       if (!f.item) continue; const it = VenueHalls.item(f.item); if (!it) continue;
       if (FURN_INDEX[f.item]) { const m = HomeDesign.model(f.item); out.push(SvgCache.ensure("mallfurn:" + f.item, () => m.full, Math.ceil(m.w * sc.k), Math.ceil(m.h * sc.k))); }
-      else if (ITEM_INDEX[f.item]) { const size = sc.charSize() * 0.9, pw = Chara.pxSize(size); out.push(SvgCache.ensure("mallwear:" + f.item, () => Chara.svg("wanko", { outfit: { [it.slot]: it.id }, face: "happy" }), pw, Math.round((pw * VB.h) / VB.w))); }
+      else if (ITEM_INDEX[f.item]) { const pw = Chara.pxSize(this.mannequinSize(sc)); out.push(SvgCache.ensure("mannequin:" + f.item, () => WearMannequin.svg(f.item), pw, Math.round((pw * VB.h) / VB.w))); }
       else { const sz = 34 * sc.s; out.push(SvgCache.ensure("mallbag:" + f.item, () => Art.iconSvg("bag", f.item), Math.ceil(sz * G.px), Math.ceil(sz * G.px))); }
     }
     return out;
