@@ -82,7 +82,7 @@ const Save = {
       dex: {},
       itemDex: { furn: {}, wear: {}, claimed: { furn: {}, wear: {} } },
       stats: { battles: 0, wins: 0, coinsEarned: 0, shifts: 0, perfects: 0, fed: 0 },
-      settings: { bgm: true, se: true, difficulty: "normal" },
+      settings: { bgm: true, se: true, difficulty: "normal", worldZoom: 1 },
     };
   },
 

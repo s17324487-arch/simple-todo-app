@@ -50,6 +50,7 @@ const PokaDebug = {
       "PokaDebug.water('coast', 30, 10)   水の かたまりの しゅるい（川・海・湖）・岸・その マスの 色",
       "PokaDebug.cast('town_walker0')   町の人の 名前・種・見た目（id なしで 全員の ようす）",
       "PokaDebug.house()                     おうちへ",
+      "PokaDebug.worldZoom(0.5)              町の ズーム（0.5〜1.5・なしで ようす・第2引数 true で ゆっくり）。worldPoint(x, y) で マスの 画面の 位置",
       "PokaDebug.fishSpawn('magoi', 60)      3人の ちかくに 魚の かげ（cm で ながさが きまる）。fishAuto(false, true) で かってに 出さない",
       "PokaDebug.fishAim()                   かげの あたまの まえ（ながおしする 画面の ばしょ）。fishState() で うき・かげ・じまんの ようす",
       "PokaDebug.smaho('map')                すまほを ひらく（アプリ id: map・status・bag・dex・event・rally・hint・fortune・rewards・music。なしで ホーム・null で とじる）",
@@ -149,11 +150,22 @@ const PokaDebug = {
   world() {
     if(G.sceneName!=="world")return null;
     const sc=G.scene,r=G.canvas.getBoundingClientRect();
-    const point=(x,y)=>({cx:r.left+(x*TS+16-sc.cam.x+G.W/2)*G.cssPerUnit,cy:r.top+(y*TS+16-sc.cam.y+G.H/2)*G.cssPerUnit});
+    const point=(x,y)=>{const q=WorldZoom.toScreen(sc,x*TS+16,y*TS+16);return {cx:r.left+q.x*G.cssPerUnit,cy:r.top+q.y*G.cssPerUnit};};
     return {map:sc.mapId,party:sc.party.map((p,i)=>({id:Save.d.order[i],x:p.tx,y:p.ty})),
       objects:(sc.map.def.objects||[]).map(o=>({...o,...point(o.x+(o.w-1)/2,o.y+(o.h-1)/2)})),
       stops:sc.map.doors.filter(d=>d.b.act.type==="transit").map(d=>({id:d.b.act.stop,x:d.x,y:d.y,...point(d.x,d.y-1)})),
       active:sc.objectActive?.until>G.t?sc.objectActive.id:null};
+  },
+  // 町の ズーム: worldZoom() で ようす、worldZoom(0.5) で すぐに その 倍率（アニメなし）、worldZoom(0.5,true) で ゆっくり
+  worldZoom(z,animate=false) {
+    if(G.sceneName!=="world")return null;const sc=G.scene;
+    if(z!=null)WorldZoom.set(sc,+z,!animate);
+    return WorldZoom.state(sc);
+  },
+  // 町の マス (x, y) の まんなかの 画面の 位置（CSS の px。ズームを ふくむ）
+  worldPoint(x,y) {
+    if(G.sceneName!=="world")return null;const sc=G.scene,r=G.canvas.getBoundingClientRect(),q=WorldZoom.toScreen(sc,x*TS+16,y*TS+16);
+    return {x:r.left+q.x*G.cssPerUnit,y:r.top+q.y*G.cssPerUnit};
   },
   travel() { return G.sceneName==="travel"?{...G.scene.trip,elapsed:G.scene.elapsed,party:[...Save.d.order]}:null; },
   calendar(date) {
@@ -230,7 +242,7 @@ const PokaDebug = {
   },
   heiwadaiLife(time){
     if(arguments.length)HeiwadaiLife.clock=time;
-    const sc=G.scene,world=this.world(),r=G.canvas.getBoundingClientRect();return {...HeiwadaiLife.state(),night:DayTint.isNight(),cache:SvgCache.map.size,sceneryCache:[...SvgCache.map.keys()].filter(k=>/^(w:heiwadai_|heiwadai-life:|heiwadai-ground:)/.test(k)).length,sceneryLimit:HeiwadaiArt.entries.length+Object.keys(HEIWADAI_LAYOUT_DATA.patterns).length+3,npcs:sc?.mapId==='heiwadai'?sc.npcs.map(n=>({id:n.id,name:n.name,x:n.w.x,y:n.w.y,sp:n.sp,outfit:n.outfit,cx:r.left+((n.w.x+.5+(n.artOffset?.[0]||0))*TS-sc.cam.x+G.W/2)*G.cssPerUnit,cy:r.top+((n.w.y+.5+(n.artOffset?.[1]||0))*TS-sc.cam.y+G.H/2)*G.cssPerUnit})):[],...world};
+    const sc=G.scene,world=this.world(),r=G.canvas.getBoundingClientRect();return {...HeiwadaiLife.state(),night:DayTint.isNight(),cache:SvgCache.map.size,sceneryCache:[...SvgCache.map.keys()].filter(k=>/^(w:heiwadai_|heiwadai-life:|heiwadai-ground:)/.test(k)).length,sceneryLimit:HeiwadaiArt.entries.length+Object.keys(HEIWADAI_LAYOUT_DATA.patterns).length+3,npcs:sc?.mapId==='heiwadai'?sc.npcs.map(n=>({id:n.id,name:n.name,x:n.w.x,y:n.w.y,sp:n.sp,outfit:n.outfit,cx:r.left+WorldZoom.toScreen(sc,(n.w.x+.5+(n.artOffset?.[0]||0))*TS,0).x*G.cssPerUnit,cy:r.top+WorldZoom.toScreen(sc,0,(n.w.y+.5+(n.artOffset?.[1]||0))*TS).y*G.cssPerUnit})):[],...world};
   },
   heiwadaiState(){
     const m=Maps.get('heiwadai');return {size:[m.w,m.h],doors:m.doors.map(d=>({id:d.b.id,x:d.x,y:d.y,act:d.b.act})),safe:m.def.safeSpawn,aliases:m.def.idAliases};
@@ -443,7 +455,7 @@ const PokaDebug = {
     const sc=G.scene;if(G.sceneName!=="world")return null;
     const r=G.canvas.getBoundingClientRect();
     return sc.npcs.map(n=>{const s=NpcLife.init(sc,n),f=n.w.feet();return {id:n.id,x:n.w.tx,y:n.w.ty,fx:n.w.fx,fy:n.w.fy,moving:n.w.moving,talking:!!n.talking,dir:n.w.dir,action:s.action,elapsed:s.elapsed,bounds:s.bounds,visual:NpcLife.visual(n),
-      cx:r.left+(f.x+(n.artOffset?.[0]||0)*TS-sc.cam.x+G.W/2)*G.cssPerUnit,cy:r.top+(f.y-20+(n.artOffset?.[1]||0)*TS-sc.cam.y+G.H/2)*G.cssPerUnit};});
+      cx:r.left+WorldZoom.toScreen(sc,f.x+(n.artOffset?.[0]||0)*TS,0).x*G.cssPerUnit,cy:r.top+WorldZoom.toScreen(sc,0,f.y-20+(n.artOffset?.[1]||0)*TS).y*G.cssPerUnit};});
   },
   npcLifeAdvance(seconds=15) { if(G.sceneName!=="world")return null;for(let t=0;t<Math.min(60,Math.max(0,seconds));t+=0.05)NpcLife.update(G.scene,0.05);return this.npcLife(); },
   npcLifeAct(id,action) {const sc=G.scene,n=G.sceneName==="world"&&sc.npcs.find(n=>n.id===id);if(!n)return false;NpcLife.init(sc,n);if(n.w.moving)n.w.update(n.w.dur);n.w.dir="down";return NpcLife.start(n,action);},
@@ -471,7 +483,7 @@ const PokaDebug = {
   folkSpots(map) {
     const sc = G.sceneName === "world" ? G.scene : null, id = map || (sc && sc.mapId), r = G.canvas.getBoundingClientRect(); if (!id) return [];
     const w = Maps.get(id), free = (x, y) => !w.isSolid(x, y) && !w.warpAt(x, y) && !(sc && sc.mapId === id && sc.blockedByNpc(x, y));
-    const at = (x, y) => (sc && sc.mapId === id ? { cx: r.left + (x * TS + 16 - sc.cam.x + G.W / 2) * G.cssPerUnit, cy: r.top + (y * TS + 16 - sc.cam.y + G.H / 2) * G.cssPerUnit } : {});
+    const at = (x, y) => { if (!(sc && sc.mapId === id)) return {}; const q = WorldZoom.toScreen(sc, x * TS + 16, y * TS + 16); return { cx: r.left + q.x * G.cssPerUnit, cy: r.top + q.y * G.cssPerUnit }; };
     return TownFolk.spotsOn(id).map((s) => ({ ...s, stand: [[-1, 0], [1, 0], [0, -1], [0, 1]].map(([dx, dy]) => [s.x + dx, s.y + dy]).find(([x, y]) => free(x, y)) || null, ...at(s.x, s.y) }));
   },
   // ② しゃしんが とれる マス（手順が photo の とき。なければ null）
@@ -609,8 +621,8 @@ const PokaDebug = {
   // その かげの あたまの すこし まえ（うきを おとす ところ）。x・y は 画面の CSS px（page.mouse で ながおし する ばしょ）
   fishAim(uid) {
     const st = this.fishState(), s = st && (st.shadows.find((x) => x.uid === uid) || st.shadows[0]); if (!s) return null;
-    const wx = s.head.x + Math.cos(s.a) * 18, wy = s.head.y + Math.sin(s.a) * 18, r = G.canvas.getBoundingClientRect();
-    return { x: r.left + (s.sx - s.x + wx) * G.cssPerUnit, y: r.top + (s.sy - s.y + wy) * G.cssPerUnit, wx, wy };
+    const wx = s.head.x + Math.cos(s.a) * 18, wy = s.head.y + Math.sin(s.a) * 18, r = G.canvas.getBoundingClientRect(), q = WorldZoom.toScreen(G.scene, wx, wy);
+    return { x: r.left + q.x * G.cssPerUnit, y: r.top + q.y * G.cssPerUnit, wx, wy };
   },
   // テストの 近道: ながおしと おなじ ところへ なげる（world の px）／「つる」ボタンと おなじ
   fishCast(wx, wy) { return G.sceneName === "world" ? FishLine.aim(G.scene, wx, wy) : false; },

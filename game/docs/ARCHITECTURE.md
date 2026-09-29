@@ -150,6 +150,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 19 | `scene-house.js` | `ROOM`, `HOUSE_SIZE`, `Room`, `HOUSE_ICONS`, `HouseScene` |
 | 20 | `scene-battle.js` | `ALLY_SIZE`, `FOE_SIZE`, `BOSS_SIZE`, `BattleScene` |
 | 21 | `minigames.js` | `MG_ART`, `CREPE_TOPS`, `BREADS`, `BREAD_TOPS`, `FLOWER_KINDS`, `RIBBONS`, `SHOP_OWNERS`, `HOWTO`, `CUST_*`, `ShopScene`, `TaskBase`, `CrepeTask`, `DentistTask`, `BakeryTask`, `FloristTask`, `MG_TASKS`, 補助関数 `breadSvg` `flowerIconSvg` `mgCanvas` `mgIcon` `topIcon` `mgBtn` `inBtn` `gridBtns` |
+| — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -167,6 +168,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 - `Game.resize()` が、地面タイル（論理 32px）が端末ピクセルの整数になるように倍率 `G.px`（論理1 = 端末 G.px ピクセル）を決める。すき間の線が出ないため。
 - `G.cssPerUnit` = 論理1 が CSS で何 px か。CSS 変数 `--u` にも入っている（DOM の UI を論理座標に合わせたいときに使う）。
 - 端末の devicePixelRatio は最大 3 まで使う。
+- 町・フィールドの ズーム（`WorldZoom`・0.5〜1.5 倍）は `render` の あいだだけ `G.W`・`G.H`・`G.px` を かえる（くわしくは「町の ズーム（UI-08）」）。
 
 | もの | 大きさ（論理 px） | 定義 |
 | --- | --- | --- |
@@ -909,6 +911,18 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - はくぶつかん・射撃場の 出入り口: 生成データの `MUSEUM_DATA.buildings.museum.outside`・`MAP_DEFS.museum.warps`・`RANGE_DATA.outside` を install で 新しい 入口に あわせる（生成データは 手で なおさない）。
 - 町の はしの そとは `def.edgeColor`（scene-world.js の 背景。ほかの 町は いままでの 草の 色）。
 - 検査: `tools/check-ikebukuro.mjs`（配置イメージの ならび・駅から すべての 入口へ・絵の 登録）・`tools/town-check.mjs`（入口 2つの 建物は `doors` の それぞれを しらべる）・`node tools/build-ikebukuro-town.mjs --check`。
+
+## 町の ズーム（UI-08）
+
+`world-zoom.js`（`WorldZoom`）は `debug.js` の すぐ まえ（WorldScene を つつむ ファイルの いちばん あと）。町・フィールド・館の 中（WorldScene の マップ）で、ゆび 2ほんの ピンチ・ひだりの ＋ −（天気の 下）・マウスの ホイール・キーボードの ＋ − 0 で 0.5〜1.5 倍。おうち・お店・斜めの 館には ない。
+
+- 倍率は `Save.d.settings.worldZoom`（`Save.fresh()` に たした。ふるい セーブは migrate が 1 を いれる）。ボタンの だんは 0.5・0.75・1・1.25・1.5、ピンチ・ホイールは そのあいだも。
+- 描きかた: `render` の あいだだけ `G.W`・`G.H` を 町の 見える はばに（`G.W × G.px ÷ 端末の 倍率`）、`ctx` を 端末の 倍率に する。見える ところの しらべ（チャンク・建物・小物・水・あかり）は そのまま G.W で うごく。端末の 倍率は 1マスが 端末の 画素の 整数に なる ように まるめ（`WorldZoom.dev`）、`scene-world.js` の 地面の 位置あわせは `this.devPx`（ズーム ちゅうの 端末の 倍率）を つかう（チャンクの つぎめに すき間が 出ない）。
+- 絵の 大きさ: ひろく みる とき（1 より 小さい）は `render` の あいだ `G.px` を 0.75 か 0.5 の だんに して、絵と 地面の チャンクを その 大きさで 描く（SvgCache の キーは 大きさ つき・だんは 3つ だけ）。ちかくで みる とき（1 より 大きい）は いまの 絵を ひろげる（メモリを ふやさない。おうちの ズームと おなじ）。うごいて いる あいだは 絵の だんを かえず、とまったら かえる（`zoom.rz`）。
+- 読みこみ ちゅうの かわり: `SvgCache._load` が できた 大きさを おぼえ（`WorldZoom.alt`）、町を 描く あいだの `SvgCache.get` は まだ ない 大きさの かわりに ほかの 大きさを かえす（きえない）。かわりが ある ときは 同時に 読みこむ 数を 6つまで、地面の チャンクは 1コマに 3つまで（のこりは 1倍の チャンクを ちぢめて 出す）。ズームの だんの チャンクは 48 まで（あたらしく 見た じゅん）。
+- 画面に そのまま 描く もの: 天気（雨・雪）と スティック（ズームの あとに 描く）。はじめの「タップで いどう」の ヒントは ズーム ちゅうは 出さない。
+- 入力: `screenToTile`・`clampCam` は 町の 見える はばで。ピンチの 2ほんめの ゆびが おりたら スティック・タップを やめる（つりの ながおしも）。ピンチの ゆびを はなしても タップに しない。
+- テスト: `PokaDebug.worldZoom(z, animate)`（ようす・倍率）・`PokaDebug.worldPoint(x, y)`（マスの 画面の 位置。ズームを ふくむ）。`PokaDebug.world()`・`npcLife()`・`folkSpots()`・`fishAim()` の 画面の 位置も ズームを ふくむ。スモーク「world-zoom-390 / 375」。
 
 ### 町の人の生活動作（NpcLife）
 

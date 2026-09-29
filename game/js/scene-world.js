@@ -633,8 +633,10 @@ class WorldScene {
   // ---- 描画 ----
   render(ctx) {
     const map = this.map;
-    const ox = Math.round((G.W / 2 - this.cam.x) * G.px) / G.px;
-    const oy = Math.round((G.H / 2 - this.cam.y) * G.px) / G.px;
+    // 地面の チャンクを 端末の 画素に そろえる（ズーム ちゅうは WorldZoom が 端末の 倍率を devPx に いれる）
+    const dp = this.devPx || G.px;
+    const ox = Math.round((G.W / 2 - this.cam.x) * dp) / dp;
+    const oy = Math.round((G.H / 2 - this.cam.y) * dp) / dp;
     ctx.fillStyle = map.def.indoor ? "#2A2630" : map.def.edgeColor || (map.baseGround === "cave" ? "#2B2320" : map.baseGround === "forest" ? "#3F8E4F" : "#5DAA4F");
     ctx.fillRect(0, 0, G.W, G.H);
     // 地面チャンク

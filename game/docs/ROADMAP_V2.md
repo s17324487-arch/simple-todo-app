@@ -313,6 +313,11 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - `js/ikebukuro-town.js`（`IkebukuroTown`: 道・建物・人・小物・ななめの 横断歩道と かど・地面・電車・夜の あかり）・`js/ikebukuro-town-art.js`（生成）・原画 `tools/town-design/ikebukuro-buildings.mjs`・生成 `tools/build-ikebukuro-town.mjs`。設計は [池袋の 町](design/towns/ikebukuro/README.md)、原画の 見本は `docs/design/towns/ikebukuro-buildings/`。
 - 受け入れ条件: 配置イメージの ならび・どの 入口にも 駅から いける・絵は 原画の まま（`tools/check-ikebukuro.mjs`）・旧IDと act・古い セーブの 位置・密度・スマホの 画面（`tools/town-check.mjs`）・絵の キーは 有限で 昼夜の 2つ（`build-ikebukuro-town.mjs --check`）。スモーク「town-renewal・museum-visit・range-lobby・range-play・ikebukuro-retail・ikebukuro-arcade・district-travel」。
 
+### [x] UI-08 町の ズーム（オーナーの FB 2026-09-29） ✅
+- オーナーの 指示「全体マップで 歩いている ときに、ズームアウトと ズームインが できる ように」。
+- `js/world-zoom.js`（`WorldZoom`: ピンチ・＋ −・ホイール・キーボード、0.5〜1.5 倍、倍率は セーブの `settings.worldZoom`）。`scene-world.js` は 地面の 位置あわせ 1か所だけ。
+- 受け入れ条件: ボタンは 44px・ほかの ボタンと かさならない・0.5 で 見える はばが 約 2ばい・ひろく した まま タップした マスへ あるく・ピンチで あるきださない／スティックに ならない・ひろく みる ときは 絵を 小さく 描きなおす（ちかくで みる ときは 描きなおさない）・地面の チャンクの 大きさは 2しゅ まで・おうちに ボタンが ない・町に もどると 倍率を おぼえて いる・ふるい セーブは 1。スモーク「world-zoom-390 / 375」。
+
 ---
 
 ## 技術的な宿題（手があいたら。機能と同じ PR に混ぜない）
