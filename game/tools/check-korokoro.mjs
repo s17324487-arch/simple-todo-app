@@ -162,6 +162,9 @@ for (let lv = 1; lv <= 5; lv++) {
 function shift(lv, seed, { every, noise, silly }) {
   const sc = fakeScene(); let done = 0, ranks = [], time = 0;
   seedR = seed;
+  // ちゅうもん（KorokoroTask の U.pick）も おなじ たねで えらぶ。Math.random の ままだと 実行ごとに けっかが かわる
+  const pick0 = R.U.pick; R.U.pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+  try {
   sc.board = new Board(sc, seed);
   for (let c = 0; c < 4; c++) {
     const t = new Task(sc, lv); t.layout(RECT); sc.finished = null; sc.timeLimit = sc.timeLeft = t.timeLimit;
@@ -177,6 +180,7 @@ function shift(lv, seed, { every, noise, silly }) {
     ranks.push(rank); if (t.want.every((w) => w.done)) done++;
     for (let i = 0; i < 60 * 3.4; i++) sc.board.tick(1 / 60, false);
   }
+  } finally { R.U.pick = pick0; }
   return { done, ranks, time };
 }
 const table = [];
