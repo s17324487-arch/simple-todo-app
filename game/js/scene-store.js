@@ -19,6 +19,7 @@ class StoreScene {
     this.back={...p.back}; this.closed=false; this.path=[]; this.pending=null;
     const retail=BUY_SHOPS[p.shop];
     this.owner=retail?{...retail.keeper,name:retail.keeperName}:SHOP_OWNERS[p.shop];
+    this.keeperActor=NpcLife.stationaryActor(this.owner);
     this.name=(retail||SHOPS[p.shop]).name;
     if(p.shop==='burger'&&this.back.map==='heiwadai')this.name='マックさん';
     this.fixtures=this.design.fixtures.map(([kind,x,y,w,d,label])=>({kind,x,y,w,d,label}));
@@ -46,11 +47,11 @@ class StoreScene {
     for(const id of Save.d.order)for(const dir of Object.keys(DIRS))for(const pose of ["idle_01","idle_02","walk_01","walk_02"]){
       const c=Save.d.chars[id];list.push([id,{dir,pose,outfit:c.outfit,color:c.color}]);
     }
-    await Promise.all([Chara.preload(list,42),this.background(true),...this.fixtures.map(f=>this.propCanvas(f,true)),this.keeperCanvas(true)]);
+    await Promise.all([Chara.preload(list,42),this.background(true),...this.fixtures.map(f=>this.propCanvas(f,true)),this.keeperCanvas(true),this.keeperCanvas(true,true)]);
   }
   background(ensure=false) { return SvgCache[ensure?"ensure":"get"]("store:room:"+this.shopId,()=>StoreArt.room(this.shopId),Math.ceil(352*G.px),Math.ceil(512*G.px)); }
   propCanvas(f,ensure=false) { return SvgCache[ensure?"ensure":"get"]("store:prop:"+f.kind,()=>StoreArt.prop(f.kind),Math.ceil(180*G.px),Math.ceil(155*G.px)); }
-  keeperCanvas(ensure=false) { return SvgCache[ensure?"ensure":"get"]("store:keeper:"+this.shopId,()=>Art.npcSvg({...this.owner,emo:"happy"}),Chara.pxSize(46),Math.round(Chara.pxSize(46)*VB.h/VB.w)); }
+  keeperCanvas(ensure=false,neutral=false) { const v=neutral?{pose:"idle_01",emo:"normal",gesture:"none"}:NpcLife.visual(this.keeperActor),spec={...this.owner,pose:v.pose,emo:v.emo,gesture:v.gesture};return SvgCache[ensure?"ensure":"get"]("store:keeper:"+this.shopId+":"+[v.pose,v.emo,v.gesture].join(":"),()=>Art.npcSvg(spec),Chara.pxSize(46),Math.round(Chara.pxSize(46)*VB.h/VB.w)); }
   point(x,y) { return {x:16+x*32+16,y:112+y*32+27}; }
   screen(x,y) { const p=this.point(x,y);return{x:this.ox+p.x*this.scale,y:this.oy+p.y*this.scale}; }
   walkable(x,y) { return x>=0&&x<10&&y>=0&&y<12&&!(x===5&&y===1)&&!this.fixtures.some(f=>x>=f.x&&x<f.x+f.w&&y>=f.y&&y<f.y+f.d); }
@@ -106,6 +107,7 @@ class StoreScene {
     if(f){Sound.se("tap");UI.toast(f.label+"。ゆっくり みていってね");this.highlight={f,until:G.t+1.5};}
   }
   update(dt) {
+    NpcLife.updateStationary(this.keeperActor,dt,!!this.interacting);
     if(Game.inputLocked||this.interacting)return;
     for(const w of this.party)w.update(dt);
     const l=this.party[0];if(l.moving)return;
@@ -150,8 +152,9 @@ class StoreScene {
     }
   }
   drawKeeper(ctx) {
-    const c=this.keeperCanvas(),p=this.point(5,1),w=46,h=w*VB.h/VB.w;
-    this.shadow(ctx,p.x,p.y,13);if(c)ctx.drawImage(c,p.x-w*((FOOT.x-VB.x)/VB.w),p.y-h*((FOOT.y-VB.y)/VB.h)+Math.sin(G.t*2)*.6,w,h);
+    const c=this.keeperCanvas()||this.keeperCanvas(false,true),p=this.point(5,1),w=46,h=w*VB.h/VB.w;
+    const v=NpcLife.visual(this.keeperActor);this.shadow(ctx,p.x,p.y,13);
+    if(c){ctx.save();ctx.translate(p.x,p.y+v.dy);ctx.rotate(v.tilt*Math.PI/180);ctx.drawImage(c,-w*((FOOT.x-VB.x)/VB.w),-h*((FOOT.y-VB.y)/VB.h),w,h);ctx.restore();}
   }
 }
 SCENES.store=StoreScene;

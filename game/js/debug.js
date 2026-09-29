@@ -409,6 +409,15 @@ const PokaDebug = {
   },
   house() { Game.trans = null; Game.goto("house", {}, "none"); },
   // ② 町の人: その人の マップの となりへ 行って 話しかける（Talk.run）。会話は テストの がわで すすめる（またない）
+  npcLife() {
+    const sc=G.scene;if(G.sceneName!=="world")return null;
+    const r=G.canvas.getBoundingClientRect();
+    return sc.npcs.map(n=>{const s=NpcLife.init(sc,n),f=n.w.feet();return {id:n.id,x:n.w.tx,y:n.w.ty,fx:n.w.fx,fy:n.w.fy,moving:n.w.moving,talking:!!n.talking,dir:n.w.dir,action:s.action,elapsed:s.elapsed,bounds:s.bounds,visual:NpcLife.visual(n),
+      cx:r.left+(f.x+(n.artOffset?.[0]||0)*TS-sc.cam.x+G.W/2)*G.cssPerUnit,cy:r.top+(f.y-20+(n.artOffset?.[1]||0)*TS-sc.cam.y+G.H/2)*G.cssPerUnit};});
+  },
+  npcLifeAdvance(seconds=15) { if(G.sceneName!=="world")return null;for(let t=0;t<Math.min(60,Math.max(0,seconds));t+=0.05)NpcLife.update(G.scene,0.05);return this.npcLife(); },
+  npcLifeAct(id,action) {const sc=G.scene,n=G.sceneName==="world"&&sc.npcs.find(n=>n.id===id);if(!n)return false;NpcLife.init(sc,n);if(n.w.moving)n.w.update(n.w.dur);n.w.dir="down";return NpcLife.start(n,action);},
+  npcLifeApproach(id) {const sc=G.scene,n=G.sceneName==="world"&&sc.npcs.find(n=>n.id===id);if(!n)return false;sc.goInteract(n.w.tx,n.w.ty,{type:"npc",npc:n});return sc.pending?.npc===n||n.talking;},
   async folkTalk(id) {
     const map = Object.keys(MAP_DEFS).find(k => (MAP_DEFS[k].npcs || []).some(n => n.id === id)); if (!map) return false;
     if (!(G.sceneName === "world" && G.scene.mapId === map)) {

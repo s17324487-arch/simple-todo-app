@@ -141,7 +141,7 @@ class WorldScene {
     for(const it of [...(this.map.def.decals||[]),...(this.map.def.overhead||[])])jobs.push(HeiwadaiTown.canvas(this,it,true));
     const kinds = new Set(this.map.sprites.map((s) => (s.kind === "building" ? "b:" + s.spec.id : s.kind)));
     for (const s of this.map.sprites) jobs.push(this.spriteCanvas(s, true));
-    for (const n of this.npcs) jobs.push(this.npcCanvas(n, n.w.dir, "idle_01", true));
+    for (const n of this.npcs) for(const dir of Object.keys(DIRS)) jobs.push(this.npcCanvas(n, dir, "idle_01", true, true));
     for (const e of this.enemies) jobs.push(this.enemyCanvas(e, true));
     if (this.rocks.length) jobs.push(SvgCache.ensure("fossil:rock", () => Fossils.rockSvg(), Math.ceil(TS * G.px), Math.ceil(TS * G.px)));
     if (this.map.def.indoor && typeof Museum !== "undefined") jobs.push(...Museum.preload(this)); // ⑤ 寄贈した 魚
@@ -168,8 +168,9 @@ class WorldScene {
     if (s.kind === "exhibit") return this.objCanvas("exhibit", { id: s.o.id, bits: Museum.shown(this, s.o) }, ensure); // ⑤ 寄贈の ようすで 絵が かわる
     return this.objCanvas(s.kind, null, ensure);
   }
-  npcCanvas(n, dir, pose, ensure) {
-    const spec = { sp: n.sp, col: n.col, col2: n.col2, stripe: n.stripe, outfit: n.outfit, look: n.look, dir, pose, emo: n.emo || "normal" };
+  npcCanvas(n, dir, pose, ensure, neutral = false) {
+    const visual = neutral ? {emo:n.emo||"normal",gesture:"none"} : NpcLife.visual(n);
+    const spec = { sp: n.sp, col: n.col, col2: n.col2, stripe: n.stripe, outfit: n.outfit, look: n.look, dir, pose, emo: visual.emo, gesture: visual.gesture };
     const key = "npc:" + JSON.stringify(spec);
     const pw = Chara.pxSize(CHAR_SIZE), ph = Math.round((pw * VB.h) / VB.w);
     if (ensure) return SvgCache.ensure(key, () => Art.npcSvg(spec), pw, ph);
@@ -495,9 +496,8 @@ class WorldScene {
       n.w.dir = dirOf(L.tx - n.w.tx, L.ty - n.w.ty) || n.w.dir;
       n.talking = true;
       this.busy = true;
-      await Talk.run(n, this);
-      n.talking = false;
-      this.busy = false;
+      try { await Talk.run(n, this); }
+      finally { n.talking = false; NpcLife.clear(n); this.busy = false; }
     } else if (p.type === "folk") {
       this.busy = true;
       await TownFolk.investigate(p.spot, this);
@@ -566,25 +566,7 @@ class WorldScene {
   }
 
   // ---- NPC ----
-  updateNpcs(dt) {
-    for (const n of this.npcs) {
-      n.w.update(dt);
-      if (!n.wander || n.talking || this.busy) continue;
-      n.timer -= dt;
-      if (n.timer > 0 || n.w.moving) continue;
-      n.timer = U.rand(1.5, 4);
-      const d = U.pick(["up", "down", "left", "right"]);
-      const [dx, dy] = DIRS[d];
-      const nx = n.w.tx + dx, ny = n.w.ty + dy;
-      const [x0, y0, x1, y1] = n.wander;
-      n.w.dir = d;
-      if (nx < x0 || nx > x1 || ny < y0 || ny > y1) continue;
-      if (this.map.isSolid(nx, ny) || this.map.doorAt(nx, ny) || this.rockAt(nx, ny)) continue;
-      if (this.party.some((p) => (p.tx === nx && p.ty === ny) || (p.fx === nx && p.fy === ny))) continue;
-      if (this.npcs.some((o) => o !== n && o.w.tx === nx && o.w.ty === ny)) continue;
-      n.w.moveTo(nx, ny, 0.36);
-    }
-  }
+  updateNpcs(dt) { NpcLife.update(this, dt); }
 
   // ---- てき ----
   updateEnemies(dt) {
@@ -808,11 +790,13 @@ class WorldScene {
   drawNpc(ctx, n, ox, oy) {
     const f = n.w.feet();f.x+=(n.artOffset?.[0]||0)*TS;f.y+=(n.artOffset?.[1]||0)*TS;
     const pose = n.w.moving ? (Math.floor(n.w.anim * 6) % 2 ? "walk_01" : "walk_02") : Math.floor(n.w.anim / 0.6) % 2 ? "idle_02" : "idle_01";
-    const c = this.npcCanvas(n, n.w.dir, pose, false) || this.npcCanvas(n, n.w.dir, "idle_01", false) || this.npcCanvas(n, n.dir, "idle_01", false);
+    const c = this.npcCanvas(n, n.w.dir, pose, false) || this.npcCanvas(n, n.w.dir, "idle_01", false, true) || this.npcCanvas(n, n.dir, "idle_01", false, true);
     this.shadow(ctx, ox + f.x, oy + f.y, 13);
     if (!c) return;
     const w = n.size||CHAR_SIZE, h = (w * VB.h) / VB.w;
-    ctx.drawImage(c, ox + f.x - w * ((FOOT.x - VB.x) / VB.w), oy + f.y - h * ((FOOT.y - VB.y) / VB.h), w, h);
+    const v = NpcLife.visual(n);
+    ctx.save();ctx.translate(ox+f.x,oy+f.y+v.dy);ctx.rotate(v.tilt*Math.PI/180);
+    ctx.drawImage(c, -w * ((FOOT.x - VB.x) / VB.w), -h * ((FOOT.y - VB.y) / VB.h), w, h);ctx.restore();
     if (Talk.hasNew(n)) {
       const bob = Math.sin(G.t * 4) * 2;
       this.bubble(ctx, ox + f.x + 12, oy + f.y - 46 + bob, "!");
@@ -820,6 +804,7 @@ class WorldScene {
       // ② おねがいの しるし: ▼ あいて ／ ！ ことわった おねがいが まって いる
       const mark = TownFolk.markerOf(n.id, this.mapId);
       if (mark) TownFolkArt.marker(ctx, mark, ox + f.x + 12, oy + f.y - 50, G.t);
+      else NpcLife.accent(ctx,n,ox+f.x,oy+f.y);
     }
   }
   // ④ ひびの ある いわ（1マス。見本 Fossils.rockSvg）

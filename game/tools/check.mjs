@@ -563,7 +563,7 @@ if (ok(!!HT, "HOME_TALK_DATA が ない（js/home-talk-data.js）")) {
   // えらびかたと くせ（ゲームと 同じ 関数を VM で うごかす）
   const talkFlow = vm.runInContext(`(()=>{const old=Save.d,oldHour=U.hourNow,oldW=Weather.override,oldT=G.t,rnd=Math.random;Save.d=Save.fresh();const money=Save.d.coins;
     const sc={chars:[{id:'wanko',x:200,y:430},{id:'gachan',x:280,y:465},{id:'goji',x:360,y:430}],parents:[],watching:false,anchor:(it)=>({x:it.x,y:it.y}),view:{top:120,bottom:700},actorScale:1,toScreen:(x,y)=>({x,y})};
-    HomeLife.init(sc);G.t=5;U.hourNow=()=>7;Weather.override='rain';
+    U.hourNow=()=>7;HomeLife.init(sc);G.t=5;Weather.override='rain';
     const t=[];for(let i=0;i<40;i++){const l=HomeLife.pickLine(sc,'wanko',['context','persona'],'time');if(l)t.push(l);}
     const morning=t.length>0&&t.every(l=>l.when.time.includes('morning'));
     const w=HomeLife.pickLine(sc,'gachan',['context','persona'],'weather');const rain=!!w&&w.when.weather.includes('rain');
