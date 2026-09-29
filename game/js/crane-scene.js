@@ -347,7 +347,7 @@ class CraneScene {
       const pts = []; for (let s = 0; s <= 6; s++) { const a = a0 + ((a1 - a0) * s) / 6; pts.push(c.p(o.cx + Math.cos(a) * r1, 0.08, o.cz + Math.sin(a) * r1)); }
       for (let s = 6; s >= 0; s--) { const a = a0 + ((a1 - a0) * s) / 6; pts.push(c.p(o.cx + Math.cos(a) * r0, 0.08, o.cz + Math.sin(a) * r0)); }
       const on = k === lit && (R.run || blink || R.flash > 0);
-      const base = arm ? (arm.up ? this.th.body : "#8C8699") : "#D8D2E6";
+      const base = arm ? (arm.up ? "#FF8FB8" : "#6E6882") : "#F4F0FA"; // アームの ランプは ピンク・あいだは しろ（テーマの いろと まざらない）
       this.poly(ctx, pts, on ? (this.round.hit && k === this.round.lastCell && R.flash > 0 ? "#FFF3A0" : "#FFE45C") : base, "#1F1D1B", 1.4);
       if (on) { const m = pts[3]; ctx.fillStyle = "rgba(255,240,140,0.45)"; ctx.beginPath(); ctx.arc(m[0], m[1], 12, 0, 7); ctx.fill(); }
     }
@@ -378,7 +378,14 @@ class CraneScene {
   drawShadows(ctx) {
     const c = this.cam, r = this.round;
     const floorAt = (x, y, z) => { if (r.type === "sweet") { const st = r.stage, o = r.rig.o; if (y > st.top - 1 && x > st.cx - st.w / 2 && x < st.cx + st.w / 2 && z > st.z0 && z < st.z1) return st.top; if (Math.hypot(x - o.cx, z - o.cz) < o.rad) return o.top; } return 0; };
-    const shadow = (x, y, z, rad, a) => { const fy = floorAt(x, y, z), h = y - fy; if (h < -1) return; const k = Math.max(0.15, 1 - h / 60), p = c.p(x, fy + 0.05, z); ctx.fillStyle = `rgba(30,20,40,${a * k})`; ctx.beginPath(); ctx.ellipse(p[0], p[1], c.s(rad * (1.1 - k * 0.2), p[2]), c.s(rad * 0.55, p[2]) * Math.abs(this.cam.fw[1]) * 1.6, 0, 0, 7); ctx.fill(); };
+    // ゆかに おちる まるい かげ（ゆかの 上の 円を カメラで うつす。たかい ほど うすく 大きく）
+    const shadow = (x, y, z, rad, a) => {
+      const fy = floorAt(x, y, z), h = y - fy; if (h < -1) return;
+      const k = Math.max(0.15, 1 - h / 60), R = rad * (1.1 - k * 0.2), p = c.p(x, fy + 0.05, z), ax = c.p(x + R, fy, z), bx = c.p(x - R, fy, z), az = c.p(x, fy, z + R), bz = c.p(x, fy, z - R);
+      const rx = Math.max(Math.abs(ax[0] - bx[0]), Math.abs(az[0] - bz[0])) / 2, ry = Math.max(Math.abs(ax[1] - bx[1]), Math.abs(az[1] - bz[1])) / 2;
+      if (!(rx > 0.5 && ry > 0.3)) return;
+      ctx.fillStyle = `rgba(30,20,40,${a * k})`; ctx.beginPath(); ctx.ellipse(p[0], p[1], rx, ry, 0, 0, 7); ctx.fill();
+    };
     for (const b of r.list()) { const q = r.W.centroid(b), s = b.data.size || [10, 10, 10]; shadow(q[0], q[1], q[2], Math.max(s[0], s[2]) * 0.42, 0.28); }
     if (r.type === "claw" || r.type === "ring") { const h = r.rig.hub(); shadow(h[0], h[1], h[2], 6.5, 0.32); }
   }
