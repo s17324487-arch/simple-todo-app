@@ -7,26 +7,6 @@ const IkebukuroCatalog={
     if(id==='prize_pie')return `<rect x="4" y="10" width="52" height="40" rx="3" fill="#BD818C" ${edge}/><path d="M5 11l11 8h38M16 19v30" fill="none" ${edge}/><path d="M25 29l10-5 11 8-4 12-15-2Z" fill="#EAC386" ${edge}/><path d="M28 32l7-3 7 6-3 4-9-2Z" fill="#916A55"/><path d="M21 14h21" stroke="#FFF0BC" stroke-width="3"/>`;
     return `<path d="M10 5H50L47 14 51 50 46 56H14L9 50 13 14Z" fill="#A8BDD2" ${edge}/><path d="M13 11H47M12 50H48" stroke="#F5E5C1" stroke-width="5"/><circle cx="30" cy="31" r="17" fill="#D4AA78" ${edge}/>`+[[22,24],[33,20],[39,30],[29,31],[22,37],[34,41]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.5" fill="#725143"/>`).join('');
   },
-  bodyWrap(ctx,inner){const t=ctx.a.torso;return '<g transform='+JSON.stringify('translate('+t.cx+' '+((t.top+t.bottom)/2)+') scale('+((t.bottom-t.top)/85)+')')+'>'+inner(4.5)+'</g>';},
-  garment(shop,v,ctx){
-    return this.bodyWrap(ctx,s=>{
-      const path=(d,c)=>`<path d="${d}" fill="${c}" ${stroke(s)}/>`,line=(d,c='#F8EAD8',w=3)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`,dot=(x,y,r,c)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`;
-      const star=(x,y,r,c)=>`<path d="${starPath(x,y,r,r*.45)}" fill="${c}"/>`;
-      if(shop==='hane'){
-        if(v===0)return path('M-35-30L-22-42H22L35-30 26-10 39 37Q0 49-39 37L-26-10Z','#E9B8CE')+line('M-26 31Q0 42 26 31M-20-13H20')+[-20,0,20].map(x=>dot(x,20,6,'#FFF1D7')+dot(x,20,2,'#D99DB6')).join('')+dot(0,-25,7,'#F4DA96');
-        if(v===1)return path('M-38-28L-23-40H23L38-28 34 24 24 23V40H-24V23L-34 24Z','#D9ACBF')+path('M-14-38L0-12 14-38 12 39H-12Z','#FFF0DE')+line('M0-12V38','#C493A7')+[-4,9,22].map(y=>dot(4,y,2,'#8E6B79')).join('')+path('M0-24L-14-33V-18Z','#ECCB94')+path('M0-24L14-33V-18Z','#ECCB94');
-        return path('M-18-42Q0-50 18-42L45 29Q0 49-45 29Z','#B9BFD9')+path('M-18-42L0-22 18-42','#F4E4CB')+line('M0-22V38','#F5E0AA')+[[-22,8],[23,19],[8,-1],[-9,28]].map(([x,y])=>star(x,y,6,'#FAE6AE')).join('');
-      }
-      if(shop==='animal'){
-        if(v===0)return path('M-24-39H24L44 26Q0 45-44 26Z','#F5EBDD')+path('M-24-39L-44-18-36 18-22 5Z','#57545C')+path('M24-39L44-18 36 18 22 5Z','#57545C')+dot(-12,-1,10,'#57545C')+dot(12,-1,10,'#57545C')+dot(-11,-3,3,'#FFF8E8')+dot(11,-3,3,'#FFF8E8')+dot(0,14,5,'#57545C');
-        if(v===1)return path('M-35-29L-20-43H20L35-29 39 19 27 24V40H-27V24L-39 19Z','#BD9474')+dot(-23,-38,10,'#BD9474')+dot(23,-38,10,'#BD9474')+dot(-23,-38,5,'#E8C7A2')+dot(23,-38,5,'#E8C7A2')+path('M-18 5Q0-6 18 5V29Q0 39-18 29Z','#EFDBC1')+line('M-15 18Q0 27 15 18','#9E795C')+line('M-9-29L-9-5M9-29L9-5','#F3DEC3');
-        return path('M-17-41Q0-50 17-41L43 30Q0 47-43 30Z','#E3C4D5')+path('M-23-32Q-39-64-24-67Q-14-58-13-34Z','#F5E7DE')+path('M13-34Q14-58 24-67Q39-64 23-32Z','#F5E7DE')+line('M-24-55L-19-37M24-55L19-37','#D4A6C1',5)+dot(0,7,15,'#FFF1E3')+dot(-5,4,2,INK)+dot(5,4,2,INK)+line('M-4 12Q0 16 4 12','#BD829E',2);
-      }
-      if(v===0)return path('M-34-30L-20-41H20L34-30 23-8 42 39Q0 49-42 39L-23-8Z','#55495E')+path('M-15-32H15L10 7H-10Z','#AA829C')+line('M-9-25L9-16-9-7 9 2M-31 28Q0 38 31 28M-36 37Q0 47 36 37','#EDDEDC')+dot(0,-36,4,'#C8ACCF');
-      if(v===1)return path('M-20-40Q0-49 20-40L47 34 22 42 0 30-22 42-47 34Z','#514C6C')+path('M-14-35L0-20 14-35 0 30Z','#A17D92')+path('M25-3A12 12 0 1 0 32 18A11 11 0 0 1 25-3Z','#E8D7AD')+star(-23,18,6,'#DED7E9')+line('M0-20V27','#DFCFB0');
-      return path('M-37-28L-21-40H21L37-28 34 23 25 24V41H-25V24L-34 23Z','#62586E')+path('M-19-38L0-13-13-5-25-27Z','#BCA6BF')+path('M19-38L0-13 13-5 25-27Z','#BCA6BF')+line('M0-13V39','#D6C5DA',2)+[3,15,27].map(y=>dot(5,y,2.7,'#E8CFA4')).join('')+line('M10 5Q30 22 22-2','#D6BDA0',2);
-    });
-  },
   appliances:{washer:['ドラム洗濯機','二そう洗濯機','乾燥つき洗濯機'],fridge:['レトロ冷蔵庫','両開き冷蔵庫','スマート冷蔵庫'],tv:['木枠テレビ','シネマテレビ','壁面テレビ'],vacuum:['キャニスター掃除機','スティック掃除機','ロボット掃除機'],microwave:['コンパクトレンジ','オーブンレンジ','スチームレンジ'],telephone:['ダイヤル電話','コードレス電話','ビデオ電話'],lighting:['ステンドランプ','フロアライト','シャンデリア']},
   furniture(id,name,price,type,variant=0,shop='electronics',extra={}){
     const f={id,name,price,kind:'floor',w:type==='sofa'||type==='bed'?140:78,h:type==='fridge'?120:88,depth:52,comfort:8,exclusive:'ikebukuro',cityItem:{type,variant},desc:'池袋だけの 特別な おしなもの。',...extra};FURNITURE.push(f);FURN_INDEX[id]=f;FURN_ART[id]=()=>IkebukuroItemArt.body(type,variant);(this.groups[shop]??=[]).push(id);return f;
@@ -36,7 +16,8 @@ const IkebukuroCatalog={
     let category=0;for(const [type,names]of Object.entries(this.appliances)){names.forEach((name,v)=>this.furniture('ike_'+type+'_'+v,name,7200+category*450+v*2400,type,v));category++;}
     for(let v=0;v<3;v++){const id='ike_phone_'+v,it={id,name:['星あかりスマホ','折りたたみスマホ','クリスタルスマホ'][v],slot:'neck',wear:id,col:['#C9BEDD'],price:9000+v*4500,rare:true,exclusive:'ikebukuro',st:{sp:3+v},desc:'首から かけて おでかけ。池袋だけの レアアイテム。'};WEAR_ITEMS.push(it);ITEM_INDEX[id]=it;(this.groups.electronics??=[]).push(id);WEAR[id]=ctx=>({top:neckWrap(ctx,s=>`<path d="M-24-4Q-18 22 0 30Q18 22 24-4" fill="none" stroke="#B5A184" stroke-width="4"/>`+(ctx.view==='back'?'':`<rect x="-13" y="19" width="26" height="37" rx="5" fill="${['#C9BEDD','#A5CBC7','#D8C18D'][v]}" ${stroke(s)}/><rect x="-9" y="24" width="18" height="24" fill="#547484"/>${v===1?'<path d="M-12 36h24" stroke="#C6A475" stroke-width="4"/><path d="M-5 29h10m-10 14h10" stroke="#CAE4DB" stroke-width="2"/>':v===2?'<path d="M0 25L8 36 0 47-8 36Z" fill="#C6DCE7"/><path d="M0 25V47M-8 36H8" stroke="#EAD3EA" stroke-width="2"/>':'<path d="M-5 29l4 6 6-9" fill="none" stroke="#FFF4CB" stroke-width="3"/>'}`))});}
     for(const [v,type,name,price]of [[0,'sofa','ベルベットソファ',10000],[1,'table','大理石ダイニング',18000],[2,'bed','天蓋スイートベッド',36000],[0,'shelf','彫刻ライブラリー',22000],[2,'lighting','宮殿シャンデリア',28000],[1,'piano','コンサートピアノ',50000]])this.furniture('ike_lux_'+type,name,price,type==='lighting'?'palacelamp':type,v,'luxury');
-    for(const [shop,names,col]of [['hane',['花びらワンピ','リボンカーデ','星くずケープ'],'#E9B8CE'],['animal',['パンダポンチョ','こぐまパーカー','うさぎケープ'],'#C4B091'],['gothic',['夜会のドレス','月夜のマント','ゴシックジャケット'],'#776881']])names.forEach((name,v)=>{const id='ike_'+shop+'_'+v,it={id,name,slot:'body',wear:id,col:[col],price:4800+v*1900,exclusive:'ikebukuro',desc:'このお店だけの オリジナル。',st:{sp:2}};WEAR_ITEMS.push(it);ITEM_INDEX[id]=it;(this.groups[shop]??=[]).push(id);WEAR[id]=ctx=>({top:this.garment(shop,v,ctx)});});
+    // 服の 絵・名前・せつめいは IkeWear（js/ike-wear.js）
+    for(const [shop,list]of Object.entries(IkeWear.LIST))list.forEach((w,v)=>{const id='ike_'+shop+'_'+v,it={id,name:w.name,slot:'body',wear:id,col:w.col,price:4800+v*1900,exclusive:'ikebukuro',desc:w.desc,st:{sp:2}};WEAR_ITEMS.push(it);ITEM_INDEX[id]=it;(this.groups[shop]??=[]).push(id);WEAR[id]=ctx=>IkeWear.wear(shop,v,ctx);});
     for(const [shop,names]of [['cafe',['ふわラテ','ごほうびモカ','季節のパフェ']],['crepes',['いちごデザクレープ','チョコナッツクレープ','アボカドチーズクレープ']],['boba',['黒糖たぴ','いちごミルクたぴ','抹茶たぴ']],['marche',['プレミアム果実箱','あまい はちみつパン','季節の焼き菓子']]])names.forEach((n,i)=>this.food('ike_'+shop+'_'+i,n,shop,390+i*150));
     for(const [id,n]of [['uma','うまーぼう'],['pie','ぱいのみん'],['cookie','かんとりーまむまむ']])this.food('prize_'+id,n,'prize',0,true);
     for(let v=0;v<5;v++)this.furniture('ike_prize_'+v,['ほしの おおきな ソファ','ごじの おおきな ぬいぐるみ','ゆめいろ メリーゴーランド','わんこの おおきな ぬいぐるみ','がちゃんの おおきな ぬいぐるみ'][v],0,['starsofa','plush','carousel','plush','plush'][v],v,'prize',{rare:true,w:160,h:140,comfort:12,interactive:true});
@@ -71,4 +52,5 @@ const IkebukuroItemArt={
 IkebukuroCatalog.install();
 BUY_SHOPS.ike_electronics.tabs=[['furn','家電'],['phones','スマホ']];
 BUY_SHOPS.ike_electronics.items=tab=>IkebukuroCatalog.groups.electronics.filter(id=>tab==='phones'?!!ITEM_INDEX[id]:!!FURN_INDEX[id]).map(id=>VenueHalls.item(id));
-for(const [id,source]of [['electronics','dentist'],['luxury','furniture'],['hane','clothes'],['animal','groom'],['gothic','link'],['marche','market']])SONGS['shop_ike_'+id]={...SONGS['shop_'+source],title:BUY_SHOPS['ike_'+id].name};
+// いけぶの 店（はねーず など）の 曲は フロアの 店内 BGM（js/mall-music.js）。ネリカス電機は べつの たてもの
+SONGS.shop_ike_electronics={...SONGS.shop_dentist,title:BUY_SHOPS.ike_electronics.name};

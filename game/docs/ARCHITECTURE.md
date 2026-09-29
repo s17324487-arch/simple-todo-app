@@ -856,13 +856,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 ## サンシャインいけぶ（斜めの 館・UI-04）
 
-読み込み順は `iso-venue.js` → `mall-art.js` → `ike-mall.js`（crane-scene.js の あと、item-dex-sources.js の まえ）。トップレベル名は `IsoVenue`・`IsoVenueScene`・`MallArt`・`IkeMall`・`MallGuide`。
+読み込み順は `iso-venue.js` → `mall-art.js` → `mall-music.js` → `ike-mall.js`（crane-scene.js の あと、item-dex-sources.js の まえ）。服の 絵の `ike-wear.js` は `ikebukuro-catalog.js` の すぐ まえ。トップレベル名は `IsoVenue`・`IsoVenueScene`・`MallArt`・`MallMusic`・`IkeMall`・`MallGuide`・`IkeWear`・`WearMannequin`。
 
 - `IsoVenueScene extends VenueScene` を `SCENES.venue` に する。部屋（`VenueHalls.defs.<館>.floors[階]`）に `iso: true` が ある ときだけ 描きかた・タップ・カメラを かえ、ほかの 館（家電・クレーン・学校・保育園・ままの 職場）は いままでと おなじ。
-- 投影は `HomeDesign.A`・`B`（おうちと おなじ）。1マス = 48（おうちの 単位）。部屋は `w × h` マス、`rows`（'o' は ふきぬけ・ほかは 床の 材質の 文字）、奥の かべは 北（y=0）と 西（x=0）だけで 高さ `wallH`。床と かべは 部屋ごとに 1まいの 静止画（`IsoVenue.build`。こまかさは 1.2 まで・2フロアぶん おぼえる）。
-- 什器 `{ kind, x, y, w, h, height, z?, over?, walk?, action?, label? }`。奥行きは 床の はこどうしの 前後（x か y で まるごと 小さい ほうが さき）で ならべ（`IsoVenue.order`）、`over` は 頭の 上（名前の いた・つりさげ かんばん）。3人の まえに ある 高い もの（70 より 高い）は すける。タップは 箱の 投影（エスカレーターは ななめの 本体だけ: `MallArt.hit`）。
-- `MallArt`: 什器の 絵は `MallArt.M[kind]`（iso の SVG。キーは `mall:<kind>:<w>x<h>:<variant>:<shop>:<item>:<dir>` だけ）、うごく ところは `MallArt.L[kind]`（ふんすいの 水・ステップ・かんばんの 字）。店の かべは `SHOP[店].wall`（clothes・furniture・menu・books・toys・market・game）。品物は 家具＝`HomeDesign.model`（おうちと おなじ 立体）・服＝わんこの ミニモデル・たべもの＝アイコン。買い物の 人（`crowd`）は とおれる マスを あるく（セーブしない）。
-- `IkeMall`: 1F（おおどおりの 店 4・ふんすい ひろば・ステージ・大がめん・エスカレーター・エレベーター ホール・いりぐち）、2F（すばーたっくす・でぃっぱーどん・たぴ・らーめん・フードコート）、3F（いけぶくろ マルシェ・なかよしパズル・ほんの もり・おもちゃの ゆめいろ・ひとやすみ）。品物・メニューは `IkebukuroCatalog.groups`、店の 画面は これまでの `BUY_SHOPS.ike_*`。`MallGuide.open(sc)` は フロア案内（上から 見た 図・番号・マーク）。
+- 投影は `HomeDesign.A`・`B`（おうちと おなじ）。1マス = 48（おうちの 単位）。部屋は `w × h` マス、`rows`（'o' は ふきぬけ・ほかは 床の 材質の 文字）、奥の かべは 北（y=0）と 西（x=0）だけで 高さ `wallH`。床と かべは 部屋ごとに 1まい 描いて 1024px の タイルに きりわけた 静止画（`IsoVenue.build`・`IsoVenue.drawStatic` が 見える タイルだけ 描く。こまかさは 1.2 まで・2フロアぶん おぼえる）。6MP を こえる 1まいの canvas は まいかい 描くと とても おそい（5〜8ms）ので わける。
+- 什器 `{ kind, x, y, w, h, height, z?, over?, walk?, action?, label? }`。奥行きは 床の はこどうしの 前後（x か y で まるごと 小さい ほうが さき）で ならべ（`IsoVenue.order`）、`over` は 頭の 上（名前の いた・つりさげ かんばん）。3人の まえに ある 高い もの（70 より 高い）と `fadeOver` の いた（店の 名前の いた・つりさげ かんばん）は すける。タップは 箱の 投影（エスカレーターは ななめの 本体だけ: `MallArt.hit`）。
+- `MallArt`: 什器の 絵は `MallArt.M[kind]`（iso の SVG。キーは `mall:<kind>:<w>x<h>:<variant>:<shop>:<item>:<dir>` だけ）、うごく ところは `MallArt.L[kind]`（ふんすいの 水・ステップ・かんばんの 字）。店の かべは `SHOP[店].wall`（clothes・furniture・menu・books・toys・market・game）。品物は 家具＝`HomeDesign.model`（おうちと おなじ 立体）・服＝マネキン（`WearMannequin.svg(品物)`・キー `mannequin:<品物>`・大きさは `MallArt.mannequinSize`）・たべもの＝アイコン。店の 入口の はしらと 名前の いたの 高さは `MallArt.FRONT`（236。店の 中の マネキンに かからない）。買い物の 人（`crowd`）は とおれる マスを あるく（セーブしない）。
+- `IkeMall`: フロアは 45×31 マス（カメラの 倍率 0.5）。1F（おおどおりの 店 4: 服の 店 はば 10・おくゆき 8、マネキンの 台は 入口の まえの 列・家具 はば 14、ふんすい ひろば・ステージ・大がめん・エスカレーター・エレベーター ホール・いりぐち）、2F（すばーたっくす・でぃっぱーどん・たぴ・らーめん・フードコート）、3F（いけぶくろ マルシェ・なかよしパズル・ほんの もり・おもちゃの ゆめいろ・ひとやすみ）。品物・メニューは `IkebukuroCatalog.groups`、店の 画面は これまでの `BUY_SHOPS.ike_*`。`MallGuide.open(sc)` は フロア案内（上から 見た 図・番号・マーク）。
+- `IkeWear`（ike-wear.js）: 池袋の 服 9ちゃくの 絵・名前・せつめい（`LIST`）。`WEAR[id] = ctx => IkeWear.wear(店, 番号, ctx)`。chara.js の WEAR と おなじ かさね（behind・sleeve・torso・top）で、たての 目安は 見える 上の はし（わんこ・がちゃんは あたまの した）から 胴の したまで（`frame`）。そでは `sleeves(ctx, 色, { len, puff, cuff, frill })`（だ円の うでと ごじの よこの うで）。うしろ すがた（`view === "back"`）・よこむき（`dx` で まえの かざりを ずらす）も 描く。
+- `WearMannequin`（ike-wear.js）: かおの ない マネキン（たまごの あたま・くび・胴・うで・スタンド）。`P` が PROFILE と おなじ 形（torsoPath・arms・a の 目安）なので、どの WEAR も そのまま きせられる（正面だけ）。家電の 館の スマホの 展示（venue-hall-art.js）も マネキン。
+- `MallMusic`（mall-music.js）: 店内 BGM。`SONGS.mall_1f`（ヘンデル「ガヴォット」）・`mall_2f`（ジョプリン「エンターテイナー」）・`mall_3f`（チャイコフスキー「きの へいたいの マーチ」）。音は Mutopia Project の LilyPond 原本の まま（`source` に 出典）。`FLOOR[階]` を 部屋の `bgm` に、`SHOP[店]` を `SONGS.shop_ike_<店>` に する（レジの 画面でも おなじ 曲。`Sound.bgm` は おなじ 曲なら やりなおさない）。
 - セーブは ふえない（館に はいる ときの `Save.d.world` は そとの 入口）。パズルから もどる ときは `venueReturn.at` の マスに たつ。
 - PokaDebug: `venue('mall', 階)`・`venueState()`・`venueVisit(label)`・`venuePoint(x, y, label?)`（タップの 画面の 位置）・`venueWalk(x, y)`・`venueIso()`（iso・ready・floor・leader・crowd・holes）。
 

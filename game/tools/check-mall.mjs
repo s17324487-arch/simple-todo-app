@@ -95,4 +95,62 @@ ok(!AQ[13].fixtures.some((f) => f.action === 'elevator') && AQ[13].noElevator &&
   // 町の人の ことばに「みなとに すいぞくかんが ある」は のこさない（「!aquarium」の ことばは すいぞくかんが ない ときだけ）
   const harborTalk = R.TOWNSFOLK_DATA.lines.filter((l) => /すいぞくかん/.test(l.text) && /みなと/.test(l.text) && !((l.when && l.when.feature) || []).includes('!aquarium'));
   ok(!harborTalk.length, 'みなとの すいぞくかんの ことばが のこって いる ' + harborTalk.map((l) => l.id)); }
-console.log(`Mall: ${floors.length} iso floors, reachable fixtures, escalators/elevator, exclusive items, floor map, text and finite art keys; aquarium 12F/13F loop with all 50 fish tanks — ${n} checks OK`);
+// UI-06 池袋の 服 9ちゃく（IkeWear）: ひらがなの 名前・3人と マネキンで こわれない・うしろ すがたが ある・そでか マントの かさねが ある（ぺたっと はった 絵で ない）
+const refsOk = (svg) => [...svg.matchAll(/url\(#([^)]+)\)/g)].every((m) => svg.includes(`id="${m[1]}"`));
+const ikeWear = ['hane', 'animal', 'gothic'].flatMap((sh) => R.IkebukuroCatalog.groups[sh]);
+ok(ikeWear.length === 9 && ikeWear.every((id) => R.ITEM_INDEX[id] && R.ITEM_INDEX[id].slot === 'body' && R.ITEM_INDEX[id].exclusive === 'ikebukuro'), '池袋の 服 9ちゃく ' + ikeWear);
+const partsOf = (layers) => Object.values(layers).join('').match(/<(path|ellipse|circle|rect)\b/g)?.length || 0;
+for (const id of ikeWear) {
+  const it = R.ITEM_INDEX[id];
+  ok(!KANJI.test(it.name) && !KANJI.test(it.desc) && it.name.length <= 12, '服の なまえ・せつめい（ひらがな）' + id + ' ' + it.name);
+  for (const who of ['wanko', 'gachan', 'goji']) for (const dir of ['down', 'up', 'left', 'right']) {
+    const svg = R.Chara.svg(who, { dir, outfit: { body: id } });
+    ok(/^<svg /.test(svg) && !/NaN|undefined/.test(svg) && !dupAttr(svg) && refsOk(svg), `服 ${id} を ${who} が きる（${dir}）: SVG が こわれて いる`);
+  }
+  for (const p of [R.PROFILE.wanko, R.PROFILE.gachan, R.PROFILE.goji, R.WearMannequin.P]) {
+    const ctx = (view) => ({ p, a: p.a, view, dx: view === 'side' ? -12 : 0, col: it.col, uid: 'ck' + view });
+    const front = R.WEAR[it.wear](ctx('front')), back = R.WEAR[it.wear](ctx('back'));
+    ok(partsOf(front) >= 14 && partsOf(back) >= 8, `服 ${id}: 絵が すくない（${p.name}・まえ ${partsOf(front)}・うしろ ${partsOf(back)}）`);
+    ok(JSON.stringify(front).replaceAll('ckfront', 'X') !== JSON.stringify(back).replaceAll('ckback', 'X'), `服 ${id}: うしろ すがたが まえと おなじ（${p.name}）`);
+    // そで（sleeve）か、胴の そとの 形（スカート・ケープ・マント・すそ）が ある
+    const tl = front.torso || '', cut = tl.lastIndexOf(`<path d="${p.torsoPath}" fill="none"`), outside = ((cut >= 0 ? tl.slice(cut) : tl).match(/<(path|ellipse|circle)\b/g)?.length || 0) - (cut >= 0 ? 1 : 0);
+    ok((front.sleeve && front.sleeve.length > 50) || outside >= 3, `服 ${id}: そでも スカート・ケープも ない（${p.name}・そとの 形 ${outside}）`);
+  }
+}
+// マネキン: 服の 台は WearMannequin（わんこを つかわない）。キーは 品物ごと（有限）
+{
+  const got = [], ensure = R.SvgCache.ensure;
+  R.SvgCache.ensure = (key, fn, w, h) => { got.push([key, fn(), w, h]); return Promise.resolve(); };
+  try { R.MallArt.itemJobs(mall.floors[1], { charSize: () => 59, s: 0.5, k: 1 }); } finally { R.SvgCache.ensure = ensure; }
+  const wearJobs = got.filter(([k]) => /^mannequin:/.test(k));
+  ok(wearJobs.length === 9 && !got.some(([k]) => /^mallwear:/.test(k)), '服の 台の 絵が マネキンで ない ' + got.map(([k]) => k).join());
+  for (const [k, svg] of wearJobs) ok(/^<svg /.test(svg) && refsOk(svg) && !dupAttr(svg) && !svg.includes('M100,24 C136,23') && /stroke/.test(svg), 'マネキンの 絵 ' + k);
+  const bare = R.WearMannequin.svg(null); ok(/^<svg /.test(bare) && refsOk(bare), 'はだかの マネキン');
+  for (const id of ['ike_phone_0', 'crown', 'scarf', 'glasses']) if (R.ITEM_INDEX[id]) { const svg = R.WearMannequin.svg(id); ok(/^<svg /.test(svg) && !/NaN|undefined/.test(svg) && refsOk(svg), 'マネキンに ほかの 服 ' + id); }
+}
+// 店を ひろく: 1F の 服の 店は はば 10・おくゆき 8、マネキンは 入口の まえの 列（名前の いたに かからない）、名前の いたは 3人に かかると すける
+{
+  const r = mall.floors[1];
+  for (const sh of ['hane', 'animal', 'gothic']) {
+    const z = r.zones.find((z) => z.shop === sh); ok(z && z.w >= 10 && z.h >= 8, '1F の 店が せまい ' + sh + ' ' + JSON.stringify(z));
+    const peds = r.fixtures.filter((f) => f.shop === sh && f.kind === 'pedestal'); ok(peds.length === 3 && peds.every((f) => f.y === z.h - 2), 'マネキンの 台の 位置 ' + sh);
+  }
+  ok(r.fixtures.filter((f) => f.kind === 'fascia').every((f) => f.fadeOver && f.z === R.MallArt.FRONT && R.MallArt.FRONT >= 230), '店の 名前の いたの 高さ・すける');
+  for (const fl of [1, 2, 3]) ok(mall.floors[fl].w === 45 && mall.floors[fl].h === 31, fl + 'F の 大きさ');
+}
+// 床と かべの 静止画は タイルに わけて、画面に 見える タイルだけ 描く（大きな canvas は まいかい 描くと おそい）
+{
+  const tiles = []; for (let y = 0; y < 3000; y += R.IsoVenue.TILE) for (let x = 0; x < 4000; x += R.IsoVenue.TILE) tiles.push({ x, y, cv: { width: Math.min(R.IsoVenue.TILE, 4000 - x), height: Math.min(R.IsoVenue.TILE, 3000 - y) } });
+  let n = 0; const ctx = { drawImage: () => n++ };
+  R.IsoVenue.drawStatic(ctx, { px: 1, tiles }, { x: -1500, y: -1200 }, 0.5);
+  ok(R.IsoVenue.TILE <= 2048 && n > 0 && n < tiles.length, '静止画の タイル ' + n + '/' + tiles.length);
+}
+// 店内 BGM: 1F〜3F は フロアごとの 名曲（作曲者が 1967年 までに なくなった パブリックドメイン・Mutopia の 楽譜）。店の 画面も フロアの 曲
+for (const fl of [1, 2, 3]) {
+  const r = mall.floors[fl], song = R.SONGS[r.bgm], died = Number((/[（(]\d{4}-(\d{4})[)）]/.exec(song?.source?.composer || '') || [])[1]);
+  ok(r.bgm === R.MallMusic.FLOOR[fl] && song && song.modern && !KANJI.test(song.title), fl + 'F の 店内 BGM ' + r.bgm);
+  ok(song.source && song.source.work && /Mutopia #\d+/.test(song.source.score) && /Public Domain/.test(song.source.license) && died > 0 && died <= 1967, fl + 'F の BGM の 出典 ' + JSON.stringify(song.source));
+}
+ok(new Set([1, 2, 3].map((fl) => mall.floors[fl].bgm)).size === 3 && mall.bgm === R.MallMusic.FLOOR[1] && mall.floors[12].bgm === 'aquarium', 'フロアごとに ちがう 曲・12F は すいぞくかん');
+for (const [sh, song] of Object.entries(R.MallMusic.SHOP)) ok(R.SONGS['shop_ike_' + sh] === R.SONGS[song], '店の 画面の 曲 ' + sh);
+console.log(`Mall: ${floors.length} iso floors, clothes/mannequins/wide shops/floor BGM, reachable fixtures, escalators/elevator, exclusive items, floor map, text and finite art keys; aquarium 12F/13F loop with all 50 fish tanks — ${n} checks OK`);

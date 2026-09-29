@@ -137,7 +137,8 @@ const Sound = {
   // ---- BGM ----
   bgm(name) {
     if (!this.ctx) { this.want = name; return; }
-    if (this.cur && this.cur.name === name) return;
+    // おなじ 曲（べつの 名前で おなじ もの も）なら とちゅうから やりなおさない
+    if (this.cur && (this.cur.name === name || (SONGS[name] && this.cur.song === SONGS[name]))) return;
     this.stopBgm();
     const song = SONGS[name];
     if (!song) return;
