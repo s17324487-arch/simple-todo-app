@@ -857,3 +857,11 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 ## ネリカスタウンの実寸アセット
 
 `nerikasu-neighborhood.js` の後に `nerikasu-town-art.js` → `nerikasu-town.js`。原画は `tools/town-design/nerikasu-assets.mjs` / `nerikasu-props.mjs` / `nerikasu-buildings.mjs`、生成は `tools/build-nerikasu-town.mjs`。HeiwadaiArtの既存bboxモデルへ別IDで登録し、共通defsは維持する。NerikasuTownは22棟と駅前の歩道・小物を接続する。駅14×5と駅東の1戸の敷地のみ変更し、入口と営業機能を既存IDで維持。昼夜は2状態の原画を先読みし、列車は座標だけを動かして線路内へクリップする。PokaDebug.nerikasuArtは描画寸法と有限キャッシュの読取用。
+
+### 町の人の生活動作（NpcLife）
+
+`npc-life.js` は WorldScene の NPC にシーン限定の `life` を付ける。屋外では既存 wander または起点±3マスを散歩し、屋内・位置補正つきの固定住民は持ち場を守る（既存 wander は保持）。移動先・移動元、3人、追従こねこ、敵、プレイヤーの予約経路を避け、入口・ワープ・看板・宝箱付近と細い道へは新しく歩き込まない。pending.npc と talking の間は次の歩行を始めない。
+
+しぐさは10種類で10〜18秒の休憩をはさむ。NpcArt.svg の gesture は有限名、表情とポーズも既存の有限名。通常姿勢を先読みし、新しい身ぶりの初回生成中にも人物を描く。StoreScene の店員は stationaryActor を使う。ゲームを閉じれば動作状態は消え、Save.KEY/SCHEMA・所持品には変更しない。
+
+テスト入口は PokaDebug.npcLife（状態・画面位置）、npcLifeAct（しぐさ）、npcLifeAdvance（最大60秒の動作更新）、npcLifeApproach（本編と同じ接近経路）。

@@ -297,7 +297,9 @@ const NpcArt = (() => {
       `<g transform="${tr[0]}"><ellipse cx="87" cy="199" rx="11" ry="9" fill="${pat0 === "socks" ? c.col2 : feetCol}" ${K()}/></g>`,
       `<g transform="${tr[1]}"><ellipse cx="113" cy="199" rx="11" ry="9" fill="${pat0 === "socks" ? c.col2 : feetCol}" ${K()}/></g>`,
     ].join("");
-    const arms = S.noArms ? "" : NPC_PROFILE.arms.map((a) => `<ellipse cx="${a.cx}" cy="${a.cy}" rx="${a.rx}" ry="${a.ry}" transform="rotate(${a.rot} ${a.cx} ${a.cy})" fill="${pat0 === "socks" ? c.col2 : armCol}" ${K()}/>`).join("");
+    const gesture = spec.gesture || "none";
+    const angles = {wave:[0,-125],wave_low:[0,-85],stretch:[115,-115],think:[0,-65],yawn:[0,-80],shy:[55,-55],laugh:[30,-30],admire:[25,-25],bow:[12,-12],look:[0,0],talk:[0,-55]}[gesture] || [0,0];
+    const arms = S.noArms ? "" : NPC_PROFILE.arms.map((a,i) => `<g transform="rotate(${angles[i]} ${a.cx} ${a.cy-10})"><ellipse cx="${a.cx}" cy="${a.cy}" rx="${a.rx}" ry="${a.ry}" transform="rotate(${a.rot} ${a.cx} ${a.cy})" fill="${pat0 === "socks" ? c.col2 : armCol}" ${K()}/></g>`).join("");
     const belly = S.belly && view !== "back" ? `<ellipse cx="100" cy="166" rx="18" ry="24" fill="${S.belly}" ${K(3)}/>` : "";
     const torso = NPC_PROFILE.torsoPath;
     const bpat = bodyPattern(pat0, c);
@@ -310,7 +312,7 @@ const NpcArt = (() => {
     if (view !== "back") {
       const y = S.eyeY || 90, gap = S.eyeGap || 36, emo = spec.emo || "normal", onDark = S.eyeOnDark || (S.dark && S.dark(c)); // くろい 地の 上は 白い ボタンの 目
       let face = (S.front ? S.front(c) : "") + eyes(onDark ? "button" : look.eye || S.eyeDef || "dot", emo, y, gap) + brows(look.brow, emo, y, gap) +
-        (S.nose ? S.nose(c) : "") + mouth(S.mouth === "none" || S.mouth === "frog" || S.mouth === "wide" ? S.mouth : look.mouth || S.mouth, emo, S.mouthY || 110) +
+        (S.nose ? S.nose(c) : "") + mouth(S.mouth === "none" || S.mouth === "frog" || S.mouth === "wide" ? S.mouth : look.mouth || S.mouth, gesture === "yawn" ? "surprise" : emo, S.mouthY || 110) +
         cheeks(look.cheek || "pink", S.cheekY || 104, S.cheekGap || 60) + (S.over ? S.over(c) : "") + tuft(look.tuft, c);
       if (ctx.dx) face = `<g transform="translate(${ctx.dx},0)">${face}</g>`;
       head += face;
@@ -318,7 +320,8 @@ const NpcArt = (() => {
       if (S.back && S.back(c)) head += `<g transform="translate(-24,-4)">${S.back(c)}</g>`;
       if (look.tuft && ["bow", "flower", "leaf", "spike", "curl", "cowlick"].includes(look.tuft)) head += tuft(look.tuft, c);
     }
-    let inner = `<g transform="${tr[2]}">${L.behind}</g>${feet}<g transform="${tr[2]}">${body}${head}${L.top}</g>`;
+    const headTilt = {think:-7,yawn:8,shy:9,bow:12,look:-8,admire:-6}[gesture] || 0;
+    let inner = `<g transform="${tr[2]}">${L.behind}</g>${feet}<g transform="${tr[2]}">${body}<g transform="rotate(${headTilt} 100 140)">${head}${L.top}</g></g>`;
     if (dir === "right") inner = `<g transform="matrix(-1,0,0,1,200,0)">${inner}</g>`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vbChar}"><defs><clipPath id="torso${uid}"><path d="${torso}"/></clipPath><clipPath id="nh${uid}">${shape}</clipPath></defs>${inner}</svg>`;
   }
