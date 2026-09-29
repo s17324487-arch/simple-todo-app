@@ -35,11 +35,27 @@ const prev=L.previous;assert.equal(prev.rows.length,68);
 for(const old of prev.buildings){
   if(L.REMOVED[old.id]){assert(!B(old.id),old.id+' should be removed');continue;}
   assert(B(old.id),'lost building '+old.id);
-  if(old.act.type!=='visit')assert(d.buildings.some(b=>JSON.stringify(b.act)===JSON.stringify(old.act)),'lost '+JSON.stringify(old.act));
+  // バーガーの おてつだいは ファミレス びっくぽの 館の 中（キッチンの カウンター）
+  const inVenue=old.act.type==='work'&&old.act.shop==='burger'&&R.VenueHalls.defs.bikkupo.floors[1].fixtures.some(f=>f.action==='kitchen');
+  if(old.act.type!=='visit')assert(inVenue||d.buildings.some(b=>JSON.stringify(b.act)===JSON.stringify(old.act)),'lost '+JSON.stringify(old.act));
 }
 const acts=d.buildings.filter(b=>b.act.type!=='visit').map(b=>JSON.stringify(b.act));assert.equal(new Set(acts).size,acts.length,'duplicate shop');
-assert.equal(B('neri_bikkupo').act.shop,'burger');assert.equal(B('nerikasu_home5').act.shop,'korokoro');
+assert.equal(B('neri_bikkupo').act.venue,'bikkupo');assert.equal(B('nerikasu_home5').act.shop,'korokoro');
 for(const id of ['home','clothes','furniture','crepe','dentist','florist','cake','bakery','market','nerikasu_school','nerikasu_nursery'])assert(B(id));
+// 2つの コンビニ（ちがう 商品・歩いて 入る 店）と ファミレス びっくぽ（斜め上の 館）
+for(const id of ['lawson','sevenbun']){
+  assert.equal(d.buildings.filter(b=>b.act.type==='buy'&&b.act.shop===id).length,1,id+' building');
+  const shop=R.BUY_SHOPS[id],items=shop.items(),design=R.STORE_INTERIORS[id];assert(items.length===6&&items.every(i=>i&&R.BAG_INDEX[i.id]),id+' goods');
+  assert(design&&design.fixtures.length===6,id+' interior');for(const [kind] of design.fixtures)assert(R.StoreArt.prop(kind).length>400,id+' fixture art '+kind);
+}
+const goods=(id)=>R.BUY_SHOPS[id].items().map(i=>i.id);assert(!goods('lawson').some(g=>goods('sevenbun').includes(g)),'the two convenience stores sell the same goods');
+for(const id of ['karaage','rollcake','oden','cocoa','hamburg','omurice','doria','kidsplate','pancake','parfait']){const f=R.BAG_INDEX[id];assert(f&&f.exclusive==='nerikasu'&&f.price>0,'food '+id);assert(R.Art.iconSvg('bag',id).length>600,'food art '+id);}
+assert(R.BUY_SHOPS.market.items('food').every(f=>!f.exclusive),'convenience foods leak into the supermarket');
+{const v=R.VenueHalls.defs.bikkupo,r=v.floors[1],acts=r.fixtures.map(f=>f.action);assert(v.iso&&r.iso,'famires is an iso venue');
+  assert(acts.filter(a=>a==='order').length>=10&&['drink','kitchen','register','kids','leave'].every(a=>acts.includes(a)),'famires fixtures '+acts);
+  for(const f of r.fixtures)if(!['npc','exitMat'].includes(f.kind))assert(v.art.model(f),'famires model '+f.kind); // でぐちの マットは 床の 絵
+  const keys=new Set(r.fixtures.map(f=>v.art.modelKey(f)));assert(keys.size<=30,'famires model keys');
+  assert(R.BUY_SHOPS.bikkupo.items().length===5&&R.SONGS.bikkupo_hall&&R.SONGS.shop_lawson&&R.SONGS.shop_sevenbun,'takeout / music');}
 // ネリカスえきは ない。でんしゃは 平和台えきから（大通りの 北の はしが 平和台）
 assert(!R.Transit.stops.town_station);assert(!R.Transit.destinations('city_station').includes('town_station'));assert.equal(R.Transit.fare('heiwadai_station','city_station'),500);
 const toHeiwadai=d.warps.find(w=>w.to==='heiwadai'&&w.y===0&&w.x<=48&&48<w.x+w.w),toMeadow=d.warps.find(w=>w.to==='meadow'&&w.y===d.rows.length-1);

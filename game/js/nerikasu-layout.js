@@ -30,8 +30,8 @@ const NerikasuLayout = (() => {
     ["furniture", 9, 24, 6, 4, 3, "nerikasu.bld_furniture", {}],
     ["clothes", 16, 20, 5, 4, 2, "nerikasu.bld_clothes", {}],
     ["crepe", 22, 15, 6, 4, 3, "nerikasu.bld_crepe", {}],
-    ["neri_lawson", 28, 10, 8, 4, 4, "nerikasu.bld_neri_lawson", { fresh: true, label: "ローリソン", style: "town_lawson", act: { type: "visit", text: "ローリソンは もうすぐ オープン！\nおにぎりや スイーツが ならぶよ。" } }],
-    ["neri_bikkupo", 36, 3, 9, 5, 4, "nerikasu.bld_neri_bikkupo", { fresh: true, label: "レストラン びっくぽ", style: "town_bikkupo", act: { type: "work", shop: "burger" } }],
+    ["neri_lawson", 28, 10, 8, 4, 4, "nerikasu.bld_neri_lawson", { fresh: true, label: "ローリソン", style: "town_lawson", act: { type: "buy", shop: "lawson" } }], // 品ぞろえと 店内は js/neri-shops.js
+    ["neri_bikkupo", 36, 3, 9, 5, 4, "nerikasu.bld_neri_bikkupo", { fresh: true, label: "レストラン びっくぽ", style: "town_bikkupo", act: { type: "venue", venue: "bikkupo" } }], // ファミレスの 館（js/neri-bikkupo.js）。バーガーの おてつだいは キッチンの カウンター
     // 大通りの 南・左の 道の 西
     ["market", 2, 43, 10, 4, 5, "nerikasu.bld_market", {}],
     ["neri_post", 4, 49, 7, 4, 3, "nerikasu.bld_neri_post", { fresh: true, label: "ネリカス ゆうびんきょく", style: "town_post", act: { type: "visit", text: "ゆうびんきょくは もうすぐ オープン！\nてがみを だしに きてね。" } }],
@@ -49,7 +49,7 @@ const NerikasuLayout = (() => {
     ["nerikasu_home6", 44, 44, 7, 5, 3, "nerikasu.bld_nerikasu_home6", { house: true }],
     // よこの 道（中）の 南（入口は よこの 道（下）へ）
     ["home", 18, 56, 6, 4, 3, "nerikasu.bld_home", {}],
-    ["neri_sevenbun", 30, 56, 7, 4, 3, "nerikasu.bld_neri_sevenbun", { fresh: true, label: "せぶんぶん", style: "town_sevenbun", act: { type: "visit", text: "せぶんぶんは もうすぐ オープン！\nおでんや コーヒーが あるよ。" } }],
+    ["neri_sevenbun", 30, 56, 7, 4, 3, "nerikasu.bld_neri_sevenbun", { fresh: true, label: "せぶんぶん", style: "town_sevenbun", act: { type: "buy", shop: "sevenbun" } }],
     ["dentist", 38, 56, 9, 4, 4, "nerikasu.bld_dentist", {}],
     ["nerikasu_home0", 48, 55, 6, 5, 3, "nerikasu.bld_neri_salon", { label: "おしゃれサロン", style: "town_salon", act: { type: "work", shop: "groom" } }],
     ["bakery", 55, 56, 6, 4, 3, "nerikasu.bld_bakery", {}],

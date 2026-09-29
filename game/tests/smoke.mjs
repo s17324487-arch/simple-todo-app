@@ -261,7 +261,7 @@ function helpers(page, name) {
       await H.shot(`${shop}_result`);
       H.shopResult = await H.eval(() => document.querySelector(".modal-wrap")?.textContent || "");
       await page.click(".modal-wrap .panel-foot .btn");
-      await H.until(scene => PokaDebug.state().scene === scene && PokaDebug.idle(), 10000, fromStore ? "store" : "world");
+      await H.until(scene => PokaDebug.state().scene === scene && PokaDebug.idle(), 10000, fromStore ? (typeof fromStore === "string" ? fromStore : "store") : "world");
       return st.ranks;
     },
     // たたかう を押し続けて バトルを終わらせる
@@ -426,11 +426,14 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.groom.plays===1,'美容室の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(H.kept(before,after,k),'美容室で所持品が変わる');
 },{viewport,full:viewport.width===375,timeout:180000});
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('burger-shop-'+viewport.width,async H=>{
-  await H.newGameFast();await H.dbg('coins',987504);const before=await H.dbg('saveData');
-  const layout=await H.dbg('townLayout','town'),door=layout.doors.find(d=>d.act.shop==='burger');expect(door,'バーガーやさんの入口がない');
-  await H.dbg('teleport','town',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle());
-  expect((await H.dbg('storeState')).party.length===3,'3人で入れない');await H.shot('interior');await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle());
-  const ranks=await H.playShop('burger',3);expect(ranks.length===6&&ranks.every(r=>r===3),'正しい順番で◎にならない: '+JSON.stringify(H.shopGrades));
+  await H.newGameFast();await H.dbg('coins',987504);{const s=await H.dbg('saveData');s.shops.burger.lv=3;await H.dbg('seedSave',s);}const before=await H.dbg('saveData');
+  // バーガーの おてつだいは ファミレス びっくぽ（ネリカスタウン）の キッチンの カウンター。おわると 店の 中へ もどる（おみせ Lv.3 = おきゃくさん 6人）
+  const layout=await H.dbg('townLayout','town'),door=layout.doors.find(d=>d.act.venue==='bikkupo');expect(door,'びっくぽの入口がない');
+  await H.dbg('teleport','town',door.x,door.y+1);await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);await H.until(()=>PokaDebug.state().scene==='venue'&&PokaDebug.idle());
+  expect((await H.dbg('venueState')).party.length===3,'3人で入れない');await H.shot('interior');
+  await H.dbg('venueVisit','キッチンの カウンター');await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();
+  const ranks=await H.playShop('burger',3,'venue');expect(ranks.length===6&&ranks.every(r=>r===3),'正しい順番で◎にならない: '+JSON.stringify(H.shopGrades));
+  const back=await H.dbg('venueState');expect(back.id==='bikkupo'&&back.party[0].x===18&&back.party[0].y===4,'おてつだいの あと キッチンの まえに もどらない '+JSON.stringify(back.party[0]));
   const after=await H.dbg('saveData');expect(after.coins>before.coins&&after.shops.burger.plays===1,'バーガー屋の報酬・記録が残らない');for(const k of ['bag','wardrobe','furn','rooms'])expect(H.kept(before,after,k),'バーガー屋で所持品が変わる');
 },{viewport,full:viewport.width===375,timeout:180000});
 
@@ -2788,6 +2791,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});
 
 await (await import("./nerikasu-town-smoke.mjs")).nerikasuTownSmoke({scenario,expect});
+
+await (await import("./nerikasu-shops-smoke.mjs")).nerikasuShopsSmoke({scenario,expect});
 
 await (await import("./world-zoom-smoke.mjs")).worldZoomSmoke({scenario,expect});
 
