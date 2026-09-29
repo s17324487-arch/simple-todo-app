@@ -2719,6 +2719,8 @@ await (await import("./room-presets-smoke.mjs")).roomPresetsSmoke({scenario,expe
 
 await (await import("./parent-wardrobe-smoke.mjs")).parentWardrobeSmoke({scenario,expect});
 
+await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
+
 server.close();
 if(LIST)process.exit(0);
 if (!results.length) { console.error("検証対象がありません。--only の名前を確認してください。"); process.exit(1); }

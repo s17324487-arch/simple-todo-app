@@ -4,6 +4,7 @@
 // ここの関数名と引数は「約束」なので、変えるときは tests/smoke.mjs と docs も直すこと。
 const PokaDebug = {
   version: GAME_VERSION,
+  homeRoom(id){if(G.sceneName!=="house"||!HomeRooms.switchTo(id))return false;Game.goto("house");return true;},
   roomPresets(){return JSON.parse(JSON.stringify(RoomPresets.list()));},
   cityCatalog(){return IkebukuroCatalog.groups;},
   // クレーン（crane-scene.js）。arcadeState: いまの 台の ようす・arcadeMove: アームを dx・dz cm うごかす（うごかせる ときだけ）
@@ -90,6 +91,7 @@ const PokaDebug = {
     const sc = G.scene;
     return {
       version: GAME_VERSION,
+  homeRoom(id){if(G.sceneName!=="house"||!HomeRooms.switchTo(id))return false;Game.goto("house");return true;},
   roomPresets(){return JSON.parse(JSON.stringify(RoomPresets.list()));},
       scene: G.sceneName,
       map: sc && sc.mapId ? sc.mapId : null,

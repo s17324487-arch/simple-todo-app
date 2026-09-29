@@ -39,7 +39,7 @@ class HouseScene {
     this.layout();
     await Promise.all([this.preloadChars(), this.preloadFurn(), this.buildBg()]);
     Sound.bgm("house");
-    UI.showHud(true, "おうち");
+    UI.showHud(true, HomeGarden.active()?"おにわ":"おうち");
     Save.d.world = { ...TownRenewal.homeExit(), house: true };
     this.buildUI();
     this.statusTimer = setInterval(() => this.updateCare(), 1500);
@@ -132,7 +132,7 @@ class HouseScene {
   preloadFurn() { return Promise.all(Save.d.room.items.map((it) => this.furnCanvas(it, true))); }
   buildBg() {
     const r = Save.d.room, size = HomeDesign.size(), b = HomeDesign.bounds(size);
-    this.bgArgs = ["house-design:" + r.wall + ":" + r.floor + ":" + size.w + "x" + size.d, () => HomeDesign.roomSvg(r.wall, r.floor, size), Math.ceil(b.w * 2), Math.ceil(b.h * 2)];
+    this.bgArgs = ["house-design:" + Save.d.rooms.active + ":" + r.wall + ":" + r.floor + ":" + size.w + "x" + size.d, () => HomeGarden.active()?HomeGarden.svg(size):HomeDesign.roomSvg(r.wall, r.floor, size), Math.ceil(b.w * 2), Math.ceil(b.h * 2)];
     return SvgCache.ensure(...this.bgArgs);
   }
 
@@ -421,7 +421,7 @@ class HouseScene {
     e.innerHTML = "";
     const head = U.el("div", { class: "row", style: "margin-bottom:6px" });
     const tabs = U.el("div", { class: "tabs", style: "margin:0;flex:1" });
-    for (const [k, label] of [["furn", "かぐ"], ["wall", "かべがみ"], ["floor", "ゆか"]]) {
+    for (const [k, label] of (HomeGarden.active()?[["furn", "かぐ"]]:[["furn", "かぐ"], ["wall", "かべがみ"], ["floor", "ゆか"]])) {
       const b = U.el("button", { class: "tab" + (this.editTab === k ? " on" : ""), text: label });
       b.addEventListener("click", () => { this.editTab = k; Sound.se("tap"); this.renderEditBar(); });
       tabs.append(b);
@@ -430,7 +430,7 @@ class HouseScene {
     const info = U.el("div", { class: "muted", html: `いごこち ${"★".repeat(Room.stars())}${"☆".repeat(5 - Room.stars())}（${Room.comfort()}）　かぐは ドラッグで うごかせるよ` });
     const tray = U.el("div", { class: "tray" });
     if (this.editTab === "furn") {
-      const ids = FURNITURE.filter((f) => Room.available(f.id) > 0);
+      const ids = FURNITURE.filter((f) => Room.available(f.id) > 0 && (!HomeGarden.active() || f.kind!=="wall"));
       if (!ids.length) tray.append(U.el("div", { class: "note", text: "おける かぐが ないよ。まちの かぐやさんで かえるよ！" }));
       for (const f of ids) {
         const c = U.el("button", { class: "card", html: `<span class="cnt">×${Room.available(f.id)}</span>${UI.icon("furn", f.id, 50)}<div>${f.name}</div>` });
@@ -458,6 +458,7 @@ class HouseScene {
   async placeNew(id) {
     if (Room.available(id) <= 0 || Save.d.room.items.length >= 64) { UI.toast("おける かぐが ないよ（1へや 64こまで）"); return; }
     const f = FURN_INDEX[id];
+    if(HomeGarden.active()&&f.kind==="wall")return;
     const r = Save.d.room;
     const it = { uid: r.nextUid++, id, x: ROOM.W / 2, y: f.kind === "wall" ? 110 : 440, flip: false };
     // なるべく ほかの家具と かさならない場所をさがす
