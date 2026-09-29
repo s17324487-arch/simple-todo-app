@@ -842,15 +842,20 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 限定家具5品はQuizPrizesへ登録し、HomeDesignと同じ投影で描画。5品×2方向の有限キャッシュ。PokaDebug.conversation／quizState／quizStart／quizAnswer／quizCancelを検証の入口とする。既存Save.KEY／SCHEMAは維持し、conversationsとtownQuizを追加する。
 
-## クレーンゲーム（Meeときょれじゃ・UI-03）
+## クレーンゲーム（Meeときょれじゃ・UI-03・UI-07）
 
-読み込み順は `crane-physics.js` → `crane-art.js` → `crane-machines.js` → `crane-scene.js`（mama-schedule.js の あと、debug.js の まえ）。
+読み込み順は `arcade-prizes.js` → `crane-physics.js` → `crane-art.js` → `crane-machines.js` → `crane-scene.js`（mama-schedule.js の あと、debug.js の まえ）。館の 絵は `arcade-art.js` → `ike-arcade.js`（ike-mall.js の あと、aqua-art.js の まえ）。トップレベル名は `ArcadePrizes`・`CranePhys`・`CraneArt`・`CraneMachines`・`CraneCam`・`CraneScene`・`PrizeArcade`・`ArcadeArt`・`IkeArcade`。
+
+- `ArcadePrizes`（arcade-prizes.js）: 景品の 家具 18しゅ（`ITEMS`: `ike_chibi_<だれ>_<0〜3>`・`ike_mini_<だれ>`・`ike_plush_<bear|panda|penguin>`）。絵は `svg(id, dir)`（3人は Chara.svg の 表情・ポーズ・こもの、町の人は Art.npcSvg。viewBox は 絵の はんい `crop`、ぬのの タグ・つや・ミニは キーホルダーの わ）。家具は `cityItem.type = "arcadeplush"`（おうちの 立体は `IkebukuroItemArt.model` から `ArcadePrizes.model`）。コインの 景品は `coinState()`・`coinLeft()`（`Save.d.arcade.coinDay`・`coinToday`。1にち `COIN_DAY_MAX` = 600）。
 
 - `CranePhys.World`: 位置ベースの 物理（Verlet・1フレーム 4サブステップ×2回。スウィートは 3）。景品は 小さな たまの あつまりで、shape matching（Müller 2016 の 回転の とりだし。1かいに まわれる 角度に 上限）で 形を たもつ。stiff 1 = かたい はこ、0.3〜0.7 = ぬいぐるみ。当たりは 平面・箱（かたむき あり）・カプセル（アームの ぼう）・球・まわる 円ばん・穴の ある 床・つつ。うごく もの（move: true）は 前の 位置を おぼえて まさつで 景品を はこぶ。ねむった 景品は 計算しない（まわる 台の 上なら 台と いっしょに まわす）。とおい 当たりは まわりの 箱で はぶく。
-- `CraneMachines.DEFS`（8台）と しかけ: `ClawRig`（くるま・ケーブルの ふりこ・アームの 角度。つかむ ときは うでごとに おされる 量で とまる＝アームの つよさ）・`TrypodRig`（12の ランプ・6本の アーム）・`SweetRig`（まわる 台・ショベル・おしだし）。`CraneRound` は 1かいの あそび（`move` → `stop` → `open` → `down` → `close` → `up` → `top` → `carry` → `release` → `settle`、トライポッドは `spin`／`stopped`、スウィートは `swing` → `dip` → `scoop` → `lift` → `swing2` → `dump` → `back` を 3かい → `watch`）。1/60びょう ずつ すすむので おなじ 台・おなじ そうさ なら おなじ けっか（たねは 台と セーブの ようすから）。
+- `CraneMachines.DEFS`（12台。`id`・まえの 8台と おなじ 台は `legacy`: 1・4・6）と しかけ: `ClawRig`（くるま・ケーブルの ふりこ・アームの 角度。つかむ ときは うでごとに おされる 量で とまる＝アームの つよさ）・`TrypodRig`（12の ランプ・6本の アーム）・`SweetRig`（まわる 台・ショベル・おしだし）。`CraneRound` は 1かいの あそび（`move` → `stop` → `open` → `down` → `close` → `up` → `top` → `carry` → `release` → `settle`、トライポッドは `spin`／`stopped`、スウィートは `swing` → `dip` → `scoop` → `lift` → `swing2` → `dump` → `back` を 3かい → `watch`）。1/60びょう ずつ すすむので おなじ 台・おなじ そうさ なら おなじ けっか（たねは 台と セーブの ようすから）。
 - セーブ: `Save.d.arcade.boards[台]` は 景品ごとの [sid, 形, まん中 x・y・z, 向き]（0.1cm・0.001）と しかけの ようす（トライポッドの アーム・スウィートの 台の 角度）。`miss[台]` は はずれの かず（4で かならず つよい）、`got[台]` は とれた かず。あそんで いる あいだは `active.cp`（`CraneRound.snap()`）に 2びょうごと・おした とき・1かい おわる ごとに のこす。`PrizeArcade.finish` が ごほうび・台の ようす・はずれの かずを 1かいの `Save.write()` で のこし、`settled` で 2かい もらえない。
 - 画面: `CraneCam` は まっすぐ まえ（または よこ）を むく ピンホール カメラ（たての せんは たてのまま。目の たかさは 台の 8わり）。かべ・ゆかは しまに わけて アフィンで はる。ぬいぐるみは カメラを むく 絵（うらむきで うらの 絵）、星の クッションは おもて・よこの そう・うらを かさねる、はこは 見える 面だけ。アームは ひらたい いたと ゴムの ツメ、3本アームは UFO の あたま。SvgCache の キーは `crane:<TEX の なまえ>`・`crane:hall:<台>`・`crane:door:<景品>` だけ。
-- `CraneHallArt` が `VenueHallArt.fixture` の `kind: "crane"` だけ 描きかえる（台ごとの いろ・かんばん・まどの 中の 景品・ランプ）。
+- 景品: まぜて ある 台（ちいさな ぬいぐるみ 4しゅ・ミニマスコット 3しゅ）は 形ごとに 景品が ちがう（`SHAPES[形]().prize`）。`CraneRound.gotShapes`（`snap()` の `gs`）で とれた 形を のこし、`PrizeArcade.prizesOf(台, round)` が 景品に する。コインの 台（`machines[i].coins`: メダル 20・たからばこ 300）は もちものに ならず コインが ふえる。`PrizeArcade.coinOpen(台)` で 1にちの のこりが 1こぶん ない ときは はじめない。
+- 台の いれかえ（UI-07）: `board()` に 台の `id`。`CraneRound` は id が ちがう 台の ようす（と `cp`）を つかわない（id の ない ふるい ようすは legacy の 台だけ）。`active` には `def`（台の id）。`PrizeArcade.upgrade()`（`norm()` から）は def の ない とちゅうの 1かいが いれかわった 台なら 100コインを かえして `refunded` を たてる（館に はいった ときに しらせる）。`Save.SCHEMA` は そのまま。
+- 館（UI-07）: `VenueHalls.defs.arcade` を `IkeArcade.install()` が 斜めの 館に する（`iso: true`・`art: ArcadeArt`・`guide: MallGuide`・28×22 マス・`rows` の 文字 `.` じゅうたん／`w` とおりみち／`m` 入口の マット／`#` カウンターの うちがわ）。`ArcadeArt` は `Object.create(MallArt)`（くみたて・町の人・ベンチ・あるく おきゃくさんを つかう）。什器 `crane`（`machine`・`dir: 'y'|'x'` = まえの 向き。台の なかの 座標 u・v・z を `frame(f).Q` で ゆかへ。ガラスの 中に 景品の 絵・アーム・かんばん。でんきゅうと とちゅうの しるしは `L.crane`）・`gacha`・`photobooth`・`counter`・`changer`・`drinks`・`apillar`・`exitsign`・`divider`・`asofa`。キーは `arcade:<kind>:<w>x<h>:<台>:<dir>:<variant>:<item>`（有限）。床は うちゅうの じゅうたん・台の まえの ひかり、かべは ネオンと ポスター（`wallSvg`）。クレーンを しらべると `PrizeArcade.open(台, { venue, floor, back, at })`（もどると 台の まえ）。
+- けいひん カウンター: `BUY_SHOPS.ike_arcade`（まえの けいひん 5しゅを コインで こうかん。`IkeArcade.EXCHANGE`）。BGM は `SONGS.arcade_hall`（`disc_turkish` の 写しを ゲームセンターの 音に。館・あそぶ 画面・カウンターで おなじ 曲）。
 - PokaDebug: `arcadeStart(台)`・`arcadeState()`・`arcadeMove(dx, dz)`（cm）・`arcadeDrop()`・`arcadeAim(景品)`・`arcadeLuck(つよい)`・`arcadeFast(ばい)`・`arcadeCam('front'|'side')`。
 
 

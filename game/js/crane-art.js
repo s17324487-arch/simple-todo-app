@@ -115,21 +115,68 @@ const CraneArt = (() => {
     "wall-cookie": () => svg(200, 200, `<rect width="200" height="200" fill="#FFF1DF"/>${[0, 50, 100, 150].map((x) => `<rect x="${x}" width="25" height="200" fill="#F6C99A" opacity="0.55"/><rect y="${x}" width="200" height="25" fill="#F6C99A" opacity="0.55"/>`).join("")}
       ${[[50, 50], [150, 150]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15" fill="#D9A86E" stroke="${K}" stroke-width="2.4"/>${cookieDots(x, y, 15)}`).join("")}`),
 
+    "wall-paw": () => svg(200, 200, `<rect width="200" height="200" fill="#D6E9F7"/>${[[34, 38, -20], [140, 58, 18], [84, 132, 6], [172, 168, -28], [20, 176, 22]].map(([x, y, a]) => `<g transform="translate(${x} ${y}) rotate(${a})" fill="#FFFFFF"><ellipse rx="10" ry="8" cy="4"/><circle cx="-11" cy="-8" r="4.4"/><circle cx="-4" cy="-13" r="4.4"/><circle cx="4" cy="-13" r="4.4"/><circle cx="11" cy="-8" r="4.4"/></g>`).join("")}
+      ${[[100, 26], [48, 92], [150, 116]].map(([x, y]) => `<g transform="translate(${x} ${y}) rotate(28)"><rect x="-12" y="-3.5" width="24" height="7" rx="3" fill="#F6E7C8"/><circle cx="-12" cy="-4" r="4.4" fill="#F6E7C8"/><circle cx="-12" cy="4" r="4.4" fill="#F6E7C8"/><circle cx="12" cy="-4" r="4.4" fill="#F6E7C8"/><circle cx="12" cy="4" r="4.4" fill="#F6E7C8"/></g>`).join("")}`),
+    "wall-gold": () => svg(200, 200, `<rect width="200" height="200" fill="#2E3A6B"/>${[[36, 40, 16], [150, 30, 12], [100, 110, 18], [30, 150, 12], [168, 150, 15]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#F2C84B" stroke="#FFF3B0" stroke-width="2.4"/><path d="${starPath(x, y, r * 0.5, r * 0.22)}" fill="#FFF3B0"/>`).join("")}
+      ${Array.from({ length: 14 }, (_, i) => star5((i * 61 + 20) % 200, (i * 89 + 60) % 200, 3 + (i % 3), "#FFF6C8")).join("")}`),
+    "wall-bamboo": () => svg(200, 200, `<rect width="200" height="200" fill="#E1F2D8"/>${[24, 92, 160].map((x, i) => `<rect x="${x}" y="0" width="16" height="200" fill="#9CCB86"/>${[30, 90, 150].map((y) => `<rect x="${x - 1}" y="${y + i * 12}" width="18" height="4" fill="#7FB36B"/>`).join("")}`).join("")}
+      ${[[56, 50, -30], [128, 120, 25], [60, 170, -15], [190, 60, 40]].map(([x, y, a]) => `<g transform="translate(${x} ${y}) rotate(${a})"><path d="M0 0 Q18 -10 34 0 Q18 8 0 0Z" fill="#86BE6F"/><path d="M0 0 Q16 6 28 16 Q12 14 0 0Z" fill="#A8D48F"/></g>`).join("")}`),
+    "wall-treasure": () => svg(200, 200, `<rect width="200" height="200" fill="#4B3A73"/>${[[40, 44], [150, 70], [96, 150], [180, 180], [14, 140]].map(([x, y], i) => `<path d="M${x} ${y - 12} L${x + 10} ${y} L${x} ${y + 12} L${x - 10} ${y}Z" fill="${["#9FE3F0", "#F7A9C8", "#FFE07A"][i % 3]}" stroke="#FFFFFF" stroke-width="2"/>`).join("")}
+      ${Array.from({ length: 16 }, (_, i) => star5((i * 53 + 12) % 200, (i * 97 + 30) % 200, 3 + (i % 3), "#FFE07A")).join("")}`),
+    "wall-sunny": () => svg(200, 200, `<rect width="200" height="200" fill="#FFF4C9"/>${[[46, 50], [150, 130]].map(([x, y]) => `<g transform="translate(${x} ${y})">${Array.from({ length: 10 }, (_, i) => `<ellipse rx="7" ry="15" cy="-22" fill="#FFD66B" transform="rotate(${i * 36})"/>`).join("")}<circle r="14" fill="#B9824A"/></g>`).join("")}
+      ${[[150, 40], [40, 150]].map(([x, y]) => `<g transform="translate(${x} ${y})"><ellipse rx="26" ry="11" fill="#FFFFFF"/><ellipse cx="-12" cy="-7" rx="12" ry="9" fill="#FFFFFF"/></g>`).join("")}`),
+    "wall-jungle": () => svg(200, 200, `<rect width="200" height="200" fill="#D3ECC6"/>${[[30, 40, 20], [150, 30, -30], [100, 120, 10], [20, 170, -20], [180, 160, 35]].map(([x, y, a]) => `<g transform="translate(${x} ${y}) rotate(${a})"><path d="M0 -30 Q24 -10 0 30 Q-24 -10 0 -30Z" fill="#8FC77A"/><path d="M0 -26 V26" stroke="#6FAE5E" stroke-width="3"/></g>`).join("")}
+      ${[[70, 70], [140, 90]].map(([x, y]) => `<g transform="translate(${x} ${y})" fill="#B5DCA3"><ellipse rx="8" ry="10"/><circle cx="-8" cy="-12" r="3.4"/><circle cx="0" cy="-15" r="3.4"/><circle cx="8" cy="-12" r="3.4"/></g>`).join("")}`),
+    "wall-forest": () => svg(200, 200, `<rect width="200" height="200" fill="#F4E6CF"/>${[[40, 120], [150, 90]].map(([x, y]) => `<rect x="${x - 5}" y="${y}" width="10" height="36" fill="#B48456"/><circle cx="${x}" cy="${y - 10}" r="26" fill="#A9CF8E"/><circle cx="${x - 14}" cy="${y + 4}" r="14" fill="#9BC57E"/>`).join("")}
+      ${[[100, 40], [170, 170], [20, 30]].map(([x, y]) => `<g transform="translate(${x} ${y})"><path d="M-12 -4 Q-14 14 0 16 Q14 14 12 -4Z" fill="#E7A94A" stroke="#B87A2A" stroke-width="2"/><rect x="-10" y="-9" width="20" height="6" rx="2" fill="#F2D38A"/></g>`).join("")}`),
+    "wall-snow": () => svg(200, 200, `<rect width="200" height="200" fill="#DDEFF7"/>${[[40, 40, 14], [150, 60, 10], [96, 140, 16], [176, 170, 9], [20, 160, 11]].map(([x, y, r]) => `<g transform="translate(${x} ${y})" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round">${[0, 60, 120].map((a) => `<path d="M${-r} 0 H${r}" transform="rotate(${a})"/>`).join("")}</g>`).join("")}
+      ${Array.from({ length: 18 }, (_, i) => `<circle cx="${(i * 67) % 200}" cy="${(i * 41 + 20) % 200}" r="${2 + (i % 3)}" fill="#FFFFFF" opacity="0.85"/>`).join("")}`),
+
     // ---- ゆか ----
     "floor-mat": () => svg(200, 200, `<rect width="200" height="200" fill="#8C77B3"/>${Array.from({ length: 5 }, (_, i) => Array.from({ length: 5 }, (_, j) => `<path d="M${i * 40 + 20} ${j * 40 + 6} L${i * 40 + 34} ${j * 40 + 20} L${i * 40 + 20} ${j * 40 + 34} L${i * 40 + 6} ${j * 40 + 20}Z" fill="#9A86C0"/>`).join("")).join("")}<rect width="200" height="200" fill="none" stroke="#7B67A3" stroke-width="3"/>`),
     "floor-goji": () => svg(200, 200, `<rect width="200" height="200" fill="#7FA4B8"/>${Array.from({ length: 10 }, (_, i) => `<rect x="${(i % 5) * 40 + (Math.floor(i / 5) % 2) * 20}" y="${Math.floor(i / 5) * 100 + 20}" width="16" height="60" rx="8" fill="#8BB0C3"/>`).join("")}`),
     "floor-chick": () => svg(200, 200, `<rect width="200" height="200" fill="#A7C98F"/>${Array.from({ length: 30 }, (_, i) => `<path d="M${(i * 47) % 200} ${(i * 71) % 200} l3 -8 l3 8" stroke="#8FB478" stroke-width="2.4" fill="none"/>`).join("")}`),
     "floor-cookie": () => svg(200, 200, `<rect width="200" height="200" fill="#C99B76"/>${[0, 40, 80, 120, 160].map((y) => `<rect y="${y}" width="200" height="20" fill="#BD8E69"/>`).join("")}`),
     "floor-tri": () => svg(200, 200, `<rect width="200" height="200" fill="#B9C6D8"/>${Array.from({ length: 10 }, (_, i) => `<path d="M${i * 20} 0 V200" stroke="#C7D3E3" stroke-width="3"/>`).join("")}${Array.from({ length: 10 }, (_, i) => `<path d="M0 ${i * 20} H200" stroke="#AEBBCE" stroke-width="1.5"/>`).join("")}`),
+    "floor-paw": () => svg(200, 200, `<rect width="200" height="200" fill="#B7D6EE"/>${Array.from({ length: 5 }, (_, i) => Array.from({ length: 5 }, (_, j) => (i + j) % 2 ? "" : `<rect x="${i * 40}" y="${j * 40}" width="40" height="40" fill="#C8E1F4"/>`).join("")).join("")}`),
+    "floor-gold": () => svg(200, 200, `<rect width="200" height="200" fill="#24305C"/>${Array.from({ length: 12 }, (_, i) => star5((i * 67 + 10) % 200, (i * 43 + 25) % 200, 4 + (i % 3), "#F2C84B")).join("")}`),
+    "floor-sun": () => svg(200, 200, `<rect width="200" height="200" fill="#FBE3B0"/>${Array.from({ length: 14 }, (_, i) => `<circle cx="${(i * 67) % 200}" cy="${(i * 43) % 200}" r="6" fill="${["#FFFFFF", "#FFD66B", "#F7B955"][i % 3]}"/>`).join("")}`),
+    "floor-jungle": () => svg(200, 200, `<rect width="200" height="200" fill="#9CCB86"/>${Array.from({ length: 26 }, (_, i) => `<path d="M${(i * 47) % 200} ${(i * 71) % 200} l3 -8 l3 8" stroke="#85B872" stroke-width="2.4" fill="none"/>`).join("")}`),
+    "floor-snow": () => svg(200, 200, `<rect width="200" height="200" fill="#F3F9FC"/>${Array.from({ length: 22 }, (_, i) => `<circle cx="${(i * 57) % 200}" cy="${(i * 83) % 200}" r="${3 + (i % 3)}" fill="#D2E8F4"/>`).join("")}`),
     "floor-sweet": () => svg(200, 200, `<rect width="200" height="200" fill="#F7D9E4"/>${Array.from({ length: 12 }, (_, i) => `<circle cx="${(i * 67) % 200}" cy="${(i * 43) % 200}" r="6" fill="${["#FFFFFF", "#FBE7A1", "#C8E8DD"][i % 3]}"/>`).join("")}`),
   };
+  // ---- Meeときょれじゃ の あたらしい 景品（絵は ArcadePrizes.svg）----
+  const LOOK = {}; // look → 景品の id
+  for (const it of ArcadePrizes.ITEMS) LOOK[it.size === "chibi" ? it.id.replace(/^ike_chibi_(\w+)_(\d)$/, "chibi-$1-$2") : it.size === "mini" ? it.id.replace(/^ike_mini_/, "mini-") : it.id === "ike_plush_penguin" ? "penguin" : it.id.replace(/^ike_plush_(\w+)$/, "$1-big")] = it.id;
+  for (const [look, id] of Object.entries(LOOK)) { TEX[look + "-front"] = () => ArcadePrizes.svg(id, "down"); TEX[look + "-back"] = () => ArcadePrizes.svg(id, "up"); }
+  // コイン メダル（おもて: ほし と Mee・うら: 20・よこ: ぎざぎざ）と コインの たからばこ
+  const coinFace = (back) => svg(200, 200, `<circle cx="100" cy="100" r="94" fill="#F2C84B" stroke="${K}" stroke-width="7"/><circle cx="100" cy="100" r="76" fill="#F7D96F" stroke="#C99A2E" stroke-width="5"/>
+      ${back ? txt(100, 124, 70, "20", "#B98224", 900, `stroke="#FFF1B8" stroke-width="3" paint-order="stroke"`) : `<path d="${starPath(100, 92, 44, 20)}" fill="#FFF3B0" stroke="#C99A2E" stroke-width="5" stroke-linejoin="round"/>${txt(100, 160, 26, "Mee", "#B98224")}`}
+      <path d="M52 58 A62 62 0 0 1 104 36" fill="none" stroke="#FFFBE0" stroke-width="9" stroke-linecap="round" opacity="0.8"/>`);
+  TEX["medal-front"] = () => coinFace(false); TEX["medal-back"] = () => coinFace(true);
+  TEX["medal-side"] = () => svg(200, 200, `<circle cx="100" cy="100" r="94" fill="#D6A93A" stroke="#D6A93A" stroke-width="7"/>`);
+  TEX["medal-rim"] = () => svg(200, 200, `<circle cx="100" cy="100" r="94" fill="#B98A2C" stroke="${K}" stroke-width="9"/>${Array.from({ length: 36 }, (_, i) => { const a = (i / 36) * Math.PI * 2; return `<path d="M${f1(100 + Math.cos(a) * 86)} ${f1(100 + Math.sin(a) * 86)} L${f1(100 + Math.cos(a) * 96)} ${f1(100 + Math.sin(a) * 96)}" stroke="#8C6620" stroke-width="3"/>`; }).join("")}`);
+  // たからばこ（クッキーの はこと おなじ 17×8×11）
+  const chestFront = () => svg(170, 80, `<rect x="2" y="2" width="166" height="76" rx="6" fill="#B9774A" stroke="${K}" stroke-width="4"/>
+      ${[16, 64, 106, 154].map((x) => `<rect x="${x - 5}" y="2" width="10" height="76" fill="#E4B64C" stroke="${K}" stroke-width="2.4"/>`).join("")}<rect x="2" y="30" width="166" height="8" fill="#7E4F31"/>
+      <rect x="72" y="22" width="26" height="30" rx="4" fill="#F2CF5C" stroke="${K}" stroke-width="3"/><circle cx="85" cy="34" r="4" fill="${K}"/><path d="M85 36 V44" stroke="${K}" stroke-width="3"/>${txt(40, 64, 15, "300", "#FFF1B8", 900, `stroke="${K}" stroke-width="3" paint-order="stroke"`)}${txt(128, 64, 15, "コイン", "#FFF1B8", 900, `stroke="${K}" stroke-width="3" paint-order="stroke"`)}`);
+  TEX["chest-front"] = chestFront; TEX["chest-back"] = chestFront;
+  TEX["chest-top"] = () => svg(170, 110, `<rect x="2" y="2" width="166" height="106" rx="10" fill="#C98553" stroke="${K}" stroke-width="4"/>${[16, 64, 106, 154].map((x) => `<rect x="${x - 5}" y="2" width="10" height="106" fill="#E4B64C" stroke="${K}" stroke-width="2.4"/>`).join("")}
+      ${[[42, 40], [84, 60], [126, 44], [60, 78], [110, 82]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="15" ry="9" fill="#F2C84B" stroke="${K}" stroke-width="2.6"/><ellipse cx="${x - 3}" cy="${y - 2}" rx="6" ry="3" fill="#FFF3B0"/>`).join("")}`);
+  TEX["chest-side"] = () => svg(110, 80, `<rect x="2" y="2" width="106" height="76" rx="5" fill="#A8683E" stroke="${K}" stroke-width="4"/><rect x="2" y="30" width="106" height="8" fill="#7E4F31"/><rect x="45" y="2" width="10" height="76" fill="#E4B64C" stroke="${K}" stroke-width="2.4"/>`);
+  // けっかの まど・とりだしぐちの コイン（3まい かさなり）
+  const coinSvg = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">${[[30, 60], [62, 58], [46, 36]].map(([x, y]) => `<ellipse cx="${x}" cy="${y + 5}" rx="22" ry="8" fill="#B98A2C" stroke="${K}" stroke-width="3"/><ellipse cx="${x}" cy="${y}" rx="22" ry="8" fill="#F2C84B" stroke="${K}" stroke-width="3"/><path d="${starPath(x, y, 7, 3)}" fill="#FFF3B0" transform="translate(0 0) scale(1 1)"/>`).join("")}</svg>`;
+
   // テクスチャの 大きさ（端末の こまかさで 2だん）
   const SIZE = {
     "star-front": [256, 256], "star-back": [256, 256], "star-side": [128, 128], "star-rim": [128, 128],
     "goji-front": [256, 248], "goji-back": [256, 248], "wanko-front": [248, 256], "wanko-back": [248, 256], "gachan-front": [180, 256], "gachan-back": [180, 256],
     "carousel-front": [192, 240], "carousel-side": [160, 200], "carousel-top": [160, 160], "carousel-back": [160, 200],
     "cookie-front": [204, 96], "cookie-top": [204, 132], "cookie-side": [132, 96], "pie-top": [152, 120], "pie-side": [152, 48], "uma-wrap": [264, 54],
+    "medal-front": [96, 96], "medal-back": [96, 96], "medal-side": [64, 64], "medal-rim": [64, 64], "chest-front": [204, 96], "chest-back": [204, 96], "chest-top": [204, 132], "chest-side": [132, 96],
   };
+  // ぬいぐるみの 絵は 絵の はんいの たて よこ（ながい ほうが 256。ミニは 128）
+  for (const [look, id] of Object.entries(LOOK)) { const it = ArcadePrizes.INDEX[id], [, , w, h] = it.crop, L = it.size === "mini" ? 128 : 256, sz = w > h ? [L, Math.round((L * h) / w)] : [Math.round((L * w) / h), L]; SIZE[look + "-front"] = sz; SIZE[look + "-back"] = sz; }
   const tex = (key) => { if (!TEX[key]) return null; const [w, h] = SIZE[key] || [256, 256]; return SvgCache.get("crane:" + key, TEX[key], w, h); };
   const ensureAll = (keys) => Promise.all(keys.filter((k) => TEX[k]).map((k) => { const [w, h] = SIZE[k] || [256, 256]; return SvgCache.ensure("crane:" + k, TEX[k], w, h); }));
   // 台ごとの かべ・ゆか・色
@@ -141,6 +188,14 @@ const CraneArt = (() => {
     circus: { wall: "wall-circus", floor: "floor-tri", body: "#E86F6F", body2: "#C95656", trim: "#FFE07A", glow: "#FFC4A8", head: "#FFE07A", sign: "トライポッド" },
     wanko: { wall: "wall-wanko", floor: "floor-tri", body: "#F1C565", body2: "#D9A845", trim: "#FFFFFF", glow: "#FFE9B0", head: "#FFFFFF", sign: "トライポッド" },
     chick: { wall: "wall-chick", floor: "floor-chick", body: "#8CCB7E", body2: "#6BAE5F", trim: "#FFF0A8", glow: "#D9F5C9", head: "#F9D56E", sign: "リングフック" },
+    paw: { wall: "wall-paw", floor: "floor-paw", body: "#8EC5E8", body2: "#6AA6D1", trim: "#FFFFFF", glow: "#D2ECFF", head: "#FFFFFF", sign: "わんこの ぬいぐるみ" },
+    gold: { wall: "wall-gold", floor: "floor-gold", body: "#F2C84B", body2: "#D6A231", trim: "#FFF6C8", glow: "#FFE89A", head: "#FFFFFF", sign: "コイン メダル" },
+    bamboo: { wall: "wall-bamboo", floor: "floor-tri", body: "#7CC49A", body2: "#58A67B", trim: "#FFFFFF", glow: "#D4F2DF", head: "#FFFFFF", sign: "パンダの ぬいぐるみ" },
+    treasure: { wall: "wall-treasure", floor: "floor-cookie", body: "#9B7BD0", body2: "#7A5BB2", trim: "#FFE08A", glow: "#E6D6FF", head: "#F2C84B", sign: "コインの たからばこ" },
+    sunny: { wall: "wall-sunny", floor: "floor-sun", body: "#F7B955", body2: "#E4983A", trim: "#FFF6D0", glow: "#FFE2A8", head: "#FFFFFF", sign: "がちゃんの ぬいぐるみ" },
+    jungle: { wall: "wall-jungle", floor: "floor-jungle", body: "#6FBFB0", body2: "#4E9E8F", trim: "#FFF1B8", glow: "#CDEFE8", head: "#8E8A88", sign: "ごじの ぬいぐるみ" },
+    forest: { wall: "wall-forest", floor: "floor-cookie", body: "#C98E5C", body2: "#A87142", trim: "#FFE9B8", glow: "#FFE0C0", head: "#8E8A88", sign: "くまの ぬいぐるみ" },
+    snow: { wall: "wall-snow", floor: "floor-snow", body: "#7FB8E0", body2: "#5B97C7", trim: "#FFFFFF", glow: "#DDF2FF", head: "#F9D56E", sign: "ぺんぎんの ぬいぐるみ" },
     cookie: { wall: "wall-cookie", floor: "floor-cookie", body: "#D9A06A", body2: "#B97F4B", trim: "#FFF1D6", glow: "#FFE2C0", head: "#F6E3C0", sign: "リングフック" },
   };
   // ---- canvas の たすけ ----
@@ -169,5 +224,5 @@ const CraneArt = (() => {
     ctx.beginPath(); ctx.moveTo(a[0] + nx, a[1] + ny); ctx.lineTo(b[0] + nx, b[1] + ny); ctx.arc(b[0], b[1], w / 2, Math.atan2(ny, nx), Math.atan2(-ny, -nx), dx * ny - dy * nx > 0); ctx.lineTo(a[0] - nx, a[1] - ny); ctx.arc(a[0], a[1], w / 2, Math.atan2(-ny, -nx), Math.atan2(ny, nx), dx * ny - dy * nx > 0); ctx.closePath();
     ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = K; ctx.lineWidth = Math.max(1, w * 0.16); ctx.stroke();
   };
-  return { TEX, SIZE, THEME, tex, ensureAll, quad, rod, plate, puffyStar, heart, star5, CROP };
+  return { TEX, SIZE, THEME, LOOK, tex, ensureAll, quad, rod, plate, puffyStar, heart, star5, CROP, coinSvg };
 })();

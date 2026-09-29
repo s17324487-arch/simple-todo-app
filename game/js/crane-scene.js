@@ -1,16 +1,21 @@
 // クレーンゲームの 画面（SCENES.prize）と PrizeArcade（100コイン・つづきから・ごほうび）。
 // 台の なかは 3D の 物理（CraneMachines）。ここでは カメラで うつして、筐体・アーム・景品を 描く。まえ と よこ の 2つの カメラ。
 const PrizeArcade = {
-  // 8台（台の 番号は 店の 什器 machine と おなじ）。qty: 1こ とれた ときに もらえる かず
+  // 12台（台の 番号は CraneMachines.DEFS・館の 什器 machine と おなじ）。qty: 1こ とれた ときに もらえる かず・coins: 1こ とれた ときの コイン
+  // prize は 台の だいひょうの 景品（まぜて ある 台は 形ごとの 景品 CraneMachines.SHAPES[...].prize を わたす）
   machines: [
-    { type: "claw", name: "ほしの ソファ", prize: "ike_prize_0", qty: 1 },
-    { type: "claw", name: "ごじの ぬいぐるみ", prize: "ike_prize_1", qty: 1 },
-    { type: "sweet", name: "スウィートランド・うまーぼう", prize: "prize_uma", qty: 1 },
-    { type: "sweet", name: "スウィートランド・ぱいのみん", prize: "prize_pie", qty: 1 },
-    { type: "tripod", name: "トライポッド・メリーゴーランド", prize: "ike_prize_2", qty: 1 },
-    { type: "tripod", name: "トライポッド・わんこ", prize: "ike_prize_3", qty: 1 },
-    { type: "ring", name: "リングフック・がちゃん", prize: "ike_prize_4", qty: 1 },
-    { type: "ring", name: "リングフック・まむまむ", prize: "prize_cookie", qty: 12 },
+    { id: "chibi-wanko", type: "claw", name: "わんこの ぬいぐるみ", label: "わんこ ぬいぐるみ", prize: "ike_chibi_wanko_0", mix: 4, qty: 1 },
+    { id: "goji-big", type: "claw", name: "ごじの おおきな ぬいぐるみ", label: "ごじ おおきな", prize: "ike_prize_1", qty: 1, legacy: true },
+    { id: "mini", type: "sweet", name: "スウィートランド・ミニマスコット", label: "ミニマスコット", prize: "ike_mini_wanko", mix: 3, qty: 1 },
+    { id: "medal", type: "sweet", name: "スウィートランド・コインメダル", label: "コイン メダル", coins: 20, qty: 1 },
+    { id: "wanko-big", type: "tripod", name: "トライポッド・わんこ", label: "わんこ トライポッド", prize: "ike_prize_3", qty: 1, legacy: true },
+    { id: "panda-big", type: "tripod", name: "トライポッド・パンダ", label: "パンダ トライポッド", prize: "ike_plush_panda", qty: 1 },
+    { id: "gachan-ring", type: "ring", name: "リングフック・がちゃん", label: "がちゃん リング", prize: "ike_prize_4", qty: 1, legacy: true },
+    { id: "coin-chest", type: "ring", name: "リングフック・たからばこ", label: "コイン たからばこ", coins: 300, qty: 1 },
+    { id: "chibi-gachan", type: "claw", name: "がちゃんの ぬいぐるみ", label: "がちゃん ぬいぐるみ", prize: "ike_chibi_gachan_0", mix: 4, qty: 1 },
+    { id: "chibi-goji", type: "claw", name: "ごじの ぬいぐるみ", label: "ごじ ぬいぐるみ", prize: "ike_chibi_goji_0", mix: 4, qty: 1 },
+    { id: "bear-big", type: "claw", name: "くまの おおきな ぬいぐるみ", label: "くま おおきな", prize: "ike_plush_bear", qty: 1 },
+    { id: "penguin-ring", type: "ring", name: "リングフック・ぺんぎん", label: "ぺんぎん リング", prize: "ike_plush_penguin", qty: 1 },
   ],
   PRICE: 100,
   rules: {
@@ -20,25 +25,53 @@ const PrizeArcade = {
     tripod: "ひかりが アームの ところで「とめる」と、その アームが おちるよ。アームが へると けいひんが あなに おちるよ。1かいで 3ど とめられるよ。おちた アームは つぎも そのままだよ。",
   },
   // ふるい セーブにも 台の ようす・はずれの かずを たす
-  norm() { const a = Save.d.arcade || (Save.d.arcade = { active: null, settled: null, plays: 0, wins: 0 }); if (!a.boards || typeof a.boards !== "object") a.boards = {}; if (!a.miss || typeof a.miss !== "object") a.miss = {}; if (!a.got || typeof a.got !== "object") a.got = {}; return a; },
+  norm() { const a = Save.d.arcade || (Save.d.arcade = { active: null, settled: null, plays: 0, wins: 0 }); if (!a.boards || typeof a.boards !== "object") a.boards = {}; if (!a.miss || typeof a.miss !== "object") a.miss = {}; if (!a.got || typeof a.got !== "object") a.got = {}; this.upgrade(a); return a; },
+  // 台を 12台に いれかえる まえの とちゅうの 1かい: おなじ 台（legacy）なら つづきから、いれかわった 台なら 100コインを かえす
+  upgrade(a) {
+    const run = a.active; if (!run || run.def) return;
+    const m = this.machines[run.machine];
+    if (m && m.legacy) { run.def = m.id; return; }
+    a.active = null; a.refunded = (a.refunded || 0) + 1; Save.d.coins += this.PRICE; Save.write();
+  },
+  // とれた 景品（形ごと）→ [{ id, n } | { coins }]。ふるい とちゅうの 1かい（形が ない）は 台の だいひょうの 景品
+  prizesOf(machine, round) {
+    const m = this.machines[machine], got = (round && round.got) || [], shapes = (round && round.gotShapes) || [], out = new Map();
+    if (m.coins) return got.length ? [{ coins: got.length * m.coins * m.qty }] : [];
+    got.forEach((_, k) => { const sh = shapes[k], S = sh && CraneMachines.SHAPES[sh], id = (S && S().prize) || m.prize; out.set(id, (out.get(id) || 0) + m.qty); });
+    return [...out].map(([id, n]) => ({ id, n }));
+  },
+  // 台の 景品の 一覧（まぜて ある 台は ぜんぶの しゅるい）
+  prizeList(machine) {
+    const d = CraneMachines.DEFS[machine], m = this.machines[machine], shapes = d.fill && d.fill.mix ? d.fill.mix : Array.isArray(d.sweet) ? d.sweet : [];
+    const ids = shapes.map((sh) => CraneMachines.SHAPES[sh]().prize).filter(Boolean);
+    return ids.length ? ids : m.prize ? [m.prize] : [];
+  },
+  // コインの 台は 1にちの 上限（ArcadePrizes.COIN_DAY_MAX）まで。1こぶんの コインが のこって いれば あそべる
+  coinOpen(machine) { const m = this.machines[machine]; return !m.coins || ArcadePrizes.coinLeft() >= m.coins * m.qty; },
   item(id) { return FURN_INDEX[id] || BAG_INDEX[id] || ITEM_INDEX[id] || { name: id }; },
+  // とれた 景品の 絵（はじめの 1つ。コインは "coin"）と その SVG（とりだしぐち・けっかの まど）
+  picture(machine, round) { const p = this.prizesOf(machine, round)[0]; return !p ? this.machines[machine].prize || "coin" : p.coins ? "coin" : p.id; },
+  pictureSvg(id) { return id === "coin" ? CraneArt.coinSvg() : FURN_INDEX[id] ? Art.furnSvg(id) : Art.iconSvg("bag", id); },
   // アームが つよい かくりつ（はずれが 4かい つづくと かならず つよい）
   chance(machine) { const n = this.norm().miss[machine] || 0; return n >= 4 ? 1 : [0.34, 0.45, 0.58, 0.72][n]; },
   async open(machine, back) {
     const m = this.machines[machine]; if (!m) return;
     const a = this.norm();
     if (a.active) { const yes = await UI.confirm("とちゅうの クレーンが あるよ。おかねを はらわずに つづける？", "つづける", "やめる"); if (yes) Game.goto("prize", { run: a.active }); return; }
-    const it = this.item(m.prize), qty = m.type === "sweet" ? "（おちた ぶんだけ）" : "×" + m.qty;
-    if (!(await UI.confirm(m.name + "\n" + this.rules[m.type] + "\nけいひん：" + it.name + " " + qty + "\n1かい " + this.PRICE + "コイン。とれない ことも あるよ。", this.PRICE + "コインで あそぶ", "やめる"))) return;
+    if (a.refunded) { UI.toast("台が あたらしく なったので、とちゅうだった 1かいの " + this.PRICE + "コインを かえしたよ"); a.refunded = 0; Save.write(); }
+    if (!this.coinOpen(machine)) { await UI.say([{ name: "Meeときょれじゃ", text: "きょうの コインの けいひんは おしまい。\nまた あした あそびに きてね！" }]); return; }
+    const each = m.type === "sweet" ? "（おちた ぶんだけ）" : "", prize = m.coins ? `コイン ${m.coins}${m.type === "sweet" ? "（1まい）" : ""} ${each}` : m.mix ? `${this.item(m.prize).name.replace(/^\S+ /, "")}（${m.mix}しゅるい）${each}` : this.item(m.prize).name + " " + (each || "×" + m.qty);
+    const cap = m.coins ? `\nコインの けいひんは 1にち ${ArcadePrizes.COIN_DAY_MAX}コイン まで（きょう のこり ${ArcadePrizes.coinLeft()}）。` : "";
+    if (!(await UI.confirm(m.name + "\n" + this.rules[m.type] + "\nけいひん：" + prize + cap + "\n1かい " + this.PRICE + "コイン。とれない ことも あるよ。", this.PRICE + "コインで あそぶ", "やめる"))) return;
     const run = this.start(machine, back);
     if (run) Game.goto("prize", { run }); else UI.toast("コインが たりないか、セーブできなかったよ");
   },
   // 100コインを はらって はじめる（セーブに のこせた ときだけ）
   start(machine, back) {
     const a = this.norm();
-    if (a.active || !this.machines[machine] || Save.d.coins < this.PRICE) return null;
+    if (a.active || !this.machines[machine] || Save.d.coins < this.PRICE || !this.coinOpen(machine)) return null;
     const m = this.machines[machine], strong = m.type === "claw" ? Math.random() < this.chance(machine) : true;
-    const run = { id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2), machine, back, strong, cp: null };
+    const run = { id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2), machine, def: m.id, back, strong, cp: null };
     const coins = Save.d.coins; Save.d.coins -= this.PRICE; a.active = run; Save.write();
     try { if (JSON.parse(localStorage.getItem(Save.KEY))?.arcade?.active?.id === run.id) return run; } catch (e) {}
     Save.d.coins = coins; a.active = null; Save.mark(); return null;
@@ -48,7 +81,11 @@ const PrizeArcade = {
     const a = this.norm();
     if (!run || a.active?.id !== run.id || a.settled === run.id) return false;
     const m = this.machines[run.machine], got = (round && round.got) || [], n = got.length * m.qty;
-    if (n > 0) { if (FURN_INDEX[m.prize]) Save.d.furn[m.prize] = (Save.d.furn[m.prize] || 0) + n; else Save.addBag(m.prize, n); a.wins++; a.got[run.machine] = (a.got[run.machine] || 0) + n; }
+    for (const p of this.prizesOf(run.machine, round)) {
+      if (p.coins) { Save.d.coins += p.coins; const c = ArcadePrizes.coinState(); c.coinToday = (c.coinToday || 0) + p.coins; }
+      else if (FURN_INDEX[p.id]) Save.d.furn[p.id] = (Save.d.furn[p.id] || 0) + p.n; else Save.addBag(p.id, p.n);
+    }
+    if (n > 0) { a.wins++; a.got[run.machine] = (a.got[run.machine] || 0) + n; }
     if (m.type === "claw") a.miss[run.machine] = got.length ? 0 : Math.min(4, (a.miss[run.machine] || 0) + 1);
     if (round && round.board) a.boards[run.machine] = round.board();
     a.plays++; a.settled = run.id; a.active = null; Save.write(); return true;
@@ -89,7 +126,7 @@ class CraneScene {
     const cp = this.run.cp && this.run.cp.board ? this.run.cp : null, board = cp ? cp.board : a.boards[this.i] || null;
     this.round = new CraneMachines.CraneRound(this.i, board, { strong: this.run.strong !== false, cp });
     this.camMode = "front"; this.cam = new CraneCam(this.def, "front"); this.cams = { front: this.cam, side: new CraneCam(this.def, "side") };
-    UI.showHud(true, "Meeときょれじゃ"); Sound.bgm("shop_link");
+    UI.showHud(true, "Meeときょれじゃ"); Sound.bgm("arcade_hall");
     this.buildUI(); this.resize();
     if (!this.run.cp) this.checkpoint();
     const keys = this.texKeys();
@@ -97,7 +134,8 @@ class CraneScene {
   }
   texKeys() {
     const k = [this.th.wall, this.th.floor], looks = new Set(this.round.list().map((b) => b.data.look));
-    if (this.def.fill) looks.add(CraneMachines.SHAPES[this.def.fill.shape]().look); if (this.def.sweet) looks.add(CraneMachines.SHAPES[this.def.sweet]().look); if (this.def.prize) looks.add(CraneMachines.SHAPES[this.def.prize]().look);
+    const shapes = [...(this.def.fill ? this.def.fill.mix || [this.def.fill.shape] : []), ...[].concat(this.def.sweet || []), ...(this.def.prize ? [this.def.prize] : [])];
+    for (const sh of shapes) looks.add(CraneMachines.SHAPES[sh]().look);
     for (const l of looks) for (const key of Object.keys(CraneArt.TEX)) if (key.startsWith(l + "-")) k.push(key);
     return k;
   }
@@ -134,7 +172,7 @@ class CraneScene {
   text(el, v) { if (el.textContent !== v) el.textContent = v; }
   dis(el, v) { if (el && el.disabled !== v) el.disabled = v; }
   refresh() {
-    const r = this.round, t = r.type, ph = r.phase, it = PrizeArcade.item(this.m.prize).name;
+    const r = this.round, t = r.type, ph = r.phase;
     let s = "";
     if (this.finished) s = r.got.length ? "やったー！ ゲット！" : "おしい！ また チャレンジ しよう。";
     else if (t === "claw" || t === "ring") s = ph === "move" ? `のこり ${Math.ceil(r.time)}びょう ・ やじるしで うごかして「つかむ」` : ph === "down" ? "おりるよ… もういちど おすと そこで つかむ" : ph === "stop" || ph === "open" ? "アームが ひらくよ…" : ph === "close" ? "つかんで…" : ph === "up" || ph === "top" ? "もちあげて…" : ph === "carry" ? "おとしぐちへ はこぶよ…" : ph === "release" ? "はなすよ！" : "どうかな…";
@@ -194,13 +232,13 @@ class CraneScene {
   finish() {
     if (this.finished) return; this.finished = true;
     const r = this.round, ok = PrizeArcade.finish(this.run, r); UI.updateHud();
-    const n = r.got.length * this.m.qty, it = PrizeArcade.item(this.m.prize);
+    const n = r.got.length * this.m.qty, prizes = PrizeArcade.prizesOf(this.i, r);
     if (n) { Sound.se("crane_win"); this.cheer = 3; } else { Sound.se("bad"); this.sad = 2; }
     // けっか（もういちど・もどる）
     this.result.innerHTML = "";
-    const pic = U.el("div", { class: "crane-prize-pic" }), svgStr = FURN_INDEX[this.m.prize] ? Art.furnSvg(this.m.prize) : Art.iconSvg("bag", this.m.prize);
-    pic.innerHTML = svgStr;
-    const msg = U.el("div", { class: "crane-result-text", text: n ? it.name + " ×" + n + " を もらったよ！" : "こんどは とれるかな？" });
+    const pic = U.el("div", { class: "crane-prize-pic" });
+    pic.innerHTML = PrizeArcade.pictureSvg(PrizeArcade.picture(this.i, r));
+    const msg = U.el("div", { class: "crane-result-text", text: n ? prizes.map((p) => (p.coins ? "コイン " + p.coins : PrizeArcade.item(p.id).name + " ×" + p.n)).join("・") + " を もらったよ！" : "こんどは とれるかな？" });
     const btns = U.el("div", { class: "crane-result-btns" });
     btns.append(UI.btn("もういちど（" + PrizeArcade.PRICE + "コイン）", () => this.again(), "yellow"), UI.btn("おみせに もどる", () => this.leave(), ""));
     this.result.append(n ? pic : U.el("span"), msg, btns);
@@ -393,6 +431,7 @@ class CraneScene {
   drawBody(ctx, b) {
     const d = b.data;
     if (d.look === "star") this.drawSlab(ctx, b, "star", 18, 18, 5.4);
+    else if (d.slab) this.drawSlab(ctx, b, d.look, ...d.slab);
     else if (d.box) this.drawBox(ctx, b);
     else if (d.look === "uma") this.drawStick(ctx, b);
     else if (d.art) this.drawPlush(ctx, b);
@@ -601,7 +640,7 @@ class CraneScene {
       const dq = quadUV(door[0], bot + 3, door[1], -2); this.poly(ctx, dq, "#2A2238", INK, 2);
       this.poly(ctx, quadUV(door[0] + 1, bot + 3.8, door[1] - 1, -5), "rgba(200,235,255,0.25)", "rgba(255,255,255,0.7)", 1.2);
       const mid = F((door[0] + door[1]) / 2, bot + 1.1); ctx.fillStyle = "#FFF7E0"; ctx.font = `800 ${Math.max(8, c.s(2.2, mid[2]))}px sans-serif`; ctx.textAlign = "center"; ctx.fillText("とりだしぐち", mid[0], mid[1] + 2);
-      if (this.round.got.length) { const it = this.m.prize, img = SvgCache.get("crane:door:" + it, () => (FURN_INDEX[it] ? Art.furnSvg(it) : Art.iconSvg("bag", it)), 96, 96), m2 = F((door[0] + door[1]) / 2, bot / 2 + 1), sz = Math.min(Math.abs(dq[1][0] - dq[0][0]) * 0.8, Math.abs(dq[2][1] - dq[1][1]) * 1.1); if (img) ctx.drawImage(img, m2[0] - sz / 2, m2[1] - sz / 2, sz, sz); }
+      if (this.round.got.length) { const it = PrizeArcade.picture(this.i, this.round), img = SvgCache.get("crane:door:" + it, () => PrizeArcade.pictureSvg(it), 96, 96), m2 = F((door[0] + door[1]) / 2, bot / 2 + 1), sz = Math.min(Math.abs(dq[1][0] - dq[0][0]) * 0.8, Math.abs(dq[2][1] - dq[1][1]) * 1.1); if (img) ctx.drawImage(img, m2[0] - sz / 2, m2[1] - sz / 2, sz, sz); }
       if (this.flash > 0) { ctx.fillStyle = `rgba(255,240,150,${this.flash * 0.6})`; this.poly(ctx, dq, ctx.fillStyle); }
     }
     // かんばん（まわる ライト）
@@ -685,47 +724,4 @@ const CraneSE = {
   };
 })();
 
-// ---- 店内の 筐体（VenueHallArt の クレーンだけ ここで 描く。台ごとに いろ・かんばん・なかの 景品）----
-const CraneHallArt = {
-  svg(i) {
-    const m = PrizeArcade.machines[i], d = CraneMachines.DEFS[i], th = CraneArt.THEME[d.theme], K = INK, it = m.prize;
-    const prize = U.svgUrl(FURN_INDEX[it] ? Art.furnSvg(it) : Art.iconSvg("bag", it)), wall = U.svgUrl(CraneArt.TEX[th.wall]());
-    const claw = d.type === "claw" || d.type === "ring";
-    const inside = d.type === "tripod" ? `<ellipse cx="52" cy="94" rx="30" ry="7" fill="#2A2238" stroke="${K}" stroke-width="2"/>${[0, 1, 2, 3, 4, 5].map((k) => `<circle cx="${52 + Math.cos(k) * 30}" cy="${94 + Math.sin(k) * 7}" r="2.2" fill="#FFE45C"/>`).join("")}<image href="${prize}" x="30" y="52" width="44" height="42"/>`
-      : d.type === "sweet" ? `<rect x="18" y="68" width="68" height="8" rx="2" fill="#FFF7E6" stroke="${K}" stroke-width="1.6"/><ellipse cx="52" cy="96" rx="24" ry="6" fill="#FFF3F7" stroke="${K}" stroke-width="1.6"/>${[0, 1, 2, 3, 4].map((k) => `<image href="${prize}" x="${24 + k * 11}" y="${84 - (k % 2) * 4}" width="14" height="14"/>`).join("")}<image href="${prize}" x="36" y="56" width="16" height="16"/><image href="${prize}" x="54" y="58" width="16" height="16"/>`
-      : `<image href="${prize}" x="${d.type === "ring" ? 40 : 30}" y="${d.type === "ring" ? 64 : 58}" width="${d.type === "ring" ? 34 : 46}" height="${d.type === "ring" ? 34 : 44}"/>${d.type === "ring" ? `<circle cx="57" cy="60" r="6" fill="none" stroke="#F48FB1" stroke-width="2.6"/>` : ""}<rect x="14" y="88" width="16" height="14" fill="#2A2238" opacity="0.8"/><rect x="14" y="84" width="16" height="6" fill="#DDF3FF" opacity="0.6" stroke="#FFFFFF" stroke-width="1"/>`;
-    const arm = claw ? `<path d="M52 34 V46" stroke="#4A4F58" stroke-width="1.6"/><ellipse cx="52" cy="48" rx="7" ry="3" fill="${th.head}" stroke="${K}" stroke-width="1.6"/><path d="M46 50 L42 60 L46 64 M58 50 L62 60 L58 64" fill="none" stroke="#8A939E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>` : "";
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104 156" width="104" height="156">
-      <defs><clipPath id="chw${i}"><rect x="12" y="30" width="80" height="76" rx="3"/></clipPath><linearGradient id="chb${i}" x1="0" x2="1"><stop offset="0" stop-color="${th.body2}"/><stop offset="0.5" stop-color="${th.body}"/><stop offset="1" stop-color="${th.body2}"/></linearGradient></defs>
-      <path d="M4 26 Q4 6 24 6 H80 Q100 6 100 26 V150 H4Z" fill="url(#chb${i})" stroke="${K}" stroke-width="2.6"/>
-      <rect x="10" y="10" width="84" height="16" rx="5" fill="#FFF8EE" stroke="${K}" stroke-width="1.8"/>
-      <text x="52" y="22" font-size="${th.sign.length > 7 ? 7.6 : 9}" font-weight="900" text-anchor="middle" fill="${K}" font-family="sans-serif">${th.sign}</text>
-      <g clip-path="url(#chw${i})"><image href="${wall}" x="12" y="30" width="80" height="80" preserveAspectRatio="xMidYMid slice"/><rect x="12" y="92" width="80" height="16" fill="${d.type === "sweet" ? "#F7D9E4" : "#8C77B3"}" opacity="0.9"/>${inside}${arm}<path d="M12 30 H92" stroke="#C7CED8" stroke-width="3"/><path d="M18 34 L40 34 L22 100 L12 100Z" fill="#FFFFFF" opacity="0.18"/></g>
-      <rect x="12" y="30" width="80" height="76" rx="3" fill="none" stroke="${K}" stroke-width="2"/>
-      <path d="M8 112 H96 L100 126 H4Z" fill="${th.body2}" stroke="${K}" stroke-width="2"/>
-      <circle cx="28" cy="119" r="3.4" fill="#FF7BA8" stroke="${K}" stroke-width="1.4"/><path d="M28 119 V113" stroke="${K}" stroke-width="2"/><circle cx="28" cy="112" r="2.6" fill="#FF7BA8" stroke="${K}" stroke-width="1.2"/>
-      <circle cx="74" cy="119" r="5" fill="#7ED957" stroke="${K}" stroke-width="1.6"/>
-      <rect x="36" y="130" width="32" height="14" rx="2" fill="#2A2238" stroke="${K}" stroke-width="1.6"/><rect x="39" y="132" width="26" height="6" fill="#DDF3FF" opacity="0.5"/>
-      <rect x="80" y="130" width="12" height="16" rx="2" fill="#E6E0CF" stroke="${K}" stroke-width="1.4"/><path d="M83 134 H89" stroke="${K}" stroke-width="1.6"/>
-    </svg>`;
-  },
-  draw(ctx, f, time) {
-    const x = f.x * 32, y = (f.y + f.h) * 32, w = f.w * 32, cw = 104, ch = 156, cx = x + w / 2 - cw / 2, top = y - ch + 6, i = f.machine;
-    const img = SvgCache.get("crane:hall:" + i, () => this.svg(i), cw * 2, ch * 2);
-    ctx.fillStyle = "rgba(40,30,60,0.25)"; ctx.beginPath(); ctx.ellipse(x + w / 2, y + 2, cw * 0.5, 7, 0, 0, 7); ctx.fill();
-    if (img) ctx.drawImage(img, cx, top, cw, ch);
-    // かんばんの まわりの ライト（ながれる）
-    for (let k = 0; k < 12; k++) { const px = cx + 8 + k * 8, on = (k + Math.floor(time * 6) + i) % 3 === 0; ctx.fillStyle = on ? "#FFF6B0" : "rgba(255,255,255,0.5)"; ctx.beginPath(); ctx.arc(px, top + 8, on ? 2.2 : 1.5, 0, 7); ctx.fill(); }
-    const a = PrizeArcade.norm();
-    if (a.active && a.active.machine === i) { ctx.fillStyle = "#FF7BA8"; U.rr(ctx, cx + cw - 36, top + 30, 34, 14, 4); ctx.fill(); ctx.fillStyle = "#FFFFFF"; ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center"; ctx.fillText("とちゅう", cx + cw - 19, top + 40); }
-  },
-};
-(() => {
-  const orig = VenueHallArt.fixture;
-  VenueHallArt.fixture = function (ctx, f, time) {
-    if (f.kind !== "crane" || typeof f.machine !== "number") return orig.call(this, ctx, f, time);
-    CraneHallArt.draw(ctx, f, time);
-    // なふだ（つかむ 1 など）は もとと おなじ 描きかた
-    if (f.label) { const x = f.x * 32, y = (f.y + f.h) * 32, w = f.w * 32; ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center"; const width = Math.min(w + 44, Math.max(58, ctx.measureText(f.label).width + 12)); ctx.fillStyle = "#FFF9E6"; U.rr(ctx, x + w / 2 - width / 2, y + 2, width, 17, 4); ctx.fill(); ctx.fillStyle = INK; ctx.fillText(f.label, x + w / 2, y + 14, width - 5); }
-  };
-})();
+// 店内の 台の 絵は js/arcade-art.js（ArcadeArt・斜め上から 見る 館）。
