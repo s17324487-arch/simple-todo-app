@@ -842,6 +842,18 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 限定家具5品はQuizPrizesへ登録し、HomeDesignと同じ投影で描画。5品×2方向の有限キャッシュ。PokaDebug.conversation／quizState／quizStart／quizAnswer／quizCancelを検証の入口とする。既存Save.KEY／SCHEMAは維持し、conversationsとtownQuizを追加する。
 
+## クレーンゲーム（Meeときょれじゃ・UI-03）
+
+読み込み順は `crane-physics.js` → `crane-art.js` → `crane-machines.js` → `crane-scene.js`（mama-schedule.js の あと、debug.js の まえ）。
+
+- `CranePhys.World`: 位置ベースの 物理（Verlet・1フレーム 4サブステップ×2回。スウィートは 3）。景品は 小さな たまの あつまりで、shape matching（Müller 2016 の 回転の とりだし。1かいに まわれる 角度に 上限）で 形を たもつ。stiff 1 = かたい はこ、0.3〜0.7 = ぬいぐるみ。当たりは 平面・箱（かたむき あり）・カプセル（アームの ぼう）・球・まわる 円ばん・穴の ある 床・つつ。うごく もの（move: true）は 前の 位置を おぼえて まさつで 景品を はこぶ。ねむった 景品は 計算しない（まわる 台の 上なら 台と いっしょに まわす）。とおい 当たりは まわりの 箱で はぶく。
+- `CraneMachines.DEFS`（8台）と しかけ: `ClawRig`（くるま・ケーブルの ふりこ・アームの 角度。つかむ ときは うでごとに おされる 量で とまる＝アームの つよさ）・`TrypodRig`（12の ランプ・6本の アーム）・`SweetRig`（まわる 台・ショベル・おしだし）。`CraneRound` は 1かいの あそび（`move` → `stop` → `open` → `down` → `close` → `up` → `top` → `carry` → `release` → `settle`、トライポッドは `spin`／`stopped`、スウィートは `swing` → `dip` → `scoop` → `lift` → `swing2` → `dump` → `back` を 3かい → `watch`）。1/60びょう ずつ すすむので おなじ 台・おなじ そうさ なら おなじ けっか（たねは 台と セーブの ようすから）。
+- セーブ: `Save.d.arcade.boards[台]` は 景品ごとの [sid, 形, まん中 x・y・z, 向き]（0.1cm・0.001）と しかけの ようす（トライポッドの アーム・スウィートの 台の 角度）。`miss[台]` は はずれの かず（4で かならず つよい）、`got[台]` は とれた かず。あそんで いる あいだは `active.cp`（`CraneRound.snap()`）に 2びょうごと・おした とき・1かい おわる ごとに のこす。`PrizeArcade.finish` が ごほうび・台の ようす・はずれの かずを 1かいの `Save.write()` で のこし、`settled` で 2かい もらえない。
+- 画面: `CraneCam` は まっすぐ まえ（または よこ）を むく ピンホール カメラ（たての せんは たてのまま。目の たかさは 台の 8わり）。かべ・ゆかは しまに わけて アフィンで はる。ぬいぐるみは カメラを むく 絵（うらむきで うらの 絵）、星の クッションは おもて・よこの そう・うらを かさねる、はこは 見える 面だけ。アームは ひらたい いたと ゴムの ツメ、3本アームは UFO の あたま。SvgCache の キーは `crane:<TEX の なまえ>`・`crane:hall:<台>`・`crane:door:<景品>` だけ。
+- `CraneHallArt` が `VenueHallArt.fixture` の `kind: "crane"` だけ 描きかえる（台ごとの いろ・かんばん・まどの 中の 景品・ランプ）。
+- PokaDebug: `arcadeStart(台)`・`arcadeState()`・`arcadeMove(dx, dz)`（cm）・`arcadeDrop()`・`arcadeAim(景品)`・`arcadeLuck(つよい)`・`arcadeFast(ばい)`・`arcadeCam('front'|'side')`。
+
+
 ## ネリカスタウンの実寸アセット
 
 `nerikasu-neighborhood.js` の後に `nerikasu-town-art.js` → `nerikasu-town.js`。原画は `tools/town-design/nerikasu-assets.mjs` / `nerikasu-props.mjs` / `nerikasu-buildings.mjs`、生成は `tools/build-nerikasu-town.mjs`。HeiwadaiArtの既存bboxモデルへ別IDで登録し、共通defsは維持する。NerikasuTownは22棟と駅前の歩道・小物を接続する。駅14×5と駅東の1戸の敷地のみ変更し、入口と営業機能を既存IDで維持。昼夜は2状態の原画を先読みし、列車は座標だけを動かして線路内へクリップする。PokaDebug.nerikasuArtは描画寸法と有限キャッシュの読取用。

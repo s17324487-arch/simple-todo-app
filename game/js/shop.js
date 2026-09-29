@@ -53,6 +53,7 @@ const ShopUI = {
     });
   },
   kindOf(shopId, tab) {
+    if(shopId==='ike_electronics')return tab==='phones'?'wear':'furn';
     if (BUY_SHOPS[shopId].kind) return BUY_SHOPS[shopId].kind;
     if (shopId === "clothes") return "wear";
     if (shopId === "market") return "bag";
@@ -88,7 +89,7 @@ const ShopUI = {
         const outfit = { ...c.outfit, [it.slot]: it.id };
         stage.innerHTML = `<div class="floor"></div><div class="who">${Chara.svg(who, { outfit, color: c.color, face: "happy", dir: it.slot === "back" ? "up" : "down" })}</div>`;
       } else if (kind === "furn") {
-        stage.innerHTML = `<div class="floor"></div><div class="who" style="width:${Math.min(220, it.w * 2 + 30)}px;bottom:30px">${Art.furnSvg(it.id)}</div>`;
+        stage.innerHTML = `<div class="floor"></div><div class="who" style="width:${Math.min(220, it.w * 2 + 30, it.cityItem ? 155 * HomeDesign.model(it.id).w / HomeDesign.model(it.id).h : 220)}px;bottom:30px">${Art.furnSvg(it.id)}</div>`;
       } else if (kind === "wall" || kind === "floor") {
         stage.innerHTML = `<div class="who" style="width:180px;bottom:24px">${Art.iconSvg(kind, it.id)}</div>`;
       } else {
@@ -146,7 +147,7 @@ const ShopUI = {
       if (kind === "wear") {
         if (await UI.confirm(`「${it.name}」を かったよ！\n${Save.d.chars[who].name}が いま きる？`, "きる！", "あとで")) {
           Save.d.chars[who].outfit[it.slot] = it.id;
-          Save.care(who, { mood: 6, bond: 1 });
+          Save.care(who, { mood: 6, bond: 1 }); Save.write();
           Save.mark();
           UI.toast(`${Save.d.chars[who].name}「にあう？」`, "good");
         }

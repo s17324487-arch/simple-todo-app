@@ -4,8 +4,21 @@
 // ここの関数名と引数は「約束」なので、変えるときは tests/smoke.mjs と docs も直すこと。
 const PokaDebug = {
   version: GAME_VERSION,
-  venue(id='school',floor){const b=MAP_DEFS.town.buildings.find(b=>b.act.venue===id)||MAP_DEFS.city.buildings.find(b=>b.act.venue===id);if(!b)return false;Game.goto('venue',{venue:id,back:{map:MAP_DEFS.town.buildings.includes(b)?'town':'city',x:b.x+b.door,y:b.y+b.h,dir:'down'}},'none');return true;},
-  venueState(){if(G.sceneName!=='venue')return null;const sc=G.scene;return {id:sc.id,floor:sc.floor,name:sc.def.name,party:sc.party.map(p=>({x:p.x,y:p.y})),fixtures:sc.fixtures.map(f=>({...f,screen:sc.screen(f.x+f.w/2-.5,f.y+f.h-1)})),coins:Save.d.coins,walkable:sc.room.w*sc.room.h,routeCount:sc.fixtures.filter(f=>f.action).map(f=>({label:f.label,reachable:Array.from({length:f.h+2},(_,j)=>Array.from({length:f.w+2},(_,i)=>sc.route(f.x-1+i,f.y-1+j)!==null)).flat().some(Boolean)}))};},
+  cityCatalog(){return IkebukuroCatalog.groups;},
+  // クレーン（crane-scene.js）。arcadeState: いまの 台の ようす・arcadeMove: アームを dx・dz cm うごかす（うごかせる ときだけ）
+  arcadeState(){const s=G.sceneName==='prize'?G.scene:null,r=s&&s.round;if(!r)return null;const R=r.rig,claw=r.type==='claw'||r.type==='ring';return{machine:s.i,type:r.type,phase:r.phase,done:r.done,finished:!!s.finished,got:r.got.length,time:claw?+r.time.toFixed(2):null,claw:claw?{x:+R.x.toFixed(2),y:+R.y.toFixed(2),z:+R.z.toFixed(2)}:null,stops:r.stops??null,scoops:r.scoops??null,arms:r.type==='tripod'?R.arms.map(a=>a.up?1:0):null,light:r.type==='tripod'?R.cell():null,strong:r.strong,camera:s.camMode,bodies:r.list().length,coins:Save.d.coins,status:s.status.textContent};},
+  arcadeStart(machine=0){const back={venue:'arcade',floor:1,back:{map:'city',x:12,y:62,dir:'down'}},run=PrizeArcade.start(machine,back);if(run)Game.goto('prize',{run},'none');return !!run;},
+  arcadeMove(dx,dz){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.phase!=='move')return false;r.rig.load({x:r.rig.x+dx,z:r.rig.z+dz});return true;},
+  arcadeDrop(){if(G.sceneName!=='prize')return false;const r=G.scene.round;G.scene.press(r.type==='sweet'&&r.phase==='swing2'?1:0);return true;},
+  // テスト用: アームを 景品の 上へ（i: 景品の じゅんばん。リングの 台は リングの まえ）・アームの つよさ・はやおくり・カメラ
+  arcadeAim(i=0){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.phase!=='move')return false;const b=r.list()[i];if(!b)return false;const p=b.data.ring?CraneMachines.toWorld(r.W,b,b.data.ring.slice(0,3)):r.W.centroid(b);r.rig.load({x:p[0],z:p[2]});return true;},
+  arcadeLuck(strong=true){const r=G.sceneName==='prize'&&G.scene.round;if(!r)return false;r.strong=!!strong;r.rig.power=strong||r.type==='ring'?1:0.34;G.scene.run.strong=!!strong;return true;},
+  arcadeFast(k=1){if(G.sceneName!=='prize')return false;G.scene.speed=Math.max(1,Math.min(8,k));return true;},
+  arcadeLight(cell=0){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='tripod')return false;r.rig.light=cell+0.3;return true;},
+  arcadeCam(mode){if(G.sceneName!=='prize')return false;if(G.scene.camMode!==mode)G.scene.toggleCam();return G.scene.camMode;},
+  mamaWork(){return MamaSchedule.working();},
+  venue(id='school',floor){const b=MAP_DEFS.town.buildings.find(b=>b.act.venue===id)||MAP_DEFS.city.buildings.find(b=>b.act.venue===id);if(!b)return false;Game.goto('venue',{venue:id,floor,back:{map:MAP_DEFS.town.buildings.includes(b)?'town':'city',x:b.x+b.door,y:b.y+b.h,dir:'down'}},'none');return true;},
+  venueState(){if(G.sceneName!=='venue'||!G.scene?.room)return null;const sc=G.scene;return {id:sc.id,floor:sc.floor,name:sc.def.name,changingFloor:sc.lift>0,party:sc.party.map(p=>({x:p.x,y:p.y})),fixtures:sc.fixtures.map(f=>({...f,screen:sc.screen(f.x+f.w/2-.5,f.y+f.h-1)})),coins:Save.d.coins,walkable:sc.room.w*sc.room.h,routeCount:sc.fixtures.filter(f=>f.action).map(f=>({label:f.label,reachable:Array.from({length:f.h+2},(_,j)=>Array.from({length:f.w+2},(_,i)=>sc.route(f.x-1+i,f.y-1+j)!==null)).flat().some(Boolean)}))};},
   venueVisit(label){if(G.sceneName!=='venue')return false;const f=G.scene.fixtures.find(f=>f.label===label);return !!f&&G.scene.request(f);},
   mac(lv=1) {Save.d.shops.burger.lv=lv;Game.goto('shop',{shop:'burger',variant:'mac',back:{map:'heiwadai',x:27,y:31,dir:'down'},returnStore:true},'none');return true;},
   macState(){if(!(G.scene?.task instanceof MacKitchenTask))return null;const t=G.scene.task,g=t.round;return {want:g.want,made:g.made,falling:g.falling,plate:g.plate,fries:g.fries,stage:g.stage(),time:g.time,score:g.score(),complete:g.complete(),play:t.playRect(),buttons:t.btns.map(b=>({label:b.label,x:b.x+b.w/2,y:b.y+b.h/2,w:b.w,h:b.h})),scale:G.canvas.getBoundingClientRect().width/G.W};},
@@ -73,7 +86,7 @@ const PokaDebug = {
       coins: Save.d ? Save.d.coins : null,
     };
   },
-  idle() { return !Game.trans && !UI.busy; },
+  idle() { return !Game.trans && !UI.busy && !(G.sceneName==='venue'&&G.scene.busy); },
   townLayout(id) {
     const m=Maps.get(id);return {id,w:m.w,h:m.h,spawn:m.def.safeSpawn,views:m.def.views,doors:m.doors.map(d=>({id:d.b.id,x:d.x,y:d.y,act:d.b.act})),warps:m.warps};
   },
