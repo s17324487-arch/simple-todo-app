@@ -17,9 +17,10 @@ for(const id of R.TownRenewal.ids){
   const objects=new Set();for(const o of d.objects){assert(!objects.has(o.id),id+': duplicate object '+o.id);objects.add(o.id);}
   for(const b of d.buildings){
     for(const o of d.objects)assert(!(o.x<b.x+b.w&&o.x+o.w>b.x&&o.y<b.y+b.h&&o.y+o.h>b.y),id+': object overlaps building '+o.id+' / '+b.id);
-    assert.equal(d.rows[b.y+b.h-1][b.x+b.door],'D',id+': south entrance');
-    assert(!m.isSolid(b.x+b.door,b.y+b.h),id+': blocked doorstep '+b.id);
-    for(let y=b.y;y<b.y+b.h;y++)for(let x=b.x;x<b.x+b.w;x++)if(y!==b.y+b.h-1||x!==b.x+b.door)assert(m.isSolid(x,y),id+': terrain erased building collision');
+    // 入口が 2つ ある 建物（b.doors）は それぞれの 入口を しらべる
+    const doors=b.doors||[b.door];assert(doors.includes(b.door),id+': main entrance '+b.id);
+    for(const dx of doors){assert.equal(d.rows[b.y+b.h-1][b.x+dx],'D',id+': south entrance');assert(!m.isSolid(b.x+dx,b.y+b.h),id+': blocked doorstep '+b.id);}
+    for(let y=b.y;y<b.y+b.h;y++)for(let x=b.x;x<b.x+b.w;x++)if(y!==b.y+b.h-1||!doors.includes(x-b.x))assert(m.isSolid(x,y),id+': terrain erased building collision');
   }
   const previous=new R.WorldMap('old-'+id,old);
   // 旧マップの全ての歩けた座標を新マップへ。救済はコイン等に一切触れない。

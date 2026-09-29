@@ -9,7 +9,7 @@ const PokaDebug = {
   cityCatalog(){return IkebukuroCatalog.groups;},
   // クレーン（crane-scene.js）。arcadeState: いまの 台の ようす・arcadeMove: アームを dx・dz cm うごかす（うごかせる ときだけ）
   arcadeState(){const s=G.sceneName==='prize'?G.scene:null,r=s&&s.round;if(!r)return null;const R=r.rig,claw=r.type==='claw'||r.type==='ring';return{machine:s.i,type:r.type,phase:r.phase,done:r.done,finished:!!s.finished,got:r.got.length,time:claw?+r.time.toFixed(2):null,claw:claw?{x:+R.x.toFixed(2),y:+R.y.toFixed(2),z:+R.z.toFixed(2)}:null,stops:r.stops??null,scoops:r.scoops??null,arms:r.type==='tripod'?R.arms.map(a=>a.up?1:0):null,light:r.type==='tripod'?R.cell():null,strong:r.strong,camera:s.camMode,bodies:r.list().length,coins:Save.d.coins,status:s.status.textContent};},
-  arcadeStart(machine=0){const back={venue:'arcade',floor:1,back:{map:'city',x:12,y:62,dir:'down'}},run=PrizeArcade.start(machine,back);if(run)Game.goto('prize',{run},'none');return !!run;},
+  arcadeStart(machine=0){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),back={venue:'arcade',floor:1,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'}},run=PrizeArcade.start(machine,back);if(run)Game.goto('prize',{run},'none');return !!run;},
   arcadeMove(dx,dz){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.phase!=='move')return false;r.rig.load({x:r.rig.x+dx,z:r.rig.z+dz});return true;},
   arcadeDrop(){if(G.sceneName!=='prize')return false;const r=G.scene.round;G.scene.press(r.type==='sweet'&&r.phase==='swing2'?1:0);return true;},
   // テスト用: アームを 景品の 上へ（i: 景品の じゅんばん。リングの 台は リングの まえ）・アームの つよさ・はやおくり・カメラ

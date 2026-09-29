@@ -926,7 +926,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`町の景観としかけ（${viewport.width}）`,async H=>{
   await H.newGameFast();await H.dbg("hour",12);
-  for(const [map,x,y] of [["heiwadai",31,14],["heiwadai",9,50],["town",12,16],["city",21,22],["harbor",19,23],["airport",25,20],["meadow",10,10],["forest",14,14],["cave",12,12]]){
+  for(const [map,x,y] of [["heiwadai",31,14],["heiwadai",9,50],["town",12,16],["city",10,45],["harbor",19,23],["airport",25,20],["meadow",10,10],["forest",14,14],["cave",12,12]]){
     await H.dbg("teleport",map,x,y);await H.until(m=>PokaDebug.state().map===m&&PokaDebug.idle(),15000,map);
     await H.shot(`${map}-${x}`);
   }
@@ -1580,7 +1580,8 @@ async function museumVisit(H,{map,door,front,id,label,arrive,exit,room}){
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('museum-visit-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
   await aquaVisit(H);
-  await museumVisit(H,{map:'city',door:[6,19],front:[6,20],id:'museum',label:'きょうりゅう はくぶつかん',arrive:[17,32],exit:[17,33],room:'hall'});
+  const mu=await H.eval(()=>{const b=MAP_DEFS.city.buildings.find(b=>b.id==='city_museum');return [b.x+b.door,b.y+b.h-1];});
+  await museumVisit(H,{map:'city',door:mu,front:[mu[0],mu[1]+1],id:'museum',label:'きょうりゅう はくぶつかん',arrive:[17,32],exit:[17,33],room:'hall'});
   // セーブして よみこんでも 入った へやの きろくは のこる
   const seen=(await H.dbg('museumState')).rooms;expect(['aquarium.ike12_lobby','aquarium.ike13_river','aquarium.ike13_sky','museum.entrance','museum.hall'].every(k=>seen.includes(k)),'入った へやの きろく '+seen);
   await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
@@ -1678,11 +1679,12 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 // ⑥ 1番: 射撃場の ロビー。シティの 建物から 入る → RO の ラビの きまり（はじめて だけ）→ だれが うつ？ → しゅもくと じゅう（タブ・ロック・ホップ ダイヤル）→ これで うつ（2番）→ ✕ で 町の 入口の まえ
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('range-lobby-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
-  await H.dbg('teleport','city',12,11,'up');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),10000);
+  const rd=await H.eval(()=>RANGE_DATA.outside.doorAt);
+  await H.dbg('teleport','city',rd[0],rd[1]+2,'up');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),10000);
   const b=await H.eval(()=>{const b=G.scene.map.def.buildings.find(b=>b.id==='city_range');return b&&{label:b.label,act:b.act,door:[b.x+b.door,b.y+b.h-1]};});
-  expect(b&&b.act.type==='range'&&b.label==='シティ シューティング レンジ'&&b.door.join()==='12,9','シティに 射撃場が ない '+JSON.stringify(b));
+  expect(b&&b.act.type==='range'&&b.label==='シティ シューティング レンジ'&&b.door.join()===rd.join(),'池袋に 射撃場が ない '+JSON.stringify(b));
   await H.wait(700);await H.shot('outside');
-  expect(await H.dbg('walkTo',12,9),'射撃場の 入口へ 歩けない');
+  expect(await H.dbg('walkTo',rd[0],rd[1]),'射撃場の 入口へ 歩けない');
   await H.until(()=>G.sceneName==='range'&&!Game.trans,15000);
   // はじめて: RO の きまり（ゴーグル・ひきがね・じゅうこう・ショウ クリア）
   await H.page.locator('.dlg-shade').waitFor({timeout:8000});await H.wait(700);
@@ -1728,9 +1730,9 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.eval(()=>document.querySelector('.rg-who-card.on')?.dataset.who==='goji'),'えらんだ 子が もどる');
   await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();
   await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),15000);
-  const w=await H.dbg('world');expect(w.party.length===3&&w.party[0].x===12&&w.party[0].y===10,'射撃場から 出ると 入口の まえに もどらない '+JSON.stringify(w.party[0]));
+  const w=await H.dbg('world');expect(w.party.length===3&&w.party[0].x===rd[0]&&w.party[0].y===rd[1]+1,'射撃場から 出ると 入口の まえに もどらない '+JSON.stringify(w.party[0]));
   // 2かいめは きまりを 話さない・ホップ ダイヤルは のこる
-  expect(await H.dbg('walkTo',12,9),'2かいめ 入口へ 歩けない');await H.until(()=>G.sceneName==='range'&&!Game.trans,15000);
+  expect(await H.dbg('walkTo',rd[0],rd[1]),'2かいめ 入口へ 歩けない');await H.until(()=>G.sceneName==='range'&&!Game.trans,15000);
   await H.page.locator('.rg-who').waitFor({timeout:8000});expect(!(await H.eval(()=>document.querySelector('.dlg-shade'))),'2かいめも きまりを 話す');
 },{viewport,full:viewport.width===375,timeout:150000});
 
@@ -1789,7 +1791,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   s=await H.dbg('rangeAuto',150,'good');expect(s.phase==='end'&&s.shot===10,'ロングレンジが おわらない '+JSON.stringify(s));
   await H.page.locator('.rg-result').waitFor({timeout:8000});
   await H.page.getByRole('button',{name:'おわる',exact:true}).click();await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),15000);
-  const w=await H.dbg('world');expect(w.party.length===3&&w.party[0].x===12&&w.party[0].y===10,'けっかの あと 入口の まえに もどらない '+JSON.stringify(w.party[0]));
+  const rf=await H.eval(()=>RANGE_DATA.outside.front),w=await H.dbg('world');expect(w.party.length===3&&w.party[0].x===rf[0]&&w.party[0].y===rf[1],'けっかの あと 入口の まえに もどらない '+JSON.stringify(w.party[0]));
   // プラクティカル: ヒット ファクター（A・C・D・ミス・NS）→ もう いちど → ✕（たしかめ）→ ロビー（コインは ふえない）
   await H.dbg('range','practical','carbine','gachan','t3');await rangePlaying(H,'practical');
   s=await H.dbg('rangeAuto',70,'good');expect(s.phase==='end'&&s.result>0,'プラクティカルが おわらない '+JSON.stringify(s));
@@ -2316,7 +2318,7 @@ await scenario("vector-roads-file",async H=>{
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`town-renewal-${viewport.width}`,async H=>{
   await H.newGameFast();await H.dbg("hour",12);await H.dbg("weather","clear");
   const fixture=await H.dbg("saveData");fixture.coins=987654;fixture.bag.cake=7;fixture.wardrobe.crown=true;fixture.furn.trophy=2;fixture.flags.chests.port_boardwalk=true;fixture.shops.crepe.lv=3;
-  for(const [id,x,y]of [["town",4,6],["city",17,17],["harbor",4,21],["airport",20,10]]){
+  for(const [id,x,y]of [["town",4,6],["city",30,10],["harbor",4,21],["airport",20,10]]){
     const old=structuredClone(fixture);old.world={map:id,x,y,dir:"down"};
     await H.dbg("pause",true);await H.dbg("seedSave",old);await H.page.reload();
     await H.page.getByRole("button",{name:"つづきから",exact:true}).click();
@@ -2604,7 +2606,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 await (await import("./town-dialogue-smoke.mjs")).townDialogueSmoke({scenario,expect});
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('ikebukuro-retail-'+viewport.width,async H=>{
  await H.newGameFast();await H.dbg('coins',199850);await H.dbg('hour',12);const before=await H.dbg('saveData');
- await H.dbg('teleport','city',43,53,'up');await H.idle();await H.wait(300);await H.shot('sunshine-street');
+ await H.dbg('teleport','city',68,30,'up');await H.idle();await H.wait(300);await H.shot('sunshine-street');
  await H.dbg('venue','electronics');await H.idle();let s=await H.dbg('venueState');expect(s.floor===2&&s.party.length===3,'家電2F');
  await H.dbg('venueVisit','ドラム洗濯機');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor();await H.shot('washer-display');await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.idle();
  expect((await H.dbg('saveData')).furn.ike_washer_0===1,'展示から洗濯機を購入');

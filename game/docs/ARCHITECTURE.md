@@ -899,6 +899,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 `nerikasu-neighborhood.js` の後に `nerikasu-town-art.js` → `nerikasu-town.js`。原画は `tools/town-design/nerikasu-assets.mjs` / `nerikasu-props.mjs` / `nerikasu-buildings.mjs`、生成は `tools/build-nerikasu-town.mjs`。HeiwadaiArtの既存bboxモデルへ別IDで登録し、共通defsは維持する。NerikasuTownは22棟と駅前の歩道・小物を接続する。駅14×5と駅東の1戸の敷地のみ変更し、入口と営業機能を既存IDで維持。昼夜は2状態の原画を先読みし、列車は座標だけを動かして線路内へクリップする。PokaDebug.nerikasuArtは描画寸法と有限キャッシュの読取用。
 
+## 池袋の 町（配置イメージどおり・TOWN-IKE-01）
+
+`ikebukuro-district.js` の あとに `ikebukuro-town-art.js`（`IKEBUKURO_TOWN_ART`・自動生成）→ `ikebukuro-town.js`（`IkebukuroTown`）。npc-cast.js より まえ（あたらしい 人にも 見た目が つく）。
+
+- `IkebukuroTown.install()` が `MAP_DEFS.city` を 96×58 で 作りなおす。旧IDの 建物は act・label・sign を そのまま 場所だけ うつし、絵は `asset: "ikebukuro.<名前>"`（HeiwadaiArt の bbox モデル。ネリカスと おなじ 登録）。サンシャインいけぶは 入口 2つ（`doors`）。
+- 道は `ROADS`（明治通り・東通り・なかどおり・よこちょう・サンシャイン60どおり・緑の大通り）を TownRoads へ。ななめの 交差点の かど（`def.ikeCorners`）と 横断歩道（`def.ikeCross`）、緑の大通りの 分離帯、サンシャイン60どおりの れんが、点字ブロック（`def.ikeTactile`）は `TownRoads.draw` の あとに `IkebukuroTown.drawOver` が チャンクへ 描く。平板・駅まえの 石・線路は `TownRenewal.drawGround` の まえに `drawGround`。もようは `IKEBUKURO_TOWN_ART.grounds`（SvgCache の キーは `ike-ground:<id>` だけ）。
+- 電車は `TownRenewal.drawMoving` の あとに 2へんせい（`ikebukuro.train`・昼夜の 2つ）。夜の あかりは `HeiwadaiLife.lights` の あと。夜の 絵は `HeiwadaiTown.canvas` を つつんで えらぶ（キーは 絵の ID × 昼夜）。
+- はくぶつかん・射撃場の 出入り口: 生成データの `MUSEUM_DATA.buildings.museum.outside`・`MAP_DEFS.museum.warps`・`RANGE_DATA.outside` を install で 新しい 入口に あわせる（生成データは 手で なおさない）。
+- 町の はしの そとは `def.edgeColor`（scene-world.js の 背景。ほかの 町は いままでの 草の 色）。
+- 検査: `tools/check-ikebukuro.mjs`（配置イメージの ならび・駅から すべての 入口へ・絵の 登録）・`tools/town-check.mjs`（入口 2つの 建物は `doors` の それぞれを しらべる）・`node tools/build-ikebukuro-town.mjs --check`。
+
 ### 町の人の生活動作（NpcLife）
 
 `npc-life.js` は WorldScene の NPC にシーン限定の `life` を付ける。屋外では既存 wander または起点±3マスを散歩し、屋内・位置補正つきの固定住民は持ち場を守る（既存 wander は保持）。移動先・移動元、3人、追従こねこ、敵、プレイヤーの予約経路を避け、入口・ワープ・看板・宝箱付近と細い道へは新しく歩き込まない。pending.npc と talking の間は次の歩行を始めない。

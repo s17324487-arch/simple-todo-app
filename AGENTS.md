@@ -127,6 +127,7 @@
 | `js/arcade-prizes.js` / `js/crane-physics.js` / `js/crane-art.js` / `js/crane-machines.js` / `js/crane-scene.js` | クレーンゲーム（池袋 Meeときょれじゃ の 12台）。景品の ぬいぐるみ（3人の 表情・ポーズ ちがい・町の人・ミニマスコット）と コインの 上限（`ArcadePrizes`）・物理（`CranePhys`）・景品と 台の 絵（`CraneArt`）・12台の しかけと 1かいの あそび（`CraneMachines`・`CraneRound`）・画面と 100コイン・ごほうび・つづきから（`SCENES.prize`・`PrizeArcade`） |
 | `js/korokoro-physics.js` / `js/korokoro-art.js` / `js/mg-korokoro.js` / `js/korokoro-town.js` | ころころ フルーツ（ネリカスタウンの パズルの おてつだい。スイカゲームの ような おちもの パズル）。玉の 物理・がったい・あふれ（`KorokoroWorld`）・くだもの と 3人の かおの 玉の 絵（`KorokoroArt`）・はこと ちゅうもん（`KorokoroBoard`・`KorokoroTask`）・お店（nerikasu_home5 を かえる `KorokoroTown`。建物の 原画は `tools/town-design/nerikasu-buildings.mjs`） |
 | `js/arcade-art.js` / `js/ike-arcade.js` | Meeときょれじゃ の 館（サンシャインいけぶ と おなじ 斜め上）。台・ガチャ・ぷりくら・カウンターの 絵（`ArcadeArt`）と 28×22 マスの 配置・フロアマップ・こうかんの 店・BGM（`IkeArcade`） |
+| `js/ikebukuro-town.js` / `js/ikebukuro-town-art.js` | 池袋の 町（オーナーの 配置イメージどおり: 西に 駅・上に ネリカス電機／Meeときょれじゃ／サンシャインいけぶ・ななめの 東通りと サンシャイン60どおり・下に 緑の大通り）。道・建物・人・小物・地面・電車・夜の あかり（`IkebukuroTown`）と 建物・めじるしの 絵（**自動生成**。原画は `tools/town-design/ikebukuro-buildings.mjs`、`node tools/build-ikebukuro-town.mjs`） |
 | `js/maps.js` | マップ（町は ASCII の手描き、外の世界は `FieldGen` で決まった形に生成） |
 | `js/save.js` | セーブ（`Save`）、ステータス計算（`Stats`）、お世話（`Care`） |
 | `js/sound.js` | 効果音と BGM（WebAudio 合成） |
