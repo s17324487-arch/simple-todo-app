@@ -272,7 +272,8 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 ### [x] ART-04 ぱぱ・ままは 9:00〜18:00 おしごと（家に いない）・3人の おるすばんの ことばと しぐさ ✅
 - `js/parent-work.js`（`ParentWork`）。`ParentCare` の init・update・draw・open・request を 外から つつむ。受け入れ条件: 9〜18じは 家に いない・おせわ しない（check・スモーク「parents-work-390 / 375」）、ことばは ひらがなで 30もじ まで。PokaDebug.hour で 時こくを とばした ときは えんしゅつ なしで すぐ かわる（テストが CI の 時計に 左右されない）。
 ### [x] ART-05 レアの 音楽プレイヤー 3しゅ と ディスク（おてつだい・たんけんで 手に入る・へやで きける） ✅
-- `js/music-discs.js`（`MusicDiscs`）。プレイヤーは ふつうの 家具（`FurnModels.register`・`FurnLive.register`）、ディスクは `Save.d.discs`。`ShopScene.results` と `Loot.give`・`WorldScene.openChest` を 外から つつむ（minigames.js・talk.js・scene-world.js は かえない）。受け入れ条件: ディスクの きょくが ぜんぶ ながせる・おみせと たからばこの マップが ある・プレイヤーは レアで ねだん 0（check）。スモーク「music-disc-390 / 375」（ほんとうの おてつだいと たからばこで 手に入る・えらんで きける・とめる・セーブ）。
+- `js/music-discs.js`（`MusicDiscs`）。プレイヤーは ふつうの 家具（`FurnModels.register`・`FurnLive.register`）、ディスクは `Save.d.discs`。`ShopScene.results` と `Loot.give`・`WorldScene.openChest` を 外から つつむ（minigames.js・talk.js・scene-world.js は かえない）。受け入れ条件: ディスクの きょくが ぜんぶ ながせる・おみせと たからばこの マップが ある・プレイヤーは レアで ねだん 0（check）。
+- 2026-09-29: オーナーの 指示（自作の 曲は けさなくて よい）で、名曲に おきかえて いた ぽかぽかの きょく 3つを もどした（ディスク 25まい。プレイヤーごとに ぽかぽかの きょくと 名曲の おまけ）。スモーク「music-disc-390 / 375」（ほんとうの おてつだいと たからばこで 手に入る・えらんで きける・とめる・セーブ）。
 ### [x] ART-06 食べ物の 名前と 絵を そろえる（20しゅ） ✅
 - `js/food-art.js`（`FoodArtFix`）で `FOOD_ART` を 上がき。受け入れ条件: 食べ物ごとに じぶんの 絵が ある・ほかの 食べ物の 絵を かりない（check）。見本は `docs/screenshots/food-art/before-after.png`。
 ### [x] UI-01 すまほ（「おまつり」ボタンの かわり。ちず・ようす・もちもの などを アプリに まとめる。≡ は せってい だけ） ✅
