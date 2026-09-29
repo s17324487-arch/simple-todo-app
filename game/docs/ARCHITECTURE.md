@@ -854,6 +854,18 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - PokaDebug: `arcadeStart(台)`・`arcadeState()`・`arcadeMove(dx, dz)`（cm）・`arcadeDrop()`・`arcadeAim(景品)`・`arcadeLuck(つよい)`・`arcadeFast(ばい)`・`arcadeCam('front'|'side')`。
 
 
+## サンシャインいけぶ（斜めの 館・UI-04）
+
+読み込み順は `iso-venue.js` → `mall-art.js` → `ike-mall.js`（crane-scene.js の あと、item-dex-sources.js の まえ）。トップレベル名は `IsoVenue`・`IsoVenueScene`・`MallArt`・`IkeMall`・`MallGuide`。
+
+- `IsoVenueScene extends VenueScene` を `SCENES.venue` に する。部屋（`VenueHalls.defs.<館>.floors[階]`）に `iso: true` が ある ときだけ 描きかた・タップ・カメラを かえ、ほかの 館（家電・クレーン・学校・保育園・ままの 職場）は いままでと おなじ。
+- 投影は `HomeDesign.A`・`B`（おうちと おなじ）。1マス = 48（おうちの 単位）。部屋は `w × h` マス、`rows`（'o' は ふきぬけ・ほかは 床の 材質の 文字）、奥の かべは 北（y=0）と 西（x=0）だけで 高さ `wallH`。床と かべは 部屋ごとに 1まいの 静止画（`IsoVenue.build`。こまかさは 1.2 まで・2フロアぶん おぼえる）。
+- 什器 `{ kind, x, y, w, h, height, z?, over?, walk?, action?, label? }`。奥行きは 床の はこどうしの 前後（x か y で まるごと 小さい ほうが さき）で ならべ（`IsoVenue.order`）、`over` は 頭の 上（名前の いた・つりさげ かんばん）。3人の まえに ある 高い もの（70 より 高い）は すける。タップは 箱の 投影（エスカレーターは ななめの 本体だけ: `MallArt.hit`）。
+- `MallArt`: 什器の 絵は `MallArt.M[kind]`（iso の SVG。キーは `mall:<kind>:<w>x<h>:<variant>:<shop>:<item>:<dir>` だけ）、うごく ところは `MallArt.L[kind]`（ふんすいの 水・ステップ・かんばんの 字）。店の かべは `SHOP[店].wall`（clothes・furniture・menu・books・toys・market・game）。品物は 家具＝`HomeDesign.model`（おうちと おなじ 立体）・服＝わんこの ミニモデル・たべもの＝アイコン。買い物の 人（`crowd`）は とおれる マスを あるく（セーブしない）。
+- `IkeMall`: 1F（おおどおりの 店 4・ふんすい ひろば・ステージ・大がめん・エスカレーター・エレベーター ホール・いりぐち）、2F（すばーたっくす・でぃっぱーどん・たぴ・らーめん・フードコート）、3F（いけぶくろ マルシェ・なかよしパズル・ほんの もり・おもちゃの ゆめいろ・ひとやすみ）。品物・メニューは `IkebukuroCatalog.groups`、店の 画面は これまでの `BUY_SHOPS.ike_*`。`MallGuide.open(sc)` は フロア案内（上から 見た 図・番号・マーク）。
+- セーブは ふえない（館に はいる ときの `Save.d.world` は そとの 入口）。パズルから もどる ときは `venueReturn.at` の マスに たつ。
+- PokaDebug: `venue('mall', 階)`・`venueState()`・`venueVisit(label)`・`venuePoint(x, y, label?)`（タップの 画面の 位置）・`venueWalk(x, y)`・`venueIso()`（iso・ready・floor・leader・crowd・holes）。
+
 ## ネリカスタウンの実寸アセット
 
 `nerikasu-neighborhood.js` の後に `nerikasu-town-art.js` → `nerikasu-town.js`。原画は `tools/town-design/nerikasu-assets.mjs` / `nerikasu-props.mjs` / `nerikasu-buildings.mjs`、生成は `tools/build-nerikasu-town.mjs`。HeiwadaiArtの既存bboxモデルへ別IDで登録し、共通defsは維持する。NerikasuTownは22棟と駅前の歩道・小物を接続する。駅14×5と駅東の1戸の敷地のみ変更し、入口と営業機能を既存IDで維持。昼夜は2状態の原画を先読みし、列車は座標だけを動かして線路内へクリップする。PokaDebug.nerikasuArtは描画寸法と有限キャッシュの読取用。

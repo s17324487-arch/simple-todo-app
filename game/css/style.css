@@ -855,3 +855,9 @@ html, body {
 @keyframes crane-pulse{0%,100%{box-shadow:0 5px 0 #1F1D1B,0 0 0 0 rgba(126,217,87,.75)}60%{box-shadow:0 5px 0 #1F1D1B,0 0 0 10px rgba(126,217,87,0)}}
 @media (max-height:700px){.crane-go{min-width:84px;min-height:84px;width:84px;height:84px;font-size:16px}.crane-status{min-height:30px}}
 @media(prefers-reduced-motion:reduce){.crane-go.ready{animation:none}}
+/* サンシャインいけぶ の フロアマップ（js/ike-mall.js MallGuide） */
+.mall-guide .mg-tabs{display:flex;gap:6px;margin-bottom:8px}
+.mall-guide .mg-tabs .btn{flex:1;min-height:44px;padding:6px 4px}
+.mall-guide .mg-map svg{width:100%;height:auto;display:block}
+.mall-guide .mg-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.mall-guide .mg-spot{min-height:44px;font-size:12px;padding:6px;line-height:1.25}
