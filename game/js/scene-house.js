@@ -66,7 +66,7 @@ class HouseScene {
     this.pan.x = U.clamp(this.pan.x, -maxX, maxX); this.pan.y = U.clamp(this.pan.y, -maxY, maxY);
     this.ox = (G.W - b.w * this.s) / 2 - b.x * this.s + this.pan.x;
     this.oy = top + (G.H - top - bottom - b.h * this.s) / 2 - b.y * this.s + this.pan.y;
-    this.viewControls?.classList.toggle("raised", editing || this.watching);
+    this.viewControls?.classList.toggle("raised", editing || !!this.watching);
     this.parentButton?.classList.toggle("hidden", !!this.mode);
     this.placeTools();
   }
