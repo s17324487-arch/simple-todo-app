@@ -2572,13 +2572,50 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect((await H.dbg('saveData')).furn.ike_washer_0===1,'展示から洗濯機を購入');
  await H.dbg('venueVisit','エレベーター 2F／10F');await H.page.getByRole('button',{name:'10F',exact:true}).click();await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===10&&!s.changingFloor;},20000);await H.shot('electronics-10f');
  await H.dbg('venueVisit','星あかりスマホ');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor();await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.page.getByRole('button',{name:'きる！',exact:true}).click();await H.idle();expect((await H.dbg('saveData')).wardrobe.ike_phone_0,'スマホ購入');
- await H.dbg('venue','mall');await H.idle();await H.dbg('venueVisit','ふんすい広場');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();await H.shot('mall-atrium');
+ await H.dbg('venue','mall');await H.idle();await H.dbg('venueVisit','ふんすい ひろば');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();await H.shot('mall-atrium');
  await H.dbg('venueVisit','2Fへ のぼる');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===2&&!s.changingFloor;},20000);await H.shot('mall-2f');
  await H.dbg('venueVisit','すばーたっくすの テーブル');await H.page.getByRole('button',{name:/ふわラテ/}).click();await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();
  await H.dbg('venueVisit','3Fへ のぼる');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===3&&!s.changingFloor;},20000);s=await H.dbg('venueState');expect(s.fixtures.some(f=>f.action==='puzzle'),'3Fパズル');await H.shot('mall-3f');
  await H.dbg('venue','office');await H.until(()=>document.querySelector('.dlg-text')?.textContent.includes('あいにきたよー')); await H.dialogs();await H.idle();await H.dbg('venueVisit','まま');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();await H.shot('mama-office');
  await H.dbg('hour',18);await H.wait(200);expect(!(await H.dbg('mamaWork'))&&(await H.dbg('venueState')).fixtures.find(f=>f.kind==='parent').hidden,'18時退勤');
  const after=await H.dbg('saveData');expect(after.coins===before.coins-7200-9000-390,'購入・食事の合計');await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();const saved=await H.dbg('saveData');expect(saved.coins===after.coins&&saved.furn.ike_washer_0===1&&saved.wardrobe.ike_phone_0,'買い物の保存');
+},{viewport,timeout:180000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('ikebukuro-mall-'+viewport.width,async H=>{
+ // サンシャインいけぶ（斜め上から 見る モール・js/iso-venue.js・mall-art.js・ike-mall.js）: 1F〜3F・タップで あるく・台を タップして かう・フロアマップ・エレベーター・エスカレーター・ステージ
+ await H.newGameFast();await H.dbg('coins',99850);await H.dbg('hour',12);
+ await H.dbg('venue','mall');await H.idle();await H.until(()=>PokaDebug.venueIso()?.ready,20000);let v=await H.dbg('venueIso');expect(v.iso&&v.floor===1&&v.crowd>=4&&v.holes===0,'1Fが 斜めの 館で ない '+JSON.stringify(v));
+ const ui=async()=>H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.venue-controls .btn,.store-home')];return {small:bs.filter(b=>r(b).height<44).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5||r(b).bottom>innerHeight+0.5).length,wide:document.documentElement.scrollWidth>innerWidth};});
+ let u=await ui();expect(!u.small&&!u.out&&!u.wide,'そうさの ボタン '+JSON.stringify(u));await H.shot('mall-1f');
+ // ゆかを タップして あるく
+ const tapTile=async(x,y)=>{const p=await H.dbg('venuePoint',x,y);await H.page.touchscreen.tap(p.x,p.y);};
+ await tapTile(5,21);await H.until(()=>{const v=PokaDebug.venueIso();return v.leader[0]===5&&v.leader[1]===21;},15000);
+ // 店の まえまで あるいて、マネキンの 台を タップ → かう
+ await H.dbg('venueWalk',3,7);await H.until(()=>{const v=PokaDebug.venueIso();return v.leader[0]===3&&v.leader[1]===7;},20000);await H.wait(700);
+ await tapTile(4,6);await H.until(()=>{const v=PokaDebug.venueIso();return v.leader[0]===4&&v.leader[1]===6;},15000);await H.wait(500);
+ let s=await H.dbg('venueState');const wears=s.fixtures.filter(f=>f.action==='buy'&&f.buyKind==='wear'&&f.shopId==='ike_hane'),p=await H.dbg('venuePoint',0,0,wears[0].label);await H.page.touchscreen.tap(p.x,p.y);
+ await H.page.getByRole('button',{name:'かう',exact:true}).waitFor({timeout:20000});await H.shot('mall-buy');
+ const shown=await H.eval(()=>document.querySelector('.panel')?.textContent||''),wear=wears.find(f=>shown.includes(f.label));expect(wear,'タップした 台の 品物が 出ない '+shown.slice(0,80));
+ await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.wait(300);
+ const kiru=H.page.getByRole('button',{name:'きる！',exact:true});if(await kiru.count())await kiru.click();await H.idle();expect((await H.dbg('saveData')).wardrobe[wear.item],'台から かえない '+wear.item);
+ // ステージ・ふんすい
+ await H.dbg('venueVisit','ステージ');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();
+ await H.dbg('venueVisit','ふんすい ひろば');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();await H.shot('mall-fountain');
+ // フロアマップ: 3F の パズルへ（エレベーターで いって あるく）
+ await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
+ const g=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.mall-guide .btn')];return {tabs:[...document.querySelectorAll('.mall-guide .mg-tabs .btn')].map(b=>b.textContent).join(),small:bs.filter(b=>r(b).height<43.5).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5).length,over:bs.filter(b=>b.scrollWidth>b.clientWidth+1).length,spots:document.querySelectorAll('.mall-guide .mg-spot').length};});
+ expect(g.tabs==='1F,2F,3F'&&!g.small&&!g.out&&!g.over&&g.spots>=8,'フロアマップの ボタン '+JSON.stringify(g));await H.shot('mall-map');
+ await H.page.getByRole('button',{name:'3F',exact:true}).click();await H.page.locator('.mall-guide .mg-spot[data-label="なかよしパズル"]').click();
+ await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===3&&!s.changingFloor;},20000);await H.until(()=>{const v=PokaDebug.venueIso();return v.leader[1]>=5&&v.leader[1]<=7&&v.leader[0]>=12&&v.leader[0]<=19;},20000);
+ v=await H.dbg('venueIso');expect(v.holes>=2,'3Fの ふきぬけ');await H.shot('mall-3f');
+ // エスカレーターで 2F・エレベーターで 1F
+ await H.dbg('venueVisit','2Fへ おりる');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===2&&!s.changingFloor;},20000);await H.idle();await H.shot('mall-2f');
+ await H.dbg('venueVisit','すばーたっくすの テーブル');await H.page.getByRole('button',{name:/ふわラテ/}).click();await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();
+ await H.dbg('venueVisit','エレベーター');await H.page.getByRole('button',{name:'1F',exact:true}).click();await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===1&&!s.changingFloor;},20000);await H.idle();
+ expect((await H.dbg('venueIso')).leader.join()==='2,12','エレベーターを おりた 場所');
+ // でぐちの マットから 外へ（池袋の まち）
+ await H.dbg('venueVisit','たてものを でる');await H.until(()=>PokaDebug.state().map==='city'&&PokaDebug.idle(),20000);
+ const d=await H.dbg('saveData');expect(d.coins<99850&&d.world.map==='city','おかね・もどる 場所 '+d.coins+' '+JSON.stringify(d.world));
 },{viewport,timeout:180000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('ikebukuro-arcade-'+viewport.width,async H=>{
