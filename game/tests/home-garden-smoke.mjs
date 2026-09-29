@@ -5,7 +5,14 @@ export async function homeGardenSmoke({scenario,expect}){
   const save=await H.dbg('saveData');expect(save.rooms.active==='yard'&&save.coins===before.coins-20000,'購入と移動');
   expect(JSON.stringify(save.rooms.stored.main.items)===JSON.stringify(before.room.items),'室内の家具が変わった');
   let v=await H.dbg('homeDesign');expect(v.background.includes(':yard:'),'お庭の背景');expect(v.actors.filter(a=>['wanko','gachan','goji'].includes(a.id)).length===3,'3人がいない');
-  await H.shot('garden');await H.houseButton('もようがえ');expect(await H.page.getByRole('button',{name:'かべがみ',exact:true}).count()===0,'お庭に室内の壁タブ');await H.page.getByRole('button',{name:'おわる',exact:true}).click();
+  for(const changed of [viewport.width===390?{width:375,height:667}:{width:390,height:844},viewport]){
+   await H.page.setViewportSize(changed);await H.wait(200);
+   const controls=await H.page.locator('.home-view-controls').boundingBox(),care=await H.page.locator('.care-bar').boundingBox();
+   expect(controls.y>=care.y+care.height+4,'画面サイズ変更で操作ボタンがおなか表示と重なる');
+  }
+  await H.page.getByRole('button',{name:'おへやを おおきく',exact:true}).click();await H.page.getByRole('button',{name:'おへやを ぜんたいに',exact:true}).click();
+  expect(!await H.page.locator('.home-view-controls').evaluate(e=>e.classList.contains('raised')),'通常の拡大操作でボタン位置が入れ替わる');
+  await H.shot('resized');await H.shot('garden');await H.houseButton('もようがえ');expect(await H.page.getByRole('button',{name:'かべがみ',exact:true}).count()===0,'お庭に室内の壁タブ');await H.page.getByRole('button',{name:'おわる',exact:true}).click();
   await H.houseButton('おへや');await H.page.getByRole('button',{name:'かぐの プリセット',exact:true}).click();await H.page.locator('[data-preset="0"]').getByRole('button',{name:'いまの へやを ほぞん',exact:true}).click();await H.page.locator('.dlg-shade input').fill('おちゃの にわ');await H.page.getByRole('button',{name:'けってい',exact:true}).click();await H.page.keyboard.press('Escape');await H.idle();
   await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();expect((await H.dbg('saveData')).rooms.active==='yard','再読み込みで別室になる');expect((await H.dbg('roomPresets'))[0].name==='おちゃの にわ','庭プリセット消失');
   await H.houseButton('おへや');await H.page.locator('[data-room="main"]').getByRole('button',{name:'このへやへ',exact:true}).click();await H.idle();const after=await H.dbg('saveData');expect(JSON.stringify(before.room.items)===JSON.stringify(after.room.items),'おうちに帰ると家具が変わる');expect(after.coins===before.coins-20000,'余分な支払い');
