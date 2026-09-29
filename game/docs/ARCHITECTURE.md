@@ -152,6 +152,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 21 | `minigames.js` | `MG_ART`, `CREPE_TOPS`, `BREADS`, `BREAD_TOPS`, `FLOWER_KINDS`, `RIBBONS`, `SHOP_OWNERS`, `HOWTO`, `CUST_*`, `ShopScene`, `TaskBase`, `CrepeTask`, `DentistTask`, `BakeryTask`, `FloristTask`, `MG_TASKS`, 補助関数 `breadSvg` `flowerIconSvg` `mgCanvas` `mgIcon` `topIcon` `mgBtn` `inBtn` `gridBtns` |
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
+| — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -934,6 +935,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - うごく: 「おへや」は もって いる ほかの へや（1つなら すぐ・2つ いじょうは `UI.ask`）→ 3人で ドアまで あるく（`mode = "door"`・はやさ 150・2.6びょうで うちきり）→ `HomeRooms.switchTo` → `Game.goto("house", { door })`。あたらしい へやでは `HomeDoors.arrive` が ドアの まえに ならべて 中へ あるかせる。「おでかけ」は たしかめて から `goOut()`。
 - ふだは 画面の 大きさ（10px）で ドアの うえに つるす（へやの 絵・SvgCache の キーは かわらない）。
 - テスト: `PokaDebug.homeDoors()`（ドアの 画面の ばしょ・いける へや・3人）。スモーク「home-doors-390 / 375」。
+
+## おうちの 2かい（HOME-2F）
+
+`home-floors.js`（`HomeFloors`）は `home-doors.js` の あと。2かいは へやの ひとつ（id `upstairs`・`HomeRooms.catalog` に 3000 コインで たす）。セーブの 形は かえない（`rooms.owned.upstairs`・`rooms.stored.upstairs`。かったら あおぞらの かべがみを つける）。
+
+- 2つの かいを いっしょに 描くのは いつもの おへや（`main`）か 2かいに いる とき（`HomeFloors.on()`）。2かいの 原点は 1かいの ゆかの 座標で (−2かいの はば, −2かいの おくゆき/2, かべの たかさ)。1かいの ひだりの かべの うえに のり、おくの かどを またぐ（1かいの ドア 2つ・まどを さえぎらない）。
+- カメラ: `layout` の あとで 2つの かいの わく（`union()`）が 画面に はいる ように `s`・`ox`・`oy` を きめなおす。いる かいが 2かいなら 原点を ずらす（`toScreen` など へやの 座標の しくみは そのまま）。
+- いない ほうの かい: かぐごと 1まいの キャンバス（1たんい 2画素）に `enter` で 描く（`prepare`）。いっとき `Save.d.room` と `rooms.active` を いれかえて scene-house.js の `drawOrder`・`drawFurn` で 描く（`swap`・かならず もとに もどす）。`render` の はじめ（へやの 絵の まえ）に `drawUnder`。
+- かいだん: 1かいの ひだりの かべの てまえ半分（x 6〜58・おくゆき 150〜まえ）。絵は SvgCache `house-stairs:<おくゆき>`（2しゅ）。1かいに いる ときは へやの 絵の あと（`drawAfterBg`）に かべの かぐ・しきもの → かいだん の じゅんに 描き、その かぐは いつもの 描く じゅんで とばす（`floorSkip`）。ゆかの かぐ と ひだりの かべの かぐは かいだんの ところから よける（`clampItem` の あと・`enter` で `tidy`）。
+- のぼる／おりる: かいだん か もう ひとつの かいの へやを タップ（3人・さわれる かぐ・ドアが さき）→ `mode = "floor"` で 3人が ならんで みちを あるく（z は たかさ。`drawChar` を z の ぶん うえに ずらす）→ `HomeRooms.switchTo` → `Game.goto("house", { floor })` → あたらしい かいの かいだんの はしから 中へ。ドアの「おへや」は 2かいを えらばない。
+- テスト: `PokaDebug.homeFloor()`（かって いるか・いる かい・かいだんと 2つの へやの 画面の ばしょ・3人の たかさ）。スモーク「home-2f-390 / 375」。
 
 ### 町の人の生活動作（NpcLife）
 

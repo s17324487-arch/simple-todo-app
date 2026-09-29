@@ -2793,6 +2793,8 @@ await (await import("./world-zoom-smoke.mjs")).worldZoomSmoke({scenario,expect})
 
 await (await import("./home-doors-smoke.mjs")).homeDoorsSmoke({scenario,expect});
 
+await (await import("./home-2f-smoke.mjs")).home2fSmoke({scenario,expect});
+
 await (await import("./npc-life-smoke.mjs")).npcLifeSmoke({scenario,expect});
 
 await (await import("./indoor-walk-smoke.mjs")).indoorWalkSmoke({scenario,expect});

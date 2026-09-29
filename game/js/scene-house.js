@@ -694,12 +694,15 @@ class HouseScene {
   // ---- 描画 ----
   render(ctx) {
     ctx.fillStyle = "#E7E4D4"; ctx.fillRect(0, 0, G.W, G.H);
+    if (typeof HomeFloors !== "undefined") HomeFloors.drawUnder(ctx, this); // 2かい: いない ほうの かい（へやの 絵の まえ）
     const bg = SvgCache.get(...this.bgArgs), b = HomeDesign.bounds();
     if (bg) {
       ctx.save(); ctx.shadowColor = "rgba(69,49,29,.22)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 10;
       ctx.drawImage(bg, this.ox + b.x * this.s, this.oy + b.y * this.s, b.w * this.s, b.h * this.s); ctx.restore();
     }
+    if (typeof HomeFloors !== "undefined") HomeFloors.drawAfterBg(ctx, this); // 2かい: かべの かぐ・しきもの・かいだん
     if (typeof HomeDoors !== "undefined") HomeDoors.drawSigns(ctx, this); // ドアの うえの ふだ（かべに はる）
+    if (typeof HomeFloors !== "undefined") HomeFloors.drawSigns(ctx, this); // 2かい: かいだんの ふだ
     if (this.mode === "edit") this.drawEditOverlay(ctx);
     const s = this.s;
     const list = [];
