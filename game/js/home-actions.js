@@ -3,13 +3,24 @@ const HomeActions = {
   INTERVAL: 15,
   kinds: [
     {id:'nap',name:'いねむり',duration:7}, {id:'stretch',name:'のび',duration:4},
-    {id:'yawn',name:'あくび',duration:4}, {id:'sit',name:'ひとやすみ',duration:7,near:['chair_wood','sofa','mushroom','kotatsu']},
+    {id:'yawn',name:'あくび',duration:4}, {id:'sit',name:'ひとやすみ',duration:7,near:['chair_wood','stool_oak','sofa','cloudsofa']},
     {id:'read',name:'どくしょ',duration:7,near:['bookshelf']}, {id:'sing',name:'うたう',duration:6},
     {id:'stumble',name:'つまずく',duration:3}, {id:'peek',name:'かくれて のぞく',duration:6,near:'floor'},
     {id:'sweep',name:'おそうじ',duration:6}, {id:'water',name:'みずやり',duration:6,near:['plant','flowerpot','planter']},
     {id:'admire',name:'かぐを ながめる',duration:5,near:'floor'}, {id:'toy',name:'おもちゃで あそぶ',duration:6,near:['toybox','teddy']},
+    {id:'aquarium',name:'おさかなを ながめる',duration:7,near:['aquarium','fishbowl']},
     {id:'exercise',name:'たいそう',duration:5}, {id:'spin',name:'くるり',duration:4}, {id:'wave',name:'てを ふる',duration:4},
   ],
+  actors(sc) {return [...sc.chars,...sc.parents];},
+  free(sc,c) {return !c.hidden&&!c.target&&!c.queue?.length&&(!sc.parents.includes(c)||!sc.work||sc.work.phase==='home')&&!sc.parents.some(p=>p.target===c.id)&&['idle','walk'].includes(c.state);},
+  // 座面の中心と高さ。家具と同じ斜め投影・向きで合わせる。
+  seat(sc,it,c) {
+    const p=sc.anchor(it),{w,d}=HomeDesign.dimensions(it.id),x=0,y=-d*.36;
+    const height=it.id==='chair_wood'?29:it.id==='stool_oak'?45:33;
+    return {x:p.x+(it.flip?y+d/2:x),y:p.y+(it.flip?x-w/2:y),lift:height-(sc.parents.includes(c)?18:5)*1.35};
+  },
+  point(sc,c) {return sc.toScreen(c.x,c.y,c.activity?.stage==='act'?(c.activity.lift||0):0);},
+  depth(sc,c) {const a=c.activity,it=a?.stage==='act'&&a.id==='sit'&&Save.d.room.items.find(it=>it.uid===a.uid);return it?sc.depth(sc.anchor(it))+1:sc.depth(c)+.5;},
   init(sc) {sc.actions={next:this.INTERVAL,time:0,turn:0,bag:[],log:[]};},
   furniture(sc,k) {
     return (Save.d.room.items||[]).filter(it=>FURN_INDEX[it.id] && (k.near==='floor'?FURN_INDEX[it.id].kind==='floor':k.near?.includes(it.id)));
@@ -17,36 +28,41 @@ const HomeActions = {
   available(sc) {return this.kinds.filter(k=>!k.near||this.furniture(sc,k).length);},
   start(sc,c,id) {
     const k=this.available(sc).find(k=>k.id===id);
-    if(!k||!c||c.hidden||sc.mode||sc.life.quarrel||sc.parents.some(p=>p.target===c.id)||!['idle','walk'].includes(c.state))return false;
-    const items=k.near?this.furniture(sc,k):[];
+    if(!k||!c||sc.mode||sc.life.quarrel||!this.free(sc,c))return false;
+    const items=k.near?this.furniture(sc,k).filter(it=>!this.actors(sc).some(o=>o!==c&&o.activity?.uid===it.uid)):[];
+    if(k.near&&!items.length)return false;
     const it=items.sort((a,b)=>{const p=sc.anchor(a),q=sc.anchor(b);return Math.hypot(p.x-c.x,p.y-c.y)-Math.hypot(q.x-c.x,q.y-c.y);})[0];
     const a=c.activity={id,elapsed:0,duration:k.duration,stage:it?'approach':'act',travel:0,uid:it?.uid};
     c.jumpT=-1;c.emo=null;c.dir='down';
-    if(it){const p=sc.anchor(it);c.state='walk';c.tx=U.clamp(p.x+30,40,ROOM.W-40);c.ty=U.clamp(p.y+(id==='peek'?-60:24),ROOM.WALL+65,ROOM.H-30);}
+    if(it){const p=sc.anchor(it);a.item={x:it.x,y:it.y,flip:!!it.flip,id:it.id};c.state='walk';c.tx=U.clamp(p.x+(it.flip?32:0),25,ROOM.W-25);c.ty=U.clamp(p.y+(id==='peek'?-60:24),ROOM.WALL+40,ROOM.H-20);a.exit={x:c.tx,y:c.ty};}
     else c.state='activity';
     sc.actions.log.push({id,who:c.id,time:sc.actions.time,uid:a.uid});if(sc.actions.log.length>40)sc.actions.log.shift();
     return true;
   },
-  cancel(c) {if(!c.activity)return;delete c.activity;if(c.state==='activity'){c.state='idle';c.t=2;c.emo=null;}},
+  cancel(c) {if(!c?.activity)return;const a=c.activity;if(a.stage==='act'&&a.id==='sit')Object.assign(c,a.exit);delete c.activity;if(['activity','walk'].includes(c.state)){c.state='idle';c.t=2;c.time=2;c.emo=null;}},
   update(sc,dt) {
     if(document.hidden||UI.busy)return;
-    if(sc.mode||sc.life.quarrel){for(const c of sc.chars)this.cancel(c);return;}
+    if(sc.mode||sc.life.quarrel){for(const c of this.actors(sc))this.cancel(c);return;}
     const a=sc.actions;a.time+=dt;
-    for(const c of sc.chars){
+    for(const c of this.actors(sc)){
       const v=c.activity;if(!v)continue;
-      if(c.hidden||sc.parents.some(p=>p.target===c.id)||!['walk','idle','activity'].includes(c.state)){this.cancel(c);continue;}
+      const it=v.uid&&Save.d.room.items.find(it=>it.uid===v.uid);
+      if(v.uid&&(!it||it.x!==v.item.x||it.y!==v.item.y||!!it.flip!==v.item.flip||it.id!==v.item.id)){this.cancel(c);continue;}
+      if(c.hidden||c.target||(sc.parents.includes(c)&&sc.work?.phase!=='home')||sc.parents.some(p=>p.target===c.id)||!['walk','idle','activity'].includes(c.state)){this.cancel(c);continue;}
       if(v.stage==='approach'){
         v.travel+=dt;
         if(v.travel>12){this.cancel(c);continue;}
         if(c.state!=='idle')continue;
         v.stage='act';c.state='activity';c.dir='down';
+        if(v.id==='sit'){const seat=this.seat(sc,it,c);c.x=seat.x;c.y=seat.y;v.lift=seat.lift;v.flip=!!it.flip;}
+        if(v.id==='aquarium'){v.flip=!!it.flip;c.dir=it.flip?'left':'up';}
         if(v.id==='admire'&&FURN_INDEX[Save.d.room.items.find(it=>it.uid===v.uid)?.id]?.interactive)sc.life.furniture[v.uid]=v.duration;
       }
       v.elapsed+=dt;if(v.elapsed>=v.duration)this.cancel(c);
     }
     if((a.next-=dt)>0)return;
     a.next=this.INTERVAL;
-    const kids=sc.chars.filter(c=>!c.activity&&!c.hidden&&['idle','walk'].includes(c.state)&&!sc.parents.some(p=>p.target===c.id));
+    const kids=this.actors(sc).filter(c=>!c.activity&&this.free(sc,c));
     if(!kids.length)return;
     const allowed=this.available(sc).map(k=>k.id);a.bag=a.bag.filter(id=>allowed.includes(id));
     if(!a.bag.length)a.bag=U.shuffle([...allowed]);
@@ -58,7 +74,8 @@ const HomeActions = {
     if(k==='nap'){v.face='sleep';v.angle=.12*Math.sin(t);v.sy=.94;}
     if(k==='stretch'){v.sy=1+.09*Math.sin(Math.PI*t/a.duration);v.sx=1-.05*Math.sin(Math.PI*t/a.duration);v.pose='idle_02';}
     if(k==='yawn'){v.face='surprise';v.angle=-.08;v.sy=.95;}
-    if(k==='sit'){v.pose='land_01';v.sy=.83;v.face='normal';v.y=-10*Math.min(1,t*2);}
+    if(k==='sit'){v.pose='land_01';v.sy=.83;v.face='normal';v.y=0;v.dir=a.flip?'right':'left';}
+    if(k==='aquarium'){v.face='normal';v.dir=a.flip?'left':'up';v.angle=.035*Math.sin(t*1.3);v.x=Math.sin(t*1.3)*2;}
     if(k==='read'){v.face='normal';v.angle=.035*Math.sin(t*2);}
     if(k==='sing'){v.pose=osc>0?'idle_02':'idle_01';v.angle=osc*.09;v.y=-Math.abs(osc)*3;}
     if(k==='stumble'){v.face='surprise';v.angle=.5*Math.sin(Math.PI*Math.min(1,t/1.7));v.y=7*Math.sin(Math.PI*Math.min(1,t/1.7));v.pose=t<1.5?'land_01':'idle_02';}

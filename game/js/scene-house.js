@@ -92,7 +92,7 @@ class HouseScene {
     return { x: u, y: ROOM.WALL + (p.y - this.oy) / this.s - HomeDesign.B * u };
   }
   actorRect(c, parent = false) {
-    const p = this.toScreen(c.x, c.y), scale = this.actorScale;
+    const p = HomeActions.point(this,c), scale = this.actorScale;
     return { x: p.x - Math.max(22, 34 * scale), y: p.y - (parent ? 105 : 86) * scale, w: Math.max(44, 68 * scale), h: (parent ? 116 : 94) * scale };
   }
   contains(r, p, pad = 0) { return p.x >= r.x - pad && p.x <= r.x + r.w + pad && p.y >= r.y - pad && p.y <= r.y + r.h + pad; }
@@ -703,7 +703,7 @@ class HouseScene {
     const s = this.s;
     const list = [];
     const items = this.drawOrder();
-    if (this.mode !== "edit") for (const p of this.parents) list.push({ z:this.depth(p),draw:()=>ParentCare.draw(this,ctx,p) });
+    if (this.mode !== "edit") for (const p of this.parents) list.push({ z:HomeActions.depth(this,p),draw:()=>ParentCare.draw(this,ctx,p) });
     for (const it of items) {
       const f = FURN_INDEX[it.id];
       const z = f.kind === "wall" ? -2000 : f.kind === "rug" ? -1000 : this.depth(this.anchor(it));
@@ -711,7 +711,7 @@ class HouseScene {
     }
     for (const c of this.chars) {
       if (c.hidden) continue;
-      list.push({ z: this.depth(c) + 0.5, draw: () => this.drawChar(ctx, c) });
+      list.push({ z: HomeActions.depth(this,c), draw: () => this.drawChar(ctx, c) });
     }
     list.sort((a, b) => a.z - b.z);
     for (const x of list) x.draw();
@@ -753,7 +753,7 @@ class HouseScene {
   drawChar(ctx, c) {
     const s = this.actorScale;
     const [pose, dy] = this.pose(c);
-    const p = this.toScreen(c.x, c.y);
+    const p = HomeActions.point(this,c);
     const motion = HomeActions.visual(c);
     const face = motion?.face || (c.state === "sleep" ? "sleep" : c.emo || this.baseFace(c));
     ctx.fillStyle = "rgba(31,29,27,0.16)";

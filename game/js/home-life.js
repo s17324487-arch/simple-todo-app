@@ -158,8 +158,25 @@ const HomeLife = {
     return !!(v && sc.chars.some(c => c.id === "gachan" && !c.hidden) && v.weather.includes(Weather.kind()) && U.chance(v.chance) && this.playTalk(sc, this.talkById(v.talk)));
   },
   // ひとりごと: ぱぱ・まま（見えて いる とき 2わり）か 3人の だれか。くせ（わうーん・クンクン・かみなり）→ 性格 3わり・まわり 7わり
+  // 新しいこころの声。自動会話の枠を使い、追加の発話タイマーは作らない。
+  thoughts: {
+    wanko:['デザの かくしばしょ… ばれてるかな','おふろの あわで ひげを つくろう'],
+    gachan:['みんなが いると あんしん するな','おさかなも さみしく なるのかな'],
+    goji:['おっきく なったら くもに とどく？','おさかなの おうちも つくりたい ガゥ'],
+    papa:['この のんびりした じかんが すきだな','つぎの おやすみ、どこへ いこうかな'],
+    mama:['みんなの えがおが いちばんの ごほうび','あとで いっしょに デザを たべようかな'],
+  },
+  thoughtLines() {return Object.entries(this.thoughts).flatMap(([who,lines])=>lines.map((text,i)=>({id:`thought-${who}-${i}`,who,text,kind:'think',group:'thought',when:{}})));},
+  thought(sc,id,index=null) {
+    const c=[...sc.chars,...sc.parents].find(c=>c.id===id&&!c.hidden);if(!c||!this.thoughts[id])return false;
+    const list=this.thoughts[id],last=sc.life.lastThought?.[id];
+    const n=Number.isInteger(index)?index:list.findIndex((text,i)=>i!==last);
+    if(!list[n])return false;
+    (sc.life.lastThought||={})[id]=n;this.say(sc,id,list[n],false,'think',{line:`thought-${id}-${n}`,thought:id+'-'+n});return true;
+  },
   solo(sc) {
     const D = this.data(), V = D.voice || {}, heads = this.heads(sc);
+    if(U.chance(.3)){const actors=[...sc.chars,...sc.parents].filter(c=>heads[c.id]&&!c.target);if(actors.length&&this.thought(sc,U.pick(actors).id))return;}
     const parents = (sc.parents || []).filter(p => heads[p.id]);
     if (parents.length && U.chance(0.2) && this.sayLine(sc, this.pickLine(sc, U.pick(parents).id, ["parent"]))) return;
     const kids = sc.chars.filter(c => !c.hidden), c = U.pick(kids.length ? kids : sc.chars);
@@ -214,7 +231,7 @@ const HomeLife = {
   heads(sc) {
     const heads={},k=sc.actorScale;
     for(const c of [...sc.chars,...sc.parents]){
-      if(c.hidden)continue;const parent=c.id==='papa'||c.id==='mama',p=sc.toScreen(c.x,c.y),h={x:p.x,y:p.y-(parent?104:84)*k,r:(parent?21:24)*k};
+      if(c.hidden)continue;const parent=c.id==='papa'||c.id==='mama',p=HomeActions.point(sc,c),motion=HomeActions.visual(c),h={x:p.x+(motion?.x||0)*k,y:p.y+(motion?.y||0)*k-(parent?104:84*(motion?.sy||1))*k,r:(parent?21:24)*k};
       if(h.x>=8&&h.x<=G.W-8&&h.y>=sc.view.top&&h.y<=sc.view.bottom)heads[c.id]=h;
     }
     return heads;

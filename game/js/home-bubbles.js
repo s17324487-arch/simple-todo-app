@@ -4,7 +4,7 @@
 // ・色つきの 名札で だれの ことばか すぐ わかる。形で 気持ちを 見せる（ふつう・さけぶ・なく・こころの こえ・ひそひそ・めずらしい）。
 // ・同時に 出すのは 2つまで（かけあいは 順番に）。
 const HomeBubbles = {
-  S: { font: 13, lineH: 18, padX: 11, padY: 8, maxW: 186, minW: 58, r: 13, bw: 2, tail: 10, gap: 6, tabH: 15, tabFont: 10, maxLines: 3 },
+  S: { font: 12, lineH: 16, padX: 9, padY: 6, maxW: 172, minW: 58, r: 12, bw: 1.15, tail: 12, gap: 6, tabH: 14, tabFont: 10, maxLines: 3 },
   COLOR: { wanko: "#9C7552", gachan: "#E1A21E", goji: "#667A83", papa: "#4F86C6", mama: "#DE7A9C" },
   FILL: { say: "#FFFDF7", shout: "#FFFDF7", cry: "#EEF6FF", think: "#FFFFFF", whisper: "#FBFBF8", rare: "#FFF3B6" },
   INK: "#1F1D1B",
@@ -34,9 +34,9 @@ const HomeBubbles = {
     ctx.font = `700 ${S.font}px sans-serif`;
     // 1つの 吹き出しの 候補（頭の 真上 4段 × 左右 ±154px ＋ 頭の 左横・右横）と、ほかと かかわらない 点数
     const candidates = (b) => {
-      const hd = heads[b.id], lines = this.wrap(ctx, b.text, S.maxW - S.padX * 2), zig = b.kind === "shout" ? 6 : 0;
-      const w = Math.max(S.minW, Math.ceil(Math.max(...lines.map((l) => ctx.measureText(l).width)) + S.padX * 2) + zig * 2);
-      const h = S.padY * 2 + lines.length * S.lineH + 4 + zig * 2, out = [];
+      const hd = heads[b.id], inset=b.kind==="think"?8:0, lines = this.wrap(ctx, b.text, S.maxW - (S.padX+inset) * 2), zig = b.kind === "shout" ? 6 : 0;
+      const w = Math.max(S.minW, Math.ceil(Math.max(...lines.map((l) => ctx.measureText(l).width)) + (S.padX+inset) * 2) + zig * 2);
+      const h = S.padY * 2 + lines.length * S.lineH + 4 + zig * 2 + (b.kind==="think"?8:0), out = [];
       const at = (x0, y0, side, base) => {
         const x = Math.max(area.left, Math.min(area.right - w, x0)), y = Math.max(area.top, Math.min(area.bottom - h, y0)), r = { x, y, w, h };
         let score = base + Math.abs(x - x0) * 2 + Math.abs(y - y0) * 2;
@@ -45,7 +45,7 @@ const HomeBubbles = {
         const [base0, tip] = tailOf(r, side, hd, zig), tl = Math.hypot(tip.x - base0.x, tip.y - base0.y);
         for (const f of faces) if (f.id !== b.id && cross(base0, tip, f)) score += 300; // しっぽが ほかの 顔を よこぎらない
         score += Math.max(0, tl - 18) * 1.5; // しっぽは みじかいほど よい
-        out.push({ ...b, ...r, side, score, lines, zig, base: base0, tip });
+        out.push({ ...b, ...r, side, score, lines, zig, inset, base: base0, tip });
       };
       // 3人が ちかくに いる（へやを ひいて 見て いる）ときは、上の 段へ にげて しっぽを のばす（顔には かぶせない）
       for (const tier of [0, 1, 2, 3]) for (const dx of [0, -22, 22, -44, 44, -66, 66, -88, 88, -110, 110, -132, 132, -154, 154]) at(hd.x - w / 2 + dx, hd.y - S.tail - h - tier * (h * 0.6 + 10), "top", Math.abs(dx) * 0.8 + tier * 60);
@@ -75,12 +75,15 @@ const HomeBubbles = {
       edge(ix, iy, ix + iw, iy, 0, -1); edge(ix + iw, iy, ix + iw, iy + ih, 1, 0); edge(ix + iw, iy + ih, ix, iy + ih, 0, 1); edge(ix, iy + ih, ix, iy, -1, 0);
       pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
     } else if (b.kind === "think") {                             // くも（こころの こえ・ねごと）
-      const step = 16, bump = 6;
-      ctx.moveTo(x + r, y);
-      for (let px = x + r; px < x + w - r; px += step) ctx.quadraticCurveTo(px + step / 2, y - bump, Math.min(px + step, x + w - r), y);
-      ctx.quadraticCurveTo(x + w + bump, y + h / 2, x + w - r, y + h);
-      for (let px = x + w - r; px > x + r; px -= step) ctx.quadraticCurveTo(px - step / 2, y + h + bump, Math.max(px - step, x + r), y + h);
-      ctx.quadraticCurveTo(x - bump, y + h / 2, x + r, y);
+      // 見本画像のような大きく柔らかい雲。ふちは計算した箱の内側に収める。
+      ctx.moveTo(x+w*.16,y+h*.12);
+      ctx.bezierCurveTo(x+w*.18,y-h*.01,x+w*.37,y-h*.01,x+w*.46,y+h*.07);
+      ctx.bezierCurveTo(x+w*.67,y-h*.02,x+w*.88,y+h*.03,x+w*.88,y+h*.26);
+      ctx.bezierCurveTo(x+w*1.02,y+h*.34,x+w*1.02,y+h*.72,x+w*.88,y+h*.78);
+      ctx.bezierCurveTo(x+w*.82,y+h*1.01,x+w*.6,y+h*1.03,x+w*.48,y+h*.91);
+      ctx.bezierCurveTo(x+w*.28,y+h*1.03,x+w*.1,y+h*.94,x+w*.13,y+h*.75);
+      ctx.bezierCurveTo(x-w*.02,y+h*.63,x-w*.01,y+h*.32,x+w*.13,y+h*.29);
+      ctx.quadraticCurveTo(x+w*.12,y+h*.18,x+w*.16,y+h*.12);
     } else if (b.kind === "cry") {                               // なみなみ（なく・こわい）
       const pts = []; const seg = 10;
       const edge = (x0, y0, x1, y1, nx, ny) => { const len = Math.hypot(x1 - x0, y1 - y0), m = Math.max(2, Math.round(len / seg)); for (let i = 0; i < m; i++) { const t = i / m, wv = Math.sin(i * 1.7) * 1.6; pts.push([x0 + (x1 - x0) * t + nx * wv, y0 + (y1 - y0) * t + ny * wv]); } };
@@ -109,7 +112,7 @@ const HomeBubbles = {
       // からだ
       this.shape(ctx, { ...b, kind }); ctx.fillStyle = fill; ctx.fill();
       if (kind === "whisper") ctx.setLineDash([4, 3]);
-      ctx.lineWidth = kind === "shout" ? 2.4 : S.bw; ctx.stroke(); ctx.setLineDash([]);
+      ctx.lineWidth = kind === "shout" ? 1.5 : S.bw; ctx.stroke(); ctx.setLineDash([]);
       // しっぽの つけねの 線を けす
       if (kind !== "think") { ctx.beginPath(); ctx.moveTo(b.base.x + nx * (half - 1.4) - vx / len * 1.5, b.base.y + ny * (half - 1.4) - vy / len * 1.5); ctx.lineTo(b.base.x - nx * (half - 1.4) - vx / len * 1.5, b.base.y - ny * (half - 1.4) - vy / len * 1.5); ctx.lineWidth = S.bw + 1.6; ctx.strokeStyle = fill; ctx.stroke(); }
       // なく: なみだ / めずらしい: きらきら
@@ -118,12 +121,12 @@ const HomeBubbles = {
       // 名札（話し手の 色）
       ctx.font = `800 ${S.tabFont}px sans-serif`; const tw = ctx.measureText(b.name).width + 12, tx = b.x + 10, ty = b.y - S.tabH / 2 - 1;
       ctx.beginPath(); ctx.moveTo(tx + 7, ty); ctx.arcTo(tx + tw, ty, tx + tw, ty + S.tabH, 7); ctx.arcTo(tx + tw, ty + S.tabH, tx, ty + S.tabH, 7); ctx.arcTo(tx, ty + S.tabH, tx, ty, 7); ctx.arcTo(tx, ty, tx + tw, ty, 7); ctx.closePath();
-      ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = INK; ctx.stroke();
+      ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = INK; ctx.stroke();
       ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText(b.name, tx + 6, ty + S.tabH / 2 + 0.5);
       // 文
       ctx.font = `700 ${kind === "whisper" ? S.font - 1 : S.font}px sans-serif`; ctx.fillStyle = kind === "whisper" ? "#5A5550" : INK; ctx.textBaseline = "alphabetic";
       const single = b.lines.length === 1; ctx.textAlign = single ? "center" : "left";
-      b.lines.forEach((ln, i) => { const lx = single ? b.x + b.w / 2 : b.x + S.padX + (b.zig || 0), ly = b.y + S.padY + 4 + (b.zig || 0) + S.lineH * (i + 1) - 5; ctx.fillText(ln, lx, ly); });
+      b.lines.forEach((ln, i) => { const lx = single ? b.x + b.w / 2 : b.x + S.padX + (b.inset || 0) + (b.zig || 0), ly = b.y + S.padY + 4 + (kind==="think"?4:0) + (b.zig || 0) + S.lineH * (i + 1) - 5; ctx.fillText(ln, lx, ly); });
       ctx.restore();
     }
   },

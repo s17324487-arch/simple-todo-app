@@ -31,8 +31,10 @@ const ParentCare = {
     if(look.hair==="twintail")s+=path("M-20-108Q-51-115-43-65L-24-80Z M20-108Q51-115 43-65L24-80Z","#654D40");
     if(look.hair==="ponytail")s+=path("M15-109Q47-117 33-62L18-75Z","#654D40");
     if(look.hair==="bob")s+=rect(-26,-117,52,64,20,"#654D40");
-    s+=rect(-18,-27+step,13,27,5,"#655E72")+rect(5,-27-step,13,27,5,"#655E72");
+    if(pose==="sit")s+=path("M-15-27L-28-17-27-1 M12-27L25-17 26-1","none").replace('stroke-width="3"','stroke-width="11"')+rect(-34,-5,17,9,4,"#605248")+rect(20,-5,17,9,4,"#605248");
+    else {s+=rect(-18,-27+step,13,27,5,"#655E72")+rect(5,-27-step,13,27,5,"#655E72");
     s+=rect(-21,-7+step,18,9,4,"#605248")+rect(3,-7-step,18,9,4,"#605248");
+    }
     s+=rect(-23,-68,46,49,13,color);
     if(look.outfit==="apron")s+=path("M-10-67H10L13-51 19-25H-19L-13-51Z","#FFF0CF")+rect(-8,-43,16,11,3,color);
     if(look.outfit==="cardigan")s+=path("M-9-67L0-49 9-67M0-49V-22")+'<g fill="#FFF4D8"><circle cy="-42" r="2"/><circle cy="-32" r="2"/></g>';
@@ -60,6 +62,7 @@ const ParentCare = {
     if(look.accessory==="flower")s+=flowerSvg(21,-108,8,"#F5D68B","#FAF0CD",2);
     if(look.accessory==="cap"&&!look.equipment?.head)s+=path("M-25-114Q-21-135 7-129Q23-127 23-113Z",color)+path("M-27-113H30");
     s=s.replaceAll('#654D40',({brown:'#654D40',black:'#34313D',gold:'#C79D54',silver:'#A5ADB5',rose:'#A56D7E',navy:'#40536B'})[look.hairColor]||'#654D40');
+    if(pose==='watch1'||pose==='watch2')s=s.replaceAll('cy="-87"','cy="-89"').replace('cx="-9" cy="-89"',`cx="${pose==='watch1'?-11:-7}" cy="-89"`).replace('cx="9" cy="-89"',`cx="${pose==='watch1'?7:11}" cy="-89"`);
     return s+gear.top+'</svg>';
   },
   init(sc) {
@@ -70,7 +73,7 @@ const ParentCare = {
     const p=sc.parents.find(p=>p.id===id);
     if(!p)return;
     if(p.target||p.queue.length){if(all)p.queue=Save.d.order.filter(id=>id!==p.target);return;}
-    p.quiet=quiet;
+    HomeActions.cancel(p);p.quiet=quiet;
     p.queue=all?[...Save.d.order]:[Save.d.order[sc.careTurn++%3]];
     this.next(sc,p);
   },
@@ -106,7 +109,7 @@ const ParentCare = {
     if((sc.parentTimer-=dt)<=0){
       const available=sc.parents.filter(p=>!p.hidden);const p=available[sc.parentTurn++%available.length];
       if(Save.d.parents.auto){if(sc.life.quarrel){HomeLife.settle(sc,false);HomeLife.say(sc,p.id,"みんなで じゅんばんこに しようね♪");}this.request(sc,p.id,false,sc.parentSpeechTurn++%2===1);}
-      else if(p.state==="idle"){p.tx=U.rand(55,ROOM.W-55);p.ty=U.rand(ROOM.WALL+80,ROOM.H-50);p.state="walk";}
+      else if(p.state==="idle"&&!p.activity){p.tx=U.rand(55,ROOM.W-55);p.ty=U.rand(ROOM.WALL+80,ROOM.H-50);p.state="walk";}
       sc.parentTimer=U.rand(13,18);
     }
     for(const p of sc.parents.filter(p=>!p.hidden)){
@@ -119,11 +122,13 @@ const ParentCare = {
     }
   },
   draw(sc,ctx,p) {
-    const pos=sc.toScreen(p.x,p.y),size=136.8*sc.actorScale;
-    const pose=p.state==="walk"?(Math.floor(p.anim*7)%2?"walk1":"walk2"):p.state==="care"?"care":Math.floor(p.anim/4)%3===0?"wave":"idle";
+    const pos=HomeActions.point(sc,p),motion=HomeActions.visual(p),size=136.8*sc.actorScale;
+    const pose=motion?(p.activity.id==="sit"?"sit":p.activity.id==="wave"?"wave":p.activity.id==="aquarium"?(Math.sin(p.anim*1.3)>0?"watch1":"watch2"):"idle"):p.state==="walk"?(Math.floor(p.anim*7)%2?"walk1":"walk2"):p.state==="care"?"care":Math.floor(p.anim/4)%3===0?"wave":"idle";
     const look=this.look(p.id), key=`parent:${p.id}:${JSON.stringify(look)}:${pose}`;
     const img=SvgCache.get(key,()=>this.svg(p.id,look,pose),Math.ceil(size*G.px),Math.ceil(size*200/180*G.px));
-    if(img)ctx.drawImage(img,pos.x-size/2,pos.y-size*176/180-Math.sin(p.anim*2)*sc.s,size,size*200/180);
+    ctx.save();ctx.translate(pos.x+(motion?.x||0)*sc.actorScale,pos.y+(motion?.y||0)*sc.actorScale);ctx.rotate(motion?.angle||0);
+    if(img)ctx.drawImage(img,-size/2,-size*176/180-(motion?0:Math.sin(p.anim*2)*sc.s),size,size*200/180);ctx.restore();
+    HomeActions.props(sc,ctx,p,pos,sc.actorScale);
     ctx.fillStyle=INK;ctx.font=`bold ${11*sc.s}px sans-serif`;ctx.textAlign="center";ctx.fillText(this.name(p.id),pos.x,pos.y+16*sc.s);
   },
   open(sc,id="papa") {

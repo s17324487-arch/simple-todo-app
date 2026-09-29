@@ -108,7 +108,7 @@ const ParentWork = {
   leave(sc) {
     const w = sc.work;
     w.phase = "leaving"; w.t0 = w.t;
-    for (const p of sc.parents) { p.hidden = false; p.target = null; p.queue = []; p.state = "walk"; p.tx = this.DOOR.x + (p.id === "papa" ? 0 : 16); p.ty = this.DOOR.y + (p.id === "papa" ? -6 : 10); }
+    for (const p of sc.parents) { HomeActions.cancel(p);p.hidden = false; p.target = null; p.queue = []; p.state = "walk"; p.tx = this.DOOR.x + (p.id === "papa" ? 0 : 16); p.ty = this.DOOR.y + (p.id === "papa" ? -6 : 10); }
     this.later(sc, 0.3, () => HomeLife.say(sc, "papa", this.BYE[0][1]));
     this.later(sc, 2.4, () => HomeLife.say(sc, "mama", this.BYE[1][1]));
     this.later(sc, 3.6, () => this.say(sc, "all", this.BYE[2][1], "heart"));
@@ -118,7 +118,7 @@ const ParentWork = {
     const w = sc.work;
     w.phase = "arriving"; w.t0 = w.t; w.fade = 0;
     Save.d.flags.homeDay = this.today(); Save.mark();
-    sc.parents.forEach((p, i) => { p.hidden = false; p.target = null; p.queue = []; p.x = this.DOOR.x + i * 16; p.y = this.DOOR.y + i * 14; p.state = "walk"; p.tx = 130 + i * 70; p.ty = ROOM.WALL + 170 + i * 10; });
+    sc.parents.forEach((p, i) => { HomeActions.cancel(p);p.hidden = false; p.target = null; p.queue = []; p.x = this.DOOR.x + i * 16; p.y = this.DOOR.y + i * 14; p.state = "walk"; p.tx = 130 + i * 70; p.ty = ROOM.WALL + 170 + i * 10; });
     Sound.se("door");
     this.later(sc, 0.4, () => HomeLife.say(sc, "papa", this.HELLO[0][1]));
     this.later(sc, 1.8, () => { for (const k of ["wanko", "gachan", "goji"]) { const c = this.kid(sc, k); if (c && c.t <= 100) { HomeActions.cancel(c); c.state = "walk"; c.tx = 140 + ["wanko", "gachan", "goji"].indexOf(k) * 34; c.ty = ROOM.WALL + 220; } } this.say(sc, "all", this.HELLO[2][1], "heart"); });
@@ -128,7 +128,7 @@ const ParentWork = {
   snap(sc, a) {
     const w = sc.work;
     w.phase = a ? "away" : "home"; w.fade = 1; w.queue = [];
-    for (const p of sc.parents) { p.hidden = a; if (!a) { p.state = "idle"; p.time = 3; } }
+    for (const p of sc.parents) { HomeActions.cancel(p);p.hidden = a; if (!a) { p.state = "idle"; p.time = 3; } }
     if (!a) sc.parentTimer = Math.min(sc.parentTimer ?? 6, 6);
     this.label(sc);
   },

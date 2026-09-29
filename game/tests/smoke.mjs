@@ -2517,8 +2517,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg('homeAdvance',1.1);st=await H.dbg('homeActions');expect(st.log.length===1,'約15秒で動作が出ない');
   expect(st.talkDelay.normal>=24&&st.talkDelay.normal<=40&&st.talkDelay.watching>=14&&st.talkDelay.watching<=22,'自動会話の間隔が倍になっていない');
   await H.dbg('homeAdvance',15);expect((await H.dbg('homeActions')).log.length===2,'次の動作が15秒間隔でない');
-  await H.dbg('homeLayout',[{id:'chair_wood',x:170,y:400,uid:1},{id:'bookshelf',x:245,y:380,uid:2},{id:'plant',x:310,y:390,uid:3},{id:'toybox',x:360,y:460,uid:4}]);
-  await H.dbg('homeBubbleFixture');st=await H.dbg('homeActions');expect(st.kinds.length===15&&st.available.length===15,'15種類の動作がそろわない');
+  await H.dbg('homeLayout',[{id:'chair_wood',x:170,y:400,uid:1},{id:'bookshelf',x:245,y:380,uid:2},{id:'plant',x:310,y:390,uid:3},{id:'toybox',x:360,y:460,uid:4},{id:'aquarium',x:100,y:480,uid:5}]);
+  await H.dbg('homeBubbleFixture');st=await H.dbg('homeActions');expect(st.kinds.length===16&&st.available.length===16,'16種類の動作がそろわない');
   for(const [i,kind] of st.kinds.entries()){
     await H.dbg('homeBubbleFixture');const who=['wanko','gachan','goji'][i%3];expect(await H.dbg('homeAction',who,kind),'動作を始められない: '+kind);
     for(let n=0;n<80;n++){const c=(await H.dbg('homeActions')).chars.find(c=>c.id===who);if(c.activity?.stage==='act')break;await H.dbg('homeAdvance',.1);}
@@ -2725,6 +2725,8 @@ await (await import("./indoor-walk-smoke.mjs")).indoorWalkSmoke({scenario,expect
 await (await import("./room-presets-smoke.mjs")).roomPresetsSmoke({scenario,expect});
 
 await (await import("./parent-wardrobe-smoke.mjs")).parentWardrobeSmoke({scenario,expect});
+
+await (await import("./home-moments-smoke.mjs")).homeMomentsSmoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 
