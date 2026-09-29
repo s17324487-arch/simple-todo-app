@@ -900,3 +900,6 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 ### ぱぱ・ままの所持服
 `ParentWardrobe` は parents.papa/mama.equipment の5スロットを共有 wardrobe と照合し、人間用アンカーで既存 WEAR を合成する。旧 outfit（基本服の文字列）は維持。追加 hairColor と equipment は migrate で補完。ParentCare.svg は有限の表情・髪型・服を描画する。人物タップは設定を開かず、家族ボタン・きがえ画面の家族タブから開く。
+
+### 屋外のお庭
+`HomeGarden`（`js/home-garden.js`）は部屋ID `yard` の固定背景と初期配置。既存 `garden`（サンルーム）とは別。`HomeRooms.purchase()` は購入と家具の付与をバックアップ検査・書込成功まで一括処理する。室内/庭の家具は共有在庫で、配置・プリセット・拡張は部屋ごと。庭の壁紙・床は固定で、壁掛け家具の追加は不可。`PokaDebug.homeRoom(id)` は所有済み部屋の切替。

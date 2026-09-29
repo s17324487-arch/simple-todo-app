@@ -233,7 +233,14 @@ const HomeLife = {
 };
 
 const HomeRooms = {
-  catalog: [{ id: "main", name: "いつもの おへや", price: 0, wins: 0 }, { id: "study", name: "ひだまりの アトリエ", price: 4500, wins: 10 }, { id: "garden", name: "そらの サンルーム", price: 9000, wins: 30 }],
+  catalog: [{ id: "main", name: "いつもの おへや", price: 0, wins: 0 }, { id: "study", name: "ひだまりの アトリエ", price: 4500, wins: 10 }, { id: "garden", name: "そらの サンルーム", price: 9000, wins: 30 }, { id: "yard", name: "こもれびの おにわ", price: 20000, wins: 0 }],
+  purchase(id) {
+    const r=this.catalog.find(r=>r.id===id);
+    if(!r||Save.d.rooms.owned[id]||Save.d.coins<r.price||Save.d.stats.wins<r.wins)return false;
+    const data=JSON.parse(JSON.stringify(Save.d));data.coins-=r.price;data.rooms.owned[id]=true;
+    if(id==='yard'){data.rooms.stored.yard=HomeGarden.starter();for(const it of data.rooms.stored.yard.items)data.furn[it.id]=(data.furn[it.id]||0)+1;}
+    try{SaveBackup.install(data);UI.updateHud();return true;}catch(e){UI.toast(e.message);return false;}
+  },
   expansionPrice: 6000,
   all() { return [Save.d.room, ...Object.values(Save.d.rooms.stored)]; },
   expand(id) {
@@ -263,13 +270,14 @@ const HomeRooms = {
     for (const r of this.catalog) {
       const own = Save.d.rooms.owned[r.id];
       const card = U.el("div", { class: "note", "data-room": r.id });
-      card.append(U.el("div", { text: r.name + (own ? `（もってる・ひろさ ${Save.d.rooms.expanded[r.id] ? 2 : 1}ばい）` : `：${r.price} コイン・バトル ${r.wins}かい しょうり`) }));
+      card.append(U.el("div", { text: r.name + (own ? `（もってる・ひろさ ${Save.d.rooms.expanded[r.id] ? 2 : 1}ばい）` : `：${r.price} コイン${r.wins?`・バトル ${r.wins}かい しょうり`:""}`) }));
+      if(r.id==='yard')card.append(U.el('div',{text:'しばふ・はなだん・テラスの おにわ。テーブル・いす2つ・うえきつき。かぐを おけるよ。'}));
       const b = UI.btn(own ? "このへやへ" : "おへやを かう", async () => {
         if (!own) {
           if (Save.d.coins < r.price || Save.d.stats.wins < r.wins) { UI.toast("コインと しょうりすうが たりないよ"); return; }
           if (!await UI.confirm(`${r.price} コインで ${r.name}を かう？`)) return;
           if (Save.d.rooms.owned[r.id]) return;
-          Save.addCoins(-r.price); Save.d.rooms.owned[r.id] = true;
+          if(!this.purchase(r.id))return;
         }
         this.switchTo(r.id); m.close(); Game.goto("house");
       }, "wide");
