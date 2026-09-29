@@ -781,4 +781,32 @@ html, body {
 .town-quiz-prize { display:flex; gap:12px; align-items:center; padding:8px; border:1px solid #dac38b; border-radius:12px; background:#fff5d9; margin:8px 0; }
 .town-quiz-chat { border-left:3px solid #97b9a6; padding-left:12px; margin:14px 0; }
 .town-quiz-sources summary,.town-quiz-rules summary { min-height:44px; padding:10px 0; cursor:pointer; font-weight:700; }
-.prize-controls {position:absolute;bottom:8px;left:10px;right:10px;padding:8px;background:#fff8e9;border:2px solid #1f1d1b;border-radius:15px;pointer-events:auto}.prize-controls .note{padding:4px;font-size:12px;margin:0 0 5px}.prize-directions{display:flex;gap:5px;margin-bottom:5px}.prize-directions button{min-width:44px;min-height:44px;padding:7px}.prize-directions .yellow{flex:1}
+/* クレーンゲーム（crane-scene.js）: 下の そうさばん。やじるし・つかむ（まるい ボタン）・カメラ・やめる */
+.crane-panel{position:absolute;left:8px;right:8px;bottom:8px;padding:8px 10px 10px;background:linear-gradient(#FFF8EC,#F2E4D2);border:2px solid #1F1D1B;border-radius:18px;pointer-events:auto;box-shadow:0 4px 0 rgba(31,29,27,.25);user-select:none;-webkit-user-select:none;touch-action:none}
+.crane-status{font-size:12.5px;font-weight:800;line-height:1.35;text-align:center;min-height:34px;display:flex;align-items:center;justify-content:center;margin:0 0 6px;padding:4px 6px;background:#FFFDF6;border:1.5px dashed #C9B48E;border-radius:10px}
+.crane-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.crane-pad{position:relative;display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:2px;flex:0 0 auto}
+.crane-pad.hidden{display:none}
+.crane-dir{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:2px solid #1F1D1B;border-radius:12px;background:linear-gradient(#FFFFFF,#E4DCEB);font-size:17px;font-weight:900;color:#1F1D1B;box-shadow:0 3px 0 #1F1D1B;touch-action:none}
+.crane-dir.on,.crane-dir:active{transform:translateY(2px);box-shadow:0 1px 0 #1F1D1B;background:#FFE7A0}
+.crane-dir:disabled{opacity:.45}
+.crane-knob{grid-column:2;grid-row:2;width:30px;height:30px;margin:auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FF9FC2,#D9577F);border:2px solid #1F1D1B;pointer-events:none}
+.crane-acts{flex:1;display:flex;gap:8px;justify-content:center}
+.crane-go{min-width:96px;min-height:96px;width:96px;height:96px;border-radius:50%;border:3px solid #1F1D1B;background:radial-gradient(circle at 35% 30%,#B8F08A,#57B83C);font-size:18px;font-weight:900;color:#1F1D1B;box-shadow:0 5px 0 #1F1D1B;padding:0}
+.crane-go2{background:radial-gradient(circle at 35% 30%,#FFD7A0,#F29A3C)}
+.crane-go.ready{animation:crane-pulse 1.1s ease-in-out infinite}
+.crane-go:disabled{filter:grayscale(.8) brightness(1.05);opacity:.6;animation:none}
+.crane-go:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 #1F1D1B}
+.crane-side{display:flex;flex-direction:column;gap:8px;flex:0 0 auto}
+.crane-small{min-width:66px;min-height:44px;padding:4px 8px;font-size:13px}
+.crane-result{display:grid;grid-template-columns:64px 1fr;gap:6px 10px;align-items:center;margin-top:2px}
+.crane-result.hidden{display:none}
+.crane-prize-pic{width:64px;height:64px;grid-row:span 2}
+.crane-prize-pic svg{width:100%;height:100%}
+.crane-result-text{font-size:13px;font-weight:800}
+.crane-result-btns{display:flex;gap:6px;flex-wrap:wrap;grid-column:span 2}
+.crane-result-btns button{min-height:44px;flex:1 1 auto;font-size:13px;padding:6px 8px}
+.crane-panel.done .crane-row{display:none}
+@keyframes crane-pulse{0%,100%{box-shadow:0 5px 0 #1F1D1B,0 0 0 0 rgba(126,217,87,.75)}60%{box-shadow:0 5px 0 #1F1D1B,0 0 0 10px rgba(126,217,87,0)}}
+@media (max-height:700px){.crane-go{min-width:84px;min-height:84px;width:84px;height:84px;font-size:16px}.crane-status{min-height:30px}}
+@media(prefers-reduced-motion:reduce){.crane-go.ready{animation:none}}

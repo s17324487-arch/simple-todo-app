@@ -74,7 +74,7 @@ const IkebukuroVenues={
       mall.floors[floor]=r;
     }
     VenueHalls.defs.mall=mall;
-    VenueHalls.defs.arcade={name:'Meeときょれじゃ',floors:{1:{w:30,h:32,title:'Meeときょれじゃ・1回100コイン',floor:'#DCCBD9',accent:'#9785AE',fixtures:Array.from({length:8},(_,i)=>({kind:'crane',x:4+i%2*17,y:5+Math.floor(i/2)*6,w:5,h:2,label:['つかむ','スイーツ','トライポッド','リングフック'][Math.floor(i/2)]+' '+(i%2+1),action:'crane',machine:i}))}}};
+    VenueHalls.defs.arcade={name:'Meeときょれじゃ',floors:{1:{w:14,h:32,title:'Meeときょれじゃ・1かい 100コイン',wall:'#3A3052',floor:'#5A4A7E',accent:'#E98DB5',fixtures:Array.from({length:8},(_,i)=>({kind:'crane',x:1+i%2*7,y:5+Math.floor(i/2)*6,w:5,h:2,label:['つかむ','スイーツ','トライポッド','リングフック'][Math.floor(i/2)]+' '+(i%2+1),action:'crane',machine:i}))}}};
     VenueHalls.defs.office={name:'ままの オフィス',floors:{1:{w:24,h:24,title:'ままの おしごと',floor:'#D7DDD6',fixtures:[{kind:'parent',x:12,y:7,w:1,h:1,label:'まま',action:'parent'},...[5,12,19].flatMap(x=>[10,16].map(y=>({kind:'officeDesk',x:x-1,y,w:3,h:1,label:'デスク',action:'info',text:'おしごとの じゃまを しないように、しずかにね。'})))]}}};
   },
 };

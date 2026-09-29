@@ -121,6 +121,7 @@
 | `js/furniture-models.js` | 家具の 立体モデル（まるい ラグ・天がいの ベッド・キッチン・ピアノ など 24しゅ。床の 大きさは かえない） |
 | `js/water-art.js` | 水の 絵（川・海・湖。なめらかな 岸・ふかさ・ながれ・波。マスの 形は かえない） |
 | `js/npc-art.js` / `js/npc-cast.js` | 町の人の 絵（35しゅ・顔の ぶひん・もよう）と、1人ずつの 見た目・名前（おなじ 人は いない）・お店の お客さん 60人 |
+| `js/crane-physics.js` / `js/crane-art.js` / `js/crane-machines.js` / `js/crane-scene.js` | クレーンゲーム（池袋 Meeときょれじゃ の 8台）。物理（`CranePhys`）・景品と 台の 絵（`CraneArt`）・8台の しかけと 1かいの あそび（`CraneMachines`・`CraneRound`）・画面と 100コイン・ごほうび・つづきから（`SCENES.prize`・`PrizeArcade`） |
 | `js/maps.js` | マップ（町は ASCII の手描き、外の世界は `FieldGen` で決まった形に生成） |
 | `js/save.js` | セーブ（`Save`）、ステータス計算（`Stats`）、お世話（`Care`） |
 | `js/sound.js` | 効果音と BGM（WebAudio 合成） |
