@@ -77,7 +77,7 @@ const CUST_BODY = ["tshirt_blue", "stripe", "dress", "sweater", "overalls", null
 class ShopScene {
   async enter(p) {
     this.shopId = p.shop; this.back = p.back;
-    this.returnStore = !!p.returnStore; this.variant=p.variant;
+    this.returnStore = !!p.returnStore; this.returnVenue = p.returnVenue || null; this.variant=p.variant;
     this.S = this.variant==='mac'?{...SHOPS[p.shop],name:'マックさん'}:SHOPS[p.shop]; this.st = Save.d.shops[p.shop];
     this.lv = ShopRewards.level(this.st); this.workLv = Math.min(5, this.lv); this.dailyBoost = DailyPlay.boost(this.shopId);
     this.total = this.S.rounds || 3 + Math.min(4, this.lv);
@@ -258,11 +258,12 @@ class ShopScene {
     if (fraction) body.append(U.el("div", { class: "muted", style: "margin-top:8px", text: "はたらいたので おなかが すこし へった。" }));
     Save.write();
     await new Promise((res) => {
-      const m = UI.modal({ title: "きょうの けっか", body, closable: false, footer: UI.btn(this.returnStore ? "てんないに もどる" : "まちに もどる", () => { Sound.se("ok"); m.close(); res(); }, "yellow wide") });
+      const m = UI.modal({ title: "きょうの けっか", body, closable: false, footer: UI.btn(this.returnStore || this.returnVenue ? "てんないに もどる" : "まちに もどる", () => { Sound.se("ok"); m.close(); res(); }, "yellow wide") });
     });
     if (lvUp) Sound.se("fanfare");
     Save.write();
-    if (this.returnStore) Game.goto("store", { shop: this.shopId, back: this.back, atCounter: true }, "fade");
+    if (this.returnVenue) Game.goto("venue", this.returnVenue, "fade"); // 館の 中の お店（びっくぽの キッチン）から
+    else if (this.returnStore) Game.goto("store", { shop: this.shopId, back: this.back, atCounter: true }, "fade");
     else Game.goto("world", this.back, "fade");
   }
 

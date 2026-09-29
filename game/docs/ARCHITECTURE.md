@@ -154,6 +154,8 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
 | — | `nerikasu-layout.js`（nerikasu-town.js の あと） | `NerikasuLayout` |
+| — | `neri-shops.js`（nerikasu-layout.js の あと） | `NeriShops` |
+| — | `neri-bikkupo.js`（ike-aquarium.js の あと） | `Bikkupo` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -914,6 +916,12 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 池は 3つ（地面の `~`）。`FISHING_DATA.spots.town`（pond）で どこでも つれる。公園の 遊具・ベンチは `park.*`／`prop.*` の 原画。
 - 住人は 小物の あとに `NPC_SPOTS`（ID → 場所）へ。ふさがって いれば いちばん ちかい あいた マス（車道・入口の まえ・小物・かんばんは さける）。
 - テスト: `tools/check-nerikasu-town.mjs`（配置イメージの ならび・原画の 大きさ・他の家の 絵・旧IDと お店・池と 釣り・森・住人・まえの 町の セーブの 位置）・`town-check`（密度・道の つながり・スマホの 画面）。PokaDebug `fishShore(map, near)`（ちかくの 水べ）。スモーク「nerikasu-plan・nerikasu-art-390 / 375」。
+
+## ネリカスタウンの コンビニ と ファミレス（TOWN-NERI-02）
+
+- `neri-shops.js`（`NeriShops`）: あたらしい 食べ物 10しゅを `FOODS`・`BAG_INDEX`・`FOOD_ART` に たす（`exclusive: "nerikasu"`。ikebukuro-catalog.js が つつんだ まえの `BUY_SHOPS` ＝ スーパーには ならばない）。コンビニの 什器 11しゅは `StoreArt.prop` を つつんで 描く（キーは 什器の 種類だけ）。`BUY_SHOPS.lawson` / `sevenbun`（`kind: "bag"`・しなもの 6つずつ・かさならない）・`STORE_INTERIORS`・`SIGN_ICON`・`SONGS.shop_<id>`（ディスクの パブリックドメインの 曲の 楽器を かえた 写し）。町の 建物は `{ type: "buy", shop }`。
+- `neri-bikkupo.js`（`Bikkupo`）: `VenueHalls.defs.bikkupo`（`iso`・22×16・`scale` 0.5）。絵は `Object.create(MallArt)` に 什器の モデル（booth・fmtable・drinkbar・kitchen・pass・dessertcase・fmregister・kidsmat・robot・menuboard・podium・partition。キーは 種類・大きさ・variant・dir だけ）・床の 材質・かべ（まど・ブラインド・ポスター）。しらべる: `order`（ごはん／デザート → 3人で たべる）・`drink`・`kitchen`（`Game.goto("shop", { shop: "burger", returnVenue })`。`ShopScene` は `returnVenue` が あれば 館へ もどる）・`register`（`BUY_SHOPS.bikkupo`）・`kids`。はいぜん ロボは `tick` で たのんだ せきの まえへ いって もどる（`walk: true`）。町の 建物は `{ type: "venue", venue: "bikkupo" }`。
+- テスト: `tools/check-nerikasu-town.mjs`（しなもの・絵・館の 什器と キー）・`tools/check-venues.mjs`（什器に いける）。スモーク「nerikasu-shops-390 / 375」「burger-shop」。
 
 ## 池袋の 町（配置イメージどおり・TOWN-IKE-01）
 

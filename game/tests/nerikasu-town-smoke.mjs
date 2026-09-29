@@ -27,11 +27,11 @@ export async function nerikasuTownSmoke({scenario,expect}){
       await H.dbg('teleport','town',sh.x,sh.y,sh.dir);await H.idle();await H.dbg('fishAuto',false,true);
       expect(await H.dbg('fishSpawn','kingyo',10),'魚の かげが 出ない '+name);await H.wait(300);await H.shot('fish-'+name);await H.dbg('fishAuto',false,true);
     }
-    // コンビニ ローリソン（中に 入れるのは つぎの PR）: 入口で あんない。コインは へらない
-    const layout=await H.dbg('townLayout','town'),lawson=layout.doors.find(d=>d.id==='neri_lawson');expect(lawson,'ローリソンの 入口が ない');
+    // コンビニ ローリソンは 入口から 店の 中へ（品ぞろえは nerikasu-shops-smoke.mjs）
+    const layout=await H.dbg('townLayout','town'),lawson=layout.doors.find(d=>d.id==='neri_lawson');expect(lawson&&lawson.act.shop==='lawson','ローリソンの 入口が ない');
     await H.dbg('teleport','town',lawson.x,lawson.y+1,'up');await H.idle();await H.dbg('walkTo',lawson.x,lawson.y);
-    await H.page.locator('.dlg-next:not(.hidden)').waitFor({timeout:5000});expect(/ローリソン/.test(await H.eval(()=>document.querySelector('.dlg-text')?.textContent||'')),'ローリソンの あんないが 出ない'); // 文字が そろって から よむ
-    await H.shot('lawson');await H.dialogs();await H.idle();expect((await H.dbg('saveData')).coins===old.coins,'見るだけで コインが へる');
+    await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),20000);await H.shot('lawson');expect((await H.dbg('saveData')).coins===old.coins,'見るだけで コインが へる');
+    await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle(),15000);
     await H.dbg('hour',21);await H.dbg('teleport','town',36,11,'up');await H.idle();await H.wait(3300);expect((await H.dbg('nerikasuArt')).night,'夜の窓に切り替わらない');await H.shot('avenue-night');
     // 新しい店の絵の入口から、従来の店員・商品へ入れる。
     const tailor=layout.doors.find(d=>d.act.shop==='clothes');await H.dbg('hour',11);await H.dbg('teleport','town',tailor.x,tailor.y+1,'up');await H.idle();await H.dbg('walkTo',tailor.x,tailor.y);await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),30000);await H.shot('tailor-inside');
