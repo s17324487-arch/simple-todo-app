@@ -787,13 +787,14 @@ const MallArt = {
   // 1F の 大きな がめん（北の かべの 面に 描く）
   screen(ctx, sc, r, p, off) {
     const H = r.wallH || 300, T = IsoVenue.T, s = sc.s, o = sc.toScreen(IsoVenue.p(0, 0, H), off);
-    const u0 = p.from * T + 12, u1 = p.to * T - 12, v0 = H - p.z1 + 8, v1 = H - p.z0 - 8, w = u1 - u0, h = v1 - v0, t = G.t, slide = Math.floor(t / 6) % 3, k = (t % 6) / 6;
+    const n = sc.def.floors[12] ? 4 : 3, u0 = p.from * T + 12, u1 = p.to * T - 12, v0 = H - p.z1 + 8, v1 = H - p.z0 - 8, w = u1 - u0, h = v1 - v0, t = G.t, slide = Math.floor(t / 6) % n, k = (t % 6) / 6;
     ctx.save(); ctx.translate(o.x, o.y); ctx.transform(IsoVenue.A * s, IsoVenue.B * s, 0, s, 0, 0);
     ctx.beginPath(); ctx.rect(u0, v0, w, h); ctx.clip();
-    const bg = [["#3B5B8C", "#7B5EA7"], ["#2F7F95", "#68B7C9"], ["#B85C7A", "#F0A36B"]][slide], gr = ctx.createLinearGradient(u0, v0, u1, v1); gr.addColorStop(0, bg[0]); gr.addColorStop(1, bg[1]); ctx.fillStyle = gr; ctx.fillRect(u0, v0, w, h);
+    const bg = [["#3B5B8C", "#7B5EA7"], ["#2F7F95", "#68B7C9"], ["#B85C7A", "#F0A36B"], ["#1E5B86", "#4FA3C4"]][slide], gr = ctx.createLinearGradient(u0, v0, u1, v1); gr.addColorStop(0, bg[0]); gr.addColorStop(1, bg[1]); ctx.fillStyle = gr; ctx.fillRect(u0, v0, w, h);
     ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#FFFFFF"; ctx.globalAlpha = Math.min(1, k * 6, (1 - k) * 6);
     if (slide === 0) { for (let i = 0; i < 14; i++) { const x = u0 + ((i * 97 + t * 30) % w), y = v0 + (i * 37) % h; FX.star(ctx, x, y, 5 + (i % 3) * 2, i % 2 ? "#FFF2AF" : "#FFFFFF"); } ctx.font = "900 34px 'M PLUS Rounded 1c', sans-serif"; ctx.fillText("ようこそ サンシャインいけぶへ", u0 + w / 2, v0 + h * 0.45, w - 40); ctx.font = "900 18px 'M PLUS Rounded 1c', sans-serif"; ctx.fillText("ふんすい ひろばで まってるよ", u0 + w / 2, v0 + h * 0.75, w - 40); }
     else if (slide === 1) { for (let i = 0; i < 9; i++) { const x = u0 + w * (0.1 + i * 0.1), y = v0 + h * (0.9 - ((t * 0.6 + i * 0.13) % 1) * 0.8); ctx.beginPath(); ctx.arc(x, y, 6, 0, 7); ctx.fillStyle = "#DDF4FA"; ctx.fill(); } ctx.fillStyle = "#FFFFFF"; ctx.font = "900 32px 'M PLUS Rounded 1c', sans-serif"; ctx.fillText("ふんすい ショー", u0 + w / 2, v0 + h * 0.42, w - 40); ctx.font = "900 18px 'M PLUS Rounded 1c', sans-serif"; ctx.fillText("ときどき みずが たかく あがるよ", u0 + w / 2, v0 + h * 0.74, w - 40); }
+    else if (slide === 3) { for (let i = 0; i < 6; i++) { const x = u0 + ((i * 140 + t * 50) % (w + 80)) - 40, y = v0 + h * (0.25 + (i % 3) * 0.22); if (typeof AquaArt !== "undefined") AquaArt.penguin(ctx, x, y, 0.9, true, Math.sin(t * 8 + i) * 0.5 + 0.5); } ctx.fillStyle = "#FFFFFF"; ctx.font = "900 32px 'M PLUS Rounded 1c', sans-serif"; ctx.fillText("12F すいぞくかん", u0 + w / 2, v0 + h * 0.4, w - 40); ctx.font = "900 18px 'M PLUS Rounded 1c', sans-serif"; ctx.fillText("エレベーターで そらの すいぞくかんへ", u0 + w / 2, v0 + h * 0.74, w - 40); }
     else { const shops = ["hane", "animal", "gothic", "luxury", "cafe", "crepes", "boba"]; shops.forEach((id, i) => { const x = u0 + ((i * 120 - t * 40) % (shops.length * 120) + shops.length * 120) % (shops.length * 120) - 60, sh = this.SHOP[id]; ctx.fillStyle = sh.c[0]; U.rr(ctx, x, v0 + h * 0.55, 104, 30, 8); ctx.fill(); ctx.fillStyle = INK; ctx.font = "900 13px 'M PLUS Rounded 1c', sans-serif"; ctx.fillText(sh.name, x + 52, v0 + h * 0.55 + 15, 96); }); ctx.fillStyle = "#FFFFFF"; ctx.font = "900 30px 'M PLUS Rounded 1c', sans-serif"; ctx.fillText("いけぶの おみせ", u0 + w / 2, v0 + h * 0.3, w - 40); }
     ctx.restore();
   },
@@ -810,7 +811,7 @@ const MallArt = {
   async elevator(sc) {
     sc.busy = true;
     try {
-      const levels = Object.keys(sc.def.floors).map(Number).sort((a, b) => a - b), labels = levels.map((k) => k + "F" + (sc.def.floors[k].short ? " " + sc.def.floors[k].short : ""));
+      const levels = Object.keys(sc.def.floors).map(Number).filter((k) => !sc.def.floors[k].noElevator).sort((a, b) => a - b), labels = levels.map((k) => k + "F" + (sc.def.floors[k].short ? " " + sc.def.floors[k].short : ""));
       const i = await UI.ask("エレベーター\nなんかいへ いく？", [...labels, "やめておく"]);
       if (i >= 0 && i < levels.length && levels[i] !== sc.floor) { Sound.se("good"); const to = levels[i], r = sc.def.floors[to]; sc.busy = false; sc.changeFloor(to, r.elevatorSpawn || r.spawn); }
     } finally { sc.busy = false; }

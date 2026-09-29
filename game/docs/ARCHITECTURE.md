@@ -866,6 +866,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - セーブは ふえない（館に はいる ときの `Save.d.world` は そとの 入口）。パズルから もどる ときは `venueReturn.at` の マスに たつ。
 - PokaDebug: `venue('mall', 階)`・`venueState()`・`venueVisit(label)`・`venuePoint(x, y, label?)`（タップの 画面の 位置）・`venueWalk(x, y)`・`venueIso()`（iso・ready・floor・leader・crowd・holes）。
 
+## サンシャインいけぶ 12F・13F すいぞくかん（UI-05）
+
+読み込み順は `ike-mall.js` → `aqua-art.js` → `ike-aquarium.js`。トップレベル名は `AquaArt`・`IkeAquarium`。`IkeAquarium.install()` が `VenueHalls.defs.mall.floors[12]`・`[13]` を 足す（`iso: true`・`aqua: true`。13F は `noElevator`・`sky`）。
+
+- 順路: 12F（エレベーター → いりぐちと かんちょう → いその ひろば → だいすいそう → くらげの へや → まるい すいそう → しんかい → トンネル → かいだん）→ 13F（かわと たき → いけと たんぼ → てんくうの テラス → かいだん）→ 12F（おみやげ → でぐちの ゲート → エレベーター）。へや（`IkeAquarium.ZONES`）は フロアマップの いろと、はじめて 入った ときの 案内（`Save.d.museum.rooms["aquarium.ike<階>_<へや>"]`・`Museum.showIntro`）。ゆかの やじるしは `decals`（kind "arrow"）。
+- かべの 水そうは `walls.north / west` の `{ kind: "tank", obj, style }`（`AquaArt.wallTank`: `MUSEUM_DATA` の 水そうの 魚のうち きふした ものだけ `FishArt.svg` で およぐ）。ゆかの 水そう（lowtank・xtank・islandtank・jellycol・pedestal2）は `obj` で おなじ。しらべると `IkeAquarium.show(f)` → `Museum.showTank` / `showInfo`（へやの なまえは あたらしい へや）。かんちょう（`action: "curator"`）は `Museum.talk(n, { mapId: "aquarium" })`。
+- 魚の 絵は 1ぴきごとに `AquaArt.fishSvg`（`SvgCache` の キーは `aqfish:<魚>:<はば>` だけ）。
+- 13F へは エレベーターが いかない（`noElevator`）。フロアマップで 13F を えらぶと、12F の かいだんを のぼった ところ から あるく。
+- みなとの 建物 `harbor_aquarium` は `act: { type: "visit" }` の おしらせ（12かいに おひっこし）。`WorldScene.prototype.enter` を つつみ、`map: "aquarium"` の セーブは 池袋の サンシャインいけぶの まえ に かえる（`MAP_DEFS.aquarium` は のこす）。みなとの 町の人の ことば `tf0381`（すいぞくかんが できて みなとが にぎやかに）は `TOWNSFOLK_DATA` が 自動生成なので install で「12かいへ おひっこし」に かえる。
+- PokaDebug: `museumGo("aquarium", へや)`（あたらしい へやの id。むかしの へやの 名前も うけつける）・`museumDonate()`・`museumShow(objId)`・`aquaTank(objId)`（`{ here, floor, fish }`）。
+
 ## ネリカスタウンの実寸アセット
 
 `nerikasu-neighborhood.js` の後に `nerikasu-town-art.js` → `nerikasu-town.js`。原画は `tools/town-design/nerikasu-assets.mjs` / `nerikasu-props.mjs` / `nerikasu-buildings.mjs`、生成は `tools/build-nerikasu-town.mjs`。HeiwadaiArtの既存bboxモデルへ別IDで登録し、共通defsは維持する。NerikasuTownは22棟と駅前の歩道・小物を接続する。駅14×5と駅東の1戸の敷地のみ変更し、入口と営業機能を既存IDで維持。昼夜は2状態の原画を先読みし、列車は座標だけを動かして線路内へクリップする。PokaDebug.nerikasuArtは描画寸法と有限キャッシュの読取用。

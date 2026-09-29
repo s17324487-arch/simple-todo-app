@@ -80,6 +80,7 @@ class IsoVenueScene extends VenueScene {
     await super.enter(p);
     if (this.def.iso) {
       UI.showHud(true, this.def.name + " " + this.floor + "F");
+      if (this.room.bgm) Sound.bgm(this.room.bgm);
       this.bar?.querySelector("span")?.replaceChildren("ゆかを タップで あるく・おみせや ものを しらべる");
       await this.prepareIso();
     }
@@ -107,6 +108,8 @@ class IsoVenueScene extends VenueScene {
     if (this.iso && f.spots && !Game.inputLocked && !this.busy && !f.hidden) { const c = f.spots.map(([x, y]) => ({ x, y, p: this.route(x, y) })).filter((c) => c.p).sort((a, b) => a.p.length - b.p.length)[0]; if (c) { this.walkTo(c.x, c.y, f); return true; } }
     return super.request(f);
   }
+  // フロアごとの BGM（12F・13F は すいぞくかんの 曲）
+  changeFloor(floor, spawn) { super.changeFloor(floor, spawn); if (this.iso) Sound.bgm(this.room.bgm || this.def.bgm || "house"); }
   walkable(x, y) {
     if (!this.iso) return super.walkable(x, y);
     const r = this.room; if (IsoVenue.solidAt(r, x, y)) return false;
