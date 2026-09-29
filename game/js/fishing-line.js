@@ -561,9 +561,11 @@ const FishLine = {
   // テスト・PokaDebug 用の ようす
   state(sc) {
     const S = sc && sc.fishing && sc.fishing.map === sc.mapId ? sc.fishing : null; if (!S) return null;
-    const ox = G.W / 2 - sc.cam.x, oy = G.H / 2 - sc.cam.y, B = S.line, r = this.button && this.button.getBoundingClientRect();
-    return { spot: S.spot && S.spot.place, line: B ? B.phase : null, bobber: B ? { x: B.x, y: B.y, sx: ox + B.x, sy: oy + B.y } : null, nibbled: B ? B.nibbled : 0, escaped: B ? B.escaped || 0 : 0,
-      fish: B && B.fish ? B.fish.f.id : null, shadows: S.shadows.map((s) => ({ uid: s.uid, id: s.f.id, cm: s.cm, len: s.len, wid: s.wid, x: s.x, y: s.y, a: s.a, sx: ox + s.x, sy: oy + s.y, state: s.state, head: this.head(s) })),
+    // 画面の 位置は 町の ズーム（WorldZoom）も ふくめる
+    const at = (x, y) => (typeof WorldZoom !== "undefined" ? WorldZoom.toScreen(sc, x, y) : { x: G.W / 2 - sc.cam.x + x, y: G.H / 2 - sc.cam.y + y }), B = S.line, r = this.button && this.button.getBoundingClientRect();
+    const bs = B && at(B.x, B.y);
+    return { spot: S.spot && S.spot.place, line: B ? B.phase : null, bobber: B ? { x: B.x, y: B.y, sx: bs.x, sy: bs.y } : null, nibbled: B ? B.nibbled : 0, escaped: B ? B.escaped || 0 : 0,
+      fish: B && B.fish ? B.fish.f.id : null, shadows: S.shadows.map((s) => { const q = at(s.x, s.y); return { uid: s.uid, id: s.f.id, cm: s.cm, len: s.len, wid: s.wid, x: s.x, y: s.y, a: s.a, sx: q.x, sy: q.y, state: s.state, head: this.head(s) }; }),
       brag: S.brag ? { phase: S.brag.phase, id: S.brag.f.id, cm: S.brag.cm, held: S.brag.held, talking: !!S.brag.talking } : null, zoom: S.zoom, press: !!S.press, last: this.last || null,
       button: r ? { x: r.x, y: r.y, w: r.width, h: r.height, bite: this.button.classList.contains("bite") } : null };
   },

@@ -383,6 +383,9 @@ html, body {
 .annual-months .selected { background:#D6E8D9; }
 .world-weather { position:absolute; top:calc(60px + var(--safe-t)); left:10px; display:flex; align-items:center; gap:5px; min-height:44px; padding:4px 10px; font-size:12px; background:#FFF9E9; }
 .world-weather svg { width:26px; height:26px; }
+.world-zoom { position:absolute; top:calc(112px + var(--safe-t)); left:10px; display:flex; gap:6px; z-index:5; }
+.world-zoom .btn.round { background:#FFF9E9; touch-action:manipulation; }
+.world-zoom .btn.round svg { width:26px; height:26px; }
 .weather-now { display:flex; align-items:center; justify-content:center; gap:18px; padding:16px; background:#E9EFE4; border-radius:18px; }
 .weather-now svg { width:86px; height:86px; } .weather-now h2 { font-size:24px; }
 .weather-forecast { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
@@ -603,7 +606,7 @@ html, body {
 .fossil-detail .fact { background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 12px; padding: 6px 10px; font-size: 13px; font-weight: 700; white-space: pre-line; text-align: left; }
 .fossil-detail .fact b { display: block; font-size: 12px; color: #9a6a00; }
 /* ⑤ 水族館・博物館: へやに はじめて 入った ときの 案内（見本 img/phones.png の ②④。HUD と てんきの 下の まんなか） */
-.museum-intro { position: absolute; left: 50%; top: calc(112px + var(--safe-t, 0px)); transform: translateX(-50%); max-width: 90%; width: max-content; background: #FFFDF6; border: 3px solid var(--ink); border-radius: 14px; padding: 6px 14px; font-weight: 800; font-size: 14px; line-height: 1.45; text-align: center; word-break: keep-all; box-shadow: 0 3px 0 var(--ink); pointer-events: none; z-index: 6; animation: museum-intro-in 0.25s ease-out; }
+.museum-intro { position: absolute; left: 50%; top: calc(164px + var(--safe-t, 0px)); transform: translateX(-50%); max-width: 90%; width: max-content; background: #FFFDF6; border: 3px solid var(--ink); border-radius: 14px; padding: 6px 14px; font-weight: 800; font-size: 14px; line-height: 1.45; text-align: center; word-break: keep-all; box-shadow: 0 3px 0 var(--ink); pointer-events: none; z-index: 6; animation: museum-intro-in 0.25s ease-out; }
 .museum-intro .nm { font-size: 15px; font-weight: 900; }
 @keyframes museum-intro-in { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }
 /* ⑤ 2番: 寄贈の 画面・骨を えらぶ・かんせい（見本 tools/feature-design/museum-ui.css の dn-*） */

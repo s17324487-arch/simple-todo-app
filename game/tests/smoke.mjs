@@ -2789,6 +2789,8 @@ await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});
 
 await (await import("./nerikasu-town-smoke.mjs")).nerikasuTownSmoke({scenario,expect});
 
+await (await import("./world-zoom-smoke.mjs")).worldZoomSmoke({scenario,expect});
+
 await (await import("./npc-life-smoke.mjs")).npcLifeSmoke({scenario,expect});
 
 await (await import("./indoor-walk-smoke.mjs")).indoorWalkSmoke({scenario,expect});
