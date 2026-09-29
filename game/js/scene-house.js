@@ -452,7 +452,7 @@ class HouseScene {
       }
       if (own.length <= 1) tray.append(U.el("div", { class: "note", text: "かぐやさんで あたらしい もようが かえるよ！" }));
     }
-    e.append(head, info, tray);
+    e.append(head, UI.btn("プリセット",()=>RoomPresets.open(this),"small"), info, tray);
     this.layout();
   }
   async placeNew(id) {

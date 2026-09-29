@@ -2715,6 +2715,8 @@ await (await import("./npc-life-smoke.mjs")).npcLifeSmoke({scenario,expect});
 
 await (await import("./indoor-walk-smoke.mjs")).indoorWalkSmoke({scenario,expect});
 
+await (await import("./room-presets-smoke.mjs")).roomPresetsSmoke({scenario,expect});
+
 server.close();
 if(LIST)process.exit(0);
 if (!results.length) { console.error("検証対象がありません。--only の名前を確認してください。"); process.exit(1); }
