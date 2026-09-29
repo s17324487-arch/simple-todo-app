@@ -60,6 +60,8 @@ const PokaDebug = {
       "PokaDebug.coins(1000)                 コインを足す",
       "PokaDebug.level(16)                   3人のレベルを設定して全回復",
       "PokaDebug.unlockAll()                 服・家具・壁紙・床を ぜんぶ持つ",
+      "PokaDebug.itemDex('furn')             家具／服の図鑑の記録（'furn' / 'wear'）",
+      "PokaDebug.itemDexClaim('wear', 10)    10種類ごとの図鑑のごほうびを受け取る",
       "PokaDebug.give('cake', 3)             もちものを足す",
       "PokaDebug.save()                      いますぐセーブ",
       "PokaDebug.walkTo(4, 12)               町・フィールドで (x, y) まで歩く",
@@ -88,11 +90,19 @@ const PokaDebug = {
   townLayout(id) {
     const m=Maps.get(id);return {id,w:m.w,h:m.h,spawn:m.def.safeSpawn,views:m.def.views,doors:m.doors.map(d=>({id:d.b.id,x:d.x,y:d.y,act:d.b.act})),warps:m.warps};
   },
+  nerikasuArt() {
+    return {night:DayTint.isNight(),buildings:MAP_DEFS.town.buildings.map(b=>({id:b.id,asset:b.asset,x:b.x,y:b.y,w:b.w,h:b.h,door:b.door,model:HeiwadaiArt.model(b.asset,{})})).map(({model,...b})=>({...b,origin:[model.originX,model.originY],size:[model.w,model.h]})),
+      cached:[...SvgCache.map.keys()].filter(k=>k.includes('heiwadai_nerikasu'))};
+  },
   backupText(){return SaveBackup.encode();},
   backupDecode(text){return SaveBackup.decode(text);},
   dailyVisit(day) {return DailyPlay.visit(day);},
   dailyState() {return {...Save.d.daily,featured:DailyPlay.featured(),shop:SHOPS[DailyPlay.featured()].name};},
   saveData() {return JSON.parse(JSON.stringify(Save.d));},
+  itemDex(kind = "furn") {
+    return { kind, ...ItemDex.progress(kind), entries: ItemDex.entries(kind).map(e => ({ id: e.id, name: e.item.name, category: kind === "furn" ? e.item.kind : e.item.slot, seen: e.seen, owned: e.owned, count: e.count, rare: !!e.item.rare })) };
+  },
+  itemDexClaim(kind, threshold) { return ItemDex.claim(kind, threshold); },
   shopRewards(shop) {return { rows:ShopRewards.rows(shop), levels:[...SHOP_LV_REP], cap:ShopRewards.maxLevel };},
   shopRewardClaim(shop) {return ShopRewards.claim(shop).map(p=>p.id);},
   shopRewardOpen(shop) {ShopRewards.open(shop);},
@@ -108,7 +118,7 @@ const PokaDebug = {
   },
   async townPlan(id,before=false) {
     const d=before?TownRenewal.originals[id]:MAP_DEFS[id],m=new WorldMap(before?"before-"+id:id,d),sc=new WorldScene();
-    sc.map=m;sc.mapId=id;sc.npcs=(d.npcs||[]).map(n=>({...n,w:new Walker(n.x,n.y,n.dir)}));sc.enemies=[];
+    sc.map=m;sc.mapId=id;sc.npcs=(d.npcs||[]).map(n=>({...n,w:new Walker(n.x,n.y,n.dir)}));sc.enemies=[];sc.rocks=[];
     await sc.preload();
     const cv=document.createElement("canvas");cv.width=m.w*TS;cv.height=m.h*TS;const ctx=cv.getContext("2d");
     for(let y=0;y<m.h;y+=8)for(let x=0;x<m.w;x+=8)ctx.drawImage(Tiles.chunk(m,x/8,y/8),x*TS,y*TS,8*TS,8*TS);

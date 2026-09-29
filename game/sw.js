@@ -3,6 +3,7 @@
 importScripts("js/version.js");
 const CACHE = "pokapoka-" + GAME_VERSION;
 const FILES = [
+  "./js/item-dex-sources.js", "./js/item-dex.js",
   "./", "./index.html", "./manifest.webmanifest", "./css/style.css",
   "./icons/icon-192.png", "./icons/icon-512.png",
   "./js/version.js", "./js/chara-data.js", "./js/util.js", "./js/data.js", "./js/chara.js", "./js/art.js", "./js/npc-art.js", "./js/tiles.js", "./js/water-art.js", "./js/maps.js",
@@ -24,7 +25,7 @@ const FILES = [
   "./js/weather.js", "./js/battle-elements.js",
   "./js/modern-music.js", "./js/music-arrangements.js", "./js/music-discs.js", "./js/smaho.js",
   "./js/fishing-line.js",
-  "./js/atlas-art.js", "./js/world-atlas.js", "./js/district-travel.js", "./js/mac-kitchen.js", "./js/venue-hall-art.js", "./js/venue-hall.js", "./js/nerikasu-neighborhood.js",
+  "./js/atlas-art.js", "./js/world-atlas.js", "./js/district-travel.js", "./js/mac-kitchen.js", "./js/venue-hall-art.js", "./js/venue-hall.js", "./js/nerikasu-neighborhood.js", "./js/nerikasu-town-art.js", "./js/nerikasu-town.js",
 ];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));

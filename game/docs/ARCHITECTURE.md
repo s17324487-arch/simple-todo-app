@@ -255,6 +255,12 @@ SCENES.xxx = XxxScene;
 
 注意: `html:` や `innerHTML` に入れる文字列に、プレイヤーが入力した文字（キャラの名前など）を入れるときは、HTML の記号を取りのぞく（`menu.js` の名前変更と `Save.migrate()` でそうしている）。新しい入力欄を作るときも同じにする。
 
+### 家具・服の図鑑（V2-14）
+
+- `item-dex.js` の `ItemDex` と `item-dex-sources.js` の `ItemDexSources`。`Menu.dex` の5タブから `ItemDex.render(el, 'furn' | 'wear')` を呼ぶ。`catalog` は実行時の `FURNITURE` / `WEAR_ITEMS` をIDで重複排除し、レア品や後から追加する景品も含む。入手ヒントは配布元の表から読む。
+- `Save.fresh().itemDex = { furn: {}, wear: {}, claimed: { furn: {}, wear: {} } }` を追加。`Save.KEY`・SCHEMA・既存の敵 `dex` は維持。`Save.write` と図鑑を開くときの `ItemDex.sync` が所持品を収集記録へ足す。家具総数には設置中を含むので足し算せず、現在の部屋と別室の配置数を下限にする。服は `wardrobe` と3人の `outfit` を見る。無料の親の見た目は対象外。閲覧・プレビューは所持品・装備・配置・コインを変えない。
+- 各図鑑の10種類ごとに100コイン。`claim(kind, threshold)` は手動受取だけで、受領記録とコインを同時保存する。保存失敗時は両方を戻す。`PokaDebug.itemDex(kind)` は進捗/一覧、`itemDexClaim(kind, threshold)` は受領の入口。静的検査 `tools/check-item-dex.mjs`、スマホ検査 `tests/item-dex-smoke.mjs`（390×844 / 375×667）。
+
 ---
 
 ## 6. 絵の仕組み
@@ -847,3 +853,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - `CraneHallArt` が `VenueHallArt.fixture` の `kind: "crane"` だけ 描きかえる（台ごとの いろ・かんばん・まどの 中の 景品・ランプ）。
 - PokaDebug: `arcadeStart(台)`・`arcadeState()`・`arcadeMove(dx, dz)`（cm）・`arcadeDrop()`・`arcadeAim(景品)`・`arcadeLuck(つよい)`・`arcadeFast(ばい)`・`arcadeCam('front'|'side')`。
 
+
+## ネリカスタウンの実寸アセット
+
+`nerikasu-neighborhood.js` の後に `nerikasu-town-art.js` → `nerikasu-town.js`。原画は `tools/town-design/nerikasu-assets.mjs` / `nerikasu-props.mjs` / `nerikasu-buildings.mjs`、生成は `tools/build-nerikasu-town.mjs`。HeiwadaiArtの既存bboxモデルへ別IDで登録し、共通defsは維持する。NerikasuTownは22棟と駅前の歩道・小物を接続する。駅14×5と駅東の1戸の敷地のみ変更し、入口と営業機能を既存IDで維持。昼夜は2状態の原画を先読みし、列車は座標だけを動かして線路内へクリップする。PokaDebug.nerikasuArtは描画寸法と有限キャッシュの読取用。

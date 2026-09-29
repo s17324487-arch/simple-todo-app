@@ -4,6 +4,8 @@
 
 | ファイル | 中身 |
 | --- | --- |
+| [`towns/nerikasu-buildings/README.md`](towns/nerikasu-buildings/README.md) | ネリカスタウンの実寸アセット：駅・住宅・お店・小学校・保育園の全22棟、昼夜の原画と本編画面 |
+| [`towns/nerikasu-station/README.md`](towns/nerikasu-station/README.md) | ネリカス駅の原画集 v0.1（32種のSVG・昼夜・スマホ配置見本。本編組み込み前） |
 | [`TOWN_GUIDE.md`](TOWN_GUIDE.md) | 町づくりの 共通の きまり（道・見かた・にぎやかさの めやす・確かめかた） |
 | [`towns/renewal/README.md`](towns/renewal/README.md) | ぽかぽかタウン・シティ・港・空港のテーマ、街区の配置、保存データの互換と検証 |
 | [`towns/heiwadai/CODEX_TASK.md`](towns/heiwadai/CODEX_TASK.md) | 平和台を v0.2 に 作り直す 作業指示（PR の 分けかた・互換・完了の 条件） |

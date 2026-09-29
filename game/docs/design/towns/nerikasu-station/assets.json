@@ -1,0 +1,865 @@
+{
+  "version": "0.1",
+  "tile": 32,
+  "status": "asset-design-only",
+  "assets": [
+    {
+      "id": "nerikasu.station",
+      "name": "ネリカス駅・木組みの駅舎",
+      "category": "駅舎・交通",
+      "w": 14,
+      "h": 5,
+      "bbox": [
+        -8,
+        -47,
+        470,
+        179
+      ],
+      "details": [
+        "時計切妻と金属屋根のはぜ",
+        "木の柱・方杖・銅の雨どい",
+        "葉の駅章・和英駅名",
+        "ガラス越しの改札",
+        "左：駅員窓口／右：券売機",
+        "入口の点字ブロック"
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "anchor": [
+        224,
+        160
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.waiting",
+      "name": "ひだまりの待合室",
+      "category": "駅舎・交通",
+      "w": 4,
+      "h": 3,
+      "bbox": [
+        -8,
+        -12,
+        150,
+        109
+      ],
+      "details": [
+        "室内ベンチの見える窓",
+        "花箱・レンガ腰壁",
+        "駅舎と同じ切妻屋根"
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "anchor": [
+        64,
+        96
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.kiosk",
+      "name": "こむぎのまど・駅前売店",
+      "category": "駅舎・交通",
+      "w": 3,
+      "h": 3,
+      "bbox": [
+        -8,
+        -5,
+        114,
+        111
+      ],
+      "details": [
+        "パン棚・しまの日よけ",
+        "独立した入口",
+        "黒板メニュー・花箱"
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "anchor": [
+        48,
+        96
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.bikeshed",
+      "name": "屋根付き駐輪場",
+      "category": "駅舎・交通",
+      "w": 5,
+      "h": 3,
+      "bbox": [
+        -9,
+        -8,
+        171,
+        104
+      ],
+      "details": [
+        "半透明の屋根と骨組み",
+        "3台の自転車・子供乗せ",
+        "スポーク・かご・駐輪ラック"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        80,
+        96
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.canopy",
+      "name": "ホームの屋根",
+      "category": "駅舎・交通",
+      "w": 8,
+      "h": 2,
+      "bbox": [
+        -11,
+        -31,
+        267,
+        69
+      ],
+      "details": [
+        "金属屋根・方杖・支柱",
+        "行先案内・木のベンチ",
+        "端の警告色帯"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        128,
+        64
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.train",
+      "name": "若葉ライン・2両編成",
+      "category": "駅舎・交通",
+      "w": 14,
+      "h": 2,
+      "bbox": [
+        -4,
+        -9,
+        440,
+        81
+      ],
+      "details": [
+        "2両の連結幌",
+        "台車・車輪・冷房機",
+        "パンタグラフ・行先表示",
+        "セージと金の帯"
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "anchor": [
+        224,
+        64
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.lift",
+      "name": "ホームのエレベーター",
+      "category": "駅舎・交通",
+      "w": 3,
+      "h": 2,
+      "bbox": [
+        -4,
+        -36,
+        93,
+        80
+      ],
+      "details": [
+        "ガラスの昇降塔",
+        "操作盤・階表示",
+        "段差のない入口"
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "anchor": [
+        48,
+        64
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.busstop",
+      "name": "木のベンチのバス停",
+      "category": "駅舎・交通",
+      "w": 4,
+      "h": 2,
+      "bbox": [
+        -10,
+        -47,
+        129,
+        65
+      ],
+      "details": [
+        "時刻表・丸い停留所標識",
+        "透明な風よけ・木のベンチ",
+        "駅章ポスター"
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "anchor": [
+        64,
+        64
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.tree",
+      "name": "ケヤキと植えます",
+      "category": "広場・通学路",
+      "w": 2,
+      "h": 1,
+      "bbox": [
+        -14,
+        -90,
+        71,
+        46
+      ],
+      "details": [
+        "6段の葉のかたまり",
+        "枝・根元・植えます",
+        "右下の木もれ日影"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.track",
+      "name": "連結できる線路",
+      "category": "道・設備",
+      "w": 4,
+      "h": 1,
+      "bbox": [
+        -3,
+        -4,
+        131,
+        37
+      ],
+      "details": [
+        "砕石・まくら木・2本のレール",
+        "左右の端を連結可能"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        64,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.railfence",
+      "name": "線路沿いのさく",
+      "category": "道・設備",
+      "w": 3,
+      "h": 1,
+      "bbox": [
+        -4,
+        -21,
+        102,
+        35
+      ],
+      "details": [
+        "3本の支柱・縦格子",
+        "コンクリートの基礎",
+        "続けて置ける端"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        48,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.ticket",
+      "name": "券売機・2台",
+      "category": "道・設備",
+      "w": 2,
+      "h": 1,
+      "bbox": [
+        -3,
+        -14,
+        60,
+        36
+      ],
+      "details": [
+        "運賃画面・選択ボタン",
+        "紙幣と硬貨投入口",
+        "きっぷ取出口"
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.gates",
+      "name": "改札・幅広通路つき",
+      "category": "道・設備",
+      "w": 3,
+      "h": 1,
+      "bbox": [
+        -3,
+        -18,
+        103,
+        38
+      ],
+      "details": [
+        "IC読取部・矢印表示",
+        "透明なフラップ",
+        "広い通路と通常通路"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        48,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.departure",
+      "name": "発車案内と駅時計",
+      "category": "道・設備",
+      "w": 3,
+      "h": 1,
+      "bbox": [
+        -3,
+        -27,
+        102,
+        35
+      ],
+      "details": [
+        "ホーム番号・行先・時刻",
+        "木枠とつり金具",
+        "丸い駅時計"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        48,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.tactile_line",
+      "name": "点字ブロック・誘導",
+      "category": "道・設備",
+      "w": 1,
+      "h": 1,
+      "bbox": [
+        -1,
+        -1,
+        33,
+        33
+      ],
+      "details": [
+        "線と点を描き分け",
+        "32px角・段差なし"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.tactile_corner",
+      "name": "点字ブロック・曲がり角",
+      "category": "道・設備",
+      "w": 1,
+      "h": 1,
+      "bbox": [
+        -1,
+        -1,
+        33,
+        33
+      ],
+      "details": [
+        "線と点を描き分け",
+        "32px角・段差なし"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.tactile_warning",
+      "name": "点字ブロック・警告",
+      "category": "道・設備",
+      "w": 1,
+      "h": 1,
+      "bbox": [
+        -1,
+        -1,
+        33,
+        33
+      ],
+      "details": [
+        "線と点を描き分け",
+        "32px角・段差なし"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.paving",
+      "name": "駅前の敷石",
+      "category": "道・設備",
+      "w": 2,
+      "h": 2,
+      "bbox": [
+        -1,
+        -1,
+        65,
+        65
+      ],
+      "details": [
+        "ずらし積み・2色の敷石",
+        "小さな欠け・目地"
+      ],
+      "states": [
+        "day"
+      ],
+      "anchor": [
+        32,
+        64
+      ],
+      "source": "game/tools/town-design/nerikasu-assets.mjs"
+    },
+    {
+      "id": "nerikasu.station-totem",
+      "name": "木の葉の 駅名塔",
+      "category": "広場・通学路",
+      "w": 2,
+      "h": 1,
+      "bbox": [
+        -2,
+        -85,
+        63,
+        38
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "details": [
+        "木の葉と2本のレールの駅章",
+        "琺瑯の駅名板と英字",
+        "銅の縁取りと左側の木目",
+        "住宅街・学校を示す南口案内",
+        "基礎のアンカーボルトと夜の足元灯"
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.timber-bench",
+      "name": "木と 鉄の ひとやすみベンチ",
+      "category": "広場・通学路",
+      "w": 3,
+      "h": 1,
+      "bbox": [
+        -3,
+        -26,
+        104,
+        41
+      ],
+      "states": [
+        "day"
+      ],
+      "details": [
+        "反りのある木の背板4枚と座板5枚",
+        "鋳鉄の葉模様の肘掛け",
+        "座面の奥行き・桟・4本の脚",
+        "木目・ボルト・中央の寄付銘板"
+      ],
+      "anchor": [
+        48,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.lantern-twin",
+      "name": "こもれびの 二灯街灯",
+      "category": "広場・通学路",
+      "w": 1,
+      "h": 1,
+      "bbox": [
+        -27,
+        -102,
+        63,
+        39
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "details": [
+        "葉を巻き込んだ鋳鉄の二股アーム",
+        "銅の笠・乳白ガラス・縦桟のランタン",
+        "暖色の夜灯と歩道に落ちる光",
+        "根巻き・点検口・締結ボルト"
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.community-board",
+      "name": "学校と 保育園の おしらせ板",
+      "category": "広場・通学路",
+      "w": 3,
+      "h": 1,
+      "bbox": [
+        -4,
+        -67,
+        107,
+        39
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "details": [
+        "銅板の小屋根と雨だれの樋",
+        "引き違いガラス・留め具・鍵穴",
+        "学校の運動会・保育園のおひるね・町内音楽会の異なる絵入りポスター",
+        "掲示日・画鋲・木目と足元の基礎"
+      ],
+      "anchor": [
+        48,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.walk-map",
+      "name": "あるいて めぐる まちの地図",
+      "category": "広場・通学路",
+      "w": 2,
+      "h": 1,
+      "bbox": [
+        -6,
+        -60,
+        77,
+        40
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "details": [
+        "駅・川・曲がる通り・住宅街・公園を描いた縮尺地図",
+        "学校と保育園の別ピクトグラム",
+        "現在地の赤い印と凡例",
+        "斜めの天端・鉄骨支柱・夜の上部照明"
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.school-crossing",
+      "name": "通学路の 黄色い旗ボックス",
+      "category": "広場・通学路",
+      "w": 1,
+      "h": 1,
+      "bbox": [
+        -6,
+        -71,
+        51,
+        39
+      ],
+      "states": [
+        "day"
+      ],
+      "details": [
+        "子ども2人の通学路ピクトグラム",
+        "黄色い三角旗3本と持ち手",
+        "傾いた口の旗ボックスと返却表示",
+        "白・緑の安全ポールと反射帯"
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.corner-mirror",
+      "name": "住宅路地の カーブミラー",
+      "category": "広場・通学路",
+      "w": 1,
+      "h": 1,
+      "bbox": [
+        -6,
+        -74,
+        44,
+        39
+      ],
+      "states": [
+        "day"
+      ],
+      "details": [
+        "オレンジの覆いと下向きの庇",
+        "鏡に映る曲がり道・家・緑の生け垣",
+        "鏡の接合金具・ボルト・白い注意帯",
+        "固定台の小さな水抜き穴"
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.bicycle-rack",
+      "name": "子のせ自転車も ある駐輪ラック",
+      "category": "広場・通学路",
+      "w": 4,
+      "h": 2,
+      "bbox": [
+        -4,
+        -19,
+        142,
+        73
+      ],
+      "states": [
+        "day"
+      ],
+      "details": [
+        "緑の通勤車・赤の低床車・クリーム色の子のせ電動車",
+        "子ども用後席のベルト・足置き・車体のバッテリー",
+        "買い物かご・反射板・チェーン・ペダル・泥よけ・スポーク",
+        "U字ラックと番号付き駐輪溝"
+      ],
+      "anchor": [
+        64,
+        64
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.season-planter",
+      "name": "町のみんなが 育てる花だん",
+      "category": "広場・通学路",
+      "w": 2,
+      "h": 1,
+      "bbox": [
+        -4,
+        -27,
+        76,
+        40
+      ],
+      "states": [
+        "day"
+      ],
+      "details": [
+        "釉薬の白い縁とテラコッタの焼きむら",
+        "パンジー・小さなマーガレット・黄色の花",
+        "植え土・茎・葉・開いた花の異なる重なり",
+        "学校の花育てプレート・底の水抜き穴"
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.drinking-fountain",
+      "name": "ふたつの高さの 水のみば",
+      "category": "広場・通学路",
+      "w": 2,
+      "h": 1,
+      "bbox": [
+        -4,
+        -36,
+        74,
+        40
+      ],
+      "states": [
+        "day"
+      ],
+      "details": [
+        "子ども・車いすで届く低いボウル",
+        "深いホーロー受け皿と排水穴",
+        "真鍮の押しボタン・蛇口・短い水の弧",
+        "タイルの支柱・掃除口と排水グレーチング"
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.postbox",
+      "name": "駅前の 赤いおてがみポスト",
+      "category": "広場・通学路",
+      "w": 1,
+      "h": 1,
+      "bbox": [
+        -5,
+        -44,
+        46,
+        39
+      ],
+      "states": [
+        "day"
+      ],
+      "details": [
+        "ひさし付きの投函口と〒の鋳出し",
+        "手紙・はがきの白い案内と集荷時刻の2列",
+        "鍵付き回収扉・蝶番・根元の鋳鉄台",
+        "赤い曲面の明暗と控えめな塗装のつや"
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.green-vending",
+      "name": "森色の まちの自販機",
+      "category": "広場・通学路",
+      "w": 2,
+      "h": 1,
+      "bbox": [
+        -5,
+        -58,
+        72,
+        41
+      ],
+      "states": [
+        "day",
+        "night"
+      ],
+      "details": [
+        "丸みのある緑の筐体と銅色の天端",
+        "3段12本の異なる缶・ボトルと値札・選択ボタン",
+        "コイン口・電子決済端末・釣り銭返却口",
+        "取り出し扉・放熱ルーバー・脚・夜の照明"
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.recycling-bins",
+      "name": "分けてすてる 3つのごみ箱",
+      "category": "広場・通学路",
+      "w": 3,
+      "h": 1,
+      "bbox": [
+        -4,
+        -31,
+        110,
+        42
+      ],
+      "states": [
+        "day"
+      ],
+      "details": [
+        "紙・缶びん・ペットボトルを形で分けた投入口",
+        "色分けと文字・イラストの両方の表示",
+        "丸いふた・蝶番・扉・鍵と取り替え用ライナー",
+        "固定フレームと掃除できる脚"
+      ],
+      "anchor": [
+        48,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    },
+    {
+      "id": "nerikasu.hedge-fence",
+      "name": "赤れんがと 生け垣のへい",
+      "category": "広場・通学路",
+      "w": 4,
+      "h": 1,
+      "bbox": [
+        -5,
+        -30,
+        143,
+        41
+      ],
+      "states": [
+        "day"
+      ],
+      "details": [
+        "焼き色の違うれんがをずらし積み",
+        "両端の笠石・中間の縦桟・葉の飾り",
+        "低い剪定生け垣の立体的な葉のまとまり",
+        "足元の落ち葉・目地・端部の接続を隠す柱"
+      ],
+      "anchor": [
+        64,
+        32
+      ],
+      "source": "game/tools/town-design/nerikasu-props.mjs"
+    }
+  ]
+}

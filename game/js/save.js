@@ -78,6 +78,7 @@ const Save = {
       flags: { intro: false, chests: {}, boss: false, talked: {} },
       events: { records: {}, activeAnnual: null },
       dex: {},
+      itemDex: { furn: {}, wear: {}, claimed: { furn: {}, wear: {} } },
       stats: { battles: 0, wins: 0, coinsEarned: 0, shifts: 0, perfects: 0, fed: 0 },
       settings: { bgm: true, se: true, difficulty: "normal" },
     };
@@ -126,7 +127,13 @@ const Save = {
     if (!this.d) return;
     this.d.last = Date.now();
     this.d.gameVersion = GAME_VERSION;
-    try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) { /* 容量不足・プライベートモードなど */ }
+    try {
+      // 景品側が保存失敗で所持品を戻すとき、未獲得の図鑑記録を残さない。
+      const pending = { ...this.d, itemDex: JSON.parse(JSON.stringify(this.d.itemDex || { furn: {}, wear: {}, claimed: { furn: {}, wear: {} } })) };
+      if (typeof ItemDex !== "undefined") ItemDex.sync(pending);
+      localStorage.setItem(this.KEY, JSON.stringify(pending));
+      this.d.itemDex = pending.itemDex;
+    } catch (e) { /* 容量不足・プライベートモードなど */ }
     this.dirty = false;
   },
   reset() {
