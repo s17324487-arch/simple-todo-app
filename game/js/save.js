@@ -71,6 +71,8 @@ const Save = {
         florist: { lv: 1, rep: 0, best: 0, plays: 0 },
         link: { lv: 1, rep: 0, best: 0, plays: 0 },
         relay: { lv: 1, rep: 0, best: 0, plays: 0 },
+        // ころころ フルーツ: pts は いちばん よかった ころころ ポイント
+        korokoro: { lv: 1, rep: 0, best: 0, plays: 0, pts: 0 },
       },
       daily: {last:'',stamps:0,total:0,cycles:0},
       puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },

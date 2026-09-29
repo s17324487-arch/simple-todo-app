@@ -859,6 +859,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - PokaDebug: `arcadeStart(台)`・`arcadeState()`・`arcadeMove(dx, dz)`（cm）・`arcadeDrop()`・`arcadeAim(景品)`・`arcadeLuck(つよい)`・`arcadeFast(ばい)`・`arcadeCam('front'|'side')`。
 
 
+## ころころ フルーツ（ネリカスタウンの パズルの おてつだい・MG-01）
+
+- 物理 `KorokoroWorld`（`js/korokoro-physics.js`）: はこの 単位は はば 100・たかさ 110（画面の 大きさに よらない）。1/480 びょうの ステップで 位置の かさなりを なおし（重さ = 半径²）→ 速さに もどし → はねかえり（はやく ぶつかった ときだけ）と まさつ（ころがる 回転も）。かさなりを なおした ぶんで はじけ とばない ように、はなれる はやさは `depen` まで。おなじ だんが ふれると（すきま 0.4 まで）フレームの おわりに 1つに（1つの 玉は 1フレームに 1かい。大きく なる とちゅうは がったい しない）。すいか どうしは はじけて きえる。ふちより 上に 玉の てっぺんが 2びょう いると `overflow` → `spill()` で ゆかを ひらいて ぜんぶ おとす。描画・時計・セーブに 依存しないので Node の 検査と おなじ けっか（`rng` は おちてくる だんだけ）。
+- だん（`KOROKORO_TIERS`）: さくらんぼ・わんこ・いちご・がちゃん・ごじ・みかん・りんご・なし・もも・メロン・すいか。おちてくるのは 小さい 5しゅ（くだもの 2・かお 3）。ポイントは (だん+1)(だん+2)/2。
+- 絵 `KorokoroArt`（`js/korokoro-art.js`）: くだものは 100×100 の SVG（かお つき・線は 画面で 1.1〜2px）。3人の かおの 玉は `CHARA_DATA` の あたま・みみ（ごじは 目の でっぱり）と 表情の ぶひん（`faceOf`）で、からだは 描かない。表情は normal・happy（がったい した すぐ）・surprise（おちている・ぶつかった）・sad（ふちの ちかく・あふれそう）・sleep（12びょう しずか）。キャッシュの キーは `koro:だん:表情:ピクセル` だけ。回転と 大きく なる とちゅうは drawImage の 変形。
+- おてつだい: `KorokoroTask`（TaskBase）が おきゃくさん 1にんの ちゅうもん（`KOROKORO_ORDERS`: レベルごとの だんと じかん）。はこは `ShopScene.board`（`KorokoroBoard`）で、おきゃくさんが かわっても のこる（ShopScene は work いがいの フェーズでも `board.tick`・`board.render` を よぶ）。ちゅうもんの だんが はこに できると とどく（まえから のこって いた 玉でも よい）。点は 100 − 時間 − あふれ×30。時間ぎれは とどいた かずと はこの いちばん 大きい 玉の ちかさで 10〜58。もも・メロン・すいかで チップ（`task.bonusTip` を ShopScene.judge が たす）。2つの かおが がったいすると その子が カウンターで よろこぶ。ことばは `SHOPS.korokoro.lines`、けっかの ポイントと さいこうは `board.summary()`（`shops.korokoro.pts`）。
+- 町: `KorokoroTown`（`js/korokoro-town.js`）が `NerikasuTown.install` の まえに nerikasu_home5 を お店に する（足もと・入口・大きさは そのまま）。建物の 絵は `tools/town-design/nerikasu-buildings.mjs` の `korokoro()` → `node tools/build-nerikasu-town.mjs` で `js/nerikasu-town-art.js` に 生成。
+- PokaDebug: `shop('korokoro', lv)`・`mg().order`（はこの CSS 座標 `box.x0`/`y0`/`unit`・`bodies`・`held`/`next`・`canDrop`・`want`・`spills`・`points`・`made`）・`koroSetup({ bodies: [[だん, x, y], …], held, next, seed })`。
+- 検査: `tools/check-korokoro.mjs`（物理・がったい・あふれ・ちゅうもん・こどもの はやさの ボットの バランス・絵・お店・町・セーブ・BGM）・スモーク `nerikasu-korokoro-390` / `-375`。
+
 ## サンシャインいけぶ（斜めの 館・UI-04）
 
 読み込み順は `iso-venue.js` → `mall-art.js` → `mall-music.js` → `ike-mall.js`（crane-scene.js の あと、item-dex-sources.js の まえ）。服の 絵の `ike-wear.js` は `ikebukuro-catalog.js` の すぐ まえ。トップレベル名は `IsoVenue`・`IsoVenueScene`・`MallArt`・`MallMusic`・`IkeMall`・`MallGuide`・`IkeWear`・`WearMannequin`。
@@ -888,6 +898,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 ## ネリカスタウンの実寸アセット
 
 `nerikasu-neighborhood.js` の後に `nerikasu-town-art.js` → `nerikasu-town.js`。原画は `tools/town-design/nerikasu-assets.mjs` / `nerikasu-props.mjs` / `nerikasu-buildings.mjs`、生成は `tools/build-nerikasu-town.mjs`。HeiwadaiArtの既存bboxモデルへ別IDで登録し、共通defsは維持する。NerikasuTownは22棟と駅前の歩道・小物を接続する。駅14×5と駅東の1戸の敷地のみ変更し、入口と営業機能を既存IDで維持。昼夜は2状態の原画を先読みし、列車は座標だけを動かして線路内へクリップする。PokaDebug.nerikasuArtは描画寸法と有限キャッシュの読取用。
+
+## 池袋の 町（配置イメージどおり・TOWN-IKE-01）
+
+`ikebukuro-district.js` の あとに `ikebukuro-town-art.js`（`IKEBUKURO_TOWN_ART`・自動生成）→ `ikebukuro-town.js`（`IkebukuroTown`）。npc-cast.js より まえ（あたらしい 人にも 見た目が つく）。
+
+- `IkebukuroTown.install()` が `MAP_DEFS.city` を 96×58 で 作りなおす。旧IDの 建物は act・label・sign を そのまま 場所だけ うつし、絵は `asset: "ikebukuro.<名前>"`（HeiwadaiArt の bbox モデル。ネリカスと おなじ 登録）。サンシャインいけぶは 入口 2つ（`doors`）。
+- 道は `ROADS`（明治通り・東通り・なかどおり・よこちょう・サンシャイン60どおり・緑の大通り）を TownRoads へ。ななめの 交差点の かど（`def.ikeCorners`）と 横断歩道（`def.ikeCross`）、緑の大通りの 分離帯、サンシャイン60どおりの れんが、点字ブロック（`def.ikeTactile`）は `TownRoads.draw` の あとに `IkebukuroTown.drawOver` が チャンクへ 描く。平板・駅まえの 石・線路は `TownRenewal.drawGround` の まえに `drawGround`。もようは `IKEBUKURO_TOWN_ART.grounds`（SvgCache の キーは `ike-ground:<id>` だけ）。
+- 電車は `TownRenewal.drawMoving` の あとに 2へんせい（`ikebukuro.train`・昼夜の 2つ）。夜の あかりは `HeiwadaiLife.lights` の あと。夜の 絵は `HeiwadaiTown.canvas` を つつんで えらぶ（キーは 絵の ID × 昼夜）。
+- はくぶつかん・射撃場の 出入り口: 生成データの `MUSEUM_DATA.buildings.museum.outside`・`MAP_DEFS.museum.warps`・`RANGE_DATA.outside` を install で 新しい 入口に あわせる（生成データは 手で なおさない）。
+- 町の はしの そとは `def.edgeColor`（scene-world.js の 背景。ほかの 町は いままでの 草の 色）。
+- 検査: `tools/check-ikebukuro.mjs`（配置イメージの ならび・駅から すべての 入口へ・絵の 登録）・`tools/town-check.mjs`（入口 2つの 建物は `doors` の それぞれを しらべる）・`node tools/build-ikebukuro-town.mjs --check`。
 
 ### 町の人の生活動作（NpcLife）
 

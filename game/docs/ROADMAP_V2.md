@@ -303,6 +303,16 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - `js/arcade-prizes.js`（`ArcadePrizes`: 景品の ぬいぐるみ 18しゅ〔3人 × 表情・ポーズ・こもの 4しゅ・ミニマスコット 3・くま・パンダ・ぺんぎん〕の 絵〔Chara.svg / Art.npcSvg ＋ ぬのの タグ〕・家具と おうちの 立体・コインの 1にちの 上限）・`js/arcade-art.js`（`ArcadeArt`: MallArt を もとに した 館の 絵。クレーンの 台 5かたち〔ガラスの 中に 景品・アーム・かんばんの でんきゅう〕・ガチャ・ぷりくら・けいひん カウンター・りょうがえき・のみもの・はしら・でぐち・うちゅうの じゅうたん・ネオンの かべ）・`js/ike-arcade.js`（`IkeArcade`: 28×22 マスの 1F・フロアマップの コーナー・まえの けいひんの こうかん `BUY_SHOPS.ike_arcade`・BGM `SONGS.arcade_hall`）。`crane-machines.js` / `crane-scene.js` / `crane-art.js` は 12台・形ごとの 景品・コインの 景品・台の id に。
 - 受け入れ条件: 12台（あそびかた 4しゅ は そのまま）が こわれない・つよい アームで ねらえば とれる（3本アームの 3台・2本アームの 2台・リング 3台・トライポッド 2台・スウィート 2台）・形ごとに ちがう 景品・コインは メダル 20／たからばこ 300 で 1にち 600 まで・台の ようすは 台の id で たしかめる（いれかわった 台は あたらしく ならべる・とちゅうの 1かいは 100コインを かえす・まえと おなじ 台 1・4・6 は つづきから）・ことばに 漢字なし・絵の キーは 有限（`tools/check-crane.mjs`）。どの 什器にも いける（`tools/check-venues.mjs`）。スモーク「ikebukuro-arcade-390 / 375」（斜めの 館・12台・フロアマップ → けいひん カウンター → こうかんの 店・3本アーム・トライポッド・スウィート・コイン メダル・リング・中断して つづきから）。見本は `docs/screenshots/arcade/`。
 
+### [x] MG-01 ネリカスタウンの パズルの おてつだい「ころころ フルーツ」（オーナーの FB 2026-09-29） ✅
+- オーナーの 指示「ネリカスタウンに パズル系の お手伝いを。スイカゲーム的な パズルで、フルーツだけでなく ごじ・わんこ・がちゃの 顔も 降ってくる ゲームが よい」。
+- `js/korokoro-physics.js`（`KorokoroWorld`・`KOROKORO_TIERS`・`KOROKORO_RULES`: 玉の 物理・がったい・すいかの はれつ・あふれ）・`js/korokoro-art.js`（`KorokoroArt`: くだもの 8しゅ〔かお つき〕と 3人の かおの 玉〔キャラ素材の あたま・みみ・表情〕・表情 5つ）・`js/mg-korokoro.js`（`KorokoroBoard`: はこ・おとす・とどける・画面／`KorokoroTask`: おきゃくさん 1にんの ちゅうもん・店主・レジ・BGM）・`js/korokoro-town.js`（`KorokoroTown`: nerikasu_home5 を お店に）・`tools/town-design/nerikasu-buildings.mjs` の `korokoro()`（建物の 原画）・`tools/check-korokoro.mjs`。
+- 受け入れ条件: 物理が こわれない（4ぷん×4たねで NaN・かべぬけ・めりこみ なし）・おなじ たねは おなじ けっか・おちてくる 5しゅに 3人の かお・がったい／すいかの はれつ／あふれ → からっぽ・ちゅうもんは おちてこない くだもの・こどもの はやさの ボット（1.6びょうに 1こ・ねらいが ずれる・4ぶんの1 は てきとう）で Lv1〜3 は 80%・Lv4〜5 は 60% いじょう とどく・390×844 と 375×667 で はこと よこの れつが はみ出さない・セーブの 形式は そのまま（`shops.korokoro` を たすだけ）・BGM は パブリックドメインの 名曲。
+
+### [x] TOWN-IKE-01 池袋の 町を 配置イメージどおりに 作りなおす（オーナーの FB 2026-09-29） ✅
+- オーナーの 指示「池袋の まちも より ハイクオリティに 実装しなおして ほしい。建物と 道路の 配置イメージを 送る」。池袋の 街区は Codex の 担当だったが、この 作り直しは オーナーの 指示で Claude Code が した（`js/ikebukuro-district.js` の 街区は `js/ikebukuro-town.js` が 上がきする。ふるい 街区の コードは つぎの 整理で けせる）。
+- `js/ikebukuro-town.js`（`IkebukuroTown`: 道・建物・人・小物・ななめの 横断歩道と かど・地面・電車・夜の あかり）・`js/ikebukuro-town-art.js`（生成）・原画 `tools/town-design/ikebukuro-buildings.mjs`・生成 `tools/build-ikebukuro-town.mjs`。設計は [池袋の 町](design/towns/ikebukuro/README.md)、原画の 見本は `docs/design/towns/ikebukuro-buildings/`。
+- 受け入れ条件: 配置イメージの ならび・どの 入口にも 駅から いける・絵は 原画の まま（`tools/check-ikebukuro.mjs`）・旧IDと act・古い セーブの 位置・密度・スマホの 画面（`tools/town-check.mjs`）・絵の キーは 有限で 昼夜の 2つ（`build-ikebukuro-town.mjs --check`）。スモーク「town-renewal・museum-visit・range-lobby・range-play・ikebukuro-retail・ikebukuro-arcade・district-travel」。
+
 ---
 
 ## 技術的な宿題（手があいたら。機能と同じ PR に混ぜない）
@@ -361,7 +371,7 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 
 - ✅ ネリカスタウン住宅街：64×68、入れる小学校と保育園、屋内の3人同行、セーブ互換。
 
-- ✅ 池袋：64×68街区・家電展示・3Fモール・8台のプライズゲーム・ままの勤務。旧 city IDと所持金・所持品・評判を維持。
+- ✅ 池袋：64×68街区（2026-09-29 に 配置イメージどおりの 96×58 へ 作りなおし → TOWN-IKE-01）・家電展示・3Fモール・8台のプライズゲーム・ままの勤務。旧 city IDと所持金・所持品・評判を維持。
 
 ## 2026-09-29 町の人との会話
 

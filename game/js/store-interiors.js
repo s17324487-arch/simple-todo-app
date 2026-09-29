@@ -22,6 +22,9 @@ const STORE_INTERIORS = {
     ["trellis",0,0,3,2,"つるばなの たな"], ["flowers",8,0,2,2,"いろとりどりの はな"], ["bouquets",0,5,3,2,"はなたば コーナー"], ["potting",7,5,3,2,"おはなの さぎょうだい"], ["pots",0,9,2,1,"ちいさな うえきばち"], ["flowers",8,9,2,1,"まどべの はな"] ] },
   link: { wall: "#DEDDF1", floor: "#C7C9E2", accent: "#9284BB", motif: "stars", caption: "みんなで つなごう パズルひろば", fixtures: [
     ["arcade",0,0,3,2,"パズルの ゲームだい"], ["prizes",8,0,2,2,"ぬいぐるみの たな"], ["puzzle",0,5,3,2,"おためし パズル"], ["arcade",7,5,3,2,"なかよし ゲームだい"], ["waiting",0,9,3,1,"ひとやすみ ベンチ"], ["prizes",8,9,2,1,"きらきら トロフィー"] ] },
+  // ころころ フルーツ（パズルの おてつだい）: 玉が つみかさなる ガラスの 箱・くだものの たな・ジュースの せき
+  korokoro: { wall: "#FCE9D2", floor: "#EFDDBE", accent: "#D78E5B", motif: "check", caption: "おなじ ものを くっつけて まんまる", fixtures: [
+    ["fruitbox",0,0,3,2,"ころころ パズルの はこ"], ["produce",8,0,2,2,"くだものの たな"], ["fruitbox",0,5,3,2,"れんしゅうの はこ"], ["cafe",7,5,3,2,"フルーツ ジュースの せき"], ["baskets",0,9,2,1,"くだものの かご"], ["prizes",8,9,2,1,"まんまるの ぬいぐるみ"] ] },
   relay: { wall: "#DDE9F0", floor: "#D9C7A6", accent: "#779DB8", motif: "route", caption: "そらへ とどける おくりもの", fixtures: [
     ["parcels",0,0,3,2,"にもつの たな"], ["lockers",8,0,2,3,"はいたつ ロッカー"], ["conveyor",0,5,3,2,"にもつの ベルト"], ["sorting",7,5,3,2,"しわけ コーナー"], ["cart",0,9,2,1,"はこぶ カート"], ["plane",7,9,3,1,"ひこうきの もけい"] ] },
 };
@@ -87,6 +90,19 @@ const StoreArt = {
       case "potting": a=base("#B2AE8D")+r(24,49,60,41,"#DAC6A8")+p("M132,43 L150,94 M128,83 L155,60")+c(127,85,9,"#D5A9B0")+c(154,86,9,"#D5A9B0")+fl(102,40,"#E3BF92");break;
       case "arcade": a=p("M26,177 V107 L39,79 V15 H181 V79 L194,107 V177 Z","#A6A0C9")+r(51,29,118,67,"#516479",8)+p("M26,112 H194 M57,153 H90")+c(159,116,9,"#E6ADAD")+p("M63,116 V103")+c(63,99,9,"#EBD89C");for(let i=0;i<6;i++)a+=c(76+i%3*35,49+Math.floor(i/3)*27,10,["#E3A9B8","#C9D89E","#EED48C"][i%3]);break;
       case "prizes": a=shelf("#C8B9D9");for(let i=0;i<6;i++)a+=c(51+i%3*59,46+Math.floor(i/3)*68,18,["#E5C394","#D6B1BC","#ABBFCF"][i%3])+c(40+i%3*59,30+Math.floor(i/3)*68,8,"#E5C394")+c(62+i%3*59,30+Math.floor(i/3)*68,8,"#E5C394")+c(46+i%3*59,47+Math.floor(i/3)*68,2,INK)+c(57+i%3*59,47+Math.floor(i/3)*68,2,INK);break;
+      // ころころ フルーツ: 木の わくの ガラス箱に くだもの と 3人の かおの 玉（あかい てんせんの ところまで）
+      case "fruitbox": {
+        a=r(18,14,184,152,"#C98E5A",12)+r(31,26,158,128,"#FFF6E3",5)+`<path d="M36,40 H184" stroke="#E8453C" stroke-width="3" stroke-dasharray="8 7"/>`;
+        const dot=(x,y,rr=2.6)=>`<circle cx="${x}" cy="${y}" r="${rr}" fill="${INK}" stroke="none"/>`,eyes=(x,y,s)=>dot(x-s*.35,y,s*.12)+dot(x+s*.35,y,s*.12)+`<path d="M${x-s*.18},${y+s*.3} q${s*.18},${s*.16} ${s*.36},0" fill="none" stroke-width="3"/>`;
+        a+=c(62,124,26,"#A7D98F")+`<path d="M42,118 q10,-8 20,0 t20,0 M60,99 q-6,12 0,25 t0,24" fill="none" stroke="#E6F4D2" stroke-width="3"/>`+eyes(62,126,26);
+        a+=c(88,106,9,"#8C8686")+c(128,106,9,"#8C8686")+c(108,128,21,"#8C8686")+`<ellipse cx="108" cy="131" rx="12" ry="7" fill="#FFFFFF" stroke-width="3"/><path d="M98,131 l5,-3 l5,4 l5,-4 l5,3" fill="none" stroke="#D8434B" stroke-width="2.5"/>`;
+        a+=c(157,124,24,"#E9525A")+`<path d="M157,100 q2,-10 8,-14" fill="none" stroke="#7A5634" stroke-width="4"/>`+eyes(157,126,24);
+        a+=`<ellipse cx="46" cy="80" rx="8" ry="11" fill="${INK}"/><ellipse cx="78" cy="80" rx="8" ry="11" fill="${INK}"/>`+c(62,86,15,"#FFFFFF")+eyes(62,88,15);
+        a+=c(98,84,16,"#FADA78")+dot(92,84,2.4)+dot(104,84,2.4)+`<path d="M93,91 q5,-4 10,0 q-2,6 -5,6 q-3,0 -5,-6Z" fill="#F29A1F" stroke-width="2.5"/>`;
+        a+=c(134,84,16,"#F7A43A")+eyes(134,86,16)+c(168,78,12,"#F0606B")+eyes(168,80,12)+c(116,58,9,"#E8545E")+`<path d="M116,49 q3,-7 8,-9" fill="none" stroke="#7A5634" stroke-width="3"/>`;
+        a+=`<path d="M40,150 L82,32 h16 L58,150 Z" fill="#FFFFFF" stroke="none" opacity=".35"/>`+r(10,158,200,16,"#B98457",4);
+        break;
+      }
       case "puzzle": a=base("#B5A8CF");for(let i=0;i<9;i++)a+=c(60+i%3*48,39+Math.floor(i/3)*25,13,["#E5B1C0","#B7CCA3","#EACD8A"][i%3]);break;
       case "parcels": a=shelf("#AFBAB7");for(let i=0;i<6;i++)a+=r(28+i%3*58,26+Math.floor(i/3)*74,48,47,"#D6BA8D")+p(`M${52+i%3*58},${26+Math.floor(i/3)*74} v47`)+r(32+i%3*58,44+Math.floor(i/3)*74,14,11,"#F6ECD4",1);break;
       case "conveyor": a=base("#B1BEBE")+r(16,61,188,43,"#747F83",16);for(let i=0;i<9;i++)a+=p(`M${27+i*20},70 V95`);a+=r(76,28,60,54,"#DCBD8C")+p("M106,28 V82 M81,57 H130");break;

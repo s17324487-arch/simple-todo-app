@@ -11,6 +11,7 @@ const ShopRewards = {
     bakery: { name: "こんがりパン", color: "#DCB58B", motif: "bread" },
     florist: { name: "はなたば", color: "#B7D3AE", motif: "flower" },
     relay: { name: "ながれぼし", color: "#AEBFDF", motif: "star" },
+    korokoro: { name: "ころころ フルーツ", color: "#F2C48D", motif: "fruit" },
   },
   prizes: [],
   level(st) {
@@ -83,6 +84,7 @@ const ShopRewardArt = {
     if (kind === "crepe") return path("M-25,-16 L0,29 L25,-16 Z", "#EED8A5")+path("M-24,-16 Q-17,-34 -9,-22 Q0,-39 9,-22 Q17,-34 24,-16 Z", "#FFF6E2")+path("M-4,-15 L-11,14 L0,28 L9,12 Z", color);
     if (kind === "tooth") return path("M0,-23 C-30,-38 -23,-7 -18,8 C-13,38 -6,29 -4,12 Q0,4 4,12 C6,29 13,38 18,8 C23,-7 30,-38 0,-23 Z", "#F8FCF6");
     if (kind === "bread") return path("M-22,23 V-8 C-32,-25 -10,-35 0,-25 C10,-35 32,-25 22,-8 V23 Z", "#C89158")+path("M-15,17 V-10 Q-18,-24 0,-17 Q18,-24 15,-10 V17 Z", "#FFF0C7");
+    if (kind === "fruit") return '<circle cx="-10" cy="8" r="13" fill="#A7D98F" '+edge+'/><circle cx="12" cy="9" r="12" fill="#E9525A" '+edge+'/><circle cx="1" cy="-12" r="11" fill="#FADA78" '+edge+'/><circle cx="-3" cy="-12" r="1.6" fill="'+INK+'"/><circle cx="5" cy="-12" r="1.6" fill="'+INK+'"/>'+path("M-2,-7 q3,-2 6,0 q-1,3 -3,3 q-2,0 -3,-3Z", "#F29A1F")+'<path d="M12,-3 q2,-6 6,-8" stroke="#7A5634" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
     if (kind === "flower") return '<path d="M0,27 V-8 M0,16 Q-22,0 -18,18 Z" stroke="#568761" fill="#A7C695" stroke-width="3"/>'+[0,1,2,3,4].map(i=>`<ellipse cx="0" cy="-18" rx="10" ry="15" transform="rotate(${i*72} 0 -6)" fill="${i%2?color:"#EBC5CE"}" ${edge}/>`).join('')+'<circle cy="-6" r="8" fill="#ECD693" '+edge+'/>';
     return path("M0,-29 L8,-10 L28,-9 L13,5 L18,25 L0,14 L-18,25 L-13,5 L-28,-9 L-8,-10 Z", "#F0D88F")+'<path d="M-32,13 l-13,10 M-28,25 l-10,10" stroke="'+color+'" stroke-width="4"/>';
   },
