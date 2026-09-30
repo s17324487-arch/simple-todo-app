@@ -1,19 +1,21 @@
 // ころころ フルーツ（ネリカスタウンの パズルの おてつだい）。スイカゲームのような おちもの パズル。
-// 箱の 上から くだもの と わんこ・がちゃん・ごじ の かおの 玉を おとす。おなじ もの どうしが ふれると 1つ 大きく なる。
-// おきゃくさんの ちゅうもん（みかん・りんご など）が 箱に できると、おきゃくさんに とどく。箱の 中みは おきゃくさんが かわっても つづく。
+// 箱の 上から 小さい くだもの（さくらんぼ・いちご・みかん・りんご）を おとす。おなじ もの どうしが ふれると 1つ 大きく なる。
+// なし の つぎは がちゃん → わんこ → ごじ（3人の かおの 玉）。ごじ どうしは はじけて きえる。
+// ちゅうもん モード（ここ）: おきゃくさんの ちゅうもん（なし・がちゃん など）が 箱に できると、おきゃくさんに とどく。箱の 中みは おきゃくさんが かわっても つづく。
+// スコア モード: js/korokoro-score.js（おなじ KorokoroBoard を mode: "score" で つかう。あふれたら ゲームオーバー）。
 // 物理は js/korokoro-physics.js（KorokoroWorld）、絵は js/korokoro-art.js（KorokoroArt）、町の 建物は js/korokoro-town.js。
 // すすみかた・ひょうか・コインは minigames.js の ShopScene（sc.board は おきゃくさんの あいだも うごく 箱）。
 
-// レベルごとの ちゅうもん（KOROKORO_TIERS の だん。おなじ だんを 2つ ほしい ことも ある）と 1にんの じかん（びょう）
+// レベルごとの ちゅうもん（KOROKORO_TIERS の だん: 4 なし・5 がちゃん・6 わんこ。おなじ だんを 2つ ほしい ことも ある）と 1にんの じかん（びょう）
 const KOROKORO_ORDERS = Object.freeze([
-  { time: 50, sets: [[5]] },
-  { time: 50, sets: [[5], [5], [6]] },
-  { time: 55, sets: [[6], [6], [5, 5]] },
-  { time: 60, sets: [[6, 5], [6, 5], [7]] },
-  { time: 65, sets: [[7], [6, 6], [7, 5]] },
+  { time: 50, sets: [[4]] },
+  { time: 50, sets: [[4], [4], [5]] },
+  { time: 55, sets: [[5], [5], [4, 4]] },
+  { time: 60, sets: [[5, 4], [5, 4], [6]] },
+  { time: 65, sets: [[6], [5, 5], [6, 4]] },
 ]);
-// 大きな くだものを つくった ときの チップ（コイン）。すいか どうしが はじけると さらに
-const KOROKORO_BONUS = Object.freeze({ 8: 4, 9: 8, 10: 15, burst: 25 });
+// 3人の かおの 玉を つくった ときの チップ（コイン）。ごじ どうしが はじけると さらに（ちゅうもん モードだけ）
+const KOROKORO_BONUS = Object.freeze({ 5: 3, 6: 8, 7: 15, burst: 25 });
 
 const KorokoroSound = {
   tone(o) { if (!Sound.ctx || !Save.d || !Save.d.settings.se) return; Sound.tone(Sound.seGain, o); },
@@ -22,23 +24,40 @@ const KorokoroSound = {
   land(tier, speed) { if (speed < 60) return; const f = 420 * Math.pow(0.9, tier); this.tone({ f, f2: f * 0.7, dur: 0.07, type: "triangle", vol: Math.min(0.16, 0.05 + speed / 3000) }); },
 };
 
+// 箱（物理・おとす・ゆびの 入力・描画）。o.mode: "order"（ちゅうもん モード・よこに つぎ／ポイント／じゅんばん）か "score"（スコア モード・箱を 大きく・したに じゅんばん）
+// o.overSec: あふれ までの びょう（スコア モードは みじかい）
 class KorokoroBoard {
-  constructor(sc, seed = (Date.now() ^ 0x5eed) >>> 0) {
-    this.sc = sc; this.world = new KorokoroWorld(seed);
+  constructor(sc, seed = (Date.now() ^ 0x5eed) >>> 0, o = {}) {
+    this.sc = sc; this.mode = o.mode === "score" ? "score" : "order";
+    this.world = new KorokoroWorld(seed, { overSec: o.overSec });
     this.held = this.world.pickDrop(); this.next = this.world.pickDrop();
-    this.aim = 50; this.cool = 0; this.points = 0; this.spills = 0; this.coins = 0; this.drops = 0; this.made = {};
-    this.fx = []; this.flyers = []; this.aiming = false; this.pid = null; this.want = [];
+    this.aim = 50; this.cool = 0; this.points = 0; this.spills = 0; this.coins = 0; this.drops = 0; this.merges = 0; this.made = {};
+    // over: スコア モードの おしまい（"overflow" = はみだした・"stop" = じぶんで やめた・false = あそんで いる）
+    this.fx = []; this.flyers = []; this.aiming = false; this.pid = null; this.want = []; this.over = false;
   }
-  // 作業エリア R に 箱（左）と よこの れつ（つぎ・ポイント・じゅんばん）を おく
+  // ちゅうもん モード: 作業エリア R に 箱（左）と よこの れつ（つぎ・ポイント・じゅんばん）を おく
   layout(R) {
+    if (this.mode === "score") return this.layoutScore(R);
     const pad = 8, side = 50, areaW = R.w - pad * 3 - side;
-    this.R = R;
+    this.R = R; this.row = null;
     this.bw = Math.floor(Math.min(areaW, (R.h - pad * 2) / 1.38));
     this.s = this.bw / 100; this.bh = this.bw * 1.1;
     this.bx = R.x + pad + Math.max(0, (areaW - this.bw) / 2);
     this.top = Math.round(this.s * 28);
     this.by = R.y + pad + this.top + Math.max(0, (R.h - pad * 2 - this.top - this.bh) / 2);
     this.col = { x: R.x + R.w - pad - side, y: R.y + pad, w: side, h: R.h - pad * 2 };
+    this.preload();
+  }
+  // スコア モード: 箱を できるだけ 大きく（よこの れつは なし。つぎ と スコアは js/korokoro-score.js が うえに 描く）・箱の したに 大きく なる じゅんばん
+  layoutScore(R) {
+    const pad = 6, rowH = U.clamp(Math.round(R.w / 7.4), 42, 54), room = R.h - rowH - pad * 2 - 16;
+    this.R = R; this.col = null;
+    this.bw = Math.floor(Math.min(R.w - 24, room / 1.38));
+    this.s = this.bw / 100; this.bh = this.bw * 1.1;
+    this.bx = R.x + (R.w - this.bw) / 2;
+    this.top = Math.round(this.s * 28);
+    this.by = R.y + pad + this.top + Math.max(0, (room - this.bw * 1.38) / 2);
+    this.row = { x: R.x + 4, y: this.by + this.bh + 16, w: R.w - 8, h: rowH };
     this.preload();
   }
   preload() {
@@ -51,43 +70,56 @@ class KorokoroBoard {
   px(u) { return this.bx + u * this.s; }
   py(v) { return this.by + v * this.s; }
   ux(x) { return (x - this.bx) / this.s; }
-  chainR() { return Math.max(6, Math.min((this.col.h - 118) / 11 * 0.42, this.col.w * 0.34)); }
-  canDrop() { return this.cool <= 0 && !this.world.floorOpen; }
+  chainR() {
+    const n = KOROKORO_TIERS.length;
+    if (this.row) return Math.max(6, Math.min((this.row.w / n) * 0.3, this.row.h * 0.36));
+    return Math.max(6, Math.min(((this.col.h - 118) / n) * 0.42, this.col.w * 0.34));
+  }
+  canDrop() { return this.cool <= 0 && !this.world.floorOpen && !this.over; }
   // ---- すすめる ----
   tick(dt, working) {
-    for (const e of this.world.step(dt)) this.event(e, working);
+    if (!this.over) for (const e of this.world.step(dt)) { this.event(e, working); if (this.over) break; }
     this.cool = Math.max(0, this.cool - dt);
     this.fx = this.fx.filter((f) => (f.t += dt) < f.dur);
     this.flyers = this.flyers.filter((f) => (f.t += dt) < f.dur);
   }
+  // がったいの 点は 本物の スイカゲームと おなじ（くっついた 2つの だんの 三角数。e.points）
   event(e, working) {
-    const T = KOROKORO_TIERS;
+    const T = KOROKORO_TIERS, order = this.mode === "order";
     if (e.type === "land") KorokoroSound.land(e.tier, e.speed);
     else if (e.type === "merge") {
-      const pts = T[e.tier].points; this.points += pts; this.made[e.tier] = (this.made[e.tier] || 0) + 1;
+      const pts = e.points; this.points += pts; this.merges++; this.made[e.tier] = (this.made[e.tier] || 0) + 1;
       this.fx.push({ kind: "pop", x: e.x, y: e.y, r: T[e.tier].r, t: 0, dur: 0.45 }, { kind: "text", x: e.x, y: e.y - T[e.tier].r, text: "+" + pts, t: 0, dur: 0.8 });
       KorokoroSound.merge(e.tier);
-      const bonus = KOROKORO_BONUS[e.tier] || 0;
+      const bonus = order ? KOROKORO_BONUS[e.tier] || 0 : 0;
       if (bonus) { this.coins += bonus; this.fx.push({ kind: "coin", x: e.x, y: e.y, text: `+${bonus}コイン`, t: 0, dur: 1.1 }); Sound.se("coin"); }
       if (e.hero) this.cheer(e.hero);
     } else if (e.type === "burst") {
-      this.points += 66; this.coins += KOROKORO_BONUS.burst; this.made.burst = (this.made.burst || 0) + 1;
-      this.fx.push({ kind: "burst", x: e.x, y: e.y, r: T[e.tier].r * 1.6, t: 0, dur: 0.9 }, { kind: "coin", x: e.x, y: e.y, text: `すいか パーン！ +${KOROKORO_BONUS.burst}コイン`, t: 0, dur: 1.4 });
+      const bonus = order ? KOROKORO_BONUS.burst : 0;
+      this.points += e.points; this.coins += bonus; this.merges++; this.made.burst = (this.made.burst || 0) + 1;
+      this.fx.push({ kind: "burst", x: e.x, y: e.y, r: T[e.tier].r * 1.6, t: 0, dur: 0.9 }, { kind: "coin", x: e.x, y: e.y, text: bonus ? `ごじ パーン！ +${bonus}コイン` : `ごじ パーン！ +${e.points}`, t: 0, dur: 1.4 });
       Sound.se("fanfare");
+      // ごじ どうしが きえると 3人 みんなで よろこぶ（こえは ごじ だけ）
+      for (const id of ["goji", "wanko", "gachan"]) this.cheer(id, id !== "goji");
     } else if (e.type === "overflow") {
+      // スコア モード: あふれたら ゲームオーバー（箱は そのまま とまる）
+      if (!order) { if (!this.over) { this.end("overflow"); this.sc.gameOver?.(); } return; }
       this.spills++; this.world.spill(); this.cool = 0.6;
       this.fx.push({ kind: "banner", x: 50, y: 50, text: "いっぱいに なっちゃった！\nはこを からっぽに するね", t: 0, dur: 1.8 });
       if (working && this.sc.cust) this.sc.mistake("あふれちゃった！"); else Sound.se("bad");
     }
   }
-  // 2つの かおが くっつくと その子が よろこぶ（カウンターの うしろで ジャンプ）
-  cheer(hero) {
+  // かおの 玉が できると その子が よろこぶ（ちゅうもん モードは カウンターの うしろで・スコア モードは うえの 3人が ジャンプ）
+  cheer(hero, quiet = false) {
     const sc = this.sc, t = sc.team && sc.team.find((m) => m.id === hero);
-    Sound.voice(hero);
+    if (!quiet) Sound.voice(hero);
     if (!t) return;
     t.turn = 1.4; t.emo = "happy"; t.jump = 0;
-    if (sc.addFx && sc.viewH) sc.addFx("text", G.W * 0.56 + sc.team.indexOf(t) * 50, sc.viewH - 84, { text: { wanko: "わん！", gachan: "ぴよ！", goji: "がおー！" }[hero], dur: 0.9 });
+    const i = sc.team.indexOf(t), at = sc.teamSpot ? sc.teamSpot(i) : sc.viewH ? { x: G.W * 0.56 + i * 50, y: sc.viewH - 84 } : null;
+    if (at && sc.addFx && !quiet) sc.addFx("text", at.x, at.y, { text: { wanko: "わん！", gachan: "ぴよ！", goji: "がおー！" }[hero], dur: 0.9 });
   }
+  // スコア モードを おわりに する（箱は とまって もう おとせない）
+  end(why = "stop") { if (!this.over) { this.over = why; this.aiming = false; this.pid = null; } }
   // ちゅうもんの だんが 箱に できて いたら とどける（大きく なりおわった もの）
   take(tier) {
     const b = this.world.bodies.find((x) => x.tier === tier && x.grow >= 1);
@@ -109,9 +141,9 @@ class KorokoroBoard {
     return true;
   }
   aimAt(x) { this.aim = this.world.clampX(this.held, this.ux(x)); }
-  // ---- 入力（箱の 上で ゆびを うごかし、はなすと おちる）----
-  inside(p) { return p && p.x >= this.bx - 14 && p.x <= this.bx + this.bw + 14 && p.y >= this.R.y && p.y <= this.R.y + this.R.h; }
-  down(p) { if (!this.inside(p)) return; this.aiming = true; this.pid = p.id; this.aimAt(p.x); }
+  // ---- 入力（箱の 上で ゆびを うごかし、はなすと おちる。スコア モードは じゅんばんの れつの 上では おちない）----
+  inside(p) { return p && p.x >= this.bx - 14 && p.x <= this.bx + this.bw + 14 && p.y >= this.R.y && p.y <= (this.row ? this.by + this.bh + 8 : this.R.y + this.R.h); }
+  down(p) { if (this.over || !this.inside(p)) return; this.aiming = true; this.pid = p.id; this.aimAt(p.x); }
   move(p) { if (this.aiming && p && (p.id == null || p.id === this.pid)) this.aimAt(p.x); }
   up(p, canceled = false) {
     if (!this.aiming) return;
@@ -121,20 +153,25 @@ class KorokoroBoard {
     this.aimAt(p.x); this.dropNow();
   }
   key(k) {
+    if (this.over) return;
     if (k === "left" || k === "right") this.aim = this.world.clampX(this.held, this.aim + (k === "left" ? -6 : 6));
     else if (k === "ok" || k === "down") this.dropNow();
   }
   // ---- 描画 ----
+  // ふちより 上に いる じかんが あふれ までの 12% を こえたら あかい わ（ちゅうもん モードは 2びょう・スコア モードは みじかい）
+  overShown(b) { return b.over > this.world.overSec * 0.12; }
   emo(b) {
     const W = this.world;
-    if (b.over > 0.25 || (W.topGap < KOROKORO_RULES.warn && b.landed && b.y - b.r < KOROKORO_RULES.warn)) return "sad";
+    if (this.over) return this.over === "stop" ? "happy" : b.over > 0 ? "sad" : "surprise";
+    if (this.overShown(b) || (W.topGap < KOROKORO_RULES.warn && b.landed && b.y - b.r < KOROKORO_RULES.warn)) return "sad";
     if (!b.landed || b.hit > 140) return "surprise";
     if (b.born === "merge" && b.age < 0.9) return "happy";
     if (b.rest > 12) return "sleep";
     return "normal";
   }
   render(ctx, task) {
-    const s = this.s, bx = this.bx, by = this.by, bw = this.bw, bh = this.bh, W = this.world, working = !!task && this.sc.phase === "work";
+    const s = this.s, bx = this.bx, by = this.by, bw = this.bw, bh = this.bh, W = this.world;
+    const working = this.mode === "score" ? this.sc.phase === "play" : !!task && this.sc.phase === "work";
     if (!s) return;
     ctx.save();
     // 箱（木の わく・ガラスの なか・うすい しま）
@@ -146,7 +183,7 @@ class KorokoroBoard {
     ctx.lineWidth = 2; ctx.strokeRect(bx, by, bw, bh);
     ctx.fillStyle = "#C98E57"; ctx.fillRect(bx - 6, by + bh, bw + 12, 7); ctx.strokeRect(bx - 6, by + bh, bw + 12, 7);
     // あふれ の せん（ちかく なると あかく ちかちか）
-    const warn = W.topGap < KOROKORO_RULES.warn, blink = warn && Math.floor(G.t * 6) % 2 === 0;
+    const warn = W.topGap < KOROKORO_RULES.warn || this.over === "overflow", blink = warn && Math.floor(G.t * 6) % 2 === 0;
     ctx.setLineDash([6, 5]); ctx.lineWidth = warn ? 2.5 : 1.6; ctx.strokeStyle = warn ? (blink ? "#E8453C" : "#F3A09A") : "rgba(232,69,60,.35)";
     ctx.beginPath(); ctx.moveTo(bx + 2, by + 1); ctx.lineTo(bx + bw - 2, by + 1); ctx.stroke(); ctx.setLineDash([]);
     // 玉（そとへ おちる とちゅうも 箱の よこから はみださない ように きる）
@@ -154,11 +191,11 @@ class KorokoroBoard {
     for (const b of W.bodies) {
       const x = this.px(b.x), y = this.py(b.y), r = b.r * s;
       KorokoroArt.draw(ctx, b.tier, this.emo(b), x, y, r, b.a);
-      if (b.over > 0.25) { ctx.strokeStyle = "#E8453C"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + 3, 0, Math.PI * 2 * Math.min(1, b.over / KOROKORO_RULES.overSec)); ctx.stroke(); }
+      if (this.overShown(b)) { ctx.strokeStyle = "#E8453C"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + 3, 0, Math.PI * 2 * Math.min(1, b.over / W.overSec)); ctx.stroke(); }
     }
     ctx.restore();
     // 手もと: いまの 玉・おちる ところの めやす
-    if (working && !W.floorOpen) {
+    if (working && !W.floorOpen && !this.over) {
       const t = KOROKORO_TIERS[this.held], x = this.px(this.aim), r = t.r * s, yu = -t.r - 1.5, y = this.py(yu), k = this.cool > 0 ? 1 - this.cool / KOROKORO_RULES.cool : 1;
       ctx.strokeStyle = "#C9A77F"; ctx.lineWidth = 3; ctx.lineCap = "round";
       ctx.beginPath(); ctx.moveTo(bx + 4, by - this.top + 4); ctx.lineTo(bx + bw - 4, by - this.top + 4); ctx.stroke();
@@ -170,7 +207,7 @@ class KorokoroBoard {
         ctx.fillStyle = "#F7D78A"; ctx.beginPath(); ctx.arc(x, by - this.top + 4, 4, 0, 7); ctx.fill(); ctx.stroke();
         KorokoroArt.draw(ctx, this.held, "happy", x, y, r, 0);
       } else KorokoroArt.draw(ctx, this.held, "normal", x, y - (1 - k) * 10, r * (0.6 + 0.4 * k), 0, k);
-      if (!this.drops && task) {
+      if (!this.drops) {
         ctx.fillStyle = "rgba(255,253,246,.92)"; U.rr(ctx, bx + bw * 0.1, by + bh * 0.36, bw * 0.8, 46, 12); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.stroke();
         ctx.fillStyle = INK; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "800 12px 'M PLUS Rounded 1c', sans-serif";
         ctx.fillText("ゆびで うごかして", bx + bw / 2, by + bh * 0.36 + 15, bw * 0.76); ctx.fillText("はなすと ころん！", bx + bw / 2, by + bh * 0.36 + 32, bw * 0.76);
@@ -192,7 +229,7 @@ class KorokoroBoard {
       }
       ctx.restore();
     }
-    this.drawSide(ctx);
+    if (this.row) this.drawRow(ctx); else this.drawSide(ctx);
     // とどける くだもの（おきゃくさんの ほうへ とんでいく）
     for (const f of this.flyers) {
       const k = U.ease.inOut(Math.min(1, f.t / f.dur)), x = U.lerp(f.x0, f.x1, k), y = U.lerp(f.y0, f.y1, k) - Math.sin(k * Math.PI) * 70;
@@ -201,7 +238,7 @@ class KorokoroBoard {
     ctx.restore();
   }
   drawSide(ctx) {
-    const c = this.col, font = "'M PLUS Rounded 1c', sans-serif";
+    const c = this.col, font = "'M PLUS Rounded 1c', sans-serif", n = KOROKORO_TIERS.length;
     ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.strokeStyle = INK; ctx.lineWidth = 2;
     // つぎ
     ctx.fillStyle = "#FFF1D6"; U.rr(ctx, c.x, c.y, c.w, 58, 10); ctx.fill(); ctx.stroke();
@@ -212,13 +249,22 @@ class KorokoroBoard {
     ctx.fillStyle = "#8A7D6A"; ctx.font = `800 9px ${font}`; ctx.fillText("ポイント", c.x + c.w / 2, c.y + 76);
     ctx.fillStyle = INK; ctx.font = `900 14px ${font}`; ctx.fillText(U.fmt(this.points), c.x + c.w / 2, c.y + 95, c.w - 6);
     // じゅんばん（ちいさい → 大きい）。ちゅうもんの だんは きんいろの わ
-    const y0 = c.y + 118, cell = (c.h - 118) / KOROKORO_TIERS.length, r = this.chainR(), cx = c.x + c.w / 2;
-    ctx.strokeStyle = "#D9C4A2"; ctx.lineWidth = 2; ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.moveTo(cx, y0 + cell / 2); ctx.lineTo(cx, y0 + cell * (KOROKORO_TIERS.length - 0.5)); ctx.stroke(); ctx.setLineDash([]);
+    const y0 = c.y + 118, cell = (c.h - 118) / n, r = this.chainR(), cx = c.x + c.w / 2;
+    ctx.strokeStyle = "#D9C4A2"; ctx.lineWidth = 2; ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.moveTo(cx, y0 + cell / 2); ctx.lineTo(cx, y0 + cell * (n - 0.5)); ctx.stroke(); ctx.setLineDash([]);
     for (const t of KOROKORO_TIERS) {
       const y = y0 + cell * (t.tier + 0.5), wanted = this.want.includes(t.tier);
       if (wanted) { ctx.fillStyle = "#FFE7A3"; ctx.strokeStyle = "#D19B2E"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(cx, y, r + 4, 0, 7); ctx.fill(); ctx.stroke(); }
       KorokoroArt.draw(ctx, t.tier, "normal", cx, y, r);
     }
+    ctx.restore();
+  }
+  // スコア モード: 箱の したに 大きく なる じゅんばん（ちいさい → 大きい。やじるしで つなぐ）
+  drawRow(ctx) {
+    const w = this.row, n = KOROKORO_TIERS.length, cell = w.w / n, r = this.chainR(), cy = w.y + w.h / 2;
+    ctx.save(); ctx.fillStyle = "rgba(255,253,246,.92)"; ctx.strokeStyle = INK; ctx.lineWidth = 2; U.rr(ctx, w.x, w.y, w.w, w.h, 12); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#C9A77F";
+    for (let i = 1; i < n; i++) { const ax = w.x + cell * i; ctx.beginPath(); ctx.moveTo(ax - 2.5, cy - 4); ctx.lineTo(ax + 3, cy); ctx.lineTo(ax - 2.5, cy + 4); ctx.closePath(); ctx.fill(); }
+    for (const t of KOROKORO_TIERS) KorokoroArt.draw(ctx, t.tier, "normal", w.x + cell * (t.tier + 0.5), cy, r);
     ctx.restore();
   }
   summary(st) { st.pts = Math.max(st.pts || 0, this.points); return `ころころ ポイント ${U.fmt(this.points)}（さいこう ${U.fmt(st.pts)}）`; }
@@ -307,6 +353,6 @@ SONGS.shop_korokoro = {
 HOWTO.korokoro = [
   "ころころ フルーツへ ようこそ！\nきょうは おちもの パズルを てつだってね。",
   "ゆびで うごかして はなすと、はこに ころん！\nおなじ もの どうしが くっつくと、1つ おおきく なるよ。",
-  "わんこ・がちゃん・ごじの かおも ふってくるよ。\nおきゃくさんの ほしい くだものが できたら とどくからね。",
+  "なしの つぎは がちゃん・わんこ・ごじの かお！\nおきゃくさんの ほしい ものが できたら とどくからね。",
   "うえの せんから あふれないように きを つけて！",
 ];

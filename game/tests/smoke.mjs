@@ -2797,21 +2797,22 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 },{viewport,timeout:240000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('nerikasu-korokoro-'+viewport.width,async H=>{
- // ころころ フルーツ（mg-korokoro.js）: ネリカスタウンの お店 → レジで おてつだい → くだもの と 3人の かおの 玉を ゆびで おとす → がったい → ちゅうもんが とどく
+ // ころころ フルーツ（mg-korokoro.js）: ネリカスタウンの お店 → レジで おてつだい →「ちゅうもん モード」→ 小さい くだものを ゆびで おとす → がったい → ちゅうもんが とどく
  await H.newGameFast();const before=await H.dbg('saveData');
  const layout=await H.dbg('townLayout','town'),door=layout.doors.find(d=>d.act.shop==='korokoro');expect(door&&door.id==='nerikasu_home5','ネリカスタウンの お店 '+JSON.stringify(door));
  await H.dbg('teleport','town',door.x,door.y+1);await H.idle(30000);await H.wait(600);await H.shot('outside');
  await H.dbg('store','korokoro','town');await H.idle();await H.wait(500);expect((await H.dbg('storeState')).owner==='りすの コロン','店主');await H.shot('store');
  await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();
+ await H.page.getByRole('button',{name:'ちゅうもん モード',exact:true}).click();
  await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning,15000);await H.wait(300);await H.dialogs();
  await H.until(()=>PokaDebug.mg()?.phase==='work',15000);await H.wait(500);
  let m=await H.dbg('mg');const box=m.order.box;
- expect(m.shop==='korokoro'&&m.total===4&&m.order.want.length===1&&m.order.want[0].name==='みかん'&&m.buttons.length===0,'Lv1 の ちゅうもんは みかん '+JSON.stringify(m.order.want));
+ expect(m.shop==='korokoro'&&m.total===4&&m.order.want.length===1&&m.order.want[0].name==='なし'&&m.buttons.length===0,'Lv1 の ちゅうもんは なし '+JSON.stringify(m.order.want));
  expect(box.x0>=8&&box.x0+box.w*box.unit<=viewport.width-50&&box.y0+box.h*box.unit<=viewport.height-4&&box.unit>=2.2,'箱が 画面から はみ出す／ちいさすぎる '+JSON.stringify(box));
  expect(await H.eval(()=>Sound.want||Sound.cur?.name)==='shop_korokoro','お店の BGM');await H.shot('start');
- // 1にんめ: ゆびで おとす（おなじ だんの 玉の 上か、いちばん ひくい ところ）。3人の かおも おちてくる
- const R=[4.6,6,7.2,8.6,10,11.8,13.8,15.8,18,20.6,23.6],held=[];
- await H.dbg('koroSetup',{seed:20260929,held:0,next:1}); // おちてくる ならびを きめる（さくらんぼ → わんこ → …）
+ // 1にんめ: ゆびで おとす（おなじ だんの 玉の 上か、いちばん ひくい ところ）。おちてくるのは 小さい 4しゅ（3人の かおは くっつけて つくる）
+ const R=[4.6,6,7.7,10,12.4,15.4,19,23.6],held=[];
+ await H.dbg('koroSetup',{seed:20260929,held:0,next:1}); // おちてくる ならびを きめる（さくらんぼ → いちご → …）
  const aim=o=>{const r=R[o.held];let x=null,best=-1;for(const q of o.bodies)if(q.tier===o.held&&q.grow>=1&&q.y>best){best=q.y;x=q.x;}
   if(x==null){let by=-1e9;for(let i=0;i<=20;i++){const xx=r+(100-2*r)*i/20;let y=110-r;for(const q of o.bodies){const dx=Math.abs(q.x-xx),rs=r+q.r;if(dx<rs)y=Math.min(y,q.y-Math.sqrt(rs*rs-dx*dx));}if(y>by){by=y;x=xx;}}}return x;};
  for(let k=0;k<80;k++){
@@ -2821,23 +2822,23 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   if(k===4)await H.shot('play');
  }
  await H.until(()=>PokaDebug.mg().ranks.length>=1,20000);m=await H.dbg('mg');
- expect(m.ranks[0]>=2&&held.length>=3&&held.some(t=>[1,3,4].includes(t))&&held.some(t=>[0,2].includes(t)),'ゆびで あそんで みかんが とどかない／かおが おちてこない '+JSON.stringify({ranks:m.ranks,held}));
+ expect(m.ranks[0]>=2&&held.length>=3&&held.every(t=>t>=0&&t<4)&&new Set(held).size>=2,'ゆびで あそんで なしが とどかない／おちてくるのが 小さい 4しゅ でない '+JSON.stringify({ranks:m.ranks,held}));
  expect(m.order&&m.order.points>0&&Object.keys(m.order.made).length>=2,'がったいの ポイント '+JSON.stringify(m.order&&m.order.made));await H.shot('judge');
- // 2にんめ: ごじ 2つを ならべると みかんに なって とどく
+ // 2にんめ: りんご 2つを ならべると なしに なって とどく
  await H.until(()=>PokaDebug.mg()?.phase==='work'&&PokaDebug.mg().n===1,20000);
- await H.dbg('koroSetup',{bodies:[[4,40,100],[4,59.8,100]]});await H.until(()=>PokaDebug.mg().ranks.length>=2,8000);
- m=await H.dbg('mg');expect(m.ranks[1]===3,'ごじ 2つで みかんが できない '+m.ranks);
+ await H.dbg('koroSetup',{bodies:[[3,40,100],[3,59.8,100]]});await H.until(()=>PokaDebug.mg().ranks.length>=2,8000);
+ m=await H.dbg('mg');expect(m.ranks[1]===3,'りんご 2つで なしが できない '+m.ranks);
  // 3にんめ: あふれ → 箱が からっぽ → あふれの 減点（それでも とどけられる）
  await H.until(()=>PokaDebug.mg()?.phase==='work'&&PokaDebug.mg().n===2,20000);
- await H.dbg('koroSetup',{bodies:Array.from({length:10},(_,i)=>[(Math.floor(i/2)+i%2)%2?9:10,24+(i%2)*52,86.4-Math.floor(i/2)*44])});
+ await H.dbg('koroSetup',{bodies:Array.from({length:10},(_,i)=>[(Math.floor(i/2)+i%2)%2?6:7,24+(i%2)*52,86.4-Math.floor(i/2)*44])});
  await H.until(()=>PokaDebug.mg().order.spills===1,8000);await H.wait(300);await H.shot('overflow');
  await H.until(()=>{const o=PokaDebug.mg().order;return !o.floorOpen&&o.bodies.length===0;},8000);
- await H.dbg('koroSetup',{bodies:[[4,40,100],[4,59.8,100]]});await H.until(()=>PokaDebug.mg().ranks.length>=3,8000);
+ await H.dbg('koroSetup',{bodies:[[3,40,100],[3,59.8,100]]});await H.until(()=>PokaDebug.mg().ranks.length>=3,8000);
  m=await H.dbg('mg');expect(m.ranks[2]===1,'あふれの 減点が ない '+m.ranks);
- // 4にんめ: メロンを つくると チップ（大きな くだもの）
+ // 4にんめ: がちゃん 2つで わんこを つくると チップ（3人の かおの 玉）
  await H.until(()=>PokaDebug.mg()?.phase==='work'&&PokaDebug.mg().n===3,20000);
- await H.dbg('koroSetup',{bodies:[[8,30,90],[8,65.8,90],[4,40,40],[4,59.8,40]]});await H.until(()=>PokaDebug.mg().ranks.length>=4,8000);
- m=await H.dbg('mg');expect(m.ranks[3]===3&&m.tips>=4,'メロンの チップ '+JSON.stringify([m.ranks,m.tips]));
+ await H.dbg('koroSetup',{bodies:[[5,30,94],[5,60.4,94],[3,40,40],[3,59.8,40]]});await H.until(()=>PokaDebug.mg().ranks.length>=4,8000);
+ m=await H.dbg('mg');expect(m.ranks[3]===3&&m.tips>=8,'わんこの チップ '+JSON.stringify([m.ranks,m.tips]));
  await H.until(()=>!!document.querySelector('.modal-wrap .panel-foot .btn'),15000);
  const text=await H.eval(()=>document.querySelector('.modal-wrap').textContent);expect(/ころころ ポイント/.test(text)&&/さいこう/.test(text),'けっかに ポイントが ない '+text);await H.shot('result');
  await H.page.getByRole('button',{name:'てんないに もどる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),15000);
@@ -2847,6 +2848,78 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'かいものを する',exact:true}).click();
  await H.page.locator('.modal-wrap .grid > *').first().waitFor();expect(await H.eval(()=>document.querySelectorAll('.modal-wrap .grid > *').length)===3,'レジの しなもの');
  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.idle();
+},{viewport,timeout:180000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('nerikasu-korokoro-score-'+viewport.width,async H=>{
+ // ころころ フルーツの スコア モード（korokoro-score.js）: お店で「おてつだいする」→「スコア モード」→ あそびかた → ゆびで おとす →
+ // 本物の スイカゲームと おなじ 点（くっつけた だんの 三角数）→ ふちから はみだして おしまい → ハイスコア・ランキング・コイン → もういちど → やめる → てんないへ
+ await H.newGameFast();const before=await H.dbg('saveData');
+ await H.dbg('store','korokoro','town');await H.idle();await H.wait(400);
+ await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();
+ await H.page.getByRole('button',{name:'スコア モード',exact:true}).waitFor();
+ const ask=await H.eval(()=>document.querySelector('.dlg-shade.ask .dlg-text').textContent);
+ expect(/ちゅうもん/.test(ask)&&/スコア/.test(ask)&&!/ハイスコア/.test(ask),'モードの せつめい '+ask);
+ const fit=await H.eval(()=>{const r=document.querySelector('.dlg-shade.ask .dialog').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight;});expect(fit,'モードの えらびが 画面から はみ出す');
+ await H.shot('mode');
+ await H.page.getByRole('button',{name:'スコア モード',exact:true}).click();
+ await H.until(()=>PokaDebug.state().scene==='koroscore'&&!PokaDebug.state().transitioning,15000);await H.wait(300);
+ // はじめては あそびかた（店主の ことば）→ あそぶ
+ const howto=await H.eval(()=>document.querySelector('.dlg-shade:not(.ask) .dlg-text')?.textContent||'');expect(/スコア モード/.test(howto),'はじめての あそびかた '+howto);
+ await H.dialogs();await H.until(()=>PokaDebug.koro()?.phase==='play',15000);await H.wait(300);
+ let k=await H.dbg('koro');const box=k.box;
+ expect(k.score===0&&k.hi===0&&k.dropKinds===4&&k.overSec<=0.6&&k.held<4&&k.next<4,'はじめの ようす '+JSON.stringify({score:k.score,hi:k.hi,held:k.held,next:k.next,overSec:k.overSec}));
+ const stop=await H.page.getByRole('button',{name:'スコア モードを やめる',exact:true}).boundingBox();
+ const apart=(a,b)=>a.x+a.w<=b.x+1||b.x+b.w<=a.x+1||a.y+a.h<=b.y+1||b.y+b.h<=a.y+1,sb={x:stop.x,y:stop.y,w:stop.width,h:stop.height};
+ expect(box.rect.x>=0&&box.rect.x+box.rect.w<=viewport.width&&k.row.y>=box.rect.y+box.rect.h-8&&k.row.y+k.row.h<=viewport.height-4&&box.unit>=3.2,'箱と じゅんばんが 画面に おさまらない／ちいさい '+JSON.stringify({box,row:k.row}));
+ expect(stop.height>=44&&[k.sign,k.panel,k.nextBox,box.rect].every(r=>apart(sb,r))&&apart(k.panel,k.nextBox)&&k.team.every(t=>t.cx>k.panel.x+k.panel.w&&t.cx<k.nextBox.x),'「やめる」・スコア・3人・つぎ が かさなる '+JSON.stringify({stop:sb,sign:k.sign,panel:k.panel,next:k.nextBox,team:k.team}));
+ expect(await H.eval(()=>Sound.want||Sound.cur?.name)==='shop_korokoro','お店の BGM');await H.shot('start');
+ // ゆびで おとす（おなじ だんの 玉の 上か、いちばん ひくい ところ）。点は くっつけた だんの 三角数（made から けいさん）
+ const RR=[4.6,6,7.7,10,12.4,15.4,19,23.6],PT=[1,3,6,10,15,21,28,36],held=[];
+ await H.dbg('koroSetup',{seed:20260930,held:0,next:1});
+ const aim=o=>{const r=RR[o.held];let x=null,best=-1;for(const q of o.bodies)if(q.tier===o.held&&q.grow>=1&&q.y>best){best=q.y;x=q.x;}
+  if(x==null){let by=-1e9;for(let i=0;i<=20;i++){const xx=r+(100-2*r)*i/20;let y=110-r;for(const q of o.bodies){const dx=Math.abs(q.x-xx),rs=r+q.r;if(dx<rs)y=Math.min(y,q.y-Math.sqrt(rs*rs-dx*dx));}if(y>by){by=y;x=xx;}}}return x;};
+ for(let i=0;i<60&&held.length<14;i++){
+  k=await H.dbg('koro');if(k.phase!=='play')break;
+  if(!k.canDrop){await H.wait(60);continue;}
+  held.push(k.held);await H.tap(box.x0+aim(k)*box.unit,box.dropY);await H.wait(420);
+  if(held.length===6)await H.shot('play');
+ }
+ await H.wait(1200);k=await H.dbg('koro');
+ const want=Object.entries(k.made).reduce((s,[t,n])=>s+(t==='burst'?36:PT[t-1])*n,0);
+ expect(k.phase==='play'&&held.length>=10&&held.every(t=>t<4)&&k.merges>=2&&k.score>0&&k.score===want,'ゆびで あそんだ 点が 本物の きまりに ならない '+JSON.stringify({score:k.score,want,made:k.made,held}));
+ // きまった 点: さくらんぼ 2つ = 1・わんこ 2つ = 28（ごじが できる）・ごじ 2つ = 36（きえる）
+ let s0=k.score;await H.dbg('koroSetup',{bodies:[[0,30,105],[0,39.2,105]]});await H.until(s=>PokaDebug.koro().score===s+1,5000,s0);
+ s0=s0+1;await H.dbg('koroSetup',{bodies:[[6,30,91],[6,67.8,91]]});await H.until(s=>PokaDebug.koro().score===s+28&&PokaDebug.koro().bodies.some(b=>b.tier===7),5000,s0);
+ k=await H.dbg('koro');expect(k.team.find(t=>t.id==='goji').emo==='happy','ごじが できても ごじが よろこばない '+JSON.stringify(k.team));await H.shot('goji');
+ s0=s0+28;await H.dbg('koroSetup',{bodies:[[7,26,86],[7,73,86]]});await H.until(s=>PokaDebug.koro().score===s+36&&PokaDebug.koro().bodies.length===0,5000,s0);
+ // ふちから はみだすと すぐ おしまい（あかい わ → おしまい → けっか）
+ const final=s0+36;await H.dbg('koroSetup',{bodies:Array.from({length:10},(_,i)=>[(Math.floor(i/2)+i%2)%2?6:7,24+(i%2)*52,86.4-Math.floor(i/2)*44])});
+ const t0=Date.now();await H.until(()=>PokaDebug.koro().phase==='over',5000);const took=Date.now()-t0;
+ k=await H.dbg('koro');expect(k.over&&!k.canDrop&&k.score===final&&took<2500,'はみだしても すぐ おしまいに ならない '+JSON.stringify({took,score:k.score,final}));await H.wait(250);await H.shot('over');
+ await H.until(()=>!!document.querySelector('.modal-wrap .koro-foot .btn'),8000);await H.wait(300);
+ const text=await H.eval(()=>document.querySelector('.modal-wrap').textContent);
+ expect(/しんきろく/.test(text)&&/ハイスコア/.test(text)&&/ランキング/.test(text)&&/1い/.test(text)&&/いま！/.test(text)&&text.includes(final+'てん'),'けっかの まど '+text);
+ const modalFit=await H.eval(()=>{const p=document.querySelector('.modal-wrap .panel').getBoundingClientRect(),b=[...document.querySelectorAll('.modal-wrap .koro-foot .btn')].map(x=>x.getBoundingClientRect());return p.left>=0&&p.right<=innerWidth&&b.length===2&&b.every(r=>r.height>=44&&r.right<=innerWidth&&r.bottom<=innerHeight);});
+ expect(modalFit,'けっかの まどが 画面から はみ出す／ボタンが ちいさい');await H.shot('result');
+ let after=await H.dbg('saveData');const kr=after.shops.korokoro,mul=await H.eval(()=>GameEconomy.mode(Save.d.settings.difficulty).reward*DailyPlay.boost('korokoro')),pay=Math.round(Math.min(400,Math.floor(final/6))*mul);
+ expect(kr.hi===final&&kr.games===1&&kr.tops.length===1&&kr.tops[0].s===final&&after.coins-before.coins===pay&&kr.rep===Math.min(12,Math.floor(final/100))&&after.stats.shifts===before.stats.shifts+1&&kr.plays===0,'ハイスコア・ランキング・コイン・ひょうばんの きろく '+JSON.stringify({kr,coins:after.coins-before.coins,pay}));
+ // もういちど: 2かいめは ハイスコアの ひとことだけ → あそぶ → やめる（いまの 点で けっか）→ てんないへ
+ await H.page.getByRole('button',{name:'もういちど',exact:true}).click();
+ await H.until(()=>PokaDebug.state().scene==='koroscore'&&!PokaDebug.state().transitioning&&PokaDebug.koro()?.phase==='intro',15000);
+ const again=await H.eval(()=>document.querySelector('.dlg-shade:not(.ask) .dlg-text')?.textContent||'');expect(again.includes('ハイスコアは')&&again.includes(String(final)),'2かいめの ひとこと '+again);
+ await H.dialogs();await H.until(()=>PokaDebug.koro()?.phase==='play',15000);
+ k=await H.dbg('koro');expect(k.score===0&&k.hi0===final&&k.games===1,'もういちど の はじめ '+JSON.stringify({score:k.score,hi0:k.hi0}));
+ await H.dbg('koroSetup',{bodies:[[1,30,103],[1,41.6,103]]});await H.until(()=>PokaDebug.koro().score===3,5000);
+ await H.page.getByRole('button',{name:'スコア モードを やめる',exact:true}).click();await H.page.getByRole('button',{name:'おわりに する',exact:true}).click();
+ await H.until(()=>!!document.querySelector('.modal-wrap .koro-foot .btn'),8000);
+ const text2=await H.eval(()=>document.querySelector('.modal-wrap').textContent);expect(!/しんきろく/.test(text2)&&/2い/.test(text2)&&/いま！/.test(text2),'やめた ときの けっか '+text2);
+ await H.page.getByRole('button',{name:'てんないに もどる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),15000);
+ after=await H.dbg('saveData');expect(after.shops.korokoro.games===2&&after.shops.korokoro.hi===final&&after.shops.korokoro.tops.map(e=>e.s).join()===final+',3','2かいめの きろく '+JSON.stringify(after.shops.korokoro));
+ // つぎに お店で えらぶ ときは ハイスコアが みえる
+ await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();
+ await H.page.getByRole('button',{name:'スコア モード',exact:true}).waitFor();
+ const ask2=await H.eval(()=>document.querySelector('.dlg-shade.ask .dlg-text').textContent);expect(ask2.includes('ハイスコア '+final),'お店で ハイスコアが みえない '+ask2);
+ await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();expect((await H.dbg('state')).scene==='store','やめると てんないの まま');
 },{viewport,timeout:180000});
 
 await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});

@@ -1,13 +1,13 @@
-// ころころ フルーツ の 絵。くだもの 8しゅ（かお つき）と、わんこ・がちゃん・ごじ の かおの 玉（キャラ素材の あたま・みみ・かおの ぶひんから）。
+// ころころ フルーツ の 絵。くだもの 5しゅ（かお つき）と、いちばん 大きい 3だんの がちゃん・わんこ・ごじ の かおの 玉（キャラ素材の あたま・みみ・かおの ぶひんから）。
 // どの 絵も 中心に 当たりの 円（半径 = 物理の r）が くる 正方形。表情は normal / happy / surprise / sad / sleep の 5つ。
 // SvgCache の キーは「だん・表情・ピクセル」だけ（有限）。回転や 大きく なる とちゅうは drawImage の 変形で 描く。
 const KorokoroArt = (() => {
   const K = INK, f1 = (v) => Math.round(v * 10) / 10;
   const FACES = ["normal", "happy", "surprise", "sad", "sleep"];
   // くだものの 絵は 100×100（中心 50,50・当たりの 円の 半径 44）。はみでる へた・はっぱ の ために 1.3ばいの はんいで 描く
-  const BALL = 44, CROP = 1.3, HERO_CROP = 1.42;
+  const BALL = 44, CROP = 1.3;
   const line = (w) => `stroke="${K}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
-  // くだものの かお。s = 大きさ（1 = すいか くらい）。ちいさい くだものは 目を すこし 大きめに
+  // くだものの かお。s = 大きさ（1 = 絵の はば いっぱい くらい）。ちいさい くだものは 目を すこし 大きめに
   const fruitFace = (emo, x, y, s, lw) => {
     const e = 3.4 * s, gap = 11 * s, blush = `<ellipse cx="${f1(x - gap - 5 * s)}" cy="${f1(y + 6 * s)}" rx="${f1(4.6 * s)}" ry="${f1(2.8 * s)}" fill="#F59AAE" opacity="0.75"/><ellipse cx="${f1(x + gap + 5 * s)}" cy="${f1(y + 6 * s)}" rx="${f1(4.6 * s)}" ry="${f1(2.8 * s)}" fill="#F59AAE" opacity="0.75"/>`;
     const L = line(lw), eyeL = x - gap, eyeR = x + gap;
@@ -47,26 +47,18 @@ const KorokoroArt = (() => {
     pear: (emo, lw) => `<circle cx="50" cy="53" r="42" fill="#EBD27C" ${line(lw)}/><circle cx="54" cy="58" r="30" fill="#F1DC92" opacity="0.7"/>`
       + [[28, 36], [70, 32], [20, 58], [80, 60], [34, 80], [66, 82], [50, 22], [44, 90], [86, 44]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.7" fill="#B99A4C" opacity="0.75"/>`).join("")
       + `<path d="M50,13 C49,8 50,4 54,0" fill="none" stroke="#7A5634" stroke-width="${f1(lw * 1.4)}" stroke-linecap="round"/>${leaf(52, 6, 18, -10, "#8CC46E", lw)}${shine(30, 34, 10, 5.5)}${fruitFace(emo, 50, 56, 1.08, lw)}`,
-    peach: (emo, lw) => `<path d="M50,14 C56,6 64,2 72,4 C92,12 96,36 94,54 C92,78 72,95 50,95 C28,95 8,78 6,54 C4,34 14,16 30,12 C38,10 44,10 50,14Z" fill="#F8B4BF" ${line(lw)}/>`
-      + `<path d="M50,95 C24,94 8,76 8,54 C8,36 20,20 34,16 C22,30 20,60 50,95Z" fill="#F59CAB" opacity="0.55"/><path d="M50,15 C58,30 60,56 50,94" fill="none" stroke="#E488A0" stroke-width="${f1(lw * 1.1)}" stroke-linecap="round"/>`
-      + `${leaf(50, 12, 24, -150, "#86C874", lw)}${leaf(52, 12, 22, -30, "#79C06A", lw)}${shine(72, 34, 9, 5, 35)}${fruitFace(emo, 50, 58, 1.05, lw)}`,
-    melon: (emo, lw) => `<circle cx="50" cy="53" r="42" fill="#A7D98F" ${line(lw)}/>`
-      + `<g fill="none" stroke="#E6F4D2" stroke-width="${f1(Math.max(1.4, lw * 0.6))}" stroke-linecap="round"><path d="M14,40 Q30,30 38,44 T62,40 T86,46"/><path d="M10,58 Q26,50 36,62 T60,58 T90,62"/><path d="M18,76 Q32,68 42,80 T66,76 T84,78"/><path d="M28,16 Q24,34 32,50 T30,84"/><path d="M50,11 Q46,30 52,48 T50,94"/><path d="M72,16 Q76,34 68,52 T72,86"/></g>`
-      + `<path d="M42,10 H58 M50,10 V16" stroke="#6E8C3A" stroke-width="${f1(lw * 1.5)}" stroke-linecap="round"/>${shine(30, 34, 9, 5)}${fruitFace(emo, 50, 57, 1.1, lw)}`,
-    suika: (emo, lw) => `<circle cx="50" cy="52" r="44" fill="#6FBF57" ${line(lw)}/>`
-      + [-32, -12, 8, 28].map((dx) => `<path d="M${50 + dx},10 l-4,8 l5,8 l-5,8 l5,8 l-5,8 l5,8 l-5,8 l5,8 l-4,8 l3,5" fill="none" stroke="#2F7A3B" stroke-width="${f1(lw * 1.5)}" stroke-linecap="round" stroke-linejoin="round" transform="rotate(${dx * 0.5} 50 52)"/>`).join("")
-      + `<path d="M50,9 C50,4 52,1 56,0" fill="none" stroke="#6E8C3A" stroke-width="${f1(lw * 1.3)}" stroke-linecap="round"/>${shine(28, 30, 10, 5.5)}${fruitFace(emo, 50, 56, 1.15, lw)}`,
   };
   // 3人の かおの 玉: キャラ素材（CHARA_DATA）の あたま・みみ（ごじは 目の でっぱり）と 表情の ぶひん。からだは 描かない
-  // c: 当たりの 円の 中心・R: その 半径（キャラの 座標）
+  // c: 当たりの 円の 中心・R: その 半径（キャラの 座標）・crop: 絵の わく（R の なんばいか）。みみ と 表情の かざり（ごじの ハート・がちゃんの ねむりの しるし）が
+  // きれない ように ブラウザで はかった 大きさ（わんこ 1.31・がちゃん 1.47・ごじ 1.54）より すこし 大きく した
   const HERO = {
-    wanko: { c: [100, 80], R: 60, parts: (D) => D.base[7] + `<g transform="translate(12 7)">${D.base[8]}</g><g transform="translate(-12 7)">${D.base[9]}</g>` },
-    gachan: { c: [100, 98], R: 57, parts: (D) => D.base[3] },
-    goji: { c: [102, 74], R: 55, parts: (D) => D.base.slice(1, 5).join("") + `<circle cx="102" cy="74" r="53" fill="#8C8686" ${line(4.5)}/>` },
+    wanko: { c: [100, 80], R: 60, crop: 1.36, parts: (D) => D.base[7] + `<g transform="translate(12 7)">${D.base[8]}</g><g transform="translate(-12 7)">${D.base[9]}</g>` },
+    gachan: { c: [100, 98], R: 57, crop: 1.52, parts: (D) => D.base[3] },
+    goji: { c: [102, 74], R: 55, crop: 1.6, parts: (D) => D.base.slice(1, 5).join("") + `<circle cx="102" cy="74" r="53" fill="#8C8686" ${line(4.5)}/>` },
   };
   const heroSvg = (id, emo) => {
     const D = CHARA_DATA[id], H = HERO[id], face = D.faces[faceOf(id, emo)] || D.faces.normal;
-    const half = H.R * HERO_CROP, [cx, cy] = H.c;
+    const half = H.R * H.crop, [cx, cy] = H.c;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f1(cx - half)} ${f1(cy - half)} ${f1(half * 2)} ${f1(half * 2)}">${H.parts(D)}${face.join("")}</svg>`;
   };
   // size: 画面での 絵の 大きさ（論理 px）。線は 画面で 1.1〜2px に なる はば（ちいさい くだものほど 絵の 中では 太い）
@@ -76,7 +68,7 @@ const KorokoroArt = (() => {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f1(50 - half)} ${f1(50 - half)} ${f1(half * 2)} ${f1(half * 2)}">${FRUIT[t.id](emo, lw)}</svg>`;
   };
   const svg = (tier, emo = "normal", size = 48) => { const t = KOROKORO_TIERS[tier]; return t.hero ? heroSvg(t.hero, emo) : fruitSvg(tier, emo, size); };
-  const cropOf = (tier) => (KOROKORO_TIERS[tier].hero ? HERO_CROP : CROP);
+  const cropOf = (tier) => { const h = KOROKORO_TIERS[tier].hero; return h ? HERO[h].crop : CROP; };
   // 半径 r（論理 px）の 玉の 絵。device px は 8 の ばいすうに まるめて キーを へらす
   const pxOf = (tier, r) => Math.max(16, Math.ceil((r * 2 * cropOf(tier) * (typeof G !== "undefined" ? G.px : 2)) / 8) * 8);
   const canvas = (tier, emo, r) => { const px = pxOf(tier, r); return SvgCache.get(`koro:${tier}:${emo}:${px}`, () => svg(tier, emo, r * 2 * cropOf(tier)), px, px); };
@@ -91,5 +83,5 @@ const KorokoroArt = (() => {
     ctx.drawImage(c, -s, -s, s * 2, s * 2); ctx.restore();
     return true;
   };
-  return { FACES, CROP, HERO_CROP, HERO, svg, cropOf, canvas, ensure, draw, fruitFace };
+  return { FACES, CROP, HERO, svg, cropOf, canvas, ensure, draw, fruitFace };
 })();

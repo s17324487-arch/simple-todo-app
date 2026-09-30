@@ -1,22 +1,31 @@
-// ころころ フルーツ（js/korokoro-physics.js・js/korokoro-art.js・js/mg-korokoro.js・js/korokoro-town.js）の 検査。ブラウザ なしで 物理と おてつだいを うごかす。
-// 玉の だん（くだもの と 3人の かお が おちてくる）・物理が こわれない（NaN・かべ ぬけ・めりこみ）・おなじ たねは おなじ けっか・
-// がったい・すいかの はれつ・あふれ と からっぽ・おとす まの まち時間・ちゅうもんが とどく／時間ぎれ／あふれの 減点・
-// こどもの はやさの ボットでも とどけられる（レベル 1〜5）・絵（NaN なし・id なし・キャッシュの キーが 有限）・お店・町・セーブ・BGM・ことば。
+// ころころ フルーツ（js/korokoro-physics.js・js/korokoro-art.js・js/mg-korokoro.js・js/korokoro-town.js・js/korokoro-score.js）の 検査。ブラウザ なしで 物理と おてつだいを うごかす。
+// 玉の だん（くだもの 5しゅ ＋ いちばん 大きい 3だんが がちゃん・わんこ・ごじ）・点は 本物の スイカゲームと おなじ 三角数・おちてくるのは 小さい はんぶん（おなじ 確率）・
+// 物理が こわれない（NaN・かべ ぬけ・めりこみ）・おなじ たねは おなじ けっか・がったい・ごじの はれつ・あふれ と からっぽ・おとす まの まち時間・
+// ちゅうもんが とどく／時間ぎれ／あふれの 減点・こどもの はやさの ボットでも とどけられる（レベル 1〜5）・
+// スコア モード（あふれたら おしまい・点・ハイスコアと ランキング・コイン・画面に おさまる・ボットの 点）・絵（NaN なし・id なし・キャッシュの キーが 有限）・お店・町・セーブ・BGM・ことば。
 import assert from "node:assert/strict";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
-const { KorokoroWorld: World, KOROKORO_TIERS: T, KOROKORO_RULES: RULES, KOROKORO_ORDERS: ORDERS, KorokoroArt: Art, KorokoroBoard: Board, KorokoroTask: Task } = R;
+const { KorokoroWorld: World, KOROKORO_TIERS: T, KOROKORO_RULES: RULES, KOROKORO_ORDERS: ORDERS, KorokoroArt: Art, KorokoroBoard: Board, KorokoroTask: Task,
+  KOROKORO_SCORE: SCORE, KOROKORO_SCORE_HOWTO: SCORE_HOWTO, KorokoroScore: Score, KorokoroScoreScene: ScoreScene } = R;
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
 
-// ---- 1. だん: 11しゅ・だんだん 大きく・おちてくる 5しゅに 3人の かお ----
-ok(T.length === 11 && T.every((t, i) => t.tier === i && (i === 0 || t.r > T[i - 1].r)), "だんは 11しゅで 大きさが ふえる");
+// ---- 1. だん: 8しゅ（さくらんぼ・いちご・みかん・りんご・なし・がちゃん・わんこ・ごじ）・だんだん 大きく・おちてくるのは 小さい 4しゅ ----
+ok(T.length === 8 && T.every((t, i) => t.tier === i && (i === 0 || t.r > T[i - 1].r)), "だんは 8しゅで 大きさが ふえる");
+ok(T.map((t) => t.name).join() === "さくらんぼ,いちご,みかん,りんご,なし,がちゃん,わんこ,ごじ", "だんの じゅんばん（もも・メロン・すいか → がちゃん・わんこ・ごじ）");
 ok(T.every((t) => !kanji.test(t.name) && t.name.length <= 5), "だんの なまえは ひらがな・カタカナ 5もじ まで");
-ok(["wanko", "gachan", "goji"].every((id) => T.some((t) => t.hero === id && t.tier < RULES.drop)), "わんこ・がちゃん・ごじ の かおが おちてくる だんに ある");
-ok(T.filter((t) => !t.hero).length === 8 && T[T.length - 1].id === "suika", "くだもの 8しゅ・いちばん 大きいのは すいか");
-ok(T.every((t, i) => i === 0 || t.points > T[i - 1].points), "大きい ものほど ポイントが おおい");
+ok(T.slice(5).map((t) => t.hero).join() === "gachan,wanko,goji" && T.slice(0, 5).every((t) => !t.hero), "いちばん 大きい 3だんが がちゃん → わんこ → ごじ の かお");
+ok(RULES.drop * 2 === T.length && T.every((t) => !t.hero || t.tier >= RULES.drop), "おちてくるのは 小さい はんぶん（3人の かおは くっつけて つくる だけ）");
+ok(T.map((t) => t.points).join() === "1,3,6,10,15,21,28,36", "点は 本物の スイカゲームと おなじ 三角数（2つ くっつけた だんで 1・3・6・…）");
+ok(T[RULES.drop - 1].r * 2 <= 22 && T[T.length - 1].r * 2 >= 45 && T[T.length - 1].r * 2 <= 50, "おちてくる いちばん 大きい もの（はばの 2わり）と ごじ（はばの 半分 くらい）の 大きさ");
+{
+  const w = new World(5), c = Array(T.length).fill(0), N = 40000;
+  for (let i = 0; i < N; i++) c[w.pickDrop()]++;
+  ok(c.slice(0, RULES.drop).every((k) => Math.abs(k / N - 1 / RULES.drop) < 0.015) && c.slice(RULES.drop).every((k) => k === 0), `おちてくる だんの わりあいが おなじ くらいに ならない（${c.join(",")}）`);
+}
 
 // ---- 2. 物理: ボット（おなじ だんの 上か、いちばん ひくい ところ）で 4ぷん あそんでも こわれない ----
 let seedR = 1;
@@ -74,31 +83,37 @@ for (const seed of [1, 2, 3, 4]) {
 // ---- 3. がったい・すいかの はれつ・あふれ ----
 {
   const w = new World(3);
-  w.add(2, 40, 100, { landed: true }); w.add(2, 54, 100, { landed: true });
+  w.add(1, 40, 100, { landed: true }); w.add(1, 51.6, 100, { landed: true });
   let ev = []; for (let i = 0; i < 30; i++) ev.push(...w.step(1 / 60));
-  ok(w.bodies.length === 1 && w.bodies[0].tier === 3 && ev.filter((e) => e.type === "merge").length === 1, "おなじ いちご 2つが がちゃん 1つに ならない");
-  const h = new World(3); h.add(1, 40, 104, { landed: true }); h.add(1, 51.5, 104, { landed: true });
+  const m1 = ev.filter((e) => e.type === "merge");
+  ok(w.bodies.length === 1 && w.bodies[0].tier === 2 && m1.length === 1 && m1[0].points === 3 && m1[0].from === 1 && !m1[0].hero, "おなじ いちご 2つが みかん 1つ（3てん）に ならない");
+  const p = new World(3); p.add(4, 30, 96, { landed: true }); p.add(4, 54.4, 96, { landed: true });
+  const pe = []; for (let i = 0; i < 20; i++) pe.push(...p.step(1 / 60));
+  ok(pe.some((e) => e.type === "merge" && e.tier === 5 && e.hero === "gachan" && e.points === 15), "なし 2つで がちゃんが できない（15てん・がちゃんの しるし）");
+  const h = new World(3); h.add(5, 30, 94, { landed: true }); h.add(5, 60.4, 94, { landed: true });
   const he = []; for (let i = 0; i < 20; i++) he.push(...h.step(1 / 60));
-  ok(he.some((e) => e.type === "merge" && e.hero === "wanko" && e.tier === 2), "わんこ 2つが がったいしても わんこの しるしが ない");
-  const s = new World(3); s.add(10, 26, 86, { landed: true }); s.add(10, 73, 86, { landed: true });
+  ok(he.some((e) => e.type === "merge" && e.tier === 6 && e.hero === "wanko" && e.points === 21), "がちゃん 2つで わんこが できない（21てん・わんこの しるし）");
+  const s = new World(3); s.add(7, 26, 86, { landed: true }); s.add(7, 73, 86, { landed: true });
   const se = []; for (let i = 0; i < 30; i++) se.push(...s.step(1 / 60));
-  ok(s.bodies.length === 0 && se.some((e) => e.type === "burst"), "すいか 2つが はじけない");
-  const d = new World(4); d.add(3, 30, 100, { landed: true }); d.add(4, 50, 100, { landed: true });
+  ok(s.bodies.length === 0 && se.some((e) => e.type === "burst" && e.points === 36 && e.hero === "goji"), "ごじ 2つが はじけない（36てん）");
+  const d = new World(4); d.add(3, 30, 100, { landed: true }); d.add(4, 52, 98, { landed: true });
   for (let i = 0; i < 30; i++) d.step(1 / 60);
   ok(d.bodies.length === 2, "ちがう もの どうしが がったいした");
   // あふれ: ふちより 上に 2びょう → しらせ → ゆかを ひらいて からっぽ → また あそべる
-  const o = new World(5);
-  for (let i = 0; i < 12; i++) { const col = i % 2, row = Math.floor(i / 2); o.add((row + col) % 2 ? 9 : 10, 24 + col * 52, 86.4 - row * 44, { landed: true }); } // となりは ちがう もの（がったい しない）
-  let over = null, t = 0;
-  for (; t < 6 && !over; t += 1 / 60) for (const e of o.step(1 / 60)) if (e.type === "overflow") over = t;
+  const tower = (wo) => { for (let i = 0; i < 12; i++) { const col = i % 2, row = Math.floor(i / 2); wo.add((row + col) % 2 ? 6 : 7, 24 + col * 52, 86.4 - row * 44, { landed: true }); } return wo; }; // となりは ちがう もの（がったい しない）
+  const firstOver = (wo) => { for (let t = 0; t < 6; t += 1 / 60) for (const e of wo.step(1 / 60)) if (e.type === "overflow") return t; return null; };
+  const o = tower(new World(5)), over = firstOver(o);
   ok(over != null && over >= RULES.overSec - 0.1, `あふれの しらせが ない／はやすぎる（${over}）`);
   o.spill(); for (let i = 0; i < 60 * 4 && o.bodies.length; i++) o.step(1 / 60);
   ok(o.bodies.length === 0 && !o.floorOpen, "あふれた あと 箱が からっぽに ならない");
   o.dropAt(0, 50); for (let i = 0; i < 90; i++) o.step(1 / 60);
   ok(o.bodies.length === 1 && o.bodies[0].y > 100, "からっぽの あと また おとせない");
+  // スコア モードの 箱: はみだして から みじかい じかんで おしまい
+  const q = tower(new World(5, { overSec: SCORE.overSec })), qOver = firstOver(q);
+  ok(q.overSec === SCORE.overSec && SCORE.overSec < RULES.overSec && qOver != null && qOver >= SCORE.overSec - 0.1 && qOver < RULES.overSec - 0.5, `スコア モードの おしまいが おそい／はやすぎる（${qOver}）`);
   // おとす まえの めやす: まっすぐ おちて とまる ところ
-  const g = new World(6); g.add(6, 50, 110 - 13.8, { landed: true });
-  ok(Math.abs(g.landingY(0, 50) - (110 - 13.8 * 2 - 4.6)) < 1e-6 && g.landingY(0, 5) === 110 - 4.6, "おちる ところの めやすが ちがう");
+  const ra = T[3].r, g = new World(6); g.add(3, 50, 110 - ra, { landed: true });
+  ok(Math.abs(g.landingY(0, 50) - (110 - ra * 2 - T[0].r)) < 1e-6 && g.landingY(0, 5) === 110 - T[0].r, "おちる ところの めやすが ちがう");
 }
 
 // ---- 4. おてつだい（KorokoroTask）: ちゅうもん・とどく・時間ぎれ・あふれの 減点・まち時間 ----
@@ -147,15 +162,19 @@ for (let lv = 1; lv <= 5; lv++) {
   for (let i = 0; i < 40; i++) u.update(1 / 60);
   u.down({ x: ub.col.x + 10, y: ub.col.y + 200, id: 8 }); u.up({ x: ub.col.x + 10, y: ub.col.y + 200, id: 8 });
   ok(ub.world.bodies.length === 1, "よこの れつを おしても おちる");
-  // 2つの かおの がったいで その子が よろこぶ
-  const c = new Task(fakeScene(), 1); c.layout(RECT); c.board.world.add(3, 40, 100, { landed: true }); c.board.world.add(3, 57.2, 100, { landed: true });
+  // かおの 玉が できると その子が よろこぶ（なし 2つ → がちゃん）
+  const c = new Task(fakeScene(), 1); c.layout(RECT); c.board.world.add(4, 30, 96, { landed: true }); c.board.world.add(4, 54.4, 96, { landed: true });
   for (let i = 0; i < 20; i++) c.update(1 / 60);
   const gachan = c.sc.team.find((m) => m.id === "gachan");
-  ok(gachan.turn > 0 && gachan.emo === "happy" && c.sc.fx.some((f) => f.text === "ぴよ！"), "がちゃん 2つの がったいで がちゃんが よろこばない");
-  // 大きな くだもので チップ
-  const big = new Task(fakeScene(), 1); big.layout(RECT); big.board.world.add(8, 30, 90, { landed: true }); big.board.world.add(8, 66, 90, { landed: true });
+  ok(gachan.turn > 0 && gachan.emo === "happy" && c.sc.fx.some((f) => f.text === "ぴよ！"), "がちゃんが できても がちゃんが よろこばない");
+  // 大きな かおの 玉で チップ（がちゃん 2つ → わんこ）
+  const big = new Task(fakeScene(), 1); big.layout(RECT); big.board.world.add(5, 30, 94, { landed: true }); big.board.world.add(5, 60.4, 94, { landed: true });
   for (let i = 0; i < 30; i++) big.update(1 / 60);
-  ok(big.bonusTip === R.KOROKORO_BONUS[9] && big.board.points === T[9].points, `メロンを つくった チップ（${big.bonusTip}）`);
+  ok(big.bonusTip === R.KOROKORO_BONUS[6] && big.board.points === T[5].points && big.sc.fx.some((f) => f.text === "わん！"), `わんこを つくった チップ（${big.bonusTip}）`);
+  // ごじ どうしが きえると チップ・3人 みんなで よろこぶ
+  const top = new Task(fakeScene(), 1); top.layout(RECT); top.board.world.add(7, 26, 86, { landed: true }); top.board.world.add(7, 73, 86, { landed: true });
+  for (let i = 0; i < 30; i++) top.update(1 / 60);
+  ok(top.bonusTip === R.KOROKORO_BONUS.burst && top.board.points === T[7].points && top.sc.team.every((m) => m.emo === "happy"), `ごじ どうしの チップ・よろこび（${top.bonusTip}）`);
 }
 
 // ---- 5. こどもの はやさの ボットで シフト（4にん・箱は つづく）: とどけられる ----
@@ -201,7 +220,9 @@ for (const t of T) for (const emo of Art.FACES) for (const size of [30, 60, 140]
   const svg = Art.svg(t.tier, emo, size);
   ok(svg.startsWith("<svg") && svg.endsWith("</svg>") && !/NaN|undefined|Infinity/.test(svg) && !/\sid="/.test(svg), `絵 ${t.id}:${emo}:${size} が こわれている`);
 }
-ok(Art.FACES.length === 5 && Art.cropOf(1) > Art.cropOf(0), "表情 5つ・かおの 玉は みみの ぶん ひろく");
+ok(Art.FACES.length === 5 && T.every((t) => Art.cropOf(t.tier) === (t.hero ? Art.HERO[t.hero].crop : Art.CROP)) && T.filter((t) => t.hero).every((t) => Art.HERO[t.hero].crop > Art.CROP), "表情 5つ・かおの 玉は みみ と かざりの ぶん ひろく");
+// ブラウザで はかった かざりの はみだし（わんこ 1.31・がちゃん ねむり 1.47・ごじ にっこり 1.54）より わくが 大きい
+ok(Art.HERO.wanko.crop >= 1.33 && Art.HERO.gachan.crop >= 1.5 && Art.HERO.goji.crop >= 1.57, "かおの 玉の かざりが わくで きれる");
 {
   const b = new Board(fakeScene(), 1); b.layout(RECT);
   const keys = new Set();
@@ -223,10 +244,89 @@ ok(Art.FACES.length === 5 && Art.cropOf(1) > Art.cropOf(0), "表情 5つ・か�
   const fresh = R.Save.fresh(), old = JSON.parse(JSON.stringify(fresh)); delete old.shops.korokoro;
   const mig = R.Save.migrate(old);
   ok(fresh.shops.korokoro.lv === 1 && fresh.shops.korokoro.pts === 0 && mig.shops.korokoro && mig.shops.korokoro.lv === 1 && R.Save.SCHEMA === 1, "セーブ（ふるい セーブにも お店が たされる）");
+  // スコア モードの きろく（2026-09-30 に たした）: まえの セーブの ころころ フルーツにも hi・tops・games が たされる。ほかの あたいは そのまま
+  const v0 = JSON.parse(JSON.stringify(fresh)); v0.shops.korokoro = { lv: 3, rep: 40, best: 120, plays: 5, pts: 300 };
+  const v1 = R.Save.migrate(v0).shops.korokoro;
+  ok(fresh.shops.korokoro.hi === 0 && Array.isArray(fresh.shops.korokoro.tops) && fresh.shops.korokoro.tops.length === 0 && fresh.shops.korokoro.games === 0, "セーブ: スコア モードの きろくの ばしょ");
+  ok(v1.hi === 0 && Array.isArray(v1.tops) && v1.games === 0 && v1.lv === 3 && v1.rep === 40 && v1.pts === 300 && v1.tops !== R.Save.fresh().shops.korokoro.tops, "セーブ: まえの セーブに スコア モードの きろくが たされない／ほかの あたいが かわる");
   const song = R.SONGS.shop_korokoro;
   ok(song && song.modern && !kanji.test(song.title) && song.source && /Schumann/.test(song.source.composer) && song.source.license === "Public Domain", "BGM（パブリックドメインの 名曲・出典）");
   ok(R.MusicDiscs.DISCS.some((d) => d.from.shop === "korokoro" && d.song === "shop_korokoro"), "おてつだいの ディスク");
   ok(R.ShopRewards.prizes.filter((p) => p.shop === "korokoro").length === 4, "おみせの ごほうび 4つ");
 }
 
-console.log(`Korokoro: ${n} checks（${table.join(" ／ ")}）`);
+// ---- 8. スコア モード（js/korokoro-score.js）: 本物の スイカゲームと おなじ きまり ----
+const scoreTable = [];
+{
+  ok(ScoreScene && R.SCENES.koroscore === ScoreScene && SCORE.tops === 5 && SCORE_HOWTO.length >= 4 && SCORE_HOWTO.every((l) => !kanji.test(l)), "スコア モードの 画面・あそびかたの ことば");
+  // 画面: 箱が ちゅうもん モードより 大きい・スコア／つぎ／3人／じゅんばん が 画面に おさまる（390×844・375×667）
+  const G = R.G, W0 = G.W, H0 = G.H;
+  for (const [w, h] of [[390, 844], [375, 667]]) {
+    G.W = w; G.H = h;
+    const sc = Object.create(ScoreScene.prototype); sc.team = ["wanko", "gachan", "goji"].map((id) => ({ id, turn: 0, jump: -1, emo: "normal" }));
+    sc.board = new Board(sc, 1, { mode: "score", overSec: SCORE.overSec }); sc.resize();
+    const b = sc.board, row = b.row, spots = [0, 1, 2].map((i) => sc.teamSpot(i));
+    ok(b.bw >= 320 && b.bx - 7 >= 0 && b.bx + b.bw + 7 <= w && b.by - b.top >= sc.infoY + sc.infoH && row.y >= b.by + b.bh + 9 && row.y + row.h <= h - 4 && row.w / T.length >= 40, `${w}×${h}: スコア モードの 箱と じゅんばんが 画面に おさまらない（${JSON.stringify({ bw: b.bw, bx: b.bx, by: b.by, row })}）`);
+    ok(sc.panel.x >= 8 && spots[0].x - sc.charSize / 2 >= sc.panel.x + sc.panel.w - 2 && spots[2].x + sc.charSize / 2 <= sc.nextBox.x + 2 && sc.nextBox.x + sc.nextBox.w <= w - 8 && sc.infoY >= 56, `${w}×${h}: スコア・3人・つぎ が かさなる／「やめる」の ボタン（うえ 8〜52）に かかる`);
+    const order = new Board(fakeScene(), 1); order.layout({ x: 10, y: Math.round(Math.min(h * 0.4, 330)) + 40, w: w - 20, h: h - Math.round(Math.min(h * 0.4, 330)) - 52 });
+    ok(b.bw > order.bw * 1.1, `${w}×${h}: スコア モードの 箱が ちゅうもん モードより 大きく ない（${b.bw} / ${order.bw}）`);
+  }
+  G.W = W0; G.H = H0;
+  // 点: おとすだけ 0点・さくらんぼ 2つで 1・ごじ どうしで 36（コインは まんなかでは でない）
+  const sc = { phase: "play", team: ["wanko", "gachan", "goji"].map((id) => ({ id, turn: 0, jump: -1, emo: "normal" })), fx: [], overs: 0,
+    teamSpot: (i) => ({ x: 100 + i * 40, y: 50 }), addFx(kind, x, y, o) { this.fx.push({ kind, x, y, ...o }); }, gameOver() { this.overs++; } };
+  const b = new Board(sc, 7, { mode: "score", overSec: SCORE.overSec }); b.layout({ x: 8, y: 135, w: 374, h: 699 });
+  ok(b.mode === "score" && b.world.overSec === SCORE.overSec && b.row && !b.col, "スコア モードの 箱");
+  b.held = 3; b.dropNow(); for (let i = 0; i < 90; i++) b.tick(1 / 60, true);
+  ok(b.points === 0 && b.drops === 1, "おとした だけで 点が はいる");
+  b.world.add(0, 20, 105, { landed: true }); b.world.add(0, 29.2, 105, { landed: true }); for (let i = 0; i < 30; i++) b.tick(1 / 60, true);
+  ok(b.points === 1 && b.merges === 1, `さくらんぼ 2つが 1てんに ならない（${b.points}）`);
+  b.world.bodies = []; b.world.add(7, 26, 86, { landed: true }); b.world.add(7, 73, 86, { landed: true }); for (let i = 0; i < 30; i++) b.tick(1 / 60, true);
+  ok(b.points === 37 && b.coins === 0 && b.world.bodies.length === 0 && sc.team.every((m) => m.emo === "happy") && sc.fx.some((f) => f.text === "がおー！"), `ごじ どうしが 36てんで きえない（${b.points}・コイン ${b.coins}）`);
+  // あふれ: おしまい（1かいだけ）・箱は とまる・もう おとせない
+  b.world.bodies = []; for (let i = 0; i < 12; i++) { const col = i % 2, row = Math.floor(i / 2); b.world.add((row + col) % 2 ? 6 : 7, 24 + col * 52, 86.4 - row * 44, { landed: true }); }
+  let t = 0; for (; t < 4 && !b.over; t += 1 / 60) b.tick(1 / 60, true);
+  const snap = JSON.stringify(b.world.bodies.map((o) => [o.x, o.y]));
+  for (let i = 0; i < 60; i++) b.tick(1 / 60, true);
+  ok(b.over === "overflow" && sc.overs === 1 && t < 1.6 && !b.canDrop() && !b.dropNow() && JSON.stringify(b.world.bodies.map((o) => [o.x, o.y])) === snap && !b.world.floorOpen && b.spills === 0, `スコア モードで あふれても おしまいに ならない（${t.toFixed(2)}びょう・${sc.overs}かい）`);
+  ok(b.world.bodies.some((o) => o.over > 0 && b.emo(o) === "sad") && b.world.bodies.some((o) => !(o.over > 0) && b.emo(o) === "surprise"), "おしまいの かお（はみだした 玉は かなしい・ほかは びっくり）");
+  // じぶんで やめる: おなじ ように とまる（かおは にっこり・あかい せんは ださない）
+  const st = new Board(sc, 8, { mode: "score", overSec: SCORE.overSec }); st.layout({ x: 8, y: 135, w: 374, h: 699 }); st.world.add(2, 50, 100, { landed: true });
+  st.end("stop"); st.end("overflow");
+  ok(st.over === "stop" && !st.canDrop() && st.emo(st.world.bodies[0]) === "happy" && sc.overs === 1, "やめた ときの おしまい");
+  // ハイスコア・ランキング（上から 5つ・おなじ 点は まえの きろくが うえ）・コイン・ひょうばん・めやす
+  const save0 = R.Save.d; R.Save.d = R.Save.fresh();
+  try {
+    const r1 = Score.record(120, "2026-10-1"), r2 = Score.record(80, "2026-10-1"), r3 = Score.record(120, "2026-10-2");
+    ok(r1.rank === 1 && r1.newBest && r2.rank === 2 && !r2.newBest && r3.rank === 2 && !r3.newBest && Score.best() === 120, `ランキングの じゅんい（${[r1.rank, r2.rank, r3.rank]}）`);
+    for (const v of [300, 10, 50]) Score.record(v, "2026-10-3");
+    const st = R.Save.d.shops.korokoro, last = Score.record(5, "2026-10-4");
+    ok(st.tops.length === 5 && st.tops.map((e) => e.s).join() === "300,120,120,80,50" && last.rank === 0 && st.hi === 300 && st.games === 7 && st.tops[1].d === "2026-10-1", `ランキングが 5つ・大きい じゅん（${st.tops.map((e) => e.s)}）`);
+    ok(Score.day("2026-10-1") === "10/1" && Score.day("") === "", "ランキングの 日づけ");
+  } finally { R.Save.d = save0; }
+  ok(Score.pay(0) === 0 && Score.pay(600) === 100 && Score.pay(10000) === SCORE.coinMax && Score.pay(600, "easy") < Score.pay(600) && Score.pay(600, "hard") > Score.pay(600) && Score.pay(600, "normal", 1.2) === 120, "スコア モードの コイン");
+  ok(Score.rep(0) === 0 && Score.rep(550) === 5 && Score.rep(99999) === SCORE.repMax && Score.grade(0) === 0 && Score.grade(400) === 2 && Score.grade(5000) === 3, "ひょうばん・めやす（×△○◎）");
+  // ボット: どれも いつかは おしまいに なる・かんがえて おとす ほど 点が たかい（こどもの はやさ）
+  const scoreGame = (seed, { every, noise, silly }) => {
+    const w = new World(seed, { overSec: SCORE.overSec }); seedR = seed * 7 + 3;
+    let held = w.pickDrop(), next = 0, t = 0, score = 0, gojis = 0;
+    for (; t < 1200; t += 1 / 60) {
+      if (t >= next) { w.dropAt(held, aimFor(w, held, noise, silly)); held = w.pickDrop(); next = t + every; }
+      let end = false;
+      for (const e of w.step(1 / 60)) { if (e.type === "merge" || e.type === "burst") score += e.points; if (e.type === "merge" && e.tier === T.length - 1) gojis++; if (e.type === "overflow") end = true; }
+      if (end || !w.ok()) break;
+    }
+    return { score, t, gojis, ok: w.ok() };
+  };
+  const med = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
+  for (const [name, bot] of [["でたらめ", { every: 1.2, noise: 0, silly: 1 }], ["こども", { every: 1.6, noise: 4, silly: 0.25 }]]) {
+    const games = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => scoreGame(seed, bot));
+    ok(games.every((g) => g.ok && g.t < 1199 && g.score > 0), `${name}: スコア モードが おわらない／こわれる`);
+    scoreTable.push({ name, score: med(games.map((g) => g.score)), secs: Math.round(med(games.map((g) => g.t))), gojis: games.reduce((k, g) => k + g.gojis, 0) });
+  }
+  ok(scoreTable[1].score > scoreTable[0].score * 1.3 && scoreTable[1].gojis >= 4, `かんがえて おとしても 点が あまり かわらない（${JSON.stringify(scoreTable)}）`);
+  // お店の モードえらび: ころころ フルーツ いがいは きかない
+  ok(await Score.choose({ shopId: "crepe" }) === "order", "ほかの お店で モードを きく");
+}
+
+console.log(`Korokoro: ${n} checks（${table.join(" ／ ")}／ スコア モード ${scoreTable.map((r) => `${r.name} ${r.score}てん・${r.secs}びょう`).join("・")}）`);

@@ -1,28 +1,28 @@
 // ころころ フルーツ（ネリカスタウンの おてつだい）の 物理。まるい 玉を 箱に おとし、おなじ もの どうしが ふれると 1つ 大きな ものに なる。
 // 描画・セーブ・時計に 依存しない（Node の 検査でも おなじ 結果）。長さの 単位は 箱の はば = 100、時間は 秒。
 // 玉は 位置で かさなりを なおす（小さな ステップを たくさん）→ 速さに もどす → はねかえり・まさつ・ころがり の じゅん。
+// だんは 8しゅ: くだもの 5しゅ（さくらんぼ → いちご → みかん → りんご → なし）の つぎが がちゃん → わんこ → ごじ（3人の かおの 玉）。
+// points: その だんの 2つが くっついた ときの 点（本物の スイカゲームと おなじ 三角数 1・3・6・10・15・21・28・36。ごじ どうしは きえて 36）
 const KOROKORO_TIERS = Object.freeze([
   { id: "cherry", name: "さくらんぼ", r: 4.6 },
-  { id: "wanko", name: "わんこ", r: 6.0, hero: "wanko" },
-  { id: "strawberry", name: "いちご", r: 7.2 },
-  { id: "gachan", name: "がちゃん", r: 8.6, hero: "gachan" },
-  { id: "goji", name: "ごじ", r: 10.0, hero: "goji" },
-  { id: "mikan", name: "みかん", r: 11.8 },
-  { id: "apple", name: "りんご", r: 13.8 },
-  { id: "pear", name: "なし", r: 15.8 },
-  { id: "peach", name: "もも", r: 18.0 },
-  { id: "melon", name: "メロン", r: 20.6 },
-  { id: "suika", name: "すいか", r: 23.6 },
+  { id: "strawberry", name: "いちご", r: 6.0 },
+  { id: "mikan", name: "みかん", r: 7.7 },
+  { id: "apple", name: "りんご", r: 10.0 },
+  { id: "pear", name: "なし", r: 12.4 },
+  { id: "gachan", name: "がちゃん", r: 15.4, hero: "gachan" },
+  { id: "wanko", name: "わんこ", r: 19.0, hero: "wanko" },
+  { id: "goji", name: "ごじ", r: 23.6, hero: "goji" },
 ].map((t, i) => Object.freeze({ ...t, tier: i, points: ((i + 1) * (i + 2)) / 2 })));
 
-// W×H: 箱の なか・drop: おちてくる 小さい ほうから 5しゅ・g: じゅうりょく・e: はねかえり・mu: まさつ
-// step: 物理の 1ステップ（1/480 びょう）・overSec: ふちより 上に この びょう いると あふれ・growSec: がったいで 大きく なる じかん
+// W×H: 箱の なか・drop: おちてくる 小さい ほうから 4しゅ（8しゅの はんぶん。本物は 11しゅの うち 5しゅ）・g: じゅうりょく・e: はねかえり・mu: まさつ
+// step: 物理の 1ステップ（1/480 びょう）・overSec: ふちより 上に この びょう いると あふれ（スコア モードは KorokoroWorld の overSec で みじかく）・growSec: がったいで 大きく なる じかん
 // warn: ふちから この ちかさで あかい せん・cool: おとしてから つぎを もてるまで・depen: かさなりを なおす ときの はなれる はやさの 上限
-const KOROKORO_RULES = Object.freeze({ W: 100, H: 110, drop: 5, g: 900, e: 0.12, mu: 0.3, step: 1 / 480, maxFrame: 1 / 15, vmax: 420, overSec: 2, growSec: 0.12, warn: 12, cool: 0.45, depen: 45 });
+const KOROKORO_RULES = Object.freeze({ W: 100, H: 110, drop: 4, g: 900, e: 0.12, mu: 0.3, step: 1 / 480, maxFrame: 1 / 15, vmax: 420, overSec: 2, growSec: 0.12, warn: 12, cool: 0.45, depen: 45 });
 
 class KorokoroWorld {
-  constructor(seed = 1) {
-    this.W = KOROKORO_RULES.W; this.H = KOROKORO_RULES.H;
+  // o.overSec: あふれ までの びょう（スコア モードは ほぼ すぐ）
+  constructor(seed = 1, o = {}) {
+    this.W = KOROKORO_RULES.W; this.H = KOROKORO_RULES.H; this.overSec = o.overSec > 0 ? o.overSec : KOROKORO_RULES.overSec;
     this.bodies = []; this.contacts = []; this.touch = new Map();
     this.serial = 0; this.t = 0; this.acc = 0; this.rng = (seed >>> 0) || 1;
     this.floorOpen = false; this.danger = 0; this.topGap = this.H;
@@ -46,7 +46,7 @@ class KorokoroWorld {
     for (const b of this.bodies) { const dx = Math.abs(b.x - x), rs = r + b.r; if (dx < rs) y = Math.min(y, b.y - Math.sqrt(rs * rs - dx * dx)); }
     return y;
   }
-  // 1フレームぶん すすめる。できごと（がったい・すいかの はれつ）を かえす
+  // 1フレームぶん すすめる。できごと（がったい・ごじの はれつ）を かえす
   step(dt) {
     const events = [];
     if (!(dt > 0)) return events;
@@ -123,7 +123,8 @@ class KorokoroWorld {
       if (v2 > R.vmax * R.vmax) { const k = R.vmax / Math.sqrt(v2); b.vx *= k; b.vy *= k; }
     }
   }
-  // ふれた おなじ もの どうしを 1つに（1つの 玉は 1フレームに 1かいだけ）。すいか どうしは はじけて きえる
+  // ふれた おなじ もの どうしを 1つに（1つの 玉は 1フレームに 1かいだけ）。いちばん 大きい ごじ どうしは はじけて きえる
+  // できごとの points は くっついた 2つの だんの 点・hero は できた 玉の 子（ごじ どうしは ごじ）
   merge(events) {
     if (!this.touch.size) return;
     const pairs = [...this.touch.entries()].sort((p, q) => p[0] - q[0]).map((p) => p[1]), used = new Set(), gone = [], last = KOROKORO_TIERS.length - 1;
@@ -132,10 +133,10 @@ class KorokoroWorld {
       const dx = b.x - a.x, dy = b.y - a.y;
       if (dx * dx + dy * dy > (a.r + b.r + 2) ** 2) continue;
       used.add(a); used.add(b); gone.push(a, b);
-      const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2, hero = KOROKORO_TIERS[a.tier].hero || null;
-      if (a.tier === last) { events.push({ type: "burst", tier: a.tier, x, y }); continue; }
+      const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2, points = KOROKORO_TIERS[a.tier].points;
+      if (a.tier === last) { events.push({ type: "burst", tier: a.tier, x, y, points, hero: KOROKORO_TIERS[last].hero || null }); continue; }
       const nb = this.add(a.tier + 1, x, y, { from: a.tier, vx: (a.vx + b.vx) / 2, vy: (a.vy + b.vy) / 2, a: (a.a + b.a) / 2, born: "merge", landed: true });
-      events.push({ type: "merge", tier: nb.tier, x, y, body: nb, hero });
+      events.push({ type: "merge", tier: nb.tier, from: a.tier, x, y, body: nb, points, hero: KOROKORO_TIERS[nb.tier].hero || null });
     }
     this.touch.clear();
     if (gone.length) this.remove(gone);
@@ -157,9 +158,9 @@ class KorokoroWorld {
     }
     if (this.floorOpen) { const out = this.bodies.filter((b) => b.y - b.r > this.H + 8); if (out.length) this.remove(out); if (!this.bodies.length) this.floorOpen = false; danger = 0; }
     this.danger = danger; this.topGap = gap;
-    if (!this.floorOpen && danger >= KOROKORO_RULES.overSec) events.push({ type: "overflow" });
+    if (!this.floorOpen && danger >= this.overSec) events.push({ type: "overflow" });
   }
-  // あふれた ときは ゆかを ひらいて ぜんぶ おとす（つぎの ちゅうもんも つづけられる）
+  // あふれた ときは ゆかを ひらいて ぜんぶ おとす（ちゅうもん モード: つぎの ちゅうもんも つづけられる）
   spill() { this.floorOpen = true; for (const b of this.bodies) { b.over = 0; b.vy = Math.max(b.vy, 40); } }
   count(tier) { return this.bodies.reduce((n, b) => n + (b.tier === tier ? 1 : 0), 0); }
   ok() { return this.bodies.every((b) => [b.x, b.y, b.vx, b.vy, b.a, b.w].every(Number.isFinite)); }

@@ -305,6 +305,18 @@ html, body {
 .result-rows { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 10px 14px; font-weight: 800; }
 .result-rows .r { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 2px dashed #eadcc0; }
 .result-rows .r:last-child { border-bottom: none; }
+/* ころころ フルーツの スコア モード（js/korokoro-score.js）: ランキングと 2つの ボタン */
+.koro-rank { margin-top: 8px; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 6px 12px; font-weight: 800; }
+.koro-rank-title { text-align: center; font-size: 13px; color: #8a7d6a; margin-bottom: 2px; }
+.koro-rank-row { display: flex; align-items: center; gap: 8px; padding: 2px 4px; border-bottom: 2px dashed #eadcc0; font-size: 14px; }
+.koro-rank-row:last-child { border-bottom: none; }
+.koro-rank-row .n { width: 2.4em; color: #8a7d6a; }
+.koro-rank-row .s { flex: 1; text-align: right; }
+.koro-rank-row .d { width: 3.6em; text-align: right; font-size: 12px; color: #8a7d6a; white-space: nowrap; }
+.koro-rank-row.now { background: var(--yellow-l); border-radius: 8px; }
+.koro-rank-row.now .d { color: #e8453c; }
+.koro-foot { display: flex; gap: 8px; width: 100%; }
+.koro-foot .btn { flex: 1; min-height: 48px; padding: 8px 6px; white-space: nowrap; }
 
 /* ---- タイトル ---- */
 .title-ui { position: absolute; left: 0; right: 0; bottom: calc(40px + var(--safe-b)); display: flex; flex-direction: column; align-items: center; gap: 12px; }
