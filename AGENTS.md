@@ -86,7 +86,7 @@
 - 着手前に `game/docs/ROADMAP_V2.md` の該当項目と「受け入れ条件」を読む。終わったら その項目に ✅ を付ける。
 - 迷ったら、既存のコードの書き方（名前の付け方・コメントの量・ひらがなの文言）に合わせる。
 - 大きな作り直し（ファイル構成の変更・描画方式の変更・全面的なリファクタ）は、先に提案してオーナーの了解をもらう。
-- **いまの 分担（2026-09-28〜）**: Codex は エリア（マップ・町の 配置・道・建物の 場所）。Claude Code は 絵と アイテム（水の 絵 `js/water-art.js`・町の人の 見た目・家具の 絵と さわる 機能・ぱぱ ままの おしごとと おるすばん・音楽プレイヤーと ディスク）と、サンシャインいけぶ の 中（`js/ike-mall.js`・12F／13F の すいぞくかん `js/ike-aquarium.js` など。2026-09-29 から）。一覧は `game/docs/ROADMAP_V2.md` の M9。あいての 担当の ファイルを 大きく かえる ときは、先に あいて いる PR を 見て ぶつからない ように する。
+- **いまの 分担（2026-09-28〜）**: Codex は エリア（マップ・町の 配置・道・建物の 場所）。Claude Code は 絵と アイテム（水の 絵 `js/water-art.js`・町の人の 見た目・家具の 絵と さわる 機能・ぱぱ ままの おしごとと おるすばん・音楽プレイヤーと ディスク）と、サンシャインいけぶ の 中（`js/ike-mall.js`・12F／13F の すいぞくかん `js/ike-aquarium.js` など。2026-09-29 から）と、はたけ（`js/farm-art.js`・`js/farm.js`。2026-09-30 から）。一覧は `game/docs/ROADMAP_V2.md` の M9。あいての 担当の ファイルを 大きく かえる ときは、先に あいて いる PR を 見て ぶつからない ように する。
 
 ### 完了の条件（Definition of Done）
 
@@ -128,6 +128,7 @@
 | `js/aqua-art.js` / `js/ike-aquarium.js` | サンシャインいけぶ 12F・13F の すいぞくかん（みなとから おひっこし）。かべの 水そう・トンネル・そらの テラスの 絵（`AquaArt`）と、ぐるっと 一周 できる 順路・へやの 案内・きふ（`IkeAquarium`） |
 | `js/arcade-prizes.js` / `js/crane-physics.js` / `js/crane-art.js` / `js/crane-machines.js` / `js/crane-scene.js` | クレーンゲーム（池袋 Meeときょれじゃ の 12台）。景品の ぬいぐるみ（3人の 表情・ポーズ ちがい・町の人・ミニマスコット）と コインの 上限（`ArcadePrizes`）・物理（`CranePhys`）・景品と 台の 絵（`CraneArt`）・12台の しかけと 1かいの あそび（`CraneMachines`・`CraneRound`）・画面と 100コイン・ごほうび・つづきから（`SCENES.prize`・`PrizeArcade`） |
 | `js/korokoro-physics.js` / `js/korokoro-art.js` / `js/mg-korokoro.js` / `js/korokoro-score.js` / `js/korokoro-prizes.js` / `js/korokoro-town.js` | ころころ フルーツ（ネリカスタウンの パズルの おてつだい。スイカゲームの ような おちもの パズル。だんは さくらんぼ → いちご → みかん → りんご → なし → がちゃん → わんこ → ごじ）。玉の 物理・がったい・あふれ（`KorokoroWorld`）・くだもの と 3人の かおの 玉の 絵（`KorokoroArt`）・はこと ちゅうもん モード（`KorokoroBoard`・`KorokoroTask`）・本物の スイカゲームと おなじ きまりの スコア モード（`KorokoroScore`・`SCENES.koroscore`。ハイスコアと ランキングは `shops.korokoro.hi`・`tops`）・ハイスコアの ごほうびの フルーツの とくべつな かぐ 6つ（`KOROKORO_PRIZES`・`KorokoroPrizes`。立体モデルと さわる うごき）・お店（nerikasu_home5 を かえる `KorokoroTown`。建物の 原画は `tools/town-design/nerikasu-buildings.mjs`） |
+| `js/farm-art.js` / `js/farm.js` | はたけ（ネリカスタウンの おうちの ひだり・まえの やおや の ところ）。さくもつ 13しゅの 5だんかいの 絵・つち・どうぐ・あたらしい 食べ物の 絵（`FarmArt`）と、たねまき・みずやり・ほんとうの じかんで そだつ・あめ・ひりょう・しゅうかく・町の はたけ 6まい・はたけの がめん（`Farm`・`FARM_CROPS`・`SCENES.farm`） |
 | `js/arcade-art.js` / `js/ike-arcade.js` | Meeときょれじゃ の 館（サンシャインいけぶ と おなじ 斜め上）。台・ガチャ・ぷりくら・カウンターの 絵（`ArcadeArt`）と 28×22 マスの 配置・フロアマップ・こうかんの 店・BGM（`IkeArcade`） |
 | `js/ikebukuro-town.js` / `js/ikebukuro-town-art.js` | 池袋の 町（オーナーの 配置イメージどおり: 西に 駅・上に ネリカス電機／Meeときょれじゃ／サンシャインいけぶ・ななめの 東通りと サンシャイン60どおり・下に 緑の大通り）。道・建物・人・小物・地面・電車・夜の あかり（`IkebukuroTown`）と 建物・めじるしの 絵（**自動生成**。原画は `tools/town-design/ikebukuro-buildings.mjs`、`node tools/build-ikebukuro-town.mjs`） |
 | `js/nerikasu-layout.js` | ネリカスタウン（オーナーの 配置イメージどおり・78×72）。ななめの 大通り・道・建物 36・公園 2つ・池 3つ（どこでも つれる）・憩いの森・はたけ・住人 34人の 場所（`NerikasuLayout`）。建物の 原画は `tools/town-design/nerikasu-buildings.mjs`（`js/nerikasu-town-art.js` に 生成）。設計は `docs/design/towns/nerikasu/README.md` |

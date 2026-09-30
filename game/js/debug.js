@@ -519,6 +519,33 @@ const PokaDebug = {
     if (sc && sc.mapId === m) { const r = G.canvas.getBoundingClientRect(), q = WorldZoom.toScreen(sc, o.x * TS + 16, o.y * TS + 8); out.cx = r.left + q.x * G.cssPerUnit; out.cy = r.top + q.y * G.cssPerUnit; }
     return out;
   },
+  // はたけ（js/farm.js）: 6まいの ようす（c・s・w・f・t・n と info〔state・text・left〕・yield）・しゅうかくの きろく・がめんに いるか・3人の ばしょ
+  farm() {
+    Farm.update();
+    const f = Farm.st(), sc = G.sceneName === "farm" ? G.scene : null;
+    return { plots: f.plots.map((p, i) => ({ ...p, info: Farm.info(i), yield: Farm.yieldOf(i) })), harvests: f.harvests, sown: f.sown, fert: f.fert, got: { ...f.got }, first: { ...f.first }, tier: Farm.tier(), scene: !!sc, busy: !!sc?.busy, acting: !!Farm.acting, team: sc ? sc.team.map((t) => ({ id: t.id, x: t.x, y: t.y, moving: !!t.moving })) : null };
+  },
+  // はたけ i の タップする ばしょ: はたけの がめん → 区画の なか（cx, cy）・町 → 小物の マス（x, y, w, h）・まえの マス front・いれば 画面の ばしょ（2れつめの うえの マス）
+  farmPlotAt(i) {
+    const r = G.canvas.getBoundingClientRect();
+    if (G.sceneName === "farm") { const p = G.scene.plots[i]; return { cx: r.left + (p.x + p.w / 2) * G.cssPerUnit, cy: r.top + (p.y + p.h * 0.35) * G.cssPerUnit }; }
+    const o = MAP_DEFS.town.objects.find((o) => o.farmPlot === i);
+    if (!o) return null;
+    const out = { x: o.x, y: o.y, w: o.w, h: o.h, front: { x: o.x + 1, y: o.y + o.h } };
+    if (G.sceneName === "world" && G.scene.mapId === "town") { const q = WorldZoom.toScreen(G.scene, (o.x + 1) * TS + 16, o.y * TS + 16); out.cx = r.left + q.x * G.cssPerUnit; out.cy = r.top + q.y * G.cssPerUnit; }
+    return out;
+  },
+  // はたけの かんばん（町）: マス・まえの マス・画面の ばしょ
+  farmSignAt() {
+    const o = MAP_DEFS.town.objects.find((o) => o.farmSign), r = G.canvas.getBoundingClientRect();
+    const out = { x: o.x, y: o.y, front: { x: o.x, y: o.y + 1 } };
+    if (G.sceneName === "world" && G.scene.mapId === "town") { const q = WorldZoom.toScreen(G.scene, o.x * TS + 16, o.y * TS + 12); out.cx = r.left + q.x * G.cssPerUnit; out.cy = r.top + q.y * G.cssPerUnit; }
+    return out;
+  },
+  // はたけの じかんを min ぷん すすめる（まいた じかんを まえに ずらす）
+  farmSkip(min) { Farm.skip(min); return this.farm(); },
+  // はたけの がめんへ（かえりは かんばんの まえ）
+  farmGo() { const s = this.farmSignAt(); Game.goto("farm", { back: { map: "town", x: s.front.x, y: s.front.y, dir: "up" } }, "none"); return true; },
   // ② ついて きて いる こねこ（いなければ null）
   folkKitten() { const k = G.sceneName === "world" && G.scene.follower; return k ? { x: k.w.tx, y: k.w.ty, trail: k.trail.length } : null; },
   // ③ 釣り: いけすに 入れる（ずかんにも のる。大きさは Fishing.size）。いまの ずかんの きろくを かえす

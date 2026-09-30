@@ -3133,6 +3133,7 @@ await (await import("./nerikasu-town-smoke.mjs")).nerikasuTownSmoke({scenario,ex
 await (await import("./nerikasu-shops-smoke.mjs")).nerikasuShopsSmoke({scenario,expect});
 await (await import("./nerikasu-work-smoke.mjs")).nerikasuWorkSmoke({scenario,expect});
 await (await import("./nerikasu-quests-smoke.mjs")).nerikasuQuestsSmoke({scenario,expect,folkTalk,folkTapSpot});
+await (await import("./farm-smoke.mjs")).farmSmoke({scenario,expect});
 
 await (await import("./world-zoom-smoke.mjs")).worldZoomSmoke({scenario,expect});
 
