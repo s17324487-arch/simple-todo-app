@@ -29,7 +29,7 @@ const HomeDoors = {
   },
   // タップした ドア（3人・さわれる かぐが かさなって いたら そちらが さき。ぱぱ まま は タップしても なにも しないので ドアが さき）
   at(sc, p) {
-    if (sc.mode || sc.watching || sc.life.quarrel || !p.tap || sc.panDrag?.moved) return null;
+    if (sc.mode || sc.watching || sc.life.quarrel || !p.tap || sc.panDrag?.moved || sc.gesture) return null; // ピンチの ゆびは タップに しない
     if (sc.chars.some((c) => !c.hidden && sc.contains(sc.actorRect(c), p))) return null;
     const r = sc.toRoom(p.x, p.y), it = sc.hitItem(r.x, r.y);
     if (it && FURN_INDEX[it.id].interactive) return null;

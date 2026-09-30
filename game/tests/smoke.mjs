@@ -97,6 +97,17 @@ function helpers(page, name) {
     eval: (fn, arg) => page.evaluate(fn, arg),
     until: (fn, ms = 10000, arg) => page.waitForFunction(fn, arg, { timeout: ms*WAIT_SCALE, polling: 100 }),
     dbg: (method, ...args) => page.evaluate(([m, a]) => window.PokaDebug[m](...a), [method, args]),
+    // 2本ゆびの ピンチ: (cx, cy) を まんなかに、ゆびの あいだを d0 → d1 に（canvas に タッチの PointerEvent を おくる。Chromium も WebKit も おなじ）
+    async pinch(cx, cy, d0, d1, steps = 8) {
+      await page.evaluate(async ([cx, cy, d0, d1, steps]) => {
+        const cv = document.getElementById("screen"), ev = (type, id, x, y) => cv.dispatchEvent(new PointerEvent(type, { pointerId: id, pointerType: "touch", isPrimary: id === 71, clientX: x, clientY: y, bubbles: true, cancelable: true }));
+        const at = (d) => [[71, cx - d / 2, cy], [72, cx + d / 2, cy]], frame = () => new Promise((r) => requestAnimationFrame(() => r()));
+        for (const [id, x, y] of at(d0)) ev("pointerdown", id, x, y);
+        for (let i = 1; i <= steps; i++) { for (const [id, x, y] of at(d0 + ((d1 - d0) * i) / steps)) ev("pointermove", id, x, y); await frame(); }
+        for (const [id, x, y] of at(d1)) ev("pointerup", id, x, y);
+      }, [cx, cy, d0, d1, steps]);
+      await page.waitForTimeout(120);
+    },
     async shot(label, {pause=true} = {}) {
       if (!SHOTS) return;
       // フォント/描画待ちでゲームの制限時間を消費しない。
@@ -1952,7 +1963,6 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(w.label==="おしごと ちゅう","ボタンが「おしごと ちゅう」に ならない "+w.label);
   const btn=H.page.getByRole("button",{name:"おしごと ちゅう",exact:true}),r=await btn.boundingBox();
   expect(r&&r.height>=44&&r.x>=0&&r.x+r.width<=viewport.width,"「おしごと ちゅう」の ボタンが 小さい／はみ出す");
-  for(const b of await H.page.locator(".home-view-controls button").all()){const q=await b.boundingBox();expect(q.x+q.width<=r.x||q.x>=r.x+r.width||q.y+q.height<=r.y||q.y>=r.y+r.height,"ボタンが かさなる");}
   await btn.click();await H.wait(250);
   expect(await H.page.getByText("ぱぱと ままは おしごとに いって いるよ",{exact:false}).count()>0,"おしごとの せつめいが 出ない");
   await H.shot("away-modal");await H.page.getByRole("button",{name:"わかった！",exact:true}).click();
@@ -2228,12 +2238,19 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.getByRole("button",{name:"かべを かえる",exact:true}).click();
   expect((await H.dbg("homeDesign")).items.find(it=>it.id==="map_frame").wallSide==="back","右の壁へ移せない");
   await H.page.getByRole("button",{name:"かべを かえる",exact:true}).click();
-  for(const b of await H.page.locator(".home-view-controls button,.edit-tools button").all()){const r=await b.boundingBox();expect(r.height>=44&&r.x>=0&&r.x+r.width<=viewport.width,"操作ボタンが小さい/画面外");}
-  await H.page.getByRole("button",{name:"おへやを おおきく",exact:true}).click();expect((await H.dbg("homeDesign")).zoom===1.25,"拡大できない");
-  await H.page.mouse.move(20,120);await H.page.mouse.down();await H.page.mouse.move(55,150,{steps:10});await H.page.mouse.up();
-  expect(Math.abs((await H.dbg("homeDesign")).pan.x)>5,"拡大後に画面を動かせない");
-  await H.page.getByRole("button",{name:"おへやを ぜんたいに",exact:true}).click();d=await H.dbg("homeDesign");
-  expect(d.zoom===1&&d.pan.x===0&&d.pan.y===0,"全体表示に戻らない");await H.shot("editing");
+  for(const b of await H.page.locator(".edit-tools button").all()){const r=await b.boundingBox();expect(r.height>=44&&r.x>=0&&r.x+r.width<=viewport.width,"操作ボタンが小さい/画面外");}
+  // ズームは 2本ゆびの ピンチ（ボタンは ない）。ゆびを ひろげると おおきく、1本ゆびの ドラッグで うごかす、とじると ぜんたいに もどる
+  expect(await H.page.locator(".home-view-controls").count()===0,"ズームの ボタンが のこって いる");
+  const sel0=(await H.dbg("homeDesign")).selected;
+  await H.pinch(viewport.width/2,viewport.height*0.5,70,150);d=await H.dbg("homeDesign");expect(d.zoom>1.8&&d.mode==="edit"&&d.selected===sel0,"ピンチで 拡大できない／えらんだ かぐが かわる "+JSON.stringify([d.zoom,d.mode,d.selected,sel0]));
+  // かぐの ない ところから 1本ゆびで ドラッグ（ひろげた 画面では 左上にも かぐが 見える）
+  const free=await H.eval(items=>{const cv=document.getElementById("screen"),ok=(x,y)=>document.elementFromPoint(x,y)===cv&&!items.some(it=>it.rect&&x>=it.rect.x-10&&x<=it.rect.x+it.rect.w+10&&y>=it.rect.y-10&&y<=it.rect.y+it.rect.h+10);
+    for(let y=100;y<innerHeight-120;y+=24)for(let x=16;x<innerWidth-60;x+=24)if(ok(x,y)&&ok(x+35,y+30))return [x,y];return null;},d.items);
+  expect(free,"ひろげた 画面で かぐの ない ところが ない");
+  const pan0=d.pan.x;await H.page.mouse.move(free[0],free[1]);await H.page.mouse.down();await H.page.mouse.move(free[0]+35,free[1]+30,{steps:10});await H.page.mouse.up();
+  expect(Math.abs((await H.dbg("homeDesign")).pan.x-pan0)>5,"拡大後に画面を動かせない "+JSON.stringify(free));
+  await H.pinch(viewport.width/2,viewport.height*0.5,170,40);d=await H.dbg("homeDesign");
+  expect(d.zoom===1&&d.pan.x===0&&d.pan.y===0,"ピンチで 全体表示に戻らない "+JSON.stringify([d.zoom,d.pan]));await H.shot("editing");
   await H.page.locator(".edit-bar .btn.yellow").click();await H.wait(100);
   // 家具と話者のタップ判定は表示された位置を基準にする。
   d=await H.dbg("homeDesign");const cage=d.items.find(it=>it.id==="birdcage_brass");
@@ -2298,8 +2315,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.houseButton("おへや");await H.page.locator('[data-room="main"]').getByRole("button",{name:"このへやへ",exact:true}).click();await H.idle();
   await H.dbg("save");await H.page.reload();await H.page.getByRole("button",{name:"つづきから",exact:true}).click();await H.idle();
   d=await H.dbg("homeDesign");expect(d.expanded&&d.stored.expanded.study&&d.width*d.depth===480*360*2&&JSON.stringify(raw(d.items))===JSON.stringify(arranged)&&(await H.dbg("state")).coins===975654,"再開で拡張・家具・おかねが変わった");
-  await H.page.getByRole("button",{name:"おへやを おおきく",exact:true}).click();expect((await H.dbg("homeDesign")).zoom===1.25,"拡張後に拡大できない");
-  await H.page.getByRole("button",{name:"おへやを ぜんたいに",exact:true}).click();
+  await H.pinch(viewport.width/2,viewport.height*0.5,80,130);expect((await H.dbg("homeDesign")).zoom>1.4,"拡張後に拡大できない");
+  await H.pinch(viewport.width/2,viewport.height*0.5,160,40);expect((await H.dbg("homeDesign")).zoom===1,"拡張後に全体に戻らない");
 },{viewport,full:viewport.width===375,timeout:120000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`落ち葉・背景に固定（${viewport.width}）`,async H=>{

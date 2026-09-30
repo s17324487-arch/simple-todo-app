@@ -7,11 +7,12 @@ export async function homeGardenSmoke({scenario,expect}){
   let v=await H.dbg('homeDesign');expect(v.background.includes(':yard:'),'お庭の背景');expect(v.actors.filter(a=>['wanko','gachan','goji'].includes(a.id)).length===3,'3人がいない');
   for(const changed of [viewport.width===390?{width:375,height:667}:{width:390,height:844},viewport]){
    await H.page.setViewportSize(changed);await H.wait(200);
-   const controls=await H.page.locator('.home-view-controls').boundingBox(),care=await H.page.locator('.care-bar').boundingBox();
+   const controls=await H.page.locator('.parent-open').boundingBox(),care=await H.page.locator('.care-bar').boundingBox();
    expect(controls.y>=care.y+care.height+4,'画面サイズ変更で操作ボタンがおなか表示と重なる');
   }
-  await H.page.getByRole('button',{name:'おへやを おおきく',exact:true}).click();await H.page.getByRole('button',{name:'おへやを ぜんたいに',exact:true}).click();
-  expect(!await H.page.locator('.home-view-controls').evaluate(e=>e.classList.contains('raised')),'通常の拡大操作でボタン位置が入れ替わる');
+  // おにわでも 2本ゆびの ピンチで ズーム → とじると ぜんたいに もどる
+  await H.pinch(viewport.width/2,viewport.height*0.55,70,140);expect((await H.dbg('homeDesign')).zoom>1.5,'おにわで ピンチの 拡大が できない');
+  await H.pinch(viewport.width/2,viewport.height*0.55,150,40);const z=await H.dbg('homeDesign');expect(z.zoom===1&&z.pan.x===0&&z.pan.y===0,'おにわで ピンチで 全体に もどらない');
   await H.shot('resized');await H.shot('garden');await H.houseButton('もようがえ');expect(await H.page.getByRole('button',{name:'かべがみ',exact:true}).count()===0,'お庭に室内の壁タブ');await H.page.getByRole('button',{name:'おわる',exact:true}).click();
   await H.houseButton('おへや');await H.page.getByRole('button',{name:'かぐの プリセット',exact:true}).click();await H.page.locator('[data-preset="0"]').getByRole('button',{name:'いまの へやを ほぞん',exact:true}).click();await H.page.locator('.dlg-shade input').fill('おちゃの にわ');await H.page.getByRole('button',{name:'けってい',exact:true}).click();await H.page.keyboard.press('Escape');await H.idle();
   await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();expect((await H.dbg('saveData')).rooms.active==='yard','再読み込みで別室になる');expect((await H.dbg('roomPresets'))[0].name==='おちゃの にわ','庭プリセット消失');
