@@ -52,7 +52,7 @@ const PokaDebug = {
       "PokaDebug.house()                     おうちへ",
       "PokaDebug.worldZoom(0.5)              町の ズーム（0.5〜1.5・なしで ようす・第2引数 true で ゆっくり）。worldPoint(x, y) で マスの 画面の 位置",
       "PokaDebug.homeDoors()                 おうちの ドア（おでかけ・おへや・おにわの うらぐち）の 画面の ばしょと いける へや",
-      "PokaDebug.homeFloor()                 おうちの 2かい（かいだん・1かいと 2かいの 画面の ばしょ・のぼって いるか）",
+      "PokaDebug.homeFloor()                 おうちの 2かい（かいだん・1かいと 2かいの 画面の ばしょ・かたち polys・のぼって いるか）",
       "PokaDebug.fishSpawn('magoi', 60)      3人の ちかくに 魚の かげ（cm で ながさが きまる）。fishAuto(false, true) で かってに 出さない",
       "PokaDebug.fishAim()                   かげの あたまの まえ（ながおしする 画面の ばしょ）。fishState() で うき・かげ・じまんの ようす",
       "PokaDebug.smaho('map')                すまほを ひらく（アプリ id: map・status・bag・dex・event・rally・hint・fortune・rewards・music。なしで ホーム・null で とじる）",

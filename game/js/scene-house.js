@@ -33,6 +33,7 @@ class HouseScene {
     DailyPlay.visit();
     this.mode = null;
     this.zoom = 1; this.pan = { x: 0, y: 0 };
+    this.fingers = new Map(); this.pinch = null; this.gesture = false;
     this.fxs = [];
     HomeLife.init(this);
     this.chars = Save.d.order.map((id, i) => ({ id, x: 160 + i * 80, y: 430 + (i % 2) * 35, dir: "down", state: "idle", t: U.rand(0.5, 2.5), anim: Math.random() * 2, emo: null, hidden: false, jumpT: -1 }));
@@ -43,11 +44,15 @@ class HouseScene {
     Save.d.world = { ...TownRenewal.homeExit(), house: true };
     this.buildUI();
     this.statusTimer = setInterval(() => this.updateCare(), 1500);
+    // パソコンでは マウスの ホイール（トラックパッドの ピンチ）で ズーム
+    this.onWheel = (e) => { e.preventDefault(); if (!this.pinchable() || Game.inputLocked) return; const r = G.canvas.getBoundingClientRect(); this.zoomAt(this.zoom * Math.exp(-U.clamp(e.deltaY, -120, 120) * 0.0022), ((e.clientX - r.left) / r.width) * G.W, ((e.clientY - r.top) / r.height) * G.H); };
+    G.canvas.addEventListener("wheel", this.onWheel, { passive: false });
     if (p.intro) setTimeout(() => this.intro(), 500);
     else if (p.msg) setTimeout(() => UI.toast(p.msg), 400);
   }
   exit() {
     clearInterval(this.statusTimer);
+    if (this.onWheel) G.canvas.removeEventListener("wheel", this.onWheel);
     if (this.ui) this.ui.remove();
     if (this.editUI) this.editUI.remove();
     if (this.tools) this.tools.remove();
@@ -66,16 +71,33 @@ class HouseScene {
     this.pan.x = U.clamp(this.pan.x, -maxX, maxX); this.pan.y = U.clamp(this.pan.y, -maxY, maxY);
     this.ox = (G.W - b.w * this.s) / 2 - b.x * this.s + this.pan.x;
     this.oy = top + (G.H - top - bottom - b.h * this.s) / 2 - b.y * this.s + this.pan.y;
-    this.viewControls?.classList.toggle("raised", editing || !!this.watching);
     this.parentButton?.classList.toggle("hidden", !!this.mode);
     this.placeTools();
   }
   resize() { this.layout(); }
-  setZoom(delta) {
-    const levels = [1, 1.25, 1.5, 1.75];
-    this.zoom = delta === 0 ? 1 : levels[U.clamp(levels.indexOf(this.zoom) + delta, 0, levels.length - 1)];
-    if (delta === 0) this.pan = { x: 0, y: 0 };
-    this.layout(); Sound.se("tap");
+  // ---- ズーム: 2本ゆびの ピンチ（オーナーの FB 2026-09-30。ボタンは ない）----
+  // 1〜ZMAX ばい。ゆびの まんなかの ところを ゆびの 下に のこしたまま 大きく／小さく する（2本ゆびで うごかす ことも できる）。
+  // いちばん 小さく すると ぜんたいが 見える もとの 画面（まんなか）に もどる。
+  get ZMAX() { return 2; }
+  pinchable() { return (!this.mode || this.mode === "edit") && !this.climb && !UI.busy; }
+  zoomAt(z, cx, cy, q = null) {
+    const s0 = this.s, p = q || { x: (cx - this.ox) / s0, y: (cy - this.oy) / s0 }; // ゆびの 下の 点（へやの 絵の 座標）
+    this.zoom = U.clamp(z, 1, this.ZMAX);
+    if (this.zoom < 1.01) { this.zoom = 1; this.pan = { x: 0, y: 0 }; this.layout(); return; }
+    this.layout();
+    this.pan.x += cx - (this.ox + p.x * this.s); this.pan.y += cy - (this.oy + p.y * this.s);
+    this.layout();
+  }
+  startPinch() {
+    const [a, b] = [...this.fingers.values()], cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+    if (this.drag?.moved) Save.mark();
+    this.drag = null; this.panDrag = null; this.gesture = true;
+    if (this.mode === "edit" && this.sel !== this.touchSel) this.select(this.touchSel || null);
+    this.pinch = { ids: [a.id, b.id], d0: Math.max(24, Math.hypot(a.x - b.x, a.y - b.y)), z0: this.zoom, q: { x: (cx - this.ox) / this.s, y: (cy - this.oy) / this.s } };
+  }
+  movePinch() {
+    const P = this.pinch, [a, b] = P.ids.map((id) => this.fingers.get(id));
+    this.zoomAt(P.z0 * Math.max(24, Math.hypot(a.x - b.x, a.y - b.y)) / P.d0, (a.x + b.x) / 2, (a.y + b.y) / 2, P.q);
   }
   toScreen(x, y, z = 0) { const p = HomeDesign.project(x, y - ROOM.WALL, z); return { x: this.ox + p.x * this.s, y: this.oy + p.y * this.s }; }
   toRoom(sx, sy) { const p = HomeDesign.inverse((sx - this.ox) / this.s, (sy - this.oy) / this.s); return { x: p.x, y: p.y + ROOM.WALL }; }
@@ -161,11 +183,6 @@ class HouseScene {
     this.ui.append(this.watchExit);
     this.parentButton=UI.btn("ぱぱ・まま",()=>{if(!this.mode&&!UI.busy)ParentCare.open(this);},"parent-open small");
     this.ui.append(this.parentButton);
-    this.viewControls = U.el("div", { class: "home-view-controls" });
-    for (const [label, title, delta] of [["−", "おへやを ちいさく", -1], ["＋", "おへやを おおきく", 1], ["全体", "おへやを ぜんたいに", 0]]) {
-      const b = UI.btn(label, () => this.setZoom(delta), "small"); b.setAttribute("aria-label", title); this.viewControls.append(b);
-    }
-    this.ui.append(this.viewControls);
     document.getElementById("ui").append(this.ui);
     this.updateCare();
   }
@@ -178,7 +195,7 @@ class HouseScene {
         <div class="lbl" style="font-size:9px;margin-top:2px"><span>ごきげん</span></div>${UI.meter(c.mood, 100, "mood")}</div>`;
     }).join("");
   }
-  showBar(on) { this.bar.classList.toggle("hidden", !on); this.care.classList.toggle("hidden", !on); this.parentButton.classList.toggle("hidden", !on); this.viewControls.classList.toggle("hidden", !on && this.mode !== "edit"); }
+  showBar(on) { this.bar.classList.toggle("hidden", !on); this.care.classList.toggle("hidden", !on); this.parentButton.classList.toggle("hidden", !on); }
 
   async intro() {
     HomeLife.converse(this,[{who:'wanko',text:'ここが ぼくたちの おうち！'},{who:'gachan',text:'ごはんボタンで ごはんを たべよう♪'},{who:'goji',text:'ぼくたちを タップして なでてね！'}]);
@@ -565,7 +582,13 @@ class HouseScene {
   }
 
   // ---- 入力 ----
+  // 2本めの ゆびが ついたら ピンチ（かぐの ドラッグ・画面の ドラッグは やめる）。ピンチの あとは ゆびを ぜんぶ はなすまで タップに しない
   down(p) {
+    for (const id of this.fingers.keys()) if (!Game.pointers.has(id)) this.fingers.delete(id); // はなした ことに きづかなかった ゆび
+    if (!this.fingers.size) this.touchSel = this.sel; // ピンチに なったら えらんで いた かぐに もどす
+    this.fingers.set(p.id, p);
+    if (this.fingers.size >= 2) { if (!this.pinch && this.fingers.size === 2 && this.pinchable()) this.startPinch(); return; }
+    if (this.gesture) return;
     const r = this.toRoom(p.x, p.y);
     if (this.mode === "ball") { this.ballTap(r.x, r.y); return; }
     if (this.mode === "edit") {
@@ -580,6 +603,8 @@ class HouseScene {
     if (!this.mode || this.mode === "edit") this.panDrag = { sx: p.x, sy: p.y, x: this.pan.x, y: this.pan.y, moved: false };
   }
   move(p) {
+    if (this.pinch) { if (this.pinch.ids.includes(p.id)) this.movePinch(); return; }
+    if (this.gesture || this.fingers.size > 1) return;
     if (this.panDrag) {
       const d = this.panDrag;
       if (Math.hypot(p.x - d.sx, p.y - d.sy) < 6 && !d.moved) return;
@@ -592,6 +617,9 @@ class HouseScene {
     this.clampItem(d.it); this.placeTools();
   }
   up(p) {
+    this.fingers.delete(p.id);
+    if (this.pinch && this.pinch.ids.includes(p.id)) this.pinch = null;
+    if (this.gesture) { if (!this.fingers.size) this.gesture = false; return; }
     const panned = this.panDrag?.moved; this.panDrag = null;
     if (this.mode === "edit") {
       if (this.drag?.moved) { Save.mark(); Sound.se("tap"); }
@@ -610,6 +638,14 @@ class HouseScene {
       if (typeof FurnLive !== "undefined" && FurnLive.tap(this, it)) return;
       this.life.furniture[it.uid] = 6; Sound.se(it.id === "musicbox" || it.id === "piano" ? "fanfare" : "pop"); HomeLife.say(this, U.pick(this.chars).id, "わあ！ うごいた♪");
     }
+  }
+  // 入力が とまって いる あいだに ゆびを はなした（会話・画面の きりかえ）
+  cancel(p) {
+    this.fingers.delete(p.id); this.panDrag = null;
+    if (this.drag?.moved) Save.mark();
+    this.drag = null;
+    if (this.pinch && this.pinch.ids.includes(p.id)) this.pinch = null;
+    if (!this.fingers.size) this.gesture = false;
   }
   pet(c) {
     const d = Save.d.chars[c.id];
@@ -702,7 +738,6 @@ class HouseScene {
     }
     if (typeof HomeFloors !== "undefined") HomeFloors.drawAfterBg(ctx, this); // 2かい: かべの かぐ・しきもの・かいだん
     if (typeof HomeDoors !== "undefined") HomeDoors.drawSigns(ctx, this); // ドアの うえの ふだ（かべに はる）
-    if (typeof HomeFloors !== "undefined") HomeFloors.drawSigns(ctx, this); // 2かい: かいだんの ふだ
     if (this.mode === "edit") this.drawEditOverlay(ctx);
     const s = this.s;
     const list = [];
