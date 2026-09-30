@@ -73,6 +73,9 @@ const Save = {
         relay: { lv: 1, rep: 0, best: 0, plays: 0 },
         // ころころ フルーツ: pts は いちばん よかった ころころ ポイント
         korokoro: { lv: 1, rep: 0, best: 0, plays: 0, pts: 0 },
+        // ネリカスタウンの ガソリンスタンド・ゆうびんきょく（2026-09-29）
+        gasstand: { lv: 1, rep: 0, best: 0, plays: 0 },
+        postoffice: { lv: 1, rep: 0, best: 0, plays: 0 },
       },
       daily: {last:'',stamps:0,total:0,cycles:0},
       puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },

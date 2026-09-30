@@ -67,7 +67,7 @@ for (const f of scripts) {
 }
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
-  ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, MAP_DEFS, WorldMap, STORE_INTERIORS, StoreArt, StoreScene,
+  ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, GAS_FUELS, MAP_DEFS, WorldMap, STORE_INTERIORS, StoreArt, StoreScene,
   Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, HomeDesign, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, VenueHalls, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals, Weather, SeasonPalette, TownRoads, ShopDecor })`, ctx);
 
 // 道の判定はブラウザがなくても同じ。車道・歩道・隅切り・切り下げがタイルでつながる。
@@ -462,6 +462,34 @@ for (const [shop, Task] of Object.entries(R.MG_TASKS)) for (let lv = 1; lv <= 5;
       ok(t.misses === 0, "まもるで岩を防げない");
       t.invincible = 0; t.items = [{ lane: t.lane, y: t.trackBottom - .01, rock: true }]; t.tick(.02);
       ok(t.misses === 1 && t.score() < 100, "岩に当たっても減点されない");
+    }
+    if (shop === "gasstand") {
+      // ちがう いろの ノズルは えらべない → ちゅうもんの ノズル → ながおしで りょうの まんなか（まんたんは カチッと とまる）→ よごれを こする →（Lv.3 から）ぺしゃんこの タイヤ
+      const name = (id) => R.GAS_FUELS.find((f) => f.id === id).name;
+      ok(!!t.holdBtn && t.holdBtn.disabled === (lv >= 2), "gasstand: ノズルを えらぶ まえに きゅうゆ できる");
+      if (lv >= 2) { t.btns.find((b) => b.label === name(t.fuels.find((f) => f.id !== t.want.fuel).id)).cb(); ok(t.mistakes === 1 && t.fuel === null, "gasstand: ちがう ノズルで きゅうゆ できる"); t.mistakes = 0; t.btns.find((b) => b.label === name(t.want.fuel)).cb(); }
+      const a = t.want.amount, goal = a.hi >= 1 ? 1 : (a.lo + a.hi) / 2;
+      t.holdBtn.cb(); for (let k = 0; k < 2000 && t.holding && t.fill < goal - 1e-6; k++) t.tick(Math.min(1 / 60, Math.max(1e-4, (goal - t.fill) / t.speed))); t.up();
+      ok(t.fuelPts() === 40 && (a.hi < 1 || t.clicked), `gasstand Lv${lv}: ${a.name}に ならない（${t.fill}）`);
+      const fill = t.fill; t.tick(2); ok(t.fill === fill, "gasstand: 指を はなしても きゅうゆ される");
+      t.btns.find((b) => b.label === "つぎへ ▶").cb(); ok(t.stage === "wash", "gasstand: せんしゃに すすまない");
+      for (const s of t.spots) { t.downArea({ x: s.x, y: s.y }); for (let k = 0; k < 80 && s.dirt > 0; k++) t.move({ x: s.x + (k % 2 ? -12 : 12), y: s.y }); t.up(); }
+      ok(t.washPts() === 40, "gasstand: よごれが おちない");
+      if (lv >= 3) { t.btns.find((b) => b.label === "つぎへ ▶").cb(); ok(t.stage === "tires" && t.tires.some((x) => x.flat0), "gasstand: タイヤに すすまない"); for (const x of t.tires.filter((q) => q.flat0)) { t.downArea({ x: x.x, y: x.y }); t.tick(1); t.up(); } }
+      else ok(t.btns.some((b) => b.label === "できあがり！"), "gasstand: できあがりが ない");
+      for (const b of t.btns) ok(b.w >= 44 && b.h >= 44, "gasstand: ボタンの 大きさ");
+      perfect = t.score();
+    }
+    if (shop === "postoffice") {
+      // けしいんの まえは しわけ できない・ちがう はこは 減点 → ぜんぶ けしいん → あてさきの はこ
+      const c0 = t.cur, box = (id) => t.bins.find((b) => b.id === id);
+      t.sort(box(c0.dest)); ok(!c0.ok && t.index === 0 && t.mistakes === 0, "postoffice: けしいんの まえに しわけ できる");
+      t.stamp(); t.sort(t.bins.find((b) => b.id !== c0.dest)); ok(t.mistakes === 1 && !c0.ok, "postoffice: ちがう はこに いれられる");
+      t.mistakes = 0; c0.miss = 0;
+      for (let k = 0; k < 20 && t.cur; k++) { if (!t.cur.stamped) t.stamp(); t.sort(box(t.cur.dest)); t.tick(0.4); }
+      ok(!t.cur && t.items.every((c) => c.ok && c.stamped), "postoffice: ぜんぶ とどかない");
+      for (const b of t.btns) ok(b.w >= 44 && b.h >= 44, "postoffice: ボタンの 大きさ");
+      perfect = t.score();
     }
     ok(perfect === 100, `ミニゲーム ${shop} Lv${lv}: 正しい操作で 100点に ならない（${perfect}）`);
     const t2 = new Task(fakeScene(), lv); t2.layout(RECT);
@@ -1104,7 +1132,7 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
     Save.d=prior;return {valid,boundaries,once,preserved,ledger,cap,unique:new Set(ids).size,count:ids.length};
   })()`,ctx);
   for(const k of ["valid","boundaries","once","preserved","cap"])ok(rewards[k],"お店のレベル報酬: "+k);
-  ok(rewards.count===36&&rewards.unique===36&&rewards.ledger===36,"お店9種×4段階の非売品が一度ずつ");
+  ok(rewards.count===44&&rewards.unique===44&&rewards.ledger===44,"お店11種×4段階の非売品が一度ずつ");
 }
 
 // ---------- 水の 絵（川・海・湖。js/water-art.js）----------

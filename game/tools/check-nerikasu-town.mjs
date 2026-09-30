@@ -56,6 +56,24 @@ assert(R.BUY_SHOPS.market.items('food').every(f=>!f.exclusive),'convenience food
   for(const f of r.fixtures)if(!['npc','exitMat'].includes(f.kind))assert(v.art.model(f),'famires model '+f.kind); // でぐちの マットは 床の 絵
   const keys=new Set(r.fixtures.map(f=>v.art.modelKey(f)));assert(keys.size<=30,'famires model keys');
   assert(R.BUY_SHOPS.bikkupo.items().length===5&&R.SONGS.bikkupo_hall&&R.SONGS.shop_lawson&&R.SONGS.shop_sevenbun,'takeout / music');}
+// ガソリンスタンド・ゆうびんきょく（おてつだい）と ひだまり アパート（斜め上の 館・2かいだて）
+assert.equal(B('neri_gas').act.shop,'gasstand');assert.equal(B('neri_post').act.shop,'postoffice');assert.equal(B('neri_apartment').act.venue,'neri_apart');
+for(const id of ['gasstand','postoffice']){
+  assert(R.SHOPS[id]&&R.MG_TASKS[id]&&R.SHOP_OWNERS[id]&&R.HOWTO[id]&&R.SONGS['shop_'+id]&&R.Save.fresh().shops[id],id+' registration');
+  const design=R.STORE_INTERIORS[id];assert(design&&design.fixtures.length===6,id+' interior');for(const [kind] of design.fixtures)assert(R.StoreArt.prop(kind).length>300,id+' fixture art '+kind);
+}
+assert(R.BUY_SHOPS.gasstand.items().length===3,'gas station goods');
+{const v=R.VenueHalls.defs.neri_apart;assert(v.iso&&Object.keys(v.floors).join()==='1,2','apartment floors');
+  const keys=new Set();
+  for(const [lv,r] of Object.entries(v.floors)){
+    assert(r.iso&&r.crowd===0,'apartment floor '+lv);
+    const stairs=r.fixtures.find(f=>f.action==='floor');assert(stairs&&v.floors[stairs.to],'apartment stairs '+lv);
+    for(const f of r.fixtures){if(f.kind==='furn')assert(R.FURN_INDEX[f.furn]&&R.HomeDesign.model(f.furn,{flip:!!f.flip}),'apartment furniture '+f.furn);
+      if(!['npc','exitMat'].includes(f.kind))assert(v.art.model(f),'apartment model '+f.kind);keys.add(v.art.modelKey(f));}
+    const labels=r.fixtures.filter(f=>f.action).map(f=>f.label);assert.equal(new Set(labels).size,labels.length,'apartment labels '+lv);
+  }
+  const acts=Object.values(v.floors).flatMap(r=>r.fixtures.map(f=>f.action));for(const a of ['tea','play','guitar','painting','talk','sit','leave'])assert(acts.includes(a),'apartment action '+a);
+  assert(keys.size<=60,'apartment model keys '+keys.size);}
 // ネリカスえきは ない。でんしゃは 平和台えきから（大通りの 北の はしが 平和台）
 assert(!R.Transit.stops.town_station);assert(!R.Transit.destinations('city_station').includes('town_station'));assert.equal(R.Transit.fare('heiwadai_station','city_station'),500);
 const toHeiwadai=d.warps.find(w=>w.to==='heiwadai'&&w.y===0&&w.x<=48&&48<w.x+w.w),toMeadow=d.warps.find(w=>w.to==='meadow'&&w.y===d.rows.length-1);
@@ -87,4 +105,4 @@ const migrated=R.Save.migrate(JSON.parse(JSON.stringify(save)));assert.equal(mig
 for(const key of ['bag','furn','wardrobe','room'])assert.equal(JSON.stringify(migrated[key]),JSON.stringify(save[key]),key);
 for(const [id,progress]of Object.entries(save.shops))assert.equal(JSON.stringify(migrated.shops[id]),JSON.stringify(progress),id);
 assert.equal(R.Save.KEY,'pokapoka-town-save-v1');assert.equal(R.Save.SCHEMA,1);
-console.log(`Nerikasu: ${d.buildings.length} native-size buildings on the owner's map, ${ponds.length} fishing ponds, parks and forest; old IDs / shops / NPCs / ${rescued} old save spots rescued`);
+console.log(`Nerikasu: ${d.buildings.length} native-size buildings on the owner's map, ${ponds.length} fishing ponds, parks and forest; two convenience stores, a family restaurant, gas-station and post-office jobs, a two-floor apartment; old IDs / shops / NPCs / ${rescued} old save spots rescued`);

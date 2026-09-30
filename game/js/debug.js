@@ -781,6 +781,7 @@ const PokaDebug = {
         bodies: w.bodies.map((o) => ({ tier: o.tier, x: o.x, y: o.y, r: o.r, landed: o.landed, grow: o.grow, ...css(b.px(o.x), b.py(o.y)) })) };
     }
     if (sc.shopId === "relay") out.order = { target: t.target, caught: t.caught, misses: t.misses, lane: t.lane, role: t.role, shield: t.shield, items: t.items.map(it => ({ ...it, progress: (it.y - t.trackTop) / (t.trackBottom - t.trackTop) })) };
+    if (typeof t.debug === "function") out.order = t.debug(css); // 新しい おてつだいは じぶんで ようすを かえす（ガソリンスタンド・ゆうびんきょく）
     return out;
   },
   // ころころ フルーツの 箱を ととのえる（テスト用・おてつだい中だけ）。bodies: [[だん, x, y], …]（箱の 単位: はば 100）

@@ -156,6 +156,9 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `nerikasu-layout.js`（nerikasu-town.js の あと） | `NerikasuLayout` |
 | — | `neri-shops.js`（nerikasu-layout.js の あと） | `NeriShops` |
 | — | `neri-bikkupo.js`（ike-aquarium.js の あと） | `Bikkupo` |
+| — | `neri-gas.js`（neri-bikkupo.js の あと） | `GAS_FUELS`, `GAS_AMOUNTS`, `GAS_CARS`, `GAS_COLORS`, `gasCarSvg`, `GasTask`, `GasStand` |
+| — | `neri-post.js`（neri-gas.js の あと） | `POST_DESTS`, `POST_ICONS`, `postIcon`, `PostTask`, `PostOffice` |
+| — | `neri-apart.js`（neri-post.js の あと） | `NeriApart` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -922,6 +925,14 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - `neri-shops.js`（`NeriShops`）: あたらしい 食べ物 10しゅを `FOODS`・`BAG_INDEX`・`FOOD_ART` に たす（`exclusive: "nerikasu"`。ikebukuro-catalog.js が つつんだ まえの `BUY_SHOPS` ＝ スーパーには ならばない）。コンビニの 什器 11しゅは `StoreArt.prop` を つつんで 描く（キーは 什器の 種類だけ）。`BUY_SHOPS.lawson` / `sevenbun`（`kind: "bag"`・しなもの 6つずつ・かさならない）・`STORE_INTERIORS`・`SIGN_ICON`・`SONGS.shop_<id>`（ディスクの パブリックドメインの 曲の 楽器を かえた 写し）。町の 建物は `{ type: "buy", shop }`。
 - `neri-bikkupo.js`（`Bikkupo`）: `VenueHalls.defs.bikkupo`（`iso`・22×16・`scale` 0.5）。絵は `Object.create(MallArt)` に 什器の モデル（booth・fmtable・drinkbar・kitchen・pass・dessertcase・fmregister・kidsmat・robot・menuboard・podium・partition。キーは 種類・大きさ・variant・dir だけ）・床の 材質・かべ（まど・ブラインド・ポスター）。しらべる: `order`（ごはん／デザート → 3人で たべる）・`drink`・`kitchen`（`Game.goto("shop", { shop: "burger", returnVenue })`。`ShopScene` は `returnVenue` が あれば 館へ もどる）・`register`（`BUY_SHOPS.bikkupo`）・`kids`。はいぜん ロボは `tick` で たのんだ せきの まえへ いって もどる（`walk: true`）。町の 建物は `{ type: "venue", venue: "bikkupo" }`。
 - テスト: `tools/check-nerikasu-town.mjs`（しなもの・絵・館の 什器と キー）・`tools/check-venues.mjs`（什器に いける）。スモーク「nerikasu-shops-390 / 375」「burger-shop」。
+
+## ネリカスタウンの ガソリンスタンド・ゆうびんきょく・アパート（TOWN-NERI-03）
+
+- `neri-gas.js`: おてつだい `gasstand`（`GasTask`・`MG_TASKS`・`SHOP_OWNERS`・`HOWTO`・`BUY_SHOPS`・`STORE_INTERIORS`・`SIGN_ICON`・`SONGS.shop_gasstand`）。すすみかたは `stage`（fuel → wash →（Lv.3 から）tires）。ノズルは `GAS_FUELS`（レギュラー あか・ハイオク きいろ・けいゆ みどり）・りょうは `GAS_AMOUNTS`（まんたん・はんぶん・すこしだけ）。きゅうゆの ボタンは おして いる あいだ `holding`（`tick` で `fill` が ふえ、1 で カチッと とまる）。くるまは 3かたち × 6いろ の SVG（`gas:car:<形>:<いろ>`・タイヤは canvas で ぺしゃんこ）。採点: きゅうゆ 40・せんしゃ 40・タイヤ 20（Lv.2 まで は 20 そのまま）− ちがう ノズル 8 − 時間。
+- `neri-post.js`: おてつだい `postoffice`（`PostTask`）。1人の おきゃくさんが 3〜5つ（てがみ・はがき・こづつみ）。`stamp()`（けしいん）の あとに `sort(あてさき)`。あてさきは `POST_DESTS`（ゲームの 町 6つ・しるしは `POST_ICONS`）・はこは Lv で 3〜6。Lv.4 から てがみは しるしだけ。採点: 1かいで とどいた 数 80（まちがえた あとは 半分）・けしいん 20 − まちがい 6 − 時間。
+- `ShopScene.drawShop` は `MG_TASKS[shop].backdrop` が あれば たなの しなものを 描く。`PokaDebug.mg()` は task に `debug(css)` が あれば その かえりを `order` に する（あたらしい おてつだいは `debug.js` に 店ごとの 分岐を たさない）。
+- `neri-apart.js`（`NeriApart`）: `VenueHalls.defs.neri_apart`（`iso`・20×14・2かいだて・`crowd: 0`）。かべは ひくい `aptwall`（高さ 64。へやの 中が 見える）。家具は `furn`（`HomeDesign.model(id,{flip})` を まえの ふちの まんなかに おく）。ほかの モデル: mailboxes・kanri・noticeboard・bikes・stairs（up／down）・guitar・easel・canvases・laundry・railing。キーは 種類・大きさ・家具・むき・へやの ばんごう だけ。しらべる: tea・play・guitar・painting（1かいの 訪問で 1どだけ げんき）・talk（すむ 人）・sit・floor（かいだん）・leave。
+- テスト: `tools/check.mjs`（2つの おてつだいを 正しく あそぶと 100点・ちがう ノズル／けしいんの まえ／ちがう はこ）・`tools/check-nerikasu-town.mjs`（入口・登録・店内の 絵・アパートの かいだんと 家具と キー）・`tools/check-venues.mjs`（什器に いける）。スモーク「gasstand-390 / 375」「postoffice-390 / 375」「apartment-390 / 375」（`tests/nerikasu-work-smoke.mjs`）。
 
 ## 池袋の 町（配置イメージどおり・TOWN-IKE-01）
 

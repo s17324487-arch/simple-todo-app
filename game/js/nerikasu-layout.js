@@ -34,13 +34,13 @@ const NerikasuLayout = (() => {
     ["neri_bikkupo", 36, 3, 9, 5, 4, "nerikasu.bld_neri_bikkupo", { fresh: true, label: "レストラン びっくぽ", style: "town_bikkupo", act: { type: "venue", venue: "bikkupo" } }], // ファミレスの 館（js/neri-bikkupo.js）。バーガーの おてつだいは キッチンの カウンター
     // 大通りの 南・左の 道の 西
     ["market", 2, 43, 10, 4, 5, "nerikasu.bld_market", {}],
-    ["neri_post", 4, 49, 7, 4, 3, "nerikasu.bld_neri_post", { fresh: true, label: "ネリカス ゆうびんきょく", style: "town_post", act: { type: "visit", text: "ゆうびんきょくは もうすぐ オープン！\nてがみを だしに きてね。" } }],
+    ["neri_post", 4, 49, 7, 4, 3, "nerikasu.bld_neri_post", { fresh: true, label: "ネリカス ゆうびんきょく", style: "town_post", act: { type: "work", shop: "postoffice" } }],
     // 大通りの 南（アパート・お花屋さん）
-    ["neri_apartment", 20, 31, 8, 6, 4, "nerikasu.bld_neri_apartment", { fresh: true, label: "ひだまり アパート", style: "town_apartment", act: { type: "visit", text: "ひだまり アパート。\nもうすぐ 中を みせて もらえるよ。" } }],
+    ["neri_apartment", 20, 31, 8, 6, 4, "nerikasu.bld_neri_apartment", { fresh: true, label: "ひだまり アパート", style: "town_apartment", act: { type: "venue", venue: "neri_apart" } }],
     ["florist", 30, 33, 9, 4, 4, "nerikasu.bld_florist", {}],
     // ななめの 道の あいだ・東
     ["neri_chuka", 43, 31, 7, 4, 3, "nerikasu.bld_neri_chuka", { fresh: true, label: "中華 ねりかす飯店", style: "town_chuka", act: { type: "visit", text: "いまは したごしらえ ちゅう。\nおいしそうな においが する…" } }],
-    ["neri_gas", 49, 14, 9, 5, 6, "nerikasu.bld_neri_gas", { fresh: true, label: "ネリカス ガソリンスタンド", style: "town_gas", act: { type: "visit", text: "ガソリンスタンドは もうすぐ オープン！\nくるまを ピカピカに しよう。" } }],
+    ["neri_gas", 49, 14, 9, 5, 6, "nerikasu.bld_neri_gas", { fresh: true, label: "ネリカス ガソリンスタンド", style: "town_gas", act: { type: "work", shop: "gasstand" } }],
     ["nerikasu_home1", 51, 22, 9, 5, 4, "nerikasu.bld_neri_delivery", { label: "おとどけセンター", style: "town_delivery", act: { type: "work", shop: "relay" } }],
     ["nerikasu_home2", 54, 30, 9, 5, 4, "nerikasu.bld_nerikasu_home2", { house: true }],
     // よこの 道（中）の 北

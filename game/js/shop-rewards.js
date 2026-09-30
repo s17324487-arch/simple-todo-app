@@ -12,6 +12,8 @@ const ShopRewards = {
     florist: { name: "はなたば", color: "#B7D3AE", motif: "flower" },
     relay: { name: "ながれぼし", color: "#AEBFDF", motif: "star" },
     korokoro: { name: "ころころ フルーツ", color: "#F2C48D", motif: "fruit" },
+    gasstand: { name: "ぴかぴか くるま", color: "#F2A65A", motif: "car" },
+    postoffice: { name: "おてがみ", color: "#E8766A", motif: "letter" },
   },
   prizes: [],
   level(st) {
@@ -73,7 +75,7 @@ for (const [shop, theme] of Object.entries(ShopRewards.themes)) {
   }
 }
 
-// 町の家具と同じ投影。4種類の形と8種類のしるしで32個の有限モデル。
+// 町の家具と同じ投影。4種類の形と11種類のしるしで44個の有限モデル。
 const ShopRewardArt = {
   motif(kind, color) {
     const edge = `stroke="${INK}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"`;
@@ -85,6 +87,8 @@ const ShopRewardArt = {
     if (kind === "tooth") return path("M0,-23 C-30,-38 -23,-7 -18,8 C-13,38 -6,29 -4,12 Q0,4 4,12 C6,29 13,38 18,8 C23,-7 30,-38 0,-23 Z", "#F8FCF6");
     if (kind === "bread") return path("M-22,23 V-8 C-32,-25 -10,-35 0,-25 C10,-35 32,-25 22,-8 V23 Z", "#C89158")+path("M-15,17 V-10 Q-18,-24 0,-17 Q18,-24 15,-10 V17 Z", "#FFF0C7");
     if (kind === "fruit") return '<circle cx="-10" cy="8" r="13" fill="#A7D98F" '+edge+'/><circle cx="12" cy="9" r="12" fill="#E9525A" '+edge+'/><circle cx="1" cy="-12" r="11" fill="#FADA78" '+edge+'/><circle cx="-3" cy="-12" r="1.6" fill="'+INK+'"/><circle cx="5" cy="-12" r="1.6" fill="'+INK+'"/>'+path("M-2,-7 q3,-2 6,0 q-1,3 -3,3 q-2,0 -3,-3Z", "#F29A1F")+'<path d="M12,-3 q2,-6 6,-8" stroke="#7A5634" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+    if (kind === "car") return path("M-26,10 C-27,-2 -20,-6 -12,-7 L-7,-18 C-5,-22 -1,-23 3,-23 L12,-23 C17,-23 21,-19 23,-13 L26,-6 C29,-4 29,2 28,10 Z", color)+path("M-5,-9 L-1,-19 L6,-19 L6,-9 Z M10,-9 L10,-19 C15,-19 18,-15 20,-9 Z", "#CDEBF7")+'<circle cx="-14" cy="11" r="7" fill="#4A4550" '+edge+'/><circle cx="16" cy="11" r="7" fill="#4A4550" '+edge+'/><circle cx="-14" cy="11" r="2.5" fill="#D9D4CC"/><circle cx="16" cy="11" r="2.5" fill="#D9D4CC"/>';
+    if (kind === "letter") return path("M-26,-16 H26 V18 H-26 Z", "#FFFFFF")+path("M-26,-16 L0,4 L26,-16", "none")+path("M13,-12 H22 V-2 H13 Z", color)+'<circle cx="-10" cy="7" r="5" fill="none" stroke="#C62828" stroke-width="2"/>';
     if (kind === "flower") return '<path d="M0,27 V-8 M0,16 Q-22,0 -18,18 Z" stroke="#568761" fill="#A7C695" stroke-width="3"/>'+[0,1,2,3,4].map(i=>`<ellipse cx="0" cy="-18" rx="10" ry="15" transform="rotate(${i*72} 0 -6)" fill="${i%2?color:"#EBC5CE"}" ${edge}/>`).join('')+'<circle cy="-6" r="8" fill="#ECD693" '+edge+'/>';
     return path("M0,-29 L8,-10 L28,-9 L13,5 L18,25 L0,14 L-18,25 L-13,5 L-28,-9 L-8,-10 Z", "#F0D88F")+'<path d="M-32,13 l-13,10 M-28,25 l-10,10" stroke="'+color+'" stroke-width="4"/>';
   },
