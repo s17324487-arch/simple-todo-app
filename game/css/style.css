@@ -866,3 +866,24 @@ html, body {
 .mall-guide .mg-map svg{width:100%;height:auto;display:block}
 .mall-guide .mg-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
 .mall-guide .mg-spot{min-height:44px;font-size:12px;padding:6px;line-height:1.25}
+
+/* ネリカスタウンの いらいの けいじばん（js/neri-quests.js）と すまほの「いらい」 */
+.neri-quests { display: flex; flex-direction: column; gap: 10px; }
+.neri-quests .nq-lead { margin: 0; font-size: 13px; font-weight: 700; line-height: 1.5; }
+.nq-card { --nq: #F7D56A; padding: 8px 10px 10px; background: var(--paper); border: 3px solid var(--ink); border-left: 10px solid var(--nq); border-radius: 16px; box-shadow: 0 3px 0 var(--ink); }
+.nq-card.on { background: #FFF8DF; }
+.nq-card.done { opacity: .62; }
+.nq-head { display: flex; align-items: center; gap: 4px; }
+.nq-head svg { flex: none; }
+.nq-type { flex: none; white-space: nowrap; font-size: 12px; font-weight: 900; padding: 2px 8px; border: 2px solid var(--ink); border-radius: 10px; background: var(--nq); }
+.nq-stars { min-width: 0; overflow: hidden; white-space: nowrap; font-size: 13px; color: #E0A21E; -webkit-text-stroke: .4px var(--ink); }
+.nq-reward { flex: none; margin-left: auto; font-size: 15px; font-weight: 900; white-space: nowrap; }
+.nq-ttl { margin-top: 4px; font-size: 16px; font-weight: 900; line-height: 1.35; }
+.nq-who { font-size: 11px; font-weight: 800; color: #8a7d6a; }
+.nq-text { margin-top: 3px; font-size: 13px; font-weight: 700; line-height: 1.5; }
+.nq-prog { margin-top: 6px; padding: 4px 8px; font-size: 12px; font-weight: 900; border-radius: 10px; background: #F1EADB; }
+.nq-prog.ok { background: #D9F2D0; }
+.nq-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }
+.nq-btns .btn { min-height: 44px; min-width: 88px; }
+.nq-stamp { font-weight: 900; color: #E35D5B; border: 3px solid #E35D5B; border-radius: 12px; padding: 4px 10px; transform: rotate(-6deg); }
+.neri-quests .nq-total { margin: 0; font-size: 11px; text-align: center; }

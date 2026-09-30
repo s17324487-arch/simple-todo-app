@@ -133,6 +133,7 @@
 | `js/nerikasu-layout.js` | ネリカスタウン（オーナーの 配置イメージどおり・78×72）。ななめの 大通り・道・建物 36・公園 2つ・池 3つ（どこでも つれる）・憩いの森・はたけ・住人 34人の 場所（`NerikasuLayout`）。建物の 原画は `tools/town-design/nerikasu-buildings.mjs`（`js/nerikasu-town-art.js` に 生成）。設計は `docs/design/towns/nerikasu/README.md` |
 | `js/neri-shops.js` / `js/neri-bikkupo.js` | ネリカスタウンの コンビニ 2つ（ローリソン・せぶんぶん。ちがう 商品・店内の 什器・あたらしい 食べ物 10しゅ `NeriShops`）と ファミレス びっくぽ（斜め上の 館・ボックス席で たべる・ドリンクバー・キッチンで バーガーの おてつだい・はいぜん ロボ `Bikkupo`） |
 | `js/neri-gas.js` / `js/neri-post.js` / `js/neri-apart.js` | ネリカスタウンの ガソリンスタンドの おてつだい（ノズルの いろ・ながおしで きゅうゆ・せんしゃ・タイヤ。`GasTask`）・ゆうびんきょくの おてつだい（けしいん・あてさきの はこへ しわける。`PostTask`）・ひだまり アパート（斜め上の 2かいだて。おうちの 家具の 立体・すむ 人・こたつ・ギター・ベランダ。`NeriApart`） |
+| `js/neri-quests.js` | ネリカスタウンの いらいの けいじばん（町の いりぐち）。たいじ・おつかい・さがしもの の いらい 24しゅ（まいにち 6まい・3つまで・★で ほうしゅう 400〜2600）。すまほの「いらい」アプリ（`NeriQuests`） |
 | `js/maps.js` | マップ（町は ASCII の手描き、外の世界は `FieldGen` で決まった形に生成） |
 | `js/save.js` | セーブ（`Save`）、ステータス計算（`Stats`）、お世話（`Care`） |
 | `js/sound.js` | 効果音と BGM（WebAudio 合成） |
