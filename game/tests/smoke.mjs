@@ -2898,7 +2898,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect(k.score===0&&k.hi===0&&k.dropKinds===4&&k.overSec<=0.6&&k.held<4&&k.next<4,'はじめの ようす '+JSON.stringify({score:k.score,hi:k.hi,held:k.held,next:k.next,overSec:k.overSec}));
  const stop=await H.page.getByRole('button',{name:'スコア モードを やめる',exact:true}).boundingBox();
  const apart=(a,b)=>a.x+a.w<=b.x+1||b.x+b.w<=a.x+1||a.y+a.h<=b.y+1||b.y+b.h<=a.y+1,sb={x:stop.x,y:stop.y,w:stop.width,h:stop.height};
- expect(box.rect.x>=0&&box.rect.x+box.rect.w<=viewport.width&&k.row.y>=box.rect.y+box.rect.h-8&&k.row.y+k.row.h<=viewport.height-4&&box.unit>=3.2,'箱と じゅんばんが 画面に おさまらない／ちいさい '+JSON.stringify({box,row:k.row}));
+ expect(box.rect.x>=0&&box.rect.x+box.rect.w<=viewport.width&&k.row.y>=box.rect.y+box.rect.h-8&&k.row.y+k.row.h<=viewport.height-4&&box.unit>=2.8&&Math.abs(box.h-110*1.15)<0.01,'箱と じゅんばんが 画面に おさまらない／ちいさい／15% たかく ない '+JSON.stringify({box,row:k.row}));
  expect(stop.height>=44&&[k.sign,k.panel,k.nextBox,box.rect].every(r=>apart(sb,r))&&apart(k.panel,k.nextBox)&&k.team.every(t=>t.cx>k.panel.x+k.panel.w&&t.cx<k.nextBox.x),'「やめる」・スコア・3人・つぎ が かさなる '+JSON.stringify({stop:sb,sign:k.sign,panel:k.panel,next:k.nextBox,team:k.team}));
  expect(await H.eval(()=>Sound.want||Sound.cur?.name)==='shop_korokoro','お店の BGM');await H.shot('start');
  // ゆびで おとす（おなじ だんの 玉の 上か、いちばん ひくい ところ）。点は くっつけた だんの 三角数（made から けいさん）

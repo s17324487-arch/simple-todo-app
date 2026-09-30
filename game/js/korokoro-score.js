@@ -6,7 +6,10 @@
 // おわると ハイスコア・ランキング（上から 5つ）・コイン・ひょうばん（Save.d.shops.korokoro の hi・tops・games）。
 // 箱・物理・絵は js/mg-korokoro.js の KorokoroBoard（mode: "score"）。お店の「おてつだいする」で モードを えらぶ（KorokoroScore.choose）。
 // overSec: はみだして から おしまい まで・overWait: おしまいの しるしを 見せて から けっかまで・tops: ランキングの かず・コイン = スコア ÷ coinDiv（上限 coinMax）・ひょうばん = スコア ÷ repDiv（上限 repMax）・grades: △○◎ の スコア
-const KOROKORO_SCORE = Object.freeze({ overSec: 0.5, overWait: 1.8, tops: 5, coinDiv: 6, coinMax: 400, repDiv: 100, repMax: 12, grades: [150, 400, 1000] });
+// H: はこの 高さ（はば 100。ちゅうもん モードの 110 より 15% たかい・オーナーの FB 2026-09-30）
+// rules: 物理の 上がき（くっついた ときに はねすぎて すぐ あふれない ように）: up = うえむきの はやさの 上限・depen = かさなりを なおす ときの はなれる はやさの 上限・keep = がったいで できた 玉が ひきつぐ はやさ
+const KOROKORO_SCORE = Object.freeze({ overSec: 0.5, overWait: 1.8, tops: 5, coinDiv: 6, coinMax: 400, repDiv: 100, repMax: 12, grades: [150, 400, 1000],
+  H: 126.5, rules: Object.freeze({ up: 90, depen: 20, keep: 0.3 }) });
 const KOROKORO_SCORE_HOWTO = Object.freeze([
   "スコア モードへ ようこそ！\nあふれるまで とことん あそんで、ハイスコアを めざそう。",
   "おちてくるのは ちいさい 4しゅ だけ。\nうえの「つぎ」を みて、おとす ばしょを きめてね。",
@@ -31,6 +34,8 @@ const KorokoroScore = {
   // コイン: スコアの 1/6（上限 400）× あそびかた（のんびり・ふつう・むずかしい）× きょうの おすすめ
   pay(score, mode = "normal", boost = 1) { return Math.round(Math.min(KOROKORO_SCORE.coinMax, Math.floor(Math.max(0, score) / KOROKORO_SCORE.coinDiv)) * GameEconomy.mode(mode).reward * boost); },
   rep(score) { return Math.min(KOROKORO_SCORE.repMax, Math.floor(Math.max(0, score) / KOROKORO_SCORE.repDiv)); },
+  // スコア モードの 箱（KorokoroBoard の o）: 15% たかい はこ・はねを おさえる 物理
+  board() { return { mode: "score", overSec: KOROKORO_SCORE.overSec, H: KOROKORO_SCORE.H, rules: KOROKORO_SCORE.rules }; },
   // ディスクと きもちの めやす（0 ×・1 △・2 ○・3 ◎）
   grade(score) { return KOROKORO_SCORE.grades.filter((v) => score >= v).length; },
   day(d) { const m = /^\d+-(\d+)-(\d+)$/.exec(String(d || "")); return m ? `${m[1]}/${m[2]}` : ""; },
@@ -64,7 +69,7 @@ class KorokoroScoreScene {
     this.owner = SHOP_OWNERS.korokoro; this.fxs = [];
     this.team = Save.d.order.map((id, i) => ({ id, i, turn: 0, jump: -1, emo: "normal" }));
     const seed = p.seed != null ? p.seed >>> 0 : (Date.now() ^ 0x5eed) >>> 0;
-    this.board = new KorokoroBoard(this, seed, { mode: "score", overSec: KOROKORO_SCORE.overSec });
+    this.board = new KorokoroBoard(this, seed, KorokoroScore.board());
     this.resize();
     await this.preload();
     if (this.closed) return;
