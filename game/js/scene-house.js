@@ -784,7 +784,7 @@ class HouseScene {
     if (typeof FurnLive !== "undefined") FurnLive.draw(ctx, this, it, r);
     if (f.puzzlePrize) PuzzlePrizeArt.draw(ctx, it.id, r, G.t, moving);
     if (f.shopPrize) ShopRewardArt.draw(ctx, it.id, r, G.t, moving);
-    if(f.cityItem&&f.rare)for(let i=0;i<4;i++){const a=G.t*1.3+i*1.7;FX.star(ctx,r.x+r.w*(.5+.46*Math.sin(a)),r.y+r.h*(.48+.42*Math.cos(a*1.2)),3+2*Math.sin(a),i%2?'#FFF2AF':'#C9E6EA');}
+    if(f.cityItem&&f.rare&&f.sparkle!==false)for(let i=0;i<4;i++){const a=G.t*1.3+i*1.7;FX.star(ctx,r.x+r.w*(.5+.46*Math.sin(a)),r.y+r.h*(.48+.42*Math.cos(a*1.2)),3+2*Math.sin(a),i%2?'#FFF2AF':'#C9E6EA');}
     if (moving) { FX.note(ctx, r.x + r.w / 2, r.y - 6); FX.star(ctx, r.x + r.w, r.y + 10, 5, "#FFE066"); }
     if (this.mode === "edit" && this.sel === it) {
       ctx.save(); ctx.setLineDash([5, 4]); ctx.strokeStyle = "#F29A1F"; ctx.lineWidth = 2;

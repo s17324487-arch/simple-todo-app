@@ -2803,7 +2803,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  // フロアマップ: コーナーの 一覧 → けいひん カウンター まで あるく → まえの けいひんの こうかん
  await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
  const g=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.mall-guide .btn')];return {spots:[...document.querySelectorAll('.mall-guide .mg-spot')].map(b=>b.dataset.label),small:bs.filter(b=>r(b).height<43.5).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5).length};});
- expect(['ぬいぐるみ コーナー','スウィートランド','トライポッド','リングフック','けいひん カウンター','ぷりくら','カプセルトイ'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'フロアマップ '+JSON.stringify(g));await H.shot('guide');
+ expect(['ぬいぐるみ コーナー','スウィートランド','コイン プッシャー','トライポッド','リングフック','けいひん カウンター','ぷりくら','カプセルトイ'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'フロアマップ '+JSON.stringify(g));await H.shot('guide');
  await H.page.locator('.mall-guide .mg-spot[data-label="けいひん カウンター"]').click();await H.until(()=>{const v=PokaDebug.venueState();return v&&v.party[0].y>=17.5&&PokaDebug.idle();},20000);
  await H.dbg('venueVisit','けいひん カウンター');await H.page.getByRole('button',{name:'まえの けいひんを みる',exact:true}).click();await H.page.locator('.modal-wrap .grid > *').first().waitFor();
  const shop=await H.eval(()=>[...document.querySelectorAll('.modal-wrap .grid > *')].length);expect(shop===2,'こうかんの しなもの（かざり）'+shop);await H.shot('counter');
@@ -2844,9 +2844,21 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await start(2);await okPanel('sweet');await H.shot('sweet');
  for(let k=0;k<3;k++){await H.until(()=>PokaDebug.arcadeState().phase==='swing',20000);await H.wait(700);await H.page.getByRole('button',{name:'すくう',exact:true}).click();await H.until(()=>PokaDebug.arcadeState().phase==='swing2',20000);await H.wait(600);await H.page.getByRole('button',{name:'おとす',exact:true}).click();await H.wait(300);}
  const sw=await done(2,60000);expect(sw.scoops===0,'スウィートを 3かい できない');const mini=await count('ike_mini_');expect(mini===sw.got,'ミニマスコットの かず '+JSON.stringify([mini,sw.got]));await back();
- // コイン メダル（おちた ぶんだけ 1まい 20コイン・1にちの 上限）
- {const c0=(await H.dbg('saveData')).coins;await start(3);for(let k=0;k<3;k++){await H.until(()=>PokaDebug.arcadeState().phase==='swing',20000);await H.wait(700);await H.page.getByRole('button',{name:'すくう',exact:true}).click();await H.until(()=>PokaDebug.arcadeState().phase==='swing2',20000);await H.wait(600);await H.page.getByRole('button',{name:'おとす',exact:true}).click();await H.wait(300);}
-  const md=await done(3,60000),d=await H.dbg('saveData');expect(d.coins===c0-100+md.got*20&&d.arcade.coinToday===md.got*20,'コイン メダルの コイン '+JSON.stringify([c0,d.coins,md.got,d.arcade.coinToday]));if(md.got)await H.shot('medal-result');await back();}
+ // コイン プッシャー: ◀ ▶ で ランチャー・「いれる」で 10まい・チャンス → スロット・てまえに おちた メダル 1まい 10コイン（1にちの 上限）
+ {const c0=(await H.dbg('saveData')).coins;await start(3);await okPanel('pusher');
+  const p0=await H.dbg('arcadeState');expect(p0.type==='pusher'&&p0.phase==='play'&&p0.pusher.left===10&&p0.bodies>=25&&p0.got===0&&/のこり 10まい/.test(p0.status),'プッシャーの はじめ '+JSON.stringify([p0.pusher,p0.bodies,p0.got,p0.status]));await H.shot('pusher');
+  expect(await H.page.getByRole('button',{name:'おく',exact:true}).count()===0&&!(await H.page.getByRole('button',{name:'カメラ',exact:true}).isVisible().catch(()=>false)),'プッシャーに ▲ ▼・カメラが ある');
+  const lb=await H.page.getByRole('button',{name:'ひだり',exact:true}).boundingBox();await H.hold(lb.x+lb.width/2,lb.y+lb.height/2,600);
+  const p1=await H.dbg('arcadeState');expect(p1.pusher.lx<p0.pusher.lx-4,'◀ で ランチャーが うごかない '+JSON.stringify([p0.pusher.lx,p1.pusher.lx]));
+  const put=H.page.getByRole('button',{name:'いれる',exact:true});
+  for(let k=0;k<3;k++){await put.click();await H.wait(420);}
+  expect((await H.dbg('arcadeState')).pusher.left===7,'「いれる」で メダルが へらない');await H.shot('pusher-drop');
+  await H.dbg('arcadeChance');await H.until(()=>{const r=PokaDebug.arcadeState();return r.pusher.slot&&r.pusher.slot.paid;},8000);await H.shot('pusher-slot');
+  for(let k=0;k<7;k++){await H.until(()=>!document.querySelector('.crane-go').disabled,8000);await put.click();await H.wait(420);}
+  const pd=await done(3,90000),d=await H.dbg('saveData'),pay=Math.min(pd.got*10,600);
+  expect(pd.pusher.left===0&&d.coins===c0-100+pay&&d.arcade.coinToday===pay,'プッシャーの コイン '+JSON.stringify([c0,d.coins,pd.got,d.arcade.coinToday]));
+  const txt=await H.eval(()=>document.querySelector('.crane-result-text').textContent);expect(pd.got===0||txt.includes('メダル '+pd.got+'まいで コイン '+pay),'けっかの ことば '+txt);
+  await H.shot('pusher-result');await back();}
  // 4) リングフック: リングに ねらって つかむ
  await start(6);await okPanel('ring');await H.dbg('arcadeAim',0);await H.shot('ring');await H.page.getByRole('button',{name:'つかむ',exact:true}).click();const rg=await done(6);await H.shot('ring-result');await back();
  const save=await H.dbg('saveData');expect(save.arcade.plays>=4&&save.arcade.boards[0]&&save.arcade.boards[4]&&save.arcade.boards[2],'プレイ記録・台の ようす '+JSON.stringify({plays:save.arcade.plays,b:Object.keys(save.arcade.boards)}));
