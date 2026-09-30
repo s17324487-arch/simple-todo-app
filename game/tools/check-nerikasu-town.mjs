@@ -112,7 +112,22 @@ assert(R.BUY_SHOPS.gasstand.items().length===3,'gas station goods');
   NQ.board('2030-1-2');assert(!R.Save.d.quests.done.length&&R.Save.d.quests.active.some(x=>x.id===find),'next day keeps accepted quests');
   R.Save.d=prior;}
 // ネリカスえきは ない。でんしゃは 平和台えきから（大通りの 北の はしが 平和台）
-assert(!R.Transit.stops.town_station);assert(!R.Transit.destinations('city_station').includes('town_station'));assert.equal(R.Transit.fare('heiwadai_station','city_station'),500);
+assert(!R.Transit.stops.town_station);assert(!R.Transit.destinations('city_station').includes('town_station'));assert.equal(R.Transit.fare('heiwadai_station','city_station'),50);
+// バス（おうちの みぎ よこの バスてい・どこの 地図へも 100コイン）と けいじばん（おうちの ひだり よこ）・池袋の でんしゃ 50コイン（オーナーの FB 2026-09-30）
+{const home=B('home'),near=(o,k)=>o.x+o.w>=home.x-k&&o.x<=home.x+home.w-1+k&&o.y+o.h>=home.y-k&&o.y<=home.y+home.h-1+k;
+  const stop=d.objects.find(o=>o.id==='town_busstop'),board=d.objects.find(o=>o.questBoard);
+  assert(stop&&R.Transit.busStopOf(stop)&&near(stop,1)&&stop.text,'bus stop next to home');assert(board&&near(board,1),'quest board next to home');
+  assert.equal(R.Transit.BUS_FARE,100);assert.equal(R.Transit.CITY_FARE,50);
+  const outdoor=Object.keys(R.MAP_DEFS).filter(k=>!R.MAP_DEFS[k].indoor);assert.deepEqual([...outdoor].sort(),Object.keys(R.Transit.BUS).sort(),'bus reaches every outdoor map');
+  for(const map of outdoor){const to=R.Transit.busMaps(map);assert(to.length===outdoor.length-1&&!to.includes(map),'bus destinations from '+map);
+    const a=R.Transit.busArrival(map),w=new R.WorldMap(map);assert(a.map===map&&Number.isInteger(a.x)&&Number.isInteger(a.y),'bus arrival '+map);
+    assert(!w.isSolid(a.x,a.y)&&!R.MAP_DEFS[map].warps.some(v=>a.x>=v.x&&a.x<v.x+v.w&&a.y>=v.y&&a.y<v.y+v.h),'bus arrival walkable and not a warp: '+map+' '+a.x+','+a.y);
+    assert(!/[\u4E00-\u9FFF]/.test(R.Transit.busName(map).replace(/池袋|平和台/g,'')),'bus place name '+map);}
+  const ta=R.Transit.busArrival('town');R.TownRenewal.safePosition(m,0,0);assert(m.publicTiles.seen.has(ta.x+','+ta.y),'bus arrival in town is reachable');
+  for(const map of ['city','heiwadai'])assert(R.MAP_DEFS[map].objects.some(o=>o.id===R.Transit.BUS[map].stop),'bus stop object in '+map);
+  // バスていを さわると バスの まどに なる ので、きせつの スタンプ・おまつりの めあてには しない
+  const stamps=[...Object.values(R.Seasonal.events).flatMap(e=>e.targets),...R.AnnualFestivals.locations.flat()];
+  for(const [map,id] of stamps){const o=R.MAP_DEFS[map].objects.find(o=>o.id===id);assert(o&&!R.Transit.busStopOf(o),'stamp target is a bus stop: '+map+' '+id);}}
 const toHeiwadai=d.warps.find(w=>w.to==='heiwadai'&&w.y===0&&w.x<=48&&48<w.x+w.w),toMeadow=d.warps.find(w=>w.to==='meadow'&&w.y===d.rows.length-1);
 assert(toHeiwadai&&toMeadow,'exits');
 for(const w of toHeiwadai?[toHeiwadai,toMeadow]:[])for(let x=w.x;x<w.x+w.w;x++)assert(m.roadGrid[w.y][x],'exit on a road '+w.to);

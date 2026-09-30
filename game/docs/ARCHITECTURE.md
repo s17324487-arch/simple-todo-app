@@ -92,6 +92,7 @@ WorldScene が季節ボタンを mount / exit で着脱、1秒ごとに表示を
 
 - マップの `v` は道路、`z` は横断歩道。objects の `solid:true` は全体に衝突判定。`id` と `text` があるものはタップ・決定キーで反応し、WorldScene.goObject が到達できる外周まで案内する。既存の泉の回復処理は維持。
 - 建物の `act:{type:"transit",stop}` は乗り場、`act:{type:"visit",text}` は休憩の会話。`act:{type:"walkway",text,to:{map,x,y,dir}}` は ひとこと の あと おなじ 町の べつの 場所に でる（池袋の ちかみち。建物の 中へは 入らない）。Transit.stops に map / label / kind を登録し、同じ kind の乗り場を接続。到着は対応するドアの1マス下。乗車取りやめでは移動・支払いなし。
+- バス（`Transit.bus`・2026-09-30）: バスていの 小物（`Transit.BUS[地図].stop` の id か `busStop: true`）を さわると `WorldScenery.activate` の 上がきで いきさきの まど（`busPick`・2れつ・ほかの 地図 ぜんぶ）→ `Transit.BUS_FARE`（100コイン）を はらって kind `bus` の travel へ。つく ところは `busArrival`（バスていの まえ・のりばの 建物の 入口の まえ・のはらは はいって すぐの マス）。バスていは ネリカスタウン（おうちの みぎ よこ `town_busstop`）・平和台 `heiwadai_bus`・池袋 `city_bus`。`BUS` の 地図は 屋外の 地図 ぜんぶ（`tools/check-nerikasu-town.mjs` が しらべる）。バスていは きせつの スタンプ・おまつりの めあてに しない。
 - travel シーンは3人が乗車する4秒の演出。到着を早めるボタンと帰宅ボタンがある。演出中は最後の乗り場がセーブ位置で、到着時に通常のworldセーブへ切り替える。新しい永続フィールドは不要。古いセーブが新設の建物と重なったときは既存の findFree で近隣へ移す。
 - WorldScenery の描画で時刻をSVGキャッシュキーに使わない。新しい姿は tools/preview.html の「まちのオブジェクト」で確認できる。
 - PokaDebug.world() は現在の party / objects / stops とクリック座標、active（動作中のしかけID）を返す。travel() は from / to / kind / elapsed / party。テストはこれを読み、実際のタップで乗車・中止・帰宅・噴水・セーブ再開を確認する。
@@ -547,6 +548,7 @@ class NewTask extends TaskBase {
 | `folk()` / `folkOffer(id)` / `folkSignal(sig)` / `folkMarks()` | おねがいの きろく／つぎに かならず もちかける／手順を すすめる（会話は またない）／いまの マップの しるし |
 | `folkSpots(map)` / `folkKitten()` / `folkPhotoTile(map)` | さがす きらきら・さわる 小物（となりの 立てる マス `stand`・画面の 位置 `cx`/`cy`）／ついて くる こねこ／しゃしんが とれる マス。`folkOffer` は 物々交換の id（`bt-…`）も うけとる |
 | `quests()` / `questBoardAt()` | ネリカスタウンの いらい: きょうの けいじばん（`board`: id・type・stars・reward・title・enemy・n・item・to・follow）・うけて いる いらい（`active` と `progress`）・`done`・`total`・`earned`／けいじばんの マスと 画面の 位置 `cx`/`cy`（さがしものの きらきらは `folkSpots` に `req: "neriq:<id>"` で 入る） |
+| `busStopAt(map?)` | バスていの 小物（`Transit.BUS[map].stop`。map を はぶくと いまの 地図・バスていの ない 地図は null）: `{ map, id, x, y, w, h, front }`（front は バスで つく マス）。その 地図に いる ときは タップする 画面の ばしょ `cx, cy`（ひだりはしの マス） |
 | `smaho(app)` / `smahoState()` / `fortune(day)` | すまほを ひらく（app なしで ホーム・null で とじる）／`{ open, app, apps, button, phone, dot, hints }`／その日の うらない |
 | `fishGive(id, n)` | ③ 魚を いけすに 入れる（ずかんにも のる。大きさは `Fishing.size`）。ずかんの きろくを かえす |
 | `rod(n)` / `fishShore(map)` / `fishState()` / `fishAuto(on, clear)` / `fishSpawn(id, cm, { nibbles, fickle, swim })` / `fishAim(uid)` / `fishCast(wx, wy)` / `fishPull()` | ③ さおを もたせる／岸の 立てる マス `{ x, y, dir }`／つりの ようす（`line`・`bobber`・`shadows`・`nibbled`・`escaped`・`brag`・`zoom`・`button`・`last`）／かってに 魚を 出す か（clear で けす）／3人の ちかくに 魚の かげ（ふつうは うきに 気づく まで とまる）／その かげの あたまの まえ（画面の CSS px。page.mouse で ながおし）／ながおしと おなじ ところへ なげる／「つる」ボタンと おなじ |
@@ -845,7 +847,7 @@ Save.fresh().shopRewardsは受け取った家具IDの真偽値。結果画面で
 
 ## ネリカスタウン・池袋の交通
 
-district-travel.js は全体地図の後に読み込み、町IDを変えずに名称・接続・地図の配置を更新する。池袋の屋外徒歩ワープはなく、館から町へ戻る室内出口は維持する。Transit.fare/payは池袋への電車だけ500コインを保存し、中止・残高不足では変更しない。帰路は無料。PokaDebug.districtTravel/station/atlas と2画面のスモークで確認。
+district-travel.js は全体地図の後に読み込み、町IDを変えずに名称・接続・地図の配置を更新する。池袋の屋外徒歩ワープはなく、館から町へ戻る室内出口は維持する。Transit.fare/payは池袋への電車だけ `Transit.CITY_FARE`（50コイン。2026-09-30 までは 500）を払い、中止・残高不足では変更しない。帰路は無料。PokaDebug.districtTravel/station/atlas と2画面のスモークで確認。
 
 ## マックさん
 

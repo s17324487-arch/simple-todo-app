@@ -205,6 +205,8 @@ const NerikasuLayout = (() => {
     named("town_fountain", "fountain", 42, 22, { text: "ふんすいの まわりで ひとやすみ。\nこうえんの まんなかだよ。" });
     named("town_cart", "flowercart", 36, 38, { text: "おはなやさんの ワゴン。きょうの おすすめは ひまわり！" });
     named("town_wheel", "waterwheel", 61, 10, { text: "いけの すいしゃ。くるくる まわって いるよ。" });
+    // おうちの みぎ よこの バスてい（オーナーの FB 2026-09-30「お家の 近くに バス停・どこの マップにも 100円」。さわると js/transit.js の Transit.bus）
+    if (!art("prop.busstop", 24, 58, { id: "town_busstop", busStop: true, opts: { no: "1" }, text: "おうちまえの バスてい。どこへでも 100コイン！" })) throw new Error("nerikasu: バスてい を おけない");
     const fb = byId(old.objects, "town_festivalboard"); d.festivalBoard = [35, 48]; // お花屋さんから よこの 道（中）への こみちの 出口
     if (fb) put({ ...fb, x: 35, y: 48 });
     // 大きい 公園: ひろばの まわりに すべりだい・シーソー・ジャングルジム・ブランコ・タイヤ・てつぼう・ふじだな・ベンチ・とけい・水のみば

@@ -2639,16 +2639,51 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('district-travel-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
-  const d=await H.dbg('saveData');d.coins=499;await H.dbg('seedSave',d);await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+  const d=await H.dbg('saveData');d.coins=49;await H.dbg('seedSave',d);await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
   let t=await H.dbg('districtTravel');expect(t.names.town==='ネリカスタウン'&&t.names.city==='池袋'&&!t.walkIns.length,'地名/電車専用');expect(t.places.city.y===159&&t.places.heiwadai.y===358,'町の位置');
-  await H.dbg('station','heiwadai_station');await H.page.getByRole('button',{name:'池袋えきへ（500コイン）',exact:true}).click();await H.dialogs();expect((await H.dbg('saveData')).coins===499,'残高不足で差引');
-  await H.dbg('coins',501);const before=(await H.dbg('saveData')).coins;
+  await H.dbg('station','heiwadai_station');await H.page.getByRole('button',{name:'池袋えきへ（50コイン）',exact:true}).click();await H.dialogs();expect((await H.dbg('saveData')).coins===49,'残高不足で差引');
+  await H.dbg('coins',51);const before=(await H.dbg('saveData')).coins;
   await H.dbg('station','heiwadai_station');await H.page.getByRole('button',{name:'やめておく',exact:true}).click();expect((await H.dbg('saveData')).coins===before,'中止で差引');
-  await H.dbg('station','heiwadai_station');await H.page.getByRole('button',{name:'池袋えきへ（500コイン）',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='travel'&&PokaDebug.idle());await H.shot('train');
-  await H.until(()=>PokaDebug.state().map==='city'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-500,'運賃一回');
-  await H.dbg('station','city_station');await H.page.getByRole('button',{name:'平和台えきへ',exact:true}).click();await H.until(()=>PokaDebug.state().map==='heiwadai'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-500,'帰り無料');
+  await H.dbg('station','heiwadai_station');await H.page.getByRole('button',{name:'池袋えきへ（50コイン）',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='travel'&&PokaDebug.idle());await H.shot('train');
+  await H.until(()=>PokaDebug.state().map==='city'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-50,'運賃一回');
+  await H.dbg('station','city_station');await H.page.getByRole('button',{name:'平和台えきへ',exact:true}).click();await H.until(()=>PokaDebug.state().map==='heiwadai'&&PokaDebug.idle(),15000);expect((await H.dbg('saveData')).coins===before-50,'帰り無料');
   await H.dbg('atlas');await H.shot('map');
 },{viewport,timeout:90000});
+
+// バス（js/transit.js の Transit.bus・オーナーの FB 2026-09-30）: おうちの よこの バスていから どこの 地図へも 100コイン。池袋の バスていから かえる。けいじばんは おうちの ひだり よこ
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('nerikasu-bus-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg('hour',12);await H.dbg('weather','clear');
+  const setCoins=async n=>{await H.dbg('coins',-1e9);await H.dbg('coins',n);}; // PokaDebug.coins は たす（0 より へらない）
+  await setCoins(99);
+  const tapStop=async map=>{
+    const s0=await H.dbg('busStopAt',map);await H.dbg('teleport',map,s0.front.x,s0.front.y,'up');await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);await H.wait(300);
+    const s=await H.dbg('busStopAt',map);await H.tap(s.cx,s.cy);await H.page.locator('.modal-wrap .bus-picker').waitFor({timeout:8000});await H.wait(250);return s;
+  };
+  const home=await tapStop('town');
+  const lay=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),b=[...document.querySelectorAll('.bus-grid .btn')];return {over:document.documentElement.scrollWidth>innerWidth,n:b.length,big:b.every(x=>r(x).height>=43.5&&r(x).width>=43.5),inside:b.every(x=>r(x).left>=-1&&r(x).right<=innerWidth+1&&r(x).bottom<=innerHeight+1),fit:b.every(x=>x.scrollWidth<=x.clientWidth+1),names:b.map(x=>x.getAttribute('aria-label'))};});
+  expect(!lay.over&&lay.n===8&&lay.big&&lay.inside&&lay.fit,'バスの まどが はみ出す '+JSON.stringify(lay));
+  expect(!lay.names.includes('ネリカスタウンへ')&&lay.names.includes('池袋 いけぶくろへ')&&lay.names.includes('どんぐりのもりへ'),'バスの いきさき '+JSON.stringify(lay.names));
+  await H.shot('picker');
+  // コインが たりない → ひとこと・へらない・町の まま
+  await H.page.getByRole('button',{name:'池袋 いけぶくろへ',exact:true}).click();await H.until(()=>document.querySelector('.dlg-text')?.textContent.includes('100コインが ひつようだよ'),8000);await H.dialogs();await H.idle();
+  expect((await H.dbg('saveData')).coins===99&&(await H.dbg('state')).map==='town','コインが たりないのに のれる');
+  // 250コイン → 池袋へ（100コイン）→ 池袋の バスていの まえに つく
+  await setCoins(250);await tapStop('town');await H.page.getByRole('button',{name:'池袋 いけぶくろへ',exact:true}).click();
+  await H.until(()=>PokaDebug.state().scene==='travel'&&PokaDebug.idle(),10000);const trip=await H.dbg('travel');expect(trip.kind==='bus'&&trip.party.length===3&&trip.label==='池袋 いけぶくろ','バスの たび '+JSON.stringify(trip));await H.wait(600);await H.shot('bus');
+  await H.until(()=>PokaDebug.state().map==='city'&&PokaDebug.idle(),15000);
+  let st=await H.dbg('state');const cs=await H.dbg('busStopAt','city');expect((await H.dbg('saveData')).coins===150&&st.pos.join()===[cs.front.x,cs.front.y].join(),'池袋の バスていの まえに つかない '+JSON.stringify([st.pos,cs.front]));await H.shot('city');
+  // 池袋の バスていから ネリカスタウンへ（100コイン）→ おうちの よこの バスていの まえ
+  await tapStop('city');await H.page.getByRole('button',{name:'ネリカスタウンへ',exact:true}).click();await H.until(()=>PokaDebug.state().map==='town'&&PokaDebug.idle(),20000);
+  st=await H.dbg('state');expect((await H.dbg('saveData')).coins===50&&st.pos.join()===[home.front.x,home.front.y].join(),'おうちの よこに かえれない '+JSON.stringify([st.pos,home.front]));
+  // まどを とじる → へらない
+  await tapStop('town');await H.page.locator('.modal-wrap .close').last().click();await H.idle();expect((await H.dbg('saveData')).coins===50&&(await H.dbg('state')).map==='town','とじても へる');
+  // けいじばんは おうちの ひだり よこ（タップで ひらく）
+  const at0=await H.dbg('questBoardAt');await H.dbg('teleport','town',at0.x,at0.y+1,'up');await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);await H.wait(300);
+  const at=await H.dbg('questBoardAt');await H.tap(at.cx,at.cy);await H.page.locator('.modal-wrap .neri-quests').waitFor({timeout:8000});await H.wait(250);await H.page.locator('.modal-wrap .close').last().click();await H.idle();await H.wait(2500);await H.shot('home-row');
+  // もり（てきの いる 地図）へも いける
+  if(viewport.width===390){await setCoins(100);await tapStop('town');await H.page.getByRole('button',{name:'どんぐりのもりへ',exact:true}).click();await H.until(()=>PokaDebug.state().map==='forest'&&PokaDebug.idle(),20000);await H.wait(500);st=await H.dbg('state');expect((await H.dbg('saveData')).coins===0&&st.scene==='world','もりへ いけない '+JSON.stringify(st));await H.shot('forest');}
+  await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();expect((await H.dbg('saveData')).coins===(viewport.width===390?0:50),'さいかいで コインが かわる');
+},{viewport,timeout:150000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('mac-kitchen-'+viewport.width,async H=>{
  await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');await H.dbg('teleport','heiwadai',27,32,'up');await H.idle();await H.shot('outside');
