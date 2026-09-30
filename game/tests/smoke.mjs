@@ -1480,6 +1480,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 },{viewport,full:viewport.width===375,timeout:120000});
 
 // ④ 化石ほり: ほる 画面の 骨の マスを（ほんとうに マウスで）たたいて ほりだす。おわると ほる 画面が とじる
+// まえの ほる 画面が きえてから つぎを ひらく（とじた まどは 180ms のこる。はやい CI では .dig-wrap canvas が 2つに なって いた）
+const noDig=(H)=>H.until(()=>!document.querySelector('.dig-wrap'),5000);
 async function digAll(H){
   for(let i=0;i<40;i++){
     const st=await H.dbg('digState');if(!st||st.done)break;
@@ -1523,7 +1525,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.eval(([x,y])=>G.scene.walkable(x,y)&&!document.querySelector('.fossil-go-btn'),spot.rock),'ほった いわが のこって いる');
   // ティラノサウルスの あたまを ほる → はじめて！ の カード（あつまりぐあい・骨格の 小さい 絵）
   const had=d.fossil.bones['trex.skull']||0;
-  await H.dbg('fossilDig','cave','trex.skull');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(400);
+  await noDig(H);await H.dbg('fossilDig','cave','trex.skull');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(400);
   await H.shot('dig');
   st=await digAll(H);
   const info=await H.eval(()=>document.querySelector('.dig-info').innerText);expect(/ティラノサウルスの あたま！/.test(info)&&/★/.test(info),'ほりだした ときの ことばが 不正 '+info);
@@ -1535,13 +1537,13 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.idle();
   d=await H.dbg('saveData');expect(d.fossil.bones['trex.skull']===had+1,'ほった 骨が もてない');
   // とちゅうで とじると なにも もらえない（しっぱいは ない・また ほれる）
-  await H.dbg('fossilDig','cave','trex.leg');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);
+  await noDig(H);await H.dbg('fossilDig','cave','trex.leg');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);
   await H.dbg('digTap',3,2);await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(400);await H.idle();
   expect(((await H.dbg('saveData')).fossil.bones['trex.leg']||0)===(d.fossil.bones['trex.leg']||0)&&!(await H.dbg('digState')),'とちゅうで とじたのに 骨が もらえた');
   // ② おねがい「ほねを みせて」: ケロスケに たのまれる → ほる → ケロスケに 話すと おわる（コイン +150）
   await H.dbg('folkOffer','ev-bone-show');await folkTalk(H,'explorer',{greet:false});await folkAnswer(H,0);await H.dialogs();await H.idle();
   expect((await H.dbg('folk')).req.some(r=>r.id==='ev-bone-show'),'ほねを みせての おねがいを うけられない');
-  await H.dbg('fossilDig','forest','stego.tail');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);await digAll(H);
+  await noDig(H);await H.dbg('fossilDig','forest','stego.tail');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);await digAll(H);
   await H.page.locator('.bone-card').waitFor({timeout:6000});await H.wait(200);await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.dialogs();await H.idle();
   expect((await H.dbg('folk')).req.find(r=>r.id==='ev-bone-show')?.step===1,'ほっても おねがいが すすまない');
   const coins=(await H.dbg('state')).coins;
@@ -2950,7 +2952,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  save=await H.dbg('saveData');expect(got.every(id=>save.furn[id]===1),'かぐの かずが ふえる');
  // おうち（よる 21じ）: 6つの かぐを おいて タップ。ランプは よるは ついて いて タップで きえる・ほかは うごいて 3人が ひとこと
  await H.dbg('hour',21);await H.dbg('house');await H.until(()=>PokaDebug.state().scene==='house'&&!PokaDebug.state().transitioning,15000);await H.idle(20000);
- await H.dbg('homeLayout',[{id:'koro_apple_shelf',x:110,y:292},{id:'koro_fruit_tower',x:392,y:300},{id:'koro_cherry_lamp',x:58,y:430},{id:'koro_strawberry_sofa',x:232,y:402},{id:'koro_mikan_table',x:250,y:524},{id:'koro_pear_cushion',x:410,y:506}]);
+ // 3人・ぱぱ ままの たつ ところ（homeBubbleFixture）から 画面で 30px いじょう はなれた ところに おく（まえは クッションが ごじの すぐ よこで、WebKit では ごじを なでて いた）
+ await H.dbg('homeLayout',[{id:'koro_apple_shelf',x:160,y:250},{id:'koro_fruit_tower',x:430,y:280},{id:'koro_cherry_lamp',x:40,y:550},{id:'koro_strawberry_sofa',x:190,y:340},{id:'koro_mikan_table',x:40,y:490},{id:'koro_pear_cushion',x:110,y:550}]);
  await H.dbg('homeBubbleFixture');await H.wait(900);await H.shot('room-night');
  const touch=async(id,ok,msg)=>{
   // まえの タップで うごいた 3人・ぱぱ ままを とめてから おす 点を きめる（人が かぶると 人を タップして しまう）

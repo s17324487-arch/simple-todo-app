@@ -357,10 +357,11 @@ const PokaDebug = {
     if (!it) return null;
     const r = sc.itemRect(it), c = G.canvas.getBoundingClientRect(), actors = [...sc.chars.map((a) => [a, false]), ...sc.parents.map((a) => [a, true])].filter(([a]) => !a.hidden);
     let tap = null;
-    // 3人・ぱぱ ままに かさならず、その 家具に あたる 点（タップは 人が さき）
-    for (let fy = 0.2; fy <= 0.9 && !tap; fy += 0.1) for (const fx of [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8]) {
+    // 3人・ぱぱ ままに かさならず、その 家具に あたる 点（タップは 人が さき）。人の わくの すぐ そとは さける
+    // （ブラウザに よっては タッチの 座標が 1px まるめられて 人に あたる）。よゆうが とれない ときだけ わくの そと ぎりぎり
+    for (const pad of [10, 0]) for (let fy = 0.2; fy <= 0.9 && !tap; fy += 0.1) for (const fx of [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8]) {
       const sx = r.x + r.w * fx, sy = r.y + r.h * fy, q = sc.toRoom(sx, sy);
-      if (actors.some(([a, parent]) => sc.contains(sc.actorRect(a, parent), { x: sx, y: sy }))) continue;
+      if (actors.some(([a, parent]) => sc.contains(sc.actorRect(a, parent), { x: sx, y: sy }, pad))) continue;
       if (sc.hitItem(q.x, q.y) === it) { tap = { x: c.left + sx * G.cssPerUnit, y: c.top + sy * G.cssPerUnit }; break; }
     }
     return { ...FurnLive.state(it), tap, talk: sc.life.log.length };
