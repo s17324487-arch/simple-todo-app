@@ -778,6 +778,13 @@ const PokaDebug = {
       cells:s.board.map((value,i)=>{const p=sc.point(i);return{i,value,cx:rect.left+p.x*G.cssPerUnit,cy:rect.top+p.y*G.cssPerUnit};}),
       prizes:PUZZLE_PRIZES.map(p=>({...p,claimed:!!Save.d.puzzle.claimed[p.id],owned:Save.d.furn[p.id]||0}))};
   },
+  // コラボ グッズ（js/collab-goods.js）の ようす: つみたて・もらった もの・つぎ
+  collab(line = "puzzle") {
+    const L = CollabGoods.LINES[line]; if (!L) return null;
+    const st = CollabGoods.state(line), nx = CollabGoods.next(line);
+    return { line, total: st.total, got: { ...st.got }, next: nx ? nx.id : null, left: nx ? nx.need - st.total : 0,
+      items: L.items.map((it) => ({ id: it.id, need: it.need, kind: it.kind, name: it.name, own: !!st.got[it.id], wardrobe: !!Save.d.wardrobe[it.id], furn: Save.d.furn[it.id] || 0 })) };
+  },
   puzzleBoard(board) {
     if(G.sceneName!=="puzzle"||!["ready","paused"].includes(G.scene.phase))throw new Error("Pause the puzzle before setting a fixture");
     if(!Array.isArray(board)||board.length!==36||board.some(v=>!Number.isInteger(v)||v<0||v>5))throw new Error("Invalid puzzle board");

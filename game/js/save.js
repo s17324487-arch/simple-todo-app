@@ -94,6 +94,8 @@ const Save = {
       // ガチャガチャ（js/gacha.js）: plays まわした かず・got { けいひん: でた かず }・done { シリーズ: 4しゅ そろった 日 }。けいひんは furn／wardrobe に はいる
       gacha: { plays: 0, got: {}, done: {} },
       puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },
+      // コラボ グッズ（js/collab-goods.js）: ライン → { total: つみたての スコア, got: { id: もらった 日 } }。ラインは はじめて よむ ときに つくる
+      collab: {},
       world: { map: "town", x: 7, y: 7, dir: "down" },
       flags: { intro: false, chests: {}, boss: false, talked: {} },
       events: { records: {}, activeAnnual: null },

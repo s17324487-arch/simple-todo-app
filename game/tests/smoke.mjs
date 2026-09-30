@@ -2631,6 +2631,48 @@ for (const viewport of [{width:390,height:844},{width:375,height:667}]) await sc
   const items=state.prizes.slice(0,3).map((p,i)=>({id:p.id,x:90+i*140,y:450,uid:i+1}));await H.dbg("homeLayout",items);await H.wait(400);await H.shot("rare-room");
 },{viewport,timeout:240000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario("puzzle-collab-"+viewport.width,async H=>{
+  // ごわが × なかよしパズル の コラボ グッズ（UI-18。オーナーの FB 2026-09-30「30000pt〜150000pt の 景品を ごわがと なかよしパズルの コラボグッズに。限定洋服系や 限定家具系に」）:
+  // うけつけの つみたての メーター・5しゅの カード → 1かい あそぶと スコアが つみたてに たされ、とどいた パーカーを もらう → つぎの めやす → もう 1かいで のこり 4しゅ → 3にんが きる・へやに かざる・さわる
+  await H.newGameFast();await H.dbg("coins",5000);H.page.setDefaultTimeout(30000);
+  const lobby=async()=>{await H.dbg("store","link","city");await H.idle();await H.page.getByRole("button",{name:"てんいんと はなす",exact:true}).click();await H.page.locator(".puzzle-lobby").waitFor();};
+  const play=async score=>{
+    await H.page.getByRole("button",{name:"80コインで挑戦",exact:true}).click();await H.until(()=>PokaDebug.puzzleState()?.phase==="ready"&&PokaDebug.idle());
+    await H.page.getByRole("button",{name:"中断して受付へ",exact:true}).click();await H.idle();
+    const f=await H.dbg("saveData");f.puzzle.active.state.score=score;f.puzzle.active.state.remaining=.4;await H.dbg("seedSave",f);
+    await lobby();await H.page.getByRole("button",{name:"中断したゲームを再開",exact:true}).click();await H.until(()=>PokaDebug.puzzleState()?.phase==="ready"&&PokaDebug.idle());
+    await H.page.getByRole("button",{name:"スタート",exact:true}).click();await H.dbg("puzzleAdvance",1);await H.until(()=>PokaDebug.puzzleState()?.phase==="result");
+    return H.eval(()=>{const b=document.querySelector(".collab-result");b.scrollIntoView({block:"center"});return {text:b.innerText,cards:[...b.querySelectorAll(".collab-card")].map(c=>c.dataset.collab)};});
+  };
+  // まえから あそんで いる 人（ベスト 29000・コラボの きろくは まだ ない）
+  let d=await H.dbg("saveData");d.puzzle.best=29000;d.puzzle.plays=4;delete d.collab;await H.dbg("seedSave",d);
+  await lobby();await H.page.locator(".collab-box").scrollIntoViewIfNeeded();
+  const lob=await H.eval(()=>{const b=document.querySelector(".collab-box"),r=b.getBoundingClientRect(),cs=[...b.querySelectorAll(".collab-card")];return {text:b.innerText,cards:cs.map(c=>c.dataset.collab),own:b.querySelectorAll(".collab-card.own").length,arts:cs.filter(c=>c.querySelector(".collab-art svg")).length,l:r.left,r:r.right,w:document.documentElement.scrollWidth,iw:innerWidth};});
+  expect(lob.cards.join()==="pc_hoodie,pc_cushion,pc_band,pc_table,pc_arcade"&&lob.own===0&&lob.arts===5&&/つみたて 29,000 pt/.test(lob.text)&&/あと 1,000 pt/.test(lob.text)&&lob.l>=0&&lob.r<=lob.iw+0.5&&lob.w<=lob.iw,"うけつけの コラボ "+JSON.stringify(lob));
+  await H.shot("lobby");
+  // 1かいめ: 2000 pt → つみたて 31000 → パーカー
+  let res=await play(2000);
+  expect(res.cards.join()==="pc_hoodie"&&/\+2,000/.test(res.text)&&/31,000 pt/.test(res.text)&&/クッション」まで あと 19,000 pt/.test(res.text),"1かいめの けっか "+JSON.stringify(res));await H.shot("result-1");
+  let saved=await H.dbg("persistedSave");
+  expect(saved.collab.puzzle.total===31000&&saved.collab.puzzle.got.pc_hoodie&&saved.wardrobe.pc_hoodie===true&&saved.puzzle.best===29000&&!saved.furn.pc_cushion,"パーカーが ほぞん されない "+JSON.stringify(saved.collab));
+  await H.page.getByRole("button",{name:"受付へ戻る",exact:true}).click();await H.idle();await lobby();
+  const lob2=await H.eval(()=>({own:[...document.querySelectorAll(".collab-card.own")].map(c=>c.dataset.collab),text:document.querySelector(".collab-box").innerText}));
+  expect(lob2.own.join()==="pc_hoodie"&&/クッション」まで あと 19,000 pt/.test(lob2.text)&&/もって いるよ/.test(lob2.text),"うけつけの つぎの めやす "+JSON.stringify(lob2));
+  // 2かいめ: 120000 pt → つみたて 151000 → のこり 4しゅ いっぺんに
+  res=await play(120000);
+  expect(res.cards.join()==="pc_cushion,pc_band,pc_table,pc_arcade"&&/151,000 pt/.test(res.text)&&/ぜんぶ そろったよ/.test(res.text),"2かいめの けっか "+JSON.stringify(res));await H.shot("result-2");
+  saved=await H.dbg("persistedSave");
+  expect(saved.collab.puzzle.total===151000&&["pc_cushion","pc_table","pc_arcade"].every(id=>saved.furn[id]===1)&&saved.wardrobe.pc_band===true,"のこりの コラボ グッズ "+JSON.stringify(saved.collab));
+  // おうち: 3にんが パーカーと カチューシャ・家具を かざる・アーケードを さわる
+  await H.page.getByRole("button",{name:"おうちへ",exact:true}).click();await H.idle();
+  d=await H.dbg("saveData");for(const id of ["wanko","gachan","goji"])d.chars[id].outfit={...d.chars[id].outfit,body:"pc_hoodie",head:"pc_band"};await H.dbg("seedSave",d);await H.dbg("house");await H.idle();
+  await H.dbg("homeLayout",[{id:"pc_arcade",x:300,y:420},{id:"pc_table",x:150,y:470},{id:"pc_cushion",x:120,y:360}]);await H.wait(500);
+  const lv=await H.dbg("furnLive","pc_arcade");expect(lv&&lv.tap,"アーケードを さわれない "+JSON.stringify(lv));
+  await H.page.mouse.click(lv.tap.x,lv.tap.y);await H.wait(700);const lv2=await H.dbg("furnLive","pc_arcade");expect(lv2.t>=0&&lv2.t<3,"アーケードの うごき "+JSON.stringify(lv2));
+  await H.shot("room");
+  expect(await H.eval(()=>document.documentElement.scrollWidth<=innerWidth),"よこに はみ出す");
+},{viewport,timeout:240000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario("shop-rewards-"+viewport.width,async H=>{
   await H.newGameFast();await H.dbg("pause",true);
   const legacy=await H.dbg("saveData");legacy.coins=987654;delete legacy.shopRewards;
