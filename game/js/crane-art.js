@@ -162,7 +162,7 @@ const CraneArt = (() => {
   };
   // ---- Meeときょれじゃ の あたらしい 景品（絵は ArcadePrizes.svg）----
   const LOOK = {}; // look → 景品の id
-  for (const it of ArcadePrizes.ITEMS) LOOK[it.size === "chibi" ? it.id.replace(/^ike_chibi_(\w+)_(\d)$/, "chibi-$1-$2") : it.size === "mini" ? it.id.replace(/^ike_mini_/, "mini-") : it.id === "ike_plush_penguin" ? "penguin" : it.id.replace(/^ike_plush_(\w+)$/, "$1-big")] = it.id;
+  for (const it of ArcadePrizes.ITEMS) LOOK[it.look] = it.id; // chibi-wanko-0・mini-hamster・bear-big・penguin・seal-ring など（ArcadePrizes の look）
   for (const [look, id] of Object.entries(LOOK)) { TEX[look + "-front"] = () => ArcadePrizes.svg(id, "down"); TEX[look + "-back"] = () => ArcadePrizes.svg(id, "up"); }
   // コイン メダル（おもて: ほし と Mee・うら: 10・よこ: ぎざぎざ）と コインの たからばこ
   const coinFace = (back) => svg(200, 200, `<circle cx="100" cy="100" r="94" fill="#F2C84B" stroke="${K}" stroke-width="7"/><circle cx="100" cy="100" r="76" fill="#F7D96F" stroke="#C99A2E" stroke-width="5"/>
@@ -205,12 +205,12 @@ const CraneArt = (() => {
     chick: { wall: "wall-chick", floor: "floor-chick", body: "#8CCB7E", body2: "#6BAE5F", trim: "#FFF0A8", glow: "#D9F5C9", head: "#F9D56E", sign: "リングフック" },
     paw: { wall: "wall-paw", floor: "floor-paw", body: "#8EC5E8", body2: "#6AA6D1", trim: "#FFFFFF", glow: "#D2ECFF", head: "#FFFFFF", sign: "わんこの ぬいぐるみ" },
     gold: { wall: "wall-gold", floor: "floor-gold", body: "#F2C84B", body2: "#D6A231", trim: "#FFF6C8", glow: "#FFE89A", head: "#FFFFFF", sign: "コイン プッシャー" },
-    bamboo: { wall: "wall-bamboo", floor: "floor-tri", body: "#7CC49A", body2: "#58A67B", trim: "#FFFFFF", glow: "#D4F2DF", head: "#FFFFFF", sign: "パンダの ぬいぐるみ" },
+    bamboo: { wall: "wall-bamboo", floor: "floor-tri", body: "#7CC49A", body2: "#58A67B", trim: "#FFFFFF", glow: "#D4F2DF", head: "#FFFFFF", sign: "どうぶつえん" },
     treasure: { wall: "wall-treasure", floor: "floor-cookie", body: "#9B7BD0", body2: "#7A5BB2", trim: "#FFE08A", glow: "#E6D6FF", head: "#F2C84B", sign: "コインの たからばこ" },
     sunny: { wall: "wall-sunny", floor: "floor-sun", body: "#F7B955", body2: "#E4983A", trim: "#FFF6D0", glow: "#FFE2A8", head: "#FFFFFF", sign: "がちゃんの ぬいぐるみ" },
     jungle: { wall: "wall-jungle", floor: "floor-jungle", body: "#6FBFB0", body2: "#4E9E8F", trim: "#FFF1B8", glow: "#CDEFE8", head: "#8E8A88", sign: "ごじの ぬいぐるみ" },
-    forest: { wall: "wall-forest", floor: "floor-cookie", body: "#C98E5C", body2: "#A87142", trim: "#FFE9B8", glow: "#FFE0C0", head: "#8E8A88", sign: "くまの ぬいぐるみ" },
-    snow: { wall: "wall-snow", floor: "floor-snow", body: "#7FB8E0", body2: "#5B97C7", trim: "#FFFFFF", glow: "#DDF2FF", head: "#F9D56E", sign: "ぺんぎんの ぬいぐるみ" },
+    forest: { wall: "wall-forest", floor: "floor-cookie", body: "#C98E5C", body2: "#A87142", trim: "#FFE9B8", glow: "#FFE0C0", head: "#8E8A88", sign: "ビッグ ぬいぐるみ" },
+    snow: { wall: "wall-snow", floor: "floor-snow", body: "#7FB8E0", body2: "#5B97C7", trim: "#FFFFFF", glow: "#DDF2FF", head: "#F9D56E", sign: "みずべの なかま" },
     cookie: { wall: "wall-cookie", floor: "floor-cookie", body: "#D9A06A", body2: "#B97F4B", trim: "#FFF1D6", glow: "#FFE2C0", head: "#F6E3C0", sign: "リングフック" },
     // 2F の おかし キャッチャー
     snackbag: { wall: "wall-snack", floor: "floor-snack", body: "#FFB86B", body2: "#F2944A", trim: "#FFF3C4", glow: "#FFE2B8", head: "#FFFFFF", sign: "おかし キャッチャー" },

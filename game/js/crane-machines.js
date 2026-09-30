@@ -1,5 +1,6 @@
 // クレーンゲームの 機械 19台（1F 12台・2F の おかし キャッチャー 5台・はしわたし 2台）の アーム・台・景品の おき方と 1かいの あそび（CraneRound）。絵と ボタンは crane-scene.js、景品は arcade-prizes.js・snack-art.js・bridge-prizes.js。
-// おかし キャッチャーは 日がわり: 台ごとの pool から その日の pick しゅ（lineup）。台の ようすは 日が かわると はじめから（セーブの 形は かわらない・board.day を たす だけ）。
+// 日がわりの 台（1F の 7台・2F の 7台）: 台ごとの pool から その日の pick しゅ（lineup）。台の ようすは 日が かわると はじめから（セーブの 形は かわらない・board.day を たす だけ）。
+// keep の 台（トライポッド・はしわたし）は、まえの 日の けいひんが 台に のこって いれば とれるまで その日の ならびの まま（keepDay。すこしずつ すすめた ぶんが きえない）。
 // たんい: cm・びょう。x = 左→右・y = 下→上・z = 手前→おく。おとしぐちに 落ちた 景品が「とれた」。
 // 物理は CranePhys（crane-physics.js）。おなじ ばめんからは おなじ けっかに なる（Math.random を つかわない）。
 const CraneMachines = (() => {
@@ -26,6 +27,8 @@ const CraneMachines = (() => {
     const n = dayNum(day), at = (((n * stepOf(L, k)) % L) + L) % L;
     return Array.from({ length: k }, (_, j) => order[(at + j) % L]);
   };
+  // keep の 台: セーブの 台に まえの 日の けいひんが のこって いれば その日（とれたら つぎから きょうの ならび）
+  const keepDay = (d, board, day = today()) => (d && d.keep && d.pool && board && board.id === d.id && board.day && board.day !== day && Array.isArray(board.b) && board.b.length ? board.day : day);
 
   // ---- 景品の かたち（たまの ならび）。ローカル: +x 右・+y 上・-z が おもて（顔）----
   const lattice = (w, h, d, n) => {
@@ -88,20 +91,25 @@ const CraneMachines = (() => {
   const artOf = (it, H, k) => { const [x, y, w, h] = it.crop, u = H.k * k, cy = H.refY + ((it.feet || H.bottom) - H.bottom); return [(x + w / 2 - H.xref) * u, (cy - (y + h / 2)) * u, w * u, h * u]; };
   // がちゃんの からだ だけ（タグと リングを のぞく）
   const gachanBody = () => { const S = SHAPES.gachan(); return { ...S, parts: S.parts.slice(0, 9), ring: undefined }; };
-  // 3人の ちいさな ぬいぐるみ（大きい ぬいぐるみの 0.6ばい。表情ごとに 絵が ちがう）
-  for (const who of ["wanko", "gachan", "goji"]) for (let v = 0; v < 4; v++) SHAPES[`chibi_${who}_${v}`] = () => {
-    const S = who === "gachan" ? gachanBody() : SHAPES[who](), k = who === "goji" ? 0.52 : 0.6, it = ArcadePrizes.INDEX[`ike_chibi_${who}_${v}`];
-    return { ...S, parts: S.parts.map((a) => ({ x: a.x * k, y: a.y * k, z: a.z * k, r: a.r * k, m: a.m })), size: S.size.map((q) => q * k), look: `chibi-${who}-${v}`, art: artOf(it, HERO_ART[who], k), prize: it.id };
+  // 3人の ちいさな ぬいぐるみ（大きい ぬいぐるみの 0.6ばい。表情・ポーズ・こもの ごとに 絵が ちがう。物理の 形は 3人ごとに おなじ）
+  for (const it of ArcadePrizes.ITEMS) if (it.size === "chibi") SHAPES[it.shape] = () => {
+    const who = it.spec.who, S = who === "gachan" ? gachanBody() : SHAPES[who](), k = who === "goji" ? 0.52 : 0.6;
+    return { ...S, parts: S.parts.map((a) => ({ x: a.x * k, y: a.y * k, z: a.z * k, r: a.r * k, m: a.m })), size: S.size.map((q) => q * k), look: it.look, art: artOf(it, HERO_ART[who], k), prize: it.id };
   };
-  // ミニマスコット（スウィートランド。まるい かたまり）
-  for (const who of ["wanko", "gachan", "goji"]) SHAPES[`mini_${who}`] = () => {
-    const it = ArcadePrizes.INDEX[`ike_mini_${who}`], [, , w, h] = it.crop, H = 7.2;
-    return { parts: lattice(5.8, 6.2, 4.4, [2, 2, 2]), stiff: 0.9, fric: 0.6, look: `mini-${who}`, art: [0, 0.4, (w / h) * H, H], size: [5.8, 6.2, 4.4], prize: it.id };
+  // ミニマスコット（スウィートランド。まるい かたまり。3人も 町の どうぶつも おなじ 形）
+  for (const it of ArcadePrizes.ITEMS) if (it.size === "mini") SHAPES[it.shape] = () => {
+    const [, , w, h] = it.crop, H = 7.2;
+    return { parts: lattice(5.8, 6.2, 4.4, [2, 2, 2]), stiff: 0.9, fric: 0.6, look: it.look, art: [0, 0.4, (w / h) * H, H], size: [5.8, 6.2, 4.4], prize: it.id };
   };
-  // 町の人の ぬいぐるみ。くま（2本アーム）: あたまが 大きい 形・パンダ（トライポッド）: 大きい わんこと おなじ 形・ぺんぎん（リング）: がちゃんと おなじ 形
-  SHAPES.bearBig = () => { const S = SHAPES.goji(), [, , w, h] = ArcadePrizes.INDEX.ike_plush_bear.crop, H = 34; return { ...S, look: "bear-big", art: [0, 1.2, (w / h) * H, H], prize: "ike_plush_bear" }; };
-  SHAPES.pandaBig = () => { const S = SHAPES.wankoBig(), [, , w, h] = ArcadePrizes.INDEX.ike_plush_panda.crop, H = S.art[3] * 1.04; return { ...S, look: "panda-big", art: [0, S.art[1], (w / h) * H, H], prize: "ike_plush_panda" }; };
-  SHAPES.penguinRing = () => { const S = SHAPES.gachan(), [, , w, h] = ArcadePrizes.INDEX.ike_plush_penguin.crop, H = 20.2; return { ...S, look: "penguin", art: [0, -0.6, (w / h) * H, H], prize: "ike_plush_penguin" }; };
+  // 町の人の ぬいぐるみ（なかまごとに 台が ちがう）。ビッグ（2本アーム）: あたまが 大きい ごじの 形・どうぶつえん（トライポッド）: 大きい わんこと おなじ 形・
+  // みずべ（リング）: がちゃんと おなじ 形。おなじ なかまは 物理が おなじで、絵は さいしょの 1しゅ（くま・パンダ・ぺんぎん）と おなじ ちぢみ（足もとを そろえる。うさぎの みみは うえに でる）
+  const FOLK_ART = { big: { base: "goji", ref: "ike_plush_bear", H: () => 34, y: () => 1.2 }, zoo: { base: "wankoBig", ref: "ike_plush_panda", H: (S) => S.art[3] * 1.04, y: (S) => S.art[1] }, water: { base: "gachan", ref: "ike_plush_penguin", H: () => 20.2, y: () => -0.6 } };
+  for (const it of ArcadePrizes.ITEMS) if (it.group) SHAPES[it.shape] = () => {
+    const A = FOLK_ART[it.group], S = SHAPES[A.base](), [rx, ry, rw, rh] = ArcadePrizes.INDEX[A.ref].crop, u = A.H(S) / rh, [x, y, w, h] = it.crop;
+    return { ...S, look: it.look, art: [(x + w / 2 - (rx + rw / 2)) * u, A.y(S) - (y + h / 2 - (ry + rh / 2)) * u, w * u, h * u], prize: it.id };
+  };
+  const prizePool = (ok) => ArcadePrizes.ITEMS.filter(ok).map((it) => it.shape);
+  const heroPool = (who) => prizePool((it) => it.size === "chibi" && it.spec.who === who);
   // コイン メダル（まるい うすい えんばん: まん中＋まわり 6つ。おもて・うらは まるい 絵）と コインの たからばこ（クッキーの はこと おなじ 形＋リング）
   SHAPES.medal = () => ({ parts: [{ x: 0, y: 0, z: 0, r: 0.95, m: 1 }, ...Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * Math.PI * 2; return { x: Math.cos(a) * 2.05, y: Math.sin(a) * 2.05, z: 0, r: 0.95, m: 1 }; })], stiff: 1, fric: 0.42, look: "medal", slab: [6, 6, 1.9], size: [6, 6, 1.9] });
   SHAPES.chest = () => ({ ...SHAPES.cookie(), look: "chest" });
@@ -311,7 +319,7 @@ const CraneMachines = (() => {
   // アームの まちいち（home）は ひだりの てまえ（はこが かくれない）
   const bridge = (id, theme, shape, bars, extra = {}) => {
     const M = { w: 60, d: 50, h: 72 }, cx = (bars.x0 + bars.x1) / 2;
-    return { id, type: "bridge", theme, rig: CLAW2, box: M, bars, slip: { after: 3, open: 14 }, chute: { x0: bars.x0, x1: bars.x1, z0: 0, z1: M.d },
+    return { id, type: "bridge", theme, rig: CLAW2, box: M, bars, keep: true, slip: { after: 3, open: 14 }, chute: { x0: bars.x0, x1: bars.x1, z0: 0, z1: M.d },
       home: { x: 9, z: 9 }, top: 62, minY: 12, moveTime: 30, fill: { shape, n: 1, keep: 1, upright: true, onBars: true, at: [[cx, 27, 0]] }, got: "win", ...extra };
   };
   // コイン プッシャー: フィールド（x0〜x1・てまえの ふち ze・たかさ top）。よこの あなは てまえから open cm。wipe: うえの かべの まえ。
@@ -322,18 +330,20 @@ const CraneMachines = (() => {
   // 日がわりの 台: pool（かたちの なまえ）から その日の pick しゅ（lineup）
   const daily = (d, pool, pick) => ({ ...d, pool, pick, ...(d.fill ? { fill: { ...d.fill, ...(d.fill.mix ? { mix: pool.slice(0, pick) } : {}) } } : {}) });
   const DEFS = [
-    claw3("chibi-wanko", "paw", "wanko"),
+    // ---- 1F（日がわり 7台: 3人の ぬいぐるみ 8しゅから 4しゅ・ミニマスコット 10しゅから 3しゅ・どうぶつえん 6しゅから 1しゅ・ビッグ ぬいぐるみ 9しゅから 1しゅ・
+    // みずべの なかま 5しゅから 3しゅ。legacy の 3台と コインの 2台は いつも おなじ）----
+    daily(claw3("chibi-wanko", "paw", "wanko"), heroPool("wanko"), 4),
     claw2("goji-big", "goji", "goji", { legacy: true }),
-    sweet("mini", "candy", ["mini_wanko", "mini_gachan", "mini_goji"]),
+    daily(sweet("mini", "candy", ["mini_wanko", "mini_gachan", "mini_goji"]), prizePool((it) => it.size === "mini"), 3),
     pusher("pusher", "gold"),
     tripod("wanko-big", "wanko", "wankoBig", { legacy: true }),
-    tripod("panda-big", "bamboo", "pandaBig"),
+    daily(tripod("panda-big", "bamboo", "pandaBig", { keep: true }), prizePool((it) => it.group === "zoo"), 1),
     ring("gachan-ring", "chick", { shape: "gachan", n: 3, keep: 3, upright: true, gap: 15, at: [[30, 22, 0.25], [45, 29, -0.3], [29, 38, 0.1], [44, 40, 0.2]] }, 39, { legacy: true }),
     ring("coin-chest", "treasure", { shape: "chest", n: 4, keep: 4, upright: true, gap: 13, at: [[30, 20, 0.1], [48, 22, -0.15], [30, 35, -0.1], [47, 37, 0.12]] }, 26.7),
-    claw3("chibi-gachan", "sunny", "gachan"),
-    claw3("chibi-goji", "jungle", "goji"),
-    claw2("bear-big", "forest", "bearBig"),
-    ring("penguin-ring", "snow", { shape: "penguinRing", n: 3, keep: 3, upright: true, gap: 15, at: [[30, 22, 0.25], [45, 29, -0.3], [29, 38, 0.1], [44, 40, 0.2]] }, 39),
+    daily(claw3("chibi-gachan", "sunny", "gachan"), heroPool("gachan"), 4),
+    daily(claw3("chibi-goji", "jungle", "goji"), heroPool("goji"), 4),
+    daily(claw2("bear-big", "forest", "bearBig"), prizePool((it) => it.group === "big"), 1),
+    daily(ring("penguin-ring", "snow", { shape: "penguinRing", n: 3, keep: 3, upright: true, gap: 15, at: [[30, 22, 0.25], [45, 29, -0.3], [29, 38, 0.1], [44, 40, 0.2]] }, 39), prizePool((it) => it.group === "water"), 3),
     // ---- 2F おかし キャッチャー（日がわり: pool から pick しゅ）----
     daily(claw3("snack-bag", "snackbag", "wanko"), snackPool("bag"), 3),
     daily(claw3("snack-box", "snackbox", "wanko"), snackPool("box"), 3),
@@ -352,8 +362,9 @@ const CraneMachines = (() => {
     constructor(i, board, o = {}) {
       // たねは 台と その ようすで きまる（おなじ 台・おなじ そうさ → おなじ けっか。テストでも くりかえせる）
       this.i = i; this.def = DEFS[i]; this.type = this.def.type;
-      // 日がわりの 台: とちゅうの 1かいは はじめた 日の ならびの まま（o.cp.day）・そのほかは きょう（o.day は テスト用）
-      this.day = (o.cp && o.cp.day) || o.day || today(); this.mix = lineup(this.def, this.day);
+      // 日がわりの 台: とちゅうの 1かいは はじめた 日の ならびの まま（o.cp.day）・そのほかは きょう（o.day は テスト用）。
+      // keep の 台は まえの 日の けいひんが のこって いれば その日の ならび（keepDay）
+      this.day = o.cp && o.cp.day ? o.cp.day : keepDay(this.def, board, o.day || today()); this.mix = lineup(this.def, this.day);
       // ほかの 台の ようす（台の いれかえの まえの セーブ）は つかわない。legacy の 台は id の ない ふるい ようすも つかう。日がわりの 台は きょうの ようすだけ
       const fits = (b) => b && (b.id ? b.id === this.def.id && (!this.def.pool || b.day === this.day) : !!this.def.legacy);
       if (!fits(board)) board = null; if (o.cp && !fits(o.cp.board)) o = { ...o, cp: null };
@@ -401,7 +412,9 @@ const CraneMachines = (() => {
         this.rig = new SweetRig(W, { cx: 32, cz: 44, rad: 16.5, top: 4, spin: 0.42, arc: [-62 * D2R, 62 * D2R], arcR: 10.5, swing2: [14, 50], swingPeriod: 3.6, idleY: 13, dumpZ: 19.5, dumpY: 47, stage: st, pdepth: 12, push: [23, 32], period: 2.3, scoop: { w: 12, d: 9, wall: 5.5 } });
       }
       W.pre = (h) => this.rig.step(h);
-      if (board && board.s) this.rig.load(board.s);
+      // トライポッドは けいひんが とれた あと（台に けいひんが ない）なら、おみせの 人が アームを ぜんぶ もどして あたらしい けいひんを のせる
+      const empty = !(board && Array.isArray(board.b) && board.b.length);
+      if (board && board.s && !(d.type === "tripod" && empty)) this.rig.load(board.s);
       if (board && Array.isArray(board.b) && board.b.length) { this.restore(board); if (d.type === "sweet") this.refillTable(); else if (d.type === "pusher") this.refillField(); else if (d.type !== "tripod") { if (this.refill(false)) this.settle(2.5); } }
       else this.fresh();
     }
@@ -505,8 +518,9 @@ const CraneMachines = (() => {
       this.settle(2.5); this.prime(); this.refilled = n; return n;
     }
     placeTripodPrize() {
-      const o = this.rig.o, S = SHAPES[this.def.prize](), hy = S.size[1] / 2;
-      this.add(this.def.prize, [o.cx, o.y + o.armR + hy + (this.def.prize === "wankoBig" || this.def.prize === "pandaBig" ? 2 : 0.2), o.cz], CP.qaxis(0, 1, 0, 0.2));
+      // 日がわりの 台は その日の けいひん（どうぶつえんの なかまは みな 大きい わんこと おなじ 形）
+      const o = this.rig.o, shape = (this.mix && this.mix[0]) || this.def.prize, S = SHAPES[shape](), hy = S.size[1] / 2, big = shape === "wankoBig" || shape === "pandaBig" || shape.startsWith("zoo_");
+      this.add(shape, [o.cx, o.y + o.armR + hy + (big ? 2 : 0.2), o.cz], CP.qaxis(0, 1, 0, 0.2));
     }
     // しずまるまで すすめる（はじめの ならべ・ほじゅうの あと）
     settle(sec) {
@@ -750,5 +764,5 @@ const CraneMachines = (() => {
   }
   // ローカルの 点 → world（L は 形の 原点から）
   const toWorld = (W, b, L) => { const c = W.centroid(b), o = b.data.org || [0, 0, 0], R = CP.qmat(b.q), x = L[0] + o[0], y = L[1] + o[1], z = L[2] + o[2]; return [c[0] + R[0][0] * x + R[1][0] * y + R[2][0] * z, c[1] + R[0][1] * x + R[1][1] * y + R[2][1] * z, c[2] + R[0][2] * x + R[1][2] * y + R[2][2] * z]; };
-  return { DEFS, SHAPES, ClawRig, TrypodRig, SweetRig, CraneRound, rng, toWorld, DT, today, dayNum, lineup, clawy, lattice };
+  return { DEFS, SHAPES, ClawRig, TrypodRig, SweetRig, CraneRound, rng, toWorld, DT, today, dayNum, lineup, keepDay, clawy, lattice };
 })();

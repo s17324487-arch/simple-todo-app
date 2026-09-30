@@ -24,8 +24,8 @@ const PokaDebug = {
   photos(){return Purikura.list().map(p=>({id:p.id,bg:p.bg,z:p.z,c:p.c,p:p.d.p.length,s:p.d.s.length,x:p.d.x.map(t=>t[0])}));},
   // 台の ある 階へ もどる（2F の おかし キャッチャーは 2F の 台の まえ）
   arcadeStart(machine=0){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),fl=IkeArcade.floorOf(machine),f=VenueHalls.defs.arcade.floors[fl].fixtures.find(f=>f.machine===machine),back={venue:'arcade',floor:fl,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'},...(fl>1&&f?{at:f.spots[0]}:{})},run=PrizeArcade.start(machine,back);if(run)Game.goto('prize',{run},'none');return !!run;},
-  // 日がわりの 台の その日の けいひん（day: "2026-10-1" の かたち・なしで きょう。calendar('2026-10-01') でも かわる）
-  arcadeLineup(machine=12,day){const d=CraneMachines.DEFS[machine];return d&&d.pool?{day:day||CraneMachines.today(),shapes:CraneMachines.lineup(d,day),prizes:PrizeArcade.prizeList(machine,day),names:PrizeArcade.prizeList(machine,day).map(id=>PrizeArcade.item(id).name)}:null;},
+  // 日がわりの 台の その日の けいひん（day: "2026-10-1" の かたち・なしで その台の いまの 日〔PrizeArcade.dayOf〕。calendar("2026-10-01") でも かわる）。text: 台の せつめいの よびかた・keep: とれるまで かわらない 台
+  arcadeLineup(machine=12,day){const d=CraneMachines.DEFS[machine];if(!d||!d.pool)return null;const dd=day||PrizeArcade.dayOf(machine),prizes=PrizeArcade.prizeList(machine,dd);return {day:dd,shapes:CraneMachines.lineup(d,dd),prizes,names:prizes.map(id=>PrizeArcade.item(id).name),text:PrizeArcade.todayText(machine,dd),keep:!!d.keep};},
   // はしわたし: はずれの かず（おみせの ひとの たすけは PrizeArcade.ASSIST かい）・アームを しるしから dx・dz cm へ
   arcadeMiss(machine,n){const a=PrizeArcade.norm();a.miss[machine]=Math.max(0,n|0);Save.write();return a.miss[machine];},
   arcadeHint(dx=0,dz=0){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.phase!=='move'||!r.hint)return false;r.rig.load({x:r.hint[0]+dx,z:r.hint[1]+dz});return true;},

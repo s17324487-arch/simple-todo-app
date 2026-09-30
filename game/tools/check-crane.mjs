@@ -1,5 +1,5 @@
 // クレーンゲーム（crane-physics.js・crane-machines.js・crane-scene.js・snack-art.js・bridge-prizes.js）の 検査。ブラウザ なしで 物理を うごかす。
-// 19台（1F 12台・2F の おかし キャッチャー 5台・はしわたし 2台）が こわれない・日がわりの けいひん（まいにち かわる・ぜんぶ でる・台の ようすは その日だけ）・ちゃんと ねらえば とれる・よわい アームは たいてい はずれる・トライポッド／スウィートランド／リング／コイン プッシャー／はしわたしの しくみ・
+// 19台（1F 12台・2F の おかし キャッチャー 5台・はしわたし 2台）が こわれない・日がわりの けいひん（1F 7台・2F 7台。まいにち かわる・ぜんぶ でる・台の ようすは その日だけ・keep の 台は とれるまで そのまま）・1F の けいひん 54しゅ（UI-16 で 36しゅ ふえた）・ちゃんと ねらえば とれる・よわい アームは たいてい はずれる・トライポッド／スウィートランド／リング／コイン プッシャー／はしわたしの しくみ・
 // セーブと つづきから（台の id・いれかわった 台の ふるい セーブ）・100コインと ごほうびは 1かいだけ・形ごとの 景品・コインの 景品と 1にちの 上限・
 // おなじ たねは おなじ けっか・画面の ことば・SvgCache の キー。
 import assert from "node:assert/strict";
@@ -33,8 +33,8 @@ PA.machines.forEach((m, i) => {
 });
 // 景品: 3人の ぬいぐるみ（表情・ポーズ・こもの ちがい 4しゅずつ）・ミニマスコット・町の人・コイン
 {
-  const plush = R.ArcadePrizes.ITEMS; ok(plush.filter((it) => it.size === "chibi").length === 12 && plush.filter((it) => it.size === "mini").length === 3 && plush.filter((it) => it.spec.sp).length >= 3, "景品の かず");
-  for (const who of ["wanko", "gachan", "goji"]) { const v = plush.filter((it) => it.spec.who === who && it.size === "chibi"); ok(new Set(v.map((it) => it.spec.face)).size === 4 && new Set(v.map((it) => it.spec.pose)).size >= 3, `${who}: 表情 4しゅ・ポーズ 3しゅ いじょう`); }
+  const plush = R.ArcadePrizes.ITEMS; ok(plush.length === 54 && plush.filter((it) => it.size === "chibi").length === 24 && plush.filter((it) => it.size === "mini").length === 10 && plush.filter((it) => it.group).length === 20, "景品の かず（3人の ぬいぐるみ 24・ミニマスコット 10・町の人 20）");
+  for (const who of ["wanko", "gachan", "goji"]) { const v = plush.filter((it) => it.spec.who === who && it.size === "chibi"); ok(v.length === 8 && new Set(v.map((it) => it.spec.face)).size >= 5 && new Set(v.map((it) => it.spec.pose)).size >= 4 && new Set(v.map((it) => it.spec.face + it.spec.pose + JSON.stringify(it.spec.outfit))).size === 8 && new Set(v.map((it) => it.word)).size === 8, `${who}: 8しゅ・表情 5しゅ・ポーズ 4しゅ いじょう・おなじ ものが ない`); }
   for (const it of plush) { const f = R.FURN_INDEX[it.id]; ok(f && f.rare && f.price === 0 && f.interactive && f.cityItem && !/[一-鿿]/.test(f.name), `景品 ${it.id} の 家具`); for (const dir of ["down", "up"]) { const svg = R.ArcadePrizes.svg(it.id, dir); ok(svg.startsWith("<svg") && !/undefined|NaN/.test(svg), `景品 ${it.id} の 絵（${dir}）`); } const m = R.IkebukuroItemArt.model(it.id); ok(m.full.includes("<svg") && m.w === f.w, `景品 ${it.id} の おうちの 絵`); }
   ok(PA.machines.filter((m) => m.coins).length === 2, "コインの 台は 2台");
 }
@@ -183,12 +183,16 @@ for (let i = 0; i < CM.DEFS.length; i++) {
   const g1 = new CM.CraneRound(1, null, { seed: 4 }).board(); delete g1.id; const g1b = new CM.CraneRound(1, g1, { seed: 4 }); ok(g1b.list().length === 1 && g1b.list()[0].data.shape === "goji", "まえと おなじ 台（ごじ）の ふるい ようすが つかえない");
 }
 
-// ---- 6b. 2F の おかし キャッチャー: 日がわりの けいひん（pool から pick しゅ）・台の ようすは その日だけ・とちゅうの 1かいは はじめた 日の まま ----
+// ---- 6b. 日がわりの 台（1F 7台・2F 7台）: けいひんは pool から pick しゅ・台の ようすは その日だけ（keep の 台は とれるまで そのまま）・とちゅうの 1かいは はじめた 日の まま ----
 {
   const days = Array.from({ length: 400 }, (_, n) => { const t = new Date(Date.UTC(2026, 8, 1) + n * 86400000); return `${t.getUTCFullYear()}-${t.getUTCMonth() + 1}-${t.getUTCDate()}`; });
   const daily = CM.DEFS.map((d, i) => [d, i]).filter(([d]) => d.pool);
-  ok(daily.length === 7 && daily.every(([d, i]) => i >= 12 && PA.machines[i].daily), "日がわりの 台は 2F の 7台（おかし 5・はしわたし 2）");
-  ok(CM.DEFS.slice(0, 12).every((d) => !d.pool) && PA.machines.slice(0, 12).every((m) => !m.daily), "1F の 台は 日がわりに しない（この PR では）");
+  const F1 = [0, 2, 5, 8, 9, 10, 11];
+  ok(daily.length === 14 && daily.every(([d, i]) => (i >= 12 || F1.includes(i)) && PA.machines[i].daily) && PA.machines.filter((m) => m.daily).length === 14, "日がわりの 台は 1F の 7台と 2F の 7台（おかし 5・はしわたし 2）");
+  ok([1, 3, 4, 6, 7].every((i) => !CM.DEFS[i].pool && !PA.machines[i].daily), "1F の legacy の 3台（ごじ・わんこ・がちゃん）と コインの 2台は 日がわりに しない");
+  ok(JSON.stringify(F1.map((i) => [CM.DEFS[i].pool.length, CM.DEFS[i].pick])) === JSON.stringify([[8, 4], [10, 3], [6, 1], [8, 4], [8, 4], [9, 1], [5, 3]]), "1F の 日がわりの かず（3人 8→4・ミニ 10→3・どうぶつえん 6→1・ビッグ 9→1・みずべ 5→3）");
+  ok(CM.DEFS.filter((d) => d.keep).map((d) => d.id).join() === "panda-big,hashi-fig,hashi-goods", "keep の 台は トライポッドの どうぶつえん と はしわたし 2台");
+  for (const [d, i] of daily) if (PA.machines[i].mix) ok(PA.machines[i].mix === Math.min(d.pick, d.pool.length), `${d.id}: mix と pick が ちがう`);
   const all = new Set();
   for (const [d, i] of daily) {
     const seen = new Set(); let prev = null, same = 0;
@@ -203,7 +207,13 @@ for (let i = 0; i < CM.DEFS.length; i++) {
     ok(bd.day === DAY && bd.id === d.id, `${d.id}: 台の ようすに 日が ない`);
     const same2 = new CM.CraneRound(i, bd, { day: DAY }); ok(same2.sid === bd.n && same2.list().length === r.list().length, `${d.id}: おなじ 日の 台の ようすを つかわない`);
     const r2 = new CM.CraneRound(i, bd, { day: next }), want = CM.lineup(d, next);
-    ok(r2.day === next && JSON.stringify(r2.mix) === JSON.stringify(want) && r2.list().every((b) => want.includes(b.data.shape)), `${d.id}: つぎの 日に きのうの けいひんが のこる`);
+    if (d.keep) {
+      // keep の 台: きのうの けいひんが のこって いれば とれるまで きのうの ならび（台の ようすも そのまま）・とれた あとは きょうの ならび
+      ok(r2.day === DAY && JSON.stringify(r2.mix) === JSON.stringify(CM.lineup(d, DAY)) && r2.sid === bd.n && r2.list().length === r.list().length, `${d.id}: つぎの 日に とちゅうの けいひんが きえる`);
+      const won = new CM.CraneRound(i, { ...bd, b: [] }, { day: next });
+      ok(won.day === next && JSON.stringify(won.mix) === JSON.stringify(want) && won.list().length >= 1 && won.list().every((b) => want.includes(b.data.shape)), `${d.id}: とれた つぎの 日も きのうの けいひん`);
+      ok(new CM.CraneRound(i, { ...bd, b: [] }, { day: DAY }).list().length >= 1, `${d.id}: とれた あと あたらしい けいひんが のらない`);
+    } else ok(r2.day === next && JSON.stringify(r2.mix) === JSON.stringify(want) && r2.list().every((b) => want.includes(b.data.shape)), `${d.id}: つぎの 日に きのうの けいひんが のこる`);
     const cp = JSON.parse(JSON.stringify(r.snap())), r3 = new CM.CraneRound(i, cp.board, { cp, day: next });
     ok(cp.day === DAY && r3.day === DAY && JSON.stringify(r3.mix) === JSON.stringify(CM.lineup(d, DAY)) && r3.list().length === r.list().length, `${d.id}: とちゅうの 1かいが つぎの 日に かわる`);
   }
@@ -223,6 +233,72 @@ for (let i = 0; i < CM.DEFS.length; i++) {
   const run = PA.start(12, back), sh = CM.lineup(CM.DEFS[12])[0], id = CM.SHAPES[sh]().prize;
   ok(run && PA.finish(run, { got: [1, 2], gotShapes: [sh, sh], board: () => ({ v: 1, id: "snack-bag", n: 3, b: [], s: {}, day: CM.today() }) }) && S.d.bag[id] === 2 && !S.d.furn[id], `おかしが もちものに はいらない（${id}）`);
   ok(PA.picture(12, { got: [1], gotShapes: [sh] }) === id && /<svg/.test(PA.pictureSvg(id)), "けっかの まどの おかしの 絵");
+}
+
+// ---- 6d. 1F の けいひん（UI-16）: 3人の ぬいぐるみ 12しゅ・ミニマスコット 7しゅ・ビッグ 8しゅ・どうぶつえん 5しゅ・みずべの なかま 4しゅ（36しゅ）・
+// 1F の 日がわりの 台で とれる・トライポッドは とれた あと アームが もどる・keep の 台は とちゅうの けいひんが のこる・台の せつめい ----
+{
+  const A = R.ArcadePrizes, items = A.ITEMS, kanji = /[一-鿿]/, F1 = [0, 2, 5, 8, 9, 10, 11];
+  const added = items.filter((it) => (it.size === "chibi" && +it.id.slice(-1) >= 4) || (it.size === "mini" && it.spec.sp) || (it.group && !["bear", "panda", "penguin"].includes(it.spec.sp)));
+  ok(added.length === 36 && added.filter((it) => it.size === "chibi").length === 12 && added.filter((it) => it.size === "mini").length === 7 && ["big", "zoo", "water"].map((g) => added.filter((it) => it.group === g).length).join() === "8,5,4", `ふえた けいひん ${added.length}しゅ`);
+  ok(new Set(items.map((it) => it.id)).size === items.length && new Set(items.map((it) => it.name)).size === items.length && new Set(items.map((it) => it.look)).size === items.length && new Set(items.map((it) => it.shape)).size === items.length, "id・なまえ・look・形が かさなる");
+  // まえからの 景品は id・look・形の なまえが そのまま（ふるい セーブの 台の ようす・もって いる 家具が つかえる）
+  ok(["ike_chibi_wanko_0", "ike_chibi_goji_3", "ike_mini_gachan", "ike_plush_bear", "ike_plush_panda", "ike_plush_penguin"].every((id) => A.INDEX[id]) && A.INDEX.ike_plush_bear.shape === "bearBig" && A.INDEX.ike_plush_panda.shape === "pandaBig" && A.INDEX.ike_plush_penguin.shape === "penguinRing" && A.INDEX.ike_plush_penguin.look === "penguin" && A.INDEX.ike_mini_wanko.shape === "mini_wanko" && A.INDEX.ike_chibi_gachan_2.shape === "chibi_gachan_2", "まえからの 景品の なまえが かわった");
+  const pools = new Set(F1.flatMap((i) => CM.DEFS[i].pool));
+  ok(items.every((it) => pools.has(it.shape)) && [...pools].every((sh) => CM.SHAPES[sh] && A.INDEX[CM.SHAPES[sh]().prize]), "1F の 日がわりの 台に でない けいひん・台に けいひんで ない もの");
+  for (const it of items) {
+    ok(!kanji.test(it.name + it.desc + it.series + it.word) && it.name.length <= 19 && it.word.length <= 7, `${it.id}: なまえ「${it.name}」`);
+    const S = CM.SHAPES[it.shape](); ok(S.prize === it.id && S.look === it.look && S.art.length === 4 && S.art.every(Number.isFinite) && S.art[2] > 0 && S.art[3] > 0, `${it.id}: 形`);
+    for (const f of ["front", "back"]) ok(CA.TEX[it.look + "-" + f] && CA.SIZE[it.look + "-" + f].every((v) => v >= 32 && v <= 256), `${it.id}: テクスチャ ${f}`);
+    ok(R.FURN_INDEX[it.id].sparkle === (it.size !== "mini") && R.FURN_INDEX[it.id].exclusive === "ikebukuro", `${it.id}: 家具（ミニマスコットは ほしを ださない）`);
+  }
+  // 絵の id は ほかの けいひんと かさならない（おなじ 画面に ならべても 絵が かけない）
+  { const owner = new Map(); let clash = 0; for (const it of items) for (const m of A.svg(it.id).matchAll(/ id="([^"]+)"/g)) { if (owner.has(m[1]) && owner.get(m[1]) !== it.id) clash++; owner.set(m[1], it.id); } ok(clash === 0, `けいひんの 絵の id が かさなる（${clash}）`); }
+  // おなじ 台の なかまは 物理が おなじ（絵と けいひんだけ ちがう）→ どの 日も おなじ むずかしさ
+  const partsOf = (sh) => JSON.stringify(CM.SHAPES[sh]().parts);
+  for (const i of F1) { const P = CM.DEFS[i].pool; ok(P.every((sh) => partsOf(sh) === partsOf(P[0])), `台 ${i}: なかまの 物理の 形が ちがう`); }
+  // 絵の 大きさと 足もと: 町の人は さいしょの 1しゅと おなじ ちぢみで 足もとが そろう・3人は ポーズで すこし ちがう
+  for (const g of ["big", "zoo", "water"]) {
+    const list = items.filter((it) => it.group === g), b0 = CM.SHAPES[list[0].shape]().art, foot = b0[1] - b0[3] / 2;
+    for (const it of list) { const a = CM.SHAPES[it.shape]().art; ok(Math.abs(a[1] - a[3] / 2 - foot) < 1.2 && a[3] > b0[3] * 0.85 && a[3] < b0[3] * 1.35 && a[2] < b0[2] * 1.4 && Math.abs(a[0]) < 3, `${it.id}: 絵の 大きさ・足もと ${a.map((v) => v.toFixed(1))}`); }
+  }
+  for (const who of ["wanko", "gachan", "goji"]) { const b0 = CM.SHAPES[`chibi_${who}_0`]().art; for (let v = 4; v < 8; v++) { const a = CM.SHAPES[`chibi_${who}_${v}`]().art; ok(a[3] > b0[3] * 0.8 && a[3] < b0[3] * 1.3 && a[2] < b0[2] * 1.35 && Math.abs(a[0]) < 2.5, `chibi_${who}_${v}: 絵の 大きさ ${a.map((q) => q.toFixed(1))}`); } }
+  // 1F の 日がわりの 台は どの 日も とれる（日で たねが かわる ので 3日ぶん。つよい アームで ねらう・リングに かける・アームを ぜんぶ おとす・すくって おとす）
+  const perfectTripod = (i, board, o) => { const r = new CM.CraneRound(i, board, o); for (let f = 0; f < 60 * 40 && !r.done; f++) { if (r.phase === "spin") { const a = r.rig.armAt(r.rig.cell()); if (a && a.up && r.rig.light % 1 > 0.45) r.press(); } r.step(1 / 60); } return r; };
+  // 3本アームの 山は たねで とりやすさが かわる（まえからの きまった たねでも 6こ中 1〜4こ）→ どの 日も 1こ いじょう・へいきん 2こ いじょう
+  let claws = 0, clawN = 0;
+  for (const day of ["2026-10-1", "2026-10-2", "2026-10-3"]) {
+    for (const i of [0, 8, 9]) { let w = 0; for (let k = 0; k < 6; k++) if (aimAndGrab(new CM.CraneRound(i, null, { strong: true, day }), k).got.length) w++; ok(w >= 1, `3本アーム ${i}（${day}）: つよい アームで ねらっても とれない（${w}/6）`); claws += w; clawN++; }
+    { let w = 0; for (const [dx, dz] of [[0, 0], [0, 4], [0, -4], [4, 0], [-4, 0]]) if (aimAndGrab(new CM.CraneRound(10, null, { strong: true, day }), 0, dx, dz).got.length) w++; ok(w >= 1, `ビッグ ぬいぐるみ（${day}・${CM.lineup(CM.DEFS[10], day)}）: つよい アームでも とれない`); }
+    { const k0 = new CM.CraneRound(11, null, { day }).list().length; let w = 0; for (let k = 0; k < k0; k++) if (aimAndGrab(new CM.CraneRound(11, null, { strong: false, day }), k).got.length) w++; ok(w >= Math.ceil(k0 / 2), `みずべの なかま（${day}）: リングに かけても とれない（${w}/${k0}）`); }
+    { let board = null, won = false; for (let p = 0; p < 3 && !won; p++) { const r = perfectTripod(5, board, { day }); won = r.got.length > 0 && CM.lineup(CM.DEFS[5], day).includes(r.gotShapes[0]); board = JSON.parse(JSON.stringify(r.board())); } ok(won, `どうぶつえん（${day}）: アームを ぜんぶ おとしても とれない`); }
+  }
+  ok(claws / clawN >= 2, `3本アーム: 3日の へいきんが ${(claws / clawN).toFixed(2)}こ（6こ中）`);
+  // トライポッド: とれた あとは おみせの 人が アームを ぜんぶ もどして あたらしい けいひんを のせる（まえは アームが おちた まま・からっぽ だった）
+  for (const i of [4, 5]) {
+    let board = null, won = false;
+    for (let p = 0; p < 4 && !won; p++) { const r = perfectTripod(i, board, { seed: 3, day: DAY }); won = r.got.length > 0; board = JSON.parse(JSON.stringify(r.board())); }
+    ok(won && board.b.length === 0 && board.s.up.includes("0"), `トライポッド ${i}: とれない`);
+    const n2 = new CM.CraneRound(i, board, { seed: 3, day: DAY }); for (let f = 0; f < 120; f++) n2.step(1 / 60);
+    ok(n2.list().length === 1 && n2.rig.arms.every((a) => a.up) && n2.got.length === 0 && n2.W.centroid(n2.list()[0])[1] > 5, `トライポッド ${i}: とれた あと けいひんが のらない・アームが もどらない`);
+  }
+  // keep: きのうの けいひんと おとした アームは つぎの 日も そのまま
+  { const r = new CM.CraneRound(5, null, { seed: 3, day: DAY }); r.rig.arms[0].up = false; r.rig.arms[2].up = false; const bd = JSON.parse(JSON.stringify(r.board())), sh = bd.b[0][1];
+    const t = new CM.CraneRound(5, bd, { day: "2026-10-1" }); ok(t.day === DAY && t.list().length === 1 && t.list()[0].data.shape === sh && t.rig.save().up === bd.s.up && bd.s.up.split("0").length === 3, "どうぶつえん: つぎの 日に とちゅうの けいひんと アームが きえる"); }
+  // 館の 台の 絵の キーは かぎりが ある（pool の かず いか）
+  for (const i of F1) { const keys = new Set(); for (let k = 0; k < 400; k++) { const t = new Date(Date.UTC(2026, 8, 1) + k * 86400000); keys.add(PA.prizeList(i, `${t.getUTCFullYear()}-${t.getUTCMonth() + 1}-${t.getUTCDate()}`).join()); } ok(keys.size <= CM.DEFS[i].pool.length, `台 ${i}: 館の 絵の キーが ${keys.size}`); }
+  // 台の せつめい（おなじ なかまは まとめて よぶ）・いまの 日（とちゅうの 1かい・keep）・とれた けいひん
+  const S0 = R.Save; S0.d = S0.fresh(); const a = PA.norm();
+  ok(PA.todayText(0, DAY) === `わんこの ぬいぐるみ 4しゅ（${PA.prizeList(0, DAY).map((id) => A.INDEX[id].word).join("・")}）`, "わんこの 台の せつめい " + PA.todayText(0, DAY));
+  ok(/^ミニマスコット 3しゅ（[^）]+・[^）]+・[^）]+）$/.test(PA.todayText(2, DAY)) && /^みずべの なかま 3しゅ（/.test(PA.todayText(11, DAY)) && PA.todayText(10, DAY) === A.INDEX[PA.prizeList(10, DAY)[0]].name && PA.todayText(5, DAY) === A.INDEX[PA.prizeList(5, DAY)[0]].name, `せつめい ${PA.todayText(2, DAY)} / ${PA.todayText(11, DAY)} / ${PA.todayText(10, DAY)}`);
+  ok(PA.todayText(12, DAY) === PA.prizeList(12, DAY).map((id) => PA.item(id).name).join("・"), "おかしの 台の せつめいが かわった");
+  ok(PA.dayOf(0) === CM.today() && PA.dayOf(5) === CM.today(), "dayOf: きょう");
+  a.boards[5] = JSON.parse(JSON.stringify(new CM.CraneRound(5, null, { seed: 3, day: "2026-9-29" }).board())); ok(PA.dayOf(5) === "2026-9-29" && JSON.stringify(PA.prizeList(5)) === JSON.stringify(PA.prizeList(5, "2026-9-29")), "dayOf: keep の 台に きのうの けいひん");
+  a.boards[5].b = []; ok(PA.dayOf(5) === CM.today(), "dayOf: とれた あとは きょう");
+  a.boards[0] = JSON.parse(JSON.stringify(new CM.CraneRound(0, null, { seed: 3, day: "2026-9-29" }).board())); ok(PA.dayOf(0) === CM.today(), "dayOf: keep で ない 台は きょう");
+  a.active = { id: "t", machine: 0, def: "chibi-wanko", cp: { day: "2026-9-28" } }; ok(PA.dayOf(0) === "2026-9-28" && PA.dayOf(8) === CM.today(), "dayOf: とちゅうの 1かいは はじめた 日"); a.active = null;
+  const got = PA.prizesOf(10, { got: [1], gotShapes: ["big_cat"] }); ok(got.length === 1 && got[0].id === "ike_plush_cat" && got[0].n === 1, "ビッグ ぬいぐるみの ねこが もらえない");
+  const gm = PA.prizesOf(2, { got: [1, 2], gotShapes: ["mini_hamster", "mini_goji"] }); ok(gm.length === 2 && gm.every((p) => A.INDEX[p.id]), "ミニマスコットの ハムスター");
 }
 
 // ---- 6c. 2F の はしわたし: 2本の ぼうの うえの はこ・アームで ずらして おとす・おみせの 人の たすけ・けいひん 14しゅ ----
@@ -343,4 +419,4 @@ for (let i = 0; i < CM.DEFS.length; i++) {
   for (const d of CM.DEFS) { const th = CA.THEME[d.theme]; ok(th && CA.TEX[th.wall] && CA.TEX[th.floor], `台の テーマ ${d.theme}`); }
   for (const s of Object.keys(CM.SHAPES)) { const S = CM.SHAPES[s](); ok(Object.keys(CA.TEX).some((k) => k.startsWith(S.look + "-")), `景品 ${s} の 絵（${S.look}）が ない`); }
 }
-console.log(`Crane: 19 machines (claw/2-claw/sweet/tripod/ring/coin pusher/bridge; 5 daily snack catchers and 2 daily bridges on 2F), plush/coin/snack/boxed prizes, bridge technique/staff assist/tidy, daily lineups, physics outcomes, pusher medals/chance/slot/payout, save/resume and machine ids, fees, rewards and coin cap, determinism, text — ${n} checks OK`);
+console.log(`Crane: 19 machines (claw/2-claw/sweet/tripod/ring/coin pusher/bridge; 7 daily machines on 1F, 5 daily snack catchers and 2 daily bridges on 2F, keep rule), 54 plush prizes (36 added), tripod refill after a win, coin/snack/boxed prizes, bridge technique/staff assist/tidy, daily lineups, physics outcomes, pusher medals/chance/slot/payout, save/resume and machine ids, fees, rewards and coin cap, determinism, text — ${n} checks OK`);
