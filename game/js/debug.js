@@ -12,6 +12,11 @@ const PokaDebug = {
   // コイン プッシャー: ランチャーを x cm へ（うごかせる ときだけ）・チャンス（スロットを まわす）
   arcadePusherAt(x){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='pusher'||r.phase!=='play')return false;r.rig.lx=Math.max(r.rig.o.lim[0],Math.min(r.rig.o.lim[1],x));return true;},
   arcadeChance(){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='pusher')return false;r.chance();return true;},
+  // ぷりくら（purikura.js）: puriState いまの ようす・puriStart 300コインで はじめる（Meeときょれじゃ に もどる）・puriFast カウントダウンの はやさ・photos しゃしんの いちらん
+  puriState(){const s=G.sceneName==='purikura'&&G.scene instanceof PurikuraScene&&Array.isArray(G.scene.deco)?G.scene:null;if(!s)return null;const v=s.view,d=s.deco.map(x=>({p:x.p.length,pts:x.p.reduce((a,q)=>a+q.pts.length,0),s:x.s.length,x:x.x.length}));return{phase:s.phase,bg:s.bg,z:s.z,who:s.who,tab:s.tab,tool:s.tool,shots:s.shots.length,sel:JSON.parse(JSON.stringify(s.sel)),shotSel:s.shots.map(x=>({c:x.c,z:x.z})),di:s.di,deco:d,count:s.count?s.count.n:null,saved:s.saved,active:Save.d.purikura.active,photos:Save.d.photos.length,coins:Save.d.coins,view:v&&{x:v.x,y:v.y,w:v.w,h:v.h}};},
+  puriStart(){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),back={venue:'arcade',floor:1,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'},at:[12,3]};if(!Save.d.purikura.active&&!Purikura.pay())return false;Game.goto('purikura',{back},'none');return true;},
+  puriFast(k=1){if(G.sceneName!=='purikura')return false;G.scene.speed=Math.max(1,Math.min(8,k));return true;},
+  photos(){return Purikura.list().map(p=>({id:p.id,bg:p.bg,z:p.z,c:p.c,p:p.d.p.length,s:p.d.s.length,x:p.d.x.map(t=>t[0])}));},
   arcadeStart(machine=0){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),back={venue:'arcade',floor:1,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'}},run=PrizeArcade.start(machine,back);if(run)Game.goto('prize',{run},'none');return !!run;},
   arcadeMove(dx,dz){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.phase!=='move')return false;r.rig.load({x:r.rig.x+dx,z:r.rig.z+dz});return true;},
   arcadeDrop(){if(G.sceneName!=='prize')return false;const r=G.scene.round;G.scene.press(r.type==='sweet'&&r.phase==='swing2'?1:0);return true;},

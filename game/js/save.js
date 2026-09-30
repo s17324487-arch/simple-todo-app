@@ -87,6 +87,10 @@ const Save = {
       // harvests しゅうかくの かいすう・sown まいた かいすう・fert ひりょうの かいすう・got { さくもつ: とった かず }・first { さくもつ: はじめて とった 日 }
       // cooked { りょうり: つくった かず }（js/farm-cook.js・とれたて りょうり）
       farm: { plots: [{ c: null }, { c: null }, { c: null }, { c: null }, { c: null }, { c: null }], harvests: 0, sown: 0, fert: 0, got: {}, first: {}, cooked: {} },
+      // ぷりくら（js/purikura.js・Meeときょれじゃ）: photos は しゃしん（絵の データ・ふるい じゅん・60まい まで）。
+      // purikura.active は はらった あと まだ できあがって いない 1かい（つぎは ただで とりなおせる）・plays あそんだ かず・taken とった まいすう
+      photos: [],
+      purikura: { plays: 0, active: null, taken: 0 },
       puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },
       world: { map: "town", x: 7, y: 7, dir: "down" },
       flags: { intro: false, chests: {}, boss: false, talked: {} },

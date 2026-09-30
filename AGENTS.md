@@ -118,7 +118,7 @@
 | `js/music-discs.js` | レアの 音楽プレイヤー 3しゅ（ラジカセ・ちくおんき・ジュークボックス）と ディスク 25まい（おてつだい・たからばこで 手に入る・へやで きける）。ディスクだけの きょくは パブリックドメインの 名曲 4つ（出典つき）と、この ゲームの ために つくった ぽかぽかの きょく 3つ |
 | `js/food-art.js` | 食べ物の 絵の なおし（名前と 絵を そろえる 20しゅ。`FOOD_ART` を 上がき） |
 | `js/fishing.js` / `js/fishing-line.js` | 釣り: 魚の えらびかた・ずかん・つりざお・スーパーで うる（`Fishing`）と、見おろしの まま つる ながれ（`FishLine`: 魚の かげ・ながおしで なげる・うき・じまんの ズーム・こうかおん） |
-| `js/smaho.js` | すまほ（`Smaho`）。ひだり したの ボタンで ひらく スマホの 画面。ちず・ようす・もちもの・ずかん・イベント・スタンプラリー・ひんと・うらない・ごほうび・おんがく の アプリ。≡ は せってい・あそびかた だけ |
+| `js/smaho.js` | すまほ（`Smaho`）。ひだり したの ボタンで ひらく スマホの 画面。ちず・ようす・もちもの・ずかん・イベント・スタンプラリー・ひんと・うらない・ごほうび・おんがく・しゃしん の アプリ。≡ は せってい・あそびかた だけ |
 | `js/furniture-live.js` | さわれる 家具（ライト・テレビ・ピアノ・とけい・魚・だんろ・きしゃ など 16しゅ。うごく ぶぶんを canvas に 描く） |
 | `js/furniture-models.js` | 家具の 立体モデル（まるい ラグ・天がいの ベッド・キッチン・ピアノ など 24しゅ。床の 大きさは かえない） |
 | `js/water-art.js` | 水の 絵（川・海・湖。なめらかな 岸・ふかさ・ながれ・波。マスの 形は かえない） |
@@ -130,6 +130,7 @@
 | `js/korokoro-physics.js` / `js/korokoro-art.js` / `js/mg-korokoro.js` / `js/korokoro-score.js` / `js/korokoro-prizes.js` / `js/korokoro-town.js` | ころころ フルーツ（ネリカスタウンの パズルの おてつだい。スイカゲームの ような おちもの パズル。だんは さくらんぼ → いちご → みかん → りんご → なし → がちゃん → わんこ → ごじ）。玉の 物理・がったい・あふれ（`KorokoroWorld`）・くだもの と 3人の かおの 玉の 絵（`KorokoroArt`）・はこと ちゅうもん モード（`KorokoroBoard`・`KorokoroTask`）・本物の スイカゲームと おなじ きまりの スコア モード（`KorokoroScore`・`SCENES.koroscore`。ハイスコアと ランキングは `shops.korokoro.hi`・`tops`）・ハイスコアの ごほうびの フルーツの とくべつな かぐ 6つ（`KOROKORO_PRIZES`・`KorokoroPrizes`。立体モデルと さわる うごき）・お店（nerikasu_home5 を かえる `KorokoroTown`。建物の 原画は `tools/town-design/nerikasu-buildings.mjs`） |
 | `js/farm-art.js` / `js/farm.js` / `js/farm-cook.js` | はたけ（ネリカスタウンの おうちの ひだり・まえの やおや の ところ）。さくもつ 13しゅの 5だんかいの 絵・つち・どうぐ・あたらしい 食べ物の 絵（`FarmArt`）と、たねまき・みずやり・ほんとうの じかんで そだつ・あめ・ひりょう・しゅうかく・町の はたけ 6まい・はたけの がめん（`Farm`・`FARM_CROPS`・`SCENES.farm`）と、とれた やさいで つくる りょうり 10しゅ（おうちの ごはん・はたけの がめんの「りょうり」。`FarmCook`・`FARM_RECIPES`） |
 | `js/arcade-art.js` / `js/ike-arcade.js` | Meeときょれじゃ の 館（サンシャインいけぶ と おなじ 斜め上）。台・ガチャ・ぷりくら・カウンターの 絵（`ArcadeArt`）と 28×22 マスの 配置・フロアマップ・こうかんの 店・BGM（`IkeArcade`） |
+| `js/purikura.js` | ぷりくら（Meeときょれじゃ の しゃしんの ブース・300コイン）。はいけい → 4まい とる（ポーズ・かお・アップ）→ らくがき（ペン・スタンプ・もじ）→ すまほの「しゃしん」アプリで みる・けす・ほぞん（`Purikura`・`PurikuraArt`・`PurikuraScene`）。しゃしんは 絵の データ（`Save.d.photos`） |
 | `js/ikebukuro-town.js` / `js/ikebukuro-town-art.js` | 池袋の 町（オーナーの 配置イメージどおり: 西に 駅・上に ネリカス電機／Meeときょれじゃ／サンシャインいけぶ・ななめの 東通りと サンシャイン60どおり・下に 緑の大通り）。道・建物・人・小物・地面・電車・夜の あかり（`IkebukuroTown`）と 建物・めじるしの 絵（**自動生成**。原画は `tools/town-design/ikebukuro-buildings.mjs`、`node tools/build-ikebukuro-town.mjs`） |
 | `js/nerikasu-layout.js` | ネリカスタウン（オーナーの 配置イメージどおり・78×72）。ななめの 大通り・道・建物 36・公園 2つ・池 3つ（どこでも つれる）・憩いの森・はたけ・住人 34人の 場所（`NerikasuLayout`）。建物の 原画は `tools/town-design/nerikasu-buildings.mjs`（`js/nerikasu-town-art.js` に 生成）。設計は `docs/design/towns/nerikasu/README.md` |
 | `js/neri-shops.js` / `js/neri-bikkupo.js` | ネリカスタウンの コンビニ 2つ（ローリソン・せぶんぶん。ちがう 商品・店内の 什器・あたらしい 食べ物 10しゅ `NeriShops`）と ファミレス びっくぽ（斜め上の 館・ボックス席で たべる・ドリンクバー・キッチンで バーガーの おてつだい・はいぜん ロボ `Bikkupo`） |
