@@ -9,6 +9,7 @@ const FishLine = {
   PX_PER_CM: 0.8, MIN_PX: 9, MAX_PX: 128, // かげの ながさ = cm × 0.8（1マス 32px ≒ 40cm）。9〜128px
   HOLD: 0.45, CAST_MAX: 4.2 * TS, CAST_MIN: 0.9 * TS, NOTICE: 2.2 * TS, VIEW: Math.cos((80 * Math.PI) / 180),
   BITE: 1.0, NIBBLE_W: [0.1, 0.25, 0.3, 0.2, 0.15], ZOOM: 1.9, HELD_MAX: 104,
+  now: () => performance.now(), // ながおしの 時計（ミリびょう。検査で おきかえる）
   SLOTS: { pond: 2, river: 2, stream: 2, beach: 3, harbor: 4 },
   // つりあげた ときの ひとこと（どうぶつの森の ように 魚ごとの しゃれ）。さいごに 3人の くちぐせ
   QUOTES: {
@@ -149,10 +150,10 @@ const FishLine = {
     S.shadows = S.shadows.filter((sh) => !sh.gone);
     this.lineStep(sc, S, dt);
     if (S.brag) this.bragStep(sc, S, dt);
-    // ながおし（水の 上で HOLD びょう）
+    // ながおし（水の 上で HOLD びょう）。ほんとうの 時間で かぞえる（dt は 1コマ 0.05 びょう までなので、おそい 端末では おしても おしても たまらない）
     const P = S.press;
     if (P) {
-      P.t += dt;
+      P.t = (this.now() - P.t0) / 1000;
       if (!sc.touch || sc.touch.id !== P.id || sc.joy || sc.busy || UI.busy) S.press = null;
       else if (P.t >= this.HOLD) { S.press = null; sc.touch = null; this.aim(sc, P.wx, P.wy); }
     }
@@ -263,7 +264,7 @@ const FishLine = {
     const S = this.st(sc); if (!S.spot || S.brag || sc.busy) return;
     const { wx, wy } = sc.screenToTile(p.x, p.y);
     if (!this.water(sc.map, wx, wy)) return;
-    S.press = { id: p.id, sx: p.x, sy: p.y, wx, wy, t: 0 };
+    S.press = { id: p.id, sx: p.x, sy: p.y, wx, wy, t: 0, t0: this.now() };
     if (!S.posed && Fishing.rod()) { S.posed = true; const id = Save.d.order[0], c = Save.d.chars[id]; Chara.preload(["up", "down", "left", "right"].flatMap((dir) => ["land_01", "jump_01"].map((pose) => [id, { pose, dir, outfit: c.outfit, color: c.color }])), CHAR_SIZE); }
   },
   // さおを なげる ばしょを きめる（とどかなければ 岸まで あるく）
@@ -583,6 +584,12 @@ const FishLine = {
   const P = WorldScene.prototype, wrap = (name, fn) => { const orig = P[name]; P[name] = function (...a) { return fn.call(this, orig, ...a); }; };
   wrap("down", function (orig, p) { const r = orig.call(this, p); FishLine.down(this, p); return r; });
   wrap("update", function (orig, dt) { const r = orig.call(this, dt); FishLine.update(this, dt); FishLine.syncButton(this); return r; });
+  // ゆびを はなした とき、もう HOLD びょう おして いたら その ばで なげる（つぎの コマを またない。おそい 端末で ながおしが きえない）
+  wrap("up", function (orig, p) {
+    const S = this.fishing, P = S && S.press;
+    if (P && P.id === p.id && this.touch && this.touch.id === p.id && !this.joy && !this.busy && !UI.busy && (FishLine.now() - P.t0) / 1000 >= FishLine.HOLD) { S.press = null; this.touch = null; FishLine.aim(this, P.wx, P.wy); return; }
+    return orig.call(this, p);
+  });
   wrap("renderWater", function (orig, ctx, ox, oy) { const r = orig.call(this, ctx, ox, oy); FishLine.drawWater(this, ctx, ox, oy); return r; });
   wrap("renderFx", function (orig, ctx, ox, oy) { const r = orig.call(this, ctx, ox, oy); FishLine.drawTop(this, ctx, ox, oy); return r; });
   wrap("drawMember", function (orig, ctx, i, ox, oy) { if (!FishLine.drawMember(this, ctx, i, ox, oy)) return orig.call(this, ctx, i, ox, oy); });
