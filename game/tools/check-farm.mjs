@@ -5,6 +5,8 @@
 // ・絵: 13しゅ × 5だんかい・食べ物・つち・どうぐ・かんばんが こわれて いない（NaN・id なし）・キャッシュの キーが 有限
 // ・町: やおや（neri_farmstand）と ハーブの うねは ない・はたけ 6まいと かんばんが おうちの ひだりに あって、となりまで あるいて いける
 // ・セーブ: あたらしい 項目 farm だけ（Save.SCHEMA は そのまま）・ふるい セーブや こわれた はたけを なおす
+// ・とれたて りょうり（js/farm-cook.js）: 10しゅ（あたらしい 8しゅ）・ざいりょうは はたけの さくもつ ＋ おみせで かえる もの・13しゅ ぜんぶ どれかに つかう・
+//   そろわないと つくれない・つくると ざいりょうが へって りょうりが 1つ ふえる・絵は こわれて いない・おみせには ならばない
 import assert from "node:assert/strict";
 import { gameContext } from "./game-context.mjs";
 
@@ -12,7 +14,7 @@ const R = gameContext();
 const { Farm, FarmArt: A, FARM_CROPS: C, FARM_RULES: RULES } = R;
 let n = 0;
 const ok = (v, msg) => { n++; assert.ok(v, msg); };
-const kana = (s) => /^[぀-ゟ゠-ヿー・ 　！？。、0-9A-Za-z（）]+$/.test(s);
+const kana = (s) => /^[぀-ゟ゠-ヿー・ 　！？。、0-9A-Za-z（）()]+$/.test(s); // げんき(SP) は まえからの 書きかた
 R.Save.d = R.Save.fresh(); R.Weather.override = "clear"; R.UI.updateHud = () => {}; // HUD は ブラウザ だけ
 let clock = Date.UTC(2026, 8, 30, 3, 0, 0);
 Farm.now = () => clock;
@@ -32,7 +34,7 @@ for (const c of C) {
 }
 ok(C.filter((c) => c.tier === 0).length === 5 && C.filter((c) => c.tier === 1).length === 5 && C.filter((c) => c.tier === 2).length === 3, "たねは 5・5・3");
 ok(C.find((c) => c.id === "corn").food === "corn" && C.find((c) => c.id === "pepper").food === "pepper", "とうもろこし・ピーマンは まえからの 食べ物");
-ok(R.FOODS.filter((f) => f.exclusive === "farm").length === 11, "あたらしい 食べ物は 11");
+ok(R.FOODS.filter((f) => f.exclusive === "farm" && C.some((c) => c.food === f.id)).length === 11, "あたらしい 作物の 食べ物は 11");
 for (const s of Object.values(R.BUY_SHOPS)) for (const tab of ["food", "all", undefined]) { let list = []; try { list = s.items(tab) || []; } catch (e) { list = []; } ok(!list.some((i) => i.exclusive === "farm"), "おみせに はたけの 食べ物が ない " + s.name); }
 
 // ---- 2. そだつ しくみ ----
@@ -139,4 +141,38 @@ ok(hut && hut.asset === "farm.hut" && hut.act.type === "visit" && kana(hut.label
 { const model = R.HeiwadaiArt.model("farm.hut", {}); ok(model.w > 90 && model.h > 90 && model.footW === 3 && model.footH === 2, "こやの 絵の 大きさ"); { const full = R.HeiwadaiArt.full("farm.hut", {}); ok(full.startsWith("<svg") && !/NaN|undefined|Infinity/.test(full) && [...full.matchAll(/id="([^"]+)"/g)].every(([, id]) => id.startsWith("hw")), "こやの 絵（id は HeiwadaiArt の なまえつき）"); } ok(reach(hut.x + hut.door, hut.y + hut.h), "こやの とびらの まえに いける"); }
 for (const k of ["farm_scarecrow", "farm_crate", "farm_barrel", "farm_sack", "farm_hay", "farm_rack"]) { ok(d.objects.some((o) => o.kind === k && o.x <= 11 && o.y >= 55), "はたけの 小物 " + k); const a = R.WorldArt[k](); svgOk(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${a.w} ${a.h}">${a.svg}</svg>`, k); }
 
-console.log(`Farm: ${C.length} crops (5 + 5 after 3 harvests + 3 after 8), 6 plots left of the home in Nerikasu town, water twice (sowing and leaves), rain waters, fertilizer +${RULES.fertBonus}, no rot; ${C.length * 5} growth pictures and ${R.FOODS.filter((f) => f.exclusive === "farm").length} new foods; ${n} checks OK`);
+// ---- 6. とれたて りょうり（js/farm-cook.js） ----
+const { FarmCook: K, FARM_RECIPES: RC } = R;
+ok(RC.length === 10 && new Set(RC.map((r) => r.id)).size === 10, "りょうりは 10しゅ");
+const cropFoods = new Set(C.map((c) => c.food)), dishes = RC.filter((r) => r.name);
+ok(dishes.length === 8 && RC.filter((r) => !r.name).every((r) => ["soup", "mild_curry"].includes(r.id) && R.BAG_INDEX[r.id].exclusive !== "farm"), "あたらしい りょうりは 8しゅ（おやさいスープ・あまくちカレーは まえからの 食べ物）");
+const sold = new Set(); for (const s of Object.values(R.BUY_SHOPS)) for (const [tab] of s.tabs || [["all"]]) { try { for (const i of s.items(tab) || []) sold.add(i.id); } catch (e) { /* たなの ない みせ */ } }
+const artSeen = new Set(Object.entries(R.FOOD_ART).filter(([id]) => !dishes.some((r) => r.id === id)).map(([, a]) => a));
+for (const r of RC) {
+  const f = R.BAG_INDEX[r.id];
+  ok(f && f.kind === "food" && R.FOODS.some((x) => x.id === r.id) && kana(f.name) && kana(f.desc) && f.hunger > 0 && f.price > 0, "りょうりの 食べ物 " + r.id);
+  ok(Object.keys(r.needs).length >= 1 && Object.entries(r.needs).every(([id, n]) => Number.isInteger(n) && n >= 1 && n <= 3 && R.BAG_INDEX[id]?.kind === "food" && id !== r.id), "ざいりょう " + r.id);
+  ok(Object.keys(r.needs).some((id) => cropFoods.has(id)), "はたけの さくもつを つかう " + r.id);
+  for (const id of Object.keys(r.needs)) if (!cropFoods.has(id)) ok(sold.has(id), "はたけ いがいの ざいりょうは おみせで かえる " + r.id + " " + id);
+  svgOk(R.Art.iconSvg("bag", r.id), "りょうりの 絵 " + r.id);
+  if (r.name) { ok(f.exclusive === "farm" && !f.rare && f.deza === r.name.startsWith("デザ・") && f.name === r.name, "あたらしい りょうりは おみせに ならばない " + r.id); ok(typeof R.FOOD_ART[r.id] === "string" && !artSeen.has(R.FOOD_ART[r.id]), "りょうりの 絵が ほかと おなじ " + r.id); artSeen.add(R.FOOD_ART[r.id]); }
+}
+ok(C.every((c) => RC.some((r) => r.needs[c.food])), "13しゅ ぜんぶ どれかの りょうりに つかう");
+// つくる: そろわないと つくれない → そろえると ざいりょうが へって りょうりが 1つ
+R.Save.d = R.Save.fresh();
+const salad = K.recipe("salad"), bag = () => R.Save.d.bag;
+ok(K.recipe("banana") === null && K.cook("banana") === null, "ない りょうりは つくれない");
+ok(!K.can(salad) && JSON.stringify(K.missing(salad)) === JSON.stringify({ tomato: 1, cabbage: 1, radish: 1 }) && K.cook("salad") === null && !bag().salad, "ざいりょうが ないと つくれない");
+R.Save.addBag("tomato", 2); R.Save.addBag("cabbage", 1);
+ok(!K.can(salad) && JSON.stringify(K.missing(salad)) === JSON.stringify({ radish: 1 }) && K.cook("salad") === null && bag().tomato === 2, "1つ たりないと つくれない（へらない）");
+R.Save.addBag("radish", 3);
+const made = K.cook("salad");
+ok(made && made.id === "salad" && made.have === 1 && bag().salad === 1 && bag().tomato === 1 && !bag().cabbage && bag().radish === 2 && R.Save.d.farm.cooked.salad === 1, "つくると へって ふえる " + JSON.stringify(bag()));
+ok(K.cook("salad") === null && bag().salad === 1, "ざいりょうが なくなったら つくれない");
+R.Save.addBag("strawberry", 5); R.Save.addBag("milk", 2);
+ok(K.cook("deza_berrymilk") && K.cook("deza_berrymilk") === null && bag().deza_berrymilk === 1 && bag().strawberry === 2 && bag().milk === 1 && R.Save.d.farm.cooked.deza_berrymilk === 1, "いちごミルク（いちご 3つ）");
+ok(R.Save.fresh().farm.cooked && Object.keys(R.Save.fresh().farm.cooked).length === 0, "セーブの cooked は はじめ から");
+R.Save.d.farm.cooked = 7; ok(K.cook("salad") === null && typeof Farm.st().cooked === "object", "こわれた cooked を なおす");
+{ const old = R.Save.fresh(); delete old.farm.cooked; const m = R.Save.migrate(JSON.parse(JSON.stringify(old))); ok(m.farm.cooked && typeof m.farm.cooked === "object", "migrate が cooked を おぎなう"); }
+
+console.log(`Farm: ${C.length} crops (5 + 5 after 3 harvests + 3 after 8), 6 plots left of the home in Nerikasu town, water twice (sowing and leaves), rain waters, fertilizer +${RULES.fertBonus}, no rot; ${C.length * 5} growth pictures and ${R.FOODS.filter((f) => f.exclusive === "farm" && C.some((c) => c.food === f.id)).length} new foods; ${RC.length} farm recipes (${dishes.length} new dishes); ${n} checks OK`);

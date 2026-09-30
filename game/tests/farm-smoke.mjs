@@ -1,5 +1,6 @@
 // はたけ（js/farm.js・オーナーの FB 2026-09-30）: やおやの かわりの はたけ 6まい。町で たねまき → みずやり → そだつ → しゅうかく、
 // かんばんから はたけの がめん（大きい はたけ・3人が あるく・ひりょう・ずかん）・あめで みずやり・さいかいしても そのまま
+// とれたて りょうり（js/farm-cook.js・FARM-02）: おうちの「ごはん」の いちばん うえ → りょうりの まど → つくる → ごはんに もどって たべる・はたけの がめんの「りょうり」
 export async function farmSmoke({ scenario, expect }) {
   const setCoins = async (H, n) => { await H.dbg('coins', -1e9); await H.dbg('coins', n); }; // PokaDebug.coins は たす（0 より へらない）
   // 町の はたけ i: まえの マスに たって うえむき → はたけを タップ
@@ -34,7 +35,7 @@ export async function farmSmoke({ scenario, expect }) {
     const s1 = await H.dbg('farmSignAt'); await H.tap(s1.cx, s1.cy); await H.until(() => PokaDebug.state().scene === 'farm' && PokaDebug.idle(), 15000); await H.wait(600);
     f = await H.dbg('farm'); expect(f.scene && f.team.length === 3, 'はたけの がめんに 3人 いない');
     const bar = await H.eval(() => { const r = (e) => e.getBoundingClientRect(), b = [...document.querySelectorAll('.farm-bar .btn')]; return { n: b.length, big: b.every((x) => r(x).height >= 43.5 && r(x).width >= 43.5), inside: b.every((x) => r(x).left >= -1 && r(x).right <= innerWidth + 1 && r(x).bottom <= innerHeight + 1), fit: b.every((x) => x.scrollWidth <= x.clientWidth + 1), over: document.documentElement.scrollWidth > innerWidth }; });
-    expect(bar.n === 2 && bar.big && bar.inside && bar.fit && !bar.over, 'はたけの がめんの ボタン ' + JSON.stringify(bar));
+    expect(bar.n === 3 && bar.big && bar.inside && bar.fit && !bar.over, 'はたけの がめんの ボタン（ずかん・りょうり・まちへ） ' + JSON.stringify(bar));
     await H.shot('scene');
     // がめん: はたけ 0 に みずやり（3人が あるいて いく）→ みのる → しゅうかく
     await sceneTap(H, 0); await H.until(() => PokaDebug.farm().plots[0].w, 10000);
@@ -67,4 +68,51 @@ export async function farmSmoke({ scenario, expect }) {
     const after = await H.dbg('farm');
     expect(JSON.stringify(after.plots.map((p) => [p.c, p.s, p.w, p.f])) === JSON.stringify(before.plots.map((p) => [p.c, p.s, p.w, p.f])) && after.harvests === 1 && after.got.radish === n, 'さいかいで はたけが かわる');
   }, { viewport, timeout: 240000 });
+  for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario('farm-cook-' + viewport.width, async (H) => {
+    await H.newGameFast(); await H.dbg('hour', 12);
+    // はたけで とれた ことに する（やさいサラダ 1かいぶん・トマトは 1こ あまる・いちごミルク 1かいぶん）
+    for (const [id, n] of [['tomato', 2], ['cabbage', 1], ['radish', 1], ['strawberry', 3], ['milk', 1]]) await H.dbg('give', id, n);
+    // おうちの「ごはん」: いちばん うえに「とれたて りょうり」
+    await H.houseButton('ごはん'); await H.page.locator('.modal-wrap:not(.out) .farm-cook-btn').waitFor({ timeout: 8000 });
+    const top = await H.eval(() => { const b = document.querySelector('.modal-wrap:not(.out) .farm-cook-btn'), r = b.getBoundingClientRect(); return { first: b.parentElement.firstElementChild === b, h: r.height, inside: r.left >= -1 && r.right <= innerWidth + 1, fit: b.scrollWidth <= b.clientWidth + 1 }; });
+    expect(top.first && top.h >= 43.5 && top.h <= 56 && top.inside && top.fit, 'ごはんの うえの「とれたて りょうりを つくる」（1ぎょう・44px いじょう） ' + JSON.stringify(top));
+    await H.shot('food');
+    await H.page.locator('.modal-wrap:not(.out) .farm-cook-btn').click(); await H.page.locator('.modal-wrap:not(.out) .farm-cook').waitFor({ timeout: 8000 }); await H.wait(300);
+    const recipesUi = () => H.eval(() => { const r = (e) => e.getBoundingClientRect(), rows = [...document.querySelectorAll('.modal-wrap:not(.out) .farm-recipe')], btns = rows.map((x) => x.querySelector('.btn'));
+      return { n: rows.length, ok: rows.filter((x) => x.classList.contains('ok')).map((x) => x.querySelector('b').textContent), open: btns.filter((b) => !b.disabled).length,
+        big: btns.every((b) => r(b).height >= 43.5 && r(b).width >= 43.5), inside: rows.every((x) => r(x).left >= -1 && r(x).right <= innerWidth + 1), fit: rows.every((x) => x.scrollWidth <= x.clientWidth + 1), over: document.documentElement.scrollWidth > innerWidth }; });
+    let ui = await recipesUi();
+    expect(ui.n === 10 && ui.open === 2 && ui.ok.join() === 'やさいサラダ,デザ・いちごミルク' && ui.big && ui.inside && ui.fit && !ui.over, 'りょうりの まど（10しゅ・つくれるのは 2つ） ' + JSON.stringify(ui));
+    await H.shot('recipes');
+    // やさいサラダを つくる: ざいりょうが へって りょうりが 1つ。もう ざいりょうが ないので おせない
+    await H.page.getByRole('button', { name: 'やさいサラダを つくる', exact: true }).click(); await H.wait(400);
+    let bag = (await H.dbg('saveData')).bag, c = await H.dbg('cookState');
+    expect(bag.salad === 1 && bag.tomato === 1 && !bag.cabbage && !bag.radish && c.cooked.salad === 1 && !c.recipes.find((r) => r.id === 'salad').can, 'やさいサラダが できない ' + JSON.stringify(bag));
+    ui = await recipesUi(); expect(ui.open === 1 && ui.ok.join() === 'デザ・いちごミルク', 'つくった あとも やさいサラダが つくれる ' + JSON.stringify(ui));
+    // できた しるしは つくった ぎょうに（おしらせを まどの うえに かさねない）
+    const done = await H.eval(() => { const d = document.querySelector('.modal-wrap:not(.out) .farm-done'); return { at: d ? d.closest('.farm-recipe').querySelector('b').textContent + '|' + d.textContent : null, toasts: document.querySelectorAll('.toasts .toast').length }; });
+    expect(done.at === 'やさいサラダ|できた！ もちもの 1こ' && done.toasts === 0, 'できた しるしが ない／おしらせが かさなる ' + JSON.stringify(done));
+    await H.shot('cooked');
+    // とじると ごはんに もどる → やさいサラダを 1ばんめの 子に あげる
+    await H.page.locator('.modal-wrap:not(.out) .close').last().click(); await H.page.locator('.modal-wrap:not(.out) .grid .card').first().waitFor({ timeout: 8000 }); await H.wait(300);
+    const cards = await H.eval(() => [...document.querySelectorAll('.modal-wrap:not(.out) .grid .card')].map((x) => x.textContent));
+    expect(cards.some((t) => t.includes('やさいサラダ')), 'ごはんに やさいサラダが ない ' + JSON.stringify(cards));
+    const hunger0 = await H.eval(() => Save.d.chars[Save.d.order[0]].hunger);
+    await H.page.locator('.modal-wrap:not(.out) .grid .card', { hasText: 'やさいサラダ' }).click(); await H.page.waitForSelector('.choices .btn', { timeout: 8000 }); await H.choose(0);
+    await H.until(() => !G.scene.mode, 10000); await H.dialogs();
+    bag = (await H.dbg('saveData')).bag; const hunger1 = await H.eval(() => Save.d.chars[Save.d.order[0]].hunger);
+    expect(!bag.salad && hunger1 > hunger0, 'やさいサラダが たべられない ' + JSON.stringify([hunger0, hunger1, bag.salad]));
+    // はたけの がめんの「りょうり」からも（いちごミルク）
+    await H.dbg('farmGo'); await H.until(() => PokaDebug.state().scene === 'farm' && PokaDebug.idle(), 15000); await H.wait(500);
+    await H.page.getByRole('button', { name: 'とれたて りょうり', exact: true }).click(); await H.page.locator('.modal-wrap:not(.out) .farm-cook').waitFor({ timeout: 8000 }); await H.wait(300);
+    c = await H.dbg('cookState'); expect(c.open && c.recipes.filter((r) => r.can).map((r) => r.id).join() === 'deza_berrymilk', 'はたけの がめんで りょうりの まどが ひらかない ' + JSON.stringify(c.recipes.filter((r) => r.can)));
+    await H.page.getByRole('button', { name: 'デザ・いちごミルクを つくる', exact: true }).click(); await H.wait(400);
+    bag = (await H.dbg('saveData')).bag; expect(bag.deza_berrymilk === 1 && !bag.strawberry && !bag.milk, 'いちごミルクが できない ' + JSON.stringify(bag));
+    await H.shot('farm');
+    await H.page.locator('.modal-wrap:not(.out) .close').last().click(); await H.idle(); await H.wait(300);
+    expect((await H.dbg('state')).scene === 'farm' && !(await H.dbg('cookState')).open, 'とじても はたけの がめんに もどらない');
+    // さいかいしても りょうりと つくった かずは そのまま
+    await H.dbg('save'); await H.page.reload(); await H.page.getByRole('button', { name: 'つづきから', exact: true }).click(); await H.idle();
+    c = await H.dbg('cookState'); expect(c.cooked.salad === 1 && c.cooked.deza_berrymilk === 1 && (await H.dbg('saveData')).bag.deza_berrymilk === 1, 'さいかいで りょうりが きえる ' + JSON.stringify(c.cooked));
+  }, { viewport, timeout: 180000 });
 }

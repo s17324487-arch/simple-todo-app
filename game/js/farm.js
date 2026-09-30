@@ -44,7 +44,7 @@ const Farm = {
     if (!Array.isArray(f.plots)) f.plots = [];
     for (let i = 0; i < FARM_RULES.plots; i++) { const p = f.plots[i]; if (!p || typeof p !== "object" || (p.c && !this.crops[p.c])) f.plots[i] = { c: null }; }
     f.plots.length = FARM_RULES.plots;
-    for (const k of ["got", "first"]) if (!f[k] || typeof f[k] !== "object") f[k] = {};
+    for (const k of ["got", "first", "cooked"]) if (!f[k] || typeof f[k] !== "object") f[k] = {};
     for (const k of ["harvests", "sown", "fert"]) if (!Number.isFinite(f[k])) f[k] = 0;
     return f;
   },
@@ -302,7 +302,8 @@ class FarmScene {
     if (this.closed) return;
     UI.showHud(true, "はたけ");
     this.bar = U.el("div", { class: "farm-bar" });
-    this.bar.append(UI.btn("さくもつ ずかん", () => { if (!this.busy) Farm.openDex(); }, "small"), UI.btn("まちへ もどる", () => this.leave(), "small yellow"));
+    this.bar.append(UI.btn("ずかん", () => { if (!this.busy) Farm.openDex(); }, "small"), UI.btn("りょうり", () => { if (!this.busy && typeof FarmCook !== "undefined") FarmCook.open(); }, "small"), UI.btn("まちへ", () => this.leave(), "small yellow"));
+    for (const [b, label] of [[this.bar.children[0], "さくもつ ずかん"], [this.bar.children[1], "とれたて りょうり"], [this.bar.children[2], "まちへ もどる"]]) b.setAttribute("aria-label", label);
     document.getElementById("ui").append(this.bar);
     UI.toastBox.classList.add("farm-toasts"); // おしらせは したの ボタンの うえ（うえの はたけに かさならない）
     Sound.bgm("meadow");
