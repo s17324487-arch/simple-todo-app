@@ -3176,8 +3176,12 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  let text=await book();expect(/まだ きろくが ないよ/.test(text)&&/ランキング/.test(text)&&/あそんだ かいすう0かい/.test(text),'はじめての きろく '+text);
  // はみ出さない: まど・タブ（44px いじょう）・なかみ（よこに スクロールしない）。
  // はかるのは いちばん うえの まど（あそんだ あとは けっかの まどの うえに ひらく）で、ひらく うごきが おわって から。だめな ときは どこが だめかを だす
+ // うごきの おわりは 3つで みる: getAnimations が running でない・まどの transform が none・まどの 位置が 2フレーム つづけて おなじ
+ // （WebKit は おわる すこし まえに running で なくなる ことが あり、のこり 2px の ところで はかって いた）
  const fit=async(msg)=>{
-  await H.until(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop();return !!w&&!!w.querySelector('.koro-book')&&(typeof w.getAnimations!=='function'||[w,...w.querySelectorAll('.panel')].every(e=>e.getAnimations().every(a=>a.playState!=='running')));},5000);
+  await H.eval(()=>{window.__koroFitLast=null;});
+  await H.until(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop();if(!w||!w.querySelector('.koro-book'))return false;const p=w.querySelector('.panel'),r=p.getBoundingClientRect(),k=[r.left,r.top,r.right,r.bottom].join(),same=window.__koroFitLast===k;window.__koroFitLast=k;
+   return same&&getComputedStyle(p).transform==='none'&&getComputedStyle(w).opacity==='1'&&(typeof w.getAnimations!=='function'||[w,...w.querySelectorAll('.panel')].every(e=>e.getAnimations().every(a=>a.playState!=='running')));},5000);
   const r=await H.eval(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop(),p=w.querySelector('.panel').getBoundingClientRect(),body=w.querySelector('.panel-body'),tabs=[...w.querySelectorAll('.koro-tabs .btn')].map(b=>b.getBoundingClientRect());
    const out=[...w.querySelectorAll('.koro-book *')].filter(e=>{const r=e.getBoundingClientRect();return !(r.width===0||(r.left>=p.left-0.5&&r.right<=p.right+0.5));}).map(e=>e.className||e.tagName);
    const edge=!(p.left>=0&&p.right<=innerWidth&&p.bottom<=innerHeight+0.5),tab=!(tabs.length===2&&tabs.every(r=>r.height>=44)),wide=body.scrollWidth>body.clientWidth+1;
