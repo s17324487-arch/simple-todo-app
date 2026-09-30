@@ -17,18 +17,20 @@ const KOROKORO_TIERS = Object.freeze([
 // W×H: 箱の なか・drop: おちてくる 小さい ほうから 4しゅ（8しゅの はんぶん。本物は 11しゅの うち 5しゅ）・g: じゅうりょく・e: はねかえり・mu: まさつ
 // step: 物理の 1ステップ（1/480 びょう）・overSec: ふちより 上に この びょう いると あふれ（スコア モードは KorokoroWorld の overSec で みじかく）・growSec: がったいで 大きく なる じかん
 // warn: ふちから この ちかさで あかい せん・cool: おとしてから つぎを もてるまで・depen: かさなりを なおす ときの はなれる はやさの 上限
-const KOROKORO_RULES = Object.freeze({ W: 100, H: 110, drop: 4, g: 900, e: 0.12, mu: 0.3, step: 1 / 480, maxFrame: 1 / 15, vmax: 420, overSec: 2, growSec: 0.12, warn: 12, cool: 0.45, depen: 45 });
+// keep: がったいで できた 玉が 2つの 玉の はやさを どれだけ ひきつぐか（1 = ぜんぶ）・up: うえむきの はやさの 上限（がったいで おされた 玉が とびださない ように）
+const KOROKORO_RULES = Object.freeze({ W: 100, H: 110, drop: 4, g: 900, e: 0.12, mu: 0.3, step: 1 / 480, maxFrame: 1 / 15, vmax: 420, overSec: 2, growSec: 0.12, warn: 12, cool: 0.45, depen: 45, keep: 1, up: Infinity });
 
 class KorokoroWorld {
-  // o.overSec: あふれ までの びょう（スコア モードは ほぼ すぐ）
+  // o.overSec: あふれ までの びょう（スコア モードは ほぼ すぐ）・o.H: 箱の 高さ・o.rules: この 箱だけの きまりの 上がき（スコア モードの はねを おさえる）
   constructor(seed = 1, o = {}) {
-    this.W = KOROKORO_RULES.W; this.H = KOROKORO_RULES.H; this.overSec = o.overSec > 0 ? o.overSec : KOROKORO_RULES.overSec;
+    this.R = o.rules ? Object.freeze({ ...KOROKORO_RULES, ...o.rules }) : KOROKORO_RULES;
+    this.W = this.R.W; this.H = o.H > 0 ? o.H : this.R.H; this.overSec = o.overSec > 0 ? o.overSec : this.R.overSec;
     this.bodies = []; this.contacts = []; this.touch = new Map();
     this.serial = 0; this.t = 0; this.acc = 0; this.rng = (seed >>> 0) || 1;
     this.floorOpen = false; this.danger = 0; this.topGap = this.H;
   }
   random() { let x = this.rng; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; this.rng = x >>> 0; return this.rng / 4294967296; }
-  pickDrop() { return Math.floor(this.random() * KOROKORO_RULES.drop); }
+  pickDrop() { return Math.floor(this.random() * this.R.drop); }
   static radius(tier) { return KOROKORO_TIERS[tier].r; }
   add(tier, x, y, o = {}) {
     const R = KOROKORO_TIERS[tier].r, from = o.from != null ? KOROKORO_TIERS[o.from].r : R;
@@ -50,15 +52,15 @@ class KorokoroWorld {
   step(dt) {
     const events = [];
     if (!(dt > 0)) return events;
-    const h = KOROKORO_RULES.step;
-    this.acc = Math.min(this.acc + dt, KOROKORO_RULES.maxFrame);
+    const h = this.R.step;
+    this.acc = Math.min(this.acc + dt, this.R.maxFrame);
     while (this.acc >= h - 1e-9) { this.sub(h); this.acc -= h; this.t += h; }
     this.merge(events);
     this.watch(dt, events);
     return events;
   }
   sub(h) {
-    const B = this.bodies, n = B.length, R = KOROKORO_RULES, W = this.W, H = this.H, C = this.contacts;
+    const B = this.bodies, n = B.length, R = this.R, W = this.W, H = this.H, C = this.contacts;
     for (const b of B) {
       if (b.grow < 1) { b.grow = Math.min(1, b.grow + h / R.growSec); const k = 1 - (1 - b.grow) * (1 - b.grow); b.r = b.r0 + (b.R - b.r0) * k; }
       b.ovx = b.vx; b.ovy = b.vy;
@@ -121,6 +123,7 @@ class KorokoroWorld {
       b.w *= 1 - 1.5 * h;
       const v2 = b.vx * b.vx + b.vy * b.vy;
       if (v2 > R.vmax * R.vmax) { const k = R.vmax / Math.sqrt(v2); b.vx *= k; b.vy *= k; }
+      if (b.vy < -R.up) b.vy = -R.up;
     }
   }
   // ふれた おなじ もの どうしを 1つに（1つの 玉は 1フレームに 1かいだけ）。いちばん 大きい ごじ どうしは はじけて きえる
@@ -135,7 +138,7 @@ class KorokoroWorld {
       used.add(a); used.add(b); gone.push(a, b);
       const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2, points = KOROKORO_TIERS[a.tier].points;
       if (a.tier === last) { events.push({ type: "burst", tier: a.tier, x, y, points, hero: KOROKORO_TIERS[last].hero || null }); continue; }
-      const nb = this.add(a.tier + 1, x, y, { from: a.tier, vx: (a.vx + b.vx) / 2, vy: (a.vy + b.vy) / 2, a: (a.a + b.a) / 2, born: "merge", landed: true });
+      const k = this.R.keep / 2, nb = this.add(a.tier + 1, x, y, { from: a.tier, vx: (a.vx + b.vx) * k, vy: (a.vy + b.vy) * k, a: (a.a + b.a) / 2, born: "merge", landed: true });
       events.push({ type: "merge", tier: nb.tier, from: a.tier, x, y, body: nb, points, hero: KOROKORO_TIERS[nb.tier].hero || null });
     }
     this.touch.clear();

@@ -25,23 +25,25 @@ const KorokoroSound = {
 };
 
 // 箱（物理・おとす・ゆびの 入力・描画）。o.mode: "order"（ちゅうもん モード・よこに つぎ／ポイント／じゅんばん）か "score"（スコア モード・箱を 大きく・したに じゅんばん）
-// o.overSec: あふれ までの びょう（スコア モードは みじかい）
+// o.overSec: あふれ までの びょう（スコア モードは みじかい）・o.H: 箱の 高さ（はば 100。スコア モードは 15% たかい）・o.rules: 物理の きまりの 上がき（スコア モードは はねを おさえる）
 class KorokoroBoard {
   constructor(sc, seed = (Date.now() ^ 0x5eed) >>> 0, o = {}) {
     this.sc = sc; this.mode = o.mode === "score" ? "score" : "order";
-    this.world = new KorokoroWorld(seed, { overSec: o.overSec });
+    this.world = new KorokoroWorld(seed, { overSec: o.overSec, H: o.H, rules: o.rules });
     this.held = this.world.pickDrop(); this.next = this.world.pickDrop();
     this.aim = 50; this.cool = 0; this.points = 0; this.spills = 0; this.coins = 0; this.drops = 0; this.merges = 0; this.made = {};
     // over: スコア モードの おしまい（"overflow" = はみだした・"stop" = じぶんで やめた・false = あそんで いる）
     this.fx = []; this.flyers = []; this.aiming = false; this.pid = null; this.want = []; this.over = false;
   }
+  // 箱の たて ÷ よこ（ちゅうもん モード 1.1・スコア モード 1.265）。レイアウトでは これに 上の おとす ところ（0.28）を たす
+  aspect() { return this.world.H / this.world.W; }
   // ちゅうもん モード: 作業エリア R に 箱（左）と よこの れつ（つぎ・ポイント・じゅんばん）を おく
   layout(R) {
     if (this.mode === "score") return this.layoutScore(R);
-    const pad = 8, side = 50, areaW = R.w - pad * 3 - side;
+    const pad = 8, side = 50, areaW = R.w - pad * 3 - side, k = this.aspect();
     this.R = R; this.row = null;
-    this.bw = Math.floor(Math.min(areaW, (R.h - pad * 2) / 1.38));
-    this.s = this.bw / 100; this.bh = this.bw * 1.1;
+    this.bw = Math.floor(Math.min(areaW, (R.h - pad * 2) / (k + 0.28)));
+    this.s = this.bw / 100; this.bh = this.bw * k;
     this.bx = R.x + pad + Math.max(0, (areaW - this.bw) / 2);
     this.top = Math.round(this.s * 28);
     this.by = R.y + pad + this.top + Math.max(0, (R.h - pad * 2 - this.top - this.bh) / 2);
@@ -50,13 +52,13 @@ class KorokoroBoard {
   }
   // スコア モード: 箱を できるだけ 大きく（よこの れつは なし。つぎ と スコアは js/korokoro-score.js が うえに 描く）・箱の したに 大きく なる じゅんばん
   layoutScore(R) {
-    const pad = 6, rowH = U.clamp(Math.round(R.w / 7.4), 42, 54), room = R.h - rowH - pad * 2 - 16;
+    const pad = 6, rowH = U.clamp(Math.round(R.w / 7.4), 42, 54), room = R.h - rowH - pad * 2 - 16, k = this.aspect() + 0.28;
     this.R = R; this.col = null;
-    this.bw = Math.floor(Math.min(R.w - 24, room / 1.38));
-    this.s = this.bw / 100; this.bh = this.bw * 1.1;
+    this.bw = Math.floor(Math.min(R.w - 24, room / k));
+    this.s = this.bw / 100; this.bh = this.bw * this.aspect();
     this.bx = R.x + (R.w - this.bw) / 2;
     this.top = Math.round(this.s * 28);
-    this.by = R.y + pad + this.top + Math.max(0, (room - this.bw * 1.38) / 2);
+    this.by = R.y + pad + this.top + Math.max(0, (room - this.bw * k) / 2);
     this.row = { x: R.x + 4, y: this.by + this.bh + 16, w: R.w - 8, h: rowH };
     this.preload();
   }

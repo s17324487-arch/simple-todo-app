@@ -264,9 +264,10 @@ const scoreTable = [];
   for (const [w, h] of [[390, 844], [375, 667]]) {
     G.W = w; G.H = h;
     const sc = Object.create(ScoreScene.prototype); sc.team = ["wanko", "gachan", "goji"].map((id) => ({ id, turn: 0, jump: -1, emo: "normal" }));
-    sc.board = new Board(sc, 1, { mode: "score", overSec: SCORE.overSec }); sc.resize();
+    sc.board = new Board(sc, 1, Score.board()); sc.resize();
     const b = sc.board, row = b.row, spots = [0, 1, 2].map((i) => sc.teamSpot(i));
-    ok(b.bw >= 320 && b.bx - 7 >= 0 && b.bx + b.bw + 7 <= w && b.by - b.top >= sc.infoY + sc.infoH && row.y >= b.by + b.bh + 9 && row.y + row.h <= h - 4 && row.w / T.length >= 40, `${w}×${h}: スコア モードの 箱と じゅんばんが 画面に おさまらない（${JSON.stringify({ bw: b.bw, bx: b.bx, by: b.by, row })}）`);
+    ok(Math.abs(b.bh / b.bw - SCORE.H / 100) < 0.01, `${w}×${h}: スコア モードの 箱の たて・よこ（${b.bw}×${b.bh}）`);
+    ok(b.bw >= 280 && b.bx - 7 >= 0 && b.bx + b.bw + 7 <= w && b.by - b.top >= sc.infoY + sc.infoH && row.y >= b.by + b.bh + 9 && row.y + row.h <= h - 4 && row.w / T.length >= 40, `${w}×${h}: スコア モードの 箱と じゅんばんが 画面に おさまらない（${JSON.stringify({ bw: b.bw, bx: b.bx, by: b.by, row })}）`);
     ok(sc.panel.x >= 8 && spots[0].x - sc.charSize / 2 >= sc.panel.x + sc.panel.w - 2 && spots[2].x + sc.charSize / 2 <= sc.nextBox.x + 2 && sc.nextBox.x + sc.nextBox.w <= w - 8 && sc.infoY >= 56, `${w}×${h}: スコア・3人・つぎ が かさなる／「やめる」の ボタン（うえ 8〜52）に かかる`);
     const order = new Board(fakeScene(), 1); order.layout({ x: 10, y: Math.round(Math.min(h * 0.4, 330)) + 40, w: w - 20, h: h - Math.round(Math.min(h * 0.4, 330)) - 52 });
     ok(b.bw > order.bw * 1.1, `${w}×${h}: スコア モードの 箱が ちゅうもん モードより 大きく ない（${b.bw} / ${order.bw}）`);
@@ -275,7 +276,7 @@ const scoreTable = [];
   // 点: おとすだけ 0点・さくらんぼ 2つで 1・ごじ どうしで 36（コインは まんなかでは でない）
   const sc = { phase: "play", team: ["wanko", "gachan", "goji"].map((id) => ({ id, turn: 0, jump: -1, emo: "normal" })), fx: [], overs: 0,
     teamSpot: (i) => ({ x: 100 + i * 40, y: 50 }), addFx(kind, x, y, o) { this.fx.push({ kind, x, y, ...o }); }, gameOver() { this.overs++; } };
-  const b = new Board(sc, 7, { mode: "score", overSec: SCORE.overSec }); b.layout({ x: 8, y: 135, w: 374, h: 699 });
+  const b = new Board(sc, 7, Score.board()); b.layout({ x: 8, y: 135, w: 374, h: 699 });
   ok(b.mode === "score" && b.world.overSec === SCORE.overSec && b.row && !b.col, "スコア モードの 箱");
   b.held = 3; b.dropNow(); for (let i = 0; i < 90; i++) b.tick(1 / 60, true);
   ok(b.points === 0 && b.drops === 1, "おとした だけで 点が はいる");
@@ -291,7 +292,7 @@ const scoreTable = [];
   ok(b.over === "overflow" && sc.overs === 1 && t < 1.6 && !b.canDrop() && !b.dropNow() && JSON.stringify(b.world.bodies.map((o) => [o.x, o.y])) === snap && !b.world.floorOpen && b.spills === 0, `スコア モードで あふれても おしまいに ならない（${t.toFixed(2)}びょう・${sc.overs}かい）`);
   ok(b.world.bodies.some((o) => o.over > 0 && b.emo(o) === "sad") && b.world.bodies.some((o) => !(o.over > 0) && b.emo(o) === "surprise"), "おしまいの かお（はみだした 玉は かなしい・ほかは びっくり）");
   // じぶんで やめる: おなじ ように とまる（かおは にっこり・あかい せんは ださない）
-  const st = new Board(sc, 8, { mode: "score", overSec: SCORE.overSec }); st.layout({ x: 8, y: 135, w: 374, h: 699 }); st.world.add(2, 50, 100, { landed: true });
+  const st = new Board(sc, 8, Score.board()); st.layout({ x: 8, y: 135, w: 374, h: 699 }); st.world.add(2, 50, 100, { landed: true });
   st.end("stop"); st.end("overflow");
   ok(st.over === "stop" && !st.canDrop() && st.emo(st.world.bodies[0]) === "happy" && sc.overs === 1, "やめた ときの おしまい");
   // ハイスコア・ランキング（上から 5つ・おなじ 点は まえの きろくが うえ）・コイン・ひょうばん・めやす
@@ -307,16 +308,17 @@ const scoreTable = [];
   ok(Score.pay(0) === 0 && Score.pay(600) === 100 && Score.pay(10000) === SCORE.coinMax && Score.pay(600, "easy") < Score.pay(600) && Score.pay(600, "hard") > Score.pay(600) && Score.pay(600, "normal", 1.2) === 120, "スコア モードの コイン");
   ok(Score.rep(0) === 0 && Score.rep(550) === 5 && Score.rep(99999) === SCORE.repMax && Score.grade(0) === 0 && Score.grade(400) === 2 && Score.grade(5000) === 3, "ひょうばん・めやす（×△○◎）");
   // ボット: どれも いつかは おしまいに なる・かんがえて おとす ほど 点が たかい（こどもの はやさ）
-  const scoreGame = (seed, { every, noise, silly }) => {
-    const w = new World(seed, { overSec: SCORE.overSec }); seedR = seed * 7 + 3;
-    let held = w.pickDrop(), next = 0, t = 0, score = 0, gojis = 0;
+  const scoreGame = (seed, { every, noise, silly }, o = Score.board()) => {
+    const w = new World(seed, { overSec: SCORE.overSec, H: o.H, rules: o.rules }); seedR = seed * 7 + 3;
+    let held = w.pickDrop(), next = 0, t = 0, score = 0, gojis = 0, up = 0;
     for (; t < 1200; t += 1 / 60) {
       if (t >= next) { w.dropAt(held, aimFor(w, held, noise, silly)); held = w.pickDrop(); next = t + every; }
       let end = false;
       for (const e of w.step(1 / 60)) { if (e.type === "merge" || e.type === "burst") score += e.points; if (e.type === "merge" && e.tier === T.length - 1) gojis++; if (e.type === "overflow") end = true; }
+      for (const o of w.bodies) if (o.landed) up = Math.max(up, -o.vy); // おかれた 玉の うえむきの はやさ（がったいで おされて とびあがる）
       if (end || !w.ok()) break;
     }
-    return { score, t, gojis, ok: w.ok() };
+    return { score, t, gojis, up, ok: w.ok() };
   };
   const med = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
   for (const [name, bot] of [["でたらめ", { every: 1.2, noise: 0, silly: 1 }], ["こども", { every: 1.6, noise: 4, silly: 0.25 }]]) {
@@ -325,6 +327,14 @@ const scoreTable = [];
     scoreTable.push({ name, score: med(games.map((g) => g.score)), secs: Math.round(med(games.map((g) => g.t))), gojis: games.reduce((k, g) => k + g.gojis, 0) });
   }
   ok(scoreTable[1].score > scoreTable[0].score * 1.3 && scoreTable[1].gojis >= 4, `かんがえて おとしても 点が あまり かわらない（${JSON.stringify(scoreTable)}）`);
+  // くっついた ときの はねを おさえて 15% たかい 箱（オーナーの FB 2026-09-30）: まえの きまり（はね・110）より ながく あそべる
+  const kidBot = { every: 1.6, noise: 4, silly: 0.25 }, old = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => scoreGame(seed, kidBot, { H: RULES.H, rules: null }));
+  const oldSecs = med(old.map((g) => g.t)), oldScore = med(old.map((g) => g.score));
+  const nowUp = Math.max(...[1, 2, 3, 4, 5, 6, 7, 8].map((seed) => scoreGame(seed, kidBot).up)), oldUp = Math.max(...old.map((g) => g.up));
+  ok(new World(1).R === RULES && RULES.up === Infinity && RULES.keep === 1 && Math.abs(SCORE.H - RULES.H * 1.15) < 0.01 && Score.board().H === SCORE.H, "ちゅうもん モードの 物理は そのまま・スコア モードの 箱は 15% たかい");
+  ok(nowUp <= SCORE.rules.up + 1e-6 && oldUp > 200, `がったいで おされた 玉の うえむきの はやさ（いま ${nowUp.toFixed(0)}・まえ ${oldUp.toFixed(0)}）`);
+  ok(scoreTable[1].secs >= oldSecs * 1.25 && scoreTable[1].score >= oldScore * 1.2, `はねを おさえても ながく あそべない（いま ${scoreTable[1].secs}びょう ${scoreTable[1].score}てん・まえ ${Math.round(oldSecs)}びょう ${oldScore}てん）`);
+  scoreTable.push({ name: "まえの きまりの こども", score: oldScore, secs: Math.round(oldSecs), gojis: old.reduce((k, g) => k + g.gojis, 0) });
   // お店の モードえらび: ころころ フルーツ いがいは きかない
   ok(await Score.choose({ shopId: "crepe" }) === "order", "ほかの お店で モードを きく");
 }
