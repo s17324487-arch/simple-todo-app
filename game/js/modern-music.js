@@ -8,6 +8,11 @@ const ModernMusic = {
     mallet: { harmonics: [0, 1, .015, 0, .07], attack: .005, decay: .17, sustain: .1, release: .22, cutoff: 2800 },
     pad: { harmonics: [0, 1, .12, .045], attack: .16, decay: .4, sustain: .72, release: .5, cutoff: 1800, detune: 5 },
     bass: { harmonics: [0, 1, .2, .045], attack: .012, decay: .19, sustain: .52, release: .12, cutoff: 850 },
+    // Meeときょれじゃ の J-POP（js/arcade-jpop.js）: うたの かわりの リード（ビブラート つき）・ゲームセンターの ピコピコ・エレキの ベースと ギター
+    lead: { harmonics: [0, 1, .52, .3, .17, .1, .06, .035], attack: .018, decay: .28, sustain: .66, release: .16, cutoff: 3600, vib: [5.2, 11, .2] },
+    chip: { harmonics: [0, 1, 0, .33, 0, .2, 0, .14, 0, .1], attack: .003, decay: .11, sustain: .34, release: .07, cutoff: 3200 },
+    ebass: { harmonics: [0, 1, .46, .24, .12, .05], attack: .008, decay: .16, sustain: .5, release: .1, cutoff: 1300 },
+    gtr: { harmonics: [0, 1, .62, .44, .3, .22, .15, .1, .07], attack: .01, decay: .3, sustain: .45, release: .14, cutoff: 2300 },
   },
   wave(ctx, name) {
     let cache = this.waves.get(ctx);
@@ -63,39 +68,51 @@ const ModernMusic = {
     if (decayAt < hold) g.gain.exponentialRampToValueAtTime(Math.max(.0001, volume * .6), start + decayAt);
     g.gain.exponentialRampToValueAtTime(Math.max(.0001, volume * d.sustain), start + hold);
     g.gain.exponentialRampToValueAtTime(.00001, end);
-    const sources = [];
+    const sources = [], extra = [];
     for (const detune of d.detune ? [-d.detune, d.detune] : [0]) {
       const o = ctx.createOscillator(); o.setPeriodicWave(this.wave(ctx, name)); o.frequency.value = frequency; o.detune.value = detune;
       o.connect(filter); sources.push(o);
     }
-    if (sources.length > 1) { const trim = ctx.createGain(); trim.gain.value = .55; filter.connect(trim); trim.connect(g); this.voice(bus, sources, [trim, filter, g, stereo], start, end + .01); }
-    else { filter.connect(g); this.voice(bus, sources, [filter, g, stereo], start, end + .01); }
+    // ながい 音だけ すこし おくれて ゆれる（うたの ビブラート）
+    if (d.vib && hold > d.vib[2] + .08) {
+      const lfo = ctx.createOscillator(), depth = ctx.createGain();
+      lfo.frequency.value = d.vib[0]; depth.gain.setValueAtTime(0, start); depth.gain.linearRampToValueAtTime(d.vib[1], start + d.vib[2] + .08);
+      lfo.connect(depth); for (const o of sources) depth.connect(o.detune);
+      sources.push(lfo); extra.push(depth);
+    }
+    if (d.detune) { const trim = ctx.createGain(); trim.gain.value = .55; filter.connect(trim); trim.connect(g); this.voice(bus, sources, [...extra, trim, filter, g, stereo], start, end + .01); }
+    else { filter.connect(g); this.voice(bus, sources, [...extra, filter, g, stereo], start, end + .01); }
     g.connect(stereo); stereo.connect(bus.input);
   },
   drum(bus, noise, type, start, volume, pan = 0) {
     if (bus.closed || bus.voices.size >= 80) return;
     const ctx = bus.ctx, g = ctx.createGain(), filter = ctx.createBiquadFilter(), stereo = ctx.createStereoPanner();
-    const duration = type === "k" ? .19 : type === "s" ? .14 : .055;
+    // k バスドラム・s スネア・h ハイハット／o ひらいた ハイハット・c シンバル（J-POP 用）・t たかい タム・l ひくい タム
+    const duration = { k: .19, s: .14, o: .24, c: .95, t: .22, l: .28 }[type] || .055;
     stereo.pan.value = pan;
     let source;
-    if (type === "k") {
+    if (type === "k" || type === "t" || type === "l") {
+      const [f0, f1] = type === "k" ? [125, 43] : type === "t" ? [210, 118] : [140, 74];
       source = ctx.createOscillator(); source.type = "sine";
-      source.frequency.setValueAtTime(125, start); source.frequency.exponentialRampToValueAtTime(43, start + .15);
-      filter.type = "lowpass"; filter.frequency.value = 700;
+      source.frequency.setValueAtTime(f0, start); source.frequency.exponentialRampToValueAtTime(f1, start + duration * .8);
+      filter.type = "lowpass"; filter.frequency.value = type === "k" ? 700 : 1200;
     } else {
       source = ctx.createBufferSource(); source.buffer = noise;
-      filter.type = type === "s" ? "bandpass" : "highpass"; filter.frequency.value = type === "s" ? 1700 : 6000; filter.Q.value = .5;
+      filter.type = type === "s" ? "bandpass" : "highpass"; filter.frequency.value = type === "s" ? 1700 : type === "c" ? 4200 : 6000; filter.Q.value = .5;
+      if (type === "c") volume *= .55;
     }
     g.gain.setValueAtTime(0, start); g.gain.linearRampToValueAtTime(volume, start + .003); g.gain.exponentialRampToValueAtTime(.00001, start + duration);
     source.connect(filter); filter.connect(g); g.connect(stereo); stereo.connect(bus.input);
     this.voice(bus, [source], [filter, g, stereo], start, start + duration + .01);
   },
-  step(bus, tracks, step, at, stepDur, noise) {
+  // 1トークンの ながさ（grid 8 = 8分音符・grid 16 = 16分音符。bpm は 4分音符の かず）
+  stepDur(song) { return 60 / song.bpm / ((song.grid || 8) / 4); },
+  step(bus, tracks, step, at, stepDur, noise, per = 2) {
     tracks.forEach((tr, index) => {
       const ev = tr.seq[step % tr.seq.length];
       if (!ev) return;
-      // 決まった強弱なので、実再生とオフライン試聴の編曲は同じ。
-      const velocity = step % 8 === 0 ? 1 : step % 2 ? .83 : .93;
+      // 決まった強弱なので、実再生とオフライン試聴の編曲は同じ。per = 1拍の トークン数（小節の あたまが いちばん つよい）
+      const velocity = step % (4 * per) === 0 ? 1 : step % per ? .83 : .93;
       if (tr.drum) this.drum(bus, noise, ev.n, at, tr.vol * velocity, tr.pan || 0);
       else {
         const notes = ev.n.split("+");
@@ -103,7 +120,7 @@ const ModernMusic = {
       }
     });
   },
-  async render(name, seconds = 8) {
+  async render(name, seconds = 8, from = 0) {
     const song = SONGS[name];
     if (!song?.modern) throw new Error("unknown modern song: " + name);
     seconds = U.clamp(seconds, 1, 30);
@@ -113,13 +130,13 @@ const ModernMusic = {
     let seed = 12345;
     const data = noise.getChannelData(0);
     for (let i = 0; i < data.length; i++) { seed = (seed * 1664525 + 1013904223) >>> 0; data[i] = seed / 2147483648 - 1; }
-    const tracks = song.tracks.map(tr => ({ ...tr, seq: Sound.parse(tr.notes) })), stepDur = 60 / song.bpm / 2;
+    const tracks = song.tracks.map(tr => ({ ...tr, seq: Sound.parse(tr.notes) })), stepDur = this.stepDur(song), per = (song.grid || 8) / 4;
     const len = Math.max(...tracks.map(tr => tr.seq.length));
-    // オフラインも実際と同じ先読み幅で予約。長い書き出しでもボイス上限に達しない。
-    let step = 0, next = .02;
+    // オフラインも実際と同じ先読み幅で予約。長い書き出しでもボイス上限に達しない。from = はじめる トークン（ながい 曲の とちゅうを きく）
+    let step = Math.max(0, Math.floor(from)), next = .02;
     const schedule = now => {
       while (next < Math.min(seconds - .08, now + .25) && (!song.once || step < len)) {
-        this.step(bus, tracks, step, next, stepDur, noise); step++;
+        this.step(bus, tracks, step, next, stepDur, noise, per); step++;
         next += stepDur * (1 + (step % 2 ? 1 : -1) * (song.swing || 0));
       }
     };

@@ -164,6 +164,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `korokoro-physics.js` / `korokoro-art.js` / `mg-korokoro.js` / `korokoro-town.js` | `KOROKORO_TIERS`, `KOROKORO_RULES`, `KorokoroWorld` ／ `KorokoroArt` ／ `KOROKORO_ORDERS`, `KOROKORO_BONUS`, `KorokoroSound`, `KOROKORO_FACE`, `KorokoroBoard`, `KorokoroTask` ／ `KorokoroTown` |
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
 | — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
+| — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -734,6 +735,15 @@ PokaDebug.pause(bool) は以前の停止状態を返す。テストで撮影す�
 
 `modern-music.js` はsound.jsの後。ModernMusicが加算合成の楽器・ドラム・短い左右の残響・コンプレッサーとボイスの寿命を管理する。`music-arrangements.js` は各追加曲を定義するファイルの後、debug.jsの直前で読み、全32曲を編曲する。旋律以外に7th和音・ベース・パッド・ドラムを持つ8小節のループ（結果ジングルのみ短い一回再生）。音符の `+` は同時に鳴らす和音。
 
+### Meeときょれじゃ の 店内 BGM（UI-17）
+
+- 読み込みは `js/arcade-jpop-maoudamashii.js`（**自動生成**・`ARCADE_JPOP_DATA`）→ `js/arcade-jpop.js`（`ArcadeJpop`）。ike-arcade.js の あと（`SONGS.arcade_hall`・`SONGS.shop_ike_arcade` を うわがき）。
+- `ARCADE_JPOP_DATA`: 魔王魂の 歌もの 5きょく（`tools/build-arcade-jpop.mjs` が MIDI から つくる）。曲ごとに `id`・`title`（ひらがな・カタカナ）・`file`・`sha256`・`bpm`・`bars`・`seconds`・`tracks[]`（`part`・`instrument`／`drum`・`vol`・`pan`・`gate`・`bars`〔小節の じしょ。1小節 = 16トークン〕・`seq`〔小節の ばんごうの ならび〕）。`credit`・`license`（マテリアル・コモンズ・ブルー）。出典は docs/MUSIC.md。
+- `ArcadeJpop.install()`: `SONGS.jpop_*`（`grid: 16`・`jpop: true`・`source`・`notes` は `seq` を ひろげた もの）・`LIST`・`Sound.lists.arcade_hall = Sound.lists.shop_ike_arcade = LIST`・`SONGS.arcade_hall`／`shop_ike_arcade` は 1きょくめ（なまえで 曲を ひく 検査・試聴室の ため。ならす ときは リスト）。`started(id)`（`LIST.onStart`）で「♪ 曲の なまえ（BGM：魔王魂）」の トースト（BGM が オンの とき）。`credit()` は せっていの いちばん した（`.menu-credit`）。
+- `Sound.lists`（なまえ → 曲の id の 配列。`onStart(id)` を もてる）・`Sound.pickFrom(list)`（ぜんぶ 1かいずつ まぜた じゅん・ひとまわりの さかいめでも おなじ 曲を つづけない。`Sound.bags`）・`Sound.GAP`（曲と 曲の あいだ 1.6びょう）・`Sound.load(cur, song)`。`bgm(なまえ)` は おなじ リストなら とちゅうから やりなおさない。`schedule()` は リストの 曲が おわると おなじ バスの まま つぎの 曲。`Sound.cur` に `list`・`id`・`per`（1拍の トークン数）。
+- `ModernMusic`: 楽器 `lead`（`vib: [はやさ, セント, おくれ]` の ビブラート）・`chip`・`ebass`・`gtr`、ドラム `o`・`c`・`t`・`l`（`check.mjs` は ModernMusic の 曲だけ ゆるす）、`stepDur(song)`（`grid` 8／16）・`step(..., per)`（小節の あたまの つよさ）・`render(name, びょう, はじめる トークン)`。いままでの 曲（grid 8）の 音は かわらない。
+- 検査は `tools/check-arcade-jpop.mjs`（5きょく・クレジット・音符・楽器・音域・同時発音〔1きょく ぜんぶ〕・再生リストの ながれ）、`tools/music-check.mjs`（J-POP は 1きょく ぜんぶ・小節の ながさ）、スモーク「arcade-bgm-390 / 375」と「現代的BGM・全曲の音声合成」。PokaDebug: `arcadeMusic()`（`'skip'`）・`musicRender(なまえ, びょう, wav, はじめる トークン)`。
+
 Soundは曲ごとにバスを作り、切替時に80msでフェードして音源/接続を破棄する。タイマーが遅れた場合は過去の音符をまとめて鳴らさない。保存項目は追加・変換せずsettings.bgm/seを引き続き使う。効果音・キャラの声は従来の音源を維持する。
 
 PokaDebug.music(name|null)で試聴/停止、引数なしは再生状態。musicCatalog()は曲名・楽器・拍数。musicRender(name,秒数,wav=false)は同じ楽器・スケジューラでOfflineAudioContextへ合成しピーク/RMS/同時発音数を返す。wav=trueは試聴用16bitステレオWAVのbase64も返す。ブラウザ検査で全曲の無音・クリップ・発音上限、曲切替、設定保持を確認する。詳細・試聴は [MUSIC.md](MUSIC.md)。
@@ -876,7 +886,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 景品: まぜて ある 台（ちいさな ぬいぐるみ 4しゅ・ミニマスコット 3しゅ）は 形ごとに 景品が ちがう（`SHAPES[形]().prize`）。`CraneRound.gotShapes`（`snap()` の `gs`）で とれた 形を のこし、`PrizeArcade.prizesOf(台, round)` が 景品に する。コインの 台（`machines[i].coins`: プッシャーの メダル 1まい 10・たからばこ 300）は もちものに ならず コインが ふえる。`PrizeArcade.coinOpen(台)` で 1にちの のこりが 1こぶん（プッシャーは 100）ない ときは はじめない。`finish` は のこりの 上限までしか わたさない（`run.paid`・こえた ぶん `run.capped` は けっかに「きょうの じょうげん」）。
 - 台の いれかえ（UI-07）: `board()` に 台の `id`。`CraneRound` は id が ちがう 台の ようす（と `cp`）を つかわない（id の ない ふるい ようすは legacy の 台だけ）。`active` には `def`（台の id）。`PrizeArcade.upgrade()`（`norm()` から）は def の ない とちゅうの 1かいが いれかわった 台なら、また def が いまの 台の id と ちがう（UI-10 の まえの コイン メダル `medal` など）なら、100コインを かえして `refunded` を たてる（館に はいった ときに しらせる）。`Save.SCHEMA` は そのまま。
 - 館（UI-07）: `VenueHalls.defs.arcade` を `IkeArcade.install()` が 斜めの 館に する（`iso: true`・`art: ArcadeArt`・`guide: MallGuide`・28×22 マス・`rows` の 文字 `.` じゅうたん／`w` とおりみち／`m` 入口の マット／`#` カウンターの うちがわ）。`ArcadeArt` は `Object.create(MallArt)`（くみたて・町の人・ベンチ・あるく おきゃくさんを つかう）。什器 `crane`（`machine`・`dir: 'y'|'x'` = まえの 向き。台の なかの 座標 u・v・z を `frame(f).Q` で ゆかへ。ガラスの 中に 景品の 絵・アーム・かんばん。でんきゅうと とちゅうの しるしは `L.crane`）・`gacha`・`photobooth`・`counter`・`changer`・`drinks`・`apillar`・`exitsign`・`divider`・`asofa`。キーは `arcade:<kind>:<w>x<h>:<台>:<dir>:<variant>:<item>`（有限）。床は うちゅうの じゅうたん・台の まえの ひかり、かべは ネオンと ポスター（`wallSvg`）。クレーンを しらべると `PrizeArcade.open(台, { venue, floor, back, at })`（もどると 台の まえ）。
-- けいひん カウンター: `BUY_SHOPS.ike_arcade`（まえの けいひん 5しゅを コインで こうかん。`IkeArcade.EXCHANGE`）。BGM は `SONGS.arcade_hall`（`disc_turkish` の 写しを ゲームセンターの 音に。館・あそぶ 画面・カウンターで おなじ 曲）。
+- けいひん カウンター: `BUY_SHOPS.ike_arcade`（まえの けいひん 5しゅを コインで こうかん。`IkeArcade.EXCHANGE`）。BGM は J-POP 5きょくの 再生リスト（UI-17・下の「Meeときょれじゃ の 店内 BGM」。館・あそぶ 画面・ぷりくら・カウンターで おなじ リスト）。
 - PokaDebug: `arcadeStart(台)`・`arcadeState()`（プッシャーは `pusher`: のこり・よこ・チャンス・スロット・ランチャーと わの x）・`arcadeMove(dx, dz)`（cm）・`arcadeDrop()`・`arcadeAim(景品)`・`arcadeLuck(つよい)`・`arcadeFast(ばい)`・`arcadeCam('front'|'side')`・`arcadePusherAt(x)`・`arcadeChance()`。
 
 

@@ -193,6 +193,8 @@ const Menu = {
       hidden.append(entry); Sound.se("ok"); entry.scrollIntoView({ block: "nearest" });
     });
     el.append(version, hidden);
+    // おんがくの クレジット（Meeときょれじゃ の 店内 BGM。js/arcade-jpop.js）
+    if (typeof ArcadeJpop !== "undefined") el.append(U.el("div", { class: "muted menu-credit", text: ArcadeJpop.credit() }));
   },
 
   admin(parent) {

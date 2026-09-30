@@ -9,11 +9,13 @@ for(const [name,song] of Object.entries(SONGS)){
   for(const tr of song.tracks){
     assert(tr.vol>0&&tr.vol<=.3,name+' excessive track gain');
     const seq=Sound.parse(tr.notes);assert(seq.length>0);
-    if(!song.once)assert.equal(tr.drum?8:64,seq.length,name+' incomplete phrase');
+    // J-POP（Meeときょれじゃ・1トークン = 16分音符）は 1きょく ぜんぶ: どの パートも おなじ ながさの 小節。ほかは 8小節の くりかえし
+    if(song.jpop){assert.equal(song.grid,16,name);assert.equal(seq.length%16,0,name+' whole bars');assert.equal(seq.length,Sound.parse(song.tracks[0].notes).length,name+' parts differ in length');}
+    else if(!song.once)assert.equal(tr.drum?8:64,seq.length,name+' incomplete phrase');
     if(!tr.drum){assert(ModernMusic.instruments[tr.instrument],name);instruments.add(tr.instrument);assert(!tr.wave,'raw pulse/square in modern BGM');}
   }
-  if(!song.once){assert(instruments.size>=3);assert(song.tracks.some(tr=>tr.instrument==='bass'));assert(song.tracks.some(tr=>tr.notes.includes('+')));}
+  if(!song.once){assert(instruments.size>=3);assert(song.tracks.some(tr=>tr.instrument===(song.jpop?'ebass':'bass')));assert(song.tracks.some(tr=>tr.notes.includes('+')));}
 }
 const cities=['town','city','heiwadai','harbor','airport','house'];
 assert.equal(new Set(cities.map(id=>JSON.stringify(SONGS[id]))).size,cities.length);
-console.log(`Music checks: ${Object.keys(SONGS).length} arrangements, instruments, chords, eight-bar loops and headroom OK`);
+console.log(`Music checks: ${Object.keys(SONGS).length} arrangements, instruments, chords, eight-bar loops, whole J-POP songs and headroom OK`);

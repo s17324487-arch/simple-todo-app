@@ -130,11 +130,7 @@ const IkeArcade = {
       arcSnack: { name: "おかし キャッチャー", c: ["#FFE2C4", "#FFB86B", "#F2944A"] }, arcSnackSweet: { name: "スウィートランド おかし", c: ["#D4F2E8", "#8ED1C0", "#5DB29B"] },
       arcBridge: { name: "はしわたし", c: ["#DDE3FA", "#9FAEE8", "#6F7FD0"] },
     });
-    // 館の BGM: トルコ こうしんきょく（モーツァルト・Mutopia #108 の 写し）を ゲームセンターの 音で。カウンター・あそぶ 画面も おなじ 曲
-    const src = SONGS.disc_turkish, inst = ["mallet", "pluck", "bass", "pad"];
-    SONGS.arcade_hall = { ...src, title: "Meeときょれじゃ（トルコ こうしんきょく）", disc: false, bpm: 196, tracks: src.tracks.map((t, k) => (t.drum ? { ...t, vol: t.vol * 1.3 } : { ...t, instrument: inst[k] || t.instrument })) };
-    SONGS.arcade_hall.tracks.push({ drum: true, vol: 0.05, pan: -0.3, notes: "_ _ k _ _ _ k _" });
-    SONGS.shop_ike_arcade = SONGS.arcade_hall;
+    // 館の BGM（arcade_hall）と けいひん カウンター（shop_ike_arcade）は js/arcade-jpop.js の J-POP 5きょくの 再生リスト
     const ex = this.EXCHANGE, price = Object.fromEntries([...ex.furn, ...ex.bag]);
     BUY_SHOPS.ike_arcade = { name: "けいひん カウンター", keeper: { sp: "cat" }, keeperName: "てんいん", hello: ["まえの けいひんも コインで こうかん できるよ。"], tabs: [["furn", "かざり"], ["bag", "おかし"]], items: (tab) => (ex[tab] || []).map(([id]) => ({ ...VenueHalls.item(id), price: price[id] })) };
     const kind0 = ShopUI.kindOf;

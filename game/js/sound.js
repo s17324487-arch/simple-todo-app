@@ -6,6 +6,9 @@ const Sound = {
   jingles: new Set(),
   noiseBuf: null,
   pulse: null,
+  // 再生リスト（なまえ → 曲の id の ならび）。bgm(なまえ) で ランダムに 1きょくずつ ながし、おわったら つぎの 曲へ（js/arcade-jpop.js）
+  lists: {},
+  bags: new Map(),
 
   init() {
     if (this.ctx) { if (this.ctx.state === "suspended") this.ctx.resume(); return; }
@@ -135,20 +138,37 @@ const Sound = {
   voice(id) { this.se(id === "wanko" ? "wan" : id === "gachan" ? "piyo" : Math.random() < 0.5 ? "gao" : "gau"); },
 
   // ---- BGM ----
+  GAP: 1.6, // 再生リストの 曲と 曲の あいだ（びょう）
   bgm(name) {
     if (!this.ctx) { this.want = name; return; }
-    // おなじ 曲（べつの 名前で おなじ もの も）なら とちゅうから やりなおさない
-    if (this.cur && (this.cur.name === name || (SONGS[name] && this.cur.song === SONGS[name]))) return;
+    const list = this.lists[name] || null;
+    // おなじ 曲（べつの 名前で おなじ もの も）・おなじ 再生リストなら とちゅうから やりなおさない
+    if (this.cur && (this.cur.name === name || (list ? this.cur.list === list : SONGS[name] && this.cur.song === SONGS[name]))) return;
     this.stopBgm();
-    const song = SONGS[name];
+    const id = list ? this.pickFrom(list) : name, song = SONGS[id];
     if (!song) return;
-    const stepDur = 60 / song.bpm / 2; // 8分音符
-    const tracks = song.tracks.map((tr) => ({ ...tr, seq: this.parse(tr.notes) }));
-    const len = Math.max(...tracks.map((t) => t.seq.length));
-    this.cur = { name, song, tracks, stepDur, len, step: 0, next: this.ctx.currentTime + 0.08,
-      bus: song.modern ? ModernMusic.bus(this.ctx, this.bgmGain) : null };
+    this.cur = { name, list, id, next: this.ctx.currentTime + 0.08, bus: song.modern ? ModernMusic.bus(this.ctx, this.bgmGain) : null };
+    this.load(this.cur, song);
+    if (list && list.onStart) list.onStart(id);
     this.timer = setInterval(() => this.schedule(), 40);
     this.schedule();
+  },
+  // 曲の 音符を よみこむ（1トークン = 8分音符。grid 16 の 曲は 16分音符）
+  load(cur, song) {
+    cur.song = song; cur.stepDur = ModernMusic.stepDur(song); cur.per = (song.grid || 8) / 4;
+    cur.tracks = song.tracks.map((tr) => ({ ...tr, seq: this.parse(tr.notes) }));
+    cur.len = Math.max(...cur.tracks.map((t) => t.seq.length)); cur.step = 0;
+  },
+  // 再生リストの つぎの 曲: ぜんぶ 1かいずつ ランダムな じゅんばんで ながし、ひとまわり したら まぜなおす（おなじ 曲は つづけない）
+  pickFrom(list) {
+    let bag = this.bags.get(list);
+    if (!bag || !bag.left.length) {
+      const left = U.shuffle(list.filter((id) => SONGS[id]));
+      if (bag && left.length > 1 && left[0] === bag.last) left.push(left.shift());
+      bag = { left, last: bag ? bag.last : null }; this.bags.set(list, bag);
+    }
+    bag.last = bag.left.shift() || list[0];
+    return bag.last;
   },
   stopBgm() {
     if (this.timer) clearInterval(this.timer);
@@ -180,8 +200,15 @@ const Sound = {
       cur.next = this.ctx.currentTime + .04;
     }
     while (cur.next < ahead) {
+      // 再生リストの 曲が おわったら すこし あけて つぎの 曲（おなじ バスの まま）
+      if (cur.list && cur.step >= cur.len) {
+        const id = this.pickFrom(cur.list);
+        cur.id = id; this.load(cur, SONGS[id]); cur.next += this.GAP;
+        if (cur.list.onStart) cur.list.onStart(id);
+        continue;
+      }
       const t = cur.next - this.ctx.currentTime;
-      if (cur.bus) ModernMusic.step(cur.bus, cur.tracks, cur.step, cur.next, cur.stepDur, this.noiseBuf);
+      if (cur.bus) ModernMusic.step(cur.bus, cur.tracks, cur.step, cur.next, cur.stepDur, this.noiseBuf, cur.per);
       else for (const tr of cur.tracks) {
         const ev = tr.seq[cur.step % tr.seq.length];
         if (!ev) continue;
@@ -195,7 +222,7 @@ const Sound = {
         }
       }
       cur.step++;
-      if (cur.song.once && cur.step >= cur.len) { this.stopBgm(); return; }
+      if (cur.song.once && !cur.list && cur.step >= cur.len) { this.stopBgm(); return; }
       cur.next += cur.stepDur * (1 + (cur.step % 2 ? 1 : -1) * (cur.song.swing || 0));
     }
   },
@@ -203,12 +230,12 @@ const Sound = {
     // 短い曲をBGMの上に流す（BGMは一時停止しない）
     if (!this.ctx || !Save.d.settings.se) return;
     const song = SONGS[name];
-    const stepDur = 60 / song.bpm / 2;
+    const stepDur = ModernMusic.stepDur(song);
     if (song.modern) {
       const bus = ModernMusic.bus(this.ctx, this.seGain), tracks = song.tracks.map(tr => ({ ...tr, seq: this.parse(tr.notes) }));
       this.jingles.add(bus);
       const len = Math.max(...tracks.map(tr => tr.seq.length));
-      for (let i = 0; i < len; i++) ModernMusic.step(bus, tracks, i, this.ctx.currentTime + .02 + i * stepDur, stepDur, this.noiseBuf);
+      for (let i = 0; i < len; i++) ModernMusic.step(bus, tracks, i, this.ctx.currentTime + .02 + i * stepDur, stepDur, this.noiseBuf, (song.grid || 8) / 4);
       setTimeout(() => { ModernMusic.release(bus); this.jingles.delete(bus); }, (len * stepDur + .6) * 1000);
       return;
     }

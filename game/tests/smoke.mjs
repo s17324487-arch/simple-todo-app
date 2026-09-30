@@ -3070,6 +3070,46 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.dbg('calendar',null);
 },{viewport,timeout:240000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('arcade-bgm-'+viewport.width,async H=>{
+ // Meeときょれじゃ の 店内 BGM（UI-17。オーナーの FB 2026-09-30「BGMが ゲームセンターっぽくない。フリーの jpopを 5曲くらい 探して 店内BGMと せよ。それらを ランダムで 流せ」）:
+ // 館に はいると J-POP 5きょくの どれか（「♪ 曲の なまえ（BGM：魔王魂）」）→ つぎの 曲（ちがう 曲）→ あそぶ 画面・けいひん カウンターでも おなじ 曲 → 町に でると 町の 曲 → また はいると J-POP → せっていの クレジット → 曲の まんなかも 合成できる
+ await H.newGameFast();await H.dbg('coins',9850);await H.page.mouse.click(5,5);
+ await H.eval(()=>{window.__toastLog=[];new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.classList&&n.classList.contains('toast'))window.__toastLog.push(n.textContent);}).observe(document.body,{childList:true,subtree:true});});
+ await H.dbg('venue','arcade');await H.idle();await H.until(()=>PokaDebug.venueIso()&&PokaDebug.venueIso().ready&&PokaDebug.arcadeMusic().playing,20000);
+ const m1=await H.dbg('arcadeMusic');
+ expect(m1.name==='arcade_hall'&&m1.list.length===5&&new Set(m1.titles).size===5&&m1.list.includes(m1.playing)&&m1.jpop&&m1.titles.includes(m1.title),'館の BGM が J-POP 5きょくの どれか で ない '+JSON.stringify(m1));
+ await H.until(t=>window.__toastLog.some(x=>x.includes('♪ '+t)&&x.includes('BGM：魔王魂')),5000,m1.title);await H.shot('hall');
+ // つぎの 曲: ちがう 曲・また しらせ
+ await H.dbg('arcadeMusic','skip');await H.until(id=>{const m=PokaDebug.arcadeMusic();return m.playing&&m.playing!==id;},8000,m1.playing);
+ const m2=await H.dbg('arcadeMusic');expect(m2.name==='arcade_hall'&&m2.list.includes(m2.playing)&&m2.playing!==m1.playing,'つぎの 曲 '+JSON.stringify([m1.playing,m2.playing]));
+ await H.until(t=>window.__toastLog.some(x=>x.includes('♪ '+t)),5000,m2.title);
+ // あそぶ 画面（クレーン）でも おなじ 曲が つづく → やめて 館に もどっても おなじ
+ expect(await H.dbg('arcadeStart',1),'クレーンの 台');await H.until(()=>PokaDebug.arcadeState()&&!PokaDebug.state().transitioning,15000);await H.wait(400);
+ let m=await H.dbg('arcadeMusic');expect(m.playing===m2.playing&&m.name==='arcade_hall','あそぶ 画面で 曲が かわった '+JSON.stringify(m));
+ await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();await H.until(()=>{const v=PokaDebug.venueIso();return v&&v.ready;},20000);
+ m=await H.dbg('arcadeMusic');expect(m.playing===m2.playing,'館に もどって 曲が かわった '+JSON.stringify(m));
+ // けいひん カウンター（shop_ike_arcade）も おなじ 再生リスト: 曲は とぎれない
+ await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
+ await H.page.locator('.mall-guide .mg-spot[data-label="けいひん カウンター"]').click();await H.until(()=>{const v=PokaDebug.venueState();return v&&v.party[0].y>=17.5&&PokaDebug.idle();},20000);
+ await H.dbg('venueVisit','けいひん カウンター');await H.page.getByRole('button',{name:'まえの けいひんを みる',exact:true}).click();await H.page.locator('.modal-wrap .grid > *').first().waitFor();
+ m=await H.dbg('arcadeMusic');expect(m.playing===m2.playing&&m.name==='arcade_hall','けいひん カウンターで 曲が かわった '+JSON.stringify(m));
+ await H.page.keyboard.press('Escape');await H.until(()=>!document.querySelector('.modal-wrap'),5000);await H.idle();
+ m=await H.dbg('arcadeMusic');expect(m.playing===m2.playing,'カウンターを とじて 曲が かわった '+JSON.stringify(m));
+ // 町に でると 町の 曲・また はいると J-POP（まえの 曲と ちがう）
+ await H.dbg('teleport','city',30,40);await H.idle();await H.until(()=>PokaDebug.state().scene==='world',10000);
+ m=await H.dbg('arcadeMusic');expect(!m.playing&&m.name&&m.name!=='arcade_hall','町でも J-POP の まま '+JSON.stringify(m));
+ await H.dbg('venue','arcade');await H.idle();await H.until(()=>PokaDebug.venueIso()&&PokaDebug.venueIso().ready&&PokaDebug.arcadeMusic().playing,20000);
+ const m3=await H.dbg('arcadeMusic');expect(m3.list.includes(m3.playing)&&m3.playing!==m2.playing,'また はいった ときの 曲 '+JSON.stringify([m2.playing,m3.playing]));
+ // せっていの いちばん したに クレジット（はみ出さない）
+ await H.page.getByRole('button',{name:'メニュー',exact:true}).click();await H.page.getByRole('button',{name:'せってい',exact:true}).click();
+ await H.page.locator('.menu-credit').scrollIntoViewIfNeeded();await H.wait(200);
+ const cr=await H.eval(()=>{const e=document.querySelector('.menu-credit'),r=e.getBoundingClientRect();return {t:e.textContent,l:r.left,r:r.right,w:document.documentElement.scrollWidth};});
+ expect(/魔王魂/.test(cr.t)&&/maou\.audio/.test(cr.t)&&/fungamemake\.com/.test(cr.t)&&cr.l>=0&&cr.r<=viewport.width+0.5&&cr.w<=viewport.width,'せっていの クレジット '+JSON.stringify(cr));await H.shot('credit');
+ await H.page.keyboard.press('Escape');await H.until(()=>!document.querySelector('.modal-wrap'),5000);
+ // ほんとうの 音源で 曲の まんなか（トークン 1200 から）を 合成: 音が ある・クリップ しない・同時発音 60 みまん
+ for(const id of [m1.playing,m2.playing]){const a=await H.dbg('musicRender',id,4,false,1200);expect(a.finite&&a.peak>.01&&a.peak<.95&&a.rms>.002&&a.peakVoices<60,id+': 曲の まんなか '+JSON.stringify(a));}
+},{viewport,timeout:180000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('arcade-bridge-'+viewport.width,async H=>{
  // Meeときょれじゃ 2F の はしわたし（UI-15。オーナーの FB 2026-09-30「新しい 種類の クレーンゲームを 実装して ほしい」）:
  // 2台（ぎんの ぼう の フィギュア・ゴムの ぼう の ざっか）→ しらべる（あそびかた・きょうの けいひん）→ はこの はしを ねらって ずらす →
