@@ -1,6 +1,7 @@
 // サンシャインいけぶ（池袋の 3かいだての モール）を 斜め上から 見る 館に つくりなおす。
 // 配置は サンシャインシティの フロアマップを 参考: 奥の かべに そって 店が ならぶ「おおどおり」、まんなかの「ふんすい ひろば」
-// （3がいまでの ふきぬけ・ステージ・大きな がめん）、西の かべの エレベーター ホール・トイレ・ロッカー・インフォメーション、えきへの いりぐち。
+// （3がいまでの ふきぬけ・ステージ・大きな がめん）、西の かべの エレベーター ホール・トイレ・ロッカー・インフォメーション・いりぐち。
+// 館に 入れるのは 池袋の まちの サンシャインいけぶの 入口だけ（js/ikebukuro-town.js の NOT_MALL）。
 // うる 品物・食事・マルシェ・パズルは これまでの IkebukuroVenues と おなじ（ID・ねだん・BUY_SHOPS は かえない）。
 const IkeMall = {
   // 店を 見やすく する ため 店は はば 10〜14・おくゆき 6〜8 マス（まえは 7×5）。フロアも 45×31 に ひろげた
@@ -96,7 +97,7 @@ const IkeMall = {
     r.fixtures.push({ kind: "slab", x: e.x - 0.3, y: e.y - 0.4, w: e.w + 0.6, h: 2.2, z: 172, height: 30, over: true, walk: true, fadeOver: true });
     // 西の かべ
     this.westHall(r, 1);
-    r.walls.west.push({ kind: "poster", from: 1, to: 4, col: "#F3D6A6", lines: ["いけぶ", "ふんすい ショー"] }, { kind: "door", from: 21, to: 26, label: "いりぐち（えき）", view: "walkway" });
+    r.walls.west.push({ kind: "poster", from: 1, to: 4, col: "#F3D6A6", lines: ["いけぶ", "ふんすい ショー"] }, { kind: "door", from: 21, to: 26, label: "いりぐち", view: "walkway" });
     this.fill(r, 0, 21, 2, 5, "mat");
     r.fixtures.push({ kind: "info", x: 3, y: 9, w: 2, h: 1, height: 160, label: "インフォメーション", action: "info", text: "ようこそ サンシャインいけぶへ！\n「フロアマップ」で いきたい おみせを さがしてね。" });
     this.clerk(r, "penguin", 3, 8, "エレベーターは 1F・2F・3F に とまるよ。");

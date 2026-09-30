@@ -91,7 +91,7 @@ WorldScene が季節ボタンを mount / exit で着脱、1秒ごとに表示を
 `world-scenery.js` → `town-design.js` → `transit.js` を arcade.js のあと、debug.js の前に読む。WorldScenery は景観のSVGとcanvasアニメーション、town-design は既存6エリアの拡張と heiwadai / harbor / airport、Transit は8か所の乗り場を管理する。参考画像の平和台は地形構成のオマージュで、縮尺や実店舗の再現ではない。
 
 - マップの `v` は道路、`z` は横断歩道。objects の `solid:true` は全体に衝突判定。`id` と `text` があるものはタップ・決定キーで反応し、WorldScene.goObject が到達できる外周まで案内する。既存の泉の回復処理は維持。
-- 建物の `act:{type:"transit",stop}` は乗り場、`act:{type:"visit",text}` は休憩の会話。Transit.stops に map / label / kind を登録し、同じ kind の乗り場を接続。到着は対応するドアの1マス下。乗車取りやめでは移動・支払いなし。
+- 建物の `act:{type:"transit",stop}` は乗り場、`act:{type:"visit",text}` は休憩の会話。`act:{type:"walkway",text,to:{map,x,y,dir}}` は ひとこと の あと おなじ 町の べつの 場所に でる（池袋の ちかみち。建物の 中へは 入らない）。Transit.stops に map / label / kind を登録し、同じ kind の乗り場を接続。到着は対応するドアの1マス下。乗車取りやめでは移動・支払いなし。
 - travel シーンは3人が乗車する4秒の演出。到着を早めるボタンと帰宅ボタンがある。演出中は最後の乗り場がセーブ位置で、到着時に通常のworldセーブへ切り替える。新しい永続フィールドは不要。古いセーブが新設の建物と重なったときは既存の findFree で近隣へ移す。
 - WorldScenery の描画で時刻をSVGキャッシュキーに使わない。新しい姿は tools/preview.html の「まちのオブジェクト」で確認できる。
 - PokaDebug.world() は現在の party / objects / stops とクリック座標、active（動作中のしかけID）を返す。travel() は from / to / kind / elapsed / party。テストはこれを読み、実際のタップで乗車・中止・帰宅・噴水・セーブ再開を確認する。
@@ -958,6 +958,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - `IkebukuroTown.install()` が `MAP_DEFS.city` を 96×58 で 作りなおす。旧IDの 建物は act・label・sign を そのまま 場所だけ うつし、絵は `asset: "ikebukuro.<名前>"`（HeiwadaiArt の bbox モデル。ネリカスと おなじ 登録）。サンシャインいけぶは 入口 2つ（`doors`）。
 - 道は `ROADS`（明治通り・東通り・なかどおり・よこちょう・サンシャイン60どおり・緑の大通り）を TownRoads へ。ななめの 交差点の かど（`def.ikeCorners`）と 横断歩道（`def.ikeCross`）、緑の大通りの 分離帯、サンシャイン60どおりの れんが、点字ブロック（`def.ikeTactile`）は `TownRoads.draw` の あとに `IkebukuroTown.drawOver` が チャンクへ 描く。平板・駅まえの 石・線路は `TownRenewal.drawGround` の まえに `drawGround`。もようは `IKEBUKURO_TOWN_ART.grounds`（SvgCache の キーは `ike-ground:<id>` だけ）。
 - 電車は `TownRenewal.drawMoving` の あとに 2へんせい（`ikebukuro.train`・昼夜の 2つ）。夜の あかりは `HeiwadaiLife.lights` の あと。夜の 絵は `HeiwadaiTown.canvas` を つつんで えらぶ（キーは 絵の ID × 昼夜）。
+- サンシャインいけぶ（`venue: "mall"`）に 入れるのは `ike_mall` の 入口 2つ だけ（TOWN-IKE-02）。`ikebukuro-district.js` の `changed` で いけぶに つながって いた 7つの 建物は `IkebukuroTown.NOT_MALL` の act に 上がき: ひとこと（`visit`）と ちかみち（`walkway`: `act.to` は install で いけぶの 大きい 入口の まえ）。`town-check.mjs` が「いけぶに 入れる 入口は ike_mall だけ」を しらべる。
 - はくぶつかん・射撃場の 出入り口: 生成データの `MUSEUM_DATA.buildings.museum.outside`・`MAP_DEFS.museum.warps`・`RANGE_DATA.outside` を install で 新しい 入口に あわせる（生成データは 手で なおさない）。
 - 町の はしの そとは `def.edgeColor`（scene-world.js の 背景。ほかの 町は いままでの 草の 色）。
 - 検査: `tools/check-ikebukuro.mjs`（配置イメージの ならび・駅から すべての 入口へ・絵の 登録）・`tools/town-check.mjs`（入口 2つの 建物は `doors` の それぞれを しらべる）・`node tools/build-ikebukuro-town.mjs --check`。

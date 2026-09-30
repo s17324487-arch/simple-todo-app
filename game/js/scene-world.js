@@ -445,6 +445,13 @@ class WorldScene {
       if (act.type === "visit") await UI.say([{ name: b.label, text: act.text }]);
       this.busy = false; this.stepOut(door); return;
     }
+    // ちかみち（池袋の 駅まえ）: ひとこと いって、act.to の 場所に でる（建物の 中へは 入らない）
+    if (act.type === "walkway" && act.to) {
+      this.busy = true;
+      if (act.text) await UI.say([{ name: b.label, text: act.text }]);
+      Game.goto("world", { ...act.to });
+      return;
+    }
     if (act.type === "house") { this.busy = true; Game.goto("house", {}, "circle"); return; }
     if (act.type === "indoor" && typeof Museum !== "undefined" && Museum.enter(this, act)) return; // ⑤ すいぞくかん・はくぶつかん
     if (act.type === "range" && SCENES.range) { this.busy = true; Game.goto("range", { back: out }, "circle"); return; } // ⑥ 射撃場
