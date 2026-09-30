@@ -1,4 +1,4 @@
-// すまほ（ぽかぽかフォン）: ちず・ようす・もちもの・ずかん・イベント・スタンプラリー・ひんと・うらない・ごほうび・おんがく を 1つに まとめる。
+// すまほ（ぽかぽかフォン）: ちず・ようす・もちもの・ずかん・イベント・スタンプラリー・ひんと・うらない・ごほうび・おんがく・しゃしん を 1つに まとめる。
 // どうぶつの森の スマホの ように、ホーム画面の アプリを タップして ひらく（もどる で ホーム、✕ か Esc で とじる）。
 // 町・フィールドの「おまつり」ボタンの かわりに 左下の「すまほ」ボタン（おうち・おみせの 中でも 出る）。≡ は せってい だけ（Menu.open）。
 // Esc（cancel キー）は すまほを ひらく。いままでの まどを つかう アプリ（おまつり・スタンプ・ごほうび）は その まどの 中みを すまほの 画面に いれる。
@@ -15,6 +15,7 @@ const Smaho = {
     rewards: `<rect x="8" y="18" width="28" height="19" rx="2" fill="#F48FB1" stroke="${INK}" stroke-width="2.6"/><rect x="6" y="12" width="32" height="7" rx="2" fill="#F8BBD0" stroke="${INK}" stroke-width="2.4"/><path d="M22,12 L22,37" stroke="#FFE066" stroke-width="4"/><path d="M22,12 C16,4 10,8 14,12 M22,12 C28,4 34,8 30,12" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>`,
     quests: `<rect x="7" y="7" width="30" height="26" rx="3" fill="#D9A066" stroke="${INK}" stroke-width="2.6"/><rect x="10" y="10" width="11" height="9" rx="1" fill="#FFFDF5" stroke="${INK}" stroke-width="1.6"/><rect x="24" y="11" width="10" height="8" rx="1" fill="#F4A6A0" stroke="${INK}" stroke-width="1.6"/><rect x="13" y="22" width="18" height="8" rx="1" fill="#9CC7E6" stroke="${INK}" stroke-width="1.6"/><path d="M12,33 V40 M32,33 V40" stroke="${INK}" stroke-width="2.8" stroke-linecap="round"/>`,
     music: `<path d="M16,31 L16,11 L33,7 L33,27" fill="none" stroke="${INK}" stroke-width="2.8" stroke-linejoin="round"/><path d="M16,15 L33,11" stroke="${INK}" stroke-width="2.8"/><ellipse cx="12.4" cy="31" rx="5" ry="4" fill="#FFFFFF" stroke="${INK}" stroke-width="2.4"/><ellipse cx="29.4" cy="27" rx="5" ry="4" fill="#FFFFFF" stroke="${INK}" stroke-width="2.4"/>`,
+    photos: `<rect x="6" y="12" width="32" height="24" rx="4" fill="#F8C8DA" stroke="${INK}" stroke-width="2.6"/><path d="M15,12 L18,7 L26,7 L29,12" fill="#F29BB8" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/><circle cx="22" cy="24" r="7" fill="#FFFFFF" stroke="${INK}" stroke-width="2.4"/><circle cx="22" cy="24" r="3.2" fill="#8FC9F0"/><path d="M${31.5},16.5 L32.6,18.8 L35,19 L33.2,20.6 L33.7,23 L31.5,21.7 L29.3,23 L29.8,20.6 L28,19 L30.4,18.8 Z" fill="#FFE066" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/>`,
     phone: `<rect x="11" y="3" width="22" height="38" rx="5" fill="#FFF6DD" stroke="${INK}" stroke-width="2.8"/><rect x="14" y="8" width="16" height="25" rx="2" fill="#9ED9B1" stroke="${INK}" stroke-width="2"/><path d="M19,37 L25,37" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/><circle cx="18.5" cy="14" r="2" fill="#F7D56A"/><circle cx="25.5" cy="14" r="2" fill="#F48FB1"/><circle cx="18.5" cy="21" r="2" fill="#8FC9F0"/><circle cx="25.5" cy="21" r="2" fill="#C9B6E0"/>`,
   },
   // name は ボタンの なまえ（ひらがな）。render(el, ph) は アプリの 中みを el に 入れる
@@ -33,6 +34,7 @@ const Smaho = {
     { id: "rewards", name: "ごほうび", color: "#F2C1CC", render(el, ph) { ph.embed(() => ShopRewards.open()); } },
     { id: "quests", name: "いらい", color: "#F7D56A", when: () => typeof NeriQuests !== "undefined", render(el) { NeriQuests.phoneView(el); } },
     { id: "music", name: "おんがく", color: "#8EC5E0", when: () => typeof MusicDiscs !== "undefined", render(el) { Smaho.musicList(el); } },
+    { id: "photos", name: "しゃしん", color: "#F8C8DA", when: () => typeof Purikura !== "undefined", render(el, ph) { Purikura.phoneView(el, ph); } },
   ],
   view: null, // ひらいて いる すまほ（{ wrap, screen, app }）
   apps() { return this.APPS.filter((a) => !a.when || a.when()); },

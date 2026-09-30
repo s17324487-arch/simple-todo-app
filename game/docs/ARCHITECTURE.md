@@ -880,6 +880,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - PokaDebug: `arcadeStart(台)`・`arcadeState()`（プッシャーは `pusher`: のこり・よこ・チャンス・スロット・ランチャーと わの x）・`arcadeMove(dx, dz)`（cm）・`arcadeDrop()`・`arcadeAim(景品)`・`arcadeLuck(つよい)`・`arcadeFast(ばい)`・`arcadeCam('front'|'side')`・`arcadePusherAt(x)`・`arcadeChance()`。
 
 
+
+## ぷりくら と すまほの「しゃしん」（Meeときょれじゃ・UI-11）
+
+- 読み込みは `js/purikura.js`（ike-arcade.js の あと）。トップレベル名は `Purikura`・`PurikuraArt`・`PurikuraScene`（`SCENES.purikura`）。こうかおんは `CraneSE` に `puri_count`・`puri_shutter`・`puri_stamp` を たす。
+- ながれ: 館の 什器 `photobooth`（`action: "photo"`）を しらべる → `Purikura.open({ venue, floor, back, at })` → 300コイン（`pay()`: `Save.d.purikura.active` を たてる）→ `Game.goto("purikura", { back })`。`active` が ある ときは はらわずに とりなおす（やめても つぎは ただ）。すまほの しゃしんが 57まい いじょうの ときは はじめない。
+- `PurikuraScene` の `phase`: `bg`（はいけい 6しゅ）→ `shoot`（`who` = みんな／1人・`tab` = ポーズ／かお・`z` = ぜんしん 0／アップ 1・「とる！」で 3・2・1〔0.8びょう × `speed`〕→ `snap()`）×4 → `deco`（`di` = いま らくがき する しゃしん・`tool` = pen／stamp／text・`hist` で「もどす」は その しゃしんの さいごの 1つ）→ `done()`（`Purikura.finish(photos)`: 1かい だけ・`active` を けす・3人の ごきげん +1）→ `done`（2×2 で ならべる・「すまほで みる」は `Smaho.open("photos")`）。そうさばんは DOM（`.puri-panel`）、しゃしんは canvas。`view` は そうさばんの うえに 3:4 で はいる 大きさ。
+- しゃしんの データ（`Save.d.photos`・ふるい じゅん）: `{ id, t, bg, z, r: [ならび], c: { id: [ポーズ, かお] }, o: { id: [服, いろ] }, d: { p: [せん], s: [[スタンプ, x, y, 大きさ]], x: [[ことば, x, y, いろ]] } }`。座標は 300×400。せんは もじれつ（いろ 1もじ・ふとさ 1もじ・点は x と y を 64しんすう 2もじずつ）で `packStroke`／`unpackStroke`。`clean()` が よむ たびに なおす（しらない はいけい・ポーズ・かお・スタンプは すてる／もどす・3人の ならびを なおす・らくがきの 上限 `LIMIT`〔せん 40本・点 1500・スタンプ 30・もじ 6・ことば 10もじ〕・ことばの きごう `<>&"'` を のぞく）。`view()` は 描く ための かたち（WeakMap で 1かい だけ）。
+- 絵 `PurikuraArt`: はいけい（300×400 の SVG・id は `pk-`）と スタンプ（64×64）は `SvgCache` の キー `puri:bg:<id>`・`puri:stamp:<id>`（ラスタの 大きさは 3だんかい）。3人は `Chara.draw`（`LAYOUT[z]` の 大きさ・ならび。よこむき は りょうはしが まんなかを むく）。`draw(ctx, ph, x, y, w, { frame })`・`paint(canvas, ph, cssW)`（すまほの 一覧・1まい・ほぞん）。わく は しろい ふちと「Mee ぷりくら」と 日づけ（ちいさい ときは ロゴ だけ）。
+- すまほ: `Smaho.APPS` の `photos`「しゃしん」→ `Purikura.phoneView(el, ph)`（あたらしい じゅん・3れつ）・`phoneOne`（1まい。しゃしんは したの ボタン 2だんが スクロール しないで 見える 大きさ・まえ／つぎ・いちらん・ほぞん・けす）・`download(p)`（600px の PNG を `<a download>` で この 端末に。そとへは おくらない）。
+- PokaDebug: `puriState()`・`puriStart()`（300コインで はじめる・もどると Meeときょれじゃ の ブースの まえ）・`puriFast(ばい)`（カウントダウンを はやく）・`photos()`。検査は `tools/check-purikura.mjs`、スモーク「purikura-390 / 375」。
+
 ## ころころ フルーツ（ネリカスタウンの パズルの おてつだい・MG-01〜MG-06）
 
 - 物理 `KorokoroWorld`（`js/korokoro-physics.js`）: はこの 単位は はば 100・たかさ 110（スコア モードは 15% たかい 126.5。画面の 大きさに よらない）。1/480 びょうの ステップで 位置の かさなりを なおし（重さ = 半径²）→ 速さに もどし → はねかえり（はやく ぶつかった ときだけ）と まさつ（ころがる 回転も）。かさなりを なおした ぶんで はじけ とばない ように、はなれる はやさは `depen` まで。おなじ だんが ふれると（すきま 0.4 まで）その ステップの おわりに 1つに（1つの 玉は 1ステップに 1かい。大きく なる とちゅうは がったい しない。フレームの おわりに 1かい だと、1コマが ながい おそい 端末で ふれた 2つが はなれて しまう・FIX-01）。いちばん 大きい ごじ どうしは はじけて きえる（`burst`）。できごとの `points` は くっついた 2つの だんの 点・`hero` は できた 玉の 子。ふちより 上に 玉の てっぺんが `overSec`（ちゅうもん モード 2びょう・スコア モード 0.5びょう）いると `overflow`。`new KorokoroWorld(seed, { overSec, H, rules })` の `H` は はこの たかさ、`rules` は その はこだけ `KOROKORO_RULES` を 上がき（`this.R`）。`keep` は がったいで できた 玉が 2つの 玉の はやさを ひきつぐ わりあい（ふつうは 1）、`up` は うえむきの はやさの 上限（ふつうは なし）。大きく なる 玉に おしのけられた 玉は、なおした ぶんが 速さに なって とびあがる（まえの スコア モードでは 420 まで）ので、スコア モードは `{ up: 90, depen: 20, keep: 0.3 }`（MG-04）。ちゅうもん モードは `spill()` で ゆかを ひらいて ぜんぶ おとす。描画・時計・セーブに 依存しないので Node の 検査と おなじ けっか（`rng` は おちてくる だんだけ）。

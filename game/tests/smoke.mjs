@@ -624,15 +624,15 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.page.locator(".help-row").count()>=5,"あそびかたが ない");
   await H.shot("menu-help");
   await H.page.locator(".modal-wrap:not(.out) .close").click();await H.wait(300);
-  // すまほ: ホーム画面（時計・アプリ 11こ・44px いじょう・はみ出さない）
+  // すまほ: ホーム画面（時計・アプリ 12こ・44px いじょう・はみ出さない）
   await H.phone();await H.shot("home");
   s=await H.dbg("smahoState");
   const home=await H.eval(()=>{const ph=document.querySelector(".smaho").getBoundingClientRect(),apps=[...document.querySelectorAll(".smaho-app")].map(b=>b.getBoundingClientRect());return {ph:[ph.left,ph.top,ph.right,ph.bottom],w:innerWidth,h:innerHeight,apps:apps.length,small:apps.filter(r=>r.width<44||r.height<44).length,clock:document.querySelector(".smaho-clock")?.textContent||"",date:document.querySelector(".smaho-date")?.textContent||""};});
-  expect(s.open&&home.apps===11&&home.small===0&&/^\d\d:\d\d$/.test(home.clock),"すまほの ホームが 不正 "+JSON.stringify(home));
+  expect(s.open&&home.apps===12&&home.small===0&&/^\d\d:\d\d$/.test(home.clock),"すまほの ホームが 不正 "+JSON.stringify(home));
   expect(/^\d+がつ \d+にち（(にち|げつ|か|すい|もく|きん|ど)ようび）$/.test(home.date),"すまほの 日づけが 不正 "+home.date);
   expect(home.ph[0]>=0&&home.ph[1]>=0&&home.ph[2]<=home.w+0.5&&home.ph[3]<=home.h+0.5,"すまほが 画面から はみ出す "+JSON.stringify(home));
   // アプリを ひとつずつ（もどる で ホーム）
-  const checks={"いらい":".neri-quests","ようす":".chara-card","もちもの":".card, .note","ずかん":".dex-kinds","イベント":".annual-hero","スタンプラリー":".festival-target","ひんと":".smaho-hint","うらない":".smaho-draw","ごほうび":"select","おんがく":".smaho-disc","ちず":".world-atlas"};
+  const checks={"いらい":".neri-quests","ようす":".chara-card","もちもの":".card, .note","ずかん":".dex-kinds","イベント":".annual-hero","スタンプラリー":".festival-target","ひんと":".smaho-hint","うらない":".smaho-draw","ごほうび":"select","おんがく":".smaho-disc","しゃしん":".puri-album, .note","ちず":".world-atlas"};
   for(const [app,sel] of Object.entries(checks)){
     await H.page.locator(".smaho").getByRole("button",{name:app,exact:true}).click();await H.wait(300);
     expect(await H.page.locator(".smaho-body").locator(sel).count()>0,app+" の 中みが ない");
@@ -2871,6 +2871,118 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  const end=await H.dbg('saveData');expect(end.arcade.plays===save.arcade.plays+1&&end.arcade.active===null,'中断のあとの 精算');
 },{viewport,timeout:240000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('purikura-'+viewport.width,async H=>{
+ // ぷりくら（purikura.js・UI-11。オーナーの FB 2026-09-30「有料で プリクラを 撮る」「表情や ポーズを 変えて、文字を 書いたり スタンプで デコレーション」「写真として スマホから 見れる」）:
+ // Meeときょれじゃ の ブース → 300コイン → はいけい → ポーズ・かお・アップ → 4まい → ペン・スタンプ・もじ・もどす → できあがり → すまほの「しゃしん」→ ほぞん・けす → さいかいしても のこる → やめても つぎは ただ
+ await H.newGameFast();const c0=await H.dbg('coins',850);
+ await H.dbg('venue','arcade');await H.idle();await H.until(()=>PokaDebug.venueIso()&&PokaDebug.venueIso().ready,20000);
+ expect(await H.dbg('venueVisit','ぷりくら'),'ぷりくらの ブースが ない');
+ await H.page.getByRole('button',{name:'300コインで とる',exact:true}).click();
+ await H.until(()=>!!PokaDebug.puriState()&&!Game.trans,20000);await H.wait(400);
+ let st=await H.dbg('puriState');
+ expect(st.phase==='bg'&&st.coins===c0-300&&st.active&&st.photos===0,'300コインで はじまらない '+JSON.stringify({c0,st}));
+ // そうさばん: はみ出さない・ボタンは 44px いじょうで 1ぎょう・しゃしんの がめんに かさならない（チップの ならびは よこに スクロール）
+ const fits=async(tag)=>{const L=await H.eval(()=>{const r=(e)=>e.getBoundingClientRect(),P=document.querySelector('.puri-panel'),pr=r(P),v=PokaDebug.puriState().view,bs=[...P.querySelectorAll('button')].filter((b)=>b.offsetParent);
+   // もじの ぎょう（え の よこの もじも かぞえる ので、もじの ノード だけ）
+   const lines=(b)=>{const w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT),tops=new Set();for(let t=w.nextNode();t;t=w.nextNode()){if(!t.textContent.trim())continue;const g=document.createRange();g.selectNodeContents(t);for(const x of g.getClientRects())tops.add(Math.round(x.top));}return tops.size;};
+   return {small:bs.filter((b)=>{const q=r(b);return q.height<43.5||q.width<43.5;}).map((b)=>b.textContent||b.getAttribute('aria-label')),out:bs.filter((b)=>!b.closest('.puri-chips')).filter((b)=>{const q=r(b);return q.left<pr.left-0.5||q.right>pr.right+0.5;}).map((b)=>b.textContent||b.getAttribute('aria-label')),
+    wrap:[...bs.filter((b)=>b.textContent&&lines(b)>1),...[...P.querySelectorAll('.puri-title')].filter((t)=>lines(t)>t.textContent.split('\n').length)].map((b)=>b.textContent),over:P.scrollWidth>P.clientWidth+1,edge:pr.left>=0&&pr.right<=innerWidth&&pr.bottom<=innerHeight+0.5,view:v&&v.x>=0&&v.x+v.w<=innerWidth&&v.y>=40&&v.y+v.h<=pr.top+1,p:[pr.left,pr.top,pr.right,pr.bottom],v};});
+  expect(!L.small.length&&!L.out.length&&!L.wrap.length&&!L.over&&L.edge&&L.view,tag+'の そうさばんが はみ出す／ちいさい／2ぎょう／しゃしんに かさなる '+JSON.stringify(L));};
+ await fits('はいけい');await H.shot('bg');
+ // はいけい → さつえい
+ await H.page.getByRole('button',{name:'ほしぞら',exact:true}).click();
+ await H.page.getByRole('button',{name:'とりはじめる',exact:true}).click();await H.wait(250);
+ st=await H.dbg('puriState');expect(st.phase==='shoot'&&st.bg==='hoshi','はいけいが えらべない '+JSON.stringify(st));
+ await fits('さつえい');
+ // 1人ずつ ポーズと かお（ほかの 2人は そのまま）
+ await H.page.getByRole('button',{name:'わんこ',exact:true}).click();await H.page.getByRole('button',{name:'ジャンプ',exact:true}).click();
+ await H.page.getByRole('button',{name:'かお',exact:true}).click();await H.page.getByRole('button',{name:'びっくり',exact:true}).click();
+ st=await H.dbg('puriState');
+ expect(st.sel.wanko.join()==='jump,surprise'&&st.sel.gachan.join()==='stand,happy'&&st.sel.goji.join()==='stand,happy','1人だけ ポーズ・かおが かわらない '+JSON.stringify(st.sel));
+ await H.wait(300);await H.shot('shoot');
+ // 3・2・1（とちゅうは おせない）→ 1まいめ
+ await H.dbg('puriFast',4);
+ await H.page.getByRole('button',{name:'とる！',exact:true}).click();
+ st=await H.dbg('puriState');expect(st.count===3&&await H.page.getByRole('button',{name:'とる！',exact:true}).isDisabled(),'カウントダウンに ならない '+JSON.stringify(st));
+ await H.until(()=>PokaDebug.puriState().shots===1,8000);
+ // 2まいめ: みんなで らぶらぶ・アップ
+ await H.page.getByRole('button',{name:'みんな',exact:true}).click();await H.page.getByRole('button',{name:'らぶらぶ',exact:true}).click();await H.page.getByRole('button',{name:'アップに',exact:true}).click();
+ st=await H.dbg('puriState');expect(st.z===1&&Object.values(st.sel).every((s)=>s[1]==='love')&&await H.page.getByRole('button',{name:'ぜんしんに',exact:true}).count()===1,'みんなの かお・アップが かわらない '+JSON.stringify(st));
+ await H.page.getByRole('button',{name:'とる！',exact:true}).click();await H.until(()=>PokaDebug.puriState().shots===2,8000);
+ await H.page.getByRole('button',{name:'ポーズ',exact:true}).click();await H.page.getByRole('button',{name:'よこむき',exact:true}).click();
+ for(let n=3;n<=4;n++){await H.page.getByRole('button',{name:'とる！',exact:true}).click();await H.until((n)=>PokaDebug.puriState().shots>=n||PokaDebug.puriState().phase==='deco',8000,n);}
+ st=await H.dbg('puriState');
+ expect(st.phase==='deco'&&st.shots===4&&st.shotSel[0].c.wanko.join()==='jump,surprise'&&st.shotSel[0].z===0&&st.shotSel[1].z===1&&st.shotSel[1].c.goji[1]==='love'&&st.shotSel[2].c.gachan[0]==='side','4まい とれない／とった ときの ポーズが のこらない '+JSON.stringify(st.shotSel));
+ await H.wait(600);await fits('らくがき');
+ // ペンで なぞる → スタンプ → もじ → もどす（もじが きえる）
+ const v=st.view,at=(fx,fy)=>[v.x+v.w*fx,v.y+v.h*fy];
+ let [x,y]=at(0.2,0.25);await H.page.mouse.move(x,y);await H.page.mouse.down();
+ for(let i=1;i<=12;i++){[x,y]=at(0.2+i*0.05,0.25+Math.sin(i/2)*0.05);await H.page.mouse.move(x,y);}
+ await H.page.mouse.up();await H.wait(150);
+ st=await H.dbg('puriState');expect(st.deco[0].p===1&&st.deco[0].pts>=8,'ペンで かけない '+JSON.stringify(st.deco[0]));
+ await H.page.getByRole('button',{name:'スタンプ',exact:true}).click();await H.page.getByRole('button',{name:'ハート',exact:true}).click();await H.page.getByRole('button',{name:'おおきい',exact:true}).click();
+ await H.page.mouse.click(...at(0.8,0.15));
+ await H.page.getByRole('button',{name:'もじ',exact:true}).click();await H.page.getByRole('button',{name:'なかよし',exact:true}).click();
+ await H.page.mouse.click(...at(0.5,0.35));await H.wait(150);
+ st=await H.dbg('puriState');expect(st.deco[0].s===1&&st.deco[0].x===1,'スタンプ・もじが おけない '+JSON.stringify(st.deco[0]));
+ await H.page.getByRole('button',{name:'もどす',exact:true}).click();st=await H.dbg('puriState');
+ expect(st.deco[0].x===0&&st.deco[0].s===1&&st.deco[0].p===1,'もどすで もじが きえない '+JSON.stringify(st.deco[0]));
+ await H.page.mouse.click(...at(0.5,0.35));await H.wait(300);await H.shot('deco');
+ // 2まいめ: じぶんで かいた ことば（きごうは のぞく）とスタンプ。もどすは その しゃしんだけ
+ await H.page.getByRole('button',{name:'2まいめ',exact:true}).click();
+ await H.page.getByRole('button',{name:'じぶんで かく',exact:true}).click();await H.page.locator('#text-input').fill('なかま!<b>');await H.page.getByRole('button',{name:'けってい',exact:true}).click();await H.wait(150);
+ await H.page.mouse.click(...at(0.5,0.2));
+ await H.page.getByRole('button',{name:'スタンプ',exact:true}).click();await H.page.getByRole('button',{name:'おうかん',exact:true}).click();await H.page.mouse.click(...at(0.3,0.1));
+ st=await H.dbg('puriState');expect(st.di===1&&st.deco[1].x===1&&st.deco[1].s===1&&st.deco[0].x===1,'2まいめに かけない '+JSON.stringify(st.deco));
+ // できあがり → すまほに 4まい（コインは そのまま・はらったのは 1かい）
+ await H.page.getByRole('button',{name:'できあがり',exact:true}).click();await H.wait(300);await H.dialogs();
+ st=await H.dbg('puriState');
+ expect(st.phase==='done'&&st.saved&&st.active===null&&st.photos===4&&st.coins===c0-300,'できあがりで しゃしんが はいらない '+JSON.stringify(st));
+ let ph=await H.dbg('photos');
+ expect(ph.length===4&&ph[0].bg==='hoshi'&&ph[0].p===1&&ph[0].s===1&&ph[0].x.join()==='なかよし'&&ph[1].z===1&&ph[1].x.join()==='なかま!b'&&ph[1].s===1&&ph[2].c.gachan[0]==='side'&&ph[3].p===0,'しゃしんの なかみ '+JSON.stringify(ph));
+ await fits('できあがり');await H.shot('done');
+ // すまほの「しゃしん」: あたらしい じゅんに 4まい（ちゃんと 描けて いる）
+ await H.page.getByRole('button',{name:'すまほで みる',exact:true}).click();await H.page.locator('.smaho .puri-album .puri-photo').first().waitFor();await H.wait(500);
+ const album=()=>H.eval(()=>{const body=document.querySelector('.smaho-body'),ps=[...body.querySelectorAll('.puri-photo')];
+  const drawn=ps.map((b)=>{const cv=b.querySelector('canvas'),c=cv.getContext('2d'),d=c.getImageData(0,0,cv.width,cv.height).data;let n=0;for(let i=3;i<d.length;i+=4*97)if(d[i]>0)n++;return cv.width>0&&n>20;});
+  return {n:ps.length,drawn:drawn.every(Boolean),small:ps.filter((b)=>{const r=b.getBoundingClientRect();return r.width<44||r.height<44;}).length,wide:body.scrollWidth>body.clientWidth+2,note:body.querySelector('.note')?.textContent||''};});
+ let a=await album();expect(a.n===4&&a.drawn&&!a.small&&!a.wide&&/しゃしん 4まい/.test(a.note),'しゃしんの いちらん '+JSON.stringify(a));await H.shot('album');
+ // 1まい: まえ／つぎ・ほぞん（この 端末に PNG）・けす
+ await H.page.locator('.smaho .puri-photo').first().click();await H.page.locator('.smaho .puri-big').waitFor();
+ const pos=()=>H.eval(()=>document.querySelector('.smaho .puri-pos').textContent);
+ expect(await pos()==='1 / 4'&&await H.page.getByRole('button',{name:'‹ まえ',exact:true}).isDisabled(),'1まいの がめん '+await pos());
+ // おおきい しゃしん: よこにも たてにも はいる（まえ／つぎ・いちらん／ほぞん／けす が スクロール しないで 見える）
+ const big=await H.eval(()=>{const c=document.querySelector('.smaho .puri-big'),r=c.getBoundingClientRect(),b=document.querySelector('.smaho-body'),br=b.getBoundingClientRect(),bs=[...document.querySelectorAll('.smaho .puri-nav .btn')].map((x)=>x.getBoundingClientRect());return {w:r.width,h:r.height,in:r.left>=br.left-0.5&&r.right<=br.right+0.5,wide:b.scrollWidth>b.clientWidth+2,btns:bs.length,seen:bs.every((q)=>q.top>=br.top-0.5&&q.bottom<=br.bottom+0.5&&q.height>=44)};});
+ expect(big.w>=150&&Math.abs(big.h/big.w-4/3)<0.02&&big.in&&!big.wide&&big.btns===5&&big.seen,'おおきい しゃしんが はみ出す／ボタンが かくれる '+JSON.stringify(big));await H.shot('photo');
+ await H.page.getByRole('button',{name:'つぎ ›',exact:true}).click();expect(await pos()==='2 / 4','つぎ に いけない');
+ await H.eval(()=>{window.__puriDl=[];const c=HTMLAnchorElement.prototype.click;window.__puriClick=c;HTMLAnchorElement.prototype.click=function(){if(this.download){window.__puriDl.push({name:this.download,png:this.href.startsWith('data:image/png;base64,'),len:this.href.length});return;}return c.call(this);};});
+ await H.page.getByRole('button',{name:'ほぞん',exact:true}).click();await H.until(()=>window.__puriDl.length===1,8000);
+ const dl=await H.eval(()=>{HTMLAnchorElement.prototype.click=window.__puriClick;return window.__puriDl[0];});
+ expect(/^pokapoka-purikura-\d{4}-\d{1,2}-\d{1,2}\.png$/.test(dl.name)&&dl.png&&dl.len>5000,'がぞうに ほぞん できない '+JSON.stringify(dl));
+ await H.page.getByRole('button',{name:'けす',exact:true}).click();await H.page.getByRole('button',{name:'けす',exact:true}).last().click();await H.wait(300);
+ ph=await H.dbg('photos');expect(ph.length===3&&await pos()==='2 / 3','しゃしんが けせない '+JSON.stringify([ph.length,await pos()]));
+ await H.page.getByRole('button',{name:'いちらん',exact:true}).click();a=await album();expect(a.n===3,'けした しゃしんが いちらんに のこる');
+ // とじて おみせに もどる（ブースの まえ）→ もういちど しらべると 300コインの かくにん（やめると へらない）
+ await H.page.keyboard.press('Escape');await H.wait(300);
+ await H.page.getByRole('button',{name:'おみせに もどる',exact:true}).click();
+ await H.until(()=>PokaDebug.state().scene==='venue'&&PokaDebug.idle(),15000);
+ const back=await H.dbg('venueState');expect(Math.abs(back.party[0].x-12)<=1&&Math.abs(back.party[0].y-3)<=1,'ブースの まえに もどらない '+JSON.stringify(back.party[0]));
+ // セーブ → さいかいしても しゃしんは のこる
+ await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+ const ph2=await H.dbg('photos');expect(JSON.stringify(ph2)===JSON.stringify(ph),'さいかいで しゃしんが かわる '+JSON.stringify([ph.length,ph2.length]));
+ await H.phone('しゃしん');await H.page.locator('.smaho .puri-album .puri-photo').first().waitFor();a=await album();
+ expect(a.n===3&&a.drawn,'さいかいした あとの しゃしん '+JSON.stringify(a));await H.page.keyboard.press('Escape');await H.wait(300);
+ // とちゅうで やめても おかねは もどらないが、つぎは ただで とりなおせる
+ await H.dbg('venue','arcade');await H.idle();await H.until(()=>PokaDebug.venueIso()&&PokaDebug.venueIso().ready,20000);
+ const c1=(await H.dbg('state')).coins;
+ await H.dbg('venueVisit','ぷりくら');await H.page.getByRole('button',{name:'300コインで とる',exact:true}).click();await H.until(()=>!!PokaDebug.puriState()&&!Game.trans,20000);await H.wait(300);
+ await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.page.getByRole('button',{name:'やめる',exact:true}).last().click();
+ await H.until(()=>PokaDebug.state().scene==='venue'&&PokaDebug.idle(),15000);
+ expect((await H.dbg('state')).coins===c1-300&&(await H.dbg('saveData')).purikura.active,'やめた あとの ようす');
+ await H.dbg('venueVisit','ぷりくら');await H.page.getByRole('button',{name:'もういちど とる',exact:true}).click();await H.until(()=>!!PokaDebug.puriState()&&!Game.trans,20000);
+ st=await H.dbg('puriState');expect(st.phase==='bg'&&st.coins===c1-300&&st.active,'とりなおしで また はらう '+JSON.stringify(st));
+},{viewport,timeout:180000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('nerikasu-korokoro-'+viewport.width,async H=>{
  // ころころ フルーツ（mg-korokoro.js）: ネリカスタウンの お店 → レジで おてつだい →「ちゅうもん モード」→ 小さい くだものを ゆびで おとす → がったい → ちゅうもんが とどく
  await H.newGameFast();const before=await H.dbg('saveData');
@@ -3064,8 +3176,12 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  let text=await book();expect(/まだ きろくが ないよ/.test(text)&&/ランキング/.test(text)&&/あそんだ かいすう0かい/.test(text),'はじめての きろく '+text);
  // はみ出さない: まど・タブ（44px いじょう）・なかみ（よこに スクロールしない）。
  // はかるのは いちばん うえの まど（あそんだ あとは けっかの まどの うえに ひらく）で、ひらく うごきが おわって から。だめな ときは どこが だめかを だす
+ // うごきの おわりは 3つで みる: getAnimations が running でない・まどの transform が none・まどの 位置が 2フレーム つづけて おなじ
+ // （WebKit は おわる すこし まえに running で なくなる ことが あり、のこり 2px の ところで はかって いた）
  const fit=async(msg)=>{
-  await H.until(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop();return !!w&&!!w.querySelector('.koro-book')&&(typeof w.getAnimations!=='function'||[w,...w.querySelectorAll('.panel')].every(e=>e.getAnimations().every(a=>a.playState!=='running')));},5000);
+  await H.eval(()=>{window.__koroFitLast=null;});
+  await H.until(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop();if(!w||!w.querySelector('.koro-book'))return false;const p=w.querySelector('.panel'),r=p.getBoundingClientRect(),k=[r.left,r.top,r.right,r.bottom].join(),same=window.__koroFitLast===k;window.__koroFitLast=k;
+   return same&&getComputedStyle(p).transform==='none'&&getComputedStyle(w).opacity==='1'&&(typeof w.getAnimations!=='function'||[w,...w.querySelectorAll('.panel')].every(e=>e.getAnimations().every(a=>a.playState!=='running')));},5000);
   const r=await H.eval(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop(),p=w.querySelector('.panel').getBoundingClientRect(),body=w.querySelector('.panel-body'),tabs=[...w.querySelectorAll('.koro-tabs .btn')].map(b=>b.getBoundingClientRect());
    const out=[...w.querySelectorAll('.koro-book *')].filter(e=>{const r=e.getBoundingClientRect();return !(r.width===0||(r.left>=p.left-0.5&&r.right<=p.right+0.5));}).map(e=>e.className||e.tagName);
    const edge=!(p.left>=0&&p.right<=innerWidth&&p.bottom<=innerHeight+0.5),tab=!(tabs.length===2&&tabs.every(r=>r.height>=44)),wide=body.scrollWidth>body.clientWidth+1;

@@ -385,7 +385,8 @@ const ArcadeArt = (() => {
     async interact(sc, f) {
       if (f.action === "leave") { sc.leave(); return true; }
       if (f.action === "crane") { sc.busy = true; try { const at = f.spots && f.spots[0]; await PrizeArcade.open(f.machine, { venue: sc.id, floor: sc.floor, back: sc.back, at }); } finally { sc.busy = false; } return true; }
-      if (f.action === "photo") { sc.busy = true; try { ArcadeArt.flashT = G.t; Sound.se("sparkle"); sc.happyFace = true; for (const id of Save.d.order) Save.care(id, { mood: 1 }); Save.write(); await UI.say([{ name: "ぷりくら", text: "3、2、1… パシャ！\n3にんで なかよく しゃしんを とったよ。" }, ...Save.d.order.map((id) => ({ who: id, emo: "happy", text: id === "goji" ? "ガゥ♪ いい かお できた！" : id === "gachan" ? "ピヨ！ きらきらに なった♪" : "わん！ また とろうね！" }))]); } finally { sc.busy = false; sc.happyFace = false; } return true; }
+      // ぷりくら（js/purikura.js）: 300コインで さつえい → らくがき → すまほの「しゃしん」
+      if (f.action === "photo") { sc.busy = true; try { const at = f.spots && f.spots[0]; await Purikura.open({ venue: sc.id, floor: sc.floor, back: sc.back, at }); } finally { sc.busy = false; } return true; }
       if (f.action === "counter") { sc.busy = true; try { const i = await UI.ask("けいひん カウンター\nとった けいひんは もちものに はいるよ。\nまえの けいひんも コインで こうかん できるよ。", ["まえの けいひんを みる", "コインの けいひんの きまり", "やめておく"]); if (i === 0) await ShopUI.open("ike_arcade"); else if (i === 1) await UI.say([{ name: "てんいん", text: `コインの けいひんは 1にち ${ArcadePrizes.COIN_DAY_MAX}コイン まで。\nきょうは あと ${ArcadePrizes.coinLeft()}コイン とれるよ。` }]); } finally { sc.busy = false; } return true; }
       return false;
     },
