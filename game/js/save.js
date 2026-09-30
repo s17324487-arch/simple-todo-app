@@ -78,6 +78,8 @@ const Save = {
         postoffice: { lv: 1, rep: 0, best: 0, plays: 0 },
       },
       daily: {last:'',stamps:0,total:0,cycles:0},
+      // ネリカスタウンの いらいの けいじばん（js/neri-quests.js）: きょうの 6まい・うけて いる いらい（3つまで）・きょう おわった もの・これまでの かず と ほうしゅう
+      quests: { day: "", board: [], active: [], done: [], total: 0, earned: 0 },
       puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },
       world: { map: "town", x: 7, y: 7, dir: "down" },
       flags: { intro: false, chests: {}, boss: false, talked: {} },

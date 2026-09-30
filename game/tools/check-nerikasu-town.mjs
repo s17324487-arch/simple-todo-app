@@ -74,6 +74,43 @@ assert(R.BUY_SHOPS.gasstand.items().length===3,'gas station goods');
   }
   const acts=Object.values(v.floors).flatMap(r=>r.fixtures.map(f=>f.action));for(const a of ['tea','play','guitar','painting','talk','sit','leave'])assert(acts.includes(a),'apartment action '+a);
   assert(keys.size<=60,'apartment model keys '+keys.size);}
+// いらいの けいじばん（たいじ・おつかい・さがしもの。むずかしさで ほうしゅう・たかめ）
+{R.TownRenewal.safePosition(m,0,0);const NQ=R.NeriQuests,Q=NQ.Q,board=d.objects.find(o=>o.questBoard);
+  assert(board&&board.solid&&board.x===NQ.BOARD[0]&&board.y===NQ.BOARD[1]&&R.WorldArt.questboard,'quest board object');
+  assert([[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>m.publicTiles.seen.has((board.x+dx)+','+(board.y+dy))),'quest board is reachable');
+  for(const t of ['hunt','errand','find'])assert(Q.filter(q=>q.type===t).length>=6,'quests '+t);
+  assert.equal(new Set(Q.map(q=>q.id)).size,Q.length,'quest ids');
+  const sold=new Set(Object.values(R.BUY_SHOPS).flatMap(s=>s.tabs.flatMap(([tab])=>s.items(tab)).filter(Boolean).map(i=>i.id)));
+  const areaOf=(e)=>Object.values(R.AREAS).some(a=>a.table.some(([id])=>id===e));
+  for(const q of Q){
+    assert(q.stars>=1&&q.stars<=5&&q.reward>=400&&q.text&&!/[\u4E00-\u9FFF]/.test(q.text+NQ.title(q)+(q.from||'')+(q.where||'')+(q.found||'')+(q.thing||'')),'quest text (hiragana) '+q.id);
+    if(q.type==='hunt')assert(R.ENEMIES[q.enemy]&&areaOf(q.enemy)&&q.n>=3,'hunt '+q.id);
+    if(q.type==='errand')assert(R.BAG_INDEX[q.item]&&sold.has(q.item)&&d.npcs.some(n=>n.id===q.to)&&q.to!=='cat','errand '+q.id);
+    if(q.type==='find'){const pts=R.TownFolk.pickSpots('town',q.spots,'check:'+q.id,q.near||null);assert.equal(pts.length,q.spots,'find spots '+q.id);for(const [x,y] of pts)assert(m.publicTiles.seen.has(x+','+y),'find spot off the paths '+q.id);}
+  }
+  // むずかしい ほど ほうしゅうが おおい。★1 でも おてつだい 1かい（Lv.1・ぜんぶ ◎）より おおい
+  for(const t of ['hunt','errand','find']){const qs=Q.filter(q=>q.type===t).sort((a,b)=>a.stars-b.stars||a.reward-b.reward);for(let i=1;i<qs.length;i++)assert(qs[i].stars===qs[i-1].stars||qs[i].reward>qs[i-1].reward,'reward by stars '+qs[i].id);}
+  const shift=(shop)=>R.GameEconomy.pay(shop,1,3)*(R.SHOPS[shop].rounds||4);assert(Math.min(...Q.map(q=>q.reward))>Math.max(...['crepe','bakery','florist','dentist','cake','groom','burger'].map(shift)),'quest rewards are not high');
+  // セーブ: fresh と ふるい セーブ（migrate で 補う）
+  const fresh=R.Save.fresh();assert(fresh.quests&&Array.isArray(fresh.quests.active)&&fresh.quests.total===0,'save field');
+  const old=JSON.parse(JSON.stringify(fresh));delete old.quests;assert.deepEqual(R.Save.migrate(old).quests,fresh.quests,'old saves get quests');
+  // その日の 6まい（2・2・2）・おなじ 日は おなじ・3つまで・たいじは ずかんで すすむ・ほうこくで ほうしゅう・おなじ 日は もう うけられない
+  const prior=R.Save.d;R.Save.d=R.Save.fresh();R.Save.write=()=>{};
+  const b1=NQ.board('2030-1-1').map(q=>q.id);assert(b1.length===6&&new Set(b1).size===6&&['hunt','errand','find'].every(t=>b1.filter(id=>NQ.byId[id].type===t).length===2),'daily board');
+  R.Save.d.quests.day='';assert.deepEqual(NQ.board('2030-1-1').map(q=>q.id),b1,'board is stable for a day');
+  const pickT=(t)=>b1.find(id=>NQ.byId[id].type===t),hunt=pickT('hunt'),errand=pickT('errand'),find=pickT('find'),q=NQ.byId[hunt];
+  R.Save.d.dex[q.enemy]={...(R.Save.d.dex[q.enemy]||{}),won:5};
+  assert(NQ.accept(hunt)&&NQ.accept(errand)&&NQ.accept(find),'accept three');assert(!NQ.accept(b1.find(id=>![hunt,errand,find].includes(id))),'a fourth quest is accepted');
+  const a=R.Save.d.quests.active.find(x=>x.id===hunt);assert(!NQ.progress(a).done&&NQ.report(hunt)===0,'report before hunting');
+  R.Save.d.dex[q.enemy].won=5+q.n;assert(NQ.progress(a).done,'hunt progress from the dex');
+  const coins=R.Save.d.coins;assert.equal(NQ.report(hunt),q.reward);assert.equal(R.Save.d.coins,coins+q.reward,'reward coins');assert(!NQ.accept(hunt),'the same quest again today');
+  const spots=NQ.spots('town');assert(spots.length===NQ.byId[find].spots&&spots.filter(s=>s.hit).length===1&&spots.every(s=>s.req==='neriq:'+find),'find sparkles');
+  assert(R.TownFolk.spotsOn('town').some(s=>s.req==='neriq:'+find),'sparkles join the town spots');
+  R.Save.d.quests.active.find(x=>x.id===find).found=true;assert(NQ.progress(R.Save.d.quests.active.find(x=>x.id===find)).done&&!NQ.spots('town').length,'found');
+  assert.equal(NQ.following(),!!NQ.byId[find].follow,'following pets');
+  assert(NQ.cancel(errand)&&!R.Save.d.quests.active.some(x=>x.id===errand),'cancel');
+  NQ.board('2030-1-2');assert(!R.Save.d.quests.done.length&&R.Save.d.quests.active.some(x=>x.id===find),'next day keeps accepted quests');
+  R.Save.d=prior;}
 // ネリカスえきは ない。でんしゃは 平和台えきから（大通りの 北の はしが 平和台）
 assert(!R.Transit.stops.town_station);assert(!R.Transit.destinations('city_station').includes('town_station'));assert.equal(R.Transit.fare('heiwadai_station','city_station'),500);
 const toHeiwadai=d.warps.find(w=>w.to==='heiwadai'&&w.y===0&&w.x<=48&&48<w.x+w.w),toMeadow=d.warps.find(w=>w.to==='meadow'&&w.y===d.rows.length-1);
@@ -105,4 +142,4 @@ const migrated=R.Save.migrate(JSON.parse(JSON.stringify(save)));assert.equal(mig
 for(const key of ['bag','furn','wardrobe','room'])assert.equal(JSON.stringify(migrated[key]),JSON.stringify(save[key]),key);
 for(const [id,progress]of Object.entries(save.shops))assert.equal(JSON.stringify(migrated.shops[id]),JSON.stringify(progress),id);
 assert.equal(R.Save.KEY,'pokapoka-town-save-v1');assert.equal(R.Save.SCHEMA,1);
-console.log(`Nerikasu: ${d.buildings.length} native-size buildings on the owner's map, ${ponds.length} fishing ponds, parks and forest; two convenience stores, a family restaurant, gas-station and post-office jobs, a two-floor apartment; old IDs / shops / NPCs / ${rescued} old save spots rescued`);
+console.log(`Nerikasu: ${d.buildings.length} native-size buildings on the owner's map, ${ponds.length} fishing ponds, parks and forest; two convenience stores, a family restaurant, gas-station and post-office jobs, a two-floor apartment, a quest board (${R.NeriQuests.Q.length} requests, ${Math.min(...R.NeriQuests.Q.map(q=>q.reward))}-${Math.max(...R.NeriQuests.Q.map(q=>q.reward))} coins); old IDs / shops / NPCs / ${rescued} old save spots rescued`);

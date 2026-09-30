@@ -494,6 +494,19 @@ const PokaDebug = {
   },
   // ② しゃしんが とれる マス（手順が photo の とき。なければ null）
   folkPhotoTile(map) { return TownFolk.reach(map).tiles.find(([x, y]) => TownFolk.photoSpot(map, x, y)) || null; },
+  // ネリカスタウンの いらい（js/neri-quests.js）: きょうの けいじばん・うけて いる いらいと すすみぐあい
+  quests() {
+    if (typeof NeriQuests === "undefined") return null;
+    NeriQuests.board(); const s = Save.d.quests, Q = NeriQuests.byId;
+    return { day: s.day, board: s.board.map((id) => ({ id, type: Q[id].type, stars: Q[id].stars, reward: Q[id].reward, title: NeriQuests.title(Q[id]), enemy: Q[id].enemy || null, n: Q[id].n || 0, item: Q[id].item || null, to: Q[id].to || null, follow: !!Q[id].follow })),
+      active: s.active.map((a) => ({ ...JSON.parse(JSON.stringify(a)), title: NeriQuests.title(Q[a.id]), progress: NeriQuests.progress(a) })), done: [...s.done], total: s.total, earned: s.earned };
+  },
+  // けいじばんの マスと 画面の 位置（町に いる とき）
+  questBoardAt() {
+    const [x, y] = NeriQuests.BOARD, sc = G.sceneName === "world" && G.scene.mapId === "town" ? G.scene : null, r = G.canvas.getBoundingClientRect();
+    if (!sc) return { x, y };
+    const q = WorldZoom.toScreen(sc, x * TS + 16, y * TS + 8); return { x, y, cx: r.left + q.x * G.cssPerUnit, cy: r.top + q.y * G.cssPerUnit };
+  },
   // ② ついて きて いる こねこ（いなければ null）
   folkKitten() { const k = G.sceneName === "world" && G.scene.follower; return k ? { x: k.w.tx, y: k.w.ty, trail: k.trail.length } : null; },
   // ③ 釣り: いけすに 入れる（ずかんにも のる。大きさは Fishing.size）。いまの ずかんの きろくを かえす
@@ -800,6 +813,11 @@ const PokaDebug = {
   hour(h) {
     if (!PokaDebug._hourNow) PokaDebug._hourNow = U.hourNow;
     U.hourNow = h == null ? PokaDebug._hourNow : () => h;
+  },
+  // きょうの 日づけを きめる（U.today と おなじ "2026-10-5" の かたち。null で もとに もどす）。まいにち かわる けいじばん などを きまった 日で ためす
+  today(day) {
+    if (!PokaDebug._today) PokaDebug._today = U.today;
+    U.today = day == null ? PokaDebug._today : () => String(day);
   },
   fps(ms = 2000) {
     return new Promise((res) => {

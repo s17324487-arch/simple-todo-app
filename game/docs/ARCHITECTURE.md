@@ -159,6 +159,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `neri-gas.js`（neri-bikkupo.js の あと） | `GAS_FUELS`, `GAS_AMOUNTS`, `GAS_CARS`, `GAS_COLORS`, `gasCarSvg`, `GasTask`, `GasStand` |
 | — | `neri-post.js`（neri-gas.js の あと） | `POST_DESTS`, `POST_ICONS`, `postIcon`, `PostTask`, `PostOffice` |
 | — | `neri-apart.js`（neri-post.js の あと） | `NeriApart` |
+| — | `neri-quests.js`（neri-apart.js の あと） | `NeriQuests` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -535,11 +536,13 @@ class NewTask extends TaskBase {
 | `walkTo(x, y)` | 町・フィールドでタップ移動と同じ道さがし |
 | `mg()` | お店ミニゲームの状態（注文・ボタンの画面上の位置など）。正解の操作をテストするため |
 | `hour(h)` | 時刻を固定（null で戻す） |
+| `today(day)` | 日づけを固定（`U.today` と おなじ `"2026-10-5"` の 形。null で戻す）。まいにち かわる けいじばん などを きまった 日で ためす |
 | `fps(ms)` | 平均 FPS（Promise） |
 | `homeSay(id, text, kind)` / `homeTalkLog()` / `homeTalk(id)` / `homeLines(id)` | おうちで しゃべらせる／さいきん しゃべった もの（`line`・`talk` つき）／かけあいを 流す／会話データの 数・1つの セリフや かけあい |
 | `folkTalk(id)` / `folkLast()` / `folkLine(id)` | 町の人の となりへ 行って 話しかける（会話は H.dialogs で すすめる）／さいごの セリフと ひとことの id／データの セリフ 1つ |
 | `folk()` / `folkOffer(id)` / `folkSignal(sig)` / `folkMarks()` | おねがいの きろく／つぎに かならず もちかける／手順を すすめる（会話は またない）／いまの マップの しるし |
 | `folkSpots(map)` / `folkKitten()` / `folkPhotoTile(map)` | さがす きらきら・さわる 小物（となりの 立てる マス `stand`・画面の 位置 `cx`/`cy`）／ついて くる こねこ／しゃしんが とれる マス。`folkOffer` は 物々交換の id（`bt-…`）も うけとる |
+| `quests()` / `questBoardAt()` | ネリカスタウンの いらい: きょうの けいじばん（`board`: id・type・stars・reward・title・enemy・n・item・to・follow）・うけて いる いらい（`active` と `progress`）・`done`・`total`・`earned`／けいじばんの マスと 画面の 位置 `cx`/`cy`（さがしものの きらきらは `folkSpots` に `req: "neriq:<id>"` で 入る） |
 | `smaho(app)` / `smahoState()` / `fortune(day)` | すまほを ひらく（app なしで ホーム・null で とじる）／`{ open, app, apps, button, phone, dot, hints }`／その日の うらない |
 | `fishGive(id, n)` | ③ 魚を いけすに 入れる（ずかんにも のる。大きさは `Fishing.size`）。ずかんの きろくを かえす |
 | `rod(n)` / `fishShore(map)` / `fishState()` / `fishAuto(on, clear)` / `fishSpawn(id, cm, { nibbles, fickle, swim })` / `fishAim(uid)` / `fishCast(wx, wy)` / `fishPull()` | ③ さおを もたせる／岸の 立てる マス `{ x, y, dir }`／つりの ようす（`line`・`bobber`・`shadows`・`nibbled`・`escaped`・`brag`・`zoom`・`button`・`last`）／かってに 魚を 出す か（clear で けす）／3人の ちかくに 魚の かげ（ふつうは うきに 気づく まで とまる）／その かげの あたまの まえ（画面の CSS px。page.mouse で ながおし）／ながおしと おなじ ところへ なげる／「つる」ボタンと おなじ |
@@ -828,7 +831,7 @@ RangeScene.ro（ready 0.8秒 → areYou 0.8秒 → null）の あいだは game.
 
 ### おうちの吹き出し（FEAT-01）
 `HomeBubbles` は `tools/feature-design/home-bubble-ref.js` のCanvas描画と候補配置を移植。`HomeLife` が頭の投影・表示寿命・2つまでの制限・かけあいの待ち行列を管理する。会話ログはシーン内だけ、セーブの形は変えない。PokaDebug.homeSay / homeTalkLog / homeBubbleState で全6種類と通常・みまもりの配置を検証する。
-CIは両ブラウザの全シナリオを4分割し、各シナリオ終了時にブラウザプロセスも閉じて描画資源を解放する。`--list --full --shard=1/4` で対象一覧を検査できる。リトライ・失敗無視は行わない。
+CIは両ブラウザの全シナリオを6分割し（4分割では 1ジョブ 21〜25分で 上限の 25分に とどいた ため 2026-09-30 に 6分割・上限 30分に）、各シナリオ終了時にブラウザプロセスも閉じて描画資源を解放する。`--list --full --shard=1/6` で対象一覧を検査できる。リトライ・失敗無視は行わない。
 
 テスト専用のPlaywrightを1.63.0へ更新。旧1.56.1のLinux WebKitで描画プロセスのクラッシュが複数発生したため、ブラウザの診断ログも保存する。ゲームの実行時依存や保存データは変わらない。
 
@@ -933,6 +936,13 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - `ShopScene.drawShop` は `MG_TASKS[shop].backdrop` が あれば たなの しなものを 描く。`PokaDebug.mg()` は task に `debug(css)` が あれば その かえりを `order` に する（あたらしい おてつだいは `debug.js` に 店ごとの 分岐を たさない）。
 - `neri-apart.js`（`NeriApart`）: `VenueHalls.defs.neri_apart`（`iso`・20×14・2かいだて・`crowd: 0`）。かべは ひくい `aptwall`（高さ 64。へやの 中が 見える）。家具は `furn`（`HomeDesign.model(id,{flip})` を まえの ふちの まんなかに おく）。ほかの モデル: mailboxes・kanri・noticeboard・bikes・stairs（up／down）・guitar・easel・canvases・laundry・railing。キーは 種類・大きさ・家具・むき・へやの ばんごう だけ。しらべる: tea・play・guitar・painting（1かいの 訪問で 1どだけ げんき）・talk（すむ 人）・sit・floor（かいだん）・leave。
 - テスト: `tools/check.mjs`（2つの おてつだいを 正しく あそぶと 100点・ちがう ノズル／けしいんの まえ／ちがう はこ）・`tools/check-nerikasu-town.mjs`（入口・登録・店内の 絵・アパートの かいだんと 家具と キー）・`tools/check-venues.mjs`（什器に いける）。スモーク「gasstand-390 / 375」「postoffice-390 / 375」「apartment-390 / 375」（`tests/nerikasu-work-smoke.mjs`）。
+
+## ネリカスタウンの いらいの けいじばん（TOWN-NERI-04）
+
+- `neri-quests.js`（`NeriQuests`）: `MAP_DEFS.town.objects` に けいじばん（`questBoard`・`WorldArt.questboard`）。`WorldScenery.activate` を つつんで ひらく。いらいは `Q`（type: hunt・errand・find／stars／reward）。`board(day)` は 日づけの シードで 6まい（type ごとに 2）を えらび、`Save.d.quests.board` に のこす（おなじ 日は おなじ）。うけるのは 3つまで（`accept`）。
+- すすみぐあい（`progress`）: hunt は うけた ときの `Save.d.dex[enemy].won` からの ふえた かず。errand は `Talk.run` を つつみ、たのんだ 町の人（`to`）に しなものが あれば わたす（なければ ヒントを いってから ふだんの `Talk.run` へ。はじめての あいさつ・ペンの つりざお・おねがい を とめない）。find は `TownFolk.spotsOn`・`investigate`・`following` を つつみ、`TownFolk.pickSpots` で えらんだ きらきら（`req: "neriq:<id>"`）を しらべる。`follow` の ある いらい（ねこ・インコ）は `WorldScene.startFollower` の あとに 見た目を かえる。
+- ほうこく（`report`）で `Save.addCoins(reward)`・`done`・`total`・`earned`。ついて くる どうぶつは いなく なる。すまほの `quests` アプリは `phoneView`。
+- テスト: `tools/check-nerikasu-town.mjs`（けいじばんの 場所・データ・★と ほうしゅう・1日の 6まい・3つまで・たいじ・ほうこく・つぎの 日・セーブ）。スモーク「neri-quests-390 / 375」（`tests/nerikasu-quests-smoke.mjs`。smoke.mjs の `folkTalk`・`folkTapSpot` を つかう。けいじばんは 日づけで かわるので `PokaDebug.today` で きまった 日（2026-10-5）に する。ほかの 日は `NERI_QUEST_DAY=2026-1-4` などで ためせる）・「smaho」。
 
 ## 池袋の 町（配置イメージどおり・TOWN-IKE-01）
 
