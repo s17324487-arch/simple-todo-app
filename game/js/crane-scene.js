@@ -1,7 +1,7 @@
 // クレーンゲームの 画面（SCENES.prize）と PrizeArcade（100コイン・つづきから・ごほうび）。
 // 台の なかは 3D の 物理（CraneMachines）。ここでは カメラで うつして、筐体・アーム・景品を 描く。まえ と よこ の 2つの カメラ。
 const PrizeArcade = {
-  // 12台（台の 番号は CraneMachines.DEFS・館の 什器 machine と おなじ）。qty: 1こ とれた ときに もらえる かず・coins: 1こ とれた ときの コイン
+  // 17台（台の 番号は CraneMachines.DEFS・館の 什器 machine と おなじ。0〜11 は 1F・12〜16 は 2F の おかし キャッチャー）。qty: 1こ とれた ときに もらえる かず・coins: 1こ とれた ときの コイン
   // prize は 台の だいひょうの 景品（まぜて ある 台は 形ごとの 景品 CraneMachines.SHAPES[...].prize を わたす）
   machines: [
     { id: "chibi-wanko", type: "claw", name: "わんこの ぬいぐるみ", label: "わんこ ぬいぐるみ", prize: "ike_chibi_wanko_0", mix: 4, qty: 1 },
@@ -16,6 +16,12 @@ const PrizeArcade = {
     { id: "chibi-goji", type: "claw", name: "ごじの ぬいぐるみ", label: "ごじ ぬいぐるみ", prize: "ike_chibi_goji_0", mix: 4, qty: 1 },
     { id: "bear-big", type: "claw", name: "くまの おおきな ぬいぐるみ", label: "くま おおきな", prize: "ike_plush_bear", qty: 1 },
     { id: "penguin-ring", type: "ring", name: "リングフック・ぺんぎん", label: "ぺんぎん リング", prize: "ike_plush_penguin", qty: 1 },
+    // 2F の おかし キャッチャー（日がわり。とれた おかしは たべもの）。prize は ならびが ない ときの だいひょう
+    { id: "snack-bag", type: "claw", name: "おかし キャッチャー・ふくろ", label: "おかし ふくろ", prize: "ike_snack_gummy", mix: 3, qty: 1, daily: true },
+    { id: "snack-box", type: "claw", name: "おかし キャッチャー・はこ", label: "おかし はこ", prize: "ike_snack_choco", mix: 3, qty: 1, daily: true },
+    { id: "snack-ring", type: "ring", name: "リングフック・おかし", label: "おかし リング", prize: "ike_snack_waffle", mix: 2, qty: 1, daily: true },
+    { id: "snack-sweet", type: "sweet", name: "スウィートランド・おかし", label: "スウィート おかし", prize: "ike_snack_candy", mix: 3, qty: 1, daily: true },
+    { id: "snack-big", type: "claw", name: "ビッグ おかし キャッチャー", label: "ビッグ おかし", prize: "ike_snack_chips", qty: 1, daily: true },
   ],
   PRICE: 100,
   // コイン プッシャーの スロットの かお（ミニマスコットの 絵）
@@ -43,8 +49,9 @@ const PrizeArcade = {
     return [...out].map(([id, n]) => ({ id, n }));
   },
   // 台の 景品の 一覧（まぜて ある 台は ぜんぶの しゅるい）
-  prizeList(machine) {
-    const d = CraneMachines.DEFS[machine], m = this.machines[machine], shapes = d.fill && d.fill.mix ? d.fill.mix : Array.isArray(d.sweet) ? d.sweet : [];
+  // 日がわりの 台は その日の ならび（day を わたさなければ きょう）
+  prizeList(machine, day) {
+    const d = CraneMachines.DEFS[machine], m = this.machines[machine], shapes = CraneMachines.lineup(d, day) || (d.fill && d.fill.mix ? d.fill.mix : Array.isArray(d.sweet) ? d.sweet : []);
     const ids = shapes.map((sh) => CraneMachines.SHAPES[sh]().prize).filter(Boolean);
     return ids.length ? ids : m.prize ? [m.prize] : [];
   },
@@ -62,7 +69,7 @@ const PrizeArcade = {
     if (a.active) { const yes = await UI.confirm("とちゅうの クレーンが あるよ。おかねを はらわずに つづける？", "つづける", "やめる"); if (yes) Game.goto("prize", { run: a.active }); return; }
     if (a.refunded) { UI.toast("台が あたらしく なったので、とちゅうだった 1かいの " + this.PRICE + "コインを かえしたよ"); a.refunded = 0; Save.write(); }
     if (!this.coinOpen(machine)) { await UI.say([{ name: "Meeときょれじゃ", text: "きょうの コインの けいひんは おしまい。\nまた あした あそびに きてね！" }]); return; }
-    const each = m.type === "sweet" ? "（おちた ぶんだけ）" : "", prize = m.type === "pusher" ? `てまえに おちた メダル 1まい ${m.coins}コイン` : m.coins ? `コイン ${m.coins} ${each}` : m.mix ? `${this.item(m.prize).name.replace(/^\S+ /, "")}（${m.mix}しゅるい）${each}` : this.item(m.prize).name + " " + (each || "×" + m.qty);
+    const each = m.type === "sweet" ? "（おちた ぶんだけ）" : "", prize = m.type === "pusher" ? `てまえに おちた メダル 1まい ${m.coins}コイン` : m.coins ? `コイン ${m.coins} ${each}` : m.daily ? `きょうは ${this.prizeList(machine).map((id) => this.item(id).name).join("・")}${each}\n（けいひんは まいにち かわるよ）` : m.mix ? `${this.item(m.prize).name.replace(/^\S+ /, "")}（${m.mix}しゅるい）${each}` : this.item(m.prize).name + " " + (each || "×" + m.qty);
     const cap = m.coins ? `\nコインの けいひんは 1にち ${ArcadePrizes.COIN_DAY_MAX}コイン まで（きょう のこり ${ArcadePrizes.coinLeft()}）。` : "";
     const fee = m.type === "pusher" ? `\n1かい ${this.PRICE}コインで メダル ${m.medals}まい。` : "\n1かい " + this.PRICE + "コイン。とれない ことも あるよ。";
     if (!(await UI.confirm(m.name + "\n" + this.rules[m.type] + "\nけいひん：" + prize + cap + fee, this.PRICE + "コインで あそぶ", "やめる"))) return;
@@ -137,7 +144,7 @@ class CraneScene {
   }
   texKeys() {
     const k = [this.th.wall, this.th.floor], looks = new Set(this.round.list().map((b) => b.data.look));
-    const shapes = [...(this.def.fill ? this.def.fill.mix || [this.def.fill.shape] : []), ...[].concat(this.def.sweet || []), ...(this.def.prize ? [this.def.prize] : [])];
+    const shapes = [...(this.round.mix || []), ...(this.def.fill ? this.def.fill.mix || [this.def.fill.shape] : []), ...[].concat(this.def.sweet || []), ...(this.def.prize ? [this.def.prize] : [])];
     for (const sh of shapes) looks.add(CraneMachines.SHAPES[sh]().look);
     if (this.round.type === "pusher") { looks.add("medal"); for (const who of PrizeArcade.SLOT_FACES) k.push(`mini-${who}-front`); }
     for (const l of looks) for (const key of Object.keys(CraneArt.TEX)) if (key.startsWith(l + "-")) k.push(key);

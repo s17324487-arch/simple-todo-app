@@ -101,9 +101,13 @@ const MallArt = {
   fixture(ctx, sc, f, o) {
     const off = o.offset || 0, s = sc.s;
     if (f.kind === "npc") return this.drawNpc(ctx, sc, f, off);
+    // くだりの エスカレーター: ゆかより したの ところは ふきぬけの あなから だけ 見える（あなの まえの ゆかや 館の そとに はみださない）
+    const clip = f.kind === "escalator" && f.dir === "down";
+    if (clip) { const pts = IsoVenue.convex([[f.x, f.y], [f.x + f.w, f.y], [f.x + f.w, f.y + f.h], [f.x, f.y + f.h]].flatMap(([x, y]) => [IsoVenue.p(x, y, 0), IsoVenue.p(x, y, 90)])).map((q) => sc.toScreen(q, off)); ctx.save(); ctx.beginPath(); pts.forEach((q, i) => (i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y))); ctx.closePath(); ctx.clip(); }
     const sp = this.sprite(sc, f, false);
     if (sp) { const q = sc.toScreen(IsoVenue.p(f.x, f.y, 0), off); ctx.drawImage(sp.c, q.x + sp.m.vb.x * s, q.y + sp.m.vb.y * s, sp.m.vb.w * s, sp.m.vb.h * s); }
     const live = this.L[f.kind]; if (live) live.call(this, ctx, sc, f, off);
+    if (clip) ctx.restore();
     if (f.item) this.drawItem(ctx, sc, f, off);
   },
   drawNpc(ctx, sc, f, off) {

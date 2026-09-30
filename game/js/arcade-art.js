@@ -41,14 +41,16 @@ const ArcadeArt = (() => {
   };
   // 景品の 絵（たって いる 絵を 床の 点に。足もとが 点）
   const standing = (S, F, svg, u, v, z, h, ratio = 1) => { const q = S.P(...F.Q(u, v, z)), w = h * ratio; S.grow(q.x - w / 2, q.y - h, q.x + w / 2, q.y); return img(svg, q.x - w / 2, q.y - h, w, h); };
-  const prizeSvg = (id) => (ArcadePrizes.INDEX[id] ? ArcadePrizes.svg(id) : CraneArt.TEX[{ ike_prize_1: "goji-front", ike_prize_3: "wanko-front", ike_prize_4: "gachan-front" }[id]] ? CraneArt.TEX[{ ike_prize_1: "goji-front", ike_prize_3: "wanko-front", ike_prize_4: "gachan-front" }[id]]() : Art.furnSvg(id));
-  const ratioOf = (id) => { const it = ArcadePrizes.INDEX[id]; if (it) return it.crop[2] / it.crop[3]; const c = { ike_prize_1: CraneArt.CROP.goji, ike_prize_3: CraneArt.CROP.wanko, ike_prize_4: CraneArt.CROP.gachan }[id]; return c ? c[2] / c[3] : 1; };
+  const prizeSvg = (id) => (ArcadePrizes.INDEX[id] ? ArcadePrizes.svg(id) : SnackArt.INDEX[id] ? SnackArt.svg(id) : CraneArt.TEX[{ ike_prize_1: "goji-front", ike_prize_3: "wanko-front", ike_prize_4: "gachan-front" }[id]] ? CraneArt.TEX[{ ike_prize_1: "goji-front", ike_prize_3: "wanko-front", ike_prize_4: "gachan-front" }[id]]() : Art.furnSvg(id));
+  const ratioOf = (id) => { const it = ArcadePrizes.INDEX[id]; if (it) return it.crop[2] / it.crop[3]; if (SnackArt.INDEX[id]) return SnackArt.ratio(id); const c = { ike_prize_1: CraneArt.CROP.goji, ike_prize_3: CraneArt.CROP.wanko, ike_prize_4: CraneArt.CROP.gachan }[id]; return c ? c[2] / c[3] : 1; };
 
   // ---- 台の かたち（しゅるいごと）----
   // GH: ガラスの たかさ・HH: かんばんの たかさ
   const SPEC = { claw: { base: 74, GH: 124, HH: 42 }, big: { base: 74, GH: 150, HH: 46 }, ring: { base: 74, GH: 124, HH: 42 }, sweet: { base: 70, GH: 104, HH: 40 }, pusher: { base: 74, GH: 96, HH: 40 }, tripod: { base: 70, GH: 116, HH: 42 } };
   const specOf = (i) => { const d = CraneMachines.DEFS[i]; return d.type === "claw" && d.rig === CraneMachines.DEFS[1].rig ? "big" : d.type; };
 
+  // よこに ながい おかし（はこ）は たかさを ひくく（はばが 台から はみでない）
+  const tall = (id, h) => (SnackArt.INDEX[id] ? Math.min(h, (h * 0.85) / Math.max(0.6, ratioOf(id))) : h);
   // なかの 景品（台ごと）
   const inside = (S, F, i, z) => {
     const d = CraneMachines.DEFS[i], m = PrizeArcade.machines[i], W = F.W, D = F.D, kind = specOf(i), out = [];
@@ -56,14 +58,14 @@ const ArcadeArt = (() => {
     if (kind === "claw") {
       // 山に つまれた ちいさな ぬいぐるみ（おくは 大きく、てまえは 小さく ならべない。3だん）
       const spots = [[0.55, 0.62, 0, 0], [1.05, 0.55, 0, 1], [1.5, 0.66, 0, 2], [0.8, 0.95, 6, 3], [1.3, 0.98, 6, 0], [1.05, 1.28, 12, 2], [1.55, 1.25, 4, 1]];
-      for (const [u, v, dz, k] of spots) { const id = ids[k % ids.length]; out.push(standing(S, F, prizeSvg(id), u * W / 2, v * (D - 0.4) / 1.5 + 0.15, z + dz, 40, ratioOf(id))); }
+      for (const [u, v, dz, k] of spots) { const id = ids[k % ids.length]; out.push(standing(S, F, prizeSvg(id), u * W / 2, v * (D - 0.4) / 1.5 + 0.15, z + dz, tall(id, 40), ratioOf(id))); }
     } else if (kind === "big") {
       const id = ids[0]; out.push(standing(S, F, prizeSvg(id), W * 0.56, D * 0.5, z, 104, ratioOf(id)));
     } else if (kind === "ring") {
       for (let k = 0; k < 3; k++) {
         const u = W * (0.35 + k * 0.28), v = D * (k % 2 ? 0.42 : 0.62);
         if (m.coins) { const q = S.P(...F.Q(u, v, z)); S.grow(q.x - 26, q.y - 44, q.x + 26, q.y); out.push(img(CraneArt.TEX["chest-front"](), q.x - 22, q.y - 30, 44, 22) + `<circle cx="${f2(q.x)}" cy="${f2(q.y - 36)}" r="6" fill="none" stroke="${INK}" stroke-width="3.4"/><circle cx="${f2(q.x)}" cy="${f2(q.y - 36)}" r="6" fill="none" stroke="#F48FB1" stroke-width="2"/>`); }
-        else { const id = ids[0]; out.push(standing(S, F, prizeSvg(id), u, v, z, 44, ratioOf(id))); const q = S.P(...F.Q(u, v, z + 52)); out.push(`<circle cx="${f2(q.x)}" cy="${f2(q.y)}" r="6" fill="none" stroke="${INK}" stroke-width="3.4"/><circle cx="${f2(q.x)}" cy="${f2(q.y)}" r="6" fill="none" stroke="#F48FB1" stroke-width="2"/>`); }
+        else { const id = ids[k % ids.length]; out.push(standing(S, F, prizeSvg(id), u, v, z, tall(id, 44), ratioOf(id))); const q = S.P(...F.Q(u, v, z + 52)); out.push(`<circle cx="${f2(q.x)}" cy="${f2(q.y)}" r="6" fill="none" stroke="${INK}" stroke-width="3.4"/><circle cx="${f2(q.x)}" cy="${f2(q.y)}" r="6" fill="none" stroke="#F48FB1" stroke-width="2"/>`); }
       }
     } else if (kind === "sweet") {
       // まわる 台（しましま）と おしだしの ステージ。景品は まわりに たくさん
@@ -276,8 +278,11 @@ const ArcadeArt = (() => {
   };
 
   // ---- 床と かべ（静止画）----
-  const MAT = { carpet: ["#3B3363", "#382F5E"], lane: ["#5A5286", "#554D80"], mat: ["#4A4458", "#454052"], staff: ["#6B6275", "#655C70"] };
+  const MATS = { carpet: ["#3B3363", "#382F5E"], lane: ["#5A5286", "#554D80"], mat: ["#4A4458", "#454052"], staff: ["#6B6275", "#655C70"] };
+  // 2F（おかしの フロア）: じゅうたんは プラムいろ・とおりみちは ピンク
+  const MAT2 = { carpet: ["#4A2F57", "#462C53"], lane: ["#7A4E7E", "#744A78"], mat: ["#4A4458", "#454052"], staff: ["#6B6275", "#655C70"] };
   const paintFloor = (g, r) => {
+    const MAT = r.carpet === "candy" ? MAT2 : MATS;
     const P = (x, y, z = 0) => IsoVenue.p(x, y, z), tile = (x, y) => { const a = P(x, y), b = P(x + 1, y), c = P(x + 1, y + 1), d = P(x, y + 1); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(c.x, c.y); g.lineTo(d.x, d.y); g.closePath(); };
     const slab = 26, edge = (pts, fill) => { g.beginPath(); pts.forEach((q, i) => (i ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y))); g.closePath(); g.fillStyle = fill; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.6; g.stroke(); };
     edge([P(0, r.h), P(r.w, r.h), P(r.w, r.h, -slab), P(0, r.h, -slab)], "#2A2440");
@@ -290,7 +295,8 @@ const ArcadeArt = (() => {
       else if (m === "carpet") {
         // うちゅうの じゅうたん（ほし・わくせい・かみふぶき）
         const q = P(x + 0.5, y + 0.5), k = Math.floor(h * 1000);
-        if (k % 7 === 0) { g.fillStyle = "#FFE07A"; g.beginPath(); const R = 5, rr = 2.2; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, l = i % 2 ? rr : R; g.lineTo(q.x + Math.cos(a) * l, q.y + Math.sin(a) * l * 0.6); } g.closePath(); g.fill(); }
+        if (r.carpet === "candy" && k % 7 === 0) { g.fillStyle = ["#F7A9C8", "#9ED3C6", "#FFE07A"][k % 3]; g.beginPath(); g.ellipse(q.x, q.y, 5, 3, 0, 0, 7); g.fill(); g.strokeStyle = "rgba(255,255,255,0.7)"; g.lineWidth = 1.2; g.beginPath(); g.ellipse(q.x, q.y, 2.4, 1.4, 0, 0, 7); g.stroke(); }
+        else if (k % 7 === 0) { g.fillStyle = "#FFE07A"; g.beginPath(); const R = 5, rr = 2.2; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, l = i % 2 ? rr : R; g.lineTo(q.x + Math.cos(a) * l, q.y + Math.sin(a) * l * 0.6); } g.closePath(); g.fill(); }
         else if (k % 11 === 1) { g.fillStyle = "#9FD3F0"; g.beginPath(); g.ellipse(q.x + 6, q.y, 5, 3, 0, 0, 7); g.fill(); g.strokeStyle = "#F7A9C8"; g.lineWidth = 1.4; g.beginPath(); g.ellipse(q.x + 6, q.y, 9, 2.4, -0.3, 0, 7); g.stroke(); }
         else for (let j = 0; j < 3; j++) { const hx = U.hash(x, y, 20 + j), hy = U.hash(x, y, 40 + j), c2 = ["#F7A9C8", "#9ED3C6", "#FFE07A", "#C9B6EE"][Math.floor(U.hash(x, y, 60 + j) * 4)], p = P(x + hx, y + hy); g.fillStyle = c2; g.globalAlpha = 0.7; g.fillRect(p.x - 1.6, p.y - 1, 3.2, 2); g.globalAlpha = 1; }
       } else if (m === "mat") { g.strokeStyle = "#5A5566"; g.lineWidth = 1; for (let i = 1; i < 4; i++) { const a = P(x + i / 4, y), b = P(x + i / 4, y + 1); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); } }
@@ -314,6 +320,24 @@ const ArcadeArt = (() => {
     if (r.exit) { const [x0, y0, x1, y1] = r.exit, q = IsoVenue.p((x0 + x1) / 2, (y0 + y1) / 2); g.save(); g.translate(q.x, q.y); g.transform(IsoVenue.A, IsoVenue.B, -IsoVenue.A, IsoVenue.B, 0, 0); g.fillStyle = "#7ED957"; g.beginPath(); g.moveTo(-10, 18); g.lineTo(10, 18); g.lineTo(10, 30); g.lineTo(20, 30); g.lineTo(0, 46); g.lineTo(-20, 30); g.lineTo(-10, 30); g.closePath(); g.fill(); g.font = "900 20px 'M PLUS Rounded 1c', sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#FFFFFF"; g.fillText("でぐち", 0, -6); g.restore(); }
     g.strokeStyle = INK; g.lineWidth = 1.8; const o = [P(0, 0), P(r.w, 0), P(r.w, r.h), P(0, r.h)]; g.beginPath(); o.forEach((q, i) => (i ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y))); g.closePath(); g.stroke();
   };
+  // エスカレーターの ふきぬけ（2F）: したの 階の うちゅうの じゅうたん・かげ・ゆかの あつみ（MallArt の ふきぬけと おなじ ずれ）
+  const paintHoles = (g, r) => {
+    for (const h of r.holes || []) {
+      g.save(); MallArt.holePath(g, h); g.clip();
+      const top = IsoVenue.p(h.x, h.y).y, gr = g.createLinearGradient(0, top - 200, 0, top + 300); gr.addColorStop(0, "#15122A"); gr.addColorStop(1, "#2B2447"); g.fillStyle = gr; g.fillRect(-4000, -4000, 8000, 8000);
+      const shift = MallArt.VIEW[0]; g.translate(0, shift);
+      for (let y = Math.floor(h.y) - 10; y < h.y + h.h + 2; y++) for (let x = Math.floor(h.x) - 10; x < h.x + h.w + 1; x++) {
+        const a = IsoVenue.p(x, y), b = IsoVenue.p(x + 1, y), c = IsoVenue.p(x + 1, y + 1), d = IsoVenue.p(x, y + 1); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(c.x, c.y); g.lineTo(d.x, d.y); g.closePath();
+        g.fillStyle = MATS.carpet[(x + y) & 1]; g.fill(); if (U.hash(x, y, 7) > 0.86) { const q = IsoVenue.p(x + 0.5, y + 0.5); g.fillStyle = "#FFE07A"; g.beginPath(); g.ellipse(q.x, q.y, 3, 1.8, 0, 0, 7); g.fill(); }
+      }
+      g.translate(0, -shift);
+      const gr2 = g.createLinearGradient(0, top - 60, 0, top + 260); gr2.addColorStop(0, "rgba(20,16,40,.65)"); gr2.addColorStop(1, "rgba(20,16,40,0)"); g.fillStyle = gr2; g.fillRect(-4000, -4000, 8000, 8000);
+      // ゆかの あつみ（おくの ふちの 内がわ）
+      g.beginPath(); g.rect(-4000, -4000, 8000, 8000); const ps = [IsoVenue.p(h.x, h.y), IsoVenue.p(h.x + h.w, h.y), IsoVenue.p(h.x + h.w, h.y + h.h), IsoVenue.p(h.x, h.y + h.h)]; ps.forEach((q, i) => (i ? g.lineTo(q.x, q.y + 34) : g.moveTo(q.x, q.y + 34))); g.closePath();
+      g.fillStyle = "#342D50"; g.fill("evenodd");
+      g.restore(); g.strokeStyle = INK; g.lineWidth = 1.8; MallArt.holePath(g, h); g.stroke();
+    }
+  };
   // かべの 絵（ネオン・ポスター・LED の すじ）。part: { kind: 'neon' | 'poster' | 'sign', from, to（マス）, z0, z1, text, col, prize }
   const wallSvg = (r, side) => {
     const L = (side === "north" ? r.w : r.h) * IsoVenue.T, H = r.wallH || 280, parts = (r.walls && r.walls[side]) || [], V = (z) => H - z;
@@ -333,6 +357,7 @@ const ArcadeArt = (() => {
         const y0 = V(p.z1 || 190), h = (p.z1 || 190) - (p.z0 || 90), col = p.col || "#F7A9C8";
         s += `<rect x="${u0 + 10}" y="${y0}" width="${w - 20}" height="${h}" rx="8" fill="#FFFDF5" stroke="${INK}" stroke-width="2"/><rect x="${u0 + 16}" y="${y0 + 6}" width="${w - 32}" height="${h * 0.62}" rx="5" fill="${col}"/>`;
         if (p.prize) s += img(ArcadePrizes.svg(p.prize), cx - h * 0.3, y0 + 8, h * 0.6, h * 0.6 - 4);
+        if (p.snack) s += img(SnackArt.svg(p.snack), cx - h * 0.3, y0 + 8, h * 0.6, h * 0.6 - 4);
         if (p.coin) s += `<circle cx="${cx}" cy="${y0 + h * 0.33}" r="${h * 0.22}" fill="#F2C84B" stroke="${INK}" stroke-width="2"/>` + star(cx, y0 + h * 0.33, h * 0.11, "#FFF3B0");
         (p.lines || []).forEach((t, i) => (s += txt(cx, y0 + h * 0.74 + i * 16, 13, t, INK)));
       } else if (p.kind === "sign") {
@@ -363,14 +388,15 @@ const ArcadeArt = (() => {
   const art = Object.create(MallArt);
   Object.assign(art, {
     M: { ...MallArt.M, ...M }, L: { ...MallArt.L, ...L }, models: new Map(),
-    modelKey(f) { return "arcade:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.machine ?? "") + ":" + (f.dir || "") + ":" + (f.variant ?? "") + ":" + (f.item || ""); },
+    // 日がわりの 台は その日の ならび（pool の くみあわせ だけ → 有限）も キーに
+    modelKey(f) { return "arcade:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.machine ?? "") + ":" + (f.dir || "") + ":" + (f.variant ?? "") + ":" + (f.item || "") + (f.kind === "crane" && CraneMachines.DEFS[f.machine].pool ? ":" + CraneMachines.lineup(CraneMachines.DEFS[f.machine]).join(",") : ""); },
     frame, specOf, SPEC,
     async prepare(r, sc) {
       const k = Math.min(sc.k, 1.2), jobs = [];
       for (const side of ["north", "west"]) { const w = wallSvg(r, side); jobs.push(SvgCache.ensure("arcadewall:" + r.id + ":" + side, () => w.svg, Math.ceil(w.L * k), Math.ceil(w.H * k)).then((c) => { (r._walls ||= {})[side] = { c, L: w.L, H: w.H }; })); }
       await Promise.all(jobs);
     },
-    paint(g, r) { paintFloor(g, r); paintWalls(g, r); },
+    paint(g, r) { paintFloor(g, r); paintHoles(g, r); paintWalls(g, r); },
     wallSvg,
     // 手前の ふち（ひくい かべの きりくち）
     over(ctx, sc, r, floor, off) {
