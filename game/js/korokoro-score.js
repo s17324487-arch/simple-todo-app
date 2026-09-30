@@ -10,6 +10,8 @@
 // rules: 物理の 上がき（くっついた ときに はねすぎて すぐ あふれない ように）: up = うえむきの はやさの 上限・depen = かさなりを なおす ときの はなれる はやさの 上限・keep = がったいで できた 玉が ひきつぐ はやさ
 const KOROKORO_SCORE = Object.freeze({ overSec: 0.5, overWait: 1.8, tops: 5, recent: 10, coinDiv: 6, coinMax: 400, repDiv: 100, repMax: 12, grades: [150, 400, 1000],
   H: 126.5, rules: Object.freeze({ up: 90, depen: 20, keep: 0.3 }) });
+// うえの 3人: sleep = この びょう おとさないと ねむる
+const KOROKORO_SCORE_TEAM = Object.freeze({ sleep: 15 });
 const KOROKORO_SCORE_HOWTO = Object.freeze([
   "スコア モードへ ようこそ！\nあふれるまで とことん あそんで、ハイスコアを めざそう。",
   "おちてくるのは ちいさい 4しゅ だけ。\nうえの「つぎ」を みて、おとす ばしょを きめてね。",
@@ -43,6 +45,8 @@ const KorokoroScore = {
   // コイン: スコアの 1/6（上限 400）× あそびかた（のんびり・ふつう・むずかしい）× きょうの おすすめ
   pay(score, mode = "normal", boost = 1) { return Math.round(Math.min(KOROKORO_SCORE.coinMax, Math.floor(Math.max(0, score) / KOROKORO_SCORE.coinDiv)) * GameEconomy.mode(mode).reward * boost); },
   rep(score) { return Math.min(KOROKORO_SCORE.repMax, Math.floor(Math.max(0, score) / KOROKORO_SCORE.repDiv)); },
+  // 3人の まばたき（ひとりずつ ちがう 間かく・0.14びょう）
+  blinkAt(t, i) { const T = 3.1 + i * 0.55; return ((t + i * 1.27) % T) < 0.14; },
   // スコア モードの 箱（KorokoroBoard の o）: 15% たかい はこ・はねを おさえる 物理
   board() { return { mode: "score", overSec: KOROKORO_SCORE.overSec, H: KOROKORO_SCORE.H, rules: KOROKORO_SCORE.rules }; },
   // ディスクと きもちの めやす（0 ×・1 △・2 ○・3 ◎）
@@ -167,6 +171,7 @@ class KorokoroScoreScene {
     this.back = { ...(p.back || { map: "town", x: 12, y: 21, dir: "down" }) };
     this.st = Save.d.shops.korokoro; this.hi0 = this.st.hi || 0;
     this.phase = "intro"; this.closed = false; this.paid = false; this.stopAsked = false; this.recOpen = false; this.overT = 0; this.danger = false;
+    this.idleT = 0; this.drops0 = 0; this.beat = false; // おとさない じかん（3人が ねむる）・ハイスコアを こえたか（3人で おおよろこび）
     this.difficulty = Save.d.settings.difficulty; this.dailyBoost = DailyPlay.boost("korokoro");
     this.owner = SHOP_OWNERS.korokoro; this.fxs = [];
     this.team = Save.d.order.map((id, i) => ({ id, i, turn: 0, jump: -1, emo: "normal" }));
@@ -213,7 +218,8 @@ class KorokoroScoreScene {
     const list = [];
     for (const t of this.team) {
       const c = Save.d.chars[t.id];
-      for (const [pose, face] of [["idle_01", "normal"], ["idle_02", "normal"], ["idle_01", "happy"], ["idle_02", "happy"], ["jump_01", "happy"], ["idle_01", "surprise"], ["idle_02", "surprise"]]) list.push([t.id, { pose, dir: "down", face, outfit: c.outfit, color: c.color }]);
+      for (const [pose, face] of [["idle_01", "normal"], ["idle_02", "normal"], ["idle_01", "happy"], ["idle_02", "happy"], ["jump_01", "happy"], ["idle_01", "surprise"], ["idle_02", "surprise"],
+        ["idle_01", "blink"], ["idle_02", "blink"], ["idle_01", "excited"], ["idle_02", "excited"], ["jump_01", "excited"], ["idle_01", "sleep"], ["idle_02", "sleep"]]) list.push([t.id, { pose, dir: "down", face, outfit: c.outfit, color: c.color }]);
     }
     await Chara.preload(list, this.charSize);
   }
@@ -326,6 +332,13 @@ class KorokoroScoreScene {
     if (this.phase === "play" || this.phase === "over") this.board.tick(dt, this.phase === "play");
     if (this.phase === "over") { this.overT += dt; if (this.overT >= KOROKORO_SCORE.overWait && !this.paid) this.results(); }
     this.danger = this.phase === "play" && this.board.world.topGap < KOROKORO_RULES.warn;
+    // おとさないで いると 3人が うとうと（おとすと おきる）・はじめて ハイスコアを こえたら 3人で おおよろこび
+    if (this.phase === "play") { if (this.board.drops !== this.drops0) { this.drops0 = this.board.drops; this.idleT = 0; } else this.idleT += dt; }
+    if (this.phase === "play" && !this.beat && this.hi0 > 0 && this.board.points > this.hi0) {
+      this.beat = true; Sound.se("fanfare");
+      for (const t of this.team) { t.turn = 1.6; t.emo = "excited"; t.jump = 0; }
+      this.addFx("text", this.panel.x + this.panel.w / 2, this.panel.y + this.panel.h + 12, { text: "しんきろく！", dur: 1.4 });
+    }
     for (const t of this.team) { if (t.turn > 0) t.turn -= dt; if (t.jump >= 0) { t.jump += dt; if (t.jump > 0.7) t.jump = -1; } }
     this.fxs = this.fxs.filter((f) => (f.t += dt) < (f.dur || 0.8));
   }
@@ -371,12 +384,19 @@ class KorokoroScoreScene {
     KorokoroArt.draw(ctx, b.next, "normal", n.x + n.w / 2, n.y + 14 + (n.h - 14) / 2, r);
     ctx.restore();
   }
+  // うえの 3人の かお: よろこぶ など（turn の あいだ）→ あぶない・おしまい は びっくり → おとさないで いると ねむる → ときどき まばたき
+  teamFace(t, i) {
+    if (t.turn > 0) return t.emo;
+    if (this.danger || this.phase === "over" || this.phase === "result") return "surprise";
+    if (this.idleT > KOROKORO_SCORE_TEAM.sleep) return "sleep";
+    return KorokoroScore.blinkAt(G.t, i) ? "blink" : "normal";
+  }
   drawTeam(ctx) {
-    const baseY = this.infoY + this.infoH - 3, ended = this.phase === "over" || this.phase === "result";
+    const baseY = this.infoY + this.infoH - 3;
     this.team.forEach((t, i) => {
       const c = Save.d.chars[t.id], at = this.teamSpot(i);
-      let pose = Math.floor((G.t + i * 0.3) / 0.5) % 2 ? "idle_02" : "idle_01", dy = 0, face = "normal";
-      if (t.turn > 0) face = t.emo; else if (this.danger || ended) face = "surprise";
+      let pose = Math.floor((G.t + i * 0.3) / 0.5) % 2 ? "idle_02" : "idle_01", dy = 0;
+      const face = this.teamFace(t, i);
       if (t.jump >= 0) { pose = t.jump < 0.45 ? "jump_01" : "idle_01"; dy = Math.sin(Math.min(1, t.jump / 0.45) * Math.PI) * 10; }
       Chara.draw(ctx, t.id, { pose, dir: "down", face, outfit: c.outfit, color: c.color }, at.x, baseY - dy, this.charSize);
     });

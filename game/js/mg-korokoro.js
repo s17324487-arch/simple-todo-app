@@ -24,6 +24,11 @@ const KorokoroSound = {
   land(tier, speed) { if (speed < 60) return; const f = 420 * Math.pow(0.9, tier); this.tone({ f, f2: f * 0.7, dur: 0.07, type: "triangle", vol: Math.min(0.16, 0.05 + speed / 3000) }); },
 };
 
+// 玉の 表情の めやす: dizzyHit = この はやさより つよく ぶつかると くらくら（dizzySec びょう）・winkSec = がったいで できて から ウインク まで・
+// squish = うえに のって いる 玉が じぶんの この ばい より 重いと むぎゅ・loveGap = おなじ だんが（中心の きょりが 半径の わの この ばい まで）そばに いると なかよし・
+// yawn = しずかな じかんが この びょうを こえると あくび（12びょうで ねむる）・blinkSec = まばたきの ながさ
+const KOROKORO_FACE = Object.freeze({ dizzyHit: 330, dizzySec: 0.9, winkSec: 1.5, squish: 2.5, loveGap: 1.35, yawn: 10.5, blinkSec: 0.14 });
+
 // 箱（物理・おとす・ゆびの 入力・描画）。o.mode: "order"（ちゅうもん モード・よこに つぎ／ポイント／じゅんばん）か "score"（スコア モード・箱を 大きく・したに じゅんばん）
 // o.overSec: あふれ までの びょう（スコア モードは みじかい）・o.H: 箱の 高さ（はば 100。スコア モードは 15% たかい）・o.rules: 物理の きまりの 上がき（スコア モードは はねを おさえる）
 class KorokoroBoard {
@@ -34,6 +39,7 @@ class KorokoroBoard {
     this.aim = 50; this.cool = 0; this.points = 0; this.spills = 0; this.coins = 0; this.drops = 0; this.merges = 0; this.made = {};
     // over: スコア モードの おしまい（"overflow" = はみだした・"stop" = じぶんで やめた・false = あそんで いる）
     this.fx = []; this.flyers = []; this.aiming = false; this.pid = null; this.want = []; this.over = false;
+    this.dizzy = new Map(); // 玉の id → くらくらが おわる 物理の 時こく（つよく ぶつかった あと）
   }
   // 箱の たて ÷ よこ（ちゅうもん モード 1.1・スコア モード 1.265）。レイアウトでは これに 上の おとす ところ（0.28）を たす
   aspect() { return this.world.H / this.world.W; }
@@ -81,6 +87,10 @@ class KorokoroBoard {
   // ---- すすめる ----
   tick(dt, working) {
     if (!this.over) for (const e of this.world.step(dt)) { this.event(e, working); if (this.over) break; }
+    // たかい ところから おちて つよく ぶつかった 玉は すこし くらくら
+    const W = this.world;
+    for (const b of W.bodies) if (b.hit > KOROKORO_FACE.dizzyHit) this.dizzy.set(b.id, W.t + KOROKORO_FACE.dizzySec);
+    for (const [id, t] of this.dizzy) if (t < W.t) this.dizzy.delete(id);
     this.cool = Math.max(0, this.cool - dt);
     this.fx = this.fx.filter((f) => (f.t += dt) < f.dur);
     this.flyers = this.flyers.filter((f) => (f.t += dt) < f.dur);
@@ -101,8 +111,8 @@ class KorokoroBoard {
       this.points += e.points; this.coins += bonus; this.merges++; this.made.burst = (this.made.burst || 0) + 1;
       this.fx.push({ kind: "burst", x: e.x, y: e.y, r: T[e.tier].r * 1.6, t: 0, dur: 0.9 }, { kind: "coin", x: e.x, y: e.y, text: bonus ? `ごじ パーン！ +${bonus}コイン` : `ごじ パーン！ +${e.points}`, t: 0, dur: 1.4 });
       Sound.se("fanfare");
-      // ごじ どうしが きえると 3人 みんなで よろこぶ（こえは ごじ だけ）
-      for (const id of ["goji", "wanko", "gachan"]) this.cheer(id, id !== "goji");
+      // ごじ どうしが きえると 3人 みんなで よろこぶ（こえは ごじ だけ・スコア モードは おおよろこびの かお）
+      for (const id of ["goji", "wanko", "gachan"]) this.cheer(id, id !== "goji", order ? "happy" : "excited");
     } else if (e.type === "overflow") {
       // スコア モード: あふれたら ゲームオーバー（箱は そのまま とまる）
       if (!order) { if (!this.over) { this.end("overflow"); this.sc.gameOver?.(); } return; }
@@ -112,11 +122,11 @@ class KorokoroBoard {
     }
   }
   // かおの 玉が できると その子が よろこぶ（ちゅうもん モードは カウンターの うしろで・スコア モードは うえの 3人が ジャンプ）
-  cheer(hero, quiet = false) {
+  cheer(hero, quiet = false, emo = "happy") {
     const sc = this.sc, t = sc.team && sc.team.find((m) => m.id === hero);
     if (!quiet) Sound.voice(hero);
     if (!t) return;
-    t.turn = 1.4; t.emo = "happy"; t.jump = 0;
+    t.turn = 1.4; t.emo = emo; t.jump = 0;
     const i = sc.team.indexOf(t), at = sc.teamSpot ? sc.teamSpot(i) : sc.viewH ? { x: G.W * 0.56 + i * 50, y: sc.viewH - 84 } : null;
     if (at && sc.addFx && !quiet) sc.addFx("text", at.x, at.y, { text: { wanko: "わん！", gachan: "ぴよ！", goji: "がおー！" }[hero], dur: 0.9 });
   }
@@ -162,14 +172,43 @@ class KorokoroBoard {
   // ---- 描画 ----
   // ふちより 上に いる じかんが あふれ までの 12% を こえたら あかい わ（ちゅうもん モードは 2びょう・スコア モードは みじかい）
   overShown(b) { return b.over > this.world.overSec * 0.12; }
-  emo(b) {
+  // 表情の ための まわりの ようす（物理の 時こくごとに 1かい）: love = おなじ だんが すぐ そば（まだ ふれて いない）・press = うえに のって いる 玉の 重さ ÷ じぶんの 重さ
+  looks() {
     const W = this.world;
+    if (this._looks && this._looksT === W.t && this._looksN === W.bodies.length) return this._looks;
+    const B = W.bodies, out = new Map();
+    for (const b of B) out.set(b.id, { love: false, press: 0 });
+    for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) {
+      const a = B[i], b = B[j], dx = b.x - a.x, dy = b.y - a.y, rs = a.r + b.r;
+      if (dx > rs * 1.4 || dx < -rs * 1.4 || dy > rs * 1.4 || dy < -rs * 1.4) continue;
+      const d = Math.hypot(dx, dy);
+      if (a.tier === b.tier && a.landed && b.landed && d > rs + 0.4 && d < rs * KOROKORO_FACE.loveGap) { out.get(a.id).love = true; out.get(b.id).love = true; }
+      if (d < rs + 0.8) { if (dy < -rs * 0.3) out.get(a.id).press += b.m / a.m; else if (dy > rs * 0.3) out.get(b.id).press += a.m / b.m; }
+    }
+    this._looks = out; this._looksT = W.t; this._looksN = B.length;
+    return out;
+  }
+  // まばたき: 玉ごとに ちがう 間かく（2.6〜4.4びょう）で 0.14びょう 目を とじる（物理の 時こくと id で きまる）
+  blinking(b) {
+    const T = 2.6 + 1.8 * ((b.id * 0.7548776662) % 1), ph = (b.id * 0.6180339887) % 1;
+    return ((this.world.t / T + ph) % 1) * T < KOROKORO_FACE.blinkSec;
+  }
+  // 玉の 表情（js/korokoro-art.js の FACES）。うえの ほうが さき
+  emo(b) {
+    const W = this.world, F = KOROKORO_FACE;
     if (this.over) return this.over === "stop" ? "happy" : b.over > 0 ? "sad" : "surprise";
     if (this.overShown(b) || (W.topGap < KOROKORO_RULES.warn && b.landed && b.y - b.r < KOROKORO_RULES.warn)) return "sad";
-    if (!b.landed || b.hit > 140) return "surprise";
+    if (!b.landed) return "surprise";
+    if ((this.dizzy.get(b.id) || 0) > W.t) return "dizzy";
+    if (b.hit > 140) return "surprise";
     if (b.born === "merge" && b.age < 0.9) return "happy";
+    if (b.born === "merge" && b.age < F.winkSec) return "wink";
+    const look = this.looks().get(b.id);
+    if (look && look.press >= F.squish && b.age > 0.5) return "squish";
+    if (look && look.love) return "love";
     if (b.rest > 12) return "sleep";
-    return "normal";
+    if (b.rest > F.yawn) return "yawn";
+    return this.blinking(b) ? "blink" : "normal";
   }
   render(ctx, task) {
     const s = this.s, bx = this.bx, by = this.by, bw = this.bw, bh = this.bh, W = this.world;

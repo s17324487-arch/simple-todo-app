@@ -794,7 +794,7 @@ const PokaDebug = {
       out.order = { want: t.want.map((x) => ({ tier: x.tier, name: KOROKORO_TIERS[x.tier].name, done: x.done })), held: b.held, next: b.next, aim: b.aim, cool: b.cool, canDrop: b.canDrop(), drops: b.drops,
         points: b.points, spills: b.spills, coins: b.coins, bonusTip: t.bonusTip, made: { ...b.made }, danger: w.danger, topGap: w.topGap, floorOpen: w.floorOpen,
         box: { x0: rim.cx, y0: rim.cy, unit: b.s * G.cssPerUnit, w: w.W, h: w.H, dropY: css(0, b.by - b.top / 2).cy },
-        bodies: w.bodies.map((o) => ({ tier: o.tier, x: o.x, y: o.y, r: o.r, landed: o.landed, grow: o.grow, ...css(b.px(o.x), b.py(o.y)) })) };
+        bodies: w.bodies.map((o) => ({ tier: o.tier, x: o.x, y: o.y, r: o.r, landed: o.landed, grow: o.grow, emo: b.emo(o), ...css(b.px(o.x), b.py(o.y)) })) };
     }
     if (sc.shopId === "relay") out.order = { target: t.target, caught: t.caught, misses: t.misses, lane: t.lane, role: t.role, shield: t.shield, items: t.items.map(it => ({ ...it, progress: (it.y - t.trackTop) / (t.trackBottom - t.trackTop) })) };
     if (typeof t.debug === "function") out.order = t.debug(css); // 新しい おてつだいは じぶんで ようすを かえす（ガソリンスタンド・ゆうびんきょく）
@@ -831,8 +831,8 @@ const PokaDebug = {
     return { phase: sc.phase, score: b.points, hi: sc.st.hi || 0, hi0: sc.hi0, games: sc.st.games || 0, tops: (sc.st.tops || []).map((e) => ({ ...e })), recent: (sc.st.recent || []).map((e) => ({ ...e })), gifts: { ...(sc.st.gifts || {}) }, over: b.over, stopped: !!sc.stopped, paused: !!sc.recOpen, t: w.t,
       held: b.held, next: b.next, aim: b.aim, cool: b.cool, canDrop: b.canDrop(), drops: b.drops, merges: b.merges, made: { ...b.made }, danger: w.danger, topGap: w.topGap, overSec: w.overSec, dropKinds: KOROKORO_RULES.drop,
       box: { x0: rim.cx, y0: rim.cy, unit: b.s * G.cssPerUnit, w: w.W, h: w.H, dropY: css(0, b.by - b.top / 2).cy, rect: rect({ x: b.bx - 7, y: b.by - b.top, w: b.bw + 14, h: b.top + b.bh + 15 }) },
-      row: rect(b.row), panel: rect(sc.panel), nextBox: rect(sc.nextBox), sign: rect(sc.signRect()), team: sc.team.map((t, i) => ({ id: t.id, emo: t.emo, ...css(sc.teamSpot(i).x, sc.infoY + sc.infoH - 3) })),
-      bodies: w.bodies.map((o) => ({ tier: o.tier, x: o.x, y: o.y, r: o.r, landed: o.landed, grow: o.grow, over: o.over, ...css(b.px(o.x), b.py(o.y)) })) };
+      row: rect(b.row), panel: rect(sc.panel), nextBox: rect(sc.nextBox), sign: rect(sc.signRect()), team: sc.team.map((t, i) => ({ id: t.id, emo: t.emo, face: sc.teamFace(t, i), ...css(sc.teamSpot(i).x, sc.infoY + sc.infoH - 3) })),
+      bodies: w.bodies.map((o) => ({ tier: o.tier, x: o.x, y: o.y, r: o.r, landed: o.landed, grow: o.grow, over: o.over, emo: b.emo(o), ...css(b.px(o.x), b.py(o.y)) })) };
   },
   hour(h) {
     if (!PokaDebug._hourNow) PokaDebug._hourNow = U.hourNow;
