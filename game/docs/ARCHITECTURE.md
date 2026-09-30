@@ -549,6 +549,7 @@ class NewTask extends TaskBase {
 | `folkSpots(map)` / `folkKitten()` / `folkPhotoTile(map)` | さがす きらきら・さわる 小物（となりの 立てる マス `stand`・画面の 位置 `cx`/`cy`）／ついて くる こねこ／しゃしんが とれる マス。`folkOffer` は 物々交換の id（`bt-…`）も うけとる |
 | `quests()` / `questBoardAt()` | ネリカスタウンの いらい: きょうの けいじばん（`board`: id・type・stars・reward・title・enemy・n・item・to・follow）・うけて いる いらい（`active` と `progress`）・`done`・`total`・`earned`／けいじばんの マスと 画面の 位置 `cx`/`cy`（さがしものの きらきらは `folkSpots` に `req: "neriq:<id>"` で 入る） |
 | `busStopAt(map?)` | バスていの 小物（`Transit.BUS[map].stop`。map を はぶくと いまの 地図・バスていの ない 地図は null）: `{ map, id, x, y, w, h, front }`（front は バスで つく マス）。その 地図に いる ときは タップする 画面の ばしょ `cx, cy`（ひだりはしの マス） |
+| `farm()` / `farmPlotAt(i)` / `farmSignAt()` / `farmSkip(min)` / `farmGo()` | はたけ: 6まいの ようす（`plots`: c・s・w・f・t・n と `info`〔state・text・left〕・`yield`）・`harvests`・`sown`・`fert`・`got`・`first`・`tier`・はたけの がめんか（`scene`・`busy`・`team`）／はたけ i の タップする ばしょ（がめん: `cx, cy`・町: マス と まえの マス `front` と `cx, cy`）／かんばんの マス・まえ・`cx, cy`／はたけの じかんを すすめる／はたけの がめんへ |
 | `smaho(app)` / `smahoState()` / `fortune(day)` | すまほを ひらく（app なしで ホーム・null で とじる）／`{ open, app, apps, button, phone, dot, hints }`／その日の うらない |
 | `fishGive(id, n)` | ③ 魚を いけすに 入れる（ずかんにも のる。大きさは `Fishing.size`）。ずかんの きろくを かえす |
 | `rod(n)` / `fishShore(map)` / `fishState()` / `fishAuto(on, clear)` / `fishSpawn(id, cm, { nibbles, fickle, swim })` / `fishAim(uid)` / `fishCast(wx, wy)` / `fishPull()` | ③ さおを もたせる／岸の 立てる マス `{ x, y, dir }`／つりの ようす（`line`・`bobber`・`shadows`・`nibbled`・`escaped`・`brag`・`zoom`・`button`・`last`）／かってに 魚を 出す か（clear で けす）／3人の ちかくに 魚の かげ（ふつうは うきに 気づく まで とまる）／その かげの あたまの まえ（画面の CSS px。page.mouse で ながおし）／ながおしと おなじ ところへ なげる／「つる」ボタンと おなじ |
@@ -955,6 +956,18 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - すすみぐあい（`progress`）: hunt は うけた ときの `Save.d.dex[enemy].won` からの ふえた かず。errand は `Talk.run` を つつみ、たのんだ 町の人（`to`）に しなものが あれば わたす（なければ ヒントを いってから ふだんの `Talk.run` へ。はじめての あいさつ・ペンの つりざお・おねがい を とめない）。find は `TownFolk.spotsOn`・`investigate`・`following` を つつみ、`TownFolk.pickSpots` で えらんだ きらきら（`req: "neriq:<id>"`）を しらべる。`follow` の ある いらい（ねこ・インコ）は `WorldScene.startFollower` の あとに 見た目を かえる。
 - ほうこく（`report`）で `Save.addCoins(reward)`・`done`・`total`・`earned`。ついて くる どうぶつは いなく なる。すまほの `quests` アプリは `phoneView`。
 - テスト: `tools/check-nerikasu-town.mjs`（けいじばんの 場所・データ・★と ほうしゅう・1日の 6まい・3つまで・たいじ・ほうこく・つぎの 日・セーブ）。スモーク「neri-quests-390 / 375」（`tests/nerikasu-quests-smoke.mjs`。smoke.mjs の `folkTalk`・`folkTapSpot` を つかう。けいじばんは 日づけで かわるので `PokaDebug.today` で きまった 日（2026-10-5）に する。ほかの 日は `NERI_QUEST_DAY=2026-1-4` などで ためせる）・「smaho」。
+
+## はたけ（おうちの ひだり・FARM-01）
+
+オーナーの FB（2026-09-30）「やおやを 削除して、お家の 横に、畑での 作物を 育てる 機能を…水やりや 種まき…イラストで 畑に 実際に 実る ように して タップすると 収穫…デザインなどは リアルファームを 参考に。難易度は 低めで 良い」。
+
+- `farm-art.js`（`FarmArt`）: さくもつ 13しゅ × 5だんかい（0 たね〔なふだの いろ だけ ちがう〕・1 め〔おなじ〕・2 は・3 はな／つぼみ・4 みのり）の SVG（viewBox 64・つちの たかさ y=56・線は INK）。かたちは `K`: root（はつかだいこん・にんじん）・bulb（たまねぎ）・potato・stake（トマト・なす・ピーマン）・tall（とうもろこし）・head（キャベツ）・berry（いちご）・vine（かぼちゃ・スイカ・メロン）。つち `bed(w, h, wet, town, rows, foot)`（うねの かず・ぬれた いろ・がめんの はたけは まえの いた）・どうぐ `TOOLS`（じょうろ・たね・ひりょう・かご・しずく）・かんばん。`WorldArt.farm_plot`（4×2マス）・`WorldArt.farm_sign`。あたらしい 食べ物 11しゅの `FOOD_ART`。キャッシュの キーは さくもつ×だんかい×大きさ・つちの 大きさ×ぬれ×うね だけ。
+- `farm.js`: `FARM_CROPS`（id・かたち・min〔ぜんぶで なんぷん〕・seed〔たねの コイン〕・yield・tier・grid〔がめん〕・town〔町〕・食べ物の あたい）・`FARM_RULES`（6まい・ひりょう 10コインで +2・おおきく そだつ 2わり +1・たねが ふえる しゅうかく 0／3／8かい・みずを ほしがる だんかい 0 と 2）。あたらしい 食べ物は `FOODS`・`BAG_INDEX` に（`exclusive: "farm"` で おみせに ならばない。とうもろこし・ピーマンは まえからの 食べ物）。
+- `Farm`: `st()`（`Save.d.farm` を なおして かえす）・`step(i, now)`／`update()`（みずが ある あいだ `min/4` ぷんごとに だんかいが すすむ・2 で また かわく・4 で おわり。くさらない）・`rainAt(from, to)`（かわいた あとで さいしょに あめの 3じかんの くぎりに はいった とき。`Weather.forDate`・`Weather.override`）・`sow`／`water`／`fertilize`／`harvest`（`Save.addBag`・`got`・`first`・たねが ふえたら `unlocked`）・`info`／`short`（ようすの ことば）・`act(i)`（タップ: からっぽ → `pick`〔たねの まど〕・かわいた → みず・みのった → しゅうかく・そだって いる → ようすと ひりょうの しつもん）・`openDex()`（さくもつ ずかん）・`fx`（えんしゅつ: みず・たね・ひりょう・しゅうかく）・`skip(min)`（テスト）。
+- 町: `nerikasu-layout.js` が やおや（`neri_farmstand`）と ハーブの うねを けして、はたけの こや（建物 `neri_farmhut`・3×2マス・絵は `farm-art.js` が HeiwadaiArt に 1つ たす `farm.hut`〔`register` は defs を かえるので つかわない〕）・まわりの 小物（`WorldArt.farm_scarecrow`／`farm_crate`／`farm_barrel`／`farm_sack`／`farm_hay`／`farm_rack`）を おく（町の 小物の こさ 100マスに 8こ・どの スマホの 画面にも 建物が 見える〔`tools/town-check.mjs`〕を まもる）。そして `farmPlot: 0〜5` の 小物（`farm_plot`・4×2マス・2れつ×3だん・x 2／7・y 56／59／62）と かんばん（`farmSign`・(11,57)・よこだんほどうの まえ）を おく。`WorldScenery.draw` を つつんで ぬれた つち・さくもつ・しるし（みず／とれる）・えんしゅつを 描く。`WorldScenery.activate` を つつんで、はたけ → `Farm.act`（3人が となりまで あるいてから）・かんばん → はたけの がめん。
+- はたけの がめん（`FarmScene`・`SCENES.farm`）: うえに おうちの かべと しろい さく・じょうろと かご。6まいの はたけ（2れつ×3だん・まんなかに つちの みち）に さくもつ（うねの まんなか）・まえの いたに なふだ（なまえと ようす）。3人は みちを あるいて タップした はたけの よこへ（せんとうの 子が じょうろを かたむける）。しゅうかくした さくもつは かごへ とぶ。あめの ときは あめを 描いて かってに みずやり。トーストは したの ボタンの うえ（`.toasts.farm-toasts`）。したの ボタン「さくもつ ずかん」「まちへ もどる」（かんばんの まえへ）。BGM は meadow。
+- セーブ: あたらしい 項目 `Save.d.farm`（`plots`〔6まい・`{ c, s, w, t, f, n, rain }`／`{ c: null }`〕・`harvests`・`sown`・`fert`・`got`・`first`）だけ。`Save.SCHEMA` は そのまま（ふるい セーブは `migrate` が おぎなう）。
+- テスト: `tools/check-farm.mjs`（データ・そだつ しくみ〔みず 2かい・かれない・くさらない・あめ・ひりょう・たねが ふえる〕・こわれた セーブ・絵・キャッシュの キー・町の はたけの 場所と あるいて いける か）。スモーク「farm-390 / 375」（`tests/farm-smoke.mjs`）。
 
 ## 池袋の 町（配置イメージどおり・TOWN-IKE-01）
 

@@ -15,7 +15,7 @@ export async function nerikasuTownSmoke({scenario,expect}){
     for(const [id,progress]of Object.entries(old.shops))expect(JSON.stringify(loaded.shops[id])===JSON.stringify(progress),'既存のお店の記録が変わる '+id);
     const routes=await H.dbg('townRoutes');expect(!routes.solid&&routes.doors.every(d=>d.reachable),'新しい町で入口に行けない');expect((await H.dbg('state')).pos.join()!=='40,5','建物の 中に のこった');
     await H.dbg('hour',11);await H.dbg('weather','clear');
-    const arts=await H.dbg('nerikasuArt');expect(arts.buildings.length===36&&arts.buildings.every(b=>/^(nerikasu|bld)\./.test(b.asset)),'旧アセットが残る');
+    const arts=await H.dbg('nerikasuArt');expect(arts.buildings.length===36&&arts.buildings.every(b=>/^(nerikasu|bld|farm)\./.test(b.asset)),'旧アセットが残る');
     expect(arts.cached.some(k=>k.includes('night')),'夜の原画を先読みしない');
     // オーナーの 配置イメージの 場所: 大通りの 北の 店・公園・池・憩いの森・よこの 道の 店・学校・家の 列・はたけ
     const views=[['avenue-shops',22,22],['lawson-bikkupo',36,11],['park',42,24],['small-park',32,27],['pond-pier',60,20],['forest',20,43],['shop-row',40,60],['school',24,70],['homes',68,33],['farm',6,60]];

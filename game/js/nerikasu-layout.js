@@ -49,6 +49,8 @@ const NerikasuLayout = (() => {
     ["nerikasu_home6", 44, 44, 7, 5, 3, "nerikasu.bld_nerikasu_home6", { house: true }],
     // よこの 道（中）の 南（入口は よこの 道（下）へ）
     ["home", 18, 56, 6, 4, 3, "nerikasu.bld_home", {}],
+    // はたけの こや（js/farm-art.js の 絵 farm.hut・オーナーの FB 2026-09-30 の はたけ。やおやの かわり）
+    ["neri_farmhut", 8, 66, 3, 2, 1, "farm.hut", { fresh: true, label: "はたけの こや", style: "town_farmhut", act: { type: "visit", text: "はたけの こや。じょうろ・くわ・たねの ふくろが しまって あるよ。\nかんばん「はたけ」を タップすると、はたけを 大きく みられるよ。" } }],
     ["neri_sevenbun", 30, 56, 7, 4, 3, "nerikasu.bld_neri_sevenbun", { fresh: true, label: "せぶんぶん", style: "town_sevenbun", act: { type: "buy", shop: "sevenbun" } }],
     ["dentist", 38, 56, 9, 4, 4, "nerikasu.bld_dentist", {}],
     ["nerikasu_home0", 48, 55, 6, 5, 3, "nerikasu.bld_neri_salon", { label: "おしゃれサロン", style: "town_salon", act: { type: "work", shop: "groom" } }],
@@ -69,7 +71,6 @@ const NerikasuLayout = (() => {
     ["neri_toilet", 43, 17, 3, 3, 1, "bld.toilet", { fresh: true, label: "こうえんの トイレ", style: "town_toilet", act: { type: "visit", text: "きれいに つかって くれて ありがとう！" } }],
     ["neri_wagashi", 52, 44, 4, 3, 2, "bld.shop.wagashi", { fresh: true, label: "わがしや こまち", style: "town_wagashi", act: { type: "visit", text: "おだんごと おまんじゅうの おみせ。\nきょうは うりきれ。また きてね。" } }],
     ["neri_cafe", 60, 45, 3, 3, 1, "bld.shop.cafe", { fresh: true, label: "きっさ ひだまり", style: "town_cafe", act: { type: "visit", text: "コーヒーの いい かおり。\nおとなの ひとが ひとやすみ して いる。" } }],
-    ["neri_farmstand", 7, 56, 4, 3, 2, "bld.shop.greengrocer", { fresh: true, label: "はたけの ちょくばいじょ", style: "town_farmstand", act: { type: "visit", text: "とれたての やさい。\nきょうは トマトが まっかだよ。" } }],
   ];
   // オーナーが「旧来の ネリカスタウンから 消えている ものも あるが、それは それで よい」と した 建物（2026-09-29）
   const REMOVED = {
@@ -90,7 +91,7 @@ const NerikasuLayout = (() => {
     "いぬの ワン！ という こえ。\nかわいい ばんけんが いるよ。",
   ];
   // あたらしい 型の 絵は 原画の まま（town-check の「型ごとに ちがう 絵」も おなじ 絵で しらべる）
-  const STYLE_ASSET = { town_lawson: "nerikasu.bld_neri_lawson", town_sevenbun: "nerikasu.bld_neri_sevenbun", town_bikkupo: "nerikasu.bld_neri_bikkupo", town_gas: "nerikasu.bld_neri_gas", town_apartment: "nerikasu.bld_neri_apartment", town_post: "nerikasu.bld_neri_post", town_delivery: "nerikasu.bld_neri_delivery", town_salon: "nerikasu.bld_neri_salon", town_chuka: "nerikasu.bld_neri_chuka", town_house_a: "nerikasu.bld_neri_house_a", town_house_b: "nerikasu.bld_neri_house_b", town_house_c: "nerikasu.bld_neri_house_c", town_courtyard: "nerikasu.bld_nerikasu_home0", town_twinrow: "nerikasu.bld_nerikasu_home1", town_koban: "bld.koban", town_toilet: "bld.toilet", town_wagashi: "bld.shop.wagashi", town_cafe: "bld.shop.cafe", town_farmstand: "bld.shop.greengrocer" };
+  const STYLE_ASSET = { town_lawson: "nerikasu.bld_neri_lawson", town_sevenbun: "nerikasu.bld_neri_sevenbun", town_bikkupo: "nerikasu.bld_neri_bikkupo", town_gas: "nerikasu.bld_neri_gas", town_apartment: "nerikasu.bld_neri_apartment", town_post: "nerikasu.bld_neri_post", town_delivery: "nerikasu.bld_neri_delivery", town_salon: "nerikasu.bld_neri_salon", town_chuka: "nerikasu.bld_neri_chuka", town_house_a: "nerikasu.bld_neri_house_a", town_house_b: "nerikasu.bld_neri_house_b", town_house_c: "nerikasu.bld_neri_house_c", town_courtyard: "nerikasu.bld_nerikasu_home0", town_twinrow: "nerikasu.bld_nerikasu_home1", town_koban: "bld.koban", town_toilet: "bld.toilet", town_wagashi: "bld.shop.wagashi", town_cafe: "bld.shop.cafe", town_farmstand: "bld.shop.greengrocer", town_farmhut: "farm.hut" };
   // 住人の 場所（旧IDの まま）。村長は おまつりの けいじばん、ねこの ミントは 大きい 公園、クイズの 人は ふんすいの ひろば、かわべの 3人は 池の そば、
   // ペンギンは ローリソン、ぶたは びっくぽ、うさぎは 洋服屋さん、ひつじは 家具屋さん、ねずみは パン屋さんの まえ。のこりは スマホの 画面 11×19マスの
   // どこから 見ても 1人は いるように くばった（tools/check-nerikasu-town.mjs が しらべる）
@@ -134,10 +135,10 @@ const NerikasuLayout = (() => {
     for (const b of d.buildings) {
       const [fx, fy] = front(b);
       if (b.x >= 68) { walk([[fx, fy], [fx, fy + 1 < H ? fy : fy], [67, fy]]); continue; } // 右の 列: 西の 右の 道へ
+      if (b.id === "neri_farmhut") { walk([[fx, fy], [11, fy], [11, 63], [12, 63]]); continue; } // はたけの ひがしの はしを とおって よこの 道へ
       if (["market", "neri_post"].includes(b.id)) { walk([[fx, fy], [fx, fy + 1], [12, fy + 1]]); continue; } // 左の 道へ
       if (["nerikasu_school", "nerikasu_nursery"].includes(b.id)) { walk([[fx, fy], [63, fy]]); continue; } // 南の 通学路（右の 道へ）
       if (b.id === "neri_koban") { walk([[fx, fy], [fx, fy + 1], [63, fy + 1]]); continue; } // 右の 道へ
-      if (b.id === "neri_farmstand") { walk([[fx, fy], [11, fy]]); continue; } // 左の 道へ
       if (b.id === "neri_toilet") { walk([[fx, fy], [47, fy]]); walk([[fx, fy + 1], [40, fy + 1]], "-"); continue; } // ななめの 道と 公園の 土の みちへ
       downToRoad(fx, fy);
     }
@@ -253,9 +254,16 @@ const NerikasuLayout = (() => {
     // ---- すきまの 小物（何もない ところを うめる） ----
     const fillers = ["planter", "bicycles", "postbox", "town_watering", "town_pinwheel", "town_herbs", "recycle", "chalkboard", "town_milk", "direction"];
     const emptyAround = (x, y) => { for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (occupied.has(key(x + dx, y + dy)) || (inside(x + dx, y + dy) && "#D".includes(g[y + dy][x + dx]))) return false; return true; };
-    // はたけ: やさいの うね・じょうろ・かかし（かざぐるま）・物おき
-    for (const y of [57, 59, 61, 63, 65]) for (let x = 3; x < 10; x++) if (x !== 6) prop("town_herbs", x, y);
-    prop("town_watering", 7, 67); prop("town_pinwheel", 3, 67); art("nerikasu.recycling-bins", 8, 68); art("prop.bench", 3, 68);
+    // はたけ（js/farm.js・オーナーの FB 2026-09-30「やおやを 削除して、お家の 横に 畑」）: 4×2マスの はたけ 6まい（2れつ×3だん・あいだは みち）と
+    // よこだんほどうの まえの かんばん（はたけの がめんへ）。まえの ハーブの うねと やさいの ちょくばいじょ（やおや）は けした
+    for (let i = 0; i < 6; i++) if (!put({ id: "town_farm_" + i, kind: "farm_plot", x: i % 2 ? 7 : 2, y: 56 + Math.floor(i / 2) * 3, w: 4, h: 2, solid: true, farmPlot: i, text: "はたけ" })) throw new Error("nerikasu: はたけを おけない " + i);
+    if (!put({ id: "town_farm_sign", kind: "farm_sign", x: 11, y: 57, w: 1, h: 1, solid: true, farmSign: true, text: "はたけの かんばん" })) throw new Error("nerikasu: はたけの かんばんを おけない");
+    // はたけの まわりの 小物（絵は js/farm-art.js の WorldArt.farm_*。はたけの まえの マス 58・61・64 の みちは あけて おく）
+    const farmDeco = [["farm_scarecrow", 1, 60, "かかしの かかしくん。とりさん はたけを たべないでね。"], ["farm_scarecrow", 1, 68, "かかしの かかしちゃん。きょうも はたけの ばんを して いるよ。"],
+      ["farm_crate", 1, 62], ["farm_crate", 10, 65], ["farm_crate", 10, 64], ["farm_barrel", 2, 65, "あまみずの たる。あめの ひに たまるよ。"], ["farm_barrel", 3, 66],
+      ["farm_sack", 4, 66], ["farm_sack", 5, 65], ["farm_hay", 4, 65], ["farm_hay", 7, 65], ["town_watering", 2, 67], ["planter", 1, 55], ["planter", 11, 55], ["planter", 11, 62], ["farm_rack", 7, 66]];
+    farmDeco.forEach(([kind, x, y, text], i) => { if (!put({ id: "town_farm_deco_" + i, kind, x, y, w: 1, h: 1, solid: true, ...(text ? { text } : {}) })) throw new Error("nerikasu: はたけの 小物を おけない " + kind + " " + x + "," + y); });
+    prop("town_watering", 7, 67); prop("town_pinwheel", 3, 67); art("nerikasu.recycling-bins", 5, 68); art("prop.bench", 3, 68);
     // 右の 道と ななめの 道（3）の あいだの ちいさな ひろば: 自転車おきば・じはんき・木
     art("nerikasu.bicycle-rack", 60, 41); art("nerikasu.green-vending", 61, 44); art("nerikasu.recycling-bins", 60, 46); art("nat.tree.big", 53, 40); art("nat.tree.sakura", 54, 43);
     // 右の 列: 家と 家の あいだは 生けがき、にわに 木
