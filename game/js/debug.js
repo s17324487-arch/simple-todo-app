@@ -510,6 +510,15 @@ const PokaDebug = {
     if (!sc) return { x, y };
     const q = WorldZoom.toScreen(sc, x * TS + 16, y * TS + 8); return { x, y, cx: r.left + q.x * G.cssPerUnit, cy: r.top + q.y * G.cssPerUnit };
   },
+  // バスていの 小物（map を はぶくと いまの 地図。バスていの ない 地図は null）。その 地図に いれば 画面の ばしょ（cx, cy: ひだりはしの マス。まえに 立つ なかまの 頭に かさならない）も。front は バスで ついた ときの マス
+  busStopAt(map) {
+    const sc = G.sceneName === "world" ? G.scene : null, m = map || sc?.mapId, b = Transit.BUS[m];
+    const o = b && b.stop && (MAP_DEFS[m].objects || []).find((o) => o.id === b.stop);
+    if (!o) return null;
+    const out = { map: m, id: o.id, x: o.x, y: o.y, w: o.w, h: o.h, front: Transit.busArrival(m) };
+    if (sc && sc.mapId === m) { const r = G.canvas.getBoundingClientRect(), q = WorldZoom.toScreen(sc, o.x * TS + 16, o.y * TS + 8); out.cx = r.left + q.x * G.cssPerUnit; out.cy = r.top + q.y * G.cssPerUnit; }
+    return out;
+  },
   // ② ついて きて いる こねこ（いなければ null）
   folkKitten() { const k = G.sceneName === "world" && G.scene.follower; return k ? { x: k.w.tx, y: k.w.ty, trail: k.trail.length } : null; },
   // ③ 釣り: いけすに 入れる（ずかんにも のる。大きさは Fishing.size）。いまの ずかんの きろくを かえす

@@ -929,3 +929,8 @@ html, body {
 .nq-btns .btn { min-height: 44px; min-width: 88px; }
 .nq-stamp { font-weight: 900; color: #E35D5B; border: 3px solid #E35D5B; border-radius: 12px; padding: 4px 10px; transform: rotate(-6deg); }
 .neri-quests .nq-total { margin: 0; font-size: 11px; text-align: center; }
+/* バスていの まど（js/transit.js の Transit.busPick・2026-09-30） */
+.bus-picker { word-break: keep-all; overflow-wrap: anywhere; }
+.bus-lead { font-weight: 800; margin: 0 0 8px; }
+.bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bus-grid .btn { min-height: 52px; padding: 6px 8px; font-size: 14px; line-height: 1.25; text-align: left; }

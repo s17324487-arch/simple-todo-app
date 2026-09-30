@@ -10,7 +10,7 @@ export async function nerikasuQuestsSmoke({scenario,expect,folkTalk,folkTapSpot}
   const closeBoard=async(H)=>{await H.page.locator('.modal-wrap .close').last().click();await H.idle();};
   for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('neri-quests-'+viewport.width,async H=>{
     await H.newGameFast();await H.dbg('hour',12);await H.dbg('today',DAY);await H.dbg('weather','clear');await H.dbg('coins',1000);
-    // けいじばん（まちの いりぐち）を タップ → きょうの 6まい（たいじ 2・おつかい 2・さがしもの 2）
+    // けいじばん（おうちの ひだり よこ）を タップ → きょうの 6まい（たいじ 2・おつかい 2・さがしもの 2）
     await openBoard(H);await H.until(()=>!document.querySelector('.toast'),6000);await H.shot('board');
     let q=await H.dbg('quests');
     expect(q.day===DAY&&q.board.length===6&&['hunt','errand','find'].every(t=>q.board.filter(b=>b.type===t).length===2),'けいじばんの いらいが 6まい（2・2・2）で ない '+JSON.stringify(q.board));

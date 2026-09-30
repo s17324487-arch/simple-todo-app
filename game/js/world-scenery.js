@@ -68,6 +68,15 @@ const WorldScenery = {
       for(let i=0;i<3;i++){rect(i*86,0,82,43,"#F6EFE2");rect(i*86+6,7,66,21,"#A9D8E3",3);ctx.fillStyle="#8DB8AA";ctx.fillRect(i*86+2,31,78,7);for(const xx of [14,68]){ctx.fillStyle="#666B79";ctx.beginPath();ctx.arc(i*86+xx,46,5,0,7);ctx.fill();}}
     } else if(kind==="ferry") {
       rect(36,0,178,58,"#FFF5DC",12);rect(58,-15,115,22,"#B7D8DF");for(let i=0;i<3;i++)rect(58+i*49,15,34,23,"#AEDAE6");ctx.fillStyle="#8BBCCB";ctx.beginPath();ctx.moveTo(0,48);ctx.lineTo(254,48);ctx.lineTo(229,86);ctx.lineTo(30,86);ctx.closePath();ctx.fill();ctx.stroke();
+    } else if(kind==="bus") {
+      // バス（js/transit.js の バスの たび）: きいろい ながい からだ・まど 3つと まえの まど・オレンジの おび・タイヤ 2つ・ライト
+      rect(0,-8,250,62,"#F4C95D",14);
+      for(const wx of [16,72,128])rect(wx,2,48,24,"#BFE3EE",5);
+      rect(186,2,52,30,"#BFE3EE",6);
+      ctx.fillStyle="#E58A4E";ctx.fillRect(3,34,244,7);
+      rect(206,38,30,14,"#FFFDF6",4);ctx.fillStyle=INK;ctx.font="800 9px 'M PLUS Rounded 1c',sans-serif";ctx.textAlign="center";ctx.fillText("バス",221,48);
+      for(const tx of [52,196]){ctx.fillStyle="#4A4658";ctx.beginPath();ctx.arc(tx,56,13,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle="#C9CED6";ctx.beginPath();ctx.arc(tx,56,5,0,Math.PI*2);ctx.fill();}
+      rect(241,20,8,10,"#FFF4B0",3);
     } else {
       ctx.fillStyle="#D6DCEC";ctx.beginPath();ctx.moveTo(73,32);ctx.lineTo(114,-33);ctx.lineTo(145,-33);ctx.lineTo(135,38);ctx.lineTo(160,89);ctx.lineTo(127,89);ctx.lineTo(87,41);ctx.closePath();ctx.fill();ctx.stroke();rect(0,0,255,48,"#FFF4D7",24);for(let i=0;i<3;i++)rect(47+i*49,7,35,26,"#B6DDE7");ctx.fillStyle="#A7B5D2";ctx.fillRect(26,37,178,6);
     }
