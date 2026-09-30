@@ -2953,6 +2953,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.dbg('homeLayout',[{id:'koro_apple_shelf',x:110,y:292},{id:'koro_fruit_tower',x:392,y:300},{id:'koro_cherry_lamp',x:58,y:430},{id:'koro_strawberry_sofa',x:232,y:402},{id:'koro_mikan_table',x:250,y:524},{id:'koro_pear_cushion',x:410,y:506}]);
  await H.dbg('homeBubbleFixture');await H.wait(900);await H.shot('room-night');
  const touch=async(id,ok,msg)=>{
+  // まえの タップで うごいた 3人・ぱぱ ままを とめてから おす 点を きめる（人が かぶると 人を タップして しまう）
+  await H.dbg('homeBubbleFixture');await H.wait(120);
   const a=await H.dbg('furnLive',id);expect(a&&a.tap,`${id}: タップできる 点が ない`);
   await H.tap(a.tap.x,a.tap.y);await H.wait(320);
   const b=await H.dbg('furnLive',id);expect(ok(a,b),`${msg} ${JSON.stringify([a,b])}`);expect(b.talk>a.talk,`${id}: 3人が なにも いわない`);
