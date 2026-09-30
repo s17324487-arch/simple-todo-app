@@ -1,27 +1,39 @@
 // 地図は閲覧専用。移動やセーブを書き換えず、開いたパネル内だけで入力を処理する。
 const WorldAtlas = {
+  tab: null, // さいごに えらんだ タブ（"area"＝この エリア／"world"＝せかい ちず）。セーブしない
   open() {
-    const body=U.el("div"); this.render(body);
+    const body=U.el("div"); this.render(body,{tab:"world"});
     return UI.modal({title:"ぜんたい ちず",body,cls:"full"});
   },
-  render(el) {
+  render(el,opts={}) {
     const saved=G.sceneName==="world"?G.scene.mapId:Save.d.world.map;
     const current=AtlasArt.places[saved]?saved:"town";
+    // タブ: この エリア（AreaMap の ポンチ絵）／せかい ちず（下の 地形図）
+    const tabs=U.el("div",{class:"atlas-tabs",role:"tablist","aria-label":"ちずの しゅるい"});
+    const tabArea=U.el("button",{class:"atlas-tab",type:"button",role:"tab",text:"この エリア"}), tabWorld=U.el("button",{class:"atlas-tab",type:"button",role:"tab",text:"せかい ちず"});
+    const areaPane=U.el("div",{class:"atlas-pane",role:"tabpanel","aria-label":"この エリアの ちず"}), worldPane=U.el("div",{class:"atlas-pane",role:"tabpanel","aria-label":"せかい ちず"});
+    tabs.append(tabArea,tabWorld); el.append(tabs,areaPane,worldPane);
+    const area=AreaMap.render(areaPane,current);
+    // タブを おぼえるのは じぶんで えらんだ ときだけ（季節イベントの「ぜんたい ちず」は おぼえない）
+    const choose=(t,remember)=>{
+      if(remember) this.tab=t;
+      for(const [b,pane,id] of [[tabArea,areaPane,"area"],[tabWorld,worldPane,"world"]]) {b.setAttribute("aria-selected",String(t===id));pane.hidden=t!==id;}
+      if(t==="area") area.refresh();
+    };
+    tabArea.onclick=()=>{Sound.se("ok");choose("area",true);}; tabWorld.onclick=()=>{Sound.se("ok");choose("world",true);};
     const root=U.el("section",{class:"world-atlas","aria-label":"ぜんたい ちず"});
     const heading=U.el("div",{class:"atlas-heading",html:'<strong>ぽかぽかの せかい</strong><span>きになる ばしょを タップ</span>'});
     const frame=U.el("div",{class:"atlas-frame",html:AtlasArt.svg()});
     const svg=frame.querySelector("svg");
     const toolbar=U.el("div",{class:"atlas-toolbar","aria-label":"ちずの そうさ"});
     const info=U.el("div",{class:"atlas-info","aria-live":"polite"});
-    const details=U.el("details",{class:"atlas-local"});
-    const summary=U.el("summary",{text:"このエリアを くわしく みる"}), local=U.el("div");
-    details.append(summary,local);
+    const openLocal=UI.btn("この エリアの ちずを みる",()=>{Sound.se("ok");area.show(selected);choose("area",true);},"wide atlas-open-local");
     const select=U.el("select",{"aria-label":"エリアを えらぶ",class:"atlas-select"});
     for(const id of Object.keys(AtlasArt.places)) select.append(U.el("option",{value:id,text:MAP_DEFS[id].name}));
     const hint=U.el("p",{class:"atlas-hint",text:"なぞって うごかす ／ 2ほんゆびで ひろげる"});
     const legend=U.el("div",{class:"atlas-legend",html:'<span class="walk">みち</span><span class="train">でんしゃ</span><span class="ferry">ふね</span><span class="plane">ひこうき</span><span class="boundary">エリアの さかい</span>'});
-    root.append(heading,frame,toolbar,hint,legend,select,info,details);
-    el.append(root);
+    root.append(heading,frame,toolbar,hint,legend,select,info,openLocal);
+    worldPane.append(root);
     let view={x:0,y:0,z:1}, selected=current, routes=true;
     const paint=()=>{
       const w=800/view.z,h=850/view.z;
@@ -62,7 +74,7 @@ const WorldAtlas = {
       const d=MAP_DEFS[id], p=AtlasArt.places[id];
       const levels=AREAS[id]?.table.flatMap(row=>[row[1],row[2]]);
       info.innerHTML=`<div class="atlas-area-icon" style="background:${p.color}"><svg viewBox="-40 -40 80 80" aria-hidden="true">${AtlasArt.icon(p.kind)}</svg></div><div><h3>${d.name}</h3><div class="atlas-area-meta">${id===current?"★ いま ここ　":""}${levels?`てき Lv.${Math.min(...levels)}〜${Math.max(...levels)}`:"おみせ・おさんぽ"}</div><p>${p.desc}</p></div>`;
-      this.localMap(local,id,current);
+      openLocal.textContent=`「${AreaMap.placeName(id)}」の ちずを みる`;
     };
     select.onchange=()=>show(select.value);
     // マーカーはEnter/Spaceでも選択できる。キー操作をゲーム側に流さない。
@@ -114,24 +126,6 @@ const WorldAtlas = {
       zoom(view.z*(e.deltaY<0?1.15:1/1.15),(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height);
     },{passive:false});
     show(selected); paint();
-  },
-  localMap(el,id,current) {
-    const d=MAP_DEFS[id], width=d.rows[0].length; let tiles="";
-    d.rows.forEach((row,y)=>[...row].forEach((ch,x)=>{
-      const col=ch==="~"?"#8AC8E2":ch==="#"?"#C89CAA":"TPABRhWF".includes(ch)?"#7FA18A":"vz".includes(ch)?"#AABACB":"=-pbD".includes(ch)?"#EEE4CF":ch==="s"?"#F0D7A0":"#BDD6A1";
-      tiles+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${col}"/>`;
-    }));
-    for(const o of d.objects||[]) if(o.text) tiles+=`<circle cx="${o.x+o.w/2}" cy="${o.y+o.h/2}" r=".8" fill="#D69A55"/>`;
-    for(const b of d.buildings||[]) if(b.act.type==="transit") tiles+=`<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="#70B6A7"/>`;
-    if(id===current && G.sceneName==="world") {
-      const p=G.scene.party[0]; tiles+=`<circle cx="${p.tx+.5}" cy="${p.ty+.5}" r=".8" fill="#E45662" stroke="white" stroke-width=".3"/>`;
-    }
-    for(const w of d.warps||[]) tiles+=`<rect x="${w.x}" y="${w.y}" width="${w.w}" height="${w.h}" fill="#BD87CF"/>`;
-    el.innerHTML=`<svg viewBox="0 0 ${width} ${d.rows.length}" role="img" aria-label="${d.name}の詳細地図">${tiles}</svg><p class="atlas-hint">あか：いまの ばしょ ／ むらさき：つぎの エリア<br>みどり：のりば ／ オレンジ：あそべる もの</p>`;
-    const neighbors=[...new Set((d.warps||[]).map(w=>w.to))];
-    el.append(U.el("p",{class:"atlas-hint",text:`あるいて いける ばしょ：${neighbors.map(n=>MAP_DEFS[n].name).join(" ／ ")}`}));
-    for(const b of d.buildings||[]) el.append(U.el("div",{class:"muted",text:`${b.label}：よこ ${b.x+b.door+1}・たて ${b.y+b.h}`}));
-    const stops=Object.values(Transit.stops).filter(s=>s.map===id);
-    if(stops.length) el.append(U.el("p",{class:"atlas-hint",text:`のりものは のりばから。池袋へは でんしゃで ${Transit.CITY_FARE}コイン（かえりは むりょう）。バスていからは どこへでも ${Transit.BUS_FARE}コイン。`}));
+    choose(opts.tab||this.tab||"area");
   },
 };

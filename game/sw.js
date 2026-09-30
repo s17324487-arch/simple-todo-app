@@ -25,7 +25,7 @@ const FILES = [
   "./js/weather.js", "./js/battle-elements.js",
   "./js/modern-music.js", "./js/music-arrangements.js", "./js/music-discs.js", "./js/smaho.js",
   "./js/fishing-line.js",
-  "./js/atlas-art.js", "./js/world-atlas.js", "./js/district-travel.js", "./js/mac-kitchen.js", "./js/venue-hall-art.js", "./js/venue-hall.js", "./js/nerikasu-neighborhood.js", "./js/nerikasu-town-art.js", "./js/korokoro-physics.js", "./js/korokoro-art.js", "./js/korokoro-town.js", "./js/nerikasu-town.js", "./js/nerikasu-layout.js", "./js/neri-shops.js", "./js/mg-korokoro.js", "./js/korokoro-score.js", "./js/korokoro-prizes.js",
+  "./js/atlas-art.js", "./js/area-map-art.js", "./js/area-map.js", "./js/world-atlas.js", "./js/district-travel.js", "./js/mac-kitchen.js", "./js/venue-hall-art.js", "./js/venue-hall.js", "./js/nerikasu-neighborhood.js", "./js/nerikasu-town-art.js", "./js/korokoro-physics.js", "./js/korokoro-art.js", "./js/korokoro-town.js", "./js/nerikasu-town.js", "./js/nerikasu-layout.js", "./js/neri-shops.js", "./js/mg-korokoro.js", "./js/korokoro-score.js", "./js/korokoro-prizes.js",
 ];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
