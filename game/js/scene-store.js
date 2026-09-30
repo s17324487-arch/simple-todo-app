@@ -88,7 +88,13 @@ class StoreScene {
       else if(pro&&picked===pro){await Fishing.buyPro(this.owner);Save.write();}
       else if(work&&picked==="おてつだいする"){
         if(Chara.IDS.some(id=>Save.d.chars[id].hunger<8))await UI.say([{who:"wanko",emo:"sad",text:"おなかが ぺこぺこだよ〜。\nごはんを たべてから おてつだい しよう。"}]);
-        else Game.goto("shop",{shop:this.shopId,back:this.back,returnStore:true,variant:this.shopId==="burger"&&this.back.map==="heiwadai"?"mac":null});
+        else {
+          // ころころ フルーツは ちゅうもん モード と スコア モード（js/korokoro-score.js）を えらべる
+          const mode=typeof KorokoroScore!=="undefined"?await KorokoroScore.choose(this):"order";
+          if(this.closed||!mode)return;
+          if(mode==="score")KorokoroScore.start(this.back);
+          else Game.goto("shop",{shop:this.shopId,back:this.back,returnStore:true,variant:this.shopId==="burger"&&this.back.map==="heiwadai"?"mac":null});
+        }
       }
     } finally { this.interacting=false; }
   }

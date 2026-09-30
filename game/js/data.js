@@ -230,8 +230,9 @@ const SHOPS = {
   dentist: { name: "はいしゃさん", color: "#8FD3F4", desc: "ばいきんを やっつけて はを ピカピカに", perk: "dentist" },
   bakery: { name: "パンやさん", color: "#F2C27B", desc: "ちょうどいい やきかげんで パンを やこう", perk: "cook" },
   florist: { name: "おはなやさん", color: "#B5E08A", desc: "ちゅうもんどおりの はなたばを つくろう", perk: "florist" },
-  // ころころ フルーツ（js/mg-korokoro.js）: おなじ もの どうしを くっつけて 大きく する おちもの パズル。4にん・箱は あいだも つづく
-  korokoro: { name: "ころころ フルーツ", color: "#F2C48D", desc: "おなじ ものを くっつけて ちゅうもんの くだものを つくろう", perk: "shop", rounds: 4,
+  // ころころ フルーツ（js/mg-korokoro.js）: おなじ もの どうしを くっつけて 大きく する おちもの パズル。ちゅうもん モードは 4にん・箱は あいだも つづく
+  // スコア モードは js/korokoro-score.js（「おてつだいする」の あとで えらぶ）
+  korokoro: { name: "ころころ フルーツ", color: "#F2C48D", desc: "おなじ ものを くっつけて おおきく しよう", perk: "shop", rounds: 4,
     lines: ["また こんど おねがいね", "ありがとう！", "まんまるで おいしそう！", "わぁ！ ぴかぴかの くだもの！"] },
   // ネリカス ガソリンスタンド（js/neri-gas.js）: きゅうゆ → せんしゃ →（Lv.3 から）タイヤ
   gasstand: { name: "ガソリンスタンド", color: "#F2A65A", desc: "きゅうゆと せんしゃで くるまを ぴかぴかに", perk: "shop",

@@ -71,7 +71,9 @@ const PokaDebug = {
       "PokaDebug.musicCatalog()               曲名・楽器・小節数の一覧",
       "await PokaDebug.musicRender('town', 8)  同じ音源でオフライン合成・音量/負荷を検証",
       "PokaDebug.shop('crepe', 3)            お店ミニゲームを Lv3 で開始",
-      "PokaDebug.koroSetup({bodies:[[4,40,100],[4,60,100]]}) ころころ フルーツの 箱に 玉を おく（seed・held・next も）",
+      "PokaDebug.koroSetup({bodies:[[3,40,100],[3,60,100]]}) ころころ フルーツの 箱に 玉を おく（seed・held・next も。スコア モードでも）",
+      "PokaDebug.koroScore({ seed: 1 })     ころころ フルーツの スコア モードを はじめる（お店の まえに もどる）",
+      "PokaDebug.koro()                      スコア モードの ようす（スコア・ハイスコア・箱の CSS 座標・玉・つぎ・おしまい）",
       "PokaDebug.store('clothes', 'town')    歩ける店内へ（入口のある町を選べる）",
       "PokaDebug.storeState()                店員・展示・通路・3人・出口の状態",
       "PokaDebug.storeWalkTo(5, 3)           店内のマスまで実際に歩く",
@@ -797,10 +799,10 @@ const PokaDebug = {
     if (typeof t.debug === "function") out.order = t.debug(css); // 新しい おてつだいは じぶんで ようすを かえす（ガソリンスタンド・ゆうびんきょく）
     return out;
   },
-  // ころころ フルーツの 箱を ととのえる（テスト用・おてつだい中だけ）。bodies: [[だん, x, y], …]（箱の 単位: はば 100）
+  // ころころ フルーツの 箱を ととのえる（テスト用・おてつだい中か スコア モードの とき）。bodies: [[だん, x, y], …]（箱の 単位: はば 100）
   koroSetup({ bodies = [], held = null, next = null, clear = true, seed = null } = {}) {
-    const sc = G.scene;
-    if (G.sceneName !== "shop" || sc.shopId !== "korokoro" || !(sc.board instanceof KorokoroBoard)) throw new Error("koroSetup は ころころ フルーツの おてつだい中だけ");
+    const sc = G.scene, here = (G.sceneName === "shop" && sc.shopId === "korokoro") || G.sceneName === "koroscore";
+    if (!here || !(sc.board instanceof KorokoroBoard)) throw new Error("koroSetup は ころころ フルーツの おてつだい中か スコア モードの ときだけ");
     const b = sc.board;
     if (clear) b.world.bodies = [];
     for (const [tier, x, y] of bodies) b.world.add(tier, x, y, { landed: true });
@@ -809,6 +811,26 @@ const PokaDebug = {
     if (next != null) b.next = next;
     b.cool = 0;
     return b.world.bodies.length;
+  },
+  // ころころ フルーツの スコア モードを はじめる（おわると ネリカスタウンの お店に もどる）。seed で おちてくる ならびを きめる
+  koroScore({ seed = null } = {}) {
+    const door = Maps.get("town").doors.find((d) => d.b.act.shop === "korokoro");
+    Game.trans = null;
+    Game.goto("koroscore", { back: door ? { map: "town", x: door.x, y: door.y + 1, dir: "down" } : { map: "town", x: 12, y: 21, dir: "down" }, seed }, "none");
+    return !!door;
+  },
+  // スコア モードの ようす。座標は 画面の CSS ピクセル（box.x0 + x * box.unit で 箱の x）
+  koro() {
+    if (G.sceneName !== "koroscore") return null;
+    const sc = G.scene, b = sc.board, w = b.world, cv = G.canvas.getBoundingClientRect();
+    const css = (x, y) => ({ cx: Math.round(cv.left + x * G.cssPerUnit), cy: Math.round(cv.top + y * G.cssPerUnit) });
+    const rect = (r) => r && { x: Math.round(cv.left + r.x * G.cssPerUnit), y: Math.round(cv.top + r.y * G.cssPerUnit), w: Math.round(r.w * G.cssPerUnit), h: Math.round(r.h * G.cssPerUnit) };
+    const rim = css(b.bx, b.by);
+    return { phase: sc.phase, score: b.points, hi: sc.st.hi || 0, hi0: sc.hi0, games: sc.st.games || 0, tops: (sc.st.tops || []).map((e) => ({ ...e })), over: b.over, stopped: !!sc.stopped,
+      held: b.held, next: b.next, aim: b.aim, cool: b.cool, canDrop: b.canDrop(), drops: b.drops, merges: b.merges, made: { ...b.made }, danger: w.danger, topGap: w.topGap, overSec: w.overSec, dropKinds: KOROKORO_RULES.drop,
+      box: { x0: rim.cx, y0: rim.cy, unit: b.s * G.cssPerUnit, w: w.W, h: w.H, dropY: css(0, b.by - b.top / 2).cy, rect: rect({ x: b.bx - 7, y: b.by - b.top, w: b.bw + 14, h: b.top + b.bh + 15 }) },
+      row: rect(b.row), panel: rect(sc.panel), nextBox: rect(sc.nextBox), sign: rect({ x: 10, y: 8, w: G.W - 115, h: 26 }), team: sc.team.map((t, i) => ({ id: t.id, emo: t.emo, ...css(sc.teamSpot(i).x, sc.infoY + sc.infoH - 3) })),
+      bodies: w.bodies.map((o) => ({ tier: o.tier, x: o.x, y: o.y, r: o.r, landed: o.landed, grow: o.grow, over: o.over, ...css(b.px(o.x), b.py(o.y)) })) };
   },
   hour(h) {
     if (!PokaDebug._hourNow) PokaDebug._hourNow = U.hourNow;

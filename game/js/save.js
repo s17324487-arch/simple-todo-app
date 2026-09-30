@@ -71,8 +71,9 @@ const Save = {
         florist: { lv: 1, rep: 0, best: 0, plays: 0 },
         link: { lv: 1, rep: 0, best: 0, plays: 0 },
         relay: { lv: 1, rep: 0, best: 0, plays: 0 },
-        // ころころ フルーツ: pts は いちばん よかった ころころ ポイント
-        korokoro: { lv: 1, rep: 0, best: 0, plays: 0, pts: 0 },
+        // ころころ フルーツ: pts は ちゅうもん モードで いちばん よかった ころころ ポイント。
+        // スコア モード（js/korokoro-score.js・2026-09-30）: hi は ハイスコア・tops は ランキング（[{ s: スコア, d: "2026-10-1" }] 上から 5つ）・games は あそんだ かず
+        korokoro: { lv: 1, rep: 0, best: 0, plays: 0, pts: 0, hi: 0, tops: [], games: 0 },
         // ネリカスタウンの ガソリンスタンド・ゆうびんきょく（2026-09-29）
         gasstand: { lv: 1, rep: 0, best: 0, plays: 0 },
         postoffice: { lv: 1, rep: 0, best: 0, plays: 0 },
