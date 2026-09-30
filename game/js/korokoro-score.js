@@ -5,10 +5,10 @@
 //  ・大きく なれない まま 箱の ふちから はみだすと おしまい（物理の ゆれで すぐ おわらない ように 0.5びょう まつ）。時間の せいげんは ない
 // おわると ハイスコア・ランキング（上から 5つ）・コイン・ひょうばん（Save.d.shops.korokoro の hi・tops・games）。
 // 箱・物理・絵は js/mg-korokoro.js の KorokoroBoard（mode: "score"）。お店の「おてつだいする」で モードを えらぶ（KorokoroScore.choose）。
-// overSec: はみだして から おしまい まで・overWait: おしまいの しるしを 見せて から けっかまで・tops: ランキングの かず・コイン = スコア ÷ coinDiv（上限 coinMax）・ひょうばん = スコア ÷ repDiv（上限 repMax）・grades: △○◎ の スコア
+// overSec: はみだして から おしまい まで・overWait: おしまいの しるしを 見せて から けっかまで・tops: ランキングの かず・recent: さいきんの きろくの かず・コイン = スコア ÷ coinDiv（上限 coinMax）・ひょうばん = スコア ÷ repDiv（上限 repMax）・grades: △○◎ の スコア
 // H: はこの 高さ（はば 100。ちゅうもん モードの 110 より 15% たかい・オーナーの FB 2026-09-30）
 // rules: 物理の 上がき（くっついた ときに はねすぎて すぐ あふれない ように）: up = うえむきの はやさの 上限・depen = かさなりを なおす ときの はなれる はやさの 上限・keep = がったいで できた 玉が ひきつぐ はやさ
-const KOROKORO_SCORE = Object.freeze({ overSec: 0.5, overWait: 1.8, tops: 5, coinDiv: 6, coinMax: 400, repDiv: 100, repMax: 12, grades: [150, 400, 1000],
+const KOROKORO_SCORE = Object.freeze({ overSec: 0.5, overWait: 1.8, tops: 5, recent: 10, coinDiv: 6, coinMax: 400, repDiv: 100, repMax: 12, grades: [150, 400, 1000],
   H: 126.5, rules: Object.freeze({ up: 90, depen: 20, keep: 0.3 }) });
 const KOROKORO_SCORE_HOWTO = Object.freeze([
   "スコア モードへ ようこそ！\nあふれるまで とことん あそんで、ハイスコアを めざそう。",
@@ -21,15 +21,24 @@ const KOROKORO_SCORE_HOWTO = Object.freeze([
 const KorokoroScore = {
   st() { return Save.d.shops.korokoro; },
   best() { return this.st().hi || 0; },
-  // 1かいの けっかを のこす。rank: ランキングの じゅんい（1〜5・はいらなければ 0）・newBest: ハイスコアを こえたか
-  record(score, day = U.today()) {
+  // 1かいの けっかを のこす。big: できた いちばん 大きい だん（-1 = なし）。rank: ランキングの じゅんい（1〜5・はいらなければ 0）・newBest: ハイスコアを こえたか
+  record(score, day = U.today(), big = -1) {
     const st = this.st(), before = st.hi || 0, entry = { s: Math.max(0, Math.round(score) || 0), d: String(day) };
     st.games = (st.games || 0) + 1;
     st.hi = Math.max(before, entry.s);
     const list = (Array.isArray(st.tops) ? st.tops : []).filter((e) => e && Number.isFinite(e.s));
     list.push(entry); list.sort((a, b) => b.s - a.s); // おなじ 点なら まえの きろくが うえ
     st.tops = list.slice(0, KOROKORO_SCORE.tops);
+    // さいきんの きろく（あたらしい じゅんに 10こ・ランキングに はいらなくても のこる）
+    const t = Number.isInteger(big) && big >= 0 && big < KOROKORO_TIERS.length ? big : -1;
+    st.recent = [{ s: entry.s, d: entry.d, t }, ...(Array.isArray(st.recent) ? st.recent : []).filter((e) => e && Number.isFinite(e.s))].slice(0, KOROKORO_SCORE.recent);
     return { rank: st.tops.indexOf(entry) + 1, newBest: entry.s > before, hi: st.hi };
+  },
+  // 1かいで できた いちばん 大きい だん（made: だん → できた かず・burst: ごじ どうしで きえた かず）。なにも できなければ -1
+  bigTier(made = {}) {
+    let t = -1;
+    for (let i = 0; i < KOROKORO_TIERS.length; i++) if (made[i] > 0) t = i;
+    return made.burst > 0 ? KOROKORO_TIERS.length - 1 : t;
   },
   // コイン: スコアの 1/6（上限 400）× あそびかた（のんびり・ふつう・むずかしい）× きょうの おすすめ
   pay(score, mode = "normal", boost = 1) { return Math.round(Math.min(KOROKORO_SCORE.coinMax, Math.floor(Math.max(0, score) / KOROKORO_SCORE.coinDiv)) * GameEconomy.mode(mode).reward * boost); },
@@ -48,14 +57,107 @@ const KorokoroScore = {
     el.append(t);
     return el;
   },
-  // お店で「おてつだいする」を えらんだ あと: ころころ フルーツ だけ モードを きく。"order" / "score" / null（やめる）
+  // ランキング（上から 5つ・rank ばんめに「いま！」）
+  rankingEl(tops = [], rank = 0) {
+    const box = U.el("div", { class: "koro-rank" });
+    box.append(U.el("div", { class: "koro-rank-title", text: "ランキング" }));
+    for (let i = 0; i < KOROKORO_SCORE.tops; i++) {
+      const e = tops[i], row = U.el("div", { class: "koro-rank-row" + (i + 1 === rank ? " now" : "") });
+      row.append(U.el("span", { class: "n", text: `${i + 1}い` }), U.el("span", { class: "s", text: e ? `${U.fmt(e.s)}てん` : "ー" }), U.el("span", { class: "d", text: e ? (i + 1 === rank ? "いま！" : this.day(e.d)) : "" }));
+      box.append(row);
+    }
+    return box;
+  },
+
+  // ---- きろくと けいひんの まど（スコア モードの「きろく」・けっか・お店の モードえらび から。オーナーの FB 2026-09-30）----
+  // きろく: ハイスコア・あそんだ かいすう・ランキング・さいきん あそんだ 10かい（なかみは ことばの 検査でも つかう）
+  records() {
+    const st = this.st(), hi = st.hi || 0, tops = (Array.isArray(st.tops) ? st.tops : []).filter((e) => e && Number.isFinite(e.s));
+    const recent = (Array.isArray(st.recent) ? st.recent : []).filter((e) => e && Number.isFinite(e.s));
+    const hiDay = tops[0] && tops[0].s === hi ? this.day(tops[0].d) : "";
+    return {
+      rows: [["ハイスコア", hi ? `${U.fmt(hi)}てん${hiDay ? `（${hiDay}）` : ""}` : "ー"], ["あそんだ かいすう", `${U.fmt(st.games || 0)}かい`]],
+      tops, recent,
+      empty: recent.length ? "" : st.games ? "さいきんの きろくは、つぎに あそんだ ときから のこるよ。" : "まだ きろくが ないよ。スコア モードで あそんで みよう！",
+    };
+  },
+  // けいひん: とくべつな かぐ 6つ（めやす・もって いるか・もらった 日・あと なんてん）と、スコアで かわる そのほかの ごほうび
+  prizes() {
+    const st = this.st(), hi = st.hi || 0, gifts = st.gifts || {}, nx = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.next() : null;
+    const list = KOROKORO_PRIZES.map((p) => ({ id: p.id, name: p.name, score: p.score, desc: p.desc, own: !!gifts[p.id], day: gifts[p.id] ? this.day(gifts[p.id]) : "", next: !!nx && nx.id === p.id, left: Math.max(0, p.score - hi) }));
+    const disc = typeof MusicDiscs !== "undefined" ? MusicDiscs.DISCS.find((d) => d.from.shop === "korokoro") : null, discOwn = !!disc && MusicDiscs.has(disc.id);
+    const other = [
+      ["コイン", `${KOROKORO_SCORE.coinDiv}てんで 1まい（${KOROKORO_SCORE.coinMax}まいまで）`],
+      ["ひょうばん", `${KOROKORO_SCORE.repDiv}てんで 1（${KOROKORO_SCORE.repMax}まで）`],
+      ...(disc ? [["ディスク", discOwn ? "もってる！" : `${U.fmt(KOROKORO_SCORE.grades[1])}てん いじょうで でるかも`]] : []),
+    ];
+    const note = "コインは あそびかたと きょうの おすすめで かわるよ。" + (disc && !discOwn ? `ディスクは ${U.fmt(KOROKORO_SCORE.grades[2])}てん いじょうだと でやすいよ。` : "");
+    return { list, other, lead: "スコア モードで めやすに はじめて とどくと、とくべつな かぐが 1つずつ もらえるよ。", note };
+  },
+  // だんの 小さい 絵（img に して id が ほかの 絵と かさならない ように）
+  ballImg(tier, size = 26) {
+    return U.el("img", { class: "koro-ball", src: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(KorokoroArt.svg(tier, "happy", size * 2)), alt: KOROKORO_TIERS[tier].name, width: size, height: size });
+  },
+  rowsEl(rows) {
+    const box = U.el("div", { class: "result-rows" });
+    for (const [a, b] of rows) box.append(U.el("div", { class: "r" }, [U.el("span", { text: a }), U.el("span", { text: b })]));
+    return box;
+  },
+  recordsEl() {
+    const r = this.records(), el = U.el("div", { class: "koro-recs" });
+    el.append(this.rowsEl(r.rows), this.rankingEl(r.tops, 0));
+    const box = U.el("div", { class: "koro-rank koro-recent" });
+    box.append(U.el("div", { class: "koro-rank-title", text: "さいきん あそんだ きろく" }));
+    if (r.empty) box.append(U.el("div", { class: "koro-empty", text: r.empty }));
+    for (const e of r.recent) {
+      const row = U.el("div", { class: "koro-rank-row" });
+      row.append(U.el("span", { class: "d", text: this.day(e.d) }), e.t >= 0 ? this.ballImg(e.t) : U.el("span", { class: "koro-ball" }), U.el("span", { class: "big", text: e.t >= 0 ? KOROKORO_TIERS[e.t].name : "" }), U.el("span", { class: "s", text: `${U.fmt(e.s)}てん` }));
+      box.append(row);
+    }
+    el.append(box);
+    return el;
+  },
+  prizesEl() {
+    const r = this.prizes(), el = U.el("div", { class: "koro-prizes" });
+    el.append(U.el("p", { class: "koro-lead", text: r.lead }));
+    for (const p of r.list) {
+      const card = U.el("div", { class: "koro-prize" + (p.own ? " own" : p.next ? " next" : "") }), t = U.el("div", { class: "t" }), tag = U.el("div", { class: "tag" });
+      card.append(U.el("img", { src: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(KorokoroPrizes.svg(p.id)), alt: p.name }));
+      t.append(U.el("b", { text: p.name }), U.el("small", { text: p.desc }));
+      tag.append(U.el("b", { text: `${U.fmt(p.score)}てん` }), U.el("span", { text: p.own ? `もってる！${p.day ? `\n${p.day}` : ""}` : p.next ? `あと ${U.fmt(p.left)}てん` : "まだ" }));
+      card.append(t, tag); el.append(card);
+    }
+    el.append(U.el("div", { class: "koro-rank-title koro-other", text: "そのほかの ごほうび" }), this.rowsEl(r.other), U.el("p", { class: "muted koro-lead", text: r.note }));
+    return el;
+  },
+  // まどを ひらく（tab: "rec" = きろく・"gift" = けいひん）。とじると おわる
+  openRecords(tab = "rec") {
+    return new Promise((res) => {
+      const body = U.el("div", { class: "koro-book" }), tabs = U.el("div", { class: "koro-tabs", role: "tablist" }), page = U.el("div", { class: "koro-page" }), btn = {};
+      const show = (k) => {
+        tab = k;
+        for (const id in btn) { btn[id].classList.toggle("yellow", id === k); btn[id].setAttribute("aria-selected", String(id === k)); }
+        page.replaceChildren(k === "gift" ? this.prizesEl() : this.recordsEl());
+      };
+      for (const [k, label] of [["rec", "きろく"], ["gift", "けいひん"]]) {
+        const b = UI.btn(label, () => { if (tab === k) return; Sound.se("ok"); show(k); });
+        b.setAttribute("role", "tab"); btn[k] = b; tabs.append(b);
+      }
+      body.append(tabs, page); show(tab);
+      UI.modal({ title: "スコア モードの きろく", body, cls: "full koro-book-panel", onClose: () => res() });
+    });
+  },
+  // お店で「おてつだいする」を えらんだ あと: ころころ フルーツ だけ モードを きく。"order" / "score" / null（やめる）。「きろくと けいひん」は みて から また きく
   async choose(store) {
     if (store.shopId !== "korokoro") return "order";
     const hi = this.best();
     const got = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.list().filter((p) => p.own).length : 0;
-    const text = `${store.owner.name}\nどっちの モードで あそぶ？\n・ちゅうもん … ほしい ものを とどける\n・スコア … あふれるまで とことん！${hi ? `\nハイスコア ${U.fmt(hi)}てん` : ""}${got ? `（とくべつな かぐ ${got}/${KOROKORO_PRIZES.length}）` : ""}`;
-    const i = await UI.ask(text, ["ちゅうもん モード", "スコア モード", "やめる"]);
-    return i === 0 ? "order" : i === 1 ? "score" : null;
+    const text = `${store.owner.name}\nどっちの モードで あそぶ？\n・ちゅうもん … ほしい ものを とどける\n・スコア … あふれるまで とことん！${hi ? `\nハイスコア ${U.fmt(hi)}てん` : ""}${got ? `\nとくべつな かぐ ${got}/${KOROKORO_PRIZES.length}` : ""}`;
+    for (;;) {
+      const i = await UI.ask(text, ["ちゅうもん モード", "スコア モード", "きろくと けいひん", "やめる"]);
+      if (i === 2) { await this.openRecords("rec"); continue; }
+      return i === 0 ? "order" : i === 1 ? "score" : null;
+    }
   },
   start(back, seed = null) { Game.goto("koroscore", { back: { ...back }, seed }, "circle"); },
 };
@@ -64,7 +166,7 @@ class KorokoroScoreScene {
   async enter(p = {}) {
     this.back = { ...(p.back || { map: "town", x: 12, y: 21, dir: "down" }) };
     this.st = Save.d.shops.korokoro; this.hi0 = this.st.hi || 0;
-    this.phase = "intro"; this.closed = false; this.paid = false; this.stopAsked = false; this.overT = 0; this.danger = false;
+    this.phase = "intro"; this.closed = false; this.paid = false; this.stopAsked = false; this.recOpen = false; this.overT = 0; this.danger = false;
     this.difficulty = Save.d.settings.difficulty; this.dailyBoost = DailyPlay.boost("korokoro");
     this.owner = SHOP_OWNERS.korokoro; this.fxs = [];
     this.team = Save.d.order.map((id, i) => ({ id, i, turn: 0, jump: -1, emo: "normal" }));
@@ -73,15 +175,21 @@ class KorokoroScoreScene {
     this.resize();
     await this.preload();
     if (this.closed) return;
-    this.stopBtn = UI.btn("やめる", () => this.requestStop(), "home-shortcut small");
+    // みぎ うえの ボタン: きろく（きろくと けいひんの まど・あいて いる あいだは とまる）・やめる
+    this.topBar = U.el("div", { class: "koro-top" });
+    this.recBtn = UI.btn("きろく", () => this.openRecords(), "small");
+    this.recBtn.setAttribute("aria-label", "スコア モードの きろくと けいひん");
+    this.stopBtn = UI.btn("やめる", () => this.requestStop(), "small");
     this.stopBtn.setAttribute("aria-label", "スコア モードを やめる");
-    document.getElementById("ui").append(this.stopBtn);
+    this.topBar.append(this.recBtn, this.stopBtn);
+    document.getElementById("ui").append(this.topBar);
+    this.fitSign();
     UI.showHud(false);
     Sound.bgm("shop_korokoro");
     this.flow().catch((e) => { console.error(e); this.leave(); });
   }
-  exit() { this.closed = true; this.stopBtn?.remove(); }
-  // うえから: かんばん（8〜34・みぎに「やめる」）・スコア／3人／つぎ の おび（「やめる」の したから）・箱（KorokoroBoard が 大きさを きめる）・大きく なる じゅんばん
+  exit() { this.closed = true; this.topBar?.remove(); }
+  // うえから: かんばん（8〜34・みぎに「きろく」「やめる」）・スコア／3人／つぎ の おび（ボタンの したから）・箱（KorokoroBoard が 大きさを きめる）・大きく なる じゅんばん
   resize() {
     const W = G.W, H = G.H;
     this.infoY = 58; this.infoH = U.clamp(Math.round(H * 0.1), 60, 90);
@@ -91,7 +199,16 @@ class KorokoroScoreScene {
     const top = this.infoY + this.infoH + 6;
     this.R = { x: 8, y: top, w: W - 16, h: H - top - 10 };
     this.board.layout(this.R);
+    this.fitSign();
   }
+  // かんばんの はば: みぎ うえの ボタンの ひだりまで（ボタンが まだ なければ「やめる」だけの ぶん）
+  fitSign() {
+    this.signW = G.W - 115;
+    if (!this.topBar?.isConnected) return;
+    const r = this.topBar.getBoundingClientRect(), c = G.canvas.getBoundingClientRect();
+    if (r.width > 0) this.signW = Math.max(120, Math.floor((r.left - c.left) / G.cssPerUnit) - 10 - 8);
+  }
+  signRect() { return { x: 10, y: 8, w: this.signW, h: 26 }; }
   async preload() {
     const list = [];
     for (const t of this.team) {
@@ -125,8 +242,15 @@ class KorokoroScoreScene {
     Sound.se("bad");
     for (const t of this.team) { t.turn = 2.2; t.emo = "surprise"; }
   }
+  // 「きろく」: きろくと けいひんの まど（あいて いる あいだ 箱は とまる）
+  async openRecords() {
+    if (UI.busy || Game.trans || this.closed || this.recOpen || this.stopAsked || this.phase !== "play") return;
+    this.recOpen = true; this.board.up(null, true);
+    await KorokoroScore.openRecords("rec");
+    this.recOpen = false;
+  }
   async requestStop() {
-    if (UI.busy || Game.trans || this.closed || this.stopAsked || this.phase !== "play") return;
+    if (UI.busy || Game.trans || this.closed || this.stopAsked || this.recOpen || this.phase !== "play") return;
     this.stopAsked = true; this.board.up(null, true);
     const yes = await UI.confirm(`ここで おわりに する？\nいまの ${U.fmt(this.board.points)}てんが きろくに なるよ。`, "おわりに する", "つづける");
     this.stopAsked = false;
@@ -136,8 +260,8 @@ class KorokoroScoreScene {
   }
   async results() {
     if (this.paid || this.closed) return;
-    this.paid = true; this.phase = "result"; this.stopBtn?.remove();
-    const score = this.board.points, st = this.st, rec = KorokoroScore.record(score);
+    this.paid = true; this.phase = "result"; this.topBar?.remove();
+    const score = this.board.points, st = this.st, rec = KorokoroScore.record(score, U.today(), KorokoroScore.bigTier(this.board.made));
     // ハイスコアの ごほうび: とくべつな かぐ（js/korokoro-prizes.js）
     const gifts = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.claim(score) : [];
     const coins = KorokoroScore.pay(score, this.difficulty, this.dailyBoost), rep = KorokoroScore.rep(score), grade = KorokoroScore.grade(score);
@@ -159,8 +283,9 @@ class KorokoroScoreScene {
       <div class="r"><span>ひょうばん</span><span>+${rep}（${st.rep}${next ? " / " + next : ""}）</span></div>`;
     body.append(rows);
     for (const p of gifts) body.append(KorokoroScore.giftEl(p, true));
-    body.append(this.rankingEl(rec.rank));
+    body.append(KorokoroScore.rankingEl(st.tops, rec.rank));
     if (typeof KorokoroPrizes !== "undefined") { const nx = KorokoroPrizes.next(); body.append(U.el("div", { class: "muted koro-next", text: nx ? `つぎの とくべつな かぐは ${U.fmt(nx.score)}てん（あと ${U.fmt(nx.score - rec.hi)}てん）` : "とくべつな かぐを ぜんぶ あつめた！" })); }
+    body.append(UI.btn("きろくと けいひんを みる", () => { Sound.se("ok"); KorokoroScore.openRecords("rec"); }, "wide koro-more"));
     const gojis = this.board.made[KOROKORO_TIERS.length - 1] || 0, bursts = this.board.made.burst || 0;
     if (gojis || bursts) body.append(U.el("div", { class: "note", text: `ごじを ${gojis}かい つくったよ${bursts ? `（ごじ どうしで ${bursts}かい きえた）` : ""}！` }));
     if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！` }));
@@ -184,17 +309,6 @@ class KorokoroScoreScene {
     if (pick === "again") Game.goto("koroscore", { back: this.back }, "fade");
     else Game.goto("store", { shop: "korokoro", back: this.back, atCounter: true }, "fade");
   }
-  // ランキング（上から 5つ・いまの きろくに しるし）
-  rankingEl(rank) {
-    const box = U.el("div", { class: "koro-rank" }), tops = this.st.tops || [];
-    box.append(U.el("div", { class: "koro-rank-title", text: "ランキング" }));
-    for (let i = 0; i < KOROKORO_SCORE.tops; i++) {
-      const e = tops[i], row = U.el("div", { class: "koro-rank-row" + (i + 1 === rank ? " now" : "") });
-      row.append(U.el("span", { class: "n", text: `${i + 1}い` }), U.el("span", { class: "s", text: e ? `${U.fmt(e.s)}てん` : "ー" }), U.el("span", { class: "d", text: e ? (i + 1 === rank ? "いま！" : KorokoroScore.day(e.d)) : "" }));
-      box.append(row);
-    }
-    return box;
-  }
   leave() { if (this.closed || Game.trans) return; Game.goto("store", { shop: "korokoro", back: this.back, atCounter: true }, "fade"); }
 
   // ---- 入力（あそんで いる ときだけ）----
@@ -205,8 +319,10 @@ class KorokoroScoreScene {
   key(k, down) { if (down && this.phase === "play") this.board.key(k); }
 
   update(dt) {
-    if (this.stopBtn) this.stopBtn.disabled = this.phase !== "play" || this.stopAsked;
-    if (this.closed || this.stopAsked) return;
+    const lock = this.phase !== "play" || this.stopAsked || this.recOpen;
+    if (this.stopBtn) this.stopBtn.disabled = lock;
+    if (this.recBtn) this.recBtn.disabled = lock;
+    if (this.closed || this.stopAsked || this.recOpen) return;
     if (this.phase === "play" || this.phase === "over") this.board.tick(dt, this.phase === "play");
     if (this.phase === "over") { this.overT += dt; if (this.overT >= KOROKORO_SCORE.overWait && !this.paid) this.results(); }
     this.danger = this.phase === "play" && this.board.world.topGap < KOROKORO_RULES.warn;
@@ -228,10 +344,12 @@ class KorokoroScoreScene {
     this.drawFx(ctx);
   }
   drawSign(ctx) {
-    const W = G.W;
-    ctx.save(); ctx.fillStyle = "#FFF7E0"; ctx.strokeStyle = INK; ctx.lineWidth = 2.5; U.rr(ctx, 10, 8, W - 115, 26, 8); ctx.fill(); ctx.stroke();
+    const r = this.signRect();
+    ctx.save(); ctx.fillStyle = "#FFF7E0"; ctx.strokeStyle = INK; ctx.lineWidth = 2.5; U.rr(ctx, r.x, r.y, r.w, r.h, 8); ctx.fill(); ctx.stroke();
     ctx.fillStyle = INK; ctx.font = "900 13px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("ころころ フルーツ　スコア モード", 10 + (W - 115) / 2, 21.5, W - 130);
+    // ボタンが 2つで せまい ときは みじかい なまえ
+    const full = "ころころ フルーツ　スコア モード", text = ctx.measureText(full).width <= r.w - 16 ? full : "ころころ スコア モード";
+    ctx.fillText(text, r.x + r.w / 2, r.y + 13.5, r.w - 12);
     ctx.restore();
   }
   drawScore(ctx) {

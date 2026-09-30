@@ -74,7 +74,8 @@ const Save = {
         // ころころ フルーツ: pts は ちゅうもん モードで いちばん よかった ころころ ポイント。
         // スコア モード（js/korokoro-score.js・2026-09-30）: hi は ハイスコア・tops は ランキング（[{ s: スコア, d: "2026-10-1" }] 上から 5つ）・games は あそんだ かず
         // gifts は スコア モードで もらった とくべつな かぐ（js/korokoro-prizes.js・id → もらった 日）
-        korokoro: { lv: 1, rep: 0, best: 0, plays: 0, pts: 0, hi: 0, tops: [], games: 0, gifts: {} },
+        // recent は さいきん あそんだ きろく（[{ s: スコア, d: 日, t: できた いちばん 大きい だん〔-1 = なし〕}] あたらしい じゅんに 10こ・2026-09-30）
+        korokoro: { lv: 1, rep: 0, best: 0, plays: 0, pts: 0, hi: 0, tops: [], games: 0, gifts: {}, recent: [] },
         // ネリカスタウンの ガソリンスタンド・ゆうびんきょく（2026-09-29）
         gasstand: { lv: 1, rep: 0, best: 0, plays: 0 },
         postoffice: { lv: 1, rep: 0, best: 0, plays: 0 },

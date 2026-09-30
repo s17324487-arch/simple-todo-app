@@ -249,6 +249,7 @@ ok(Art.HERO.wanko.crop >= 1.33 && Art.HERO.gachan.crop >= 1.5 && Art.HERO.goji.c
   const v1 = R.Save.migrate(v0).shops.korokoro;
   ok(fresh.shops.korokoro.hi === 0 && Array.isArray(fresh.shops.korokoro.tops) && fresh.shops.korokoro.tops.length === 0 && fresh.shops.korokoro.games === 0, "セーブ: スコア モードの きろくの ばしょ");
   ok(v1.hi === 0 && Array.isArray(v1.tops) && v1.games === 0 && v1.lv === 3 && v1.rep === 40 && v1.pts === 300 && v1.tops !== R.Save.fresh().shops.korokoro.tops, "セーブ: まえの セーブに スコア モードの きろくが たされない／ほかの あたいが かわる");
+  ok(Array.isArray(fresh.shops.korokoro.recent) && fresh.shops.korokoro.recent.length === 0 && Array.isArray(v1.recent) && v1.recent.length === 0 && v1.recent !== R.Save.fresh().shops.korokoro.recent, "セーブ: さいきんの きろくの ばしょ（まえの セーブにも たされる）");
   const song = R.SONGS.shop_korokoro;
   ok(song && song.modern && !kanji.test(song.title) && song.source && /Schumann/.test(song.source.composer) && song.source.license === "Public Domain", "BGM（パブリックドメインの 名曲・出典）");
   ok(R.MusicDiscs.DISCS.some((d) => d.from.shop === "korokoro" && d.song === "shop_korokoro"), "おてつだいの ディスク");
@@ -304,6 +305,20 @@ const scoreTable = [];
     const st = R.Save.d.shops.korokoro, last = Score.record(5, "2026-10-4");
     ok(st.tops.length === 5 && st.tops.map((e) => e.s).join() === "300,120,120,80,50" && last.rank === 0 && st.hi === 300 && st.games === 7 && st.tops[1].d === "2026-10-1", `ランキングが 5つ・大きい じゅん（${st.tops.map((e) => e.s)}）`);
     ok(Score.day("2026-10-1") === "10/1" && Score.day("") === "", "ランキングの 日づけ");
+    // さいきんの きろく: あたらしい じゅんに 10こ・ランキングに はいらなくても のこる・できた いちばん 大きい だん（オーナーの FB 2026-09-30「過去の スコアの 記録を 見る ボタン」）
+    ok(st.recent.map((e) => e.s).join() === "5,50,10,300,120,80,120" && st.recent[0].d === "2026-10-4" && st.recent[0].t === -1, `さいきんの きろく（${st.recent.map((e) => e.s)}）`);
+    for (let i = 0; i < 6; i++) Score.record(i, "2026-10-5", i);
+    ok(st.recent.length === SCORE.recent && SCORE.recent === 10 && st.recent[0].s === 5 && st.recent[0].t === 5 && st.recent[9].s === 300 && st.tops.every((e) => !("t" in e)), "さいきんの きろくは 10こ・ランキングの かたちは そのまま");
+    ok(Score.bigTier({}) === -1 && Score.bigTier({ 0: 3, 2: 1 }) === 2 && Score.bigTier({ 5: 1, burst: 1 }) === T.length - 1 && Score.record(1, "2026-10-6", 99).rank === 0 && st.recent[0].t === -1, "できた いちばん 大きい だん");
+    // きろくと けいひんの まどの なかみ
+    const rec = Score.records();
+    ok(rec.rows.length === 2 && rec.rows[0][1] === "300てん（10/3）" && rec.rows[1][1] === "14かい" && rec.tops.length === 5 && rec.recent.length === 10 && !rec.empty, `きろくの まど（${JSON.stringify(rec.rows)}）`);
+    st.gifts = { koro_cherry_lamp: "2026-10-3" };
+    const pz = Score.prizes(), L = pz.list;
+    ok(L.length === R.KOROKORO_PRIZES.length && L.every((p, i) => p.id === R.KOROKORO_PRIZES[i].id && p.score === R.KOROKORO_PRIZES[i].score) && L[0].own && L[0].day === "10/3" && !L[1].own && L[1].next && L[1].left === 200 && L.filter((p) => p.next).length === 1 && pz.other.length === 3 && pz.other[0][0] === "コイン", `けいひんの まど（${JSON.stringify(L.map((p) => [p.score, p.own, p.next, p.left]))}）`);
+    const texts = [...rec.rows.flat(), ...pz.other.flat(), pz.lead, pz.note, ...L.flatMap((p) => [p.name, p.desc])];
+    R.Save.d = R.Save.fresh(); const empty0 = Score.records().empty; R.Save.d.shops.korokoro.games = 3; const empty1 = Score.records().empty;
+    ok(empty0 && empty1 && empty0 !== empty1 && Score.records().rows[0][1] === "ー" && [...texts, empty0, empty1].every((t) => typeof t === "string" && t && !kanji.test(t)), "きろくと けいひんの ことば（漢字なし）・まだ きろくが ない とき");
   } finally { R.Save.d = save0; }
   ok(Score.pay(0) === 0 && Score.pay(600) === 100 && Score.pay(10000) === SCORE.coinMax && Score.pay(600, "easy") < Score.pay(600) && Score.pay(600, "hard") > Score.pay(600) && Score.pay(600, "normal", 1.2) === 120, "スコア モードの コイン");
   ok(Score.rep(0) === 0 && Score.rep(550) === 5 && Score.rep(99999) === SCORE.repMax && Score.grade(0) === 0 && Score.grade(400) === 2 && Score.grade(5000) === 3, "ひょうばん・めやす（×△○◎）");
