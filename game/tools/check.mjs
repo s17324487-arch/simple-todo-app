@@ -533,7 +533,16 @@ for(const [id,def] of Object.entries(R.STORE_INTERIORS)){
 const daily=vm.runInContext('DailyPlay',ctx);
 ok(daily.dayIndex('2030-9-10')>daily.dayIndex('2030-9-9')&&daily.dayIndex('2031-1-1')>daily.dayIndex('2030-12-31'),'スタンプの日付比較が文字列順');
 ok(daily.dayIndex('2030-2-29')===null&&daily.dayIndex('2032-2-29')!==null,'スタンプの実在日付の検査');
-for(let i=1;i<=14;i++){const id=daily.featured('2030-10-'+i);ok(!!R.MG_TASKS[id]&&id!=='link'&&daily.boost(id,'2030-10-'+i)===1.2,'おすすめに未実装/有料パズルが入る');}
+for(let i=1;i<=14;i++){const day='2030-10-'+i,id=daily.featured(day),m=daily.mul(day);ok(!!R.MG_TASKS[id]&&id!=='link'&&daily.boost(id,day)===m&&m>=1.2&&m<=2&&daily.boost(id==='crepe'?'bakery':'crepe',day)===(daily.featured(day)===(id==='crepe'?'bakery':'crepe')?m:1),'おすすめに未実装/有料パズルが入る／ばいりつが 1.2〜2 でない');}
+// ラッキー おみせの ばいりつ: 日づけで きまる（おなじ 日は おなじ）・1.2〜2 の 0.1 きざみ 9とおりが ほぼ おなじ 確率・ひごとに かわる
+{
+  const cnt=new Map();let n=0;for(let y=2027;y<2037;y++)for(let mo=1;mo<=12;mo++)for(let d=1;d<=28;d++){const v=daily.mul(y+'-'+mo+'-'+d);cnt.set(v,(cnt.get(v)||0)+1);n++;}
+  ok(JSON.stringify([...cnt.keys()].sort((a,b)=>a-b))===JSON.stringify(daily.MULS)&&daily.MULS.length===9&&daily.MULS[0]===1.2&&daily.MULS[8]===2&&[...cnt.values()].every(k=>Math.abs(k/n-1/9)<0.025),'ばいりつが 1.2〜2 の 9とおりで おなじ くらいに ならない '+JSON.stringify([...cnt]));
+  ok(daily.mul('2030-10-5')===daily.mul('2030-10-5')&&new Set(Array.from({length:14},(_,i)=>daily.mul('2030-11-'+(i+1)))).size>=5,'ばいりつが おなじ 日で かわる／ひごとに かわらない');
+  ok(daily.label(2)==='2ばい'&&daily.label(1.5)==='1.5ばい'&&daily.label(1.2)==='1.2ばい','ばいりつの ことば');
+  const read=(f)=>readFileSync(join(GAME,f),"utf8");
+  for(const f of ['js/minigames.js','js/korokoro-score.js','js/smaho.js','js/daily-play.js'])ok(!/コインが 1\.2ばい|コイン 1\.2ばい/.test(read(f)),f+': ラッキー おみせの ばいりつが 1.2ばいの まま');
+}
 for(const [pay,tip,boost]of [[28,7,1.2],[0,0,1.2],[32,13,1]]){const r=daily.payout(pay,tip,boost);ok(r.pay+r.tip===Math.round((pay+tip)*boost),'おすすめの合計報酬倍率が不正');}
 const dailyFixture=vm.runInContext(`(()=>{const before=Save.d;Save.d=Save.fresh();Save.d.coins=987654;const initial=JSON.stringify({wardrobe:Save.d.wardrobe,furn:Save.d.furn,room:Save.d.room});
 const dates=['2030-12-29','2030-12-30','2030-12-31','2031-1-1','2031-1-2','2031-1-3','2031-1-4'];for(const date of dates)DailyPlay.visit(date);const reward=Save.d.coins===987804&&Save.d.bag.pudding===1&&Save.d.daily.cycles===1&&Save.d.daily.stamps===7;const once=!DailyPlay.visit('2031-1-4')&&!DailyPlay.visit('2030-12-30');const exact=initial===JSON.stringify({wardrobe:Save.d.wardrobe,furn:Save.d.furn,room:Save.d.room});DailyPlay.visit('2031-2-6');const next=Save.d.daily.stamps===1&&Save.d.daily.total===8&&Save.d.coins===987804;const backup=SaveBackup.decode(SaveBackup.encode()).daily.total===8;Save.d=before;return{reward,once,exact,next,backup};})()`,ctx);
@@ -1354,7 +1363,7 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
       Save.d = Save.fresh();
       out.hints = Smaho.hints().map((h) => ({ icon: h.icon, text: h.text }));
       const day = "2026-9-28"; // U.today() の 形
-      out.f1 = Smaho.fortune(day); out.f2 = Smaho.fortune(day);
+      out.f1 = Smaho.fortune(day); out.f2 = Smaho.fortune(day); out.mul = typeof DailyPlay !== "undefined" ? DailyPlay.mul(day) : null;
       out.lucks = [...new Set(Array.from({ length: 60 }, (_, i) => Smaho.fortune("2027-" + (1 + (i % 12)) + "-" + (1 + (i % 28))).luck))];
       out.featured = typeof DailyPlay !== "undefined" ? DailyPlay.featured(day) : null;
       // 町の「おまつり」ボタンは もう つくらない（すまほの ボタンだけ）
@@ -1397,6 +1406,7 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   // うらない: おなじ 日は おなじ けっか（Math.random・Date.now を つかわない）・日で かわる・ラッキーの もの は ほんとうに ある
   ok(!/Math\.random|Date\.now|new Date/.test(sm.fortuneSrc), "うらないが その日の うちに かわる（Math.random・Date を つかって いる）");
   ok(JSON.stringify(sm.f1) === JSON.stringify(sm.f2), "うらないが おなじ 日で ちがう");
+  ok(sm.f1.mul === sm.mul && sm.mul >= 1.2 && sm.mul <= 2, "うらないの ラッキー おみせの ばいりつが 1.2〜2 で ない／ほんとうの ばいりつと ちがう");
   ok(sm.lucks.length >= 3 && sm.lucks.every((l) => sm.LUCK.includes(l)), "うらないの けっかが 日で かわらない: " + sm.lucks.join());
   ok(sm.foods.includes(sm.f1.food), `うらないの ラッキー たべもの ${sm.f1.food} が ない`);
   ok(sm.places.includes(sm.f1.place), `うらないの ラッキー ばしょ ${sm.f1.place} が ない`);

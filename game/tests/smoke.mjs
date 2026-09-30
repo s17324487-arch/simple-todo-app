@@ -500,7 +500,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   // まいにち スタンプは すまほの 中（まどは 1まい）
   await H.page.locator('.modal-wrap:not(.out)').last().getByRole('button',{name:'とじる',exact:true}).click();await H.idle();
   await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();const after=await H.dbg('saveData');expect(after.coins===987804&&after.daily.total===7,'再開で報酬/スタンプが変わる');for(const k of ['wardrobe','furn','room'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'毎日スタンプで所持品が変わる');
-  const featured=(await H.dbg('dailyState')).featured;await H.dbg('shop',featured,1);await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==='work');expect((await H.dbg('mg')).dailyBoost===1.2,'おすすめの倍率が適用されない');await H.shot('featured-shop');
+  const featured=(await H.dbg('dailyState')).featured;await H.dbg('shop',featured,1);await H.until(()=>PokaDebug.state().scene==='shop'&&!PokaDebug.state().transitioning);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==='work');const ds=await H.dbg('dailyState');expect((await H.dbg('mg')).dailyBoost===ds.mul&&ds.mul>=1.2&&ds.mul<=2,'おすすめの倍率が適用されない '+ds.mul);await H.shot('featured-shop');
 },{viewport,full:viewport.width===375,timeout:120000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('shop-level-decor-'+viewport.width,async H=>{

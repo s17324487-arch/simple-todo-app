@@ -170,7 +170,7 @@ const Smaho = {
       const s = Seasonal.state();
       if (!s.claimed) add("rally", `きせつの スタンプ ${s.count}/3。${s.targets.filter((t) => !s.stamps[t.id]).map((t) => t.label).join("・") || "きねんひんを うけとろう"}`);
     }
-    if (typeof DailyPlay !== "undefined") { const shop = DailyPlay.featured(); add("rewards", `きょうの おすすめ おみせは「${SHOPS[shop]?.name || shop}」。おてつだいの コインが 1.2ばい！`); }
+    if (typeof DailyPlay !== "undefined") { const shop = DailyPlay.featured(); add("rewards", `きょうの おすすめ おみせは「${SHOPS[shop]?.name || shop}」。おてつだいの コインが ${DailyPlay.label(DailyPlay.mul())}！`); }
     if (typeof Fishing !== "undefined" && Fishing.data() && !Fishing.rod()) { const g = Fishing.data().rods[0].get, who = npcAt(g.npc); add("map", `${who ? who + "に" : "まちの ひとに"} はなすと つりざおが もらえるよ。`); }
     else if (typeof Fishing !== "undefined" && Fishing.data()) add("map", Fishing.keepCount() >= Fishing.KEEP_MAX ? "いけすが いっぱい！ スーパーで うるか すいぞくかんに きふ しよう。" : "みずべの さかなの かげを ねらって みずを ながおし。うきが しずんだら「つる」！");
     if (typeof Fossils !== "undefined" && Fossils.data() && !Fossils.hasPick()) { const g = Fossils.data().pick.get, who = npcAt(g.npc); add("map", `${who ? who + "に" : "もりの ひとに"} はなすと ピッケルが もらえるよ。ひびの ある いわを ほろう。`); }
@@ -199,9 +199,9 @@ const Smaho = {
     const luck = this.LUCK[[0, 1, 1, 2, 2, 3, 3, 3, 4][Math.floor(rnd() * 9) % 9]];
     const foods = FOODS.filter((f) => !f.rare && !f.boost && f.price > 0), food = pick(foods);
     const places = ["town", "city", "heiwadai", "harbor", "meadow", "forest", "coast"].filter((id) => MAP_DEFS[id]).map((id) => MAP_DEFS[id].name);
-    const shop = typeof DailyPlay !== "undefined" ? DailyPlay.featured(day) : null;
+    const shop = typeof DailyPlay !== "undefined" ? DailyPlay.featured(day) : null, mul = shop ? DailyPlay.mul(day) : 1;
     const words = { wanko: ["しっぽが ぶんぶん！", "おさんぽ びより！", "ボールあそびが いいかも"], gachan: ["おうたが じょうずに うたえそう♪", "おはなを そだてると いいよ", "ぴよっと ひらめく 1にち"], goji: ["ガオー！ げんき いっぱい", "おやつが おいしく かんじる 1にち", "たからものが みつかるかも"] };
-    return { day, luck: luck[0], luckColor: luck[1], message: luck[2], color: pick(this.COLORS), food: food ? food.id : null, place: pick(places), shop, words: Object.fromEntries(Object.entries(words).map(([k, v]) => [k, pick(v)])) };
+    return { day, luck: luck[0], luckColor: luck[1], message: luck[2], color: pick(this.COLORS), food: food ? food.id : null, place: pick(places), shop, mul, words: Object.fromEntries(Object.entries(words).map(([k, v]) => [k, pick(v)])) };
   },
   fortuneView(el) {
     const f = this.fortune(), drawn = Save.d.flags.fortuneDay === f.day;
@@ -216,7 +216,7 @@ const Smaho = {
       result.querySelector(".t1").textContent = f.color[0];
       result.querySelector(".t2").textContent = food ? food.name : "";
       result.querySelector(".t3").textContent = f.place;
-      if (f.shop) result.querySelector(".t4").textContent = `${SHOPS[f.shop]?.name || f.shop}（コイン 1.2ばい）`;
+      if (f.shop) result.querySelector(".t4").textContent = `${SHOPS[f.shop]?.name || f.shop}（コイン ${DailyPlay.label(f.mul)}）`;
       const kids = result.querySelector(".kids");
       for (const id of Save.d.order) {
         const c = Save.d.chars[id];
@@ -233,7 +233,7 @@ const Smaho = {
         go.disabled = true; Sound.se("sparkle"); ball.classList.add("shake");
         setTimeout(() => { ball.classList.remove("shake"); Save.d.flags.fortuneDay = f.day; Save.mark(); Sound.se("fanfare"); reveal(); go.remove(); }, 900);
       }, "wide yellow smaho-draw");
-      box.append(go, U.el("p", { class: "muted", text: "1にち 1かい。ラッキー おみせは ほんとうに コインが ふえるよ。" }));
+      box.append(go, U.el("p", { class: "muted", text: "1にち 1かい。ラッキー おみせは ほんとうに コインが ふえるよ（ひによって 1.2〜2ばい）。" }));
     }
     el.append(box);
   },

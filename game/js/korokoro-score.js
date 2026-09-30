@@ -96,7 +96,7 @@ class KorokoroScoreScene {
   async flow() {
     const face = Art.npcSvg({ ...this.owner, emo: "happy" }), first = !this.st.games;
     const lines = first ? [...KOROKORO_SCORE_HOWTO] : [this.hi0 ? `ハイスコアは ${U.fmt(this.hi0)}てん。\nきょうは こえられるかな？` : "こんどこそ たくさん くっつけよう！"];
-    if (this.dailyBoost > 1) lines.push("きょうの おすすめ！ コインが 1.2ばいだよ。");
+    if (this.dailyBoost > 1) lines.push(`きょうの おすすめ！ コインが ${DailyPlay.label(this.dailyBoost)}だよ。`);
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
     if (this.closed) return;
     this.phase = "play";
