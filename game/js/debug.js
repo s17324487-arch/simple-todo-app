@@ -119,7 +119,7 @@ const PokaDebug = {
   backupText(){return SaveBackup.encode();},
   backupDecode(text){return SaveBackup.decode(text);},
   dailyVisit(day) {return DailyPlay.visit(day);},
-  dailyState() {return {...Save.d.daily,featured:DailyPlay.featured(),shop:SHOPS[DailyPlay.featured()].name};},
+  dailyState() {return {...Save.d.daily,featured:DailyPlay.featured(),shop:SHOPS[DailyPlay.featured()].name,mul:DailyPlay.mul()};},
   saveData() {return JSON.parse(JSON.stringify(Save.d));},
   itemDex(kind = "furn") {
     return { kind, ...ItemDex.progress(kind), entries: ItemDex.entries(kind).map(e => ({ id: e.id, name: e.item.name, category: kind === "furn" ? e.item.kind : e.item.slot, seen: e.seen, owned: e.owned, count: e.count, rare: !!e.item.rare })) };

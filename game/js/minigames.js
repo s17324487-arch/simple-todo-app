@@ -148,7 +148,7 @@ class ShopScene {
     const face = Art.npcSvg({ ...this.owner, emo: "happy" });
     const first = !this.st.plays;
     const lines = this.variant==='mac' ? [...MacShop.howto] : first ? [...HOWTO[this.shopId]] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
-    if(this.dailyBoost>1)lines.push('きょうの おすすめ！ コインが 1.2ばいだよ。');
+    if(this.dailyBoost>1)lines.push('きょうの おすすめ！ コインが '+DailyPlay.label(this.dailyBoost)+'だよ。');
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
     if (this.closed) return;
     for (this.n = 0; this.n < this.total; this.n++) {
