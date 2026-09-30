@@ -22,7 +22,10 @@ const PokaDebug = {
   puriStart(){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),back={venue:'arcade',floor:1,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'},at:[12,3]};if(!Save.d.purikura.active&&!Purikura.pay())return false;Game.goto('purikura',{back},'none');return true;},
   puriFast(k=1){if(G.sceneName!=='purikura')return false;G.scene.speed=Math.max(1,Math.min(8,k));return true;},
   photos(){return Purikura.list().map(p=>({id:p.id,bg:p.bg,z:p.z,c:p.c,p:p.d.p.length,s:p.d.s.length,x:p.d.x.map(t=>t[0])}));},
-  arcadeStart(machine=0){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),back={venue:'arcade',floor:1,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'}},run=PrizeArcade.start(machine,back);if(run)Game.goto('prize',{run},'none');return !!run;},
+  // 台の ある 階へ もどる（2F の おかし キャッチャーは 2F の 台の まえ）
+  arcadeStart(machine=0){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),fl=IkeArcade.floorOf(machine),f=VenueHalls.defs.arcade.floors[fl].fixtures.find(f=>f.machine===machine),back={venue:'arcade',floor:fl,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'},...(fl>1&&f?{at:f.spots[0]}:{})},run=PrizeArcade.start(machine,back);if(run)Game.goto('prize',{run},'none');return !!run;},
+  // 日がわりの 台の その日の けいひん（day: "2026-10-1" の かたち・なしで きょう。calendar('2026-10-01') でも かわる）
+  arcadeLineup(machine=12,day){const d=CraneMachines.DEFS[machine];return d&&d.pool?{day:day||CraneMachines.today(),shapes:CraneMachines.lineup(d,day),prizes:PrizeArcade.prizeList(machine,day),names:PrizeArcade.prizeList(machine,day).map(id=>PrizeArcade.item(id).name)}:null;},
   arcadeMove(dx,dz){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.phase!=='move')return false;r.rig.load({x:r.rig.x+dx,z:r.rig.z+dz});return true;},
   arcadeDrop(){if(G.sceneName!=='prize')return false;const r=G.scene.round;G.scene.press(r.type==='sweet'&&r.phase==='swing2'?1:0);return true;},
   // テスト用: アームを 景品の 上へ（i: 景品の じゅんばん。リングの 台は リングの まえ）・アームの つよさ・はやおくり・カメラ
@@ -106,6 +109,7 @@ const PokaDebug = {
       "PokaDebug.hour(21)                    時刻を固定（null で戻す）",
       "PokaDebug.roadPreview(def, view)       道の検証画像（セーブ・現在地は変えない）",
       "PokaDebug.fps(2000)                   指定ミリ秒のあいだの平均FPSを返す（Promise）",
+      "PokaDebug.venue('arcade', 2)         Meeときょれじゃ の 2F（おかし キャッチャー）。arcadeLineup(12) で 日がわりの けいひん・arcadeStart(12〜16) で 2F の 台",
       "PokaDebug.areaMap()                  すまほ の ちず「この エリア」の ようす（めじるし・なまえ・えらんだ もの）。areaMapLayout('town', 4.46) で ならびだけ",
     ];
     console.log(lines.join("\n"));

@@ -1,4 +1,5 @@
-// クレーンゲームの 機械 12台（アーム・台・景品の おき方）と 1かいの あそび（CraneRound）。絵と ボタンは crane-scene.js、景品は arcade-prizes.js。
+// クレーンゲームの 機械 17台（1F 12台・2F の おかし キャッチャー 5台）の アーム・台・景品の おき方と 1かいの あそび（CraneRound）。絵と ボタンは crane-scene.js、景品は arcade-prizes.js・snack-art.js。
+// おかし キャッチャーは 日がわり: 台ごとの pool から その日の pick しゅ（lineup）。台の ようすは 日が かわると はじめから（セーブの 形は かわらない・board.day を たす だけ）。
 // たんい: cm・びょう。x = 左→右・y = 下→上・z = 手前→おく。おとしぐちに 落ちた 景品が「とれた」。
 // 物理は CranePhys（crane-physics.js）。おなじ ばめんからは おなじ けっかに なる（Math.random を つかわない）。
 const CraneMachines = (() => {
@@ -8,6 +9,21 @@ const CraneMachines = (() => {
   const ease = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
   // きまった たねの 乱数（mulberry32）
   const rng = (seed) => { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+  // ---- 日がわり（その日の けいひん）----
+  // 日づけは その日の 0じ から（PokaDebug.calendar の Seasonal.override も つかう）。"2026-9-30" の かたち（U.today と おなじ）
+  const today = () => { const d = (typeof Seasonal !== "undefined" && Seasonal.override) || new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+  const dayNum = (day) => { const [y, m, d] = String(day).split("-").map(Number); return Math.floor(Date.UTC(y || 2026, (m || 1) - 1, d || 1) / 86400000); };
+  const hashStr = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h >>> 0; };
+  // 台ごとに きまった じゅんばん（pool を まぜる）で、1にち step こずつ すすむ pick この まど。step は pick いか で pool の かずと たがいに そ
+  // → まいにち かならず かわる・pool の かず の 日で ぜんぶ でる。さいしょが その日の 「めだまの けいひん」
+  const stepOf = (L, k) => { const g = (a, b) => (b ? g(b, a % b) : a); for (let q = k; q > 1; q--) if (g(q, L) === 1) return q; return 1; };
+  const lineup = (d, day = today()) => {
+    if (!d || !d.pool) return null;
+    const L = d.pool.length, k = Math.min(d.pick || 1, L), r = rng(hashStr(d.id)), order = d.pool.slice();
+    for (let i = L - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    const n = dayNum(day), at = (((n * stepOf(L, k)) % L) + L) % L;
+    return Array.from({ length: k }, (_, j) => order[(at + j) % L]);
+  };
 
   // ---- 景品の かたち（たまの ならび）。ローカル: +x 右・+y 上・-z が おもて（顔）----
   const lattice = (w, h, d, n) => {
@@ -87,6 +103,17 @@ const CraneMachines = (() => {
   // コイン メダル（まるい うすい えんばん: まん中＋まわり 6つ。おもて・うらは まるい 絵）と コインの たからばこ（クッキーの はこと おなじ 形＋リング）
   SHAPES.medal = () => ({ parts: [{ x: 0, y: 0, z: 0, r: 0.95, m: 1 }, ...Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * Math.PI * 2; return { x: Math.cos(a) * 2.05, y: Math.sin(a) * 2.05, z: 0, r: 0.95, m: 1 }; })], stiff: 1, fric: 0.42, look: "medal", slab: [6, 6, 1.9], size: [6, 6, 1.9] });
   SHAPES.chest = () => ({ ...SHAPES.cookie(), look: "chest" });
+  // ---- 2F の おかし（js/snack-art.js）。ふくろは やわらかい ひらたい 形（絵は まえ・うしろ・あつみ）、はこは かたい はこ、
+  // リングの はこは クッキーの はこと おなじ 形（リングフックの ちょうせいを そのまま）、こつぶは ミニマスコットと おなじ 形 ----
+  for (const it of SnackArt.ITEMS) {
+    const [w, h, d] = it.size, look = "snack-" + it.key, prize = it.id;
+    SHAPES["snack_" + it.key] = it.form === "bag" ? () => ({ parts: lattice(w, h, d, [3, 3, 2]), stiff: 0.5, fric: 0.72, look, slab: [w, h, d], size: [w, h, d], prize })
+      : it.form === "big" ? () => ({ parts: lattice(w, h, d, [3, 4, 2]).map((a) => ({ ...a, m: 0.6 })), stiff: 0.42, fric: 0.8, look, slab: [w, h, d], size: [w, h, d], prize })
+      : it.form === "box" ? () => ({ parts: lattice(w, h, d, [3, 2, 2]), stiff: 1, fric: 0.64, look, box: [w, h, d], size: [w, h, d], prize })
+      : it.form === "ring" ? () => ({ ...SHAPES.cookie(), look, prize })
+      : () => ({ parts: lattice(5.8, 6.2, 4.4, [2, 2, 2]), stiff: 0.9, fric: 0.6, look, art: [0, 0.3, 7, 7], size: [5.8, 6.2, 4.4], prize });
+  }
+  const snackPool = (form) => SnackArt.ITEMS.filter((it) => it.form === form).map((it) => "snack_" + it.key);
 
   // ---- アーム（2本・3本。ツメの 先は ゴム）----
   class ClawRig {
@@ -277,6 +304,8 @@ const CraneMachines = (() => {
   // medals: 1かいの メダル・fill: はじめの メダル・keep: これより へったら おみせの 人が たす・bonus: スロットの メダル
   const pusher = (id, theme) => ({ id, type: "pusher", theme, box: { w: 60, d: 56, h: 50 }, cam: { eyeY: 1.45, dist: 0.95 }, got: "piece", sub: 3,
     field: { x0: 7, x1: 53, ze: 10, top: 12, open: 18, wipe: 40, push: [26, 36], period: 3, drop: [36.5, 27], lim: [11, 49], gate: [13, 47], gateY: 24, gateR: 2.4, gatePeriod: 3, medals: 10, fill: 42, keep: 28, cool: 0.3, watch: 6, bonus: { big: 4, small: 1 } } });
+  // 日がわりの 台: pool（かたちの なまえ）から その日の pick しゅ（lineup）
+  const daily = (d, pool, pick) => ({ ...d, pool, pick, ...(d.fill ? { fill: { ...d.fill, ...(d.fill.mix ? { mix: pool.slice(0, pick) } : {}) } } : {}) });
   const DEFS = [
     claw3("chibi-wanko", "paw", "wanko"),
     claw2("goji-big", "goji", "goji", { legacy: true }),
@@ -290,6 +319,12 @@ const CraneMachines = (() => {
     claw3("chibi-goji", "jungle", "goji"),
     claw2("bear-big", "forest", "bearBig"),
     ring("penguin-ring", "snow", { shape: "penguinRing", n: 3, keep: 3, upright: true, gap: 15, at: [[30, 22, 0.25], [45, 29, -0.3], [29, 38, 0.1], [44, 40, 0.2]] }, 39),
+    // ---- 2F おかし キャッチャー（日がわり: pool から pick しゅ）----
+    daily(claw3("snack-bag", "snackbag", "wanko"), snackPool("bag"), 3),
+    daily(claw3("snack-box", "snackbox", "wanko"), snackPool("box"), 3),
+    daily(ring("snack-ring", "snackring", { shape: snackPool("ring")[0], n: 4, keep: 4, upright: true, gap: 13, at: [[30, 20, 0.1], [48, 22, -0.15], [30, 35, -0.1], [47, 37, 0.12]] }, 26.7), snackPool("ring"), 2),
+    daily(sweet("snack-sweet", "sweetsnack", snackPool("piece").slice(0, 3)), snackPool("piece"), 3),
+    daily(claw2("snack-big", "chips", snackPool("big")[0]), snackPool("big"), 1),
   ];
 
   // ---- 1かいの あそび ----
@@ -298,10 +333,12 @@ const CraneMachines = (() => {
     constructor(i, board, o = {}) {
       // たねは 台と その ようすで きまる（おなじ 台・おなじ そうさ → おなじ けっか。テストでも くりかえせる）
       this.i = i; this.def = DEFS[i]; this.type = this.def.type;
-      // ほかの 台の ようす（台の いれかえの まえの セーブ）は つかわない。legacy の 台は id の ない ふるい ようすも つかう
-      const fits = (b) => b && (b.id ? b.id === this.def.id : !!this.def.legacy);
+      // 日がわりの 台: とちゅうの 1かいは はじめた 日の ならびの まま（o.cp.day）・そのほかは きょう（o.day は テスト用）
+      this.day = (o.cp && o.cp.day) || o.day || today(); this.mix = lineup(this.def, this.day);
+      // ほかの 台の ようす（台の いれかえの まえの セーブ）は つかわない。legacy の 台は id の ない ふるい ようすも つかう。日がわりの 台は きょうの ようすだけ
+      const fits = (b) => b && (b.id ? b.id === this.def.id && (!this.def.pool || b.day === this.day) : !!this.def.legacy);
       if (!fits(board)) board = null; if (o.cp && !fits(o.cp.board)) o = { ...o, cp: null };
-      this.seed = o.seed != null ? o.seed : o.cp && o.cp.seed != null ? o.cp.seed : 1234 + i * 77 + ((board && board.n) || 0) * 7919;
+      this.seed = o.seed != null ? o.seed : o.cp && o.cp.seed != null ? o.cp.seed : 1234 + i * 77 + ((board && board.n) || 0) * 7919 + (this.mix ? (dayNum(this.day) % 1000) * 31 : 0);
       this.rand = rng(this.seed); this.strong = o.strong != null ? !!o.strong : true; this.t = 0; this.pt = 0; this.phase = "move"; this.done = false;
       this.got = []; this.gotShapes = []; this.events = []; this.acc = 0; this.frames = 0; this.presses = 0; this.msg = "";
       this.build(board);
@@ -379,8 +416,8 @@ const CraneMachines = (() => {
       } else {
         // まわる 台の 上に 20こ・おしだし台に 12こ
         const o = this.rig.o, st = this.stage;
-        for (let k = 0; k < 20; k++) { const a = (k / 20) * Math.PI * 2 * 3 + r() * 0.4, rr = 7.5 + ((k * 7) % 5) * 1.2; this.add(this.pick(d.sweet), [o.cx + Math.cos(a) * rr, o.top + 2 + Math.floor(k / 7) * 3, o.cz + Math.sin(a) * rr], CP.qaxis(0, 1, 0, -a + (r() - 0.5) * 0.5)); }
-        for (let k = 0; k < 12; k++) this.add(this.pick(d.sweet), [st.cx - st.w / 2 + 7 + ((k % 4) + 0.3 + r() * 0.4) * (st.w - 14) / 4, st.top + 2 + (k % 2) * 2.5, st.z0 + 4 + Math.floor(k / 4) * 3.2 + r() * 1.2], CP.qaxis(0, 1, 0, (r() - 0.5) * 0.5));
+        for (let k = 0; k < 20; k++) { const a = (k / 20) * Math.PI * 2 * 3 + r() * 0.4, rr = 7.5 + ((k * 7) % 5) * 1.2; this.add(this.pick(this.mix || d.sweet), [o.cx + Math.cos(a) * rr, o.top + 2 + Math.floor(k / 7) * 3, o.cz + Math.sin(a) * rr], CP.qaxis(0, 1, 0, -a + (r() - 0.5) * 0.5)); }
+        for (let k = 0; k < 12; k++) this.add(this.pick(this.mix || d.sweet), [st.cx - st.w / 2 + 7 + ((k % 4) + 0.3 + r() * 0.4) * (st.w - 14) / 4, st.top + 2 + (k % 2) * 2.5, st.z0 + 4 + Math.floor(k / 4) * 3.2 + r() * 1.2], CP.qaxis(0, 1, 0, (r() - 0.5) * 0.5));
       }
       this.settle(d.type === "pusher" ? 1.5 : 3);
       if (d.type === "pusher") this.prime();
@@ -397,17 +434,17 @@ const CraneMachines = (() => {
       const d = this.def, f = d.fill, r = this.rand, alive = this.bodies.filter((b) => b.alive).length;
       if (!first && alive >= f.keep) return 0;
       const want = first ? f.n : f.n - alive;
-      const shape0 = f.shape || f.mix[0], low = f.upright ? -Math.min(...SHAPES[shape0]().parts.map((a) => a.y - a.r)) + 0.25 : 0; // たてて おく ものは ゆかに そっと おく
+      const list = this.mix || f.mix, shape0 = (this.mix && this.mix[0]) || f.shape || f.mix[0], low = f.upright ? -Math.min(...SHAPES[shape0]().parts.map((a) => a.y - a.r)) + 0.25 : 0; // たてて おく ものは ゆかに そっと おく
       for (let k = 0; k < want; k++) {
         if (f.at) {
           // きまった ばしょ（あいて いる ところだけ）
           const free = f.at.filter(([x, z]) => this.list().every((b) => { const c = this.W.centroid(b); return Math.hypot(c[0] - x, c[2] - z) > (f.gap || 14); }));
           const [x, z, yaw] = first ? f.at[k % f.at.length] : free.length ? free[Math.floor(r() * free.length)] : f.at[k % f.at.length];
-          this.add(f.shape || this.pick(f.mix), [x, f.upright ? low : 20, z], CP.qaxis(0, 1, 0, yaw)); if (!first) this.settle(0.6); continue;
+          this.add(this.mix ? this.pick(list) : f.shape || this.pick(f.mix), [x, f.upright ? low : 20, z], CP.qaxis(0, 1, 0, yaw)); if (!first) this.settle(0.6); continue;
         }
         // 上から 1こずつ おとして 山に する（かさなって おくと はじける）
         const [x0, x1, z0, z1] = f.area, x = mix(x0, x1, r()), z = mix(z0, z1, first ? r() : 0.55 + r() * 0.45);
-        this.add(f.shape || this.pick(f.mix), [x, 30 + r() * 4, z], this.randQ(false)); this.settle(0.5);
+        this.add(this.mix ? this.pick(list) : f.shape || this.pick(f.mix), [x, 30 + r() * 4, z], this.randQ(false)); this.settle(0.5);
       }
       return want;
     }
@@ -415,7 +452,7 @@ const CraneMachines = (() => {
     refillTable() {
       const o = this.rig.o, r = this.rand, on = this.list().filter((b) => { const c = this.W.centroid(b); return c[1] < 14 && Math.hypot(c[0] - o.cx, c[2] - o.cz) < o.rad + 1; }).length;
       if (on >= 14) return 0;
-      for (let k = 0; k < 20 - on; k++) { const a = r() * Math.PI * 2, rr = 7.5 + r() * (o.rad - 10); this.add(this.pick(this.def.sweet), [o.cx + Math.cos(a) * rr, o.top + 6 + (k % 3) * 3, o.cz + Math.sin(a) * rr], CP.qaxis(0, 1, 0, -a + (r() - 0.5) * 0.5)); }
+      for (let k = 0; k < 20 - on; k++) { const a = r() * Math.PI * 2, rr = 7.5 + r() * (o.rad - 10); this.add(this.pick(this.mix || this.def.sweet), [o.cx + Math.cos(a) * rr, o.top + 6 + (k % 3) * 3, o.cz + Math.sin(a) * rr], CP.qaxis(0, 1, 0, -a + (r() - 0.5) * 0.5)); }
       this.settle(2.5); this.refilled = 20 - on; return this.refilled;
     }
     // メダルは たいらに（うすい むきが たて）・くるっと まわして
@@ -454,7 +491,7 @@ const CraneMachines = (() => {
     // セーブ用（まん中と 向きだけ。0.1cm・0.001）
     board() {
       const b = this.bodies.filter((b) => b.alive && !b.data.fell && !b.data.fresh).map((b) => { const c = this.W.centroid(b); return [b.data.sid, b.data.shape, ...c.map((v) => Math.round(v * 10) / 10), ...b.q.map((v) => Math.round(v * 1000) / 1000)]; });
-      return { v: 1, id: this.def.id, n: this.sid, b, s: this.rig.save() };
+      return { v: 1, id: this.def.id, n: this.sid, b, s: this.rig.save(), ...(this.def.pool ? { day: this.day } : {}) };
     }
     // ---- そうさ ----
     // dx・dz: -1〜1（よこ・おく）
@@ -497,7 +534,7 @@ const CraneMachines = (() => {
     }
     // つづきから あそべる ように（セーブ用）。board は 台の ようす
     snap() {
-      const R = this.rig, o = { v: 1, type: this.type, phase: this.phase, got: this.got.slice(), gs: this.gotShapes.slice(), seed: this.seed, strong: this.strong, board: this.board() };
+      const R = this.rig, o = { v: 1, type: this.type, phase: this.phase, got: this.got.slice(), gs: this.gotShapes.slice(), seed: this.seed, strong: this.strong, board: this.board(), ...(this.def.pool ? { day: this.day } : {}) };
       if (this.type === "claw" || this.type === "ring") Object.assign(o, { time: +this.time.toFixed(2), x: +R.x.toFixed(2), z: +R.z.toFixed(2), drop: this.phase !== "move" });
       if (this.type === "tripod") o.stops = this.stops;
       if (this.type === "sweet") o.scoops = this.scoops;
@@ -667,5 +704,5 @@ const CraneMachines = (() => {
   }
   // ローカルの 点 → world（L は 形の 原点から）
   const toWorld = (W, b, L) => { const c = W.centroid(b), o = b.data.org || [0, 0, 0], R = CP.qmat(b.q), x = L[0] + o[0], y = L[1] + o[1], z = L[2] + o[2]; return [c[0] + R[0][0] * x + R[1][0] * y + R[2][0] * z, c[1] + R[0][1] * x + R[1][1] * y + R[2][1] * z, c[2] + R[0][2] * x + R[1][2] * y + R[2][2] * z]; };
-  return { DEFS, SHAPES, ClawRig, TrypodRig, SweetRig, CraneRound, rng, toWorld, DT };
+  return { DEFS, SHAPES, ClawRig, TrypodRig, SweetRig, CraneRound, rng, toWorld, DT, today, dayNum, lineup };
 })();

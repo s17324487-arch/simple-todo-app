@@ -231,8 +231,10 @@ const MallGuide = {
       // ちがう 階: エレベーターで いって から あるく
       // エレベーターの ない 階（13F）は、エレベーターで いける 階の かいだんを のぼった ところから
       const r = sc.def.floors[fl], up = r.noElevator && Object.values(sc.def.floors).flatMap((q) => (q.noElevator ? [] : q.fixtures)).find((q) => q.action === "floor" && q.to === fl);
-      Sound.se("good"); if (up) UI.toast("かいだんで " + fl + "F へ");
-      sc.changeFloor(fl, up ? up.spawn : r.elevatorSpawn || r.spawn); sc.afterLift = () => walk(p);
+      // エレベーターが どの 階にも ない 館（Meeときょれじゃ）は エスカレーターで
+      const via = !up && !Object.values(sc.def.floors).some((q) => q.fixtures.some((f) => f.action === "elevator")) && sc.fixtures.find((q) => q.action === "floor" && q.to === fl);
+      Sound.se("good"); if (up) UI.toast("かいだんで " + fl + "F へ"); else if (via) UI.toast((via.kind === "escalator" ? "エスカレーター" : "かいだん") + "で " + fl + "F へ");
+      sc.changeFloor(fl, up ? up.spawn : via ? via.spawn : r.elevatorSpawn || r.spawn); sc.afterLift = () => walk(p);
     };
     const render = () => {
       tabs.replaceChildren(...Object.keys(sc.def.floors).map((k) => { const b = UI.btn(k + "F", () => { floor = +k; Sound.se("tap"); render(); }, "small" + (+k === floor ? " yellow" : "")); return b; }));

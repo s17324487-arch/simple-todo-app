@@ -132,6 +132,17 @@ const CraneArt = (() => {
     "wall-snow": () => svg(200, 200, `<rect width="200" height="200" fill="#DDEFF7"/>${[[40, 40, 14], [150, 60, 10], [96, 140, 16], [176, 170, 9], [20, 160, 11]].map(([x, y, r]) => `<g transform="translate(${x} ${y})" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round">${[0, 60, 120].map((a) => `<path d="M${-r} 0 H${r}" transform="rotate(${a})"/>`).join("")}</g>`).join("")}
       ${Array.from({ length: 18 }, (_, i) => `<circle cx="${(i * 67) % 200}" cy="${(i * 41 + 20) % 200}" r="${2 + (i % 3)}" fill="#FFFFFF" opacity="0.85"/>`).join("")}`),
 
+    // ---- 2F の おかし キャッチャー（ふくろ・はこ・リング・スウィートランド・ビッグ）----
+    "wall-snack": () => svg(200, 200, `<rect width="200" height="200" fill="#FFE9CF"/>${Array.from({ length: 5 }, (_, i) => Array.from({ length: 5 }, (_, j) => `<circle cx="${i * 40 + ((j % 2) * 20) + 10}" cy="${j * 40 + 20}" r="6" fill="${["#FFFFFF", "#FFD1A8", "#FBD3E0"][(i + j) % 3]}"/>`).join("")).join("")}
+      ${[[44, 52, -20, "#F7A9C8"], [150, 40, 24, "#9ED3C6"], [100, 140, -8, "#FFE07A"], [30, 160, 30, "#C9B6EE"]].map(([x, y, a, c]) => `<g transform="translate(${x} ${y}) rotate(${a})"><path d="M0 12 V34" stroke="${K}" stroke-width="3" stroke-linecap="round"/><circle r="13" fill="${c}" stroke="${K}" stroke-width="2.6"/><path d="M-8 -3 Q0 -12 8 -3 Q0 6 -8 -3" fill="none" stroke="#FFFFFF" stroke-width="2.6"/></g>`).join("")}`),
+    "wall-choco": () => svg(200, 200, `<rect width="200" height="200" fill="#CFEDE3"/>${[0, 1, 2, 3].flatMap((i) => [0, 1, 2, 3].map((j) => `<rect x="${i * 50 + 5}" y="${j * 50 + 5}" width="40" height="40" rx="5" fill="${(i + j) % 2 ? "#8C5A3C" : "#A8745A"}"/><rect x="${i * 50 + 11}" y="${j * 50 + 11}" width="28" height="28" rx="3" fill="none" stroke="#C99A76" stroke-width="2.4"/>`)).join("")}`),
+    "wall-waffle": () => svg(200, 200, `<rect width="200" height="200" fill="#F7D98A"/>${Array.from({ length: 10 }, (_, i) => `<path d="M${i * 20} 0 V200 M0 ${i * 20} H200" stroke="#E0B456" stroke-width="5"/>`).join("")}${[[50, 50], [150, 150]].map(([x, y]) => `<path d="M${x - 14} ${y + 4} C${x - 14} ${y - 12} ${x + 14} ${y - 12} ${x + 14} ${y + 4}Z" fill="#FFFDF5" stroke="${K}" stroke-width="2.4"/><circle cx="${x + 4}" cy="${y - 10}" r="4" fill="#E8506A" stroke="${K}" stroke-width="1.8"/>`).join("")}`),
+    "wall-candy2": () => svg(200, 200, `<rect width="200" height="200" fill="#EFFAF6"/>${[0, 50, 100, 150].map((x) => `<rect x="${x}" width="25" height="200" fill="#BFE8DB"/>`).join("")}
+      ${[[40, 50, "#F7A9C8"], [140, 70, "#FFE07A"], [90, 150, "#9FD3F0"], [170, 170, "#F7A9C8"]].map(([x, y, c]) => `<g transform="translate(${x} ${y}) rotate(20)"><rect x="-10" y="-10" width="20" height="20" rx="4" fill="${c}" stroke="${K}" stroke-width="2.4"/><path d="M-10 0 H-20 M10 0 H20" stroke="${K}" stroke-width="2.4"/><path d="M-4 -6 L4 6" stroke="#FFFFFF" stroke-width="2.4"/></g>`).join("")}`),
+    "wall-chips": () => svg(200, 200, `<rect width="200" height="200" fill="#FFE58A"/>${[0, 1, 2, 3].flatMap((i) => [0, 1, 2, 3].map((j) => (i + j) % 2 ? `<rect x="${i * 50}" y="${j * 50}" width="50" height="50" fill="#FFD25A"/>` : "")).join("")}
+      ${[[44, 44, -20], [150, 60, 30], [96, 150, 10], [170, 170, -35], [20, 150, 20]].map(([x, y, a]) => `<g transform="translate(${x} ${y}) rotate(${a})"><ellipse rx="17" ry="12" fill="#F6D36C" stroke="${K}" stroke-width="2.4"/><path d="M-10 -1 Q0 -8 10 -1" fill="none" stroke="#E0B04A" stroke-width="2.2"/></g>`).join("")}${[[100, 30], [30, 100], [170, 110]].map(([x, y]) => star5(x, y, 8, "#E8506A")).join("")}`),
+    "floor-snack": () => svg(200, 200, `<rect width="200" height="200" fill="#F7C9A0"/>${Array.from({ length: 5 }, (_, i) => Array.from({ length: 5 }, (_, j) => (i + j) % 2 ? "" : `<rect x="${i * 40}" y="${j * 40}" width="40" height="40" fill="#FBE0C4"/>`).join("")).join("")}`),
+
     // ---- ゆか ----
     "floor-mat": () => svg(200, 200, `<rect width="200" height="200" fill="#8C77B3"/>${Array.from({ length: 5 }, (_, i) => Array.from({ length: 5 }, (_, j) => `<path d="M${i * 40 + 20} ${j * 40 + 6} L${i * 40 + 34} ${j * 40 + 20} L${i * 40 + 20} ${j * 40 + 34} L${i * 40 + 6} ${j * 40 + 20}Z" fill="#9A86C0"/>`).join("")).join("")}<rect width="200" height="200" fill="none" stroke="#7B67A3" stroke-width="3"/>`),
     "floor-goji": () => svg(200, 200, `<rect width="200" height="200" fill="#7FA4B8"/>${Array.from({ length: 10 }, (_, i) => `<rect x="${(i % 5) * 40 + (Math.floor(i / 5) % 2) * 20}" y="${Math.floor(i / 5) * 100 + 20}" width="16" height="60" rx="8" fill="#8BB0C3"/>`).join("")}`),
@@ -197,6 +208,12 @@ const CraneArt = (() => {
     forest: { wall: "wall-forest", floor: "floor-cookie", body: "#C98E5C", body2: "#A87142", trim: "#FFE9B8", glow: "#FFE0C0", head: "#8E8A88", sign: "くまの ぬいぐるみ" },
     snow: { wall: "wall-snow", floor: "floor-snow", body: "#7FB8E0", body2: "#5B97C7", trim: "#FFFFFF", glow: "#DDF2FF", head: "#F9D56E", sign: "ぺんぎんの ぬいぐるみ" },
     cookie: { wall: "wall-cookie", floor: "floor-cookie", body: "#D9A06A", body2: "#B97F4B", trim: "#FFF1D6", glow: "#FFE2C0", head: "#F6E3C0", sign: "リングフック" },
+    // 2F の おかし キャッチャー
+    snackbag: { wall: "wall-snack", floor: "floor-snack", body: "#FFB86B", body2: "#F2944A", trim: "#FFF3C4", glow: "#FFE2B8", head: "#FFFFFF", sign: "おかし キャッチャー" },
+    snackbox: { wall: "wall-choco", floor: "floor-cookie", body: "#A8745A", body2: "#7A4B33", trim: "#FFE9C8", glow: "#FFD9B0", head: "#F6E3C0", sign: "おかしの はこ" },
+    snackring: { wall: "wall-waffle", floor: "floor-sweet", body: "#F7C957", body2: "#E0A92E", trim: "#FFFFFF", glow: "#FFF0B8", head: "#F2C84B", sign: "おかし リング" },
+    sweetsnack: { wall: "wall-candy2", floor: "floor-sweet", body: "#8ED1C0", body2: "#5DB29B", trim: "#FFFFFF", glow: "#CFF2E8", head: "#FFFFFF", sign: "スウィートランド" },
+    chips: { wall: "wall-chips", floor: "floor-sun", body: "#F26B6B", body2: "#D94F4F", trim: "#FFE07A", glow: "#FFD0C0", head: "#FFE07A", sign: "ビッグ おかし" },
   };
   // ---- canvas の たすけ ----
   // 3つの 点（左上・右上・左下）に 画像を はる（アフィン）
