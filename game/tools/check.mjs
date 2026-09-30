@@ -209,7 +209,9 @@ for (const id of Object.keys(R.MAP_DEFS)) {
   }
   for (const d of m.doors) {
     const a = d.b.act;
-    ok(a && (a.type === "house" || (a.type === "venue" && R.SCENES.venue && R.VenueHalls.defs[a.venue]) || (a.type === "work" && R.SHOPS[a.shop]) || (a.type === "buy" && R.BUY_SHOPS[a.shop]) || (a.type === "transit" && R.Transit.stops[a.stop]?.map === id) || (a.type === "visit" && typeof a.text === "string") || (a.type === "indoor" && !!R.MAP_DEFS[a.map]?.indoor) || (a.type === "range" && typeof R.SCENES.range === "function")), `マップ ${id}: 建物 ${d.b.id} の act が不正`);
+    ok(a && (a.type === "house" || (a.type === "venue" && R.SCENES.venue && R.VenueHalls.defs[a.venue]) || (a.type === "work" && R.SHOPS[a.shop]) || (a.type === "buy" && R.BUY_SHOPS[a.shop]) || (a.type === "transit" && R.Transit.stops[a.stop]?.map === id) || (a.type === "visit" && typeof a.text === "string") || (a.type === "indoor" && !!R.MAP_DEFS[a.map]?.indoor) || (a.type === "range" && typeof R.SCENES.range === "function") || (a.type === "walkway" && typeof a.text === "string" && !!R.MAP_DEFS[a.to?.map])), `マップ ${id}: 建物 ${d.b.id} の act が不正`);
+    // ちかみち（walkway）: でぐちは 通れる マスで、入口・ワープの 上では ない
+    if (a?.type === "walkway" && R.MAP_DEFS[a.to?.map]) { const t = new R.WorldMap(a.to.map); ok(!t.isSolid(a.to.x, a.to.y) && !t.doorAt(a.to.x, a.to.y) && !t.warpAt(a.to.x, a.to.y), `マップ ${id}: ちかみち ${d.b.id} の でぐち (${a.to.x},${a.to.y}) が 通れない`); }
     if(a?.type === "transit") {
       const arrival=R.Transit.arrival(a.stop);
       ok(!m.isSolid(arrival.x,arrival.y)&&!m.warpAt(arrival.x,arrival.y)&&R.Transit.destinations(a.stop).length>0, `${id}: のりばの着地点・路線が不正`);

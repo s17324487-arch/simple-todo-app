@@ -330,6 +330,11 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - `js/ikebukuro-town.js`（`IkebukuroTown`: 道・建物・人・小物・ななめの 横断歩道と かど・地面・電車・夜の あかり）・`js/ikebukuro-town-art.js`（生成）・原画 `tools/town-design/ikebukuro-buildings.mjs`・生成 `tools/build-ikebukuro-town.mjs`。設計は [池袋の 町](design/towns/ikebukuro/README.md)、原画の 見本は `docs/design/towns/ikebukuro-buildings/`。
 - 受け入れ条件: 配置イメージの ならび・どの 入口にも 駅から いける・絵は 原画の まま（`tools/check-ikebukuro.mjs`）・旧IDと act・古い セーブの 位置・密度・スマホの 画面（`tools/town-check.mjs`）・絵の キーは 有限で 昼夜の 2つ（`build-ikebukuro-town.mjs --check`）。スモーク「town-renewal・museum-visit・range-lobby・range-play・ikebukuro-retail・ikebukuro-arcade・district-travel」。
 
+### [x] TOWN-IKE-02 サンシャインいけぶに 入れるのは いけぶの 入口だけ（オーナーの FB 2026-09-30） ✅
+- オーナーの 指示「池袋駅で、サンシャインいけぶに 不自然に 入口が つながって いる 建物が ある。サンシャインいけぶに 入れるのは、サンシャインいけぶの 入り口だけに 修正せよ」。
+- まえは `js/ikebukuro-district.js` の `changed` で、えきまえ館・マルシェ館・インテリア館・カフェテラス・フードホール・おとどけ ぐち・ちかみち の 7つの 入口が いけぶの 中に つながって いた。`js/ikebukuro-town.js` の `NOT_MALL` で 入口の うごきを かえた: 6つは ひとこと（`visit`・いけぶの なんかいに その おみせが あるか）、駅まえ ひろばの ちかみちは 地下を とおって いけぶの 入口の まえに でる（あたらしい `act.type = "walkway"`・`scene-world.js` の `enterDoor`）。館の 1F の 西の かべの「いりぐち（えき）」は「いりぐち」に。
+- 受け入れ条件: 池袋で いけぶ（`venue: "mall"`）に つながる 入口は `ike_mall` の 2つ だけ・ひとことは 漢字なし・ちかみちの でぐちは いけぶの 大きい 入口の まえで とおれる マス（`tools/town-check.mjs`・`tools/check.mjs`）。スモーク「ikebukuro-mall-doors」: 6つの 入口で ひとこと → 町の まま、ちかみち → いけぶの 入口の まえ → いけぶの 入口から 館へ。
+
 ### [x] UI-08 町の ズーム（オーナーの FB 2026-09-29） ✅
 - オーナーの 指示「全体マップで 歩いている ときに、ズームアウトと ズームインが できる ように」。
 - `js/world-zoom.js`（`WorldZoom`: ピンチ・＋ −・ホイール・キーボード、0.5〜1.5 倍、倍率は セーブの `settings.worldZoom`）。`scene-world.js` は 地面の 位置あわせ 1か所だけ。

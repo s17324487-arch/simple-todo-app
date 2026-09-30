@@ -19,6 +19,18 @@ const IkebukuroTown = (() => {
     { id: "ike-s60", carriage: 2, side: 3, a: K, b: S60_END },
     { id: "ike-green", carriage: 6, side: 3, a: [20, 51], b: [W + 1, 51] },
   ];
+  // サンシャインいけぶに 入れるのは いけぶの 入口（ike_mall の 2つの 入口）だけ（オーナーの FB 2026-09-30）。
+  // ここの 建物は まえは いけぶの 中へ つながって いた（js/ikebukuro-district.js の changed）ので、ひとことに かえる。
+  // ちかみちは 地下を とおって いけぶの 入口の まえに でる（walkway。中へは 入らない）
+  const NOT_MALL = Object.freeze({
+    city_clothes: { type: "visit", text: "ここは いけぶの あんないじょ。\nおかいものは 60どおりの さきの\nいけぶの いりぐちから どうぞ！" },
+    city_market: { type: "visit", text: "マルシェかんは いま じゅんびちゅう。\nマルシェは いけぶの 3かい だよ。\nいけぶの いりぐちから どうぞ！" },
+    city_furniture: { type: "visit", text: "インテリアかんは じゅんびちゅう。\nかぐは いけぶの 1かいに あるよ。\nいけぶの いりぐちから どうぞ！" },
+    city_cafe: { type: "visit", text: "テラスの せきで ひとやすみ。\nコーヒーの いい かおり！\nカフェは いけぶの 2かいに あるよ。" },
+    city_reading: { type: "visit", text: "おいしそうな におい！\nフードホールは まだ じゅんびちゅう。\nごはんは いけぶの 2かいで どうぞ。" },
+    city_gallery: { type: "walkway", text: "ちかみちを とおって、\nいけぶの まえに でるよ！" },
+    relay: { type: "visit", text: "いけぶの にもつの うけつけ。\nおおきな かぐも ここから\nおうちへ とどけるよ。" },
+  });
   // 建物: id, x, y, w, h, door（左からの マス）, 絵, ほか
   const BUILDINGS = [
     // 駅の 列（線路の ひがし）
@@ -46,7 +58,7 @@ const IkebukuroTown = (() => {
     ["ike_office", 81, 28, 15, 17, 7, "office_tower", {}],
     // 東通りの 上の こうばん（まいごの あんない）
     ["ike_koban", 53, 2, 2, 3, 0, "koban", { label: "ひがしどおり こうばん", act: { type: "visit", text: "おまわりさんの こうばん。まいごに なったら ここへ おいで。\nまちの あんないも できるよ。" }, fresh: true }],
-    // 駅まえ ひろばの ちかみち（いけぶへ つづく 地下の 入口）と おとどけ ぐち
+    // 駅まえ ひろばの ちかみち（地下を とおって いけぶの 入口の まえへ）と おとどけ ぐち
     ["city_gallery", 4, 51, 4, 3, 2, "passage", { label: "いけぶへの ちかみち" }],
     ["relay", 12, 51, 4, 3, 2, "parcel", { label: "いけぶ おとどけ ぐち" }],
   ];
@@ -94,6 +106,7 @@ const IkebukuroTown = (() => {
       const prev = extra.fresh ? { id: bid } : byId(old.buildings, bid);
       if (!prev) throw new Error("ikebukuro: 建物が ない " + bid);
       const b = { ...prev, ...extra, x, y, w, h, door, style: prev.style || "city_" + pic, asset: "ikebukuro." + pic, opts: {} };
+      if (NOT_MALL[bid]) b.act = { ...NOT_MALL[bid] };
       delete b.fresh;
       if (!extra.doors) delete b.doors;
       d.buildings.push(b);
@@ -236,6 +249,9 @@ const IkebukuroTown = (() => {
     const museum = d.buildings.find((b) => b.id === "city_museum"), rangeB = d.buildings.find((b) => b.id === "city_range");
     if (typeof MUSEUM_DATA !== "undefined" && museum) { const o = MUSEUM_DATA.buildings.museum.outside; fix(o, museum); for (const w of MAP_DEFS.museum?.warps || MUSEUM_DATA.buildings.museum.warps) if (w.to === "city") { w.tx = o.front[0]; w.ty = o.front[1]; } }
     if (typeof RANGE_DATA !== "undefined" && rangeB) fix(RANGE_DATA.outside, rangeB);
+    // ちかみちの でぐち: いけぶの 大きい 入口の まえ（いけぶの ほうを むく）
+    const mall = d.buildings.find((b) => b.id === "ike_mall");
+    for (const b of d.buildings) if (b.act?.type === "walkway") b.act.to = { map: "city", x: mall.x + mall.door, y: mall.y + mall.h, dir: "up" };
     for (const n of d.npcs) if (solidAt(n.x, n.y)) throw new Error("ikebukuro: NPC blocked " + n.id);
     d.rows = g.map((r) => r.join(""));
     MAP_DEFS.city = d;
@@ -349,7 +365,7 @@ const IkebukuroTown = (() => {
     for (const b of scene.map.def.buildings) for (const dx of b.doors || [b.door]) glow(ox + (b.x + dx + .5) * TSZ, oy + (b.y + b.h) * TSZ - 6, 40, .26);
     ctx.restore();
   }
-  return { W, H, ROADS, BUILDINGS, K, EAST_X, along, road, install, preload, ready, drawGround, drawOver, drawMoving, lights, get def() { return installed; } };
+  return { W, H, ROADS, BUILDINGS, NOT_MALL, K, EAST_X, along, road, install, preload, ready, drawGround, drawOver, drawMoving, lights, get def() { return installed; } };
 })();
 IkebukuroTown.install();
 // 描画の つなぎこみ（既存の 経路を 共用。池袋の マップの ときだけ はたらく）

@@ -11,7 +11,27 @@ for(const id of R.TownRenewal.ids){
   assert.equal(new Set(pictures).size,styles.length,id+': renamed identical building art');
   assert(new Set(d.objects.filter(o=>R.TownRenewalArt.exclusive(id).includes(o.kind)).map(o=>o.kind)).size>=6,id+': exclusive props');
   for(const b of old.buildings){const n=d.buildings.find(n=>n.id===b.id);if(!n&&id==='town'&&R.NerikasuLayout.REMOVED[b.id])continue; // オーナーが「なくても よい」と した 建物（js/nerikasu-layout.js）
-    assert(n,id+': lost building '+b.id);assert.equal(JSON.stringify(n.act),JSON.stringify(id==='city'&&R.IkebukuroDistrict.changed[b.id]?{type:'venue',venue:R.IkebukuroDistrict.changed[b.id]}:b.act),id+': changed shop/transit');}
+    assert(n,id+': lost building '+b.id);
+    // 池袋で いけぶの 中へ つながって いた 建物は ひとこと・ちかみちに かえた（js/ikebukuro-town.js の NOT_MALL）。下で くわしく しらべる
+    const notMall=id==='city'&&R.IkebukuroTown.NOT_MALL[b.id];
+    if(notMall)assert.equal(JSON.stringify([n.act.type,n.act.text]),JSON.stringify([notMall.type,notMall.text]),id+': not-mall entrance '+b.id);
+    else assert.equal(JSON.stringify(n.act),JSON.stringify(id==='city'&&R.IkebukuroDistrict.changed[b.id]?{type:'venue',venue:R.IkebukuroDistrict.changed[b.id]}:b.act),id+': changed shop/transit');}
+  if(id==='city'){
+    // サンシャインいけぶに 入れるのは いけぶの 入口（ike_mall の 2つ）だけ。ほかの 入口は ひとこと（visit）か、いけぶの 入口の まえに でる ちかみち（walkway）
+    const mall=d.buildings.filter(b=>b.act?.type==='venue'&&b.act.venue==='mall');
+    assert.equal(JSON.stringify(mall.map(b=>b.id)),'["ike_mall"]','city: only the Sunshine Ikebu entrances lead into the mall');
+    const mallDoors=m.doors.filter(o=>o.b.act?.type==='venue'&&o.b.act.venue==='mall');
+    assert.equal(JSON.stringify(mallDoors.map(o=>o.b.id+'@'+o.x+','+o.y).sort()),JSON.stringify(mall[0].doors.map(dx=>'ike_mall@'+(mall[0].x+dx)+','+(mall[0].y+mall[0].h-1)).sort()),'city: mall doors');
+    const kanji=/[\u4E00-\u9FFF]/,front=[mall[0].x+mall[0].door,mall[0].y+mall[0].h];
+    for(const [bid,a] of Object.entries(R.IkebukuroTown.NOT_MALL)){
+      const b=d.buildings.find(b=>b.id===bid);assert(b,'city: not-mall building '+bid);
+      assert(['visit','walkway'].includes(b.act.type)&&b.act.text&&!kanji.test(b.act.text),'city: not-mall entrance text '+bid);
+      // 375×667 の ふきだしは 1ぎょう 20もじ くらい: ことばの とちゅうで おりかえさない ように 19もじ まで
+      assert(b.act.text.split('\n').every(l=>[...l].length<=19),'city: not-mall entrance line too long '+bid);
+      if(b.act.type==='walkway'){const t=b.act.to;assert.equal(JSON.stringify([t.map,t.x,t.y]),JSON.stringify(['city',...front]),'city: walkway must end at the mall entrance '+bid);
+        assert(!m.isSolid(t.x,t.y)&&!m.doorAt(t.x,t.y)&&!m.warpAt(t.x,t.y),'city: walkway exit blocked '+bid);}
+    }
+  }
   for(const o of old.objects.filter(o=>o.id))assert(d.objects.some(n=>n.id===o.id),id+': lost object '+o.id);
   for(const n of old.npcs)assert(d.npcs.some(a=>a.id===n.id),id+': lost NPC '+n.id);
   for(const c of old.chests){const n=d.chests.find(n=>n.id===c.id);assert(n,id+': lost chest');assert.deepEqual(n.loot,c.loot,id+': changed chest reward');}

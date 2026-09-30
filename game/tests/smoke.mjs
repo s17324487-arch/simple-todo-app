@@ -2689,6 +2689,30 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  const after=await H.dbg('saveData');expect(after.coins===before.coins-7200-9000-390,'購入・食事の合計');await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();const saved=await H.dbg('saveData');expect(saved.coins===after.coins&&saved.furn.ike_washer_0===1&&saved.wardrobe.ike_phone_0,'買い物の保存');
 },{viewport,timeout:180000});
 
+// 池袋: サンシャインいけぶに 入れるのは いけぶの 入口だけ（js/ikebukuro-town.js の NOT_MALL）。
+// えきまえ館など まえは いけぶに つながって いた 建物は ひとこと → 町の まま。ちかみちは いけぶの 入口の まえに でる → いけぶの 入口から 入る
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('ikebukuro-mall-doors-'+viewport.width,async H=>{
+ await H.newGameFast();await H.dbg('hour',12);await H.dbg('weather','clear');const before=await H.dbg('saveData');
+ const layout=await H.dbg('townLayout','city'),door=id=>layout.doors.find(d=>d.id===id),mall=layout.doors.filter(d=>d.act.type==='venue'&&d.act.venue==='mall');
+ expect(mall.length===2&&mall.every(d=>d.id==='ike_mall'),'いけぶに 入れる 入口が いけぶの 入口 だけで ない '+JSON.stringify(mall.map(d=>d.id)));
+ const said=t=>H.until(t=>document.querySelector('.dlg-text')?.textContent.includes(t),10000,t);
+ for(const id of ['city_clothes','city_market','city_furniture','city_cafe','city_reading','relay']){
+  const d=door(id);expect(d&&d.act.type==='visit','ひとことの 入口 '+id+' '+JSON.stringify(d?.act));
+  await H.dbg('teleport','city',d.x,d.y+1,'up');await H.idle();await H.dbg('walkTo',d.x,d.y);
+  await said(d.act.text.split('\n')[0].slice(0,12));if(id==='city_clothes'){await said(d.act.text.slice(-8));await H.shot('annex-visit');}
+  await H.dialogs();await H.idle();const s=await H.dbg('state');
+  expect(s.scene==='world'&&s.map==='city'&&Math.abs(s.pos[0]-d.x)<=1&&s.pos[1]>d.y,id+' の 入口で いけぶに 入って しまう '+JSON.stringify(s));
+ }
+ const g=door('city_gallery'),to=g?.act.to,main=to&&mall.find(d=>d.x===to.x&&d.y===to.y-1);
+ expect(g&&g.act.type==='walkway'&&to.map==='city'&&main,'ちかみちの でぐちが いけぶの 入口の まえで ない '+JSON.stringify(g?.act));
+ await H.dbg('teleport','city',g.x,g.y+1,'up');await H.idle();await H.dbg('walkTo',g.x,g.y);await said('ちかみち');await H.dialogs();
+ await H.until(t=>{const s=PokaDebug.state();return s.scene==='world'&&s.map==='city'&&s.pos[0]===t[0]&&s.pos[1]===t[1]&&PokaDebug.idle();},20000,[to.x,to.y]);
+ await H.wait(300);await H.shot('walkway-exit');
+ await H.dbg('walkTo',main.x,main.y);await H.until(()=>PokaDebug.state().scene==='venue'&&PokaDebug.idle(),20000);
+ expect((await H.dbg('venueState'))?.id==='mall','いけぶの 入口から いけぶに 入れない');
+ const after=await H.dbg('saveData');for(const k of ['coins','bag','wardrobe','furn'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'入口で 持ち物が 変わる '+k);
+},{viewport,timeout:120000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('ikebukuro-mall-'+viewport.width,async H=>{
  // サンシャインいけぶ（斜め上から 見る モール・js/iso-venue.js・mall-art.js・ike-mall.js）: 1F〜3F・タップで あるく・台を タップして かう・フロアマップ・エレベーター・エスカレーター・ステージ
  await H.newGameFast();await H.dbg('coins',99850);await H.dbg('hour',12);
