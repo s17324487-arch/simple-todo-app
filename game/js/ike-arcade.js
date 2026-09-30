@@ -1,5 +1,5 @@
 // Meeときょれじゃ（池袋の ゲームセンター）の 館。サンシャインいけぶ と おなじ 斜め上の 館（IsoVenueScene・絵は ArcadeArt）。
-// 12台の クレーン（ぬいぐるみ コーナー・スウィートランド・トライポッド・リングフック）・ガチャ・ぷりくら・けいひん カウンター・りょうがえき。
+// 12台の クレーン（ぬいぐるみ コーナー・スウィートランド・コイン プッシャー・トライポッド・リングフック）・ガチャ・ぷりくら・けいひん カウンター・りょうがえき。
 // 台を タップすると その まえまで あるいて あそぶ 画面（SCENES.prize）へ。もどると 台の まえに たつ。
 const IkeArcade = {
   W: 28, H: 22,
@@ -12,7 +12,7 @@ const IkeArcade = {
     const fixtures = [];
     // クレーン: まえの ほうの マスで しらべる（spots）・もどる ときは その すこし まえ（back）
     const crane = (i, x, y, dir) => {
-      const kind = ArcadeArt.specOf(i), wide = kind === "big" || kind === "sweet" ? 3 : 2, w = dir === "x" ? 2 : wide, h = dir === "x" ? wide : 2, P = ArcadeArt.SPEC[kind], m = PrizeArcade.machines[i];
+      const kind = ArcadeArt.specOf(i), wide = kind === "big" || kind === "sweet" || kind === "pusher" ? 3 : 2, w = dir === "x" ? 2 : wide, h = dir === "x" ? wide : 2, P = ArcadeArt.SPEC[kind], m = PrizeArcade.machines[i];
       const spot = dir === "x" ? [x + w, y + Math.floor(h / 2)] : [x + Math.floor(w / 2), y + h];
       fixtures.push({ kind: "crane", machine: i, x, y, w, h, dir, height: P.base + P.GH + P.HH, label: m.label, action: "crane", spots: [spot], back: dir === "x" ? [spot[0] + 2, spot[1]] : [spot[0] + 1, spot[1] + 1] });
     };
@@ -20,7 +20,7 @@ const IkeArcade = {
     crane(0, 1, 0, "y"); crane(8, 3, 0, "y"); crane(9, 5, 0, "y"); crane(1, 7, 0, "y"); crane(10, 14, 0, "y");
     // リングフック（西の かべ）
     crane(6, 0, 4, "x"); crane(11, 0, 6, "x"); crane(7, 0, 8, "x");
-    // スウィートランド と トライポッド（まんなかの 島。うしろに ひくい しきり）
+    // スウィートランド・コイン プッシャー と トライポッド（まんなかの 島。うしろに ひくい しきり）
     crane(2, 5, 8, "y"); crane(3, 8, 8, "y"); crane(4, 15, 8, "y"); crane(5, 18, 8, "y");
     fixtures.push({ kind: "divider", x: 5, y: 7, w: 6, h: 1, height: 45 }, { kind: "divider", x: 15, y: 7, w: 5, h: 1, height: 45 });
     // ぷりくら・ガチャ（北の かべの ひがし）
@@ -39,7 +39,7 @@ const IkeArcade = {
     for (const [x, y] of [[4, 12], [21, 12]]) fixtures.push({ kind: "apillar", x, y, w: 1, h: 1, height: 330 });
     // 町の人（あそんで いる おきゃくさん）
     fixtures.push({ kind: "npc", sp: "rabbit", ci: 1, x: 15, y: 3, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "おおきな くまの ぬいぐるみ、ほしいなあ。2本アームは ねらいが だいじ！", spots: [[16, 3]] });
-    fixtures.push({ kind: "npc", sp: "sheep", ci: 0, x: 11, y: 11, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "コインの メダル、いっぱい おちたよ！ おしだしの タイミングが だいじだよ。", spots: [[10, 11]] });
+    fixtures.push({ kind: "npc", sp: "sheep", ci: 0, x: 11, y: 11, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "コイン プッシャー、チャンスの わを ねらって いれると スロットが まわるよ！", spots: [[10, 11]] });
     fixtures.push({ kind: "npc", sp: "fox", ci: 1, x: 21, y: 2, w: 1, h: 1, dir: "up", emo: "normal", label: "おきゃくさん", action: "info", text: "つぎの カプセル、まだかなあ。", spots: [[21, 3]] });
     // 入口（マットと でぐちの かんばん。手前の ふちで そとへ）
     fixtures.push({ kind: "exitMat", x: 23, y: 21, w: 4, h: 1, height: 20, label: "たてものを でる", action: "leave", noFade: true, spots: [[24, 20], [25, 20]] });
@@ -49,8 +49,8 @@ const IkeArcade = {
       title: "Meeときょれじゃ", fixtures,
       // フロアマップ（MallGuide）の コーナー
       zones: [
-        { x: 1, y: 0, w: 9, h: 3, shop: "arcPlush", label: "ぬいぐるみ コーナー" }, { x: 10, y: 0, w: 4, h: 4, shop: "arcPhoto", label: "ぷりくら" }, { x: 14, y: 0, w: 3, h: 3, shop: "arcBear", label: "くまの ぬいぐるみ" },
-        { x: 18, y: 0, w: 9, h: 2, shop: "arcGacha", label: "カプセルトイ" }, { x: 0, y: 4, w: 4, h: 6, shop: "arcRing", label: "リングフック" }, { x: 5, y: 7, w: 6, h: 4, shop: "arcSweet", label: "スウィートランド" },
+        { x: 1, y: 0, w: 9, h: 3, shop: "arcPlush", label: "ぬいぐるみ コーナー" }, { x: 10, y: 0, w: 4, h: 4, shop: "arcPhoto", label: "ぷりくら" }, { x: 14, y: 0, w: 3, h: 3, shop: "arcBear", label: "くまの ぬいぐるみ", map: "くまの ぬいぐるみ" },
+        { x: 18, y: 0, w: 9, h: 2, shop: "arcGacha", label: "カプセルトイ" }, { x: 0, y: 4, w: 4, h: 6, shop: "arcRing", label: "リングフック" }, { x: 5, y: 7, w: 3, h: 4, shop: "arcSweet", label: "スウィートランド", map: "スウィート ランド" }, { x: 8, y: 7, w: 3, h: 4, shop: "arcPusher", label: "コイン プッシャー", map: "コイン プッシャー" },
         { x: 15, y: 7, w: 5, h: 4, shop: "arcTripod", label: "トライポッド" }, { x: 18, y: 14, w: 6, h: 5, shop: "arcCounter", label: "けいひん カウンター" }, { x: 0, y: 14, w: 2, h: 3, shop: "arcRest", label: "ソファ" },
       ],
       walls: {
@@ -69,7 +69,7 @@ const IkeArcade = {
     // フロアマップの コーナーの いろ
     Object.assign(MallArt.SHOP, {
       arcPlush: { name: "ぬいぐるみ", c: ["#CDE8F8", "#A9D3EE", "#7FB8E0"] }, arcPhoto: { name: "ぷりくら", c: ["#F8C8DA", "#F29BB8", "#D9789B"] }, arcBear: { name: "くま", c: ["#F2D3B0", "#E1B387", "#C98E5C"] },
-      arcGacha: { name: "カプセルトイ", c: ["#D6EFD8", "#B6DFBA", "#86C08C"] }, arcRing: { name: "リングフック", c: ["#FFF0B8", "#F9D56E", "#E0B640"] }, arcSweet: { name: "スウィートランド", c: ["#FBD3E0", "#F2A7C0", "#E58BAA"] },
+      arcGacha: { name: "カプセルトイ", c: ["#D6EFD8", "#B6DFBA", "#86C08C"] }, arcRing: { name: "リングフック", c: ["#FFF0B8", "#F9D56E", "#E0B640"] }, arcSweet: { name: "スウィートランド", c: ["#FBD3E0", "#F2A7C0", "#E58BAA"] }, arcPusher: { name: "コイン プッシャー", c: ["#FFF3C4", "#F2C84B", "#D6A231"] },
       arcTripod: { name: "トライポッド", c: ["#FFE0C2", "#F7B98A", "#E58A3A"] }, arcCounter: { name: "けいひん カウンター", c: ["#E6DCF5", "#C9B6EE", "#9B7BD0"] }, arcRest: { name: "ソファ", c: ["#E3EFD6", "#C3DDAA", "#9CC47E"] },
     });
     // 館の BGM: トルコ こうしんきょく（モーツァルト・Mutopia #108 の 写し）を ゲームセンターの 音で。カウンター・あそぶ 画面も おなじ 曲

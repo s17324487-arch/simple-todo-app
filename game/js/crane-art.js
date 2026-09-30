@@ -149,9 +149,9 @@ const CraneArt = (() => {
   const LOOK = {}; // look → 景品の id
   for (const it of ArcadePrizes.ITEMS) LOOK[it.size === "chibi" ? it.id.replace(/^ike_chibi_(\w+)_(\d)$/, "chibi-$1-$2") : it.size === "mini" ? it.id.replace(/^ike_mini_/, "mini-") : it.id === "ike_plush_penguin" ? "penguin" : it.id.replace(/^ike_plush_(\w+)$/, "$1-big")] = it.id;
   for (const [look, id] of Object.entries(LOOK)) { TEX[look + "-front"] = () => ArcadePrizes.svg(id, "down"); TEX[look + "-back"] = () => ArcadePrizes.svg(id, "up"); }
-  // コイン メダル（おもて: ほし と Mee・うら: 20・よこ: ぎざぎざ）と コインの たからばこ
+  // コイン メダル（おもて: ほし と Mee・うら: 10・よこ: ぎざぎざ）と コインの たからばこ
   const coinFace = (back) => svg(200, 200, `<circle cx="100" cy="100" r="94" fill="#F2C84B" stroke="${K}" stroke-width="7"/><circle cx="100" cy="100" r="76" fill="#F7D96F" stroke="#C99A2E" stroke-width="5"/>
-      ${back ? txt(100, 124, 70, "20", "#B98224", 900, `stroke="#FFF1B8" stroke-width="3" paint-order="stroke"`) : `<path d="${starPath(100, 92, 44, 20)}" fill="#FFF3B0" stroke="#C99A2E" stroke-width="5" stroke-linejoin="round"/>${txt(100, 160, 26, "Mee", "#B98224")}`}
+      ${back ? txt(100, 124, 70, "10", "#B98224", 900, `stroke="#FFF1B8" stroke-width="3" paint-order="stroke"`) : `<path d="${starPath(100, 92, 44, 20)}" fill="#FFF3B0" stroke="#C99A2E" stroke-width="5" stroke-linejoin="round"/>${txt(100, 160, 26, "Mee", "#B98224")}`}
       <path d="M52 58 A62 62 0 0 1 104 36" fill="none" stroke="#FFFBE0" stroke-width="9" stroke-linecap="round" opacity="0.8"/>`);
   TEX["medal-front"] = () => coinFace(false); TEX["medal-back"] = () => coinFace(true);
   TEX["medal-side"] = () => svg(200, 200, `<circle cx="100" cy="100" r="94" fill="#D6A93A" stroke="#D6A93A" stroke-width="7"/>`);
@@ -189,7 +189,7 @@ const CraneArt = (() => {
     wanko: { wall: "wall-wanko", floor: "floor-tri", body: "#F1C565", body2: "#D9A845", trim: "#FFFFFF", glow: "#FFE9B0", head: "#FFFFFF", sign: "トライポッド" },
     chick: { wall: "wall-chick", floor: "floor-chick", body: "#8CCB7E", body2: "#6BAE5F", trim: "#FFF0A8", glow: "#D9F5C9", head: "#F9D56E", sign: "リングフック" },
     paw: { wall: "wall-paw", floor: "floor-paw", body: "#8EC5E8", body2: "#6AA6D1", trim: "#FFFFFF", glow: "#D2ECFF", head: "#FFFFFF", sign: "わんこの ぬいぐるみ" },
-    gold: { wall: "wall-gold", floor: "floor-gold", body: "#F2C84B", body2: "#D6A231", trim: "#FFF6C8", glow: "#FFE89A", head: "#FFFFFF", sign: "コイン メダル" },
+    gold: { wall: "wall-gold", floor: "floor-gold", body: "#F2C84B", body2: "#D6A231", trim: "#FFF6C8", glow: "#FFE89A", head: "#FFFFFF", sign: "コイン プッシャー" },
     bamboo: { wall: "wall-bamboo", floor: "floor-tri", body: "#7CC49A", body2: "#58A67B", trim: "#FFFFFF", glow: "#D4F2DF", head: "#FFFFFF", sign: "パンダの ぬいぐるみ" },
     treasure: { wall: "wall-treasure", floor: "floor-cookie", body: "#9B7BD0", body2: "#7A5BB2", trim: "#FFE08A", glow: "#E6D6FF", head: "#F2C84B", sign: "コインの たからばこ" },
     sunny: { wall: "wall-sunny", floor: "floor-sun", body: "#F7B955", body2: "#E4983A", trim: "#FFF6D0", glow: "#FFE2A8", head: "#FFFFFF", sign: "がちゃんの ぬいぐるみ" },

@@ -89,7 +89,8 @@ const ArcadePrizes = (() => {
 
   const install = () => {
     for (const it of ITEMS) {
-      const f = { id: it.id, name: it.name, price: 0, kind: "floor", w: it.w, h: it.h, depth: it.depth, comfort: it.size === "big" ? 10 : 5, rare: true, interactive: true, exclusive: "ikebukuro", arcadePrize: true, cityItem: { type: "arcadeplush", variant: it.id }, desc: it.desc };
+      // sparkle: おうちで まわりに ほしを だすか（ミニマスコットは ださない）
+      const f = { id: it.id, name: it.name, price: 0, kind: "floor", w: it.w, h: it.h, depth: it.depth, comfort: it.size === "big" ? 10 : 5, rare: true, interactive: true, exclusive: "ikebukuro", arcadePrize: true, sparkle: it.size !== "mini", cityItem: { type: "arcadeplush", variant: it.id }, desc: it.desc };
       FURNITURE.push(f); FURN_INDEX[it.id] = f; FURN_ART[it.id] = () => nest(it.id, 0, 0, it.w, it.h);
     }
     // おうちの 立体: 池袋の おしなもの（cityItem）の なかで ぬいぐるみの 景品だけ ここで つくる

@@ -1,5 +1,5 @@
 // クレーンゲーム（crane-physics.js・crane-machines.js・crane-scene.js）の 検査。ブラウザ なしで 物理を うごかす。
-// 12台が こわれない・ちゃんと ねらえば とれる・よわい アームは たいてい はずれる・トライポッド／スウィートランド／リングの しくみ・
+// 12台が こわれない・ちゃんと ねらえば とれる・よわい アームは たいてい はずれる・トライポッド／スウィートランド／リング／コイン プッシャーの しくみ・
 // セーブと つづきから（台の id・いれかわった 台の ふるい セーブ）・100コインと ごほうびは 1かいだけ・形ごとの 景品・コインの 景品と 1にちの 上限・
 // おなじ たねは おなじ けっか・画面の ことば・SvgCache の キー。
 import assert from "node:assert/strict";
@@ -19,9 +19,10 @@ const aimAndGrab = (r, k, dx = 0, dz = 0) => {
   return r;
 };
 
-// ---- 1. 12台: 4しゅるい（あそびかたは まえと おなじ）・こわれない・台の 中・おもすぎない ----
+// ---- 1. 12台: 5しゅるい（コイン プッシャーは 1台）・こわれない・台の 中・おもすぎない ----
 ok(PA.machines.length === 12 && CM.DEFS.length === 12, "クレーンは 12台");
-for (const t of ["claw", "sweet", "tripod", "ring"]) ok(PA.machines.filter((m) => m.type === t).length >= 2 && CM.DEFS.filter((d) => d.type === t).length === PA.machines.filter((m) => m.type === t).length, t + " は 2台 いじょう");
+for (const [t, min] of [["claw", 2], ["sweet", 1], ["tripod", 2], ["ring", 2], ["pusher", 1]]) ok(PA.machines.filter((m) => m.type === t).length >= min && CM.DEFS.filter((d) => d.type === t).length === PA.machines.filter((m) => m.type === t).length, `${t} は ${min}台 いじょう`);
+ok(PA.machines.filter((m) => m.type === "pusher").length === 1 && PA.machines[3].type === "pusher" && CM.DEFS[3].id === "pusher", "コイン プッシャーは 台 3");
 ok(new Set(CM.DEFS.map((d) => d.id)).size === 12 && PA.machines.every((m, i) => m.id === CM.DEFS[i].id), "台の id が ない・かさなる・PrizeArcade と ちがう");
 ok([1, 4, 6].every((i) => CM.DEFS[i].legacy && PA.machines[i].legacy) && CM.DEFS.filter((d) => d.legacy).length === 3, "まえの 8台と おなじ 台は 1・4・6");
 PA.machines.forEach((m, i) => {
@@ -92,7 +93,7 @@ for (const i of [4, 5]) {
 }
 
 // ---- 5. スウィートランド: 3かい すくって おとす・おしだしで おちた ぶんだけ もらえる ----
-for (const i of [2, 3]) {
+for (const i of [2]) {
   let board = null, total = 0, scooped = 0;
   for (let play = 0; play < 2; play++) {
     const r = new CM.CraneRound(i, board, { seed: 9 }), o = r.rig.o;
@@ -107,6 +108,55 @@ for (const i of [2, 3]) {
   }
   ok(scooped >= 1, `スウィート ${i}: ショベルで すくえない`);
   ok(total >= 1, `スウィート ${i}: 2かい あそんでも 1こも おちない`);
+}
+
+// ---- 5b. コイン プッシャー: メダルが みえる・ただでは おちない・10まい いれる・てまえ = もらえる／よこ = おみせ・チャンスと スロット・つづきから ----
+{
+  const I = 3, F = CM.DEFS[I].field, cp = (r) => JSON.parse(JSON.stringify(r.snap()));
+  const r0 = new CM.CraneRound(I, null, { seed: 7 }), n0 = r0.list().length;
+  ok(n0 >= F.keep && n0 <= F.fill, `プッシャー: はじめの メダル ${n0}まい`);
+  ok(r0.list().every((b) => b.data.slab && b.data.look === "medal"), "プッシャー: メダルに slab が ない（絵が かけない）");
+  for (const b of r0.list()) { const c = r0.W.centroid(b), n = R.CranePhys.qrot(b.q, [0, 0, 1]); ok(c[0] > F.x0 - 1 && c[0] < F.x1 + 1 && c[2] > F.ze && c[1] > F.top && c[1] < F.top + 12, `プッシャー: メダルが フィールドの 外 ${c.map((v) => v.toFixed(1))}`); ok(Math.abs(n[1]) > 0.6 || c[1] > F.top + 2.5, "プッシャー: メダルが たって いる"); }
+  // なにも いれないと おちない（おみせの 人が じゅんび ずみ）
+  { const r = new CM.CraneRound(I, null, { seed: 7 }); r.left = 0; for (let f = 0; f < 60 * 12 && !r.done; f++) r.step(1 / 60); ok(r.done && r.got.length <= 1 && r.lost <= 1, `プッシャー: なにも いれないのに ${r.got.length}まい おちた`); }
+  // 10まい いれる（まを あけないと いれられない）・11まいめは ない
+  { const r = new CM.CraneRound(I, null, { seed: 7 }); r.rig.lx = 30; ok(r.press() === "drop" && r.press() === null && r.left === F.medals - 1, "プッシャー: つづけて 2まい はいる／はいらない");
+    let n = 1; for (let f = 0; f < 60 * 30 && n < F.medals; f++) { if (r.press() === "drop") n++; r.step(1 / 60); }
+    ok(n === F.medals && r.left === 0 && r.press() === null, "プッシャー: 10まい いれられない／11まい はいる");
+    for (let f = 0; f < 60 * 40 && !r.done; f++) r.step(1 / 60); ok(r.done, "プッシャー: おわらない"); }
+  // てまえの ふちの むこう → もらえる・よこの あな → おみせの もの（かぞえるのは 1かいだけ）
+  { const r = new CM.CraneRound(I, null, { seed: 7 }), g0 = r.got.length; r.add("medal", [30, F.top + 1.5, F.ze - 2], r.flat()); r.add("medal", [F.x0 - 3, F.top + 1.5, F.ze + 4], r.flat());
+    for (let f = 0; f < 60; f++) r.step(1 / 60);
+    ok(r.got.length === g0 + 1 && r.lost === 1 && r.gotShapes.every((s) => s === "medal"), `プッシャー: てまえ／よこの かぞえかた got ${r.got.length} lost ${r.lost}`);
+    ok(r.list().every((b) => !b.data.fell) && r.board().b.every((e) => e[4] > F.top - 1), "プッシャー: おちた メダルが のこる／セーブに はいる"); }
+  // チャンスの わ: ま上から おとすと スロット → 2.3びょうで けっか・メダルが ふる
+  { const r = new CM.CraneRound(I, null, { seed: 7 }), R0 = r.rig; R0.hold = true; R0.lx = Math.max(F.lim[0], Math.min(F.lim[1], R0.gateX())); const gx = R0.gateX(); r.press();
+    for (let f = 0; f < 30; f++) { r.step(1 / 60); R0.hold = true; }
+    ok(Math.abs(gx - R0.lx) < F.gateR && r.hits === 1 && r.slot, "プッシャー: わの ま上から おとしても チャンスに ならない");
+    const n = r.list().length, res = r.slot.res, win = r.slot.win; R0.hold = false;
+    for (let f = 0; f < 60 * 4; f++) r.step(1 / 60);
+    ok(r.slot === null || r.slot.paid, "プッシャー: スロットが とまらない");
+    ok(win === (new Set(res).size === 1 ? F.bonus.big : new Set(res).size === 2 ? F.bonus.small : 0), `プッシャー: スロットの め ${res} と メダル ${win}`);
+    ok(r.list().length + r.got.length + r.lost >= n + win, "プッシャー: スロットの メダルが ふらない"); }
+  { // わから はなれて おとすと チャンスに ならない
+    const r = new CM.CraneRound(I, null, { seed: 7 }), R0 = r.rig; R0.hold = true; const gx = R0.gateX(); R0.lx = gx < 30 ? F.lim[1] : F.lim[0]; r.press(); for (let f = 0; f < 30; f++) { r.step(1 / 60); R0.hold = true; } ok(r.hits === 0 && !r.slot, "プッシャー: わから はなれても チャンス"); }
+  // スロットの でかた（きまった たねで 400かい）: そろう 1/8・2つ 1/4 くらい・メダルの かず
+  { const r = new CM.CraneRound(I, null, { seed: 9 }); let big = 0, small = 0; for (let k = 0; k < 400; k++) { r.slot = null; r.queue = 0; r.chance(); const S = r.slot, u = new Set(S.res).size; ok(S.res.every((v) => v >= 0 && v < 3) && S.win === (u === 1 ? F.bonus.big : u === 2 ? F.bonus.small : 0), "プッシャー: スロットの め"); if (u === 1) big++; else if (u === 2) small++; }
+    ok(big > 25 && big < 80 && small > 65 && small < 140, `プッシャー: スロットの でかた big ${big} small ${small}`);
+    r.slot = { t: 0, res: [0, 1, 2], win: 0, paid: false }; r.queue = 0; r.chance(); r.chance(); r.chance(); ok(r.queue === 2, "プッシャー: まつ チャンスは 2つまで"); }
+  // あそびを 8かい（ボット: ばらばらの ばしょ・タイミング）: 100コインあたり だいたい 40〜140コイン・よこの あなにも おちる・メダルの かずが ふえすぎない
+  { let board = null, got = 0, lost = 0; const rnd = CM.rng(77);
+    for (let p = 0; p < 8; p++) { const r = new CM.CraneRound(I, board, { seed: 50 + p }); let wait = 0;
+      for (let f = 0; f < 60 * 90 && !r.done; f++) { if (r.phase === "play" && r.left > 0 && wait-- <= 0) { r.rig.lx = F.lim[0] + rnd() * (F.lim[1] - F.lim[0]); r.press(); wait = 25 + Math.floor(rnd() * 70); } r.step(1 / 60); }
+      ok(r.done, "プッシャー: ボットの あそびが おわらない"); got += r.got.length; lost += r.lost; board = JSON.parse(JSON.stringify(r.board())); ok(board.b.length >= 15 && board.b.length <= 60, `プッシャー: フィールドの メダル ${board.b.length}まい`); }
+    ok(got >= 8 * 4 && got <= 8 * 14 && lost >= 1, `プッシャー: 8かいで ${got}まい（よこ ${lost}まい）`); }
+  // つづきから: のこりの メダル・とれた かず・おちて いる とちゅうの メダルは のこりに もどる
+  { const r = new CM.CraneRound(I, null, { seed: 7 }); r.rig.lx = 20; r.press(); r.step(1 / 60); r.got = [5, 6]; r.gotShapes = ["medal", "medal"]; const c1 = cp(r), again = new CM.CraneRound(I, c1.board, { seed: 7, cp: c1 });
+    ok(c1.left === F.medals && again.left === F.medals && again.got.length === 2 && again.phase === "play", `つづきから: プッシャーの のこり ${c1.left}・とれた かず`);
+    r.shower = 3; const c2 = cp(r), b2 = new CM.CraneRound(I, c2.board, { seed: 7, cp: c2 }); ok(b2.shower === 3, "つづきから: スロットの メダル"); }
+  // おなじ たね・おなじ そうさ → おなじ けっか
+  { const go = () => { const r = new CM.CraneRound(I, null, { seed: 12 }); let k = 0; for (let f = 0; f < 60 * 60 && !r.done; f++) { if (f % 40 === 0 && r.left > 0) { r.rig.lx = 14 + (k++ * 7) % 34; r.press(); } r.step(1 / 60); } return r; };
+    const a = go(), b = go(); ok(a.got.join() === b.got.join() && a.lost === b.lost && JSON.stringify(a.board()) === JSON.stringify(b.board()), "プッシャー: おなじ たねで けっかが ちがう"); }
 }
 
 // ---- 6. セーブ: board() から おなじ 台に もどる・つづきから（おりる とちゅう → もういちど おろす）・ほかの 台の ようすは つかわない ----
@@ -156,16 +206,20 @@ for (let i = 0; i < 12; i++) {
   S.d.coins = 5000;
   for (const i of [6, 11]) for (let k = 0; k < 3; k++) { const rr = PA.start(i, back); ok(rr.strong === true, "リングフックの アームが よわい"); PA.finish(rr, { got: [], board: empty }); }
   const mini = PA.start(2, back); PA.finish(mini, { got: [1, 2, 3], gotShapes: ["mini_goji", "mini_goji", "mini_wanko"], board: empty }); ok(S.d.furn.ike_mini_goji === 2 && S.d.furn.ike_mini_wanko === 1, "スウィートは おちた かずだけ（形ごと）");
-  // コイン: メダルは 1まい 20・たからばこは 300。1にち 600 まで（たりない ときは はじまらない）
-  const c0 = S.d.coins, medal = PA.start(3, back); PA.finish(medal, { got: [1, 2, 3], gotShapes: ["medal", "medal", "medal"], board: empty }); ok(S.d.coins === c0 - 100 + 60 && S.d.arcade.coinToday === 60, "コイン メダルの コイン");
+  // コイン: プッシャーの メダルは 1まい 10・たからばこは 300。1にち 600 まで（たりない ときは はじまらない・こえた ぶんは もらえない）
+  const c0 = S.d.coins, medal = PA.start(3, back); PA.finish(medal, { got: [1, 2, 3, 4, 5, 6], gotShapes: Array(6).fill("medal"), board: empty }); ok(S.d.coins === c0 - 100 + 60 && S.d.arcade.coinToday === 60 && medal.paid === 60 && medal.capped === 0, "コイン プッシャーの コイン");
   const chest = PA.start(7, back); PA.finish(chest, { got: [1], gotShapes: ["chest"], board: empty }); ok(S.d.coins === c0 - 200 + 360 && S.d.arcade.coinToday === 360 && !(S.d.bag.chest || S.d.furn.chest), "たからばこの コイン");
   ok(R.ArcadePrizes.coinLeft() === 240 && PA.start(7, back) === null && PA.coinOpen(3), "コインの 上限（300 のこって いない）");
-  S.d.arcade.coinToday = 590; ok(PA.start(3, back) === null && !PA.coinOpen(3) && PA.coinOpen(0), "コインの 上限（20 のこって いない）");
+  S.d.arcade.coinToday = 450; { const c1 = S.d.coins, lucky = PA.start(3, back); PA.finish(lucky, { got: Array.from({ length: 20 }, (_, k) => k), gotShapes: Array(20).fill("medal"), board: empty }); ok(lucky.paid === 150 && lucky.capped === 50 && S.d.coins === c1 - 100 + 150 && S.d.arcade.coinToday === 600, "コインの 上限を こえて もらえる"); }
+  S.d.arcade.coinToday = 510; ok(PA.start(3, back) === null && !PA.coinOpen(3) && PA.coinOpen(0), "コインの 上限（プッシャーは 100 のこって いない と あそべない）");
   S.d.arcade.coinDay = "2000-01-01"; ok(R.ArcadePrizes.coinLeft() === 600, "つぎの 日に 上限が もどらない");
   // 台を いれかえる まえの とちゅうの 1かい: いれかわった 台は 100コインを かえす・おなじ 台（legacy）は つづきから
   S.d.coins = 500; S.d.arcade.active = { id: "old-0", machine: 0, back, strong: true, cp: null }; PA.norm(); ok(S.d.arcade.active === null && S.d.coins === 600 && S.d.arcade.refunded === 1, "いれかわった 台の とちゅうの 100コイン");
   PA.norm(); ok(S.d.coins === 600, "かえす のは 1かいだけ");
   S.d.arcade.active = { id: "old-1", machine: 1, back, strong: true, cp: null }; PA.norm(); ok(S.d.arcade.active && S.d.arcade.active.def === "goji-big" && S.d.coins === 600, "おなじ 台の とちゅうが きえる");
+  // まえの コイン メダル（台 3）の とちゅう: 台が プッシャーに かわったので 100コインを かえす
+  S.d.arcade.active = { id: "old-3", machine: 3, def: "medal", back, strong: true, cp: null }; S.d.arcade.refunded = 0; PA.norm(); ok(S.d.arcade.active === null && S.d.coins === 700 && S.d.arcade.refunded === 1, "コイン メダルの とちゅうの 100コイン");
+  S.d.arcade.active = { id: "new-3", machine: 3, def: "pusher", back, strong: true, cp: null }; PA.norm(); ok(S.d.arcade.active && S.d.coins === 700, "プッシャーの とちゅうが きえる");
   S.d.arcade.active = null; S.d.coins = 50; ok(PA.start(0, back) === null && S.d.coins === 50, "コインが たりなくても はじまる");
 }
 
@@ -181,4 +235,4 @@ for (let i = 0; i < 12; i++) {
   for (const d of CM.DEFS) { const th = CA.THEME[d.theme]; ok(th && CA.TEX[th.wall] && CA.TEX[th.floor], `台の テーマ ${d.theme}`); }
   for (const s of Object.keys(CM.SHAPES)) { const S = CM.SHAPES[s](); ok(Object.keys(CA.TEX).some((k) => k.startsWith(S.look + "-")), `景品 ${s} の 絵（${S.look}）が ない`); }
 }
-console.log(`Crane: 12 machines (claw/2-claw/sweet/tripod/ring), plush/coin prizes, physics outcomes, save/resume and machine ids, fees, rewards and coin cap, determinism, text — ${n} checks OK`);
+console.log(`Crane: 12 machines (claw/2-claw/sweet/tripod/ring/coin pusher), plush/coin prizes, physics outcomes, pusher medals/chance/slot/payout, save/resume and machine ids, fees, rewards and coin cap, determinism, text — ${n} checks OK`);

@@ -879,6 +879,7 @@ html, body {
 .crane-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .crane-pad{position:relative;display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:2px;flex:0 0 auto}
 .crane-pad.hidden{display:none}
+.crane-pad.lr{grid-template-columns:56px 24px 56px;grid-template-rows:56px}.crane-pad.lr .crane-dir{width:56px;height:56px;font-size:20px}.crane-pad.lr .crane-knob{grid-row:1;width:22px;height:22px}
 .crane-dir{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:2px solid #1F1D1B;border-radius:12px;background:linear-gradient(#FFFFFF,#E4DCEB);font-size:17px;font-weight:900;color:#1F1D1B;box-shadow:0 3px 0 #1F1D1B;touch-action:none}
 .crane-dir.on,.crane-dir:active{transform:translateY(2px);box-shadow:0 1px 0 #1F1D1B;background:#FFE7A0}
 .crane-dir:disabled{opacity:.45}
