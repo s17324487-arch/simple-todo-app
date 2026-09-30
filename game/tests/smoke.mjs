@@ -3050,17 +3050,23 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect(p0.paused&&p1.paused&&p1.t===p0.t&&p1.bodies[0].y===p0.bodies[0].y,'きろくの まどの あいだ 箱が とまらない '+JSON.stringify([p0.t,p1.t,p0.bodies[0]?.y,p1.bodies[0]?.y]));
  const book=()=>H.eval(()=>document.querySelector('.modal-wrap .koro-book').textContent);
  let text=await book();expect(/まだ きろくが ないよ/.test(text)&&/ランキング/.test(text)&&/あそんだ かいすう0かい/.test(text),'はじめての きろく '+text);
- // はみ出さない: まど・タブ（44px いじょう）・なかみ（よこに スクロールしない）
- const fit=()=>H.eval(()=>{const p=document.querySelector('.modal-wrap .panel').getBoundingClientRect(),body=document.querySelector('.modal-wrap .panel-body'),tabs=[...document.querySelectorAll('.modal-wrap .koro-tabs .btn')].map(b=>b.getBoundingClientRect());
-  const inside=[...document.querySelectorAll('.modal-wrap .koro-book *')].every(e=>{const r=e.getBoundingClientRect();return r.width===0||(r.left>=p.left-0.5&&r.right<=p.right+0.5);});
-  return p.left>=0&&p.right<=innerWidth&&p.bottom<=innerHeight+0.5&&tabs.length===2&&tabs.every(r=>r.height>=44)&&inside&&body.scrollWidth<=body.clientWidth+1;});
- expect(await fit(),'きろくの まどが はみ出す');
+ // はみ出さない: まど・タブ（44px いじょう）・なかみ（よこに スクロールしない）。
+ // はかるのは いちばん うえの まど（あそんだ あとは けっかの まどの うえに ひらく）で、ひらく うごきが おわって から。だめな ときは どこが だめかを だす
+ const fit=async(msg)=>{
+  await H.until(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop();return !!w&&!!w.querySelector('.koro-book')&&(typeof w.getAnimations!=='function'||[w,...w.querySelectorAll('.panel')].every(e=>e.getAnimations().every(a=>a.playState!=='running')));},5000);
+  const r=await H.eval(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop(),p=w.querySelector('.panel').getBoundingClientRect(),body=w.querySelector('.panel-body'),tabs=[...w.querySelectorAll('.koro-tabs .btn')].map(b=>b.getBoundingClientRect());
+   const out=[...w.querySelectorAll('.koro-book *')].filter(e=>{const r=e.getBoundingClientRect();return !(r.width===0||(r.left>=p.left-0.5&&r.right<=p.right+0.5));}).map(e=>e.className||e.tagName);
+   const edge=!(p.left>=0&&p.right<=innerWidth&&p.bottom<=innerHeight+0.5),tab=!(tabs.length===2&&tabs.every(r=>r.height>=44)),wide=body.scrollWidth>body.clientWidth+1;
+   return {ok:!edge&&!tab&&!out.length&&!wide,why:{edge,tab,out:out.slice(0,4),wide,p:[p.left,p.top,p.right,p.bottom],vw:[innerWidth,innerHeight],tabs:tabs.map(r=>r.height),sw:[body.scrollWidth,body.clientWidth]}};});
+  expect(r.ok,msg+' '+JSON.stringify(r.why));
+ };
+ await fit('きろくの まどが はみ出す');
  // けいひん: 6つの とくべつな かぐ（めやす・まだ・つぎは あと なんてん）と そのほかの ごほうび（コイン・ひょうばん・ディスク）
  await H.page.getByRole('tab',{name:'けいひん',exact:true}).click();await H.wait(300);
  const prizes=()=>H.eval(()=>[...document.querySelectorAll('.modal-wrap .koro-prize')].map(e=>({t:e.textContent,own:e.classList.contains('own'),next:e.classList.contains('next'),img:e.querySelector('img').naturalWidth>0})));
  let list=await prizes();text=await book();
  expect(list.length===6&&list.every(p=>p.img&&!p.own)&&list[0].next&&list.filter(p=>p.next).length===1&&/さくらんぼの ランプ/.test(list[0].t)&&/あと 200てん/.test(list[0].t)&&/2,500てん/.test(list[5].t)&&/コイン6てんで 1まい/.test(text)&&/ひょうばん/.test(text)&&/ディスク/.test(text),'けいひん いちらん '+JSON.stringify(list.map(p=>p.t)));
- expect(await fit(),'けいひんの まどが はみ出す');await H.shot('prizes-first');
+ await fit('けいひんの まどが はみ出す');await H.shot('prizes-first');
  // とじると また うごく
  await H.page.getByRole('button',{name:'とじる',exact:true}).click();await H.wait(500);
  const p2=await H.dbg('koro');expect(!p2.paused&&p2.t>p1.t,'まどを とじても 箱が とまった まま '+JSON.stringify([p1.t,p2.t]));
@@ -3077,11 +3083,11 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  text=await book();
  const rows=await H.eval(()=>[...document.querySelectorAll('.modal-wrap .koro-recent .koro-rank-row')].map(e=>({t:e.textContent,img:!!e.querySelector('img.koro-ball')&&e.querySelector('img.koro-ball').naturalWidth>0})));
  expect(new RegExp(`ハイスコア850てん（${today}）`).test(text)&&/あそんだ かいすう1かい/.test(text)&&/1い850てん/.test(text)&&rows.length===1&&rows[0].img&&rows[0].t===`${today}わんこ850てん`,'きろくの まどの なかみ '+JSON.stringify({text,rows}));
- expect(await fit(),'きろくの まどが はみ出す（あそんだ あと）');await H.shot('records');
+ await fit('きろくの まどが はみ出す（あそんだ あと）');await H.shot('records');
  await H.page.getByRole('tab',{name:'けいひん',exact:true}).click();await H.wait(300);
  list=await prizes();
  expect(list.slice(0,3).every(p=>p.own&&p.t.includes('もってる！')&&p.t.includes(today))&&list[3].next&&/あと 350てん/.test(list[3].t)&&!list[4].own&&!list[4].next,'もらった けいひん '+JSON.stringify(list.map(p=>p.t)));
- expect(await fit(),'けいひんの まどが はみ出す（あそんだ あと）');await H.shot('prizes');
+ await fit('けいひんの まどが はみ出す（あそんだ あと）');await H.shot('prizes');
  await H.page.getByRole('button',{name:'とじる',exact:true}).click();await H.wait(400);
  expect(await H.eval(()=>!!document.querySelector('.modal-wrap .koro-foot .btn')&&!document.querySelector('.koro-book')),'きろくを とじると けっかも きえる');
  // お店の モードえらびの「きろくと けいひん」→ みて から また えらべる

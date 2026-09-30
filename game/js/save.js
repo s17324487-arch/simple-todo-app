@@ -85,7 +85,8 @@ const Save = {
       quests: { day: "", board: [], active: [], done: [], total: 0, earned: 0 },
       // はたけ（js/farm.js・2026-09-30）: plots は 6まい（{ c: さくもつ, s: だんかい 0〜4, w: みずが ある, t: その だんかいの はじまり〔かわいて いる ときは かわいた とき〕, f: ひりょう, n: まいた ばんごう, rain: あめで みずやり }・からは { c: null }）。
       // harvests しゅうかくの かいすう・sown まいた かいすう・fert ひりょうの かいすう・got { さくもつ: とった かず }・first { さくもつ: はじめて とった 日 }
-      farm: { plots: [{ c: null }, { c: null }, { c: null }, { c: null }, { c: null }, { c: null }], harvests: 0, sown: 0, fert: 0, got: {}, first: {} },
+      // cooked { りょうり: つくった かず }（js/farm-cook.js・とれたて りょうり）
+      farm: { plots: [{ c: null }, { c: null }, { c: null }, { c: null }, { c: null }, { c: null }], harvests: 0, sown: 0, fert: 0, got: {}, first: {}, cooked: {} },
       puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },
       world: { map: "town", x: 7, y: 7, dir: "down" },
       flags: { intro: false, chests: {}, boss: false, talked: {} },

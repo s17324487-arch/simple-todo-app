@@ -542,6 +542,8 @@ const PokaDebug = {
     if (G.sceneName === "world" && G.scene.mapId === "town") { const q = WorldZoom.toScreen(G.scene, o.x * TS + 16, o.y * TS + 12); out.cx = r.left + q.x * G.cssPerUnit; out.cy = r.top + q.y * G.cssPerUnit; }
     return out;
   },
+  // とれたて りょうり（js/farm-cook.js）: りょうりごとの ざいりょう・つくれるか・もって いる かず・つくった かず・まどが ひらいて いるか
+  cookState() { return { recipes: FARM_RECIPES.map((r) => ({ id: r.id, name: FarmCook.nameOf(r.id), needs: { ...r.needs }, can: FarmCook.can(r), have: Save.d.bag[r.id] || 0 })), cooked: { ...Farm.st().cooked }, open: !!document.querySelector(".modal-wrap .farm-cook") }; },
   // はたけの じかんを min ぷん すすめる（まいた じかんを まえに ずらす）
   farmSkip(min) { Farm.skip(min); return this.farm(); },
   // はたけの がめんへ（かえりは かんばんの まえ）

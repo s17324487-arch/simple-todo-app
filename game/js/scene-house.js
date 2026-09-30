@@ -207,6 +207,8 @@ class HouseScene {
     const foods = FOODS.filter((f) => bag[f.id] > 0);
     const body = U.el("div");
     if (!foods.length) body.append(U.el("div", { class: "note", text: "たべものが ないよ……。まちの スーパーで かってこよう！" }));
+    // はたけの やさいで りょうり（js/farm-cook.js）。まどを とじたら ごはんに もどる
+    if (typeof FarmCook !== "undefined") body.prepend(UI.btn("とれたて りょうりを つくる", () => { m.close(); FarmCook.open(() => { if (G.scene === this) this.menuFood(); }); }, "farm-cook-btn"));
     const grid = U.el("div", { class: "grid" });
     for (const f of foods) {
       const card = U.el("button", { class: "card", html: `<span class="cnt">×${bag[f.id]}</span>${UI.icon("bag", f.id, 46)}<div>${f.name}</div><div class="muted">おなか+${f.hunger || 0}</div>` });

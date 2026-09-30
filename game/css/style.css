@@ -955,3 +955,17 @@ html, body {
 .farm-bar { position: absolute; left: 10px; right: 10px; bottom: max(10px, env(safe-area-inset-bottom)); display: flex; justify-content: center; gap: 10px; pointer-events: auto; z-index: 15; }
 .farm-bar .btn { min-height: 48px; flex: 1; max-width: 170px; }
 .toasts.farm-toasts { top: auto; bottom: calc(70px + env(safe-area-inset-bottom)); }
+/* とれたて りょうり（js/farm-cook.js・2026-09-30）: おうちの ごはんの うえの ボタン・りょうりの まど */
+.farm-cook-btn { width: 100%; min-height: 48px; margin-bottom: 10px; word-break: keep-all; }
+.farm-cook { word-break: keep-all; overflow-wrap: anywhere; }
+.farm-recipes { display: flex; flex-direction: column; gap: 8px; }
+.farm-recipe { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 14px; background: #FFFDF6; border: 2px solid var(--ink, #1F1D1B); }
+.farm-recipe.ok { background: var(--yellow-l, #FFF6C8); }
+.farm-recipe-txt { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.farm-recipe-txt b { font-size: 14px; }
+.farm-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.farm-chip { display: inline-flex; align-items: center; gap: 1px; padding: 1px 6px 1px 2px; border-radius: 10px; background: #EEF6E6; font-size: 12px; font-weight: 800; }
+.farm-chip svg { width: 22px; height: 22px; display: block; }
+.farm-chip.miss { background: #F4E4E0; opacity: .7; }
+.farm-recipe .btn { min-height: 44px; min-width: 66px; flex: 0 0 auto; }
+.farm-done { align-self: flex-start; padding: 1px 8px; border-radius: 10px; background: #3E9E5A; color: #FFFFFF; font-size: 12px; font-weight: 900; }
