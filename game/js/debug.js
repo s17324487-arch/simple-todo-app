@@ -8,7 +8,7 @@ const PokaDebug = {
   roomPresets(){return JSON.parse(JSON.stringify(RoomPresets.list()));},
   cityCatalog(){return IkebukuroCatalog.groups;},
   // クレーン（crane-scene.js）。arcadeState: いまの 台の ようす・arcadeMove: アームを dx・dz cm うごかす（うごかせる ときだけ）
-  arcadeState(){const s=G.sceneName==='prize'?G.scene:null,r=s&&s.round;if(!r)return null;const R=r.rig,claw=r.type==='claw'||r.type==='ring';return{machine:s.i,type:r.type,phase:r.phase,done:r.done,finished:!!s.finished,got:r.got.length,time:claw?+r.time.toFixed(2):null,claw:claw?{x:+R.x.toFixed(2),y:+R.y.toFixed(2),z:+R.z.toFixed(2)}:null,stops:r.stops??null,scoops:r.scoops??null,arms:r.type==='tripod'?R.arms.map(a=>a.up?1:0):null,light:r.type==='tripod'?R.cell():null,strong:r.strong,camera:s.camMode,bodies:r.list().length,coins:Save.d.coins,status:s.status.textContent,pusher:r.type==='pusher'?{left:r.left,lost:r.lost,hits:r.hits,queue:r.queue,shower:r.shower,slot:r.slot?{res:r.slot.res.slice(),win:r.slot.win,paid:r.slot.paid}:null,lx:+R.lx.toFixed(2),gate:+R.gateX().toFixed(2)}:null};},
+  arcadeState(){const s=G.sceneName==='prize'?G.scene:null,r=s&&s.round;if(!r)return null;const R=r.rig,claw=CraneMachines.clawy(r.type),hb=r.type==='bridge'&&r.list()[0],hc=hb&&r.W.centroid(hb),hx=hb&&CranePhys.qrot(hb.q,[1,0,0]);return{bridge:r.type==='bridge'?{box:hc?{x:+hc[0].toFixed(2),y:+hc[1].toFixed(2),z:+hc[2].toFixed(2),along:+Math.abs(hx[2]).toFixed(2)}:null,hint:r.hint?r.hint.slice():null,staff:r.staff||null,snapped:!!r.snapped,shape:hb?hb.data.shape:null,miss:PrizeArcade.norm().miss[s.i]||0}:null,machine:s.i,type:r.type,phase:r.phase,done:r.done,finished:!!s.finished,got:r.got.length,time:claw?+r.time.toFixed(2):null,claw:claw?{x:+R.x.toFixed(2),y:+R.y.toFixed(2),z:+R.z.toFixed(2)}:null,stops:r.stops??null,scoops:r.scoops??null,arms:r.type==='tripod'?R.arms.map(a=>a.up?1:0):null,light:r.type==='tripod'?R.cell():null,strong:r.strong,camera:s.camMode,bodies:r.list().length,coins:Save.d.coins,status:s.status.textContent,pusher:r.type==='pusher'?{left:r.left,lost:r.lost,hits:r.hits,queue:r.queue,shower:r.shower,slot:r.slot?{res:r.slot.res.slice(),win:r.slot.win,paid:r.slot.paid}:null,lx:+R.lx.toFixed(2),gate:+R.gateX().toFixed(2)}:null};},
   // コイン プッシャー: ランチャーを x cm へ（うごかせる ときだけ）・チャンス（スロットを まわす）
   arcadePusherAt(x){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='pusher'||r.phase!=='play')return false;r.rig.lx=Math.max(r.rig.o.lim[0],Math.min(r.rig.o.lim[1],x));return true;},
   arcadeChance(){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='pusher')return false;r.chance();return true;},
@@ -26,6 +26,9 @@ const PokaDebug = {
   arcadeStart(machine=0){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),fl=IkeArcade.floorOf(machine),f=VenueHalls.defs.arcade.floors[fl].fixtures.find(f=>f.machine===machine),back={venue:'arcade',floor:fl,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'},...(fl>1&&f?{at:f.spots[0]}:{})},run=PrizeArcade.start(machine,back);if(run)Game.goto('prize',{run},'none');return !!run;},
   // 日がわりの 台の その日の けいひん（day: "2026-10-1" の かたち・なしで きょう。calendar('2026-10-01') でも かわる）
   arcadeLineup(machine=12,day){const d=CraneMachines.DEFS[machine];return d&&d.pool?{day:day||CraneMachines.today(),shapes:CraneMachines.lineup(d,day),prizes:PrizeArcade.prizeList(machine,day),names:PrizeArcade.prizeList(machine,day).map(id=>PrizeArcade.item(id).name)}:null;},
+  // はしわたし: はずれの かず（おみせの ひとの たすけは PrizeArcade.ASSIST かい）・アームを しるしから dx・dz cm へ
+  arcadeMiss(machine,n){const a=PrizeArcade.norm();a.miss[machine]=Math.max(0,n|0);Save.write();return a.miss[machine];},
+  arcadeHint(dx=0,dz=0){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.phase!=='move'||!r.hint)return false;r.rig.load({x:r.hint[0]+dx,z:r.hint[1]+dz});return true;},
   arcadeMove(dx,dz){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.phase!=='move')return false;r.rig.load({x:r.rig.x+dx,z:r.rig.z+dz});return true;},
   arcadeDrop(){if(G.sceneName!=='prize')return false;const r=G.scene.round;G.scene.press(r.type==='sweet'&&r.phase==='swing2'?1:0);return true;},
   // テスト用: アームを 景品の 上へ（i: 景品の じゅんばん。リングの 台は リングの まえ）・アームの つよさ・はやおくり・カメラ
@@ -109,7 +112,7 @@ const PokaDebug = {
       "PokaDebug.hour(21)                    時刻を固定（null で戻す）",
       "PokaDebug.roadPreview(def, view)       道の検証画像（セーブ・現在地は変えない）",
       "PokaDebug.fps(2000)                   指定ミリ秒のあいだの平均FPSを返す（Promise）",
-      "PokaDebug.venue('arcade', 2)         Meeときょれじゃ の 2F（おかし キャッチャー）。arcadeLineup(12) で 日がわりの けいひん・arcadeStart(12〜16) で 2F の 台",
+      "PokaDebug.venue('arcade', 2)         Meeときょれじゃ の 2F（おかし キャッチャー・はしわたし）。arcadeLineup(12) で 日がわりの けいひん・arcadeStart(12〜18) で 2F の 台・arcadeMiss(17, 4) で はしわたしの たすけ・arcadeHint() で しるしへ",
       "PokaDebug.areaMap()                  すまほ の ちず「この エリア」の ようす（めじるし・なまえ・えらんだ もの）。areaMapLayout('town', 4.46) で ならびだけ",
     ];
     console.log(lines.join("\n"));

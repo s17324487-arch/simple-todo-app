@@ -1,7 +1,7 @@
 // クレーンゲームの 画面（SCENES.prize）と PrizeArcade（100コイン・つづきから・ごほうび）。
 // 台の なかは 3D の 物理（CraneMachines）。ここでは カメラで うつして、筐体・アーム・景品を 描く。まえ と よこ の 2つの カメラ。
 const PrizeArcade = {
-  // 17台（台の 番号は CraneMachines.DEFS・館の 什器 machine と おなじ。0〜11 は 1F・12〜16 は 2F の おかし キャッチャー）。qty: 1こ とれた ときに もらえる かず・coins: 1こ とれた ときの コイン
+  // 19台（台の 番号は CraneMachines.DEFS・館の 什器 machine と おなじ。0〜11 は 1F・12〜16 は 2F の おかし キャッチャー・17〜18 は 2F の はしわたし）。qty: 1こ とれた ときに もらえる かず・coins: 1こ とれた ときの コイン
   // prize は 台の だいひょうの 景品（まぜて ある 台は 形ごとの 景品 CraneMachines.SHAPES[...].prize を わたす）
   machines: [
     { id: "chibi-wanko", type: "claw", name: "わんこの ぬいぐるみ", label: "わんこ ぬいぐるみ", prize: "ike_chibi_wanko_0", mix: 4, qty: 1 },
@@ -22,8 +22,13 @@ const PrizeArcade = {
     { id: "snack-ring", type: "ring", name: "リングフック・おかし", label: "おかし リング", prize: "ike_snack_waffle", mix: 2, qty: 1, daily: true },
     { id: "snack-sweet", type: "sweet", name: "スウィートランド・おかし", label: "スウィート おかし", prize: "ike_snack_candy", mix: 3, qty: 1, daily: true },
     { id: "snack-big", type: "claw", name: "ビッグ おかし キャッチャー", label: "ビッグ おかし", prize: "ike_snack_chips", qty: 1, daily: true },
+    // 2F の はしわたし（日がわり。とれた けいひんは 家具）
+    { id: "hashi-fig", type: "bridge", name: "はしわたし・フィギュア", label: "フィギュア", prize: "ike_hashi_hero", qty: 1, daily: true },
+    { id: "hashi-goods", type: "bridge", name: "はしわたし・ざっか", label: "ざっか", prize: "ike_hashi_planet", qty: 1, daily: true },
   ],
   PRICE: 100,
+  // はしわたしで おみせの 人が たすける までの はずれの かず
+  ASSIST: 4,
   // コイン プッシャーの スロットの かお（ミニマスコットの 絵）
   SLOT_FACES: ["wanko", "gachan", "goji"],
   rules: {
@@ -32,6 +37,7 @@ const PrizeArcade = {
     sweet: "ショベルが うごいて いる ときに「すくう」。つぎに「おとす」で ステージに おとそう。おしだしで てまえから おちた おかしが もらえるよ。1かいで 3ど すくえるよ。",
     tripod: "ひかりが アームの ところで「とめる」と、その アームが おちるよ。アームが へると けいひんが あなに おちるよ。1かいで 3ど とめられるよ。おちた アームは つぎも そのままだよ。",
     pusher: "◀ ▶ で ばしょを きめて「いれる」。おしだしで てまえに おちた メダルが もらえるよ。よこの あなは ざんねん。チャンスの わを とおると スロットが まわるよ。",
+    bridge: "2ほんの ぼうの あいだに はこを おとそう。はこを はさむと アームの まんなかへ よるよ。はこの はしを ねらって すこしずつ ずらそう。はこの ばしょは つぎも そのまま。",
   },
   // ふるい セーブにも 台の ようす・はずれの かずを たす
   norm() { const a = Save.d.arcade || (Save.d.arcade = { active: null, settled: null, plays: 0, wins: 0 }); if (!a.boards || typeof a.boards !== "object") a.boards = {}; if (!a.miss || typeof a.miss !== "object") a.miss = {}; if (!a.got || typeof a.got !== "object") a.got = {}; this.upgrade(a); return a; },
@@ -81,7 +87,8 @@ const PrizeArcade = {
     const a = this.norm();
     if (a.active || !this.machines[machine] || Save.d.coins < this.PRICE || !this.coinOpen(machine)) return null;
     const m = this.machines[machine], strong = m.type === "claw" ? Math.random() < this.chance(machine) : true;
-    const run = { id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2), machine, def: m.id, back, strong, cp: null };
+    // はしわたし: はずれが 4かい つづくと、おみせの 人が はこを おとしやすい むきに おきなおす（assist）
+    const run = { id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2), machine, def: m.id, back, strong, cp: null, ...(m.type === "bridge" && (a.miss[machine] || 0) >= this.ASSIST ? { assist: true } : {}) };
     const coins = Save.d.coins; Save.d.coins -= this.PRICE; a.active = run; Save.write();
     try { if (JSON.parse(localStorage.getItem(Save.KEY))?.arcade?.active?.id === run.id) return run; } catch (e) {}
     Save.d.coins = coins; a.active = null; Save.mark(); return null;
@@ -97,6 +104,7 @@ const PrizeArcade = {
     }
     if (n > 0) { a.wins++; a.got[run.machine] = (a.got[run.machine] || 0) + n; }
     if (m.type === "claw") a.miss[run.machine] = got.length ? 0 : Math.min(4, (a.miss[run.machine] || 0) + 1);
+    if (m.type === "bridge") a.miss[run.machine] = got.length || run.assist ? 0 : Math.min(this.ASSIST, (a.miss[run.machine] || 0) + 1);
     if (round && round.board) a.boards[run.machine] = round.board();
     a.plays++; a.settled = run.id; a.active = null; Save.write(); return true;
   },
@@ -134,7 +142,7 @@ class CraneScene {
     this.run = p.run; this.i = this.run.machine; this.m = PrizeArcade.machines[this.i]; this.def = CraneMachines.DEFS[this.i]; this.th = CraneArt.THEME[this.def.theme];
     this.closed = false; this.hold = {}; this.fx = []; this.clock = 0; this.saveT = 0; this.gotShown = 0; this.finished = false; this.speed = 1; this.cheer = 0; this.sad = 0; this.flash = 0;
     const cp = this.run.cp && this.run.cp.board ? this.run.cp : null, board = cp ? cp.board : a.boards[this.i] || null;
-    this.round = new CraneMachines.CraneRound(this.i, board, { strong: this.run.strong !== false, cp });
+    this.round = new CraneMachines.CraneRound(this.i, board, { strong: this.run.strong !== false, cp, assist: !!this.run.assist && !cp });
     this.camMode = "front"; this.cam = new CraneCam(this.def, "front"); this.cams = { front: this.cam, side: new CraneCam(this.def, "side") };
     UI.showHud(true, "Meeときょれじゃ"); Sound.bgm("arcade_hall");
     this.buildUI(); this.resize();
@@ -156,7 +164,7 @@ class CraneScene {
     this.status = U.el("div", { class: "crane-status" });
     const row = U.el("div", { class: "crane-row" });
     // プッシャーは ◀ ▶ だけ（ランチャーを よこに うごかす）
-    this.pad = U.el("div", { class: "crane-pad" + (t === "claw" || t === "ring" || push ? "" : " hidden") + (push ? " lr" : "") });
+    this.pad = U.el("div", { class: "crane-pad" + (CraneMachines.clawy(t) || push ? "" : " hidden") + (push ? " lr" : "") });
     for (const [dir, label, gx, gy, name] of push ? [["left", "◀", 1, 1, "ひだり"], ["right", "▶", 3, 1, "みぎ"]] : [["up", "▲", 2, 1, "おく"], ["left", "◀", 1, 2, "ひだり"], ["right", "▶", 3, 2, "みぎ"], ["down", "▼", 2, 3, "てまえ"]]) {
       const b = U.el("button", { class: "crane-dir", html: label, "aria-label": name });
       b.style.gridColumn = gx; b.style.gridRow = gy;
@@ -187,7 +195,7 @@ class CraneScene {
     const r = this.round, t = r.type, ph = r.phase;
     let s = "";
     if (this.finished) s = r.got.length ? "やったー！ ゲット！" : "おしい！ また チャレンジ しよう。";
-    else if (t === "claw" || t === "ring") s = ph === "move" ? `のこり ${Math.ceil(r.time)}びょう ・ やじるしで うごかして「つかむ」` : ph === "down" ? "おりるよ… もういちど おすと そこで つかむ" : ph === "stop" || ph === "open" ? "アームが ひらくよ…" : ph === "close" ? "つかんで…" : ph === "up" || ph === "top" ? "もちあげて…" : ph === "carry" ? "おとしぐちへ はこぶよ…" : ph === "release" ? "はなすよ！" : "どうかな…";
+    else if (CraneMachines.clawy(t)) s = ph === "move" ? (t === "bridge" ? (r.hint ? `のこり ${Math.ceil(r.time)}びょう ・ ひかる しるしを ねらおう` : `のこり ${Math.ceil(r.time)}びょう ・ はこの はしを ねらおう`) : `のこり ${Math.ceil(r.time)}びょう ・ やじるしで うごかして「つかむ」`) : ph === "down" ? "おりるよ… もういちど おすと そこで つかむ" : ph === "stop" || ph === "open" ? "アームが ひらくよ…" : ph === "close" ? (t === "bridge" ? "はさんで…" : "つかんで…") : ph === "up" || ph === "top" ? "もちあげて…" : ph === "carry" ? (t === "bridge" ? "もとの ところへ もどるよ…" : "おとしぐちへ はこぶよ…") : ph === "release" ? "はなすよ！" : "どうかな…";
     else if (t === "tripod") s = ph === "spin" ? `ひかりを アームの ところで「とめる」 ・ のこり ${r.stops}かい` : ph === "stopped" ? (r.hit ? "あたり！ アームが おちた！" : "はずれ… つぎは どこで とめる？") : "どうかな…";
     else if (t === "pusher") s = ph === "play" ? (r.left > 0 ? `のこり ${r.left}まい ・ ◀ ▶ で えらんで「いれる」` : r.slot || r.queue ? "スロットが まわって いるよ…" : "メダルが おちて いくよ…") : ph === "watch" ? `おしだしを みまもろう… ${r.got.length}まい ゲット` : "どうかな…";
     else s = ph === "swing" ? `いまだ！と おもったら「すくう」 ・ のこり ${r.scoops}かい` : ph === "swing2" ? "ステージの どこに おとす？「おとす」" : ph === "dip" || ph === "scoop" ? "すくってる…" : ph === "lift" ? "はこんでるよ…" : ph === "dump" || ph === "back" ? "おとしたよ！" : ph === "watch" ? `おしだしを みまもろう… ${r.got.length}こ おちた` : "どうかな…";
@@ -306,6 +314,7 @@ class CraneScene {
       for (let i = 0; i < 18; i++) this.fx.push({ k: "conf", t: 0, life: 1.4 + (i % 5) * 0.12, a: (i / 18) * Math.PI * 2, v: 60 + (i * 37) % 70, c: ["#F7A9C8", "#FFE07A", "#9ED3C6", "#C9B6EE"][i % 4] });
     } else if (ev.e === "armdrop") Sound.se("crane_arm");
     else if (ev.e === "loose") Sound.se("crane_loose");
+    else if (ev.e === "staff") { Sound.se("good"); UI.toast(ev.what === "assist" ? "おみせの ひとが はこを たてむきに おきなおして くれたよ！" : "おみせの ひとが はこを もとの ばしょに もどしたよ"); }
   }
   key(k, down) { if (down && k === "ok") { if (this.finished) return; const r = this.round; this.press(r.type === "sweet" && r.phase === "swing2" ? 1 : 0); } }
 
@@ -320,8 +329,9 @@ class CraneScene {
     const list = [];
     this.collectMachine(list);
     for (const b of r.list()) list.push({ d: c.raw(...r.W.centroid(b))[2], draw: () => this.drawBody(ctx, b) });
-    if (r.type === "claw" || r.type === "ring") this.collectClaw(list);
+    if (CraneMachines.clawy(r.type)) this.collectClaw(list);
     list.sort((a, b) => b.d - a.d).forEach((o) => o.draw());
+    if (r.hint && r.phase === "move") this.drawHint(ctx);
     if (clip) ctx.restore();
     this.drawGlass(ctx);
     this.drawFrame(ctx);
@@ -380,7 +390,7 @@ class CraneScene {
     // よこの かべの ネット（こまかい あみ）
     ctx.strokeStyle = sideTint; ctx.lineWidth = 1;
     for (const x of [0, M.w]) for (let k = 1; k < 8; k++) { const a = c.p(x, (M.h * k) / 8, 0), b = c.p(x, (M.h * k) / 8, M.d); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
-    if (d.chute) this.drawChute(ctx);
+    if (d.bars) this.drawBridgeFloor(ctx); else if (d.chute) this.drawChute(ctx);
     if (r.type === "tripod") this.drawTripodFloor(ctx);
     if (r.type === "sweet") this.drawSweetFloor(ctx);
     if (r.type === "pusher") this.drawPusherFloor(ctx);
@@ -399,6 +409,55 @@ class CraneScene {
     this.poly(ctx, this.P3(h), null, `rgba(255,236,150,${0.5 + glow * 0.4})`, 2.4);
     const [lx, ly, ld] = this.cam.p((ch.x0 + ch.x1) / 2, 0.1, (ch.z0 + ch.z1) / 2);
     ctx.fillStyle = `rgba(255,236,150,${0.55 + glow * 0.3})`; ctx.font = `900 ${Math.max(9, this.cam.s(3.4, ld))}px sans-serif`; ctx.textAlign = "center"; ctx.fillText("GET", lx, ly + 3);
+  }
+  // おみせの ひとの しるし（はこの うえの ひかる わ・うえから「ここ」の やじるし）
+  drawHint(ctx) {
+    const r = this.round, H = r.hint, b = r.list()[0], c = this.cam; if (!b) return;
+    let top = 0; for (let k = b.i0; k < b.i0 + b.n; k++) { const p = r.W.P[k]; top = Math.max(top, p.y + p.r); }
+    const pulse = 0.5 + 0.5 * Math.sin(this.clock * 6), N = 28, ring = (rad, y) => Array.from({ length: N }, (_, i) => { const a = (i / N) * Math.PI * 2; return c.p(H[0] + Math.cos(a) * rad, y, H[1] + Math.sin(a) * rad); });
+    this.poly(ctx, ring(2.5 + pulse * 0.8, top + 0.3), `rgba(255,236,120,${0.28 + pulse * 0.2})`, "#FFE45C", 2.6);
+    this.poly(ctx, ring(1, top + 0.35), "#FFF6C8", INK, 1.2);
+    // よこから さす やじるしと「ここ」（アームと かさならない ように みぎよこ）
+    const m = c.p(H[0], top + 0.3, H[1]), sz = Math.max(10, c.s(3.4, m[2])), ax = m[0] + sz * (2.2 + pulse * 0.3), ay = m[1] - sz * 0.2;
+    ctx.fillStyle = "#FFE45C"; ctx.strokeStyle = INK; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(ax - sz * 1.1, ay); ctx.lineTo(ax - sz * 0.3, ay - sz * 0.55); ctx.lineTo(ax - sz * 0.3, ay + sz * 0.55); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.font = `900 ${Math.round(sz * 0.9)}px 'M PLUS Rounded 1c', sans-serif`; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.lineWidth = 3.4; ctx.strokeStyle = "#FFFFFF"; ctx.strokeText("ここ！", ax - sz * 0.15, ay); ctx.fillStyle = INK; ctx.fillText("ここ！", ax - sz * 0.15, ay); ctx.textBaseline = "alphabetic";
+  }
+  // はしわたし: 2本の ぼうの した（あな・うちがわの かべ）。ぼうと あしは collectMachine で ふかさ順に
+  drawBridgeFloor(ctx) {
+    const B = this.def.bars, M = this.def.box, c = this.cam, deep = -16;
+    const q = (pts, fill) => this.poly(ctx, this.P3(pts), fill);
+    q([[B.x0, deep, 0], [B.x1, deep, 0], [B.x1, deep, M.d], [B.x0, deep, M.d]], "#1C1628");
+    for (const x of [B.x0, B.x1]) { const g = ctx.createLinearGradient(0, c.p(x, 0, M.d / 2)[1], 0, c.p(x, deep, M.d / 2)[1]); g.addColorStop(0, "#5A4B78"); g.addColorStop(1, "#231C33"); q([[x, 0, 0], [x, 0, M.d], [x, deep, M.d], [x, deep, 0]], g); }
+    { const g = ctx.createLinearGradient(0, c.p(B.x0, 0, M.d)[1], 0, c.p(B.x0, deep, M.d)[1]); g.addColorStop(0, "#4A3D66"); g.addColorStop(1, "#231C33"); q([[B.x0, 0, M.d], [B.x1, 0, M.d], [B.x1, deep, M.d], [B.x0, deep, M.d]], g); }
+    // ふちの ライト・GET（てまえ）
+    const glow = 0.55 + 0.45 * Math.sin(this.clock * 5);
+    this.poly(ctx, this.P3([[B.x0, 0, 0], [B.x1, 0, 0], [B.x1, 0, M.d], [B.x0, 0, M.d]]), null, `rgba(255,236,150,${0.45 + glow * 0.4})`, 2.4);
+    const [lx, ly, ld] = c.p((B.x0 + B.x1) / 2, deep + 0.1, 7); ctx.fillStyle = `rgba(255,236,150,${0.55 + glow * 0.3})`; ctx.font = `900 ${Math.max(9, c.s(3.6, ld))}px sans-serif`; ctx.textAlign = "center"; ctx.fillText("GET", lx, ly + 3);
+  }
+  // ぼう（はこの まえの めんで 2つに きって ふかさ順に: はこが あなに かたむくと てまえの ぼうが はこの まえに くる）と あし
+  collectBars(list) {
+    const ctx = this._ctx, c = this.cam, B = this.def.bars, r = this.round, cols = B.rubber ? ["#E26A98", "#FFD1E2", "#F29BB8"] : ["#8A939E", "#F4F7FA", "#B7BEC7"];
+    const b0 = r.list()[0]; let zs = B.z0;
+    if (b0) { let m = Infinity; for (let k = b0.i0; k < b0.i0 + b0.n; k++) { const p = r.W.P[k]; m = Math.min(m, p.z - p.r); } zs = Math.max(B.z0, Math.min(B.z1, m)); }
+    for (const x of [B.x0, B.x1]) {
+      for (const z of [B.z0, B.z1]) list.push({ d: c.raw(x, B.y / 2, z)[2] + 0.4, draw: () => { const a = c.p(x, 0, z), b = c.p(x, B.y, z); CraneArt.rod(ctx, a, b, Math.max(3, c.s(2.2, a[2])), ["#3E4450", "#C9D0DA", "#6C7582"]); this.poly(ctx, this.boxPts(x, 0.4, z, 2.2, 0.4, 2.2), "#6C7582", INK, 1.2); } });
+      const piece = (za, zb, capA, capB) => list.push({ d: c.raw(x, B.y, (za + zb) / 2)[2], draw: () => this.bar(ctx, x, B.y, za, zb, B.r, cols, capA, capB, B.rubber) });
+      if (zs > B.z0 + 0.5) piece(B.z0, zs, true, false);
+      piece(Math.max(B.z0, zs), B.z1, zs <= B.z0 + 0.5, true);
+    }
+  }
+  // よこから みた つつ（てまえ → おくで ほそく なる）。cap: はしを まるく
+  bar(ctx, x, y, za, zb, rad, cols, capA, capB, rubber) {
+    const c = this.cam, a = c.p(x, y, za), b = c.p(x, y, zb), wa = Math.max(2.4, c.s(rad * 2, a[2])), wb = Math.max(2.4, c.s(rad * 2, b[2]));
+    const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l;
+    const band = (k0, k1, grow = 0) => [[a[0] + nx * (wa * k0 - grow), a[1] + ny * (wa * k0 - grow)], [b[0] + nx * (wb * k0 - grow), b[1] + ny * (wb * k0 - grow)], [b[0] + nx * (wb * k1 + grow), b[1] + ny * (wb * k1 + grow)], [a[0] + nx * (wa * k1 + grow), a[1] + ny * (wa * k1 + grow)]];
+    const cap = (p, w, fill, grow = 0) => { ctx.fillStyle = fill; ctx.beginPath(); ctx.arc(p[0], p[1], w / 2 + grow, 0, 7); ctx.fill(); };
+    if (capA) cap(a, wa, INK, 1); if (capB) cap(b, wb, INK, 1);
+    this.poly(ctx, band(-0.5, 0.5, 1), INK);
+    if (capA) cap(a, wa, cols[0]); if (capB) cap(b, wb, cols[0]);
+    this.poly(ctx, band(-0.5, 0.5), cols[0]); this.poly(ctx, band(-0.42, 0.12), cols[2]); this.poly(ctx, band(-0.34, -0.14), cols[1]);
+    // ゴムの チューブの わ
+    if (rubber) { ctx.strokeStyle = "rgba(140,40,80,0.35)"; ctx.lineWidth = 1; const n = Math.max(3, Math.round((zb - za) / 3)); for (let j = 1; j < n; j++) { const t = j / n, px = a[0] + dx * t, py = a[1] + dy * t, w = (wa + (wb - wa) * t) / 2; ctx.beginPath(); ctx.moveTo(px - nx * w, py - ny * w); ctx.lineTo(px + nx * w, py + ny * w); ctx.stroke(); } }
   }
   drawTripodFloor(ctx) {
     const R = this.round.rig, o = R.o, c = this.cam, N = 40;
@@ -467,7 +526,7 @@ class CraneScene {
   // かげ（ゆか・ステージ・まわる 台の 上）
   drawShadows(ctx) {
     const c = this.cam, r = this.round;
-    const floorAt = (x, y, z) => { if (r.type === "pusher") { const F = r.field; if (x < F.x0 || x > F.x1 || z < F.ze) return -60; return z > r.rig.front() && z < F.wipe && y > F.top + 3.5 ? F.top + 4 : F.top; } if (r.type === "sweet") { const st = r.stage, o = r.rig.o; if (y > st.top - 1 && x > st.cx - st.w / 2 && x < st.cx + st.w / 2 && z > st.z0 && z < st.z1) return st.top; if (Math.hypot(x - o.cx, z - o.cz) < o.rad) return o.top; } return 0; };
+    const floorAt = (x, y, z) => { if (r.type === "bridge") { const B = this.def.bars; return x > B.x0 && x < B.x1 ? -60 : 0; } if (r.type === "pusher") { const F = r.field; if (x < F.x0 || x > F.x1 || z < F.ze) return -60; return z > r.rig.front() && z < F.wipe && y > F.top + 3.5 ? F.top + 4 : F.top; } if (r.type === "sweet") { const st = r.stage, o = r.rig.o; if (y > st.top - 1 && x > st.cx - st.w / 2 && x < st.cx + st.w / 2 && z > st.z0 && z < st.z1) return st.top; if (Math.hypot(x - o.cx, z - o.cz) < o.rad) return o.top; } return 0; };
     // ゆかに おちる まるい かげ（ゆかの 上の 円を カメラで うつす。たかい ほど うすく 大きく）
     const shadow = (x, y, z, rad, a) => {
       const fy = floorAt(x, y, z), h = y - fy; if (h < -1) return;
@@ -477,7 +536,7 @@ class CraneScene {
       ctx.fillStyle = `rgba(30,20,40,${a * k})`; ctx.beginPath(); ctx.ellipse(p[0], p[1], rx, ry, 0, 0, 7); ctx.fill();
     };
     for (const b of r.list()) { const q = r.W.centroid(b), s = b.data.size || [10, 10, 10]; shadow(q[0], q[1], q[2], Math.max(s[0], s[2]) * 0.42, 0.28); }
-    if (r.type === "claw" || r.type === "ring") { const h = r.rig.hub(); shadow(h[0], h[1], h[2], 6.5, 0.32); }
+    if (CraneMachines.clawy(r.type)) { const h = r.rig.hub(); shadow(h[0], h[1], h[2], 6.5, 0.32); }
   }
   // ---- 景品 ----
   drawBody(ctx, b) {
@@ -618,6 +677,7 @@ class CraneScene {
   collectMachine(list) {
     const ctx = this._ctx, c = this.cam, r = this.round, d = this.def;
     if (d.chute) for (const g of d.chute.guards || []) list.push({ d: c.raw(...g.c)[2], draw: () => this.acrylic(g) });
+    if (d.bars) this.collectBars(list);
     if (r.type === "tripod") for (const a of r.rig.arms) { const m = [(a.c.a[0] + a.c.b[0]) / 2, (a.c.a[1] + a.c.b[1]) / 2, (a.c.a[2] + a.c.b[2]) / 2]; list.push({ d: c.raw(...m)[2], draw: () => this.drawTriArm(a) }); }
     if (r.type === "sweet") this.collectSweet(list);
     if (r.type === "pusher") this.collectPusher(list);
@@ -769,7 +829,7 @@ class CraneScene {
     ctx.lineWidth = 4; ctx.strokeStyle = "#FFFFFF"; ctx.strokeText(th.sign, mid[0], mid[1] - fs * 0.25, Math.abs(inner[1][0] - inner[0][0]) - 10);
     ctx.fillStyle = this.shade(th.body2, -0.35); ctx.fillText(th.sign, mid[0], mid[1] - fs * 0.25, Math.abs(inner[1][0] - inner[0][0]) - 10);
     // デジタルの のこり（びょう・かい）
-    const r = this.round, led = r.type === "claw" || r.type === "ring" ? String(Math.max(0, Math.ceil(r.phase === "move" ? r.time : 0))).padStart(2, "0") : r.type === "tripod" ? String(r.stops) : r.type === "pusher" ? String(r.left) : String(r.scoops);
+    const r = this.round, led = CraneMachines.clawy(r.type) ? String(Math.max(0, Math.ceil(r.phase === "move" ? r.time : 0))).padStart(2, "0") : r.type === "tripod" ? String(r.stops) : r.type === "pusher" ? String(r.left) : String(r.scoops);
     { const lp = F(L + pw - 2.6, top + sign / 2), lh = Math.max(14, c.s(sign - 5, lp[2])), lw = lh * (led.length > 1 ? 1.25 : 0.8);
       ctx.fillStyle = "#1B1426"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; U.rr(ctx, lp[0] - lw, lp[1] - lh / 2, lw, lh, 3); ctx.fill(); ctx.stroke();
       ctx.font = `900 ${lh * 0.72}px ui-monospace, Menlo, monospace`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#FF6B4A"; ctx.shadowColor = "#FF6B4A"; ctx.shadowBlur = 6; ctx.fillText(led, lp[0] - lw / 2, lp[1] + 1); ctx.shadowBlur = 0; }
@@ -778,6 +838,11 @@ class CraneScene {
       const miss = PrizeArcade.norm().miss[this.i] || 0, fill = this.finished ? miss : miss, ms = Math.max(8, fs * 0.55), y = mid[1] + fs * 0.55;
       ctx.font = `800 ${ms}px sans-serif`; ctx.fillStyle = INK; ctx.fillText("チャンス", mid[0] - ms * 3, y);
       for (let k = 0; k < 4; k++) { ctx.fillStyle = k < fill ? "#FF7BA8" : "#E6DDEA"; ctx.beginPath(); ctx.arc(mid[0] + ms * 0.2 + k * ms * 1.3, y, ms * 0.42, 0, 7); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke(); }
+    } else if (this.round.type === "bridge") {
+      // おみせの 人の おてつだい（はずれ 4かいで はこを おきなおして くれる）
+      const miss = PrizeArcade.norm().miss[this.i] || 0, ms = Math.max(8, fs * 0.55), y = mid[1] + fs * 0.55; ctx.font = `800 ${ms}px sans-serif`; ctx.fillStyle = INK;
+      if (this.round.staff === "assist" || (this.run.assist && this.run.cp)) ctx.fillText("おみせの ひとが なおしたよ", mid[0], y);
+      else { ctx.fillText("おてつだい", mid[0] - ms * 3.2, y); for (let k = 0; k < PrizeArcade.ASSIST; k++) { ctx.fillStyle = k < miss ? "#7ED4C0" : "#E6DDEA"; ctx.beginPath(); ctx.arc(mid[0] + ms * 0.4 + k * ms * 1.3, y, ms * 0.42, 0, 7); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke(); } }
     } else if (this.round.type === "tripod") {
       const ms = Math.max(8, fs * 0.55), y = mid[1] + fs * 0.55; ctx.font = `800 ${ms}px sans-serif`; ctx.fillStyle = INK; ctx.fillText("アーム のこり " + this.round.rig.arms.filter((a) => a.up).length, mid[0], y);
     } else if (this.round.type === "pusher" && (this.round.slot || this.slotShow > 0)) {
