@@ -323,6 +323,33 @@ html, body {
 .koro-next { margin-top: 6px; }
 .koro-foot { display: flex; gap: 8px; width: 100%; }
 .koro-foot .btn { flex: 1; min-height: 48px; padding: 8px 6px; white-space: nowrap; }
+/* スコア モードの みぎ うえ（きろく・やめる）と、きろくと けいひんの まど（2026-09-30） */
+.koro-top { position: absolute; right: 8px; top: calc(8px + var(--safe-t)); display: flex; gap: 6px; z-index: 15; }
+.koro-top .btn { min-height: 44px; min-width: 56px; }
+.koro-result, .koro-book { word-break: keep-all; overflow-wrap: anywhere; }
+.koro-more { margin-top: 8px; min-height: 44px; }
+.koro-tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+.koro-tabs .btn { flex: 1; min-height: 44px; }
+.koro-recent .koro-rank-row { gap: 6px; }
+.koro-recent .koro-rank-row .d { width: 3em; text-align: left; }
+.koro-recent .koro-rank-row .big { flex: 1; font-size: 12px; color: #6b604f; }
+.koro-recent .koro-rank-row .s { flex: none; }
+.koro-ball { width: 26px; height: 26px; flex: none; object-fit: contain; }
+.koro-empty { font-size: 13px; font-weight: 700; color: #8a7d6a; padding: 6px 2px; }
+.koro-lead { font-size: 13px; font-weight: 700; margin: 0 0 4px; }
+.koro-prize { display: flex; align-items: center; gap: 8px; margin-top: 8px; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 6px 8px; }
+.koro-prize img { width: 56px; height: 56px; object-fit: contain; flex: none; }
+.koro-prize:not(.own) img { filter: grayscale(0.7); opacity: 0.7; }
+.koro-prize .t { flex: 1; min-width: 0; }
+.koro-prize .t b { display: block; font-size: 14px; line-height: 1.3; }
+.koro-prize .t small { display: block; font-size: 11px; font-weight: 700; color: #8a7d6a; line-height: 1.35; margin-top: 2px; }
+.koro-prize .tag { flex: none; width: 5.4em; text-align: right; font-weight: 800; }
+.koro-prize .tag b { display: block; font-size: 14px; }
+.koro-prize .tag span { display: block; font-size: 11px; color: #8a7d6a; white-space: pre-line; }
+.koro-prize.own { background: var(--yellow-l); border-color: #d9b64a; }
+.koro-prize.own .tag span { color: #3f8f3a; }
+.koro-prize.next .tag span { color: #e8453c; }
+.koro-other { margin: 12px 0 4px; }
 
 /* ---- タイトル ---- */
 .title-ui { position: absolute; left: 0; right: 0; bottom: calc(40px + var(--safe-b)); display: flex; flex-direction: column; align-items: center; gap: 12px; }

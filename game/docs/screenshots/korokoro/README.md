@@ -61,6 +61,18 @@
 - `balls.png`: 8だん × 表情 5つ（normal・happy・surprise・sad・sleep）。あかい てんせんは 当たりの 円（3人の かおの 絵は みみ と 表情の かざりの ぶん ひろい）。
 - `building.png`: お店の 建物（ひる・よる）。原画は `tools/town-design/nerikasu-buildings.mjs` の `korokoro()`。
 
+### きろくと けいひん（MG-05）
+
+オーナーの FB（2026-09-30）「過去の スコアの 記録を 見る ボタンを 用意せよ」「スコアに 応じて 貰える 景品 一覧を 見れる ように しろ」。スコア モードの みぎ うえの「きろく」・けっかの「きろくと けいひんを みる」・お店の モードえらびの「きろくと けいひん」で ひらく（`KorokoroScore.openRecords`）。
+
+| がめん | 390×844 | 375×667 |
+| --- | --- | --- |
+| スコア モード（みぎ うえに「きろく」「やめる」） | `records-390-top.png` | `records-375-top.png` |
+| はじめての けいひん（6つの めやす・つぎは あと 200てん） | `records-390-prizes-first.png` | `records-375-prizes-first.png` |
+| きろく（ハイスコア・あそんだ かいすう・ランキング・さいきん あそんだ きろく） | `records-390-records.png` | `records-375-records.png` |
+| けいひん（850てんで 3つ もってる・つぎは あと 350てん・そのほかの ごほうび） | `records-390-prizes.png` | `records-375-prizes.png` |
+| お店の モードえらび（「きろくと けいひん」） | `records-390-mode.png` | `records-375-mode.png` |
+
 ## BGM の 出典
 
 - 店内・おてつだいの 曲: R. シューマン「たのしい のうふ」（Album für die Jugend 作品68 だい10ばん・1848年）。作曲者は 1856年に なくなって いる ので パブリックドメイン。
