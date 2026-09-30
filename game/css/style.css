@@ -1058,3 +1058,41 @@ html, body {
 .gacha-own{font-size:10px;font-weight:800;color:#8a7d6a;margin-top:2px}
 .gacha-card.rare .gacha-own{color:#D4861E}
 @media(prefers-reduced-motion:reduce){.gacha-knob.turn,.gacha-cap.drop,.gacha-prize,.gacha-bigcap{animation:none}}
+
+/* エリアの ちず（AreaMap）と ちずの タブ（UI-13） */
+.atlas-tabs { display:flex; gap:6px; margin:10px 0 6px; }
+.atlas-tab { flex:1; min-height:44px; border:2px solid #A1B19A; border-radius:12px; background:#FFFCF0; color:#334D41; font:inherit; font-size:14px; font-weight:800; cursor:pointer; }
+.atlas-tab[aria-selected="true"] { background:#9ED9B1; border-color:#5D837B; box-shadow:0 2px 0 #5D837B; }
+.atlas-tab:focus-visible { outline:3px solid #DFA45A; outline-offset:2px; }
+.atlas-pane[hidden] { display:none; }
+.atlas-open-local { margin-top:6px; }
+.area-map { margin:6px 0 12px; color:#334D41; }
+.amap-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.amap-head .amap-select { flex:1; min-width:0; font-weight:800; font-size:15px; }
+.amap-now { flex:0 0 auto; font-size:12px; font-weight:800; color:#C23E5E; }
+.amap-frame { position:relative; overflow:hidden; border-radius:14px; background:#FBF6E9; box-shadow:0 3px 0 #DAD4BD; touch-action:manipulation; }
+.amap-frame.zoomed { overflow:auto; max-height:460px; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+.amap-frame:not(.zoomed) .amap-svg { width:100%; height:auto; }
+.amap-svg { display:block; margin:0 auto; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
+.amap-tools { display:flex; gap:6px; margin-top:8px; }
+.amap-tools .btn { flex:1; min-height:44px; font-size:13px; }
+.amap-info { min-height:64px; padding:10px 2px 4px; }
+.amap-hint { margin:0; font-size:12px; line-height:1.7; color:#5F6A5B; }
+.amap-card { display:flex; gap:10px; align-items:flex-start; }
+.amap-card-icon svg { display:block; }
+.amap-card h4 { margin:0 0 2px; font-size:16px; line-height:1.35; }
+.amap-card-cat { font-size:11px; font-weight:800; }
+.amap-card p { margin:4px 0 0; font-size:12px; line-height:1.7; }
+.amap-card-dir { color:#8C6940; font-weight:700; }
+.amap-list { border-top:1px dashed #AEBBA3; margin-top:4px; }
+.amap-list summary { min-height:44px; padding:12px 2px; cursor:pointer; font-size:13px; font-weight:800; }
+.amap-list summary:focus-visible, .amap-item:focus-visible { outline:3px solid #DFA45A; outline-offset:2px; }
+.amap-group { margin:10px 0 5px; font-size:12px; }
+.amap-items { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }
+.amap-item { display:flex; align-items:center; gap:6px; min-width:0; min-height:44px; padding:4px 7px; border:2px solid #D8D0BC; border-radius:10px; background:#FFFCF3; color:#334D41; font:inherit; font-size:12px; font-weight:700; text-align:left; line-height:1.25; cursor:pointer; }
+.amap-item span { min-width:0; overflow-wrap:anywhere; }
+.amap-item[aria-pressed="true"] { border-color:#F29A2E; background:#FFF1D8; }
+.amap-item svg { flex:0 0 24px; }
+.amap-here-pulse { transform-box:fill-box; transform-origin:center; animation:amap-pulse 1.6s ease-out infinite; }
+@keyframes amap-pulse { 0% { transform:scale(.6); opacity:.5; } 100% { transform:scale(2.2); opacity:0; } }
+@media (prefers-reduced-motion: reduce) { .amap-here-pulse { animation:none; } }

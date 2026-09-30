@@ -52,6 +52,10 @@ const PokaDebug = {
   macAdvance(dt=.25){if(!this.macState()||!Game.paused||!Number.isFinite(dt)||dt<0||dt>3)return false;G.scene.update(dt);return this.macState();},
   districtTravel() { return {names:{town:MAP_DEFS.town.name,city:MAP_DEFS.city.name},places:AtlasArt.places,walkIns:Object.values(MAP_DEFS).filter(d=>!d.indoor).flatMap(d=>(d.warps||[]).filter(w=>w.to==='city')),coins:Save.d.coins}; },
   atlas() {WorldAtlas.open();return true;},
+  // UI-13: すまほ の「ちず」→「この エリア」の ようす（ひらいて いない ときは null）
+  areaMap() { return typeof AreaMap === "undefined" ? null : AreaMap.state(); },
+  // UI-13: エリアの ちずの なまえの ならび（ブラウザ なしと おなじ 計算。k は 1マスの px）
+  areaMapLayout(id = "town", k = 4.46) { const m = AreaMap.model(id, null), L = AreaMap.layout(m, k); return { places: m.places.length, labels: L.labels.length, hidden: L.hidden.map((key) => m.places.find((p) => p.key === key).name), streets: L.streets.map((t) => t.name) }; },
   station(id) { if(!Transit.stops[id]||UI.busy)return false;Transit.open(id);return true; },
 
   help() {
@@ -102,6 +106,7 @@ const PokaDebug = {
       "PokaDebug.hour(21)                    時刻を固定（null で戻す）",
       "PokaDebug.roadPreview(def, view)       道の検証画像（セーブ・現在地は変えない）",
       "PokaDebug.fps(2000)                   指定ミリ秒のあいだの平均FPSを返す（Promise）",
+      "PokaDebug.areaMap()                  すまほ の ちず「この エリア」の ようす（めじるし・なまえ・えらんだ もの）。areaMapLayout('town', 4.46) で ならびだけ",
     ];
     console.log(lines.join("\n"));
     return lines.length;

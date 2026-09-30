@@ -77,7 +77,7 @@ PokaDebug.drift(time) は現在のカメラと、指定時刻の季節/風の葉
 
 - AtlasArt.places は9エリアの地図上の位置・目印・短い説明、roads は実在する徒歩接続のみ。SVGの800×850座標で海岸線・起伏・植生・水系・街区を描く。素材プレビューに全体図を追加。模様は固定数・決定的な値、SVGのclipPath/patternには描画ごとの一意IDを付け、SvgCacheは使わない。
 - WorldAtlas は開いたDOM内に拡大率（1〜3倍）・表示範囲・選択地点を持つ。Pointer Eventsでドラッグと2本指ズーム、44px以上のボタンで拡大縮小・全体・現在地・交通線切り替え。地点はキーボードのEnter/Spaceでも選べ、selectでも全エリアにアクセスできる。イベントは要素にのみ登録し、グローバルリスナーやタイマーを残さない。
-- 現在地は world の mapId、それ以外は最後の保存位置を読み取る。マーカーの選択では移動しない。各エリアの実タイル図は「このエリアを くわしく みる」で展開し、現在地・出口・乗り場・しかけを表示。地図の操作状態は保存しないのでSave.KEY/SCHEMAとプレイデータは変更しない。
+- 現在地は world の mapId、それ以外は最後の保存位置を読み取る。マーカーの選択では移動しない。`WorldAtlas.render(el, { tab })` は タブ「この エリア」（`AreaMap`・下の「エリアの ちず」）と「せかい ちず」（この 地形図）を つくる。すまほは この エリア から、季節イベントの `WorldAtlas.open()` は せかい ちず から ひらく。選んだ エリアは「「○○」の ちずを みる」で この エリアの ちずに する（まえの `localMap` は けした）。地図の操作状態は保存しないのでSave.KEY/SCHEMAとプレイデータは変更しない。
 - 静的検査でエリアと徒歩接続の一致、SVG参照とID重複を確認。ブラウザでは390×844・375×667で9地点、44pxの選択範囲、タップ/キーボード/select、ズーム/ドラッグ/実際の2本指操作、現在地更新、交通線、詳細図、閲覧によるプレイ状態不変を確認。
 
 ## エリアの作り込み・交通（ver2）
@@ -264,7 +264,7 @@ SCENES.xxx = XxxScene;
 ### すまほ（smaho.js・UI-01）
 
 - `Smaho` … ひだり したの「すまほ」ボタン（`.smaho-btn`。町・フィールド・おみせ・おうちの 下の ボタンの 上）と スマホの 画面（`.modal-wrap.smaho-wrap` の 中の `.smaho`）。`Game.openMenu`（Esc・cancel キー）は `Smaho.toggle()`。≡（`UI.hudMenu`）は `Menu.open()` で、タブは せってい・あそびかた（`Menu.help`）だけ。
-- `APPS` … `{ id, name, color, when?, render(el, ph) }`。ちず（`WorldAtlas.render`＋町・おみせでは「おうちへ かえる」）・ようす（`Menu.status`）・もちもの（`Menu.bag`）・ずかん（`Menu.dex`）・イベント（`AnnualFestivals.open`）・スタンプラリー（`Seasonal.open` と `DailyPlay.open` の タブ）・ひんと（`hints()`）・うらない（`fortune(day)`）・ごほうび（`ShopRewards.open`）・おんがく（`MusicDiscs` が ある とき）。
+- `APPS` … `{ id, name, color, when?, render(el, ph) }`。ちず（`WorldAtlas.render`〔タブ: この エリア＝`AreaMap`・せかい ちず〕＋町・おみせでは「おうちへ かえる」）・ようす（`Menu.status`）・もちもの（`Menu.bag`）・ずかん（`Menu.dex`）・イベント（`AnnualFestivals.open`）・スタンプラリー（`Seasonal.open` と `DailyPlay.open` の タブ）・ひんと（`hints()`）・うらない（`fortune(day)`）・ごほうび（`ShopRewards.open`）・おんがく（`MusicDiscs` が ある とき）。
 - `ph.embed(fn)` … `UI.modal` を 1かいだけ かりて、`fn()` が つくる まどの `body`・`footer` を アプリの 画面に 入れる。かえす `close()` は すまほを とじる（「さんか」「ちずを みる」の あとは あそびに もどる）。
 - `fortune(day)` … 日づけの 文字（`U.today()` の 形）から きめる うらない（Math.random・Date を つかわない）。ラッキーの おみせは `DailyPlay.featured(day)`。その おみせの コインは ほんとうに `DailyPlay.mul(day)` ばい（日づけの 文字の ハッシュで きまる 1.2〜2 の 0.1 きざみ 9とおり・どれも おなじ 確率・おなじ 日は おなじ。`DailyPlay.boost(shop, day)` が おてつだいと スコア モードの コインに かける。ことばは `DailyPlay.label(mul)`「1.5ばい」）。ひいた 日は `Save.d.flags.fortuneDay`（あたらしい セーブ項目は ない）。
 - `Seasonal.mount` は すまほの ボタンだけ つける（町の「おまつり」ボタン `.world-festival` は もう 出さない）。PokaDebug は `smaho(app)`・`smahoState()`・`fortune(day)`。
@@ -901,6 +901,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 画面 `Gacha.open(シリーズ)`: `UI.modal`（`full gacha-panel`）の 中に 台の 絵・よこの らん（ねだん・コイン・かくりつ・でる もの・コンプリート・まわす ボタン）・けっか・ラインナップ。`view.phase`: `ready` → `turn`（つまみ）→ `capsule`（おおきな カプセルの ボタン）→ `open` → `done`。えんしゅつの まちは `Gacha.speed` で みじかく できる。
 - セーブ: `Save.d.gacha`（`plays`・`got { けいひん: でた かず }`・`done { シリーズ: そろった 日 }`）。`Gacha.st()` が こわれた ところを なおす。
 - PokaDebug: `gachaOpen(シリーズ)`・`gachaNext(0〜3)`・`gachaFast(ばい)`・`gachaState()`。検査は `tools/check-gacha.mjs`、スモーク「gacha-390 / 375」。
+
+## エリアの ちず（すまほ の「ちず」→「この エリア」・UI-13）
+
+- 読み込みは `js/area-map-art.js` → `js/area-map.js`（atlas-art.js の あと、world-atlas.js の まえ）。トップレベル名は `AreaMapArt`・`AreaMap`。
+- 絵 `AreaMapArt`: `CATS`（しゅるい 8つ: `home`・`shop`・`work`・`enter`・`ride`・`other`・`exit`・`house`。`name`・`fill`・`roof`・`ring`・`order`）・`ICON`（めじるし 60しゅ。24×24・まんなかが 0,0 の SVG の かけら。id を もたない）・`icon(key, x, y, s)`（ちずの 中）・`svg(key, px, cat)`（DOM の 小さな 絵）。
+- しゅるいの きめかた `AreaMap.kindOf(b)`: `act.type`（`house` → おうち・`buy` → かいもの・`work` → おてつだい・`venue`／`range`／`indoor` → はいれる・`transit` → のりもの〔`Transit.stops` の `kind` で でんしゃ・ふね・ひこうき〕）と `SHOP_ICON`／`VENUE_ICON`、`visit` は なまえの `VISIT`（おうち・いえ → まちの いえ〔なまえを かかない〕）。ちずの なまえは `nameOf`（`NAMES` で ひらがなに・「（…）」を とる）。
+- `model(id, here)`: `grid(d)`（マスごとの じめん。平和台は `authoredAscii`〔凡例は tools/town-design/render.mjs〕と `authoredGround` の せんろ・ホーム、ほかは `rows`・`ground` の ある こもの・`surfaces`・池袋の せんろ）・`places`（たてもの `b*`・こもの `o*`・はたけ `farm`・ボス `boss`・でぐち `x*`）・木・まちなみ・道（`sample(pieces)`）・ロータリー。
+- `layout(m, k)`（k は 1マスの px）: めじるしの まるの 大きさ・いちを きめ、だいじな じゅんに なまえの はこを おく（`splits`・`textW`・よゆうは よこ 2・たて 1）。`hidden` は はいらなかった もの（2ばいでは 0）。道の なまえは 1もじずつの はこで しらべる。`svg(m, L, uid)`: 地面（`outline` = マスの ふちを たどって かどを まるく）→ せんろ → かっそうろ → はたけ → 道 → 木 → まちなみ → たてもの → めじるし → 道の なまえ → なまえ → いま ここ → えらんだ しるし（`.amap-sel`）。`role="img"`・`aria-label="<マップの なまえ>の詳細地図"`。
+- がめん `AreaMap.render(el, id)`: エリアの select・★ いま ここ・ちず（`.amap-frame`。2ばいは スクロール）・「おおきく みる」「いま ここ」・せつめい（`.amap-card`）・「たてものの いちらん」（`details.amap-list`・`.amap-item`）。タップは いちばん ちかい めじるし／たてもの（ゆびの まわり 24px）。はばが かわると かきなおす（ResizeObserver）。かえす `view` の `show(id)`・`refresh()`・`pick(key)`。
+- PokaDebug: `areaMap()`（ひらいて いる ちずの ようす）・`areaMapLayout(id, k)`。検査は `tools/check-area-map.mjs`、スモーク「area-map-390 / 375」（と「地形の全体マップ」「新エリア・全体マップ・帰宅」「町の景観としかけ」は せかい ちず の タブを おして から）。
 
 ## ころころ フルーツ（ネリカスタウンの パズルの おてつだい・MG-01〜MG-06）
 

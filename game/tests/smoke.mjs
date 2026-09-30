@@ -632,7 +632,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(/^\d+がつ \d+にち（(にち|げつ|か|すい|もく|きん|ど)ようび）$/.test(home.date),"すまほの 日づけが 不正 "+home.date);
   expect(home.ph[0]>=0&&home.ph[1]>=0&&home.ph[2]<=home.w+0.5&&home.ph[3]<=home.h+0.5,"すまほが 画面から はみ出す "+JSON.stringify(home));
   // アプリを ひとつずつ（もどる で ホーム）
-  const checks={"いらい":".neri-quests","ようす":".chara-card","もちもの":".card, .note","ずかん":".dex-kinds","イベント":".annual-hero","スタンプラリー":".festival-target","ひんと":".smaho-hint","うらない":".smaho-draw","ごほうび":"select","おんがく":".smaho-disc","しゃしん":".puri-album, .note","ちず":".world-atlas"};
+  const checks={"いらい":".neri-quests","ようす":".chara-card","もちもの":".card, .note","ずかん":".dex-kinds","イベント":".annual-hero","スタンプラリー":".festival-target","ひんと":".smaho-hint","うらない":".smaho-draw","ごほうび":"select","おんがく":".smaho-disc","しゃしん":".puri-album, .note","ちず":".area-map .amap-svg"};
   for(const [app,sel] of Object.entries(checks)){
     await H.page.locator(".smaho").getByRole("button",{name:app,exact:true}).click();await H.wait(300);
     expect(await H.page.locator(".smaho-body").locator(sel).count()>0,app+" の 中みが ない");
@@ -721,6 +721,8 @@ await scenario("新エリア・全体マップ・帰宅", async (H) => {
   await H.until(() => PokaDebug.state().map === "heiwadai" && PokaDebug.idle());
   await H.shot("heiwadai");
   await H.phone("ちず");
+  expect(await H.page.getByRole("img", { name: "平和台（へいわだい）の詳細地図", exact:true }).isVisible(), "ちずが この エリアから ひらかない");
+  await H.page.getByRole("tab", { name: "せかい ちず", exact:true }).click();
   expect(await H.page.getByRole("group", { name: "ぽかぽかの せかいの ちず", exact:true }).isVisible(), "全体マップがない");
   expect(await H.page.locator('.atlas-marker.is-current').getAttribute('data-area') === "heiwadai", "入ったエリアが地図の現在地に反映されない");
   await H.shot("atlas"); await H.page.locator(".modal-wrap .close").last().click(); await H.wait(300);
@@ -993,6 +995,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.tap(o.cx,o.cy);await H.until(()=>PokaDebug.world()?.active==="heiwadai_fountain",10000);
   await H.shot("fountain-play");
   await H.page.keyboard.press("Escape");await H.page.getByRole("button",{name:"ちず",exact:true}).click();
+  await H.page.getByRole("tab",{name:"せかい ちず",exact:true}).click();
   await H.page.getByRole("button",{name:"平和台（へいわだい）",exact:true}).click();
   await H.page.getByRole("heading",{name:"平和台（へいわだい）",exact:true}).scrollIntoViewIfNeeded();await H.shot("heiwadai-map");
   const overflow=await H.eval(()=>document.documentElement.scrollWidth>innerWidth);expect(!overflow,"小さい画面で横にはみ出す");
@@ -1029,6 +1032,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const before=await H.dbg("state");
   await H.page.keyboard.press("Escape");
   await H.page.getByRole("button",{name:"ちず",exact:true}).click();
+  await H.page.getByRole("tab",{name:"せかい ちず",exact:true}).click();
   const atlas=H.page.locator(".world-atlas"), svg=atlas.locator(".atlas-svg");
   expect(await atlas.locator(".atlas-marker").count()===9,"9エリアが表示されない");
   expect(await atlas.locator(".atlas-marker.is-current").getAttribute("data-area")==="town","現在地が違う");
@@ -1079,9 +1083,9 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await routes.click(); expect(!(await atlas.locator(".atlas-transit").isVisible()),"航路を隠せない");
   await routes.click(); expect(await atlas.locator(".atlas-transit").isVisible(),"航路を戻せない");
   await atlas.getByRole("button",{name:"平和台（へいわだい）",exact:true}).click();
-  await atlas.locator("summary").click();
-  expect(await atlas.getByRole("img",{name:"平和台（へいわだい）の詳細地図",exact:true}).isVisible(),"詳細マップを見られない");
-  await atlas.getByRole("heading",{name:"平和台（へいわだい）",exact:true}).scrollIntoViewIfNeeded();
+  await atlas.locator(".atlas-open-local").click();
+  expect(await H.page.getByRole("img",{name:"平和台（へいわだい）の詳細地図",exact:true}).isVisible(),"詳細マップを見られない");
+  await H.page.locator(".area-map .amap-frame").scrollIntoViewIfNeeded();
   await H.shot("local-heiwadai");
   expect(!(await H.eval(()=>document.documentElement.scrollWidth>innerWidth)),"全体マップが画面をはみ出す");
   const after=await H.dbg("state");
@@ -1090,6 +1094,88 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("teleport","heiwadai",9,50); await H.idle();
   await H.page.keyboard.press("Escape"); await H.page.getByRole("button",{name:"ちず",exact:true}).click();
   expect(await H.page.locator(".atlas-marker.is-current").getAttribute("data-area")==="heiwadai","再度開いた地図の現在地が古い");
+},{viewport,full:viewport.width===375,timeout:90000});
+
+// UI-13: すまほ の ちず「この エリア」（ポンチ絵の ちず・タップで せつめい・いちらん・2ばい・ほかの エリア）
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario(`area-map-${viewport.width}`,async H=>{
+  await H.newGameFast(); await H.dbg("hour",12);
+  await H.dbg("teleport","town",21,61); await H.idle();
+  const before=await H.dbg("state");
+  await H.phone("ちず");
+  const pane=H.page.locator(".area-map"), svg=pane.locator(".amap-svg");
+  expect(await H.page.getByRole("tab",{name:"この エリア",exact:true}).getAttribute("aria-selected")==="true","ちずが この エリアから ひらかない");
+  expect(await H.page.getByRole("img",{name:"ネリカスタウンの詳細地図",exact:true}).isVisible(),"エリアの ちずが ない");
+  let st=await H.dbg("areaMap");
+  expect(st&&st.id==="town"&&st.here&&st.here.x===21.5&&st.here.y===61.5,"いま ここ が ちがう "+JSON.stringify(st&&st.here));
+  expect(st.places.filter(p=>p.type==="building").length>=30&&st.places.some(p=>p.type==="exit"),"たてもの・でぐちが たりない");
+  const labels=st.labels.map(b=>b.text);
+  for(const t of ["おうち","スーパー","しょうがっこう","へいわだい","ぽかぽかはらっぱ","バスてい"]) expect(labels.includes(t),`なまえ「${t}」が ちずに ない: `+labels.join("・"));
+  // なまえ（もじ）が かさならない・ちずから はみ出さない（ほんとうの もじの おおきさで）
+  const lay=async(tag)=>{
+    const g=await svg.evaluate(el=>{const r=el.getBoundingClientRect();return {r:[r.left,r.top,r.right,r.bottom],t:[...el.querySelectorAll("text.amap-label, .amap-here text")].map(e=>{const b=e.getBoundingClientRect();return [b.left,b.top,b.right,b.bottom,e.textContent];})};});
+    for(const [x0,y0,x1,y1,t] of g.t) expect(x0>=g.r[0]-0.5&&y0>=g.r[1]-0.5&&x1<=g.r[2]+0.5&&y1<=g.r[3]+0.5,`${tag}: 「${t}」が ちずから はみ出す`);
+    for(let i=0;i<g.t.length;i++)for(let j=i+1;j<g.t.length;j++){const a=g.t[i],b=g.t[j];expect(!(a[0]<b[2]-1&&a[2]>b[0]+1&&a[1]<b[3]-1&&a[3]>b[1]+1),`${tag}: 「${a[4]}」と「${b[4]}」が かさなる`);}
+    return g.t.length;
+  };
+  expect(await lay("town")>=20,"なまえが すくない");
+  await H.shot("town");
+  // タップ: スーパー → せつめい（しゅるい・できること・むき）
+  const sup=st.places.find(p=>p.name==="スーパー");
+  await svg.scrollIntoViewIfNeeded();
+  let box=await svg.boundingBox(); const vb=await svg.evaluate(el=>el.viewBox.baseVal.width);
+  await H.tap(box.x+sup.x*box.width/vb,box.y+sup.y*box.width/vb); await H.wait(250);
+  expect((await H.dbg("areaMap")).sel===sup.key,"タップで えらべない");
+  const card=pane.locator(".amap-card");
+  expect(await card.locator("h4").textContent()==="スーパー"&&(await card.locator(".amap-card-cat").textContent())==="かいもの"&&/かいものが できる/.test(await card.textContent()),"せつめいが でない");
+  expect(/いま いる ところから みて ひだりうえの ほう/.test(await card.locator(".amap-card-dir").textContent()),"むきが でない");
+  await card.scrollIntoViewIfNeeded(); await H.shot("card");
+  // なにも ない ところを タップ → えらばない
+  await svg.scrollIntoViewIfNeeded(); box=await svg.boundingBox();
+  await H.tap(box.x+4,box.y+box.height*0.02+4); await H.wait(200);
+  expect((await H.dbg("areaMap")).sel===null&&await pane.locator(".amap-hint").count()===1,"そとを タップしても えらんだ まま");
+  // いちらん → パンやさん
+  await pane.locator(".amap-list summary").click(); await H.wait(200);
+  const items=await pane.locator(".amap-item").evaluateAll(els=>els.map(e=>{const r=e.getBoundingClientRect();return [e.textContent,r.width,r.height];}));
+  expect(items.length>=25&&items.every(i=>i[2]>=43.5&&i[1]>=44),"いちらんの ボタンが 44px より 小さい "+JSON.stringify(items.filter(i=>i[2]<43.5)));
+  expect(!items.some(i=>i[0]==="")&&new Set(items.map(i=>i[0])).size===items.length,"いちらんに おなじ なまえ");
+  await pane.getByRole("button",{name:"パンやさん",exact:true}).click(); await H.wait(250);
+  st=await H.dbg("areaMap");
+  expect(st.places.find(p=>p.key===st.sel).name==="パンやさん"&&await card.locator("h4").textContent()==="パンやさん","いちらんから えらべない");
+  expect(await pane.getByRole("button",{name:"パンやさん",exact:true}).getAttribute("aria-pressed")==="true","いちらんの えらんだ しるし");
+  await pane.locator(".amap-list").scrollIntoViewIfNeeded(); await H.shot("list");
+  // いま ここ ボタン: ちかくの たてもの
+  await pane.getByRole("button",{name:"いま ここ",exact:true}).click(); await H.wait(200);
+  expect((await H.dbg("areaMap")).sel==="here"&&await card.locator("h4").textContent()==="いま ここ"&&/ちかくの たてもの: おうち/.test(await card.textContent()),"いま ここ の せつめいが でない");
+  expect(await H.page.locator(".amap-now").textContent()==="★ いま ここ","いま いる エリアの しるし");
+  // おおきく みる（2ばい）: ぜんぶの なまえ・よこにも スクロール
+  await pane.getByRole("button",{name:"おおきく みる",exact:true}).click(); await H.wait(300);
+  st=await H.dbg("areaMap");
+  expect(st.z===2&&st.hidden.length===0,"2ばいで でない なまえ "+JSON.stringify(st.hidden));
+  expect(await pane.locator(".amap-frame").evaluate(f=>f.scrollWidth>f.clientWidth+10&&f.scrollHeight>f.clientHeight+10),"2ばいで スクロール できない");
+  expect(await lay("town x2")>=30,"2ばいの なまえが すくない");
+  await pane.locator(".amap-frame").scrollIntoViewIfNeeded(); await H.shot("zoom");
+  await pane.getByRole("button",{name:"ちいさく みる",exact:true}).click(); await H.wait(200);
+  expect((await H.dbg("areaMap")).z===1,"もどらない");
+  // ほかの エリア（いけぶくろ）: いま ここ は ない
+  await pane.locator(".amap-select").selectOption("city"); await H.wait(300);
+  st=await H.dbg("areaMap");
+  expect(st.id==="city"&&!st.here&&await pane.getByRole("button",{name:"いま ここ",exact:true}).isDisabled(),"いけぶくろの ちずに いま ここ");
+  for(const t of ["サンシャインいけぶ","Meeときょれじゃ","いけぶくろ えき"]) expect(st.labels.some(b=>b.text===t),`いけぶくろの ちずに「${t}」が ない`);
+  await lay("city"); await pane.locator(".amap-frame").scrollIntoViewIfNeeded(); await H.shot("city");
+  // せかい ちず → しおかぜビーチ → この エリアの ちずを みる
+  await H.page.getByRole("tab",{name:"せかい ちず",exact:true}).click(); await H.wait(200);
+  expect(await H.page.getByRole("group",{name:"ぽかぽかの せかいの ちず",exact:true}).isVisible()&&!(await svg.isVisible()),"タブが きりかわらない");
+  await H.page.locator(".world-atlas").getByRole("button",{name:"しおかぜビーチ",exact:true}).click();
+  await H.page.locator(".atlas-open-local").click(); await H.wait(300);
+  st=await H.dbg("areaMap");
+  expect(st.id==="coast"&&await H.page.getByRole("img",{name:"しおかぜビーチの詳細地図",exact:true}).isVisible(),"せかい ちずから エリアの ちずへ いけない");
+  expect(!(await H.eval(()=>document.documentElement.scrollWidth>innerWidth)),"よこに はみ出す");
+  // みる だけ: ばしょ・コインは かわらない。つぎに ひらくと いまの エリア
+  await H.page.keyboard.press("Escape"); await H.wait(300);
+  const after=await H.dbg("state");
+  expect(after.map===before.map&&after.coins===before.coins&&JSON.stringify(after.pos)===JSON.stringify(before.pos),"ちずを みただけで ようすが かわった");
+  await H.phone("ちず");
+  expect((await H.dbg("areaMap")).id==="town","つぎに ひらくと いまの エリアで ない");
 },{viewport,full:viewport.width===375,timeout:90000});
 
 function checkHomeBubbles(s) {
