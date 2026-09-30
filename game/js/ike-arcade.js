@@ -1,6 +1,6 @@
 // Meeときょれじゃ（池袋の ゲームセンター）の 館。サンシャインいけぶ と おなじ 斜め上の 館（IsoVenueScene・絵は ArcadeArt）。
 // 1F: 12台の クレーン（ぬいぐるみ コーナー・スウィートランド・コイン プッシャー・トライポッド・リングフック）・ガチャ・ぷりくら・けいひん カウンター・りょうがえき。
-// 2F: おかしの フロア。おかし キャッチャー 5台（ふくろ・はこ・リング・スウィートランド・ビッグ おかし。けいひんは 日がわり）・やすむ ところ。
+// 2F: おかしの フロア。おかし キャッチャー 5台（ふくろ・はこ・リング・スウィートランド・ビッグ おかし）・はしわたし 2台（フィギュア・ざっか）・やすむ ところ。けいひんは 日がわり。
 // 1F と 2F は ひがしの エスカレーター（サンシャインいけぶと おなじ 絵。2F は ふきぬけ）。フロアマップは 1F・2F の タブ。
 // 台を タップすると その まえまで あるいて あそぶ 画面（SCENES.prize）へ。もどると 台の まえに たつ。
 const IkeArcade = {
@@ -9,7 +9,7 @@ const IkeArcade = {
   ESC: { x: 23, y: 4, w: 4, h: 7 },
   // クレーンの 台（x y は 奥の かど・dir: 'y' は まえが +y・'x' は まえが +x）。spots: しらべる マス・back: もどる マス
   crane(fixtures, i, x, y, dir) {
-    const kind = ArcadeArt.specOf(i), wide = kind === "big" || kind === "sweet" || kind === "pusher" ? 3 : 2, w = dir === "x" ? 2 : wide, h = dir === "x" ? wide : 2, P = ArcadeArt.SPEC[kind], m = PrizeArcade.machines[i];
+    const kind = ArcadeArt.specOf(i), wide = kind === "big" || kind === "sweet" || kind === "pusher" || kind === "bridge" ? 3 : 2, w = dir === "x" ? 2 : wide, h = dir === "x" ? wide : 2, P = ArcadeArt.SPEC[kind], m = PrizeArcade.machines[i];
     const spot = dir === "x" ? [x + w, y + Math.floor(h / 2)] : [x + Math.floor(w / 2), y + h];
     fixtures.push({ kind: "crane", machine: i, x, y, w, h, dir, height: P.base + P.GH + P.HH, label: m.label, action: "crane", spots: [spot], back: dir === "x" ? [spot[0] + 2, spot[1]] : [spot[0] + 1, spot[1] + 1] });
   },
@@ -82,6 +82,8 @@ const IkeArcade = {
     crane(12, 1, 0, "y"); crane(13, 3, 0, "y"); crane(16, 5, 0, "y"); crane(14, 8, 0, "y");
     // スウィートランド おかし（西の かべ）
     crane(15, 0, 4, "x");
+    // はしわたし（北の かべの まんなか）: フィギュア・ざっか
+    crane(17, 15, 0, "y"); crane(18, 18, 0, "y");
     // エスカレーター（1F へ くだる）
     fixtures.push({ kind: "escalator", pair: true, dir: "down", x: e.x, y: e.y, w: e.w, h: e.h, rise: 210, height: 40, label: "1Fへ おりる", action: "floor", to: 1, spawn: [e.x + 3, e.y + e.h] });
     // のみもの・りょうがえき（北の かべの ひがし）
@@ -95,6 +97,7 @@ const IkeArcade = {
     // 町の人（おかしを ねらう おきゃくさん）
     fixtures.push({ kind: "npc", sp: "pig", ci: 1, x: 7, y: 3, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "おかしの けいひんは まいにち かわるんだって！ きょうは なにかな？", spots: [[8, 3]] });
     fixtures.push({ kind: "npc", sp: "hamster", ci: 0, x: 3, y: 9, w: 1, h: 1, dir: "left", emo: "happy", label: "おきゃくさん", action: "info", text: "スウィートランドは ショベルで すくって、ステージに おとすと おちて くるよ。", spots: [[3, 10]] });
+    fixtures.push({ kind: "npc", sp: "rabbit", ci: 2, x: 21, y: 3, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "はしわたしは はこの まんなかじゃ なくて、はしを ねらうと ずれるよ。ななめに なったら、うえに ういた はしを ねらって みて！", spots: [[21, 2]] });
     // つりさげの あんない（エスカレーターの のりばの うえ）
     fixtures.push({ kind: "hangsign", x: e.x, y: e.y - 1, w: e.w, h: 1, z: 232, text: "1F ぬいぐるみ", col: "#5A8FB4", over: true, walk: true, fadeOver: true });
     return {
@@ -102,9 +105,10 @@ const IkeArcade = {
       title: "Meeときょれじゃ 2F", fixtures, holes: [{ kind: "rect", x: e.x, y: e.y + 1, w: e.w, h: e.h - 1 }],
       zones: [
         { x: 1, y: 0, w: 9, h: 3, shop: "arcSnack", label: "おかし キャッチャー" }, { x: 0, y: 4, w: 3, h: 3, shop: "arcSnackSweet", label: "スウィートランド", map: "スウィート ランド" }, { x: 0, y: 14, w: 2, h: 3, shop: "arcRest", label: "ソファ" },
+        { x: 15, y: 0, w: 6, h: 3, shop: "arcBridge", label: "はしわたし" },
       ],
       walls: {
-        north: [{ kind: "neon", from: 0.5, to: 10, z: 300, size: 34, text: "おかし", col: "#FF8FB8", stars: true }, { kind: "poster", from: 11, to: 14, z0: 150, z1: 300, col: "#FFE9A8", lines: ["けいひんは", "まいにち かわる"] }, { kind: "neon", from: 15, to: 24.5, z: 300, size: 36, text: "Mee 2F", col: "#9FD3F0", stars: true }],
+        north: [{ kind: "neon", from: 0.5, to: 10, z: 300, size: 34, text: "おかし", col: "#FF8FB8", stars: true }, { kind: "poster", from: 11, to: 14, z0: 150, z1: 300, col: "#FFE9A8", lines: ["けいひんは", "まいにち かわる"] }, { kind: "neon", from: 14.6, to: 21.4, z: 300, size: 30, text: "はしわたし", col: "#FFE68A", stars: true }, { kind: "neon", from: 22.6, to: 27.4, z: 300, size: 26, text: "Mee 2F", col: "#9FD3F0" }],
         west: [{ kind: "neon", from: 3.5, to: 7.5, z: 300, size: 24, text: "スウィート", col: "#9ED3C6" }, { kind: "poster", from: 8, to: 11.5, z0: 120, z1: 300, col: "#FBD3E0", prize: null, snack: "ike_snack_chips", lines: ["ビッグ", "おかし"] }, { kind: "sign", from: 18.4, to: 21.6, z: 250, text: "やすむ ところ", col: "#C3DDAA" }],
       },
     };
@@ -124,6 +128,7 @@ const IkeArcade = {
       arcGacha: { name: "カプセルトイ", c: ["#D6EFD8", "#B6DFBA", "#86C08C"] }, arcRing: { name: "リングフック", c: ["#FFF0B8", "#F9D56E", "#E0B640"] }, arcSweet: { name: "スウィートランド", c: ["#FBD3E0", "#F2A7C0", "#E58BAA"] }, arcPusher: { name: "コイン プッシャー", c: ["#FFF3C4", "#F2C84B", "#D6A231"] },
       arcTripod: { name: "トライポッド", c: ["#FFE0C2", "#F7B98A", "#E58A3A"] }, arcCounter: { name: "けいひん カウンター", c: ["#E6DCF5", "#C9B6EE", "#9B7BD0"] }, arcRest: { name: "ソファ", c: ["#E3EFD6", "#C3DDAA", "#9CC47E"] },
       arcSnack: { name: "おかし キャッチャー", c: ["#FFE2C4", "#FFB86B", "#F2944A"] }, arcSnackSweet: { name: "スウィートランド おかし", c: ["#D4F2E8", "#8ED1C0", "#5DB29B"] },
+      arcBridge: { name: "はしわたし", c: ["#DDE3FA", "#9FAEE8", "#6F7FD0"] },
     });
     // 館の BGM: トルコ こうしんきょく（モーツァルト・Mutopia #108 の 写し）を ゲームセンターの 音で。カウンター・あそぶ 画面も おなじ 曲
     const src = SONGS.disc_turkish, inst = ["mallet", "pluck", "bass", "pad"];

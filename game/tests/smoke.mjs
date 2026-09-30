@@ -2966,14 +2966,14 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect(await H.dbg('venueVisit','2Fへ のぼる'),'エスカレーターを しらべられない');await H.until(()=>{const v=PokaDebug.venueIso();return v&&v.floor===2&&v.ready&&PokaDebug.idle()&&!PokaDebug.venueState().changingFloor;},20000);await H.wait(300);
  const iso=await H.dbg('venueIso'),s2=await H.dbg('venueState');
  expect(iso.holes===1&&iso.crowd>=2&&s2.floor===2&&/2F/.test(await H.eval(()=>document.querySelector('.hud').textContent)),'2F（ふきぬけ・おきゃくさん・HUD）'+JSON.stringify(iso));
- const cranes=s2.fixtures.filter(f=>f.action==='crane');expect(cranes.length===5&&cranes.map(f=>f.machine).sort((a,b)=>a-b).join()==='12,13,14,15,16'&&s2.fixtures.some(f=>f.kind==='escalator'&&f.to===1),'2F の おかし キャッチャー 5台・くだりの エスカレーター '+cranes.map(f=>f.machine));
+ const cranes=s2.fixtures.filter(f=>f.action==='crane');expect(cranes.length===7&&cranes.map(f=>f.machine).sort((a,b)=>a-b).join()==='12,13,14,15,16,17,18'&&s2.fixtures.some(f=>f.kind==='escalator'&&f.to===1),'2F の おかし キャッチャー 5台・はしわたし 2台・くだりの エスカレーター '+cranes.map(f=>f.machine));
  expect(s2.routeCount.every(r=>r.reachable),'2F に いけない ところ '+JSON.stringify(s2.routeCount.filter(r=>!r.reachable)));
  const vis=cranes.filter(f=>f.screen.x>-40&&f.screen.x<viewport.width+40&&f.screen.y>0&&f.screen.y<viewport.height);await H.shot('arrive');
  const bgm=await H.eval(()=>Sound.want||Sound.cur?.name);expect(bgm==='arcade_hall','2F の BGM '+bgm);
  // フロアマップ: 1F・2F の タブ・2F の コーナー → 1F を えらぶと エスカレーターで おりて あるく
  await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
  const g=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.mall-guide .btn')];return {tabs:[...document.querySelectorAll('.mall-guide .mg-tabs .btn')].map(b=>b.textContent),spots:[...document.querySelectorAll('.mall-guide .mg-spot')].map(b=>b.dataset.label),small:bs.filter(b=>r(b).height<43.5).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5).length};});
- expect(g.tabs.join()==='1F,2F'&&['おかし キャッチャー','スウィートランド','1Fへ おりる'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'2F の フロアマップ '+JSON.stringify(g));await H.shot('guide');
+ expect(g.tabs.join()==='1F,2F'&&['おかし キャッチャー','スウィートランド','はしわたし','1Fへ おりる'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'2F の フロアマップ '+JSON.stringify(g));await H.shot('guide');
  await H.page.getByRole('button',{name:'1F',exact:true}).click();await H.page.locator('.mall-guide .mg-spot[data-label="けいひん カウンター"]').click();
  await H.until(()=>{const v=PokaDebug.venueState();return v&&v.floor===1&&v.party[0].y>=17.5&&PokaDebug.idle();},25000);
  expect(await H.dbg('venueVisit','2Fへ のぼる'),'1F から もういちど のぼれない');await H.until(()=>{const v=PokaDebug.venueIso();return v&&v.floor===2&&v.ready&&PokaDebug.idle()&&!PokaDebug.venueState().changingFloor;},20000);
@@ -3010,6 +3010,53 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  const ask2=await H.eval(()=>document.querySelector('.dlg-shade.ask .dialog').textContent);expect(next.names.every(n=>ask2.includes(n)),'つぎの 日の せつめい '+ask2);
  await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();
  const bag=(await H.dbg('saveData')).bag,got=lineup.prizes.filter(id=>bag[id]>0);expect(got.length>=1&&(await H.eval(ids=>ids.every(id=>BAG_INDEX[id].kind==='food'&&/<svg/.test(Art.iconSvg('bag',id))),got)),'とった おかしが たべものに ならない');
+ await H.dbg('calendar',null);
+},{viewport,timeout:240000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('arcade-bridge-'+viewport.width,async H=>{
+ // Meeときょれじゃ 2F の はしわたし（UI-15。オーナーの FB 2026-09-30「新しい 種類の クレーンゲームを 実装して ほしい」）:
+ // 2台（ぎんの ぼう の フィギュア・ゴムの ぼう の ざっか）→ しらべる（あそびかた・きょうの けいひん）→ はこの はしを ねらって ずらす →
+ // はずれ 4かいで おみせの ひとが はこを たてむきに なおして「ここ！」の しるし → しるしの ちかくで つかむ（ぴったり）→ とれる（家具）→ 台の まえに もどる
+ await H.newGameFast();await H.dbg('coins',2000);await H.dbg('calendar','2026-10-05');await H.dbg('venue','arcade',2);await H.idle();await H.until(()=>PokaDebug.venueIso()&&PokaDebug.venueIso().ready,20000);
+ const s2=await H.dbg('venueState'),br=s2.fixtures.filter(f=>f.action==='crane'&&(f.machine===17||f.machine===18));
+ expect(br.length===2&&br.every(f=>s2.routeCount.find(r=>r.label===f.label)?.reachable),'2F の はしわたし 2台 '+JSON.stringify(br.map(f=>[f.machine,f.label])));
+ const lineup=await H.dbg('arcadeLineup',17);expect(lineup.day==='2026-10-5'&&lineup.names.length===1,'きょうの はしわたし '+JSON.stringify(lineup));
+ await H.dbg('venueVisit','フィギュア');await H.page.locator('.dlg-shade.ask .dialog').waitFor();await H.wait(200);
+ const ask=await H.eval(()=>document.querySelector('.dlg-shade.ask .dialog').textContent);expect(/はしわたし・フィギュア/.test(ask)&&/2ほんの ぼう/.test(ask)&&ask.includes(lineup.names[0])&&/まいにち かわる/.test(ask),'はしわたしの せつめい '+ask);
+ await H.page.getByRole('button',{name:'100コインで あそぶ',exact:true}).click();await H.until(()=>PokaDebug.arcadeState()&&!PokaDebug.state().transitioning,15000);await H.wait(500);
+ let a=await H.dbg('arcadeState');expect(a.machine===17&&a.type==='bridge'&&a.bridge.box&&Math.abs(a.bridge.box.x-30)<0.5&&a.bridge.box.along<0.1&&!a.bridge.hint&&/はこの はしを ねらおう/.test(a.status)&&a.bridge.shape===lineup.shapes[0],'はしわたしの 台 '+JSON.stringify(a.bridge)+a.status);
+ const panel=async()=>H.eval(()=>{const p=document.querySelector('.crane-panel').getBoundingClientRect(),st=document.querySelector('.crane-status'),rg=document.createRange();rg.selectNodeContents(st);const lines=new Set([...rg.getClientRects()].map(r=>Math.round(r.top))).size,bs=[...document.querySelectorAll('.crane-panel button')].filter(b=>b.offsetParent).map(b=>b.getBoundingClientRect());return {p:[p.left,p.top,p.right,p.bottom],small:bs.filter(r=>r.width<44||r.height<44).length,wrap:st.scrollWidth>st.clientWidth+1||lines>1,lines};});
+ let q=await panel();expect(q.p[0]>=0&&q.p[1]>=64&&q.p[2]<=viewport.width+0.5&&q.p[3]<=viewport.height+0.5&&q.small===0&&!q.wrap,'そうさばん '+JSON.stringify(q));await H.shot('start');
+ const done=async(ms=45000)=>{await H.dbg('arcadeFast',4);await H.until(()=>{const r=PokaDebug.arcadeState();return r&&r.finished;},ms);return H.dbg('arcadeState');};
+ // 1かいめ: はこの ひだりの はしを ねらう → はこが アームの ほう（ひだり）へ ずれる
+ expect(await H.dbg('arcadeMove',a.bridge.box.x-a.claw.x-8,a.bridge.box.z-a.claw.z),'アームが うごかない');await H.page.getByRole('button',{name:'つかむ',exact:true}).click();
+ let r=await done();expect(r.got===0&&r.bridge.box&&r.bridge.box.x<27&&r.bridge.miss===1,'はこが ずれない '+JSON.stringify(r.bridge));await H.shot('shift');
+ // はずれを 4かいに して「もういちど」→ おみせの ひとが たてむきに なおす・しるし
+ await H.dbg('arcadeMiss',17,4);
+ await H.page.getByRole('button',{name:'もういちど（100コイン）',exact:true}).click();await H.until(()=>{const s=PokaDebug.arcadeState();return s&&!s.finished&&s.bridge&&s.bridge.staff&&!PokaDebug.state().transitioning;},15000);await H.wait(600);
+ a=await H.dbg('arcadeState');expect(a.bridge.staff==='assist'&&a.bridge.hint&&a.bridge.box.along>0.9&&/ひかる しるし/.test(a.status),'おみせの ひとの たすけ '+JSON.stringify(a.bridge)+a.status);
+ const toast=await H.eval(()=>[...document.querySelectorAll('.toast')].map(t=>t.textContent).join());expect(/たてむき/.test(toast),'おみせの ひとの しらせ '+toast);
+ q=await panel();expect(!q.wrap&&q.small===0,'たすけの ときの そうさばん '+JSON.stringify(q));await H.shot('assist');
+ // しるしの ちかくで つかむ → しるしに ぴったり → とれる（家具・けっかの ことば）
+ const id=lineup.prizes[0],f0=(await H.dbg('saveData')).furn[id]||0;expect(await H.dbg('arcadeHint',1.2,-1),'しるしへ うごかない');await H.page.getByRole('button',{name:'つかむ',exact:true}).click();
+ r=await done();expect(r.got===1&&r.bridge.snapped,'しるしを ねらっても とれない '+JSON.stringify(r.bridge));
+ const sd=await H.dbg('saveData');expect((sd.furn[id]||0)===f0+1&&(sd.arcade.miss[17]||0)===0,'はしわたしの けいひんが 家具に ならない／はずれが のこる '+id);
+ const txt=await H.eval(()=>document.querySelector('.crane-result-text').textContent);expect(txt.includes(lineup.names[0]+' ×1'),'けっかの ことば '+txt);await H.shot('win');
+ // もどる → はしわたしの まえ
+ await H.page.getByRole('button',{name:'おみせに もどる',exact:true}).click();await H.idle();await H.until(()=>{const v=PokaDebug.venueIso();return v&&v.ready;},20000);
+ const v=await H.dbg('venueIso');expect(v.floor===2&&Math.abs(v.leader[0]-16)<=2&&v.leader[1]<=4,'はしわたしの まえに もどらない '+JSON.stringify(v));
+ // ざっか（ゴムの ぼう）: きょうの けいひんの せつめい
+ const l2=await H.dbg('arcadeLineup',18);expect(l2.names.length===1&&l2.prizes[0]!==id,'ざっかの けいひん '+JSON.stringify(l2));
+ await H.dbg('venueVisit','ざっか');await H.page.locator('.dlg-shade.ask .dialog').waitFor();await H.wait(200);
+ const ask2=await H.eval(()=>document.querySelector('.dlg-shade.ask .dialog').textContent);expect(/はしわたし・ざっか/.test(ask2)&&ask2.includes(l2.names[0]),'ざっかの せつめい '+ask2);
+ await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();
+ // おうち: もようがえで とった けいひんを かざる（おうちの 立体）
+ await H.dbg('house');await H.until(()=>G.sceneName==='house'&&PokaDebug.idle(),15000);await H.wait(300);
+ const n0=await H.eval(()=>Save.d.room.items.length);
+ await H.houseButton('もようがえ');await H.page.locator('.edit-bar .tray .card').filter({hasText:lineup.names[0]}).click();await H.wait(300);
+ await H.page.click('.edit-bar .btn.yellow');
+ const room=await H.eval(()=>Save.d.room.items.map((it)=>it.id));expect(room.length===n0+1&&room.includes(id),'もようがえで はしわたしの けいひんが かざれない '+room);
+ await H.wait(600);await H.shot('room');
  await H.dbg('calendar',null);
 },{viewport,timeout:240000});
 

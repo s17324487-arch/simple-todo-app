@@ -33,13 +33,13 @@ for(const type of Object.keys(R.IkebukuroCatalog.appliances))for(let i=0;i<3;i++
 for(let i=0;i<3;i++)assert(R.ITEM_INDEX['ike_phone_'+i].rare&&R.ITEM_INDEX['ike_phone_'+i].slot==='neck');
 for(const id of R.IkebukuroCatalog.groups.luxury)assert(R.FURN_INDEX[id].price>=10000&&R.FURN_INDEX[id].price<=50000);
 for(const shop of ['clothes','furniture','market'])for(const [tab]of R.BUY_SHOPS[shop].tabs)assert(!R.BUY_SHOPS[shop].items(tab).some(i=>i.exclusive));
-assert.equal(R.PrizeArcade.machines.length,17);assert.equal(R.CraneMachines.DEFS.length,17);
+assert.equal(R.PrizeArcade.machines.length,19);assert.equal(R.CraneMachines.DEFS.length,19);
 for(const id of ['prize_uma','prize_pie','prize_cookie',...R.IkebukuroCatalog.groups.marche])assert.equal(R.BAG_INDEX[id].kind,'food',id+' must be edible');
 for(const food of R.FOODS.filter(f=>f.exclusive==='ikebukuro')){const svg=R.Art.iconSvg('bag',food.id);assert(!/=>|\$\{|undefined/.test(svg),food.id+' must register SVG markup, not a renderer function');assert(/<(path|rect|circle)\b/.test(svg),food.id+' must have visible artwork');}
-for(const [type,min] of [['claw',2],['sweet',1],['pusher',1],['tripod',2],['ring',2]])assert(R.PrizeArcade.machines.filter(m=>m.type===type).length>=min,type);
+for(const [type,min] of [['claw',2],['sweet',1],['pusher',1],['tripod',2],['ring',2],['bridge',2]])assert(R.PrizeArcade.machines.filter(m=>m.type===type).length>=min,type);
 // 100コインの 支払いと ごほうびは 1かいだけ（くわしい 物理の 検査は tools/check-crane.mjs）
 R.Save.d=R.Save.fresh();R.Save.d.coins=99999;const before=R.Save.d.coins,back={venue:'arcade',floor:1,back:{map:'city',x:mee.x+mee.door,y:mee.y+mee.h}};
 const run=R.PrizeArcade.start(0,back);assert(run);assert.equal(R.Save.d.coins,before-100);assert.equal(R.PrizeArcade.start(1,back),null);
 const round={got:[1],board:()=>({v:1,n:2,b:[],s:{}})};assert(R.PrizeArcade.finish(run,round));assert.equal(R.Save.d.furn.ike_chibi_wanko_0,1);assert(!R.PrizeArcade.finish(run,round));assert.equal(R.Save.d.furn.ike_chibi_wanko_0,1);
 const migrated=R.Save.migrate({...R.Save.fresh(),coins:987654,arcade:undefined});assert.equal(migrated.coins,987654);assert(migrated.arcade);
-console.log('Ikebukuro: layout (station west / electronics・Mee・mall top / S60 to the mall / range・office on Green Odori), '+city.buildings.length+' buildings reachable, exclusive catalogs, seventeen machines (twelve on 1F, five snack catchers on 2F), five distinct mechanics, fee/reward idempotency and legacy money OK');
+console.log('Ikebukuro: layout (station west / electronics・Mee・mall top / S60 to the mall / range・office on Green Odori), '+city.buildings.length+' buildings reachable, exclusive catalogs, nineteen machines (twelve on 1F, five snack catchers and two bridges on 2F), six distinct mechanics, fee/reward idempotency and legacy money OK');
