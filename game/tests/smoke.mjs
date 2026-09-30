@@ -2983,6 +2983,66 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  st=await H.dbg('puriState');expect(st.phase==='bg'&&st.coins===c1-300&&st.active,'とりなおしで また はらう '+JSON.stringify(st));
 },{viewport,timeout:180000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('gacha-'+viewport.width,async H=>{
+ // ガチャガチャ（gacha.js・UI-12。オーナーの FB 2026-09-30「ガチャガチャも 実際の 機能として」「景品は ミニマスコットみたいに 部屋に 置けたり、服だったり」「シリーズで 4種類・一つは レアで 確率を 下げて」）:
+ // 館の 台 → ラインナップ → 200コインで まわす → カプセル → あける（レア）→ ふくの 台で ダブりは 50コイン もどる・4しゅで コンプリート → さいかい → きがえで きる・もようがえで かざる → コインが たりないと まわせない
+ await H.newGameFast();const c0=await H.dbg('coins',1850);
+ await H.dbg('venue','arcade');await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
+ const s0=await H.dbg('venueState');expect(s0.fixtures.filter((f)=>f.kind==='gacha'&&f.action==='gacha').length===6,'ガチャの 台が 6だい ない');
+ // いちばん ひだりの 台（なかよし フィギュア）まで あるいて しらべる
+ expect(await H.dbg('venueVisit','カプセルトイ'),'カプセルトイ が ない');
+ await H.page.locator('.modal-wrap:not(.out) .gacha').waitFor({timeout:20000});await H.wait(400);
+ // がめん: はみ出さない・ボタンは 44px いじょう・まわす ボタンは スクロール しないで 見える・4しゅで レアは 1つ・みだしは 1ぎょう
+ const lay=async(tag)=>{const L=await H.eval(()=>{const r=(e)=>e.getBoundingClientRect(),pn=document.querySelector('.modal-wrap:not(.out) .panel'),body=pn.querySelector('.panel-body'),br=r(body),bs=[...pn.querySelectorAll('button')].filter((b)=>b.offsetParent),go=pn.querySelector('.gacha-go'),t=pn.querySelector('.panel-title'),g=document.createRange();g.selectNodeContents(t);
+   return {small:bs.filter((b)=>{const q=r(b);return q.width<43.5||q.height<43.5;}).map((b)=>b.textContent||b.getAttribute('aria-label')),wide:body.scrollWidth>body.clientWidth+1,edge:r(pn).left>=0&&r(pn).right<=innerWidth+0.5&&r(pn).bottom<=innerHeight+0.5,go:!go||(r(go).top>=br.top-0.5&&r(go).bottom<=br.bottom+0.5),cards:pn.querySelectorAll('.gacha-card').length,rare:pn.querySelectorAll('.gacha-card.rare').length,title:t.textContent,lines:new Set([...g.getClientRects()].map((x)=>Math.round(x.top))).size};});
+  expect(!L.small.length&&!L.wide&&L.edge&&L.go&&L.cards===4&&L.rare===1&&L.lines===1,tag+'の ガチャの がめんが はみ出す／ボタンが ちいさい／かくれる '+JSON.stringify(L));return L;};
+ let L=await lay('はじめ');expect(L.title==='「なかよし フィギュア」','なかよし フィギュア の 台で ない '+L.title);
+ const text=await H.eval(()=>document.querySelector('.modal-wrap:not(.out) .gacha').textContent);
+ expect(/1かい 200コイン/.test(text)&&/30%/.test(text)&&/10%/.test(text)&&/ばんざい わんこ/.test(text)&&/3にん なかよし/.test(text)&&/レア・まだ/.test(text),'ラインナップ・ねだん・かくりつが ない '+text);
+ await H.shot('lineup');
+ // まわす（レア）: 200コイン → つまみ → カプセル → タップで あける
+ await H.dbg('gachaFast',4);await H.dbg('gachaNext',3);
+ await H.page.getByRole('button',{name:'200コインで まわす',exact:true}).click();
+ let g=await H.dbg('gachaState');expect(g.coins===c0-200&&g.plays===1&&['turn','capsule'].includes(g.phase)&&await H.page.locator('.gacha-go').isDisabled(),'まわす ときに 200コイン へらない／もう1かい おせる '+JSON.stringify(g));
+ await H.until(()=>PokaDebug.gachaState().phase==='capsule',8000);
+ const cap=await H.page.getByRole('button',{name:'カプセルを あける',exact:true}).boundingBox();expect(cap&&cap.width>=44&&cap.height>=44,'カプセルが ちいさい '+JSON.stringify(cap));
+ await H.shot('capsule');
+ await H.page.getByRole('button',{name:'カプセルを あける',exact:true}).click();await H.until(()=>PokaDebug.gachaState().phase==='done',8000);await H.wait(300);
+ g=await H.dbg('gachaState');const prize=await H.eval(()=>document.querySelector('.gacha-prize').textContent);
+ expect(g.last.id==='gacha_friends_3'&&g.last.rare&&g.last.first&&/レア！/.test(prize)&&/NEW/.test(prize)&&/3にん なかよし/.test(prize)&&(await H.dbg('saveData')).furn.gacha_friends_3===1,'レアが でない／もちものに ない '+JSON.stringify([g,prize]));
+ expect(/レア・もってる ×1/.test(await H.eval(()=>document.querySelector('.gacha-card.rare').textContent)),'ラインナップに もってる が でない');
+ await lay('けっか');await H.shot('rare');
+ // ✕ で とじる → 館に もどる
+ await H.page.locator('.modal-wrap:not(.out) .close').click();await H.until(()=>!PokaDebug.gachaState().open&&PokaDebug.idle(),8000);
+ // ふくの 台（どうぶつ みみ）: はじめては ふくに・ダブりは 50コイン もどる・4しゅで コンプリート
+ await H.dbg('gachaOpen',4);await H.page.locator('.modal-wrap:not(.out) .gacha').waitFor();await H.wait(300);
+ const turn=async(k)=>{await H.dbg('gachaNext',k);await H.page.locator('.gacha-go').click();await H.until(()=>PokaDebug.gachaState().phase==='capsule',8000);await H.page.getByRole('button',{name:'カプセルを あける',exact:true}).click();await H.until(()=>PokaDebug.gachaState().phase==='done',8000);return H.dbg('gachaState');};
+ g=await turn(1);expect(g.last.id==='gacha_ears_1'&&!g.last.refund&&(await H.dbg('saveData')).wardrobe.gacha_ears_1===true,'ふくが もちものに ない '+JSON.stringify(g));
+ const c1=g.coins;g=await turn(1);
+ expect(g.last.refund===50&&g.coins===c1-150&&/50コイン もどったよ/.test(await H.eval(()=>document.querySelector('.gacha-prize').textContent)),'ダブった ふくで 50コイン もどらない '+JSON.stringify(g));
+ await turn(0);await turn(2);g=await turn(3);
+ expect(g.last.complete&&g.done.ears&&/コンプリート/.test(await H.eval(()=>document.querySelector('.gacha').textContent)),'4しゅ そろっても コンプリートに ならない '+JSON.stringify(g));
+ await lay('コンプリート');await H.shot('complete');
+ await H.page.locator('.modal-wrap:not(.out) .close').click();await H.until(()=>!PokaDebug.gachaState().open&&PokaDebug.idle(),8000);
+ // さいかい しても のこる
+ const before=await H.dbg('gachaState');await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+ const after=await H.dbg('gachaState');expect(JSON.stringify(after.got)===JSON.stringify(before.got)&&after.plays===before.plays&&after.done.ears===before.done.ears&&after.coins===before.coins,'さいかいで ガチャの きろくが かわる '+JSON.stringify([before,after]));
+ // おうち: きがえで ユニコーン カチューシャ・もようがえで 3にん なかよし を かざる
+ await H.dbg('house');await H.until(()=>G.sceneName==='house'&&PokaDebug.idle(),15000);await H.wait(300);
+ await H.houseButton('きがえ');await H.page.locator('.panel .grid .card').filter({hasText:'ユニコーン カチューシャ'}).click();await H.wait(200);
+ const head=await H.eval(()=>Save.d.chars[Save.d.order[0]].outfit.head);expect(head==='gacha_ears_3','きがえで ガチャの ふくが きられない '+head);
+ await H.shot('dressup');await H.page.click('.modal-wrap .close');await H.until(()=>!G.scene.mode,8000);
+ const n0=await H.eval(()=>Save.d.room.items.length);
+ await H.houseButton('もようがえ');await H.page.locator('.edit-bar .tray .card').filter({hasText:'3にん なかよし'}).click();await H.wait(300);
+ await H.page.click('.edit-bar .btn.yellow');
+ const room=await H.eval(()=>Save.d.room.items.map((it)=>it.id));expect(room.length===n0+1&&room.includes('gacha_friends_3'),'もようがえで フィギュアが かざれない '+room);
+ await H.wait(600);await H.shot('room');
+ // コインが たりないと まわせない
+ await H.dbg('venue','arcade');await H.idle();await H.dbg('gachaOpen',1);await H.page.locator('.modal-wrap:not(.out) .gacha').waitFor();
+ while((await H.dbg('state')).coins>=200){await H.dbg('gachaNext',0);await H.page.locator('.gacha-go').click();await H.until(()=>PokaDebug.gachaState().phase==='capsule',8000);await H.page.getByRole('button',{name:'カプセルを あける',exact:true}).click();await H.until(()=>PokaDebug.gachaState().phase==='done',8000);}
+ expect(await H.page.locator('.gacha-go').isDisabled()&&/コインが たりないよ/.test(await H.eval(()=>document.querySelector('.gacha').textContent)),'コインが たりなくても まわせる');
+},{viewport,timeout:180000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('nerikasu-korokoro-'+viewport.width,async H=>{
  // ころころ フルーツ（mg-korokoro.js）: ネリカスタウンの お店 → レジで おてつだい →「ちゅうもん モード」→ 小さい くだものを ゆびで おとす → がったい → ちゅうもんが とどく
  await H.newGameFast();const before=await H.dbg('saveData');

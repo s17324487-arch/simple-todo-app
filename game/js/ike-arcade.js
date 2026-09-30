@@ -25,7 +25,8 @@ const IkeArcade = {
     fixtures.push({ kind: "divider", x: 5, y: 7, w: 6, h: 1, height: 45 }, { kind: "divider", x: 15, y: 7, w: 5, h: 1, height: 45 });
     // ぷりくら・ガチャ（北の かべの ひがし）
     fixtures.push({ kind: "photobooth", x: 10, y: 0, w: 4, h: 3, dir: "y", height: 240, label: "ぷりくら", action: "photo", spots: [[12, 3]] });
-    for (let v = 0; v < 6; v++) fixtures.push({ kind: "gacha", x: 18 + v, y: 0, w: 1, h: 1, dir: "y", variant: v, height: 112, label: v === 0 ? "カプセルトイ" : "", action: "info", text: "カプセルトイの コーナー。あたらしい カプセルが とどくのを まって いるよ。", spots: [[18 + v, 1]] });
+    // ガチャガチャ 6だい（js/gacha.js の 6シリーズ。variant = シリーズの ばんごう）
+    for (let v = 0; v < 6; v++) fixtures.push({ kind: "gacha", x: 18 + v, y: 0, w: 1, h: 1, dir: "y", variant: v, series: v, height: 112, label: v === 0 ? "カプセルトイ" : "", action: "gacha", spots: [[18 + v, 1]] });
     fixtures.push({ kind: "changer", x: 25, y: 0, w: 1, h: 1, dir: "y", height: 154, label: "りょうがえき", action: "info", text: "この おみせは、もって いる コインで そのまま あそべるよ。1かい 100コイン。", spots: [[25, 1]] });
     fixtures.push({ kind: "drinks", x: 26, y: 0, w: 1, h: 1, dir: "y", height: 156, label: "のみもの", action: "info", text: "つめたい のみもの。ゲームの あいまに ひとやすみ しよう。", spots: [[26, 1]] });
     // けいひん カウンター（てんいん・うしろに 景品の たな）
@@ -40,7 +41,7 @@ const IkeArcade = {
     // 町の人（あそんで いる おきゃくさん）
     fixtures.push({ kind: "npc", sp: "rabbit", ci: 1, x: 15, y: 3, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "おおきな くまの ぬいぐるみ、ほしいなあ。2本アームは ねらいが だいじ！", spots: [[16, 3]] });
     fixtures.push({ kind: "npc", sp: "sheep", ci: 0, x: 11, y: 11, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "コイン プッシャー、チャンスの わを ねらって いれると スロットが まわるよ！", spots: [[10, 11]] });
-    fixtures.push({ kind: "npc", sp: "fox", ci: 1, x: 21, y: 2, w: 1, h: 1, dir: "up", emo: "normal", label: "おきゃくさん", action: "info", text: "つぎの カプセル、まだかなあ。", spots: [[21, 3]] });
+    fixtures.push({ kind: "npc", sp: "fox", ci: 1, x: 21, y: 2, w: 1, h: 1, dir: "up", emo: "normal", label: "おきゃくさん", action: "info", text: "レアの ユニコーン カチューシャ、でないかなあ。", spots: [[21, 3]] });
     // 入口（マットと でぐちの かんばん。手前の ふちで そとへ）
     fixtures.push({ kind: "exitMat", x: 23, y: 21, w: 4, h: 1, height: 20, label: "たてものを でる", action: "leave", noFade: true, spots: [[24, 20], [25, 20]] });
     fixtures.push({ kind: "exitsign", x: 27, y: 19, w: 1, h: 1, height: 150, label: "でぐち", action: "leave", spots: [[26, 19]] });

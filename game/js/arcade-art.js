@@ -170,7 +170,8 @@ const ArcadeArt = (() => {
       s += `<circle cx="${f2(g.x)}" cy="${f2(g.y)}" r="20" fill="#E9F6FB" fill-opacity="0.75" stroke="${INK}" stroke-width="1.6"/>`;
       for (let k = 0; k < 9; k++) { const a = k * 2.3, rr = 5 + (k % 3) * 4.5; s += `<circle cx="${f2(g.x + Math.cos(a) * rr)}" cy="${f2(g.y + 6 + Math.sin(a) * rr * 0.6)}" r="4.6" fill="${["#F7A9C8", "#FFE07A", "#9ED3C6", "#C9B6EE", "#F2A65E"][k % 5]}" stroke="${INK}" stroke-width="0.9"/>`; }
       s += `<path d="M${f2(g.x - 12)} ${f2(g.y - 12)} q6 -5 12 -4" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.8"/>`;
-      const who = ["wanko", "gachan", "goji", "bear", "panda", "penguin"][v % 6], card = ArcadePrizes.INDEX[`ike_mini_${who}`] ? ArcadePrizes.svg(`ike_mini_${who}`) : ArcadePrizes.svg(`ike_plush_${who}`);
+      const who = ["wanko", "gachan", "goji", "bear", "panda", "penguin"][v % 6], GS = typeof Gacha !== "undefined" ? Gacha.SERIES[v % Gacha.SERIES.length] : null;
+      const card = GS ? Gacha.pic(GS.list[Gacha.RARE]) : ArcadePrizes.INDEX[`ike_mini_${who}`] ? ArcadePrizes.svg(`ike_mini_${who}`) : ArcadePrizes.svg(`ike_plush_${who}`);
       s += onFace(S, F, "front", 0.12, 0, 60, `<rect x="4" y="4" width="${f2((W - 0.24) * 48 - 8)}" height="26" rx="4" fill="#FFFDF5" stroke="${INK}" stroke-width="1.2"/>${img(card, (W - 0.24) * 24 - 13, 6, 26, 22)}<circle cx="${f2((W - 0.24) * 24)}" cy="42" r="7" fill="#F4F0FA" stroke="${INK}" stroke-width="1.4"/><path d="M${f2((W - 0.24) * 24 - 6)} 42 H${f2((W - 0.24) * 24 + 6)}" stroke="${INK}" stroke-width="2"/><rect x="${f2((W - 0.24) * 24 - 8)}" y="52" width="16" height="8" rx="2" fill="#2A2238"/>`);
       return s;
     },
@@ -387,6 +388,8 @@ const ArcadeArt = (() => {
       if (f.action === "crane") { sc.busy = true; try { const at = f.spots && f.spots[0]; await PrizeArcade.open(f.machine, { venue: sc.id, floor: sc.floor, back: sc.back, at }); } finally { sc.busy = false; } return true; }
       // ぷりくら（js/purikura.js）: 300コインで さつえい → らくがき → すまほの「しゃしん」
       if (f.action === "photo") { sc.busy = true; try { const at = f.spots && f.spots[0]; await Purikura.open({ venue: sc.id, floor: sc.floor, back: sc.back, at }); } finally { sc.busy = false; } return true; }
+      // ガチャガチャ（js/gacha.js）: 200コインで まわす → カプセル → フィギュアか 服
+      if (f.action === "gacha") { sc.busy = true; try { await Gacha.open(f.series ?? f.variant ?? 0); } finally { sc.busy = false; } return true; }
       if (f.action === "counter") { sc.busy = true; try { const i = await UI.ask("けいひん カウンター\nとった けいひんは もちものに はいるよ。\nまえの けいひんも コインで こうかん できるよ。", ["まえの けいひんを みる", "コインの けいひんの きまり", "やめておく"]); if (i === 0) await ShopUI.open("ike_arcade"); else if (i === 1) await UI.say([{ name: "てんいん", text: `コインの けいひんは 1にち ${ArcadePrizes.COIN_DAY_MAX}コイン まで。\nきょうは あと ${ArcadePrizes.coinLeft()}コイン とれるよ。` }]); } finally { sc.busy = false; } return true; }
       return false;
     },
