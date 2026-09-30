@@ -91,6 +91,8 @@ const Save = {
       // purikura.active は はらった あと まだ できあがって いない 1かい（つぎは ただで とりなおせる）・plays あそんだ かず・taken とった まいすう
       photos: [],
       purikura: { plays: 0, active: null, taken: 0 },
+      // ガチャガチャ（js/gacha.js）: plays まわした かず・got { けいひん: でた かず }・done { シリーズ: 4しゅ そろった 日 }。けいひんは furn／wardrobe に はいる
+      gacha: { plays: 0, got: {}, done: {} },
       puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },
       world: { map: "town", x: 7, y: 7, dir: "down" },
       flags: { intro: false, chests: {}, boss: false, talked: {} },

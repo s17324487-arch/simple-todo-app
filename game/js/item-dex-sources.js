@@ -3,6 +3,7 @@ const ItemDexSources = {
   source(kind, item) {
     if (!item || (kind !== "wear" && kind !== "furn")) return "";
     const id = item.id;
+    if (typeof Gacha !== "undefined" && Gacha.INDEX[id]) { const S = Gacha.seriesOf(id); return `Meeときょれじゃ の ガチャガチャ「${S.name}」で でるよ${Gacha.INDEX[id].rare ? "（レア）" : ""}。`; }
     if (typeof ANNUAL_EVENTS !== "undefined") {
       const event = ANNUAL_EVENTS.find(e => e.items[kind] === id);
       if (event) return `${event.month}がつの「${event.name}」の きねんひん。`;

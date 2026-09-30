@@ -891,6 +891,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - すまほ: `Smaho.APPS` の `photos`「しゃしん」→ `Purikura.phoneView(el, ph)`（あたらしい じゅん・3れつ）・`phoneOne`（1まい。しゃしんは したの ボタン 2だんが スクロール しないで 見える 大きさ・まえ／つぎ・いちらん・ほぞん・けす）・`download(p)`（600px の PNG を `<a download>` で この 端末に。そとへは おくらない）。
 - PokaDebug: `puriState()`・`puriStart()`（300コインで はじめる・もどると Meeときょれじゃ の ブースの まえ）・`puriFast(ばい)`（カウントダウンを はやく）・`photos()`。検査は `tools/check-purikura.mjs`、スモーク「purikura-390 / 375」。
 
+
+## ガチャガチャ（Meeときょれじゃ・UI-12）
+
+- 読み込みは `js/gacha-art.js` → `js/gacha.js`（purikura.js の あと）。トップレベル名は `GachaArt`・`Gacha`。こうかおんは `CraneSE` に `gacha_turn`・`gacha_drop`・`gacha_open`・`gacha_rare`。
+- `Gacha.SERIES`（6つ。`id`・`name`・`kind: "furn" | "wear"`・`color`・`caps`・`list`〔4しゅ。`k === Gacha.RARE`（3）が レア〕）・`ITEMS`（24。id は `gacha_<シリーズ>_<0〜3>`）・`RATE`（0.3・0.3・0.3・0.1）・`roll(r)`（0〜1 → 0〜3）・`spin(シリーズ, r)`（200コイン・`Gacha.next` が あれば それ〔PokaDebug〕・もちものに いれて `{ item, k, rare, first, refund, complete }`。コインが たりなければ null）。
+- とうろく（よみこみ時）: 家具は `FURNITURE`／`FURN_INDEX`（`exclusive: "gacha"`・`gachaPrize`・`sparkle: false`・`cityItem: { type: "gachafig" }`・50×55〔3にん なかよし は 90×55〕）と `FURN_ART`、おうちの 立体は `IkebukuroItemArt.model` を つつむ（ArcadePrizes と おなじ たった 絵）。服は `WEAR_ITEMS`／`ITEM_INDEX`（`slot`・`wear`・`col`・`exclusive: "gacha"`）。
+- 絵 `GachaArt`: フィギュアは 100×110（`figure(id)`。3人は `Chara.svg`、どうぶつは `Art.npcSvg`〔`emo: "sleep"`〕、おかし・のりものは ここで 描く）。服の かたちは `hatWrap`／`eyeWrap`／`neckWrap`（chara.js）で 3人の あたま・め・くびに あわせる。`capsule(いろ, あく, uid)`（clipPath の id は `gcap-<uid>`）・`machine(シリーズ, カードの SVG)`・`knob(いろ)`。館の 台の カードは シリーズの レアの 絵（arcade-art.js の `gacha`）。
+- 画面 `Gacha.open(シリーズ)`: `UI.modal`（`full gacha-panel`）の 中に 台の 絵・よこの らん（ねだん・コイン・かくりつ・でる もの・コンプリート・まわす ボタン）・けっか・ラインナップ。`view.phase`: `ready` → `turn`（つまみ）→ `capsule`（おおきな カプセルの ボタン）→ `open` → `done`。えんしゅつの まちは `Gacha.speed` で みじかく できる。
+- セーブ: `Save.d.gacha`（`plays`・`got { けいひん: でた かず }`・`done { シリーズ: そろった 日 }`）。`Gacha.st()` が こわれた ところを なおす。
+- PokaDebug: `gachaOpen(シリーズ)`・`gachaNext(0〜3)`・`gachaFast(ばい)`・`gachaState()`。検査は `tools/check-gacha.mjs`、スモーク「gacha-390 / 375」。
+
 ## ころころ フルーツ（ネリカスタウンの パズルの おてつだい・MG-01〜MG-06）
 
 - 物理 `KorokoroWorld`（`js/korokoro-physics.js`）: はこの 単位は はば 100・たかさ 110（スコア モードは 15% たかい 126.5。画面の 大きさに よらない）。1/480 びょうの ステップで 位置の かさなりを なおし（重さ = 半径²）→ 速さに もどし → はねかえり（はやく ぶつかった ときだけ）と まさつ（ころがる 回転も）。かさなりを なおした ぶんで はじけ とばない ように、はなれる はやさは `depen` まで。おなじ だんが ふれると（すきま 0.4 まで）その ステップの おわりに 1つに（1つの 玉は 1ステップに 1かい。大きく なる とちゅうは がったい しない。フレームの おわりに 1かい だと、1コマが ながい おそい 端末で ふれた 2つが はなれて しまう・FIX-01）。いちばん 大きい ごじ どうしは はじけて きえる（`burst`）。できごとの `points` は くっついた 2つの だんの 点・`hero` は できた 玉の 子。ふちより 上に 玉の てっぺんが `overSec`（ちゅうもん モード 2びょう・スコア モード 0.5びょう）いると `overflow`。`new KorokoroWorld(seed, { overSec, H, rules })` の `H` は はこの たかさ、`rules` は その はこだけ `KOROKORO_RULES` を 上がき（`this.R`）。`keep` は がったいで できた 玉が 2つの 玉の はやさを ひきつぐ わりあい（ふつうは 1）、`up` は うえむきの はやさの 上限（ふつうは なし）。大きく なる 玉に おしのけられた 玉は、なおした ぶんが 速さに なって とびあがる（まえの スコア モードでは 420 まで）ので、スコア モードは `{ up: 90, depen: 20, keep: 0.3 }`（MG-04）。ちゅうもん モードは `spill()` で ゆかを ひらいて ぜんぶ おとす。描画・時計・セーブに 依存しないので Node の 検査と おなじ けっか（`rng` は おちてくる だんだけ）。

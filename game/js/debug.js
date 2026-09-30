@@ -12,6 +12,11 @@ const PokaDebug = {
   // コイン プッシャー: ランチャーを x cm へ（うごかせる ときだけ）・チャンス（スロットを まわす）
   arcadePusherAt(x){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='pusher'||r.phase!=='play')return false;r.rig.lx=Math.max(r.rig.o.lim[0],Math.min(r.rig.o.lim[1],x));return true;},
   arcadeChance(){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='pusher')return false;r.chance();return true;},
+  // ガチャガチャ（gacha.js）: gachaOpen シリーズの 台を ひらく・gachaNext つぎに でる 0〜3（3 が レア）・gachaFast えんしゅつの はやさ・gachaState ようす
+  gachaOpen(i=0){if(typeof Gacha==='undefined'||!Gacha.SERIES[i])return false;Gacha.open(i);return true;},
+  gachaNext(k){if(!(k>=0&&k<4))return false;Gacha.next=k;return true;},
+  gachaFast(k=1){Gacha.speed=Math.max(1,Math.min(20,k));return true;},
+  gachaState(){const v=Gacha.view,g=Gacha.st();return{open:!!document.querySelector('.modal-wrap:not(.out) .gacha'),phase:v?v.phase:null,series:v?v.S.id:null,last:v&&v.last?{id:v.last.item.id,k:v.last.k,rare:v.last.rare,first:v.last.first,refund:v.last.refund,complete:v.last.complete}:null,plays:g.plays,got:{...g.got},done:{...g.done},coins:Save.d.coins};},
   // ぷりくら（purikura.js）: puriState いまの ようす・puriStart 300コインで はじめる（Meeときょれじゃ に もどる）・puriFast カウントダウンの はやさ・photos しゃしんの いちらん
   puriState(){const s=G.sceneName==='purikura'&&G.scene instanceof PurikuraScene&&Array.isArray(G.scene.deco)?G.scene:null;if(!s)return null;const v=s.view,d=s.deco.map(x=>({p:x.p.length,pts:x.p.reduce((a,q)=>a+q.pts.length,0),s:x.s.length,x:x.x.length}));return{phase:s.phase,bg:s.bg,z:s.z,who:s.who,tab:s.tab,tool:s.tool,shots:s.shots.length,sel:JSON.parse(JSON.stringify(s.sel)),shotSel:s.shots.map(x=>({c:x.c,z:x.z})),di:s.di,deco:d,count:s.count?s.count.n:null,saved:s.saved,active:Save.d.purikura.active,photos:Save.d.photos.length,coins:Save.d.coins,view:v&&{x:v.x,y:v.y,w:v.w,h:v.h}};},
   puriStart(){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),back={venue:'arcade',floor:1,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'},at:[12,3]};if(!Save.d.purikura.active&&!Purikura.pay())return false;Game.goto('purikura',{back},'none');return true;},
