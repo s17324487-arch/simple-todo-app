@@ -854,6 +854,14 @@ if (ok(!!FD, "FISHING_DATA が ない（js/fishing-data.js）")) {
     // G: さおが ない ときは なげない・水の ないところは ながおししても なにも しない
     const H2 = setup(1); Save.d.fish.rod = 0; const noRod = FishLine.aim(H2.sc, H2.bx, H2.by) === false && !H2.S.line; Save.d.fish.rod = 1;
     const dn = mk(); FishLine.st(dn).auto = false; FishLine.down(dn, { id: 1, x: at.x * TS + 16, y: at.y * TS + 16 }); const dryPress = !dn.fishing.press;
+    // ながおしは ほんとうの 時間で かぞえる（おそい 端末で 1コマ 200ms・dt は 0.05 でも 0.6びょう おせば なげる／0.45びょう すぎて はなしても なげる／みじかい おしは なげない）
+    const now0 = FishLine.now; let clk = 0; FishLine.now = () => clk;
+    const slow = (hold, frames, release) => { const L = setup(1), p = { id: 5, x: L.bx, y: L.by }; L.S.posed = true; L.sc.touch = { sx: p.x, sy: p.y, id: 5 }; FishLine.down(L.sc, p);
+      for (let i = 0; i < frames; i++) { clk += hold / frames; FishLine.update(L.sc, 0.05); }
+      if (release != null) { clk += release; WorldScene.prototype.up.call(L.sc, { ...p, tap: false }); }
+      return !!L.S.line && !L.S.press; };
+    const press = { slow: slow(600, 3, null), late: slow(300, 2, 200), short: slow(200, 2, 100) };
+    FishLine.now = now0;
     // ちょんちょんの かず（0〜4。5かいめは かならず しずむ）
     const nib = new Set(); for (let i = 0; i < 3000; i++) nib.add(FishLine.rollNibbles(rnd));
     // じまんの ひとこと
@@ -864,7 +872,7 @@ if (ok(!!FD, "FISHING_DATA が ない（js/fishing-data.js）")) {
     const sold = Fishing.sellFish("kingyo", 1), left = Save.d.fish.keep.kingyo, none = Fishing.sellFish("magoi", 1), all = Fishing.sellFish("kingyo", 5);
     const sell = { choiceM, choiceC, sold, left, none, all, coins: Save.d.coins - coins, gone: !("kingyo" in Save.d.fish.keep), empty: Fishing.sellChoice({ shopId: "market", back: { map: "town" } }) };
     Save.d = old;
-    return { lens, nofit, at: !!at, castA, phA, nibA, pullA, bragA, early, late, scare, behind, fickle, walk, noRod, dryPress, nib: [...nib].sort(), quotes, tails: ["wanko", "gachan", "goji"].every((k) => FishLine.TAIL[k]), sell, KEEP: Fishing.KEEP_MAX, bite: FishLine.BITE, sell1: FISHING_DATA.fish.find((f) => f.id === "kingyo").sell };
+    return { lens, nofit, at: !!at, castA, phA, nibA, pullA, bragA, early, late, scare, behind, fickle, walk, noRod, dryPress, press, nib: [...nib].sort(), quotes, tails: ["wanko", "gachan", "goji"].every((k) => FishLine.TAIL[k]), sell, KEEP: Fishing.KEEP_MAX, bite: FishLine.BITE, sell1: FISHING_DATA.fish.find((f) => f.id === "kingyo").sell };
   })()`, ctx);
   const kanji = /[一-鿿]/, k = vm.runInContext("FishLine.PX_PER_CM", ctx), [mn, mx] = vm.runInContext("[FishLine.MIN_PX, FishLine.MAX_PX]", ctx);
   for (const [cm, len] of FL.lens) ok(len === Math.min(mx, Math.max(mn, Math.round(cm * k * 10) / 10)), `かげの ながさが cm に 比例 しない: ${cm}cm → ${len}px`);
@@ -880,6 +888,7 @@ if (ok(!!FD, "FISHING_DATA が ない（js/fishing-data.js）")) {
   ok(FL.fickle, "ちょんの あと きが かわって いって しまう ことが ない");
   ok(FL.walk, "あるきだしても さおを しまわない");
   ok(FL.noRod && FL.dryPress, "さおが ない ときに なげる・水の ない ところの ながおしで 釣りが はじまる");
+  ok(FL.press.slow && FL.press.late && !FL.press.short, "ながおしが フレームの はやさで かわる（おそい 端末で なげられない） " + JSON.stringify(FL.press));
   ok(FL.nib.join() === "0,1,2,3,4", "ちょんちょんの かずが 0〜4 に ならない " + FL.nib.join());
   for (const q of FL.quotes) {
     ok(q.q && !kanji.test(q.q) && q.q.length <= 24, `じまんの ひとこと ${q.id}: ない／漢字／24もじ より ながい「${q.q}」`);

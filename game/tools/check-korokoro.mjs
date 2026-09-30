@@ -99,6 +99,19 @@ for (const seed of [1, 2, 3, 4]) {
   const d = new World(4); d.add(3, 30, 100, { landed: true }); d.add(4, 52, 98, { landed: true });
   for (let i = 0; i < 30; i++) d.step(1 / 60);
   ok(d.bodies.length === 2, "ちがう もの どうしが がったいした");
+  // がったいは フレームの ながさで かわらない（1ステップ ごとに しらべる）。4にんめの スモークと おなじ ならび:
+  // りんご 2つは ふれた まま おちる → なし。1コマが ながい〔おそい 端末・CI〕と、まえは おわりの しらべまでに はなれて がったい しなかった
+  for (const fdt of [1 / 120, 1 / 60, 1 / 30, 0.05, RULES.maxFrame]) {
+    const fw = new World(1); for (const [t, x, y] of [[5, 30, 94], [5, 60.4, 94], [3, 40, 40], [3, 59.8, 40]]) fw.add(t, x, y, { landed: true });
+    let pearAt = null; for (let t = 0; t < 1 && pearAt == null; t += fdt) { fw.step(fdt); if (fw.bodies.some((b) => b.tier === 4 && b.grow >= 1)) pearAt = t; }
+    ok(pearAt != null && pearAt < 0.3 && fw.bodies.some((b) => b.tier === 6), `1コマ ${(fdt * 1000).toFixed(1)}ms だと りんご 2つが なしに ならない（${pearAt}）`);
+  }
+  // 空中で ふれた おなじ 玉 2つは、どの だんでも 1コマの ながさに かかわらず がったい（まえは 50ms いじょうの コマで 7だん ぜんぶ しなかった）
+  for (let tier = 0; tier < T.length - 1; tier++) for (const fdt of [1 / 60, 0.05, RULES.maxFrame]) {
+    const r = T[tier].r, fw = new World(2); fw.add(tier, 50 - r + 0.1, 40, { landed: true }); fw.add(tier, 50 + r - 0.1, 40, { landed: true });
+    let merged = false; for (let t = 0; t < 1 && !merged; t += fdt) for (const e of fw.step(fdt)) if (e.type === "merge") merged = true;
+    ok(merged, `空中で ふれた ${T[tier].name} 2つが 1コマ ${(fdt * 1000).toFixed(0)}ms だと がったい しない`);
+  }
   // あふれ: ふちより 上に 2びょう → しらせ → ゆかを ひらいて からっぽ → また あそべる
   const tower = (wo) => { for (let i = 0; i < 12; i++) { const col = i % 2, row = Math.floor(i / 2); wo.add((row + col) % 2 ? 6 : 7, 24 + col * 52, 86.4 - row * 44, { landed: true }); } return wo; }; // となりは ちがう もの（がったい しない）
   const firstOver = (wo) => { for (let t = 0; t < 6; t += 1 / 60) for (const e of wo.step(1 / 60)) if (e.type === "overflow") return t; return null; };

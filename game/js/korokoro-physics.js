@@ -54,8 +54,8 @@ class KorokoroWorld {
     if (!(dt > 0)) return events;
     const h = this.R.step;
     this.acc = Math.min(this.acc + dt, this.R.maxFrame);
-    while (this.acc >= h - 1e-9) { this.sub(h); this.acc -= h; this.t += h; }
-    this.merge(events);
+    // がったいは 1ステップ ごとに しらべる（フレームの おわりに 1かい だと、1コマが ながい〔おそい 端末〕とき ふれた 2つが はなれて しまい、がったい しない）
+    while (this.acc >= h - 1e-9) { this.sub(h); this.merge(events); this.acc -= h; this.t += h; }
     this.watch(dt, events);
     return events;
   }
