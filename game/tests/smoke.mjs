@@ -1480,6 +1480,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 },{viewport,full:viewport.width===375,timeout:120000});
 
 // ④ 化石ほり: ほる 画面の 骨の マスを（ほんとうに マウスで）たたいて ほりだす。おわると ほる 画面が とじる
+// まえの ほる 画面が きえてから つぎを ひらく（とじた まどは 180ms のこる。はやい CI では .dig-wrap canvas が 2つに なって いた）
+const noDig=(H)=>H.until(()=>!document.querySelector('.dig-wrap'),5000);
 async function digAll(H){
   for(let i=0;i<40;i++){
     const st=await H.dbg('digState');if(!st||st.done)break;
@@ -1523,7 +1525,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.eval(([x,y])=>G.scene.walkable(x,y)&&!document.querySelector('.fossil-go-btn'),spot.rock),'ほった いわが のこって いる');
   // ティラノサウルスの あたまを ほる → はじめて！ の カード（あつまりぐあい・骨格の 小さい 絵）
   const had=d.fossil.bones['trex.skull']||0;
-  await H.dbg('fossilDig','cave','trex.skull');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(400);
+  await noDig(H);await H.dbg('fossilDig','cave','trex.skull');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(400);
   await H.shot('dig');
   st=await digAll(H);
   const info=await H.eval(()=>document.querySelector('.dig-info').innerText);expect(/ティラノサウルスの あたま！/.test(info)&&/★/.test(info),'ほりだした ときの ことばが 不正 '+info);
@@ -1535,13 +1537,13 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.idle();
   d=await H.dbg('saveData');expect(d.fossil.bones['trex.skull']===had+1,'ほった 骨が もてない');
   // とちゅうで とじると なにも もらえない（しっぱいは ない・また ほれる）
-  await H.dbg('fossilDig','cave','trex.leg');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);
+  await noDig(H);await H.dbg('fossilDig','cave','trex.leg');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);
   await H.dbg('digTap',3,2);await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(400);await H.idle();
   expect(((await H.dbg('saveData')).fossil.bones['trex.leg']||0)===(d.fossil.bones['trex.leg']||0)&&!(await H.dbg('digState')),'とちゅうで とじたのに 骨が もらえた');
   // ② おねがい「ほねを みせて」: ケロスケに たのまれる → ほる → ケロスケに 話すと おわる（コイン +150）
   await H.dbg('folkOffer','ev-bone-show');await folkTalk(H,'explorer',{greet:false});await folkAnswer(H,0);await H.dialogs();await H.idle();
   expect((await H.dbg('folk')).req.some(r=>r.id==='ev-bone-show'),'ほねを みせての おねがいを うけられない');
-  await H.dbg('fossilDig','forest','stego.tail');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);await digAll(H);
+  await noDig(H);await H.dbg('fossilDig','forest','stego.tail');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);await digAll(H);
   await H.page.locator('.bone-card').waitFor({timeout:6000});await H.wait(200);await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.dialogs();await H.idle();
   expect((await H.dbg('folk')).req.find(r=>r.id==='ev-bone-show')?.step===1,'ほっても おねがいが すすまない');
   const coins=(await H.dbg('state')).coins;
@@ -2181,6 +2183,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("discDrop","chest","cave");d=await H.dbg("discs");expect(d.players.player_gramophone===1&&d.owned.includes("disc_nacht")&&d.owned.includes("disc_lullaby"),"たからばこで ちくおんき（ほしぞら ララバイ・アイネ クライネ つき）が 出ない "+JSON.stringify(d));
   await H.dbg("homeLayout",[{id:"player_gramophone",x:210,y:560},{id:"player_jukebox",x:400,y:560},{id:"player_boombox",x:80,y:560}]);await H.dbg("homeBubbleFixture");await H.wait(500);
   a=await H.dbg("furnLive","player_jukebox");await H.tap(a.tap.x,a.tap.y);await H.wait(350);
+  // タップの あとから くる click が、ひらいた まどの ボタン（タップした ばしょに ある）を おさない
+  d=await H.dbg("discs");expect(await H.eval(()=>!!document.querySelector(".disc-picker"))&&!d.playing,"ジュークボックスの まどが タップの あとの click で とじて きょくが ながれる "+JSON.stringify(d));
   await H.page.getByRole("button",{name:"トルコ こうしんきょく",exact:true}).click();await H.wait(900);
   d=await H.dbg("discs");expect(d.song==="disc_turkish","ジュークボックスで ディスクだけの 名曲が ながれない "+JSON.stringify(d));
   await H.shot("jukebox");
@@ -2921,6 +2925,52 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  const ask2=await H.eval(()=>document.querySelector('.dlg-shade.ask .dlg-text').textContent);expect(ask2.includes('ハイスコア '+final),'お店で ハイスコアが みえない '+ask2);
  await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();expect((await H.dbg('state')).scene==='store','やめると てんないの まま');
 },{viewport,timeout:180000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('korokoro-prizes-'+viewport.width,async H=>{
+ // ハイスコアの ごほうび（korokoro-prizes.js）: スコア モードで 850てん → とくべつな かぐ 3つ（200・500・800てん）→ つぎの めやす → おうちの よるの へやに 6つ おいて タップ
+ await H.newGameFast();
+ await H.dbg('koroScore',{seed:5});await H.until(()=>PokaDebug.state().scene==='koroscore'&&!PokaDebug.state().transitioning,15000);
+ await H.dialogs();await H.until(()=>PokaDebug.koro()?.phase==='play',15000);await H.wait(200);
+ await H.dbg('koroSetup',{points:850,bodies:Array.from({length:10},(_,i)=>[(Math.floor(i/2)+i%2)%2?6:7,24+(i%2)*52,86.4-Math.floor(i/2)*44])});
+ await H.until(()=>PokaDebug.koro().phase==='over',6000);
+ await H.until(()=>!!document.querySelector('.modal-wrap .koro-foot .btn'),8000);await H.wait(400);
+ const text=await H.eval(()=>document.querySelector('.modal-wrap').textContent);
+ const cards=await H.eval(()=>[...document.querySelectorAll('.modal-wrap .koro-gift')].map(e=>({t:e.textContent,img:e.querySelector('img').naturalWidth>0,w:e.getBoundingClientRect().right<=innerWidth})));
+ expect(cards.length===3&&cards.every(c=>c.img&&c.w)&&/さくらんぼの ランプ/.test(cards[0].t)&&/いちごの ソファ/.test(cards[1].t)&&/みかんの テーブル/.test(cards[2].t),'とくべつな かぐの カード '+JSON.stringify(cards));
+ expect(/つぎの とくべつな かぐは 1,200てん（あと 350てん）/.test(text)&&/850てん/.test(text),'つぎの めやす '+text);
+ const fit=await H.eval(()=>{const p=document.querySelector('.modal-wrap .panel').getBoundingClientRect(),b=[...document.querySelectorAll('.modal-wrap .koro-foot .btn')].map(x=>x.getBoundingClientRect());return p.left>=0&&p.right<=innerWidth&&b.every(r=>r.height>=44&&r.bottom<=innerHeight);});
+ expect(fit,'けっかの まどが 画面から はみ出す');await H.shot('gifts');
+ let save=await H.dbg('saveData');const got=['koro_cherry_lamp','koro_strawberry_sofa','koro_mikan_table'];
+ expect(got.every(id=>save.furn[id]===1&&save.shops.korokoro.gifts[id])&&!save.furn.koro_apple_shelf&&Object.keys(save.shops.korokoro.gifts).length===3,'とくべつな かぐが もらえない '+JSON.stringify(save.shops.korokoro.gifts));
+ // もういちど 900てんでは もう もらえない（おなじ かぐは 1かいだけ）
+ await H.page.getByRole('button',{name:'もういちど',exact:true}).click();
+ await H.until(()=>PokaDebug.state().scene==='koroscore'&&!PokaDebug.state().transitioning&&PokaDebug.koro()?.phase==='intro',15000);
+ const again=await H.eval(()=>document.querySelector('.dlg-shade:not(.ask) .dlg-text')?.textContent||'');expect(/ハイスコアは 850てん/.test(again),'2かいめの ひとこと '+again);
+ await H.dialogs();await H.until(()=>PokaDebug.koro()?.phase==='play',15000);
+ await H.dbg('koroSetup',{points:900});await H.page.getByRole('button',{name:'スコア モードを やめる',exact:true}).click();await H.page.getByRole('button',{name:'おわりに する',exact:true}).click();
+ await H.until(()=>!!document.querySelector('.modal-wrap .koro-foot .btn'),8000);
+ expect(await H.eval(()=>document.querySelectorAll('.modal-wrap .koro-gift').length)===0,'おなじ かぐを また もらえる');
+ await H.page.getByRole('button',{name:'てんないに もどる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),15000);
+ save=await H.dbg('saveData');expect(got.every(id=>save.furn[id]===1),'かぐの かずが ふえる');
+ // おうち（よる 21じ）: 6つの かぐを おいて タップ。ランプは よるは ついて いて タップで きえる・ほかは うごいて 3人が ひとこと
+ await H.dbg('hour',21);await H.dbg('house');await H.until(()=>PokaDebug.state().scene==='house'&&!PokaDebug.state().transitioning,15000);await H.idle(20000);
+ // 3人・ぱぱ ままの たつ ところ（homeBubbleFixture）から 画面で 30px いじょう はなれた ところに おく（まえは クッションが ごじの すぐ よこで、WebKit では ごじを なでて いた）
+ await H.dbg('homeLayout',[{id:'koro_apple_shelf',x:160,y:250},{id:'koro_fruit_tower',x:430,y:280},{id:'koro_cherry_lamp',x:40,y:550},{id:'koro_strawberry_sofa',x:190,y:340},{id:'koro_mikan_table',x:40,y:490},{id:'koro_pear_cushion',x:110,y:550}]);
+ await H.dbg('homeBubbleFixture');await H.wait(900);await H.shot('room-night');
+ const touch=async(id,ok,msg)=>{
+  // まえの タップで うごいた 3人・ぱぱ ままを とめてから おす 点を きめる（人が かぶると 人を タップして しまう）
+  await H.dbg('homeBubbleFixture');await H.wait(120);
+  const a=await H.dbg('furnLive',id);expect(a&&a.tap,`${id}: タップできる 点が ない`);
+  await H.tap(a.tap.x,a.tap.y);await H.wait(320);
+  const b=await H.dbg('furnLive',id);expect(ok(a,b),`${msg} ${JSON.stringify([a,b])}`);expect(b.talk>a.talk,`${id}: 3人が なにも いわない`);
+  return b;
+ };
+ await touch('koro_cherry_lamp',(a,b)=>a.on===true&&b.on===false,'よるの さくらんぼの ランプが タップで きえない');
+ await touch('koro_cherry_lamp',(a,b)=>b.on===true,'さくらんぼの ランプが つかない');
+ await touch('koro_fruit_tower',(a,b)=>b.t<1&&b.live,'ころころ タワーが はずまない');await H.wait(150);await H.shot('tower-bounce');
+ for(const id of ['koro_strawberry_sofa','koro_mikan_table','koro_apple_shelf','koro_pear_cushion'])await touch(id,(a,b)=>b.t<1,`${id} を タップしても うごかない`);
+ await H.wait(300);await H.shot('room-tapped');
+},{viewport,timeout:200000});
 
 await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});
 

@@ -73,7 +73,7 @@ const PokaDebug = {
       "PokaDebug.shop('crepe', 3)            お店ミニゲームを Lv3 で開始",
       "PokaDebug.koroSetup({bodies:[[3,40,100],[3,60,100]]}) ころころ フルーツの 箱に 玉を おく（seed・held・next も。スコア モードでも）",
       "PokaDebug.koroScore({ seed: 1 })     ころころ フルーツの スコア モードを はじめる（お店の まえに もどる）",
-      "PokaDebug.koro()                      スコア モードの ようす（スコア・ハイスコア・箱の CSS 座標・玉・つぎ・おしまい）",
+      "PokaDebug.koro()                      スコア モードの ようす（スコア・ハイスコア・もらった とくべつな かぐ・箱の CSS 座標・玉・つぎ・おしまい）",
       "PokaDebug.store('clothes', 'town')    歩ける店内へ（入口のある町を選べる）",
       "PokaDebug.storeState()                店員・展示・通路・3人・出口の状態",
       "PokaDebug.storeWalkTo(5, 3)           店内のマスまで実際に歩く",
@@ -357,10 +357,11 @@ const PokaDebug = {
     if (!it) return null;
     const r = sc.itemRect(it), c = G.canvas.getBoundingClientRect(), actors = [...sc.chars.map((a) => [a, false]), ...sc.parents.map((a) => [a, true])].filter(([a]) => !a.hidden);
     let tap = null;
-    // 3人・ぱぱ ままに かさならず、その 家具に あたる 点（タップは 人が さき）
-    for (let fy = 0.2; fy <= 0.9 && !tap; fy += 0.1) for (const fx of [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8]) {
+    // 3人・ぱぱ ままに かさならず、その 家具に あたる 点（タップは 人が さき）。人の わくの すぐ そとは さける
+    // （ブラウザに よっては タッチの 座標が 1px まるめられて 人に あたる）。よゆうが とれない ときだけ わくの そと ぎりぎり
+    for (const pad of [10, 0]) for (let fy = 0.2; fy <= 0.9 && !tap; fy += 0.1) for (const fx of [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8]) {
       const sx = r.x + r.w * fx, sy = r.y + r.h * fy, q = sc.toRoom(sx, sy);
-      if (actors.some(([a, parent]) => sc.contains(sc.actorRect(a, parent), { x: sx, y: sy }))) continue;
+      if (actors.some(([a, parent]) => sc.contains(sc.actorRect(a, parent), { x: sx, y: sy }, pad))) continue;
       if (sc.hitItem(q.x, q.y) === it) { tap = { x: c.left + sx * G.cssPerUnit, y: c.top + sy * G.cssPerUnit }; break; }
     }
     return { ...FurnLive.state(it), tap, talk: sc.life.log.length };
@@ -800,7 +801,7 @@ const PokaDebug = {
     return out;
   },
   // ころころ フルーツの 箱を ととのえる（テスト用・おてつだい中か スコア モードの とき）。bodies: [[だん, x, y], …]（箱の 単位: はば 100）
-  koroSetup({ bodies = [], held = null, next = null, clear = true, seed = null } = {}) {
+  koroSetup({ bodies = [], held = null, next = null, clear = true, seed = null, points = null } = {}) {
     const sc = G.scene, here = (G.sceneName === "shop" && sc.shopId === "korokoro") || G.sceneName === "koroscore";
     if (!here || !(sc.board instanceof KorokoroBoard)) throw new Error("koroSetup は ころころ フルーツの おてつだい中か スコア モードの ときだけ");
     const b = sc.board;
@@ -809,6 +810,7 @@ const PokaDebug = {
     if (seed != null) b.world.rng = (seed >>> 0) || 1; // つぎから おちてくる だんの ならびを きめる
     if (held != null) b.held = held;
     if (next != null) b.next = next;
+    if (points != null) b.points = Math.max(0, Math.round(points)); // スコア（ハイスコアの ごほうびを ためす）
     b.cool = 0;
     return b.world.bodies.length;
   },
@@ -826,7 +828,7 @@ const PokaDebug = {
     const css = (x, y) => ({ cx: Math.round(cv.left + x * G.cssPerUnit), cy: Math.round(cv.top + y * G.cssPerUnit) });
     const rect = (r) => r && { x: Math.round(cv.left + r.x * G.cssPerUnit), y: Math.round(cv.top + r.y * G.cssPerUnit), w: Math.round(r.w * G.cssPerUnit), h: Math.round(r.h * G.cssPerUnit) };
     const rim = css(b.bx, b.by);
-    return { phase: sc.phase, score: b.points, hi: sc.st.hi || 0, hi0: sc.hi0, games: sc.st.games || 0, tops: (sc.st.tops || []).map((e) => ({ ...e })), over: b.over, stopped: !!sc.stopped,
+    return { phase: sc.phase, score: b.points, hi: sc.st.hi || 0, hi0: sc.hi0, games: sc.st.games || 0, tops: (sc.st.tops || []).map((e) => ({ ...e })), gifts: { ...(sc.st.gifts || {}) }, over: b.over, stopped: !!sc.stopped,
       held: b.held, next: b.next, aim: b.aim, cool: b.cool, canDrop: b.canDrop(), drops: b.drops, merges: b.merges, made: { ...b.made }, danger: w.danger, topGap: w.topGap, overSec: w.overSec, dropKinds: KOROKORO_RULES.drop,
       box: { x0: rim.cx, y0: rim.cy, unit: b.s * G.cssPerUnit, w: w.W, h: w.H, dropY: css(0, b.by - b.top / 2).cy, rect: rect({ x: b.bx - 7, y: b.by - b.top, w: b.bw + 14, h: b.top + b.bh + 15 }) },
       row: rect(b.row), panel: rect(sc.panel), nextBox: rect(sc.nextBox), sign: rect({ x: 10, y: 8, w: G.W - 115, h: 26 }), team: sc.team.map((t, i) => ({ id: t.id, emo: t.emo, ...css(sc.teamSpot(i).x, sc.infoY + sc.infoH - 3) })),

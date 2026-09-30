@@ -161,9 +161,13 @@ const Game = {
       if (this.inputLocked) return;
       if (G.scene && G.scene.move) G.scene.move(p0);
     });
+    // ゆびで タップして ひらいた まど（ディスク えらび・おみせの しつもん など）の ボタンに、おなじ タップの あとから くる click が
+    // あたって、かってに おされない ように する（ゆびを はなした ばしょ・0.5びょう いない の click だけ すてる。マウスは そのまま）
+    let ghost = null;
     const up = (e) => {
       const p0 = this.pointers.get(e.pointerId);
       if (!p0) return;
+      if (e.type === "pointerup" && e.pointerType !== "mouse") ghost = { x: e.clientX, y: e.clientY, t: performance.now() };
       this.pointers.delete(e.pointerId);
       const p = pos(e);
       Object.assign(p0, { x: p.x, y: p.y });
@@ -177,6 +181,12 @@ const Game = {
     // どこかを最初に触ったら音を有効にする（iOS対策）
     // iOS は touchend / click でないと音が有効にならないことがある
     for (const ev of ["pointerdown", "touchend", "click", "keydown"]) document.addEventListener(ev, () => Sound.init(), { capture: true, passive: true });
+    // タップの あとから くる click（↑の ghost）を すてる。音の じゅんびの あとに おく
+    document.addEventListener("click", (e) => {
+      const g = ghost; ghost = null;
+      if (!g || e.target === cv || e.pointerType === "mouse" || performance.now() - g.t > 500 || Math.hypot(e.clientX - g.x, e.clientY - g.y) > 24) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+    }, true);
     document.addEventListener("contextmenu", (e) => e.preventDefault());
 
     const KEYMAP = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right", W: "up", S: "down", A: "left", D: "right", z: "ok", Z: "ok", Enter: "ok", " ": "ok", x: "cancel", X: "cancel", Escape: "cancel" };
