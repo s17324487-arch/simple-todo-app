@@ -2183,6 +2183,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("discDrop","chest","cave");d=await H.dbg("discs");expect(d.players.player_gramophone===1&&d.owned.includes("disc_nacht")&&d.owned.includes("disc_lullaby"),"たからばこで ちくおんき（ほしぞら ララバイ・アイネ クライネ つき）が 出ない "+JSON.stringify(d));
   await H.dbg("homeLayout",[{id:"player_gramophone",x:210,y:560},{id:"player_jukebox",x:400,y:560},{id:"player_boombox",x:80,y:560}]);await H.dbg("homeBubbleFixture");await H.wait(500);
   a=await H.dbg("furnLive","player_jukebox");await H.tap(a.tap.x,a.tap.y);await H.wait(350);
+  // タップの あとから くる click が、ひらいた まどの ボタン（タップした ばしょに ある）を おさない
+  d=await H.dbg("discs");expect(await H.eval(()=>!!document.querySelector(".disc-picker"))&&!d.playing,"ジュークボックスの まどが タップの あとの click で とじて きょくが ながれる "+JSON.stringify(d));
   await H.page.getByRole("button",{name:"トルコ こうしんきょく",exact:true}).click();await H.wait(900);
   d=await H.dbg("discs");expect(d.song==="disc_turkish","ジュークボックスで ディスクだけの 名曲が ながれない "+JSON.stringify(d));
   await H.shot("jukebox");

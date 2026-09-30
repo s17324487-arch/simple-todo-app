@@ -238,6 +238,7 @@ SCENES.xxx = XxxScene;
 ### 入力
 
 - タッチ・マウスは Pointer Events を論理座標に変換してシーンへ渡す。`p.tap` は「400ms 未満・10 以内の移動」。
+- ゆびの タップの あと ブラウザが おくる click は、canvas の `pointerup` で ひらいた まど（ディスク えらび・`UI.ask` など）の ボタンに あたる ことが ある。`Game.bindInput` は ゆびを はなした 0.5びょう いない・24px いない の click を canvas いがいでは すてる（マウスの click は そのまま）。スモーク「music-disc」が ジュークボックスで たしかめる。
 - キーボード: 矢印 / WASD = 移動、Z・Enter・Space = ok、X・Esc = cancel。INPUT / TEXTAREA に入力中は無視。
 - 会話中は ok キーで会話を送る。
 
