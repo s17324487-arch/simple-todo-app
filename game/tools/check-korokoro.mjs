@@ -233,7 +233,11 @@ for (const t of T) for (const emo of Art.FACES) for (const size of [30, 60, 140]
   const svg = Art.svg(t.tier, emo, size);
   ok(svg.startsWith("<svg") && svg.endsWith("</svg>") && !/NaN|undefined|Infinity/.test(svg) && !/\sid="/.test(svg), `絵 ${t.id}:${emo}:${size} が こわれている`);
 }
-ok(Art.FACES.length === 5 && T.every((t) => Art.cropOf(t.tier) === (t.hero ? Art.HERO[t.hero].crop : Art.CROP)) && T.filter((t) => t.hero).every((t) => Art.HERO[t.hero].crop > Art.CROP), "表情 5つ・かおの 玉は みみ と かざりの ぶん ひろく");
+const FACE_NAMES = ["normal", "happy", "surprise", "sad", "sleep", "blink", "wink", "dizzy", "squish", "love", "yawn"];
+ok(Art.FACES.length === 11 && FACE_NAMES.every((f, i) => Art.FACES[i] === f) && T.every((t) => Art.cropOf(t.tier) === (t.hero ? Art.HERO[t.hero].crop : Art.CROP)) && T.filter((t) => t.hero).every((t) => Art.HERO[t.hero].crop > Art.CROP), "表情 11こ・かおの 玉は みみ と かざりの ぶん ひろく");
+// あたらしい 表情は どの だんでも ちがう 絵（ふつうの 絵の ままに ならない）・ごじの 目は あたまの ふちに 見えて まばたきで とじる
+ok(T.every((t) => new Set(Art.FACES.map((f) => Art.svg(t.tier, f, 60))).size === Art.FACES.length), "表情の 絵が おなじ（ふえて いない）");
+{ const g = T.length - 1, eye = "#D6C7A1"; ok(Art.svg(g, "normal").includes(eye) && !Art.svg(g, "blink").includes(eye) && !Art.svg(g, "sleep").includes(eye) && Art.svg(g, "dizzy").includes(eye), "ごじの 目（ひらく・とじる）"); }
 // ブラウザで はかった かざりの はみだし（わんこ 1.31・がちゃん ねむり 1.47・ごじ にっこり 1.54）より わくが 大きい
 ok(Art.HERO.wanko.crop >= 1.33 && Art.HERO.gachan.crop >= 1.5 && Art.HERO.goji.crop >= 1.57, "かおの 玉の かざりが わくで きれる");
 {
@@ -241,6 +245,46 @@ ok(Art.HERO.wanko.crop >= 1.33 && Art.HERO.gachan.crop >= 1.5 && Art.HERO.goji.c
   const keys = new Set();
   for (const t of T) for (const emo of Art.FACES) keys.add(`${t.tier}:${emo}:${Math.ceil((t.r * b.s * 2 * Art.cropOf(t.tier) * 2) / 8) * 8}`);
   ok(keys.size <= T.length * Art.FACES.length, "キャッシュの キーが ふえる");
+}
+
+// ---- 6b. 表情の きりかえ（オーナーの FB 2026-09-30「ごじ・わんこ・がちゃの 表情を 増やせ。瞬きも 追加せよ」）----
+{
+  const F = R.KOROKORO_FACE, mk = () => { const b = new Board(fakeScene(), 3); b.layout(RECT); b.world.bodies = []; return b; };
+  // まばたき: しずかな 玉は ふだんは normal で、2.6〜4.4びょうに 1かい blink（id と 物理の 時こくで きまる）
+  {
+    const b = mk(), W = b.world, o = W.add(5, 50, W.H - 15.4, { landed: true });
+    for (let i = 0; i < 60; i++) b.tick(1 / 60, false);
+    const seq = []; for (let i = 0; i < 8 * 60; i++) { b.tick(1 / 60, false); seq.push(b.emo(o)); }
+    const blinks = seq.filter((e, i) => e === "blink" && seq[i - 1] !== "blink").length;
+    ok(blinks >= 2 && blinks <= 4 && seq.filter((e) => e === "normal").length > seq.length * 0.9 && seq.every((e) => e === "normal" || e === "blink"), `まばたき（8びょうで ${blinks}かい・${[...new Set(seq)]}）`);
+    const b2 = mk(), o2 = b2.world.add(5, 50, b2.world.H - 15.4, { landed: true }); for (let i = 0; i < 60; i++) b2.tick(1 / 60, false);
+    const seq2 = []; for (let i = 0; i < 8 * 60; i++) { b2.tick(1 / 60, false); seq2.push(b2.emo(o2)); }
+    ok(seq2.join() === seq.join(), "まばたきが おなじ たねで おなじに ならない");
+  }
+  // くらくら: たかい ところから おちて つよく ぶつかると すこしの あいだ
+  { const b = mk(); b.world.add(3, 50, -20); let dz = 0; for (let i = 0; i < 120; i++) { b.tick(1 / 60, false); if (b.emo(b.world.bodies[0]) === "dizzy") dz++; } ok(dz >= F.dizzySec * 60 * 0.6 && dz <= (F.dizzySec + 0.2) * 60, `たかい ところから おちた あとの くらくら（${dz}フレーム）`); }
+  { const b = mk(); b.world.add(3, 50, b.world.H - 30); let dz = 0; for (let i = 0; i < 90; i++) { b.tick(1 / 60, false); if (b.emo(b.world.bodies[0]) === "dizzy") dz++; } ok(dz === 0, "すこし おちた だけで くらくら する"); }
+  // むぎゅ: 大きい 玉が うえに のった 小さい 玉（うえの 玉は むぎゅ に ならない）
+  { const b = mk(), W = b.world, s0 = W.add(0, 50, 100, { landed: true }), big = W.add(6, 50, 100 - 4.6 - 19 + 0.2, { landed: true }); s0.age = big.age = 1; ok(b.emo(s0) === "squish" && b.emo(big) !== "squish", `むぎゅ（${b.emo(s0)}・${b.emo(big)}）`); }
+  // なかよし: おなじ だんが すぐ そば（ふれて いない）。はなれると ふつう
+  {
+    const b = mk(), W = b.world, a1 = W.add(3, 30, 100, { landed: true }), a2 = W.add(3, 52.5, 100, { landed: true }), c = W.add(2, 75, 100, { landed: true }); a1.age = a2.age = c.age = 1;
+    ok(b.emo(a1) === "love" && b.emo(a2) === "love" && b.emo(c) !== "love", `なかよし（${b.emo(a1)}・${b.emo(a2)}・${b.emo(c)}）`);
+    a2.x = 80; b._looks = null; ok(b.emo(a1) !== "love", "はなれても なかよし");
+  }
+  // ウインク: がったいで できた 玉は はじめ にっこり（0.9びょう）→ ウインク（1.5びょう まで）
+  {
+    const b = mk(), W = b.world; W.add(0, 45, 105, { landed: true }); W.add(0, 54.2, 105, { landed: true });
+    const seen = []; for (let i = 0; i < 110; i++) { b.tick(1 / 60, false); const o = W.bodies.find((x) => x.born === "merge"); if (o) seen.push(b.emo(o)); }
+    ok(seen.includes("happy") && seen.includes("wink") && seen.indexOf("happy") < seen.indexOf("wink") && seen.lastIndexOf("happy") < seen.indexOf("wink"), `がったいの あとの かお（${[...new Set(seen)]}）`);
+  }
+  // あくび → ねむり
+  { const b = mk(), W = b.world, o = W.add(4, 50, W.H - 12.4, { landed: true }); o.age = 20; o.rest = F.yawn + 0.5; const y = b.emo(o); o.rest = 12.5; ok(y === "yawn" && b.emo(o) === "sleep", `あくびと ねむり（${y}・${b.emo(o)}）`); }
+  // うえの 3人: まばたき（ひとりずつ ちがう 間かく）・キャラの まばたきの かお（ごじは ふつうの まま）
+  ok([0, 1, 2].every((i) => { let k = 0, prev = false; for (let t = 0; t < 12; t += 1 / 60) { const on = Score.blinkAt(t, i); if (on && !prev) k++; prev = on; } return k >= 2 && k <= 4; }) && Score.blinkAt(0.05, 0) !== Score.blinkAt(0.05, 1), "うえの 3人の まばたき");
+  const cs = (id, face) => R.Chara.svg(id, { pose: "idle_01", dir: "down", face }).replace(/u\d+/g, "u"); // clipPath などの id の ばんごうは まいかい ちがう
+  ok(R.Chara.faceOf("wanko", "blink") === "blink" && R.Chara.faceOf("gachan", "blink") === "blink" && R.Chara.faceOf("goji", "blink") === "normal" && ["wanko", "gachan"].every((id) => cs(id, "blink") !== cs(id, "normal") && !/NaN|undefined/.test(cs(id, "blink"))) && cs("goji", "blink") === cs("goji", "normal"), "キャラの まばたきの かお");
+  ok(R.KOROKORO_SCORE_TEAM.sleep >= 10, "うえの 3人が すぐ ねむる");
 }
 
 // ---- 7. お店・町・セーブ・BGM・ことば ----
@@ -297,7 +341,7 @@ const scoreTable = [];
   b.world.add(0, 20, 105, { landed: true }); b.world.add(0, 29.2, 105, { landed: true }); for (let i = 0; i < 30; i++) b.tick(1 / 60, true);
   ok(b.points === 1 && b.merges === 1, `さくらんぼ 2つが 1てんに ならない（${b.points}）`);
   b.world.bodies = []; b.world.add(7, 26, 86, { landed: true }); b.world.add(7, 73, 86, { landed: true }); for (let i = 0; i < 30; i++) b.tick(1 / 60, true);
-  ok(b.points === 37 && b.coins === 0 && b.world.bodies.length === 0 && sc.team.every((m) => m.emo === "happy") && sc.fx.some((f) => f.text === "がおー！"), `ごじ どうしが 36てんで きえない（${b.points}・コイン ${b.coins}）`);
+  ok(b.points === 37 && b.coins === 0 && b.world.bodies.length === 0 && sc.team.every((m) => m.emo === "excited") && sc.fx.some((f) => f.text === "がおー！"), `ごじ どうしが 36てんで きえない・3人が おおよろこび しない（${b.points}・コイン ${b.coins}・${sc.team.map((m) => m.emo)}）`);
   // あふれ: おしまい（1かいだけ）・箱は とまる・もう おとせない
   b.world.bodies = []; for (let i = 0; i < 12; i++) { const col = i % 2, row = Math.floor(i / 2); b.world.add((row + col) % 2 ? 6 : 7, 24 + col * 52, 86.4 - row * 44, { landed: true }); }
   let t = 0; for (; t < 4 && !b.over; t += 1 / 60) b.tick(1 / 60, true);

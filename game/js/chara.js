@@ -83,8 +83,13 @@ const EMO = {
   sleep: { wanko: "sleep", gachan: "sleep", goji: "calm" },
   calm: { wanko: "smile", gachan: "smile", goji: "calm" },
 };
+// まばたき（キャラ素材に ない 表情を くみあわせる・ころころ フルーツの 3人 など）: ねむりの 目と ふつうの はな・くち・くちばし。
+// ごじの 目は あたまの うえで ちいさく かくれて いるので、ごじは ふつうの まま
+const CHARA_BLINK = { wanko: (F) => [F.sleep[0], F.sleep[1], F.normal[2], F.normal[3]], gachan: (F) => [F.sleep[0], F.sleep[1], F.normal[2], F.normal[3]] };
+function charaFaceParts(id, name) { const F = CHARA_DATA[id].faces; return name === "blink" && CHARA_BLINK[id] ? CHARA_BLINK[id](F) : F[name] || F.normal; }
 function faceOf(id, emo) {
   if (!emo) return "normal";
+  if (emo === "blink") return CHARA_BLINK[id] ? "blink" : "normal";
   if (EMO[emo]) return EMO[emo][id];
   return CHARA_DATA[id].faces[emo] ? emo : "normal";
 }
@@ -624,8 +629,8 @@ function buildCharaSvg(id, opts = {}) {
     if (tailEl) els.push(`<g transform="translate(-24,-4)">${tailEl}</g>`);
   } else {
     // ごじの目は頭の突起にあるため、涙は横向きでも口の移動に追従させない。
-    const eyeTears = id === "goji" ? D.faces[faceName].filter((el) => el.includes('data-anchor="eye"')) : [];
-    let face = D.faces[faceName].filter((el) => !eyeTears.includes(el)).join("");
+    const parts = charaFaceParts(id, faceName), eyeTears = id === "goji" ? parts.filter((el) => el.includes('data-anchor="eye"')) : [];
+    let face = parts.filter((el) => !eyeTears.includes(el)).join("");
     if (dx) face = `<g transform="translate(${dx},0)">${face}</g>`;
     els.push(face, ...eyeTears);
   }

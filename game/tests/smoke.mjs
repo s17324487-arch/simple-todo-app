@@ -3064,6 +3064,33 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect((await H.dbg('state')).scene==='store','モードえらびを やめると お店に もどらない');
 },{viewport,timeout:200000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('korokoro-faces-'+viewport.width,async H=>{
+ // 玉と うえの 3人の 表情（korokoro-art.js・mg-korokoro.js・オーナーの FB 2026-09-30「ごじ・わんこ・がちゃの 表情を 増やせ。瞬きも 追加せよ」）:
+ // しずかな 玉と うえの 3人は ときどき まばたき・たかい ところから おちた 玉は くらくら・がったいの あとは にっこり → ウインク
+ await H.newGameFast();
+ await H.dbg('koroScore',{seed:11});await H.until(()=>PokaDebug.state().scene==='koroscore'&&!PokaDebug.state().transitioning,15000);
+ await H.dialogs();await H.until(()=>PokaDebug.koro()?.phase==='play',15000);await H.wait(200);
+ const watch=async(ms,pick)=>{const seen=new Set(),t0=Date.now();while(Date.now()-t0<ms){const k=await H.dbg('koro');for(const v of pick(k))seen.add(v);await H.wait(30);}return seen;};
+ // ごじ・わんこ・がちゃんの 玉を ゆかに ならべる → まばたき（ふだんは ふつうの かお）
+ await H.dbg('koroSetup',{bodies:[[7,26,100],[6,70,106],[5,90,110]]});await H.wait(1200);
+ const calm=await watch(6000,k=>k.bodies.map(b=>b.tier+':'+b.emo));
+ expect([5,6,7].every(t=>calm.has(t+':blink')&&calm.has(t+':normal')),'3人の 玉が まばたき しない '+[...calm]);
+ const team=await watch(4500,k=>k.team.map(m=>m.id+':'+m.face));
+ expect(['wanko','gachan'].every(id=>team.has(id+':blink')&&team.has(id+':normal')),'うえの 3人が まばたき しない '+[...team]);
+ await H.shot('calm');
+ // たかい ところから おちると くらくら
+ await H.dbg('koroSetup',{bodies:[[3,50,-12]]});
+ const fall=await watch(1600,k=>k.bodies.map(b=>b.emo));
+ expect(fall.has('dizzy'),'おちた あとに くらくら しない '+[...fall]);
+ // さくらんぼ 2つで いちご → にっこり → ウインク
+ await H.dbg('koroSetup',{bodies:[[0,45,121],[0,54.2,121]]});
+ const merged=await watch(1800,k=>k.bodies.filter(b=>b.tier===1).map(b=>b.emo));
+ expect(merged.has('happy')&&merged.has('wink'),'がったいの あとの かお '+[...merged]);
+ // いろいろな かおを いちどに（ならびは 物理で かわるので かおは すこしずつ ちがう）
+ await H.dbg('koroSetup',{bodies:[[7,25,100],[0,72,121],[6,72,100],[3,50,40],[4,88,112],[4,62,112]]});await H.wait(700);await H.shot('faces');
+ const k=await H.dbg('koro');expect(k.bodies.every(b=>typeof b.emo==='string'&&b.emo.length>0),'かおの ない 玉が ある');
+},{viewport,timeout:120000});
+
 await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});
 
 await (await import("./nerikasu-town-smoke.mjs")).nerikasuTownSmoke({scenario,expect});
