@@ -34,11 +34,21 @@ const KorokoroScore = {
   // ディスクと きもちの めやす（0 ×・1 △・2 ○・3 ◎）
   grade(score) { return KOROKORO_SCORE.grades.filter((v) => score >= v).length; },
   day(d) { const m = /^\d+-(\d+)-(\d+)$/.exec(String(d || "")); return m ? `${m[1]}/${m[2]}` : ""; },
+  // もらった とくべつな かぐの カード（家具の 立体の 絵・なまえ・めやす・せつめい）。絵は img に して id が ほかの 絵と かさならない ように
+  giftEl(p, fresh = false) {
+    const el = U.el("div", { class: "koro-gift" + (fresh ? " fresh" : "") });
+    el.append(U.el("img", { src: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(KorokoroPrizes.svg(p.id)), alt: p.name }));
+    const t = U.el("div");
+    t.append(U.el("b", { text: fresh ? `とくべつな かぐ「${p.name}」を もらった！` : p.name }), U.el("small", { text: `${U.fmt(p.score)}てんの ごほうび・おうちの「もようがえ」で おけるよ` }));
+    el.append(t);
+    return el;
+  },
   // お店で「おてつだいする」を えらんだ あと: ころころ フルーツ だけ モードを きく。"order" / "score" / null（やめる）
   async choose(store) {
     if (store.shopId !== "korokoro") return "order";
     const hi = this.best();
-    const text = `${store.owner.name}\nどっちの モードで あそぶ？\n・ちゅうもん … ほしい ものを とどける\n・スコア … あふれるまで とことん！${hi ? `\nハイスコア ${U.fmt(hi)}てん` : ""}`;
+    const got = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.list().filter((p) => p.own).length : 0;
+    const text = `${store.owner.name}\nどっちの モードで あそぶ？\n・ちゅうもん … ほしい ものを とどける\n・スコア … あふれるまで とことん！${hi ? `\nハイスコア ${U.fmt(hi)}てん` : ""}${got ? `（とくべつな かぐ ${got}/${KOROKORO_PRIZES.length}）` : ""}`;
     const i = await UI.ask(text, ["ちゅうもん モード", "スコア モード", "やめる"]);
     return i === 0 ? "order" : i === 1 ? "score" : null;
   },
@@ -96,6 +106,8 @@ class KorokoroScoreScene {
   async flow() {
     const face = Art.npcSvg({ ...this.owner, emo: "happy" }), first = !this.st.games;
     const lines = first ? [...KOROKORO_SCORE_HOWTO] : [this.hi0 ? `ハイスコアは ${U.fmt(this.hi0)}てん。\nきょうは こえられるかな？` : "こんどこそ たくさん くっつけよう！"];
+    const nx = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.next() : null;
+    if (nx) lines.push(`${U.fmt(nx.score)}てんに とどくと、とくべつな かぐ「${nx.name}」を あげるね！`);
     if (this.dailyBoost > 1) lines.push(`きょうの おすすめ！ コインが ${DailyPlay.label(this.dailyBoost)}だよ。`);
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
     if (this.closed) return;
@@ -121,6 +133,8 @@ class KorokoroScoreScene {
     if (this.paid || this.closed) return;
     this.paid = true; this.phase = "result"; this.stopBtn?.remove();
     const score = this.board.points, st = this.st, rec = KorokoroScore.record(score);
+    // ハイスコアの ごほうび: とくべつな かぐ（js/korokoro-prizes.js）
+    const gifts = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.claim(score) : [];
     const coins = KorokoroScore.pay(score, this.difficulty, this.dailyBoost), rep = KorokoroScore.rep(score), grade = KorokoroScore.grade(score);
     Save.addCoins(coins); st.rep += rep;
     const before = st.lv; st.lv = ShopRewards.level(st);
@@ -130,7 +144,7 @@ class KorokoroScoreScene {
     Save.careAll({ hunger: -6, mood: grade >= 2 ? 4 : 1, bond: 1 });
     Save.mark(); Save.write();
     Sound.stopBgm(); Sound.jingle("victory");
-    if (rec.newBest && score > 0) { setTimeout(() => Sound.se("fanfare"), 600); for (const t of this.team) { t.turn = 9; t.emo = "happy"; t.jump = 0; } }
+    if ((rec.newBest && score > 0) || gifts.length) { setTimeout(() => Sound.se("fanfare"), 600); for (const t of this.team) { t.turn = 9; t.emo = "happy"; t.jump = 0; } }
     const body = U.el("div", { class: "koro-result" });
     body.append(U.el("div", { class: "result-big", text: rec.newBest && score > 0 ? `しんきろく！ ${U.fmt(score)}てん` : `${U.fmt(score)}てん` }));
     const next = st.lv < ShopRewards.maxLevel ? SHOP_LV_REP[st.lv + 1] : null, rows = U.el("div", { class: "result-rows" });
@@ -138,7 +152,10 @@ class KorokoroScoreScene {
       <div class="r"><span>ハイスコア</span><span>${U.fmt(rec.hi)}</span></div>
       <div class="r"><span>もらった コイン</span><span><b>+${coins}</b></span></div>
       <div class="r"><span>ひょうばん</span><span>+${rep}（${st.rep}${next ? " / " + next : ""}）</span></div>`;
-    body.append(rows, this.rankingEl(rec.rank));
+    body.append(rows);
+    for (const p of gifts) body.append(KorokoroScore.giftEl(p, true));
+    body.append(this.rankingEl(rec.rank));
+    if (typeof KorokoroPrizes !== "undefined") { const nx = KorokoroPrizes.next(); body.append(U.el("div", { class: "muted koro-next", text: nx ? `つぎの とくべつな かぐは ${U.fmt(nx.score)}てん（あと ${U.fmt(nx.score - rec.hi)}てん）` : "とくべつな かぐを ぜんぶ あつめた！" })); }
     const gojis = this.board.made[KOROKORO_TIERS.length - 1] || 0, bursts = this.board.made.burst || 0;
     if (gojis || bursts) body.append(U.el("div", { class: "note", text: `ごじを ${gojis}かい つくったよ${bursts ? `（ごじ どうしで ${bursts}かい きえた）` : ""}！` }));
     if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！` }));

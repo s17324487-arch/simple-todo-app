@@ -29,6 +29,10 @@ const ItemDexSources = {
       }
       if (typeof PrizeArcade !== "undefined" && (FURN_INDEX[id]?.arcadePrize || PrizeArcade.machines.some((m, i) => PrizeArcade.prizeList(i).includes(id)))) return "いけぶくろの Meeときょれじゃ の クレーンで とれるよ。";
       if (typeof IkeArcade !== "undefined" && IkeArcade.EXCHANGE.furn.some(([p]) => p === id)) return "Meeときょれじゃ の けいひん カウンターで こうかん できるよ。";
+      if (typeof KOROKORO_PRIZES !== "undefined") {
+        const prize = KOROKORO_PRIZES.find(p => p.id === id);
+        if (prize) return `ころころ フルーツの スコア モードで ${prize.score}てんに とどくと もらえるよ。`;
+      }
       if (id === "player_boombox") return "おてつだいや たからばこで はじめて ディスクを もらうと てに はいるよ。";
       if (id === "player_gramophone") return "ディスクを 3まい あつめて たからばこを あけると、たまに もらえるよ。";
       if (id === "player_jukebox") return "ディスクを 8まい あつめると もらえるよ。";

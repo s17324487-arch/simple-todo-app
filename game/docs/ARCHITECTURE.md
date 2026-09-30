@@ -161,6 +161,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `neri-apart.js`（neri-post.js の あと） | `NeriApart` |
 | — | `neri-quests.js`（neri-apart.js の あと） | `NeriQuests` |
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
+| — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -883,7 +884,8 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ちゅうもん モード: `KorokoroTask`（TaskBase）が おきゃくさん 1にんの ちゅうもん（`KOROKORO_ORDERS`: レベルごとの だん〔なし・がちゃん・わんこ〕と じかん）。はこは `ShopScene.board` で、おきゃくさんが かわっても のこる（ShopScene は work いがいの フェーズでも `board.tick`・`board.render` を よぶ）。ちゅうもんの だんが はこに できると とどく（まえから のこって いた 玉でも よい）。点は 100 − 時間 − あふれ×30。時間ぎれは とどいた かずと はこの いちばん 大きい 玉の ちかさで 10〜58。がちゃん・わんこ・ごじ・ごじの はれつで チップ（`KOROKORO_BONUS`・`task.bonusTip` を ShopScene.judge が たす）。ことばは `SHOPS.korokoro.lines`、けっかの ポイントと さいこうは `board.summary()`（`shops.korokoro.pts`）。
 - スコア モード: `js/korokoro-score.js`。お店で「おてつだいする」→ `KorokoroScore.choose(store)`（ころころ フルーツ だけ「ちゅうもん モード／スコア モード／やめる」を きく）→ `KorokoroScore.start(back)` → `SCENES.koroscore`（`KorokoroScoreScene`）。うえから かんばん（みぎに「やめる」）・スコアと ハイスコア／3人／つぎ の おび・はこ・じゅんばん。時間の せいげんは ない。おしまい（または「やめる」）→ `KorokoroScore.record()`（`shops.korokoro.hi`・`tops`〔上から 5つ・{ s, d }〕・`games`）・コイン = スコア ÷ 6（400 まで）× あそびかた × きょうの おすすめ・ひょうばん = スコア ÷ 100（12 まで）・ディスクの めやす（150・400・1000 で △○◎）・おなか −6 → 「もういちど」か「てんないに もどる」。はじめては あそびかた（`KOROKORO_SCORE_HOWTO`）、2かいめからは ハイスコアの ひとこと。
 - 町: `KorokoroTown`（`js/korokoro-town.js`）が `NerikasuTown.install` の まえに nerikasu_home5 を お店に する（足もと・入口・大きさは そのまま）。建物の 絵は `tools/town-design/nerikasu-buildings.mjs` の `korokoro()` → `node tools/build-nerikasu-town.mjs` で `js/nerikasu-town-art.js` に 生成。
-- PokaDebug: `shop('korokoro', lv)`・`mg().order`（はこの CSS 座標 `box.x0`/`y0`/`unit`・`bodies`・`held`/`next`・`canDrop`・`want`・`spills`・`points`・`made`）・`koroSetup({ bodies: [[だん, x, y], …], held, next, seed })`（スコア モードでも）・`koroScore({ seed })`（スコア モードを はじめる）・`koro()`（スコア モードの ようす: `phase`〔intro / play / over / result〕・`score`・`hi`・`tops`・`box`・`row`・`panel`・`nextBox`・`team`・`bodies`）。
+- ハイスコアの ごほうび: `js/korokoro-prizes.js`。`KOROKORO_PRIZES`（6つ・めやす 200〜2500てん）を 家具（`rare`・`price: 0`・`koroPrize`・`interactive`）として `FURNITURE` に たし、`FurnModels.register` で 立体モデル・`FurnLive.register` で タップの うごき（`live` の ときは うごく ぶぶん〔さくらんぼ・みかん・タワーの 玉と ガラスの つや〕を 絵から ぬいて canvas に 描く）。スコア モードの けっかで `KorokoroPrizes.claim(score)` が `max(score, hi)` までの まだの ものを わたす（`shops.korokoro.gifts` に 日づけ・`Save.d.furn` に 1つ）。けっかの まどに カード（`KorokoroScore.giftEl`・絵は img で id が かさならない）と つぎの めやす、店の モードえらびに「とくべつな かぐ N/6」、はじめの ことばに つぎの ごほうび。ずかんの てに いれかたは `ItemDexSources`。タワーの なかの 22この 玉は `KorokoroWorld`（がったい なし）で じっさいに おとして とまった ならび。
+- PokaDebug: `shop('korokoro', lv)`・`mg().order`（はこの CSS 座標 `box.x0`/`y0`/`unit`・`bodies`・`held`/`next`・`canDrop`・`want`・`spills`・`points`・`made`）・`koroSetup({ bodies: [[だん, x, y], …], held, next, seed, points })`（スコア モードでも。points は スコア）・`koroScore({ seed })`（スコア モードを はじめる）・`koro()`（スコア モードの ようす: `phase`〔intro / play / over / result〕・`score`・`hi`・`tops`・`box`・`row`・`panel`・`nextBox`・`team`・`bodies`）。
 - 検査: `tools/check-korokoro.mjs`（だんと 点・おちる 確率・物理・がったい・あふれ・ちゅうもん・こどもの はやさの ボットの バランス・スコア モード〔おしまい・点・ランキング・コイン・画面・ボット〕・絵・お店・町・セーブ・BGM）・スモーク `nerikasu-korokoro-390` / `-375`（ちゅうもん モード）・`nerikasu-korokoro-score-390` / `-375`（スコア モード）。
 
 ## サンシャインいけぶ（斜めの 館・UI-04）

@@ -329,4 +329,51 @@ const scoreTable = [];
   ok(await Score.choose({ shopId: "crepe" }) === "order", "ほかの お店で モードを きく");
 }
 
+// ---- 9. ハイスコアの ごほうび: フルーツの とくべつな かぐ（js/korokoro-prizes.js）----
+{
+  const P = R.KOROKORO_PRIZES, KP = R.KorokoroPrizes, F = R.FURN_INDEX;
+  ok(P.length === 6 && P.every((p, i) => i === 0 || p.score > P[i - 1].score) && P[0].score <= 300 && P[P.length - 1].score <= 3000, "ごほうびは 6つ・めやすは だんだん たかく（はじめは かんたん）");
+  ok(new Set(P.map((p) => p.id)).size === P.length && P.every((p) => !kanji.test(p.name + p.desc) && p.name.length <= 12), "ごほうびの id・なまえ・せつめい（漢字なし・12もじ まで）");
+  ok(["さくらんぼ", "いちご", "みかん", "りんご", "なし"].every((w) => P.some((p) => p.name.startsWith(w))), "くだもの 5しゅの かぐが ある");
+  const shopFloor = R.BUY_SHOPS.furniture.items("floor").map((f) => f.id);
+  for (const p of P) {
+    const f = F[p.id];
+    ok(f && f.rare && f.price === 0 && f.koroPrize && f.kind === "floor" && f.interactive && f.comfort > 0 && f.w === p.w && f.depth === p.depth && f.h === p.h, `${p.id}: 家具の とうろく`);
+    ok(!shopFloor.includes(p.id), `${p.id}: 家具やさんで うって いる`);
+    ok(R.FurnModels.has(p.id), `${p.id}: 立体モデルが ない`);
+    for (const flip of [false, true]) for (const live of [false, true]) {
+      const m = live ? R.FurnModels.build(p.id, { flip, live: true }) : R.HomeDesign.model(p.id, { flip });
+      const svg = m && m.full, ids = svg ? [...svg.matchAll(/\sid="([^"]+)"/g)].map((x) => x[1]) : [];
+      ok(svg && svg.startsWith("<svg") && !/NaN|undefined|Infinity/.test(svg) && [m.x, m.y, m.w, m.h].every(Number.isFinite) && m.w > 20 && m.h > 20 && new Set(ids).size === ids.length, `${p.id}（${flip ? "はんてん" : "そのまま"}${live ? "・うごく" : ""}）: 絵が こわれている`);
+    }
+    ok(typeof R.FURN_ART[p.id] === "function" && R.FURN_ART[p.id]().startsWith("<svg"), `${p.id}: 一覧の 絵が ない`);
+    ok(R.ItemDexSources.source("furn", F[p.id]).includes(p.score + "てん"), `${p.id}: ずかんの てに いれかたが ない`);
+  }
+  // さわる: どの かぐも タップで うごく（ランプは あかりが つく・きえる）
+  const save1 = R.Save.d; R.Save.d = R.Save.fresh();
+  try {
+    const fake = { chars: [], s: 1 };
+    for (const p of P) {
+      const it = { id: p.id, uid: 900 + P.indexOf(p), x: 100, y: 300 };
+      ok(R.FurnLive.tap(fake, it) === true && R.FurnLive.state(it).t < 0.5, `${p.id}: タップで うごかない`);
+    }
+    const lamp = { id: "koro_cherry_lamp", uid: 900, x: 100, y: 300 }, on = R.FurnLive.state(lamp).on;
+    R.FurnLive.tap(fake, lamp); ok(R.FurnLive.state(lamp).on === !on, "さくらんぼの ランプの あかりが かわらない");
+  } finally { R.FurnLive.reset(); R.Save.d = save1; }
+  // もらう: めやすに とどいた まだの ものを 1つずつ（下の ものも いっしょ）・2どめは もらえない・ハイスコアも かぞえる
+  const save0 = R.Save.d; R.Save.d = R.Save.fresh();
+  try {
+    const st = R.Save.d.shops.korokoro;
+    ok(KP.claim(P[0].score - 1).length === 0 && KP.next() === P[0], "めやす まえに もらえる");
+    const a = KP.claim(P[1].score, "2026-10-1");
+    ok(a.map((p) => p.id).join() === [P[0].id, P[1].id].join() && R.Save.d.furn[P[0].id] === 1 && R.Save.d.furn[P[1].id] === 1 && st.gifts[P[1].id] === "2026-10-1", "めやすで ごほうびが もらえない");
+    ok(KP.claim(P[1].score + 50).length === 0 && R.Save.d.furn[P[0].id] === 1, "おなじ ごほうびを 2かい もらえる");
+    st.hi = P[P.length - 1].score + 10;
+    ok(KP.claim(0).length === P.length - 2 && P.every((p) => R.Save.d.furn[p.id] === 1 && KP.got(p.id)) && KP.next() === null && KP.list().every((p) => p.own), "ハイスコアで のこりの ごほうびが もらえない");
+  } finally { R.Save.d = save0; }
+  // まえの セーブにも gifts が たされる
+  const v0 = JSON.parse(JSON.stringify(R.Save.fresh())); delete v0.shops.korokoro.gifts;
+  ok(JSON.stringify(R.Save.migrate(v0).shops.korokoro.gifts) === "{}", "まえの セーブに gifts が たされない");
+}
+
 console.log(`Korokoro: ${n} checks（${table.join(" ／ ")}／ スコア モード ${scoreTable.map((r) => `${r.name} ${r.score}てん・${r.secs}びょう`).join("・")}）`);

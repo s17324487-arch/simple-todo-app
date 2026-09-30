@@ -2922,6 +2922,49 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();expect((await H.dbg('state')).scene==='store','やめると てんないの まま');
 },{viewport,timeout:180000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('korokoro-prizes-'+viewport.width,async H=>{
+ // ハイスコアの ごほうび（korokoro-prizes.js）: スコア モードで 850てん → とくべつな かぐ 3つ（200・500・800てん）→ つぎの めやす → おうちの よるの へやに 6つ おいて タップ
+ await H.newGameFast();
+ await H.dbg('koroScore',{seed:5});await H.until(()=>PokaDebug.state().scene==='koroscore'&&!PokaDebug.state().transitioning,15000);
+ await H.dialogs();await H.until(()=>PokaDebug.koro()?.phase==='play',15000);await H.wait(200);
+ await H.dbg('koroSetup',{points:850,bodies:Array.from({length:10},(_,i)=>[(Math.floor(i/2)+i%2)%2?6:7,24+(i%2)*52,86.4-Math.floor(i/2)*44])});
+ await H.until(()=>PokaDebug.koro().phase==='over',6000);
+ await H.until(()=>!!document.querySelector('.modal-wrap .koro-foot .btn'),8000);await H.wait(400);
+ const text=await H.eval(()=>document.querySelector('.modal-wrap').textContent);
+ const cards=await H.eval(()=>[...document.querySelectorAll('.modal-wrap .koro-gift')].map(e=>({t:e.textContent,img:e.querySelector('img').naturalWidth>0,w:e.getBoundingClientRect().right<=innerWidth})));
+ expect(cards.length===3&&cards.every(c=>c.img&&c.w)&&/さくらんぼの ランプ/.test(cards[0].t)&&/いちごの ソファ/.test(cards[1].t)&&/みかんの テーブル/.test(cards[2].t),'とくべつな かぐの カード '+JSON.stringify(cards));
+ expect(/つぎの とくべつな かぐは 1,200てん（あと 350てん）/.test(text)&&/850てん/.test(text),'つぎの めやす '+text);
+ const fit=await H.eval(()=>{const p=document.querySelector('.modal-wrap .panel').getBoundingClientRect(),b=[...document.querySelectorAll('.modal-wrap .koro-foot .btn')].map(x=>x.getBoundingClientRect());return p.left>=0&&p.right<=innerWidth&&b.every(r=>r.height>=44&&r.bottom<=innerHeight);});
+ expect(fit,'けっかの まどが 画面から はみ出す');await H.shot('gifts');
+ let save=await H.dbg('saveData');const got=['koro_cherry_lamp','koro_strawberry_sofa','koro_mikan_table'];
+ expect(got.every(id=>save.furn[id]===1&&save.shops.korokoro.gifts[id])&&!save.furn.koro_apple_shelf&&Object.keys(save.shops.korokoro.gifts).length===3,'とくべつな かぐが もらえない '+JSON.stringify(save.shops.korokoro.gifts));
+ // もういちど 900てんでは もう もらえない（おなじ かぐは 1かいだけ）
+ await H.page.getByRole('button',{name:'もういちど',exact:true}).click();
+ await H.until(()=>PokaDebug.state().scene==='koroscore'&&!PokaDebug.state().transitioning&&PokaDebug.koro()?.phase==='intro',15000);
+ const again=await H.eval(()=>document.querySelector('.dlg-shade:not(.ask) .dlg-text')?.textContent||'');expect(/ハイスコアは 850てん/.test(again),'2かいめの ひとこと '+again);
+ await H.dialogs();await H.until(()=>PokaDebug.koro()?.phase==='play',15000);
+ await H.dbg('koroSetup',{points:900});await H.page.getByRole('button',{name:'スコア モードを やめる',exact:true}).click();await H.page.getByRole('button',{name:'おわりに する',exact:true}).click();
+ await H.until(()=>!!document.querySelector('.modal-wrap .koro-foot .btn'),8000);
+ expect(await H.eval(()=>document.querySelectorAll('.modal-wrap .koro-gift').length)===0,'おなじ かぐを また もらえる');
+ await H.page.getByRole('button',{name:'てんないに もどる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),15000);
+ save=await H.dbg('saveData');expect(got.every(id=>save.furn[id]===1),'かぐの かずが ふえる');
+ // おうち（よる 21じ）: 6つの かぐを おいて タップ。ランプは よるは ついて いて タップで きえる・ほかは うごいて 3人が ひとこと
+ await H.dbg('hour',21);await H.dbg('house');await H.until(()=>PokaDebug.state().scene==='house'&&!PokaDebug.state().transitioning,15000);await H.idle(20000);
+ await H.dbg('homeLayout',[{id:'koro_apple_shelf',x:110,y:292},{id:'koro_fruit_tower',x:392,y:300},{id:'koro_cherry_lamp',x:58,y:430},{id:'koro_strawberry_sofa',x:232,y:402},{id:'koro_mikan_table',x:250,y:524},{id:'koro_pear_cushion',x:410,y:506}]);
+ await H.dbg('homeBubbleFixture');await H.wait(900);await H.shot('room-night');
+ const touch=async(id,ok,msg)=>{
+  const a=await H.dbg('furnLive',id);expect(a&&a.tap,`${id}: タップできる 点が ない`);
+  await H.tap(a.tap.x,a.tap.y);await H.wait(320);
+  const b=await H.dbg('furnLive',id);expect(ok(a,b),`${msg} ${JSON.stringify([a,b])}`);expect(b.talk>a.talk,`${id}: 3人が なにも いわない`);
+  return b;
+ };
+ await touch('koro_cherry_lamp',(a,b)=>a.on===true&&b.on===false,'よるの さくらんぼの ランプが タップで きえない');
+ await touch('koro_cherry_lamp',(a,b)=>b.on===true,'さくらんぼの ランプが つかない');
+ await touch('koro_fruit_tower',(a,b)=>b.t<1&&b.live,'ころころ タワーが はずまない');await H.wait(150);await H.shot('tower-bounce');
+ for(const id of ['koro_strawberry_sofa','koro_mikan_table','koro_apple_shelf','koro_pear_cushion'])await touch(id,(a,b)=>b.t<1,`${id} を タップしても うごかない`);
+ await H.wait(300);await H.shot('room-tapped');
+},{viewport,timeout:200000});
+
 await (await import("./item-dex-smoke.mjs")).itemDexSmoke({scenario,expect});
 
 await (await import("./nerikasu-town-smoke.mjs")).nerikasuTownSmoke({scenario,expect});
