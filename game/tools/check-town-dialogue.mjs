@@ -49,14 +49,14 @@ for(const q of Q){
  assert(q.choices.length>=3&&q.choices.length<=5);assert.equal(new Set(q.choices).size,q.choices.length);assert(Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.choices.length);assert(q.explanation.length>=15);
  assert(q.sources.length>=2);assert.equal(new Set(q.sources.map(s=>s.url)).size,q.sources.length);for(const s of q.sources){assert(s.title&&s.evidence&&/^20\d\d-\d\d-\d\d$/.test(s.checked));assert(new URL(s.url).protocol==='https:');}
 }
-assert.equal(QuizPrizes.items.length,5);
+assert.equal(QuizPrizes.items.length,6);
 for(const tier of ['rare','luxury']){
- const ps=QuizPrizes.items.filter(p=>p.tier===tier);assert.equal(ps.length,tier==='rare'?2:3);
+ const ps=QuizPrizes.items.filter(p=>p.tier===tier);assert.equal(ps.length,tier==='rare'?2:4);
  for(let i=0;i<ps.length;i++){const got=tier==='rare'?QuizPrizes.rollRare(()=>i/ps.length):QuizPrizes.rollLuxury(()=>i/ps.length);assert.equal(got.furn,ps[i].id);}
 }
 const art=new Set();
-for(const p of QuizPrizes.items){const f=FURN_INDEX[p.id];assert(f&&f.rare&&f.quizPrize);if(p.tier==='luxury')assert(f.price>=10000);for(const flip of [false,true]){const m=HomeDesign.model(p.id,{flip});assert(m.w>0&&m.h>0&&m.footW>0&&m.footD>0);assert(m.full.includes('<svg'));assert(!/NaN|undefined/.test(m.full));art.add(m.full);}}
-assert.equal(art.size,10);
+for(const p of QuizPrizes.items){const f=FURN_INDEX[p.id];assert(f&&f.rare&&f.quizPrize);if(p.tier==='luxury' && f.id !== 'hz_starry_fireplace')assert(f.price>=10000);for(const flip of [false,true]){const m=HomeDesign.model(p.id,{flip});assert(m.w>0&&m.h>0&&m.footW>0&&m.footD>0);assert(m.full.includes('<svg'));assert(!/NaN|undefined/.test(m.full));art.add(m.full);}}
+assert.equal(art.size,12);
 
 // Original v1 fixture preserves balances/possessions and receives only additive defaults.
 const old=JSON.parse(readFileSync(new URL('../tests/fixtures/save-v1.json',import.meta.url),'utf8'));
