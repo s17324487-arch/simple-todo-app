@@ -170,6 +170,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `collab-goods.js` / `puzzle-collab.js` / `korokoro-collab.js`（gacha.js・korokoro-score.js の あと・item-dex-sources.js の まえ） | `CollabGoods` ／ `PuzzleCollab` ／ `KorokoroCollab` |
 | — | `aqua-gifts.js`（aqua-art.js の あと・ike-aquarium.js の まえ） | `AquaGifts` |
 | — | `figure-stand.js`（aqua-gifts.js の あと・ike-aquarium.js の まえ） | `FigureStand` |
+| — | `museum-wear.js`（aqua-gifts.js の あと・item-dex-sources.js の まえ） | `MuseumWear`（きふの ごほうびの 服 8つ・UI-33） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1038,6 +1039,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 13F へは エレベーターが いかない（`noElevator`）。フロアマップで 13F を えらぶと、12F の かいだんを のぼった ところ から あるく。
 - みなとの 建物 `harbor_aquarium` は `act: { type: "visit" }` の おしらせ（12かいに おひっこし）。`WorldScene.prototype.enter` を つつみ、`map: "aquarium"` の セーブは 池袋の サンシャインいけぶの まえ に かえる（`MAP_DEFS.aquarium` は のこす）。みなとの 町の人の ことば `tf0381`（すいぞくかんが できて みなとが にぎやかに）は `TOWNSFOLK_DATA` が 自動生成なので install で「12かいへ おひっこし」に かえる。
 - PokaDebug: `museumGo("aquarium", へや)`（あたらしい へやの id。むかしの へやの 名前も うけつける）・`museumDonate()`・`museumShow(objId)`・`aquaTank(objId)`（`{ here, floor, fish }`）。
+
+## すいぞくかん・はくぶつかんの きふの ごほうび（UI-33・`js/museum-wear.js`）
+
+オーナーの FB 2026-10-01「水族館、博物館の寄贈数に応じてもらえる、魚や恐竜とコラボした限定の服、かお、くび、ふく、せなかのアイテムを用意せよ」。
+
+- `MuseumWear.ITEMS`: 館ごとに かお・くび・ふく・せなか の 4つ（ぜんぶで 8つ）。すいぞくかんは きふした さかなの しゅるい（`Save.d.museum.fish` の かず・50しゅ）で 5・15・25・40（`mw_goggle` おさかな ゴーグル・`mw_fishtie` おさかな ネクタイ・`mw_clownhood` クマノミ パーカー・`mw_manta` マンタの マント）。はくぶつかんは きふした ほねの かず（`Save.d.museum.bones`・63こ）で 5・15・30・50（`mw_boneglass` ほねほね めがね・`mw_fang` きばの ネックレス・`mw_stego` ステゴ パーカー・`mw_ptera` プテラの つばさ）。
+- 服は `WEAR_ITEMS`（`exclusive: "museum"`・`museumWear: 館`）。絵は `WEAR.mw_*`（`eyeWrap`／`neckWrap`／`backWrap`・ふくは `IkeWear.frame` と `IkeWear.sleeves`。3人 × 4むき・うしろすがたは フード・せぼねの いた・マンタの せなかの もよう）。
+- わたしかた: `Museum.talk`（館の 人に はなした とき）と `Museum.donate` の きふの あと に `MuseumWear.reward(館, 人, かお)` → `claim(館)`（めやすに とどいて まだ もらって いない ものを `WearStock.add(id, 1)`）→ 1つずつ カード（3人が つけた 絵・「ありがとう！」）。まえから きふして いる 人は つぎに はなした ときに まとめて もらえる。きふの まどの みだしの したに `hint(館)`（つぎの ごほうびまで あと なん しゅ／こ）。
+- セーブ: `Save.d.museum.wear = { id: もらった 日 }`（fresh に たす だけ・SCHEMA は 2 の まま）。ずかんの ヒントは `MuseumWear.source(id)`（`ItemDexSources.source`）。
+- PokaDebug: `museumWear()`。検査は `tools/check-museum-wear.mjs`、スモークは `tests/museum-wear-smoke.mjs`（`museum-wear-390/375`）。
 
 ## すいぞくかんの おみやげ（UI-26・`js/aqua-gifts.js`）
 

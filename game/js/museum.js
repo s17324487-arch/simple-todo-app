@@ -148,6 +148,8 @@ const Museum = {
     const bid = sc.mapId, T = this.talk_(n), face = Art.npcSvg({ sp: n.sp, col: n.col, col2: n.col2, outfit: n.outfit, look: n.look, emo: "happy" }), f = Save.d.flags;
     const say = (text) => UI.say([{ name: n.name, face, text }]);
     if (!f.talked[n.id]) { f.talked[n.id] = true; Save.mark(); await say(T.first); }
+    // きふの かずで もらえる げんていの 服（js/museum-wear.js・UI-33）: まえから きふして いて もう とどいて いる ぶん
+    if (typeof MuseumWear !== "undefined") await MuseumWear.reward(bid, n, face);
     if (this.complete(bid)) {
       if (!this.st().all[bid]) { this.st().all[bid] = true; Save.mark(); Save.write(); Sound.se("fanfare"); UI.toast("ぜんぶ そろった！", "good"); }
       await say(T.all); await say(U.pick(T.lines)); return true;
@@ -169,6 +171,7 @@ const Museum = {
         const head = U.el("div", { class: "dn-head" });
         head.append(U.el("span", { class: "cnt", text: fish ? `きふした さかな ${this.fishCount()} / ${FISHING_DATA.fish.length}` : `くみたてた きょうりゅう ${this.doneCount()} / ${FOSSIL_DATA.dinos.length}` }), U.el("span", { class: "muted", text: fish ? "いけすの さかなを えらんでね" : "もって いる ほね" }));
         body.append(head);
+        if (typeof MuseumWear !== "undefined") body.append(U.el("div", { class: "mw-hint", text: MuseumWear.hint(bid) }));
         if (fish) {
           const grid = U.el("div", { class: "dn-grid" });
           for (const f of FISHING_DATA.fish) {
@@ -206,6 +209,7 @@ const Museum = {
         await this.refresh(sc);
         await UI.say([{ name: n.name, face, text: T.thanks }]);
         if (r.done) await this.doneCard(r.done, n, face, T);
+        if (typeof MuseumWear !== "undefined") await MuseumWear.reward(bid, n, face);
         busy = false;
         if (!this.donatable(bid).length) { if (m) m.close(); } else render();
         return true;

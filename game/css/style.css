@@ -262,6 +262,19 @@ html, body {
 .card.lent:not(.on) { background: #f6efff; }
 .card .dress-tag { position: absolute; top: -8px; left: -6px; background: #e6d4f4; border: 2.5px solid var(--ink); border-radius: 8px; padding: 0 5px; font-size: 11px; font-weight: 800; color: #6b3fa0; }
 .dress-note { word-break: keep-all; overflow-wrap: anywhere; }
+/* すいぞくかん・はくぶつかんの きふの ごほうび（js/museum-wear.js・UI-33） */
+.mw-hint { margin: 2px 0 8px; padding: 6px 10px; border: 2px dashed #9cc6dd; border-radius: 10px; background: #f1f9ff; font-size: 12px; font-weight: 800; color: #2d5d7a; word-break: keep-all; overflow-wrap: anywhere; }
+.mw-card { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.mw-card .mw-art { width: 96px; height: 96px; border: 3px solid var(--ink); border-radius: 18px; background: linear-gradient(#e6f6ff, #fff6dc); display: flex; align-items: center; justify-content: center; }
+.mw-card .mw-art svg { width: 76px; height: 76px; }
+.mw-card .mw-name { font-size: 18px; font-weight: 900; }
+.mw-card .mw-need { font-size: 12px; font-weight: 800; color: #8a6234; }
+.mw-card .mw-desc, .mw-card .mw-note { margin: 0; font-size: 13px; font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; }
+.mw-card .mw-note { font-size: 12px; color: #6b5a44; }
+.mw-card .mw-trio { display: flex; justify-content: center; gap: 6px; width: 100%; }
+.mw-card .mw-who { width: 31%; max-width: 96px; aspect-ratio: 220 / 240; }
+.mw-card .mw-who svg { width: 100%; height: 100%; }
+.mw-panel .panel-foot .btn { min-height: 48px; font-size: 16px; }
 /* 服は 1こで 1人（js/wear-stock.js）: のこりが ない 服は いろを おとして、つかって いる 人の なまえ */
 .card.busy:not(.on) { background: #f1ede6; }
 .card.busy:not(.on) .ico { opacity: .6; }

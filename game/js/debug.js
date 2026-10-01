@@ -686,6 +686,8 @@ const PokaDebug = {
     return { here: !!(f || wall), floor: G.sceneName === "venue" ? sc.floor : null, fish: o.fish.filter((id) => Museum.gaveFish(id)) };
   },
   // ⑤ 寄贈の きろく（2番で ふえる）と 入った へや
+  // きふの ごほうびの 服（js/museum-wear.js・UI-33）: 館ごとの きふの かず・もらった 服・つぎ・みだしの ことば
+  museumWear() { return typeof MuseumWear === "undefined" ? null : MuseumWear.state(); },
   museumState() { const st = Save.d.museum; return { fish: Object.keys(st.fish).length, bones: Object.keys(st.bones).length, done: Object.keys(st.done), rooms: Object.keys(st.rooms), intro: document.querySelector(".museum-intro")?.innerText || null }; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
   // ⑥ 射撃場: ロビーを とばして あそびを はじめる（ロックは むし・もどり先は シティの 入口の まえ）
