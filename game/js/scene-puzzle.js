@@ -19,6 +19,8 @@ const PuzzleArcade = {
       const details=U.el("details",{class:"puzzle-howto",html:`<summary>遊び方・形の技・時間のルール</summary>${this.rulesHtml()}`});body.append(details);
       for(const p of PUZZLE_PRIZES)body.append(this.card(p,!!rec.claimed[p.id]));
       body.append(U.el("p",{class:"note",text:"景品は抽選ではありません。獲得済みの景品の重複配布・コイン報酬はありません。景品は「おうち → もようがえ」から飾れます。"}));
+      // ごわが × なかよしパズル の コラボ グッズ（あそんだ スコアの つみたて。js/puzzle-collab.js）
+      if(typeof CollabGoods!=="undefined"&&CollabGoods.LINES.puzzle)body.append(CollabGoods.section("puzzle"));
       let starting=false;
       const play=UI.btn(active?"中断したゲームを再開":`${PUZZLE_RULES.fee}コインで挑戦`,()=>{
         if(starting)return;starting=true;
@@ -47,13 +49,16 @@ const PuzzleArcade = {
     if(run.practice)return {score:run.state.score,prizes:[],practice:true};
     const rec=Save.d.puzzle;if(rec.last?.id===run.id)return rec.last;
     if(rec.active?.id!==run.id)return null;
-    const previous=JSON.parse(JSON.stringify(rec)),furniture={...Save.d.furn};
+    // コラボの つみたては この 1かいの まえの ベストから はじめる（はじめて よむ とき）
+    const collabOn=typeof CollabGoods!=="undefined"&&!!CollabGoods.LINES.puzzle;if(collabOn)CollabGoods.state("puzzle");
+    const previous=JSON.parse(JSON.stringify(rec)),furniture={...Save.d.furn},wardrobe={...Save.d.wardrobe},collab=JSON.parse(JSON.stringify(Save.d.collab||{}));
     const prizes=PUZZLE_PRIZES.filter(p=>run.state.score>=p.score&&!rec.claimed[p.id]).map(p=>p.id);
     for(const id of prizes){rec.claimed[id]=true;Save.d.furn[id]=(Save.d.furn[id]||0)+1;}
+    const goods=collabOn?CollabGoods.add("puzzle",run.state.score).map(it=>it.id):[];
     rec.best=Math.max(rec.best,run.state.score);rec.plays++;
-    rec.last={id:run.id,score:run.state.score,prizes,practice:false};rec.active=null;Save.write();
+    rec.last={id:run.id,score:run.state.score,prizes,collab:goods,practice:false};rec.active=null;Save.write();
     try { if(JSON.parse(localStorage.getItem(Save.KEY))?.puzzle?.last?.id===run.id)return rec.last; } catch(e) { /* 再試行できる状態に戻す */ }
-    Save.d.puzzle=previous;Save.d.furn=furniture;Save.mark();return null;
+    Save.d.puzzle=previous;Save.d.furn=furniture;Save.d.wardrobe=wardrobe;Save.d.collab=collab;Save.mark();return null;
   },
 };
 
@@ -104,7 +109,7 @@ class PuzzleScene {
     if(!result){
       box.append(U.el("h2",{text:"記録を保存できません"}),U.el("p",{text:"盤面と結果を保持しています。保存できる状態にしてから再試行してください。"}),UI.btn("保存を再試行",()=>{this.phase="retry";this.finish();},"yellow wide"));
     }else{
-      Sound.se(result.prizes.length?"fanfare":"ok");
+      Sound.se(result.prizes.length||result.collab?.length?"fanfare":"ok");
       box.append(U.el("span",{class:"puzzle-eyebrow",text:this.run.practice?"PRACTICE RESULT":"SCORE ATTACK RESULT"}),U.el("h2",{text:"TIME UP"}),
         U.el("div",{class:"puzzle-final-score",text:U.fmt(s.score)+" pt"}),
         U.el("p",{text:`${s.moves}回消去 ／ 最大${s.bestCombo}コンボ ／ 延長 +${s.extended.toFixed(1)}秒`}),
@@ -116,6 +121,7 @@ class PuzzleScene {
         const next=PUZZLE_PRIZES.find(p=>!Save.d.puzzle.claimed[p.id]);
         box.append(U.el("p",{text:next?`次の目標：${next.name}（${U.fmt(next.score)} pt）`:"星のコレクション、全5種を達成！"}));
         if(result.prizes.length)box.append(U.el("p",{text:"おうちの「もようがえ」から飾れます。タップすると光が弾けます。"}));
+        if(typeof CollabGoods!=="undefined"&&CollabGoods.LINES.puzzle)box.append(CollabGoods.result("puzzle",(result.collab||[]).map(id=>CollabGoods.find(id)?.item).filter(Boolean),s.score));
       }
       box.append(UI.btn("受付へ戻る",()=>this.leave(),"yellow wide"),UI.btn("おうちへ",()=>this.leave(true),"wide"));
     }
