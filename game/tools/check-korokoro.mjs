@@ -315,6 +315,7 @@ ok(Art.HERO.wanko.crop >= 1.33 && Art.HERO.gachan.crop >= 1.5 && Art.HERO.goji.c
 
 // ---- 8. スコア モード（js/korokoro-score.js）: 本物の スイカゲームと おなじ きまり ----
 const scoreTable = [];
+let collabPlays = 0;
 {
   ok(ScoreScene && R.SCENES.koroscore === ScoreScene && SCORE.tops === 5 && SCORE_HOWTO.length >= 4 && SCORE_HOWTO.every((l) => !kanji.test(l)), "スコア モードの 画面・あそびかたの ことば");
   // 画面: 箱が ちゅうもん モードより 大きい・スコア／つぎ／3人／じゅんばん が 画面に おさまる（390×844・375×667）
@@ -396,7 +397,7 @@ const scoreTable = [];
   for (const [name, bot] of [["でたらめ", { every: 1.2, noise: 0, silly: 1 }], ["こども", { every: 1.6, noise: 4, silly: 0.25 }]]) {
     const games = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => scoreGame(seed, bot));
     ok(games.every((g) => g.ok && g.t < 1199 && g.score > 0), `${name}: スコア モードが おわらない／こわれる`);
-    scoreTable.push({ name, score: med(games.map((g) => g.score)), secs: Math.round(med(games.map((g) => g.t))), gojis: games.reduce((k, g) => k + g.gojis, 0) });
+    scoreTable.push({ name, score: med(games.map((g) => g.score)), best: Math.max(...games.map((g) => g.score)), mean: games.reduce((k, g) => k + g.score, 0) / games.length, secs: Math.round(med(games.map((g) => g.t))), gojis: games.reduce((k, g) => k + g.gojis, 0) });
   }
   ok(scoreTable[1].score > scoreTable[0].score * 1.3 && scoreTable[1].gojis >= 4, `かんがえて おとしても 点が あまり かわらない（${JSON.stringify(scoreTable)}）`);
   // くっついた ときの はねを おさえて 15% たかい 箱（オーナーの FB 2026-09-30）: まえの きまり（はね・110）より ながく あそべる
@@ -407,6 +408,11 @@ const scoreTable = [];
   ok(nowUp <= SCORE.rules.up + 1e-6 && oldUp > 200, `がったいで おされた 玉の うえむきの はやさ（いま ${nowUp.toFixed(0)}・まえ ${oldUp.toFixed(0)}）`);
   ok(scoreTable[1].secs >= oldSecs * 1.25 && scoreTable[1].score >= oldScore * 1.2, `はねを おさえても ながく あそべない（いま ${scoreTable[1].secs}びょう ${scoreTable[1].score}てん・まえ ${Math.round(oldSecs)}びょう ${oldScore}てん）`);
   scoreTable.push({ name: "まえの きまりの こども", score: oldScore, secs: Math.round(oldSecs), gojis: old.reduce((k, g) => k + g.gojis, 0) });
+  // ごわが × ころころ フルーツ の コラボ（js/korokoro-collab.js・オーナーの FB 2026-09-30）: いちばん ひくい めやす（5000てん）も 1かいでは とどかない ので つみたて。
+  // こどもの ボットの へいきんで いちばん たかい めやす（15000てん）まで なんかい か（人の 実測では ない）
+  const goods = R.CollabGoods.LINES.korokoro.items, kid = scoreTable[1];
+  collabPlays = Math.ceil(goods[goods.length - 1].need / kid.mean);
+  ok(scoreTable[0].best < goods[0].need && kid.best < goods[0].need && collabPlays <= 16, `コラボの めやす（1かいの さいこう ${kid.best}てん・15000てんまで ${collabPlays}かい）`);
   // お店の モードえらび: ころころ フルーツ いがいは きかない
   ok(await Score.choose({ shopId: "crepe" }) === "order", "ほかの お店で モードを きく");
 }
@@ -458,4 +464,4 @@ const scoreTable = [];
   ok(JSON.stringify(R.Save.migrate(v0).shops.korokoro.gifts) === "{}", "まえの セーブに gifts が たされない");
 }
 
-console.log(`Korokoro: ${n} checks（${table.join(" ／ ")}／ スコア モード ${scoreTable.map((r) => `${r.name} ${r.score}てん・${r.secs}びょう`).join("・")}）`);
+console.log(`Korokoro: ${n} checks（${table.join(" ／ ")}／ スコア モード ${scoreTable.map((r) => `${r.name} ${r.score}てん・${r.secs}びょう`).join("・")}／ コラボ 15000てん まで こどもの ボットで ${collabPlays}かい）`);

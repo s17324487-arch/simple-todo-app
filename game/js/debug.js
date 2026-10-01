@@ -98,6 +98,7 @@ const PokaDebug = {
       "PokaDebug.koroSetup({bodies:[[3,40,100],[3,60,100]]}) ころころ フルーツの 箱に 玉を おく（seed・held・next も。スコア モードでも）",
       "PokaDebug.koroScore({ seed: 1 })     ころころ フルーツの スコア モードを はじめる（お店の まえに もどる）",
       "PokaDebug.koro()                      スコア モードの ようす（スコア・ハイスコア・さいきんの きろく・もらった とくべつな かぐ・きろくの まどで とまって いるか・箱の CSS 座標・玉・つぎ・おしまい）",
+      "PokaDebug.collab('korokoro')          コラボ グッズの つみたて・もらった もの・つぎ（'puzzle' も）",
       "PokaDebug.store('clothes', 'town')    歩ける店内へ（入口のある町を選べる）",
       "PokaDebug.storeState()                店員・展示・通路・3人・出口の状態",
       "PokaDebug.storeWalkTo(5, 3)           店内のマスまで実際に歩く",

@@ -141,9 +141,11 @@ const KorokoroScore = {
       const show = (k) => {
         tab = k;
         for (const id in btn) { btn[id].classList.toggle("yellow", id === k); btn[id].setAttribute("aria-selected", String(id === k)); }
-        page.replaceChildren(k === "gift" ? this.prizesEl() : this.recordsEl());
+        page.replaceChildren(k === "gift" ? this.prizesEl() : k === "collab" ? CollabGoods.section("korokoro") : this.recordsEl());
       };
-      for (const [k, label] of [["rec", "きろく"], ["gift", "けいひん"]]) {
+      // コラボ: ごわが × ころころ フルーツ の つみたてと 5しゅの グッズ（js/korokoro-collab.js）
+      const tabsList = [["rec", "きろく"], ["gift", "けいひん"], ...(typeof CollabGoods !== "undefined" && CollabGoods.LINES.korokoro ? [["collab", "コラボ"]] : [])];
+      for (const [k, label] of tabsList) {
         const b = UI.btn(label, () => { if (tab === k) return; Sound.se("ok"); show(k); });
         b.setAttribute("role", "tab"); btn[k] = b; tabs.append(b);
       }
@@ -156,7 +158,9 @@ const KorokoroScore = {
     if (store.shopId !== "korokoro") return "order";
     const hi = this.best();
     const got = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.list().filter((p) => p.own).length : 0;
-    const text = `${store.owner.name}\nどっちの モードで あそぶ？\n・ちゅうもん … ほしい ものを とどける\n・スコア … あふれるまで とことん！${hi ? `\nハイスコア ${U.fmt(hi)}てん` : ""}${got ? `\nとくべつな かぐ ${got}/${KOROKORO_PRIZES.length}` : ""}`;
+    const L = typeof CollabGoods !== "undefined" ? CollabGoods.LINES.korokoro : null, goods = L ? L.items.filter((it) => CollabGoods.has(it.id)).length : 0;
+    const have = [got ? `とくべつな かぐ ${got}/${KOROKORO_PRIZES.length}` : "", goods ? `コラボ ${goods}/${L.items.length}` : ""].filter(Boolean).join("・");
+    const text = `${store.owner.name}\nどっちの モードで あそぶ？\n・ちゅうもん … ほしい ものを とどける\n・スコア … あふれるまで とことん！${hi ? `\nハイスコア ${U.fmt(hi)}てん` : ""}${have ? `\n${have}` : ""}`;
     for (;;) {
       const i = await UI.ask(text, ["ちゅうもん モード", "スコア モード", "きろくと けいひん", "やめる"]);
       if (i === 2) { await this.openRecords("rec"); continue; }
@@ -267,9 +271,14 @@ class KorokoroScoreScene {
   async results() {
     if (this.paid || this.closed) return;
     this.paid = true; this.phase = "result"; this.topBar?.remove();
-    const score = this.board.points, st = this.st, rec = KorokoroScore.record(score, U.today(), KorokoroScore.bigTier(this.board.made));
+    const score = this.board.points, st = this.st;
+    // ごわが × ころころ フルーツ の コラボ グッズ（つみたて。js/korokoro-collab.js）: はじめて よむ ときは この 1かいの まえの きろくから はじめる
+    const collabOn = typeof CollabGoods !== "undefined" && !!CollabGoods.LINES.korokoro;
+    if (collabOn) CollabGoods.state("korokoro");
+    const rec = KorokoroScore.record(score, U.today(), KorokoroScore.bigTier(this.board.made));
     // ハイスコアの ごほうび: とくべつな かぐ（js/korokoro-prizes.js）
     const gifts = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.claim(score) : [];
+    const goods = collabOn ? CollabGoods.add("korokoro", score) : [];
     const coins = KorokoroScore.pay(score, this.difficulty, this.dailyBoost), rep = KorokoroScore.rep(score), grade = KorokoroScore.grade(score);
     Save.addCoins(coins); st.rep += rep;
     const before = st.lv; st.lv = ShopRewards.level(st);
@@ -279,7 +288,7 @@ class KorokoroScoreScene {
     Save.careAll({ hunger: -6, mood: grade >= 2 ? 4 : 1, bond: 1 });
     Save.mark(); Save.write();
     Sound.stopBgm(); Sound.jingle("victory");
-    if ((rec.newBest && score > 0) || gifts.length) { setTimeout(() => Sound.se("fanfare"), 600); for (const t of this.team) { t.turn = 9; t.emo = "happy"; t.jump = 0; } }
+    if ((rec.newBest && score > 0) || gifts.length || goods.length) { setTimeout(() => Sound.se("fanfare"), 600); for (const t of this.team) { t.turn = 9; t.emo = "happy"; t.jump = 0; } }
     const body = U.el("div", { class: "koro-result" });
     body.append(U.el("div", { class: "result-big", text: rec.newBest && score > 0 ? `しんきろく！ ${U.fmt(score)}てん` : `${U.fmt(score)}てん` }));
     const next = st.lv < ShopRewards.maxLevel ? SHOP_LV_REP[st.lv + 1] : null, rows = U.el("div", { class: "result-rows" });
@@ -291,6 +300,7 @@ class KorokoroScoreScene {
     for (const p of gifts) body.append(KorokoroScore.giftEl(p, true));
     body.append(KorokoroScore.rankingEl(st.tops, rec.rank));
     if (typeof KorokoroPrizes !== "undefined") { const nx = KorokoroPrizes.next(); body.append(U.el("div", { class: "muted koro-next", text: nx ? `つぎの とくべつな かぐは ${U.fmt(nx.score)}てん（あと ${U.fmt(nx.score - rec.hi)}てん）` : "とくべつな かぐを ぜんぶ あつめた！" })); }
+    if (collabOn) body.append(CollabGoods.result("korokoro", goods, score));
     body.append(UI.btn("きろくと けいひんを みる", () => { Sound.se("ok"); KorokoroScore.openRecords("rec"); }, "wide koro-more"));
     const gojis = this.board.made[KOROKORO_TIERS.length - 1] || 0, bursts = this.board.made.burst || 0;
     if (gojis || bursts) body.append(U.el("div", { class: "note", text: `ごじを ${gojis}かい つくったよ${bursts ? `（ごじ どうしで ${bursts}かい きえた）` : ""}！` }));

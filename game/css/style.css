@@ -490,6 +490,17 @@ html, body {
 .collab-result { margin:12px 0 4px; }
 .collab-result-total { font-size:12px; font-weight:800; color:#54416f; margin:6px 0; }
 .collab-result-next { font-size:11px; color:#666175; }
+/* ごわが × ころころ フルーツ（js/korokoro-collab.js）: ころころ フルーツの きの はこの いろ */
+.collab-box.collab-korokoro { background:linear-gradient(160deg,#fff3dc,#f7d6ad); color:#5a3e22; border:2px solid #c98e57; }
+.collab-korokoro .collab-head h3 { color:#5a3e22; }
+.collab-korokoro .collab-head p, .collab-korokoro .collab-total { color:#7a5a3a; }
+.collab-korokoro .collab-eyebrow { color:#c0452f; }
+.collab-korokoro .collab-total b { color:#5a3e22; }
+.collab-korokoro .collab-meter { background:#ead2b0; }
+.collab-korokoro .collab-meter i { background:linear-gradient(90deg,#e8545e,#f7a43a,#ebd27c,#fada78); }
+.collab-korokoro .collab-card { background:#fffaf0; border-color:#e4b57f; color:#4a3520; }
+.collab-korokoro .collab-card.own { border-color:#7cc46e; background:linear-gradient(130deg,#fffbf0,#e9f4e2); }
+.collab-korokoro .collab-note { color:#8a6a48; }
 @keyframes puzzle-twinkle { from { opacity:.4; transform:scale(.7); } to { opacity:1; transform:scale(1.25); } }
 @media(prefers-reduced-motion:reduce) { .puzzle-prize-art:after { animation:none; } }
 

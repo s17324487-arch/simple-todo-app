@@ -3573,7 +3573,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
    return same&&getComputedStyle(p).transform==='none'&&getComputedStyle(w).opacity==='1'&&(typeof w.getAnimations!=='function'||[w,...w.querySelectorAll('.panel')].every(e=>e.getAnimations().every(a=>a.playState!=='running')));},5000);
   const r=await H.eval(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop(),p=w.querySelector('.panel').getBoundingClientRect(),body=w.querySelector('.panel-body'),tabs=[...w.querySelectorAll('.koro-tabs .btn')].map(b=>b.getBoundingClientRect());
    const out=[...w.querySelectorAll('.koro-book *')].filter(e=>{const r=e.getBoundingClientRect();return !(r.width===0||(r.left>=p.left-0.5&&r.right<=p.right+0.5));}).map(e=>e.className||e.tagName);
-   const edge=!(p.left>=0&&p.right<=innerWidth&&p.bottom<=innerHeight+0.5),tab=!(tabs.length===2&&tabs.every(r=>r.height>=44)),wide=body.scrollWidth>body.clientWidth+1;
+   const edge=!(p.left>=0&&p.right<=innerWidth&&p.bottom<=innerHeight+0.5),tab=!(tabs.length===3&&tabs.every(r=>r.height>=44)),wide=body.scrollWidth>body.clientWidth+1;
    return {ok:!edge&&!tab&&!out.length&&!wide,why:{edge,tab,out:out.slice(0,4),wide,p:[p.left,p.top,p.right,p.bottom],vw:[innerWidth,innerHeight],tabs:tabs.map(r=>r.height),sw:[body.scrollWidth,body.clientWidth]}};});
   expect(r.ok,msg+' '+JSON.stringify(r.why));
  };
@@ -3621,6 +3621,81 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.until(()=>PokaDebug.idle()&&!document.querySelector('.dlg-shade'),8000);
  expect((await H.dbg('state')).scene==='store','モードえらびを やめると お店に もどらない');
 },{viewport,timeout:200000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('korokoro-collab-'+viewport.width,async H=>{
+ // ごわが × ころころ フルーツ の コラボ グッズ（UI-19。js/korokoro-collab.js・オーナーの FB 2026-09-30「5000〜15000てんの 景品を コロコロフルーツと ごわがの コラボグッズとして」）:
+ // まえから あそんで いる 人（ランキング 3かいで 4500てん）→ スコア モード 600てん → つみたて 5100 → Tシャツ → きろくの まどの「コラボ」タブ → もういちど 10000てん → のこり 4しゅ →
+ // お店の モードえらびに「コラボ 5/5」→ おうち: 3にんが Tシャツと いちご ぼうし・ボールプール／ベッド／ぬいぐるみを さわる・よるの ベッドは ねむる・「ねる」で ベッドの ふかふか
+ await H.newGameFast();
+ const old={koro_cherry_lamp:1,koro_strawberry_sofa:1,koro_mikan_table:1,koro_apple_shelf:1,koro_pear_cushion:1};
+ let d=await H.dbg('saveData');Object.assign(d.shops.korokoro,{hi:2000,games:6,tops:[{s:2000,d:'2026-9-20'},{s:1500,d:'2026-9-21'},{s:1000,d:'2026-9-22'}],gifts:Object.fromEntries(Object.keys(old).map(id=>[id,'2026-9-20']))});
+ Object.assign(d.furn,old);delete d.collab;await H.dbg('seedSave',d);
+ const play=async(points,again=false)=>{
+  if(again){await H.page.getByRole('button',{name:'もういちど',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='koroscore'&&!PokaDebug.state().transitioning&&PokaDebug.koro()?.phase==='intro',15000);}
+  else{await H.dbg('koroScore',{seed:5});await H.until(()=>PokaDebug.state().scene==='koroscore'&&!PokaDebug.state().transitioning,15000);}
+  await H.dialogs();await H.until(()=>PokaDebug.koro()?.phase==='play',15000);await H.wait(200);
+  await H.dbg('koroSetup',{points});await H.page.getByRole('button',{name:'スコア モードを やめる',exact:true}).click();await H.page.getByRole('button',{name:'おわりに する',exact:true}).click();
+  await H.until(()=>!!document.querySelector('.modal-wrap .koro-foot .btn')&&!!document.querySelector('.modal-wrap .collab-result'),8000);await H.wait(400);
+  return H.eval(()=>{const b=document.querySelector('.modal-wrap .collab-result');b.scrollIntoView({block:'center'});const cs=[...b.querySelectorAll('.collab-card')],p=document.querySelector('.modal-wrap .panel').getBoundingClientRect(),f=[...document.querySelectorAll('.modal-wrap .koro-foot .btn')].map(x=>x.getBoundingClientRect());
+   return {text:b.innerText,cards:cs.map(c=>c.dataset.collab),arts:cs.filter(c=>c.querySelector('.collab-art svg')).length,fit:p.left>=0&&p.right<=innerWidth&&f.every(r=>r.height>=44&&r.bottom<=innerHeight)&&cs.every(c=>{const r=c.getBoundingClientRect();return r.left>=p.left-0.5&&r.right<=p.right+0.5;})};});
+ };
+ // 1かいめ: 600てん → 4500 + 600 = 5100 → Tシャツ
+ let res=await play(600);
+ expect(res.cards.join()==='kc_tee'&&res.arts===1&&res.fit&&/\+600 → 5,100 てん/.test(res.text)&&/ボールプール」まで あと 2,900 てん/.test(res.text),'1かいめの けっか '+JSON.stringify(res));
+ await H.shot('result-1');
+ let saved=await H.dbg('persistedSave');
+ expect(saved.collab.korokoro.total===5100&&saved.collab.korokoro.got.kc_tee&&saved.wardrobe.kc_tee===true&&!saved.furn.kc_pool&&saved.shops.korokoro.tops[0].s===2000,'Tシャツが ほぞん されない '+JSON.stringify(saved.collab));
+ // きろくと けいひんの まどの「コラボ」タブ: メーター・5しゅ（もって いるのは 1つ）・つぎの めやす・はみ出さない
+ await H.page.getByRole('button',{name:'きろくと けいひんを みる',exact:true}).click();
+ await H.page.getByRole('tab',{name:'コラボ',exact:true}).click();await H.wait(400);
+ const tab=await H.eval(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop(),b=w.querySelector('.collab-box'),p=w.querySelector('.panel').getBoundingClientRect(),body=w.querySelector('.panel-body'),cs=[...b.querySelectorAll('.collab-card')],tabs=[...w.querySelectorAll('.koro-tabs .btn')].map(t=>t.getBoundingClientRect());
+  return {text:b.innerText,cards:cs.map(c=>c.dataset.collab),own:b.querySelectorAll('.collab-card.own').length,arts:cs.filter(c=>c.querySelector('.collab-art svg')).length,tabs:tabs.length,tabH:tabs.every(r=>r.height>=44&&r.right<=p.right+0.5),
+   inside:cs.every(c=>{const r=c.getBoundingClientRect();return r.left>=p.left-0.5&&r.right<=p.right+0.5;}),wide:body.scrollWidth>body.clientWidth+1,edge:p.left>=0&&p.right<=innerWidth&&p.bottom<=innerHeight+0.5};});
+ expect(tab.cards.join()==='kc_tee,kc_pool,kc_cap,kc_bed,kc_plush'&&tab.own===1&&tab.arts===5&&tab.tabs===3&&tab.tabH&&tab.inside&&!tab.wide&&tab.edge&&/つみたて 5,100 てん/.test(tab.text)&&/あと 2,900 てん/.test(tab.text)&&/スコア モードで あそんだ てん/.test(tab.text),'コラボの タブ '+JSON.stringify(tab));
+ await H.shot('collab-tab');
+ await H.page.getByRole('button',{name:'とじる',exact:true}).click();await H.wait(400);
+ // 2かいめ: 10000てん → 15100 → のこり 4しゅ いっぺんに
+ res=await play(10000,true);
+ expect(res.cards.join()==='kc_pool,kc_cap,kc_bed,kc_plush'&&res.arts===4&&res.fit&&/15,100 てん/.test(res.text)&&/ぜんぶ そろったよ/.test(res.text),'2かいめの けっか '+JSON.stringify(res));
+ await H.shot('result-2');
+ saved=await H.dbg('persistedSave');
+ expect(saved.collab.korokoro.total===15100&&['kc_pool','kc_bed','kc_plush'].every(id=>saved.furn[id]===1)&&saved.wardrobe.kc_cap===true&&!saved.collab.puzzle,'のこりの コラボ グッズ '+JSON.stringify(saved.collab));
+ // お店の モードえらび: 「コラボ 5/5」（はみ出さない）
+ await H.page.getByRole('button',{name:'てんないに もどる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),15000);
+ await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();
+ await H.page.getByRole('button',{name:'きろくと けいひん',exact:true}).waitFor();
+ const ask=await H.eval(()=>{const d=document.querySelector('.dlg-shade.ask .dialog').getBoundingClientRect(),c=[...document.querySelectorAll('.dlg-shade.ask .choices .btn')].map(b=>b.getBoundingClientRect());return {text:document.querySelector('.dlg-shade.ask .dlg-text').textContent,ok:d.top>=0&&d.bottom<=innerHeight&&c.every(r=>r.height>=44&&r.top>=0&&r.right<=innerWidth)};});
+ expect(/とくべつな かぐ 6\/6・コラボ 5\/5/.test(ask.text)&&ask.ok,'モードえらびの コラボ '+JSON.stringify(ask));
+ await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.until(()=>PokaDebug.idle()&&!document.querySelector('.dlg-shade'),8000);
+ // おうち（ひる 14じ）: 3にんが Tシャツと いちご ぼうし。ボールプール・ベッド・ぬいぐるみを おいて さわる
+ await H.dbg('hour',14);
+ d=await H.dbg('saveData');for(const id of ['wanko','gachan','goji'])d.chars[id].outfit={...d.chars[id].outfit,body:'kc_tee',head:'kc_cap'};await H.dbg('seedSave',d);
+ await H.dbg('house');await H.until(()=>PokaDebug.state().scene==='house'&&!PokaDebug.state().transitioning,15000);await H.idle(20000);
+ await H.dbg('homeLayout',[{id:'kc_bed',x:150,y:262},{id:'kc_pool',x:420,y:300},{id:'kc_plush',x:70,y:540}]);
+ await H.dbg('homeBubbleFixture');await H.wait(900);await H.shot('room');
+ const touch=async(id,ok,msg)=>{
+  await H.dbg('homeBubbleFixture');await H.wait(120);
+  const a=await H.dbg('furnLive',id);expect(a&&a.tap,`${id}: タップできる 点が ない`);
+  await H.tap(a.tap.x,a.tap.y);await H.wait(320);
+  const b=await H.dbg('furnLive',id);expect(ok(a,b),`${msg} ${JSON.stringify([a,b])}`);expect(b.talk>a.talk,`${id}: 3人が なにも いわない`);
+  return b;
+ };
+ await touch('kc_pool',(a,b)=>b.t<1&&b.live,'ボールプールが はねない');await H.wait(200);await H.shot('pool-tap');
+ await touch('kc_bed',(a,b)=>a.on===false&&b.on===true&&b.live,'ひるの ベッドが タップで おひるね しない');
+ await touch('kc_plush',(a,b)=>b.t<1&&b.live,'ぬいぐるみが ゆれない');await H.wait(200);await H.shot('room-tapped');
+ // よる 21じ: ベッドの まくらの 3人は ねむって いる
+ await H.dbg('hour',21);await H.wait(4300);
+ const night=await H.dbg('furnLive','kc_bed');expect(night.on===true,'よるの ベッドが ねむらない '+JSON.stringify(night));
+ // 「ねる」: ころころ はこの ベッドで ふかふか（ごきげん +12）
+ await H.dbg('homeBubbleFixture');await H.page.getByRole('button',{name:'ねる',exact:true}).click();
+ // ことばは 1もじずつ でるので、さいごの「）」まで でるのを まつ
+ await H.until(()=>/ぐっすり[\s\S]*）/.test(document.querySelector('.dlg-text')?.textContent||''),15000);
+ const slept=await H.eval(()=>document.querySelector('.dlg-text').textContent);
+ expect(/ころころ はこの ベッドで ふかふか/.test(slept)&&/ごきげん \+12/.test(slept),'ベッドで ねても ふかふかに ならない '+slept);
+ await H.shot('sleep');
+ await H.dialogs();
+ expect(await H.eval(()=>document.documentElement.scrollWidth<=innerWidth),'よこに はみ出す');
+},{viewport,timeout:240000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('korokoro-faces-'+viewport.width,async H=>{
  // 玉と うえの 3人の 表情（korokoro-art.js・mg-korokoro.js・オーナーの FB 2026-09-30「ごじ・わんこ・がちゃの 表情を 増やせ。瞬きも 追加せよ」）:
