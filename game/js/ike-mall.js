@@ -181,7 +181,7 @@ const MallGuide = {
   MARK: { elevatorCall: "elev", toiletDoor: "wc", info: "info", aed: "aed", locker: "locker", exitMat: "exit", stage: "stage", fountain: "fountain", escalator: "esc", stairs: "stairs", guide: "here" },
   places(r) {
     const out = [];
-    for (const z of r.zones || []) { const f = r.fixtures.find((f) => f.action && f.x >= z.x && f.x < z.x + z.w && f.y >= z.y && f.y < z.y + z.h && ["shop", "eat", "puzzle", "info", "buy", "tank", "curator", "sit", "crane", "photo", "counter"].includes(f.action)); if (f) out.push({ label: z.label, f, zone: z }); }
+    for (const z of r.zones || []) { const f = r.fixtures.find((f) => f.action && f.x >= z.x && f.x < z.x + z.w && f.y >= z.y && f.y < z.y + z.h && ["shop", "eat", "puzzle", "info", "buy", "tank", "curator", "sit", "crane", "photo", "counter", "fitting"].includes(f.action)); if (f) out.push({ label: z.label, f, zone: z }); }
     for (const f of r.fixtures) if (this.MARK[f.kind] && f.label && f.kind !== "guide") out.push({ label: f.label, f });
     return out;
   },

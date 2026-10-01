@@ -58,7 +58,10 @@ let hiddenChecks=0;
   assert(g2.every(f=>r2walk(fl[2],f.spots[0])),'ガチャの まえに たてる');
   // ガチャ コーナーの 台は、てまえの 高い もの（はしら など）にも かくれない
   const corner=fl[2].fixtures.filter(f=>['gacha','capbin','gachaboard'].includes(f.kind)),depth=f=>f.x+f.w/2+f.y+f.h/2;
-  for(const f of corner)for(const o of fl[2].fixtures){if(corner.includes(o)||(o.height??40)<=150||depth(o)<=depth(f))continue;const a=ccw(I.hull(f)),c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/area(a):0;hiddenChecks++;assert(k<=0.12,'2F の ガチャ コーナーの '+f.kind+'（'+f.x+','+f.y+'）が '+o.kind+'（'+o.x+','+o.y+'）に かくれる '+Math.round(k*100)+'%');}}
+  for(const f of corner)for(const o of fl[2].fixtures){if(corner.includes(o)||(o.height??40)<=150||depth(o)<=depth(f))continue;const a=ccw(I.hull(f)),c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/area(a):0;hiddenChecks++;assert(k<=0.12,'2F の ガチャ コーナーの '+f.kind+'（'+f.x+','+f.y+'）が '+o.kind+'（'+o.x+','+o.y+'）に かくれる '+Math.round(k*100)+'%');}
+  // 3F の ぷりくら・おめかし コーナー・こういしつ・かしだしの ラック（UI-21・UI-22）も、てまえの 高い もの（はしら・ラック など）に かくれない
+  const puri=fl[3].fixtures.filter(f=>['photobooth','vanity','fitting','costumerack'].includes(f.kind));
+  for(const f of puri)for(const o of fl[3].fixtures){if(o===f||(o.height??40)<=150||o.over||depth(o)<=depth(f))continue;const a=ccw(I.hull(f)),c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/area(a):0;hiddenChecks++;assert(k<=0.12,'3F の '+(f.label||f.kind)+'（'+f.x+','+f.y+'）が '+(o.label||o.kind)+'（'+o.x+','+o.y+'）に かくれる '+Math.round(k*100)+'%');}}
 // 3F（ぷりくらの フロア・UI-21）: 2F の 南西の すみの エスカレーターで 2F ⇄ 3F（3F は ふきぬけ）・1F は ぷりくらの かわりに フロア あんない
 {const fl=R.VenueHalls.defs.arcade.floors,up=fl[2].fixtures.find(f=>f.kind==='escalator'&&f.to===3),down=fl[3]&&fl[3].fixtures.find(f=>f.kind==='escalator'&&f.to===2);
   assert(Object.keys(fl).join()==='1,2,3'&&up&&down&&up.x===down.x&&up.y===down.y&&fl[3].holes.length===1&&fl[3].holes[0].x===down.x,'2F と 3F の エスカレーター');
