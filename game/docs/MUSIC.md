@@ -34,3 +34,31 @@
 ## 検証
 
 `npm run check` は全32曲の音符・和音・楽器名・小節数・音量と曲の区別を検証する。スモーク「現代的BGM・全曲の音声合成」は実際に全曲を6秒ずつオフライン合成し、有限のサンプル・無音でないこと・ピーク0.95未満・同時発音60未満を確認。実時間の曲切替、音のオン/オフ、ジングル停止、おかねの保持も確認する。
+
+## Meeときょれじゃ の 店内 BGM（J-POP 5きょく・ランダム）
+
+館（`arcade_hall`）・あそぶ 画面・ぷりくら・けいひん カウンター（`shop_ike_arcade`）は、魔王魂（森田交一）の 歌もの（J-POP）5きょくを ランダムな じゅんばんで 1きょくずつ ながす（`Sound.lists`・`js/arcade-jpop.js`）。ひとまわりで 5きょく ぜんぶ・おなじ 曲は つづけない・曲と 曲の あいだは 1.6びょう。館の 中を いききしても 曲は とぎれない。曲が はじまると「♪ 曲の なまえ（BGM：魔王魂）」と でる。
+
+| ゲームでの なまえ | もとの MIDI（ファイル名） | テンポ | ながさ |
+|---|---|---|---|
+| スマイル アンド スマイル | `maoudamashii_13_smileandsmile.mid` | 178 BPM | 4:28 |
+| ドライブ | `maoudamashii_10_drive.mid` | 138 BPM | 3:36 |
+| メモリーズ | `maoudamashii_04_memories.mid` | 152 BPM | 4:25 |
+| フラワー | `maoudamashii_01_flower.mid` | 128 BPM | 3:36 |
+| つばさ | `maoudamashii_20_tsubasa.mid` | 134 BPM | 4:34 |
+
+### 出典・ライセンス・クレジット
+
+- 作曲・著作者: 魔王魂（森田交一）<https://maou.audio/>。[利用規約](https://maou.audio/rule/)で アレンジ（タイトル・キー・テンポ・編曲の へんこう）が でき、アレンジを「魔王魂の アレンジ」と 著作表記して くばれる（二次配布は 著作表記と 魔王魂への リンク か URL を かく）。著作権は 魔王魂に ある。
+- MIDI: 魔王魂の MIDI を fungamemake.com が ゲーム用に 編集した もの（<https://github.com/munokura/maoudamashii-sound-dmg-ogg> の `song-midi/`）。ライセンスは [マテリアル・コモンズ・ブルー・ライセンス](https://ja.materialcommons.org/mtcm-b-summary/)（クレジット 必須・営利の 作品に つかえる〔素材 そのものの 販売は できない〕・改変できる・再配布は おなじ マテコモで）。
+- クレジット: **BGM：魔王魂（https://maou.audio/）／ 編集: fungamemake.com (著作者:魔王魂)**。ゲームでは ≡ の「せってい」の いちばん したに かく。
+- この ゲームが くばる もの: `js/arcade-jpop-maoudamashii.js`（MIDI から つくった 音符・この ゲームの アレンジ）。この ファイルは マテリアル・コモンズ・ブルー・ライセンスで くばる。MIDI・音声ファイルは リポジトリに いれない。
+
+### つくりかた（`tools/build-arcade-jpop.mjs`）
+
+1. MIDI を よむ（依存なしの SMF の よみこみ。sha256 で おなじ MIDI か たしかめる）。
+2. 音の タイミングを 16分音符に そろえる（はじめの 1小節の じゅんびは とばす・おわりの ゆっくりは 時間の まま）。音の たかさ・ながさは MIDI の まま。
+3. パートを この ゲームの 楽器に わりあてる（アレンジ）: うた（Melody）→ `lead`（ビブラート）・ギターソロは うたの やすみに `lead` へ・ハモリ（Chorus）→ 小さな `lead`・シンセや ギターの きざみ → `chip`（ゲームセンターの ピコピコ）や `pluck`・パワーコード → `gtr`・ピアノ → `piano`／`epiano`・ストリングス → `pad`・ベース → `ebass`・ドラム → k（バスドラム）s（スネア）h（ハイハット）o（ひらいた ハイハット）c（シンバル）t／l（タム）。
+4. 小節の じしょで ちぢめて `js/arcade-jpop-maoudamashii.js` に かく（5きょくで 約 80KB）。
+
+`node tools/build-arcade-jpop.mjs <song-midi の フォルダ>` で つくりなおせる。音量は うた との くらべ（なって いる ところの 大きさ）で きめた。いちばん にぎやかな ところでも 同時発音は 60 みまん（`tools/check-arcade-jpop.mjs` が 1きょく ぜんぶ かぞえる）。

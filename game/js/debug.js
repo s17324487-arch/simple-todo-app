@@ -92,7 +92,8 @@ const PokaDebug = {
       "PokaDebug.battleFixture({ hp: 1, condition: 'fire' })  コマンド待ち中に戦闘の状態を再現",
       "PokaDebug.music('town' | null)          曲を試聴/停止。引数なしで音の状態",
       "PokaDebug.musicCatalog()               曲名・楽器・小節数の一覧",
-      "await PokaDebug.musicRender('town', 8)  同じ音源でオフライン合成・音量/負荷を検証",
+      "await PokaDebug.musicRender('town', 8)  同じ音源でオフライン合成・音量/負荷を検証（4つめ = はじめる トークン）",
+      "PokaDebug.arcadeMusic()     Meeときょれじゃ の J-POP（いまの 曲・再生リスト）。'skip' で つぎの 曲",
       "PokaDebug.shop('crepe', 3)            お店ミニゲームを Lv3 で開始",
       "PokaDebug.koroSetup({bodies:[[3,40,100],[3,60,100]]}) ころころ フルーツの 箱に 玉を おく（seed・held・next も。スコア モードでも）",
       "PokaDebug.koroScore({ seed: 1 })     ころころ フルーツの スコア モードを はじめる（お店の まえに もどる）",
@@ -427,8 +428,16 @@ const PokaDebug = {
     return Object.entries(SONGS).map(([id, song]) => ({ id, title: song.title, bpm: song.bpm, modern: !!song.modern, once: !!song.once,
       steps: Math.max(...song.tracks.map(tr => Sound.parse(tr.notes).length)), instruments: [...new Set(song.tracks.map(tr => tr.drum ? "drums" : tr.instrument))] }));
   },
-  async musicRender(name, seconds = 8, wav = false) {
-    const { audio, stats } = await ModernMusic.render(name, seconds);
+  // Meeときょれじゃ の 店内 BGM（再生リスト）の ようす。"skip" で いまの 曲を おわりまで とばす（つぎの 曲へ）
+  arcadeMusic(cmd) {
+    const cur = Sound.cur;
+    if (cmd === "skip" && cur && cur.list) cur.step = cur.len;
+    return { list: ArcadeJpop.LIST.slice(), titles: ArcadeJpop.LIST.map((id) => ArcadeJpop.title(id)), name: cur?.name || Sound.want || null,
+      playing: cur?.list ? cur.id : null, title: cur?.list ? ArcadeJpop.title(cur.id) : null, step: cur?.step ?? null, len: cur?.len ?? null,
+      jpop: !!cur?.song?.jpop, gap: Sound.GAP, voices: cur?.bus?.voices.size || 0 };
+  },
+  async musicRender(name, seconds = 8, wav = false, from = 0) {
+    const { audio, stats } = await ModernMusic.render(name, seconds, from);
     if (!wav) return stats;
     const bytes = new Uint8Array(44 + audio.length * 4), view = new DataView(bytes.buffer);
     const text = (offset, s) => [...s].forEach((c, i) => view.setUint8(offset + i, c.charCodeAt(0)));
