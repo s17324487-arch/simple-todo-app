@@ -1,8 +1,8 @@
-// ぷりくら（Meeときょれじゃ 3F の しゃしんの ブース 3台・UI-11／UI-21）: 300コイン → はいけいを えらぶ → 4まい とる（ポーズ・かお・アップ／ぜんしん・3・2・1）→ らくがき（ペン・スタンプ・もじ）→ すまほの「しゃしん」アプリで みる。
+// ぷりくら（Meeときょれじゃ 3F の しゃしんの ブース 3台・UI-11／UI-21／UI-24／UI-25）: 300コイン → はいけいを えらぶ → 4まい とる（ポーズ・かお・アップ／ぜんしん・3・2・1）→ らくがき（ペン・スタンプ・かお・もじ・キラキラ。おいた ものは さわって うごかす・まわす）→ すまほの「しゃしん」アプリで みる。
 // ブースは 3つの コンセプト（ゆめかわ・がっこう・おでかけ）。ブースごとに はいけい 6つ・わくの いろ・ことばが ちがう（BOOTHS）。
 // ほんものの プリクラと おなじ ながれ（お金を いれる → はいけい → さつえい → らくがき → スマホで みる）。
 // しゃしんは 画像では なく 絵の データ（Save.d.photos）。みる ときに 描く ので セーブが 大きく ならない。しゃしんの 座標は 300×400（たて）。
-// 3人は Chara.draw、はいけい・スタンプは SvgCache（キーは しゅるいと 3だんかいの 大きさ だけ）。
+// 3人は Chara.draw、はいけい・スタンプ・キラキラは SvgCache（キーは しゅるいと 3だんかいの 大きさ だけ）。
 const Purikura = (() => {
   const PW = 300, PH = 400, MAX = 60, SHOTS = 4, PRICE = 300;
   const BGS = [
@@ -41,12 +41,20 @@ const Purikura = (() => {
     { id: "heart", name: "ハート" }, { id: "star", name: "ほし" }, { id: "kira", name: "キラキラ" }, { id: "ribbon", name: "リボン" },
     { id: "flower", name: "おはな" }, { id: "crown", name: "おうかん" }, { id: "onpu", name: "おんぷ" }, { id: "niji", name: "にじ" },
     { id: "ashi", name: "あしあと" }, { id: "fusen", name: "ふうせん" }, { id: "ichigo", name: "いちご" }, { id: "mee", name: "Mee" },
+    // かおの スタンプ（UI-25。「かお」の タブ）: かおに かさねて つかう
+    { id: "hoppe", name: "ほっぺ", face: true }, { id: "matsuge", name: "まつげ", face: true }, { id: "namida", name: "なみだ", face: true }, { id: "kushami", name: "くしゃみ", face: true },
+    { id: "hige", name: "ねこひげ", face: true }, { id: "ase", name: "あせ", face: true }, { id: "nekomimi", name: "ねこみみ", face: true }, { id: "wakka", name: "てんしの わ", face: true },
   ];
   const STAMP_SIZE = [34, 56, 84];
+  // キラキラ（UI-25）: しゃしん ぜんたいに かさねる エフェクト。いくつでも かさねられる（3人の うえ・らくがきの した）
+  const EFFECTS = [
+    { id: "kira", name: "きらきら" }, { id: "heart", name: "ハート" }, { id: "hoshi", name: "ほし" }, { id: "awa", name: "しゃぼんだま" },
+    { id: "sakura", name: "さくら" }, { id: "yuki", name: "ゆき" }, { id: "fuwa", name: "ふんわり" }, { id: "niji", name: "にじいろ" },
+  ];
   const WORDS = ["なかよし", "だいすき", "ずっと いっしょ", "ぽかぽか", "イェーイ", "ともだち", "たのしい！", "Mee"];
   const LIMIT = { strokes: 40, points: 1500, stamps: 30, texts: 6, word: 10 };
   const INDEX = (list) => Object.fromEntries(list.map((x) => [x.id, x]));
-  const BG = INDEX(BGS), POSE = INDEX(POSES), FACE = INDEX(FACES), STAMP = INDEX(STAMPS), BOOTH = INDEX(BOOTHS);
+  const BG = INDEX(BGS), POSE = INDEX(POSES), FACE = INDEX(FACES), STAMP = INDEX(STAMPS), BOOTH = INDEX(BOOTHS), EFFECT = INDEX(EFFECTS);
   // はいけいの ある ブース（ふるい しゃしんは ゆめかわ）
   const boothOf = (bg) => BOOTHS.find((b) => b.bgs.includes(bg)) || BOOTHS[0];
 
@@ -62,10 +70,12 @@ const Purikura = (() => {
   };
   const num = (v, a, b) => (Number.isFinite(+v) ? Math.max(a, Math.min(b, Math.round(+v))) : null);
   const word = (t) => (typeof t === "string" ? t.replace(/[<>&"'`\u0000-\u001f]/g, "").slice(0, LIMIT.word) : "");
+  // かたむき（UI-25）: どの かずでも -180〜179 の せいすう に（ない・こわれて いる ときは 0）
+  const turn = (v) => { const n = Math.round(+v); return Number.isFinite(n) ? (((n % 360) + 540) % 360) - 180 : 0; };
 
   // ---- しゃしん 1まい（セーブの かたち）をたしかめる。こわれて いれば null。つかえない ぶぶんは すてる ----
-  // { id, t, bg, k: ブース, z: 0 ぜんしん|1 アップ, r: [3人の じゅんばん], c: { だれ: [ポーズ, かお] }, o: { だれ: [服, いろ] }, d: { p: [せん], s: [[スタンプ, x, y, 大きさ]], x: [[ことば, x, y, いろ]] } }
-  // k が ない（UI-21 より まえの）しゃしんは はいけいの ブース
+  // { id, t, bg, k: ブース, z: 0 ぜんしん|1 アップ, r: [3人の じゅんばん], c: { だれ: [ポーズ, かお] }, o: { だれ: [服, いろ] }, d: { p: [せん], s: [[スタンプ, x, y, 大きさ, かたむき?, はんてん?]], x: [[ことば, x, y, いろ, かたむき?]], e?: [キラキラ] } }
+  // k が ない（UI-21 より まえの）しゃしんは はいけいの ブース。かたむき・はんてん・e（UI-25）は 0／ない ときは かかない（まえの しゃしんと おなじ かたち）
   const clean = (p) => {
     if (!p || typeof p !== "object" || typeof p.id !== "string" || !/^[a-z0-9-]{3,40}$/.test(p.id)) return null;
     const ids = Chara.IDS, r = Array.isArray(p.r) && p.r.length === 3 && p.r.every((id) => ids.includes(id)) && new Set(p.r).size === 3 ? p.r.slice() : ids.slice();
@@ -79,10 +89,11 @@ const Purikura = (() => {
     const d = p.d && typeof p.d === "object" ? p.d : {};
     let pts = 0;
     const strokes = (Array.isArray(d.p) ? d.p : []).filter((s) => { const u = unpackStroke(s); if (!u || pts + u.pts.length > LIMIT.points) return false; pts += u.pts.length; return true; }).slice(0, LIMIT.strokes);
-    const stamps = (Array.isArray(d.s) ? d.s : []).filter((s) => Array.isArray(s) && STAMP[s[0]]).map((s) => [s[0], num(s[1], 0, PW), num(s[2], 0, PH), num(s[3], 0, 2)]).filter((s) => s.every((v) => v !== null)).slice(0, LIMIT.stamps);
-    const texts = (Array.isArray(d.x) ? d.x : []).filter((s) => Array.isArray(s) && word(s[0])).map((s) => [word(s[0]), num(s[1], 0, PW), num(s[2], 0, PH), num(s[3], 0, PENS.length - 1)]).filter((s) => s.every((v) => v !== null)).slice(0, LIMIT.texts);
+    const stamps = (Array.isArray(d.s) ? d.s : []).filter((s) => Array.isArray(s) && STAMP[s[0]]).map((s) => { const a = [s[0], num(s[1], 0, PW), num(s[2], 0, PH), num(s[3], 0, 2)], r = turn(s[4]), f = s[5] === 1 || s[5] === true; return r || f ? [...a, r, ...(f ? [1] : [])] : a; }).filter((s) => s.every((v) => v !== null)).slice(0, LIMIT.stamps);
+    const texts = (Array.isArray(d.x) ? d.x : []).filter((s) => Array.isArray(s) && word(s[0])).map((s) => { const a = [word(s[0]), num(s[1], 0, PW), num(s[2], 0, PH), num(s[3], 0, PENS.length - 1)], r = turn(s[4]); return r ? [...a, r] : a; }).filter((s) => s.every((v) => v !== null)).slice(0, LIMIT.texts);
+    const fx = EFFECTS.map((e) => e.id).filter((id) => Array.isArray(d.e) && d.e.includes(id));
     const bg = BG[p.bg] ? p.bg : "yume", k = BOOTH[p.k] && BOOTH[p.k].bgs.includes(bg) ? p.k : boothOf(bg).id;
-    const out = { id: p.id, t: num(p.t, 0, 9e15) || 0, bg, k, z: p.z ? 1 : 0, r, c, o, d: { p: strokes, s: stamps, x: texts } }, m = moves(p.m);
+    const out = { id: p.id, t: num(p.t, 0, 9e15) || 0, bg, k, z: p.z ? 1 : 0, r, c, o, d: { p: strokes, s: stamps, x: texts, ...(fx.length ? { e: fx } : {}) } }, m = moves(p.m);
     if (m) out.m = m;
     return out;
   };
@@ -96,12 +107,12 @@ const Purikura = (() => {
   };
   // 描く ための かたち（せんを 点の ならびに もどす）
   const unpacked = new WeakMap();
-  const view = (p) => { let v = unpacked.get(p); if (!v) { v = { ...p, d: { p: p.d.p.map(unpackStroke).filter(Boolean), s: p.d.s, x: p.d.x } }; unpacked.set(p, v); } return v; };
+  const view = (p) => { let v = unpacked.get(p); if (!v) { v = { ...p, d: { p: p.d.p.map(unpackStroke).filter(Boolean), s: p.d.s, x: p.d.x, e: p.d.e || [] } }; unpacked.set(p, v); } return v; };
 
   const st = () => { const s = Save.d.purikura || (Save.d.purikura = { plays: 0, active: null, taken: 0 }); if (!Array.isArray(Save.d.photos)) Save.d.photos = []; return s; };
   return {
-    PW, PH, MAX, SHOTS, PRICE, BGS, BOOTHS, POSES, FACES, PENS, PEN_W, STAMPS, STAMP_SIZE, WORDS, LIMIT, BG, BOOTH, POSE, FACE, STAMP,
-    packStroke, unpackStroke, clean, view, st, boothOf, MOVE, moves,
+    PW, PH, MAX, SHOTS, PRICE, BGS, BOOTHS, POSES, FACES, PENS, PEN_W, STAMPS, STAMP_SIZE, EFFECTS, WORDS, LIMIT, BG, BOOTH, POSE, FACE, STAMP, EFFECT,
+    packStroke, unpackStroke, clean, view, st, boothOf, MOVE, moves, turn,
     // ブースで つかえる ことば（ブースの ことば → みんなの ことば）
     wordsOf(booth) { const b = BOOTH[booth] || BOOTHS[0]; return [...b.words, ...WORDS]; },
     // こわれて いない しゃしん（ふるい じゅん）。こわれた ものは セーブから のぞく
@@ -327,6 +338,63 @@ const PurikuraArt = (() => {
     fusen: () => S(`<path d="M32 44 C26 50 36 54 30 62" fill="none" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="32" cy="24" rx="17" ry="20" fill="#FF7BA8" ${st}/><path d="M29 44 L35 44 L32 40 Z" fill="#FF7BA8" ${st}/><ellipse cx="25" cy="16" rx="4" ry="6" fill="#FFFFFF" opacity="0.7"/>`),
     ichigo: () => S(`<path d="M32 60 C12 48 8 30 16 22 C24 16 40 16 48 22 C56 30 52 48 32 60 Z" fill="#FF6B7A" ${st}/><path d="M18 22 L24 12 L32 20 L40 12 L46 22 Z" fill="#7CCB6B" ${st}/>${[[24, 32], [36, 30], [30, 42], [42, 42], [22, 44]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="1.6" ry="2.4" fill="#FFF3B0"/>`).join("")}`),
     mee: () => S(`<path d="M6 12 H58 V44 H30 L18 56 L20 44 H6 Z" fill="#FFFFFF" ${st}/><text x="32" y="36" font-size="20" font-weight="900" text-anchor="middle" fill="#FF7BA8" font-family="'M PLUS Rounded 1c',sans-serif">Mee</text>`),
+    // ---- かおの スタンプ（UI-25）。はんてん（⇆）で みぎ・ひだりを かえられる ----
+    // ほっぺ: ふんわり ピンクと ななめの せん
+    hoppe: () => S(`<ellipse cx="32" cy="33" rx="27" ry="17" fill="#FFB3C9" opacity="0.55"/><ellipse cx="32" cy="33" rx="20" ry="12" fill="#FF8FB1" opacity="0.6"/>${[15, 25, 35, 45].map((x) => `<path d="M${x} 42 L${x + 7} 24" stroke="#F0578D" stroke-width="3.2" stroke-linecap="round"/>`).join("")}<ellipse cx="21" cy="27" rx="4.5" ry="2.6" fill="#FFFFFF" opacity="0.85" transform="rotate(-18 21 27)"/>`),
+    // まつげ: うわまぶたの せんと くるんと あがった まつげ（パーマ）・きらり
+    matsuge: () => S(`<path d="M5 46 Q27 24 58 37" fill="none" stroke="${K}" stroke-width="6" stroke-linecap="round"/>` +
+      [[16, 38, 11, 28, 13, 19, 19, 15], [26, 33, 22, 22, 27, 13, 34, 11], [37, 31, 37, 20, 43, 13, 50, 13], [47, 33, 51, 24, 57, 20, 62, 22]].map(([x0, y0, a, b, c, d, x1, y1]) => `<path d="M${x0} ${y0} C${a} ${b} ${c} ${d} ${x1} ${y1}" fill="none" stroke="${K}" stroke-width="3.8" stroke-linecap="round"/>`).join("") +
+      `<path d="M14 57 l2 -6 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2 Z" fill="#FFE07A" stroke="${K}" stroke-width="1.6" stroke-linejoin="round" transform="translate(0 -6)"/>`),
+    // なみだ: おおきい しずくと ちいさい しずく
+    namida: () => S(drop(24, 6, 44, "#8FD3FF") + drop(47, 30, 24, "#B5E3FF") + `<ellipse cx="19" cy="38" rx="3.2" ry="6" fill="#FFFFFF" opacity="0.85" transform="rotate(14 19 38)"/><ellipse cx="44" cy="45" rx="2" ry="3.4" fill="#FFFFFF" opacity="0.85"/>`),
+    // くしゃみ: はなの ほうから ぶわっと でる しぶき・くもに「くしゅん」（もじは 端末の まるい ゴシック）
+    kushami: () => S(`<path d="M2 26 L12 29 M1 34 L12 34 M2 42 L12 39" stroke="#6FC7EF" stroke-width="2.6" stroke-linecap="round"/>` +
+      [[15, 22, 2.6], [10, 47, 2.2], [18, 52, 1.8], [6, 18, 1.6], [20, 16, 1.6]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#8FD3FF" stroke="${K}" stroke-width="1.3"/>`).join("") +
+      `<path d="M26 16 C30 8 42 8 46 15 C55 12 62 21 58 29 C64 35 60 46 51 45 C49 54 37 56 33 49 C25 54 15 48 18 40 C11 37 12 26 19 25 C18 19 21 16 26 16 Z" fill="#FFFFFF" ${st}/>` +
+      `<text x="39" y="35" font-size="10" font-weight="900" text-anchor="middle" fill="#F0578D" font-family="'M PLUS Rounded 1c','Hiragino Maru Gothic ProN','Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif">くしゅん</text>`),
+    // ねこひげ: ピンクの はな・ω の くち・りょうがわに 3本ずつ
+    hige: () => S(`<path d="M26 24 Q32 19 38 24 Q37 31 32 32 Q27 31 26 24 Z" fill="#FF8FB1" ${st}/><path d="M23 37 Q27.5 43 32 37 Q36.5 43 41 37" fill="none" stroke="${K}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>` +
+      [[21, 29, 3, 23], [21, 33, 2, 34], [22, 37, 4, 44]].map(([x0, y0, x1, y1]) => `<path d="M${x0} ${y0} L${x1} ${y1} M${64 - x0} ${y0} L${64 - x1} ${y1}" stroke="${K}" stroke-width="2.6" stroke-linecap="round"/>`).join("")),
+    // あせ: ななめの おおきい しずくと ちいさい せん
+    ase: () => S(`<g transform="rotate(16 34 34)">${drop(34, 4, 54, "#9EE3FF")}<ellipse cx="28" cy="40" rx="3.6" ry="8" fill="#FFFFFF" opacity="0.85" transform="rotate(10 28 40)"/></g><path d="M10 14 q4 4 2 10 M4 24 q4 3 3 8" fill="none" stroke="#6FC7EF" stroke-width="3" stroke-linecap="round"/>`),
+    // ねこみみ: カチューシャ と ピンクの みみ
+    nekomimi: () => S(`<path d="M5 57 Q32 37 59 57" fill="none" stroke="${K}" stroke-width="9" stroke-linecap="round"/><path d="M5 57 Q32 37 59 57" fill="none" stroke="#B79BEA" stroke-width="4.5" stroke-linecap="round"/>` +
+      [false, true].map((m) => `<g${m ? ' transform="matrix(-1 0 0 1 64 0)"' : ""}><path d="M8 50 L12 9 L33 41 Z" fill="#FFFFFF" ${st}/><path d="M14 43 L16 20 L27 38 Z" fill="#FF9EBB"/></g>`).join("")),
+    // てんしの わ: きんいろの わっか と きらり
+    wakka: () => S(`<ellipse cx="32" cy="36" rx="27" ry="10.5" fill="none" stroke="${K}" stroke-width="10.5"/><ellipse cx="32" cy="36" rx="27" ry="10.5" fill="none" stroke="#FFE07A" stroke-width="5.5"/><path d="M12 33 Q20 27.5 31 26.5" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>${star(52, 14, 8, "#FFFFFF", st.replace('stroke-width="3"', 'stroke-width="2"'))}${star(12, 16, 5, "#FFE07A", st.replace('stroke-width="3"', 'stroke-width="1.6"'))}`),
+  };
+  // しずく（とがった ところが うえ・まるい そこ）
+  function drop(x, y, h, fill) {
+    const r = h * 0.38, cy = y + h - r;
+    return `<path d="M${f1(x)} ${f1(y)} C${f1(x + r * 0.35)} ${f1(y + h * 0.3)} ${f1(x + r)} ${f1(cy - r * 0.7)} ${f1(x + r)} ${f1(cy)} A${f1(r)} ${f1(r)} 0 0 1 ${f1(x - r)} ${f1(cy)} C${f1(x - r)} ${f1(cy - r * 0.7)} ${f1(x - r * 0.35)} ${f1(y + h * 0.3)} ${f1(x)} ${f1(y)} Z" fill="${fill}" ${st}/>`;
+  }
+  // ---- キラキラ（UI-25）: しゃしん ぜんたい（300×400）に かさねる 絵。まん中（3人の かお）は すくなめ ----
+  // ちらばり: まん中の だ円の 中は 4つに 1つ だけ のこす
+  const edge = (n, seed, fn) => scatter(n, seed, (x, y, r, i) => (((x - 150) / 128) ** 2 + ((y - 215) / 150) ** 2 < 1 && i % 4 ? "" : fn(x, y, r, i)));
+  const spark = (x, y, r, fill, op = 1) => `<path d="M${f1(x)} ${f1(y - r)} Q${f1(x + r * 0.16)} ${f1(y - r * 0.16)} ${f1(x + r)} ${f1(y)} Q${f1(x + r * 0.16)} ${f1(y + r * 0.16)} ${f1(x)} ${f1(y + r)} Q${f1(x - r * 0.16)} ${f1(y + r * 0.16)} ${f1(x - r)} ${f1(y)} Q${f1(x - r * 0.16)} ${f1(y - r * 0.16)} ${f1(x)} ${f1(y - r)} Z" fill="${fill}" opacity="${op}"/>`;
+  const petal = (x, y, s, a, fill) => `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${Math.round(a)}) scale(${f1(s)})"><path d="M0 -7 C5 -7 7 -2 5 3 C4 6 1 7 0 5 C-1 7 -4 6 -5 3 C-7 -2 -5 -7 0 -7 Z" fill="${fill}"/><path d="M0 -4 V3" stroke="#FF9EC4" stroke-width="1.2" stroke-linecap="round"/></g>`;
+  const flake = (x, y, r) => `<g stroke="#FFFFFF" stroke-width="${f1(Math.max(1.2, r * 0.22))}" stroke-linecap="round" opacity="0.95">${[0, 60, 120].map((a) => `<path d="M${f1(x - r)} ${f1(y)} H${f1(x + r)}" transform="rotate(${a} ${f1(x)} ${f1(y)})"/>`).join("")}</g>`;
+  const FX_SVG = {
+    // きらきら: しろと きんの ひかり（うしろに ぼんやりした まる）
+    kira: () => svg(300, 400, edge(46, 7, (x, y, r, i) => { const s = 4 + r * 13, c = i % 3 === 0 ? "#FFF3B0" : i % 3 === 1 ? "#FFFFFF" : "#FFD6E8"; return (s > 10 ? `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(s * 0.75)}" fill="${c}" opacity="0.3"/>` : "") + spark(x, y, s, c, 0.95) + (s > 12 ? spark(x, y, s * 0.4, "#FFFFFF") : ""); }) + edge(40, 19, (x, y, r) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(1 + r * 1.6)}" fill="#FFFFFF" opacity="0.9"/>`)),
+    // ハート: ピンクと しろの ハートが ふわふわ
+    heart: () => svg(300, 400, edge(30, 23, (x, y, r, i) => `<g transform="rotate(${Math.round((r - 0.5) * 50)} ${f1(x)} ${f1(y)})" opacity="${f1(0.65 + r * 0.3)}">${heart(x, y, 5 + r * 11, i % 3 === 0 ? "#FFFFFF" : i % 3 === 1 ? "#FF9EC4" : "#FF7BA8", i % 3 === 0 ? 'stroke="#FF9EC4" stroke-width="1.4"' : 'stroke="#FFFFFF" stroke-width="1.4"')}</g>`)),
+    // ほし: きいろと しろの ほし・ながれぼし
+    hoshi: () => svg(300, 400, `<path d="M300 22 L196 92" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.75"/><path d="M300 34 L210 96" stroke="#FFE07A" stroke-width="2" stroke-linecap="round" opacity="0.7"/>${star(196, 92, 9, "#FFE07A", 'stroke="#FFFFFF" stroke-width="1.6"')}` + edge(38, 31, (x, y, r, i) => star(x, y, 3 + r * 8, i % 2 ? "#FFE07A" : "#FFFFFF", `opacity="${f1(0.75 + r * 0.25)}"${r > 0.6 ? ' stroke="#FFFFFF" stroke-width="1"' : ""}`)) + edge(30, 37, (x, y, r) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(0.8 + r * 1.4)}" fill="#FFF6C8"/>`)),
+    // しゃぼんだま: すきとおった まると にじいろの ふち・ひかり
+    awa: () => svg(300, 400, edge(20, 43, (x, y, r) => { const R = 8 + r * 20; return `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(R)}" fill="#FFFFFF" fill-opacity="0.22" stroke="#FFFFFF" stroke-width="2.6"/><circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(R - 2.4)}" fill="none" stroke="#B79BEA" stroke-width="1" stroke-opacity="0.45"/><path d="M${f1(x + R * 0.2)} ${f1(y + R * 0.97)} A${f1(R)} ${f1(R)} 0 0 0 ${f1(x + R * 0.97)} ${f1(y + R * 0.2)}" fill="none" stroke="#6FC7EF" stroke-width="2.6" opacity="0.9"/><path d="M${f1(x - R * 0.97)} ${f1(y - R * 0.2)} A${f1(R)} ${f1(R)} 0 0 1 ${f1(x - R * 0.2)} ${f1(y - R * 0.97)}" fill="none" stroke="#FF9EC4" stroke-width="2.6" opacity="0.9"/><ellipse cx="${f1(x - R * 0.38)}" cy="${f1(y - R * 0.42)}" rx="${f1(R * 0.24)}" ry="${f1(R * 0.14)}" fill="#FFFFFF" opacity="0.95" transform="rotate(-40 ${f1(x - R * 0.38)} ${f1(y - R * 0.42)})"/>`; })),
+    // さくら: ピンクの はなびらが ひらひら
+    sakura: () => svg(300, 400, edge(34, 53, (x, y, r, i) => petal(x, y, 0.9 + r * 1.1, r * 360, i % 3 ? "#FFC9DC" : "#FFE3EE"))),
+    // ゆき: しろい つぶ と ゆきの けっしょう
+    yuki: () => svg(300, 400, edge(54, 61, (x, y, r, i) => (i % 5 === 0 ? flake(x, y, 6 + r * 6) : `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(1.4 + r * 3)}" fill="#FFFFFF" opacity="${f1(0.7 + r * 0.3)}"/>`))),
+    // ふんわり: ふちが しろく ぼやける ひかりと やわらかい ひかりの まる
+    fuwa: () => svg(300, 400, `<defs><radialGradient id="pkfx-fuwa-v" cx="0.5" cy="0.5" r="0.72"><stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.8"/></radialGradient><radialGradient id="pkfx-fuwa-o"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.75"/><stop offset="1" stop-color="#FFF0F6" stop-opacity="0"/></radialGradient></defs><rect width="300" height="400" fill="url(#pkfx-fuwa-v)"/>` +
+      [[46, 52, 40], [250, 70, 30], [262, 330, 44], [36, 300, 30], [150, 28, 26]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#pkfx-fuwa-o)"/>`).join("")),
+    // にじいろ: ななめの にじの ひかり（みぎうえ から）と うすい にじの わ
+    niji: () => svg(300, 400, `<defs><linearGradient id="pkfx-niji-b" x1="0" y1="0" x2="0" y2="1">${["#FF7BA8", "#FFB36B", "#FFE07A", "#9EE3B5", "#7FC8F0", "#B79BEA"].map((c, i, a) => `<stop offset="${f1(i / (a.length - 1))}" stop-color="${c}"/>`).join("")}</linearGradient>` +
+      `<linearGradient id="pkfx-niji-f" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000000"/><stop offset="0.5" stop-color="#FFFFFF"/></linearGradient><mask id="pkfx-niji-m"><rect x="40" y="-20" width="320" height="150" fill="url(#pkfx-niji-f)"/></mask></defs>` +
+      `<g transform="rotate(-38 300 0)"><g mask="url(#pkfx-niji-m)"><rect x="40" y="-6" width="320" height="74" fill="url(#pkfx-niji-b)" opacity="0.38"/><rect x="40" y="90" width="320" height="26" fill="url(#pkfx-niji-b)" opacity="0.22"/></g></g>` +
+      ["#FF7BA8", "#FFE07A", "#9EE3B5", "#7FC8F0"].map((c, i) => `<path d="M${-30 + i * 7} 420 A${190 - i * 7} ${190 - i * 7} 0 0 1 ${330 - i * 7} 420" fill="none" stroke="${c}" stroke-width="6" opacity="0.28"/>`).join("") + edge(14, 71, (x, y, r) => spark(x, y, 3 + r * 6, "#FFFFFF", 0.9))),
   };
   // はいけい・スタンプの ラスタは 3だんかいの 大きさ だけ（SvgCache の キーが 有限）
   const bgW = (px) => (px <= 160 ? 150 : px <= 320 ? 300 : 600), stW = (px) => (px <= 48 ? 48 : px <= 96 ? 96 : 192);
@@ -344,24 +412,44 @@ const PurikuraArt = (() => {
     return L.order.map((i, n) => { const id = ph.r[i], d = m[id] || [0, 0]; return { i, id, n, x: Math.max(24, Math.min(P.PW - 24, L.xs[i] + d[0])), y: Math.max(L.y - P.MOVE.up, Math.min(L.y + P.MOVE.down, L.y + d[1])) }; })
       .filter((q) => q.id).sort((a, b) => a.y - b.y || a.n - b.n);
   };
+  // もじの はば（しゃしんの 座標・26の ふとじ）。はかれない ときは 1もじ 26
+  let measure = null;
+  const textW = (t) => {
+    if (measure === null) { try { measure = typeof document !== "undefined" && document.createElement("canvas").getContext("2d"); } catch (e) { measure = false; } }
+    const w = measure ? ((measure.font = "900 26px 'M PLUS Rounded 1c', sans-serif"), measure.measureText(t).width) : t.length * 26;
+    return Math.min(P.PW - 12, w || t.length * 26);
+  };
+  // スタンプ・もじの はこ（しゃしんの 座標: まん中・はばの はんぶん・たかさの はんぶん・かたむき）。さわる・まわす ときに つかう
+  const box = (kind, it) => {
+    if (kind === "s") { const h = ((P.STAMP_SIZE[it[3]] || 56) / 2) * 0.86; return { cx: it[1], cy: it[2], hw: h, hh: h, rot: it[4] || 0 }; }
+    return { cx: it[1], cy: it[2], hw: textW(it[0]) / 2 + 5, hh: 17, rot: it[4] || 0 };
+  };
   const A = {
-    BG_SVG, STAMP_SVG, LAYOUT, charaOpts, placed,
-    keys() { return [...P.BGS.map((b) => "puri:bg:" + b.id), ...P.STAMPS.map((s) => "puri:stamp:" + s.id)]; },
+    BG_SVG, STAMP_SVG, FX_SVG, LAYOUT, charaOpts, placed, textW, box,
+    keys() { return [...P.BGS.map((b) => "puri:bg:" + b.id), ...P.STAMPS.map((s) => "puri:stamp:" + s.id), ...P.EFFECTS.map((e) => "puri:fx:" + e.id)]; },
     bgImg(id, px) { const w = bgW(px); return SvgCache.get("puri:bg:" + id, BG_SVG[id] || BG_SVG.yume, w, Math.round((w * 4) / 3)); },
+    fxImg(id, px) { const w = bgW(px); return FX_SVG[id] ? SvgCache.get("puri:fx:" + id, FX_SVG[id], w, Math.round((w * 4) / 3)) : null; },
     stampImg(k, px) { const w = stW(px); return SvgCache.get("puri:stamp:" + k, STAMP_SVG[k] || STAMP_SVG.heart, w, w); },
     // しゃしんを 描く まえに 絵を よみこむ（はば w の とき）
     ready(ph, w) {
       const dpr = dprOf(), k = w / P.PW, bw = bgW(w * dpr), L = LAYOUT[ph.z ? 1 : 0], jobs = [SvgCache.ensure("puri:bg:" + ph.bg, BG_SVG[ph.bg] || BG_SVG.yume, bw, Math.round((bw * 4) / 3))];
       for (const s of ph.d.s) { const sw = stW(P.STAMP_SIZE[s[3]] * k * dpr); jobs.push(SvgCache.ensure("puri:stamp:" + s[0], STAMP_SVG[s[0]], sw, sw)); }
+      for (const e of ph.d.e || []) if (FX_SVG[e]) jobs.push(SvgCache.ensure("puri:fx:" + e, FX_SVG[e], bw, Math.round((bw * 4) / 3)));
       jobs.push(Chara.preload([0, 1, 2].map((i) => [ph.r[i], charaOpts(ph, i)]), L.S * k));
       return Promise.all(jobs);
     },
-    // しゃしん 1まい（x, y: 左上・w: はば）。o.frame: わく（ロゴと 日づけ）
+    // しゃしん 1まい（x, y: 左上・w: はば）。o.frame: わく（ロゴと 日づけ）・o.t: とき（らくがき中の きらきら・ほしが またたく）
     draw(ctx, ph, x, y, w, o = {}) {
       const k = w / P.PW, h = P.PH * k, dpr = dprOf(), L = LAYOUT[ph.z ? 1 : 0];
       ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
       const bg = this.bgImg(ph.bg, w * dpr); if (bg) ctx.drawImage(bg, x, y, w, h); else { ctx.fillStyle = "#FBE3EC"; ctx.fillRect(x, y, w, h); }
       for (const q of placed(ph)) Chara.draw(ctx, q.id, charaOpts(ph, q.i), x + q.x * k, y + q.y * k, L.S * k);
+      // キラキラ（3人の うえ・らくがきの した）
+      (ph.d.e || []).forEach((e, i) => {
+        const img = this.fxImg(e, w * dpr); if (!img) return;
+        const tw = o.t != null && (e === "kira" || e === "hoshi") ? 0.78 + 0.22 * Math.sin(o.t * 4.2 + i * 1.7) : 1;
+        if (tw !== 1) { ctx.save(); ctx.globalAlpha *= tw; ctx.drawImage(img, x, y, w, h); ctx.restore(); } else ctx.drawImage(img, x, y, w, h);
+      });
       this.deco(ctx, ph.d, x, y, k, dpr);
       if (o.frame !== false) this.frame(ctx, ph, x, y, k);
       ctx.restore();
@@ -374,10 +462,16 @@ const PurikuraArt = (() => {
         const w = P.PEN_W[s.w] || 4; ctx.strokeStyle = s.c === 5 ? "#FF7BA8" : "#FFFFFF"; ctx.lineWidth = w + 4; ctx.stroke(); ctx.strokeStyle = P.PENS[s.c] || P.PENS[0]; ctx.lineWidth = w; ctx.stroke();
       }
       ctx.restore();
-      for (const [kind, sx, sy, sz] of d.s) { const s = (P.STAMP_SIZE[sz] || 56) * k, img = this.stampImg(kind, s * dpr); if (img) ctx.drawImage(img, x + sx * k - s / 2, y + sy * k - s / 2, s, s); }
-      for (const [t, tx, ty, c] of d.x) {
-        const fs = 26 * k; ctx.save(); ctx.font = `900 ${fs}px 'M PLUS Rounded 1c', sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round";
-        ctx.lineWidth = 7 * k; ctx.strokeStyle = c === 5 ? "#FF7BA8" : "#FFFFFF"; ctx.strokeText(t, x + tx * k, y + ty * k, (P.PW - 12) * k); ctx.fillStyle = P.PENS[c] || P.PENS[0]; ctx.fillText(t, x + tx * k, y + ty * k, (P.PW - 12) * k); ctx.restore();
+      // スタンプ・もじ（UI-25: かたむき・スタンプの はんてん）
+      for (const [kind, sx, sy, sz, rot, flip] of d.s) {
+        const s = (P.STAMP_SIZE[sz] || 56) * k, img = this.stampImg(kind, s * dpr); if (!img) continue;
+        if (!rot && !flip) { ctx.drawImage(img, x + sx * k - s / 2, y + sy * k - s / 2, s, s); continue; }
+        ctx.save(); ctx.translate(x + sx * k, y + sy * k); if (rot) ctx.rotate((rot * Math.PI) / 180); if (flip) ctx.scale(-1, 1); ctx.drawImage(img, -s / 2, -s / 2, s, s); ctx.restore();
+      }
+      for (const [t, tx, ty, c, rot] of d.x) {
+        const fs = 26 * k; ctx.save(); ctx.translate(x + tx * k, y + ty * k); if (rot) ctx.rotate((rot * Math.PI) / 180);
+        ctx.font = `900 ${fs}px 'M PLUS Rounded 1c', sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round";
+        ctx.lineWidth = 7 * k; ctx.strokeStyle = c === 5 ? "#FF7BA8" : "#FFFFFF"; ctx.strokeText(t, 0, 0, (P.PW - 12) * k); ctx.fillStyle = P.PENS[c] || P.PENS[0]; ctx.fillText(t, 0, 0, (P.PW - 12) * k); ctx.restore();
       }
     },
     // わく: しろい ふち・したの おび（ブースの ロゴ と 日づけ。いろは ブースの いろ）
@@ -416,7 +510,9 @@ class PurikuraScene {
     this.sel = Object.fromEntries(Chara.IDS.map((id) => [id, ["stand", "happy"]]));
     // 3人の ばしょ（ならびから の ずれ・しゃしんの 座標）。ゆびで うごかす（drag）
     this.pos = Object.fromEntries(Chara.IDS.map((id) => [id, [0, 0]])); this.drag = null; this.moved = false;
-    this.shots = []; this.deco = []; this.di = 0; this.tool = "pen"; this.pen = { c: 0, w: 1 }; this.stamp = "heart"; this.ssz = 1; this.words = Purikura.wordsOf(this.booth.id); this.word = this.words[0]; this.wc = 0; this.hist = [];
+    this.shots = []; this.deco = []; this.di = 0; this.tool = "pen"; this.pen = { c: 0, w: 1 }; this.stamp = "heart"; this.face = "hoppe"; this.ssz = 1; this.words = Purikura.wordsOf(this.booth.id); this.word = this.words[0]; this.wc = 0; this.hist = [];
+    // らくがき: えらんだ スタンプ・もじ（pick = { k: "s"|"x", j }）と ゆびで うごかす／まわす（grab）。UI-25
+    this.pick = null; this.grab = null;
     this.count = null; this.flash = 0; this.clock = 0; this.speed = 1; this.drawing = null; this.saved = false; this.closed = false; this.msg = "";
     UI.showHud(true, this.booth.name + " ぷりくら"); Sound.bgm("arcade_hall");
     this.buildUI(); this.resize();
@@ -466,16 +562,25 @@ class PurikuraScene {
       const shot = UI.btn("とる！", () => this.shoot(), "puri-shot" + (this.count ? "" : " ready")); shot.disabled = !!this.count;
       P.append(whoRow, tabs, this.row("puri-chips", opts), this.row("puri-actions", [UI.btn("やめる", () => this.quit(), "puri-small"), shot, U.el("div", { class: "puri-count", text: `${this.shots.length + 1} / ${Purikura.SHOTS}` })]));
     } else if (ph === "deco") {
-      const thumbs = this.row("puri-thumbs", this.shots.map((s, i) => { const b = UI.btn("", () => { Sound.se("tap"); this.di = i; this.ui(); }, "puri-thumbbtn" + (this.di === i ? " on" : "")); b.setAttribute("aria-label", `${i + 1}まいめ`); const cv = U.el("canvas"); b.append(cv); PurikuraArt.paint(cv, this.photoOf(s, this.deco[i]), 36); return b; }));
+      const thumbs = this.row("puri-thumbs", this.shots.map((s, i) => { const b = UI.btn("", () => { Sound.se("tap"); this.di = i; this.pick = null; this.ui(); }, "puri-thumbbtn" + (this.di === i ? " on" : "")); b.setAttribute("aria-label", `${i + 1}まいめ`); const cv = U.el("canvas"); b.append(cv); PurikuraArt.paint(cv, this.photoOf(s, this.deco[i]), 36); return b; }));
       const undo = UI.btn("もどす", () => this.undo(), "puri-small"); undo.disabled = !this.hist.some((h) => h.i === this.di);
       thumbs.append(undo);
-      const tools = this.row("puri-tabs", [["pen", "ペン"], ["stamp", "スタンプ"], ["text", "もじ"]].map(([k, name]) => this.chip(name, this.tool === k, () => { this.tool = k; this.ui(); }, "tab")));
+      // どうぐ: ペン・スタンプ・かお（かおの スタンプ）・もじ・キラキラ（UI-25）
+      const tools = this.row("puri-tabs", [["pen", "ペン"], ["stamp", "スタンプ"], ["face", "かお"], ["text", "もじ"], ["fx", "キラキラ"]].map(([k, name]) => this.chip(name, this.tool === k, () => { this.tool = k; this.pick = null; this.ui(); }, "tab")));
+      const it = this.pickItem(), d = this.deco[this.di];
       let opts = [];
       if (this.tool === "pen") opts = [...Purikura.PENS.map((c, i) => { const b = this.chip("", this.pen.c === i, () => { this.pen.c = i; this.ui(); }, "swatch"); b.style.setProperty("--sw", c); b.setAttribute("aria-label", ["ピンク", "きいろ", "みずいろ", "みどり", "むらさき", "しろ"][i]); return b; }), this.chip("ほそい", this.pen.w === 0, () => { this.pen.w = 0; this.ui(); }), this.chip("ふとい", this.pen.w === 1, () => { this.pen.w = 1; this.ui(); })];
-      else if (this.tool === "stamp") opts = [...Purikura.STAMPS.map((s) => { const b = this.chip("", this.stamp === s.id, () => { this.stamp = s.id; this.ui(); }, "stamp"); b.setAttribute("aria-label", s.name); b.append(U.el("img", { src: U.svgUrl(PurikuraArt.STAMP_SVG[s.id]()), alt: "" })); return b; }), ...["ちいさい", "ふつう", "おおきい"].map((t, i) => this.chip(t, this.ssz === i, () => { this.ssz = i; this.ui(); }))];
-      else opts = [...this.words.map((w) => this.chip(w, this.word === w, () => { this.word = w; this.ui(); })), this.chip("じぶんで かく", false, () => this.ownWord()), ...Purikura.PENS.map((c, i) => { const b = this.chip("", this.wc === i, () => { this.wc = i; this.ui(); }, "swatch"); b.style.setProperty("--sw", c); b.setAttribute("aria-label", "もじの いろ " + (i + 1)); return b; })];
+      else if (this.tool === "stamp" || this.tool === "face") {
+        // スタンプを えらぶと つぎに おく スタンプ（えらんで いた ものは はなす）。大きさは えらんで いる スタンプにも
+        const face = this.tool === "face", cur = face ? this.face : this.stamp;
+        opts = [...Purikura.STAMPS.filter((s) => !!s.face === face).map((s) => { const b = this.chip("", cur === s.id, () => { if (face) this.face = s.id; else this.stamp = s.id; this.pick = null; this.ui(); }, "stamp"); b.setAttribute("aria-label", s.name); b.append(U.el("img", { src: U.svgUrl(PurikuraArt.STAMP_SVG[s.id]()), alt: "" })); return b; }),
+          ...["ちいさい", "ふつう", "おおきい"].map((t, i) => this.chip(t, it ? it.a[3] === i : this.ssz === i, () => { this.ssz = i; if (it) this.edit((a) => { a[3] = i; }); this.ui(); }))];
+      } else if (this.tool === "text") opts = [...this.words.map((w) => this.chip(w, this.word === w, () => { this.word = w; this.pick = null; this.ui(); })), this.chip("じぶんで かく", false, () => this.ownWord()), ...Purikura.PENS.map((c, i) => { const b = this.chip("", it ? it.a[3] === i : this.wc === i, () => { this.wc = i; if (it) this.edit((a) => { a[3] = i; }); this.ui(); }, "swatch"); b.style.setProperty("--sw", c); b.setAttribute("aria-label", "もじの いろ " + (i + 1)); return b; })];
+      // キラキラ: なんこでも かさねられる（もう いちど おすと けす）
+      else opts = Purikura.EFFECTS.map((e) => this.chip(e.name, d.e.includes(e.id), () => this.toggleFx(e.id)));
       P.append(thumbs, tools, this.row("puri-chips", opts), this.row("puri-actions", [UI.btn("できあがり", () => this.done(), "yellow puri-main")]));
-      P.append(U.el("div", { class: "puri-hint", text: this.tool === "pen" ? "しゃしんを なぞって かこう" : this.tool === "stamp" ? "しゃしんを タップして スタンプ" : "しゃしんを タップして もじ" }));
+      const hint = this.tool === "pen" ? "しゃしんを なぞって かこう" : this.tool === "fx" ? "しゃしん ぜんぶが キラキラに なるよ" : it ? (it.k === "s" ? "↻ で まわす・⇆ はんてん・× けす" : "↻ で まわす・× けす") : this.tool === "text" ? "タップで もじ・もじを さわると まわせる" : "タップで おく・スタンプを さわると まわせる";
+      P.append(U.el("div", { class: "puri-hint", text: hint }));
     } else {
       P.append(U.el("div", { class: "puri-title", text: "できあがり！\nすまほの「しゃしん」に 4まい はいったよ" }), this.row("puri-actions", [UI.btn("すまほで みる", () => { Sound.se("ok"); Smaho.open("photos"); }, "yellow puri-main"), UI.btn("おみせに もどる", () => this.leave(), "puri-main")]));
     }
@@ -507,7 +612,7 @@ class PurikuraScene {
   snap() {
     this.count = null; this.flash = 0.45; Sound.se("puri_shutter");
     const m = Purikura.moves(this.pos);
-    this.shots.push({ c: JSON.parse(JSON.stringify(this.sel)), z: this.z, o: Purikura.outfits(), t: Date.now(), ...(m ? { m } : {}) }); this.deco.push({ p: [], s: [], x: [] });
+    this.shots.push({ c: JSON.parse(JSON.stringify(this.sel)), z: this.z, o: Purikura.outfits(), t: Date.now(), ...(m ? { m } : {}) }); this.deco.push({ p: [], s: [], x: [], e: [] });
     if (this.shots.length >= Purikura.SHOTS) { this.phase = "deco"; this.di = 0; this.msg = "らくがき しよう！"; } else this.msg = `${this.shots.length}まいめ とれたよ！`;
     this.msgT = 1.2; this.ui();
   }
@@ -528,13 +633,87 @@ class PurikuraScene {
       return;
     }
     if (this.phase !== "deco") return;
+    const d = this.deco[this.di], kind = this.kindOf();
+    // えらんで いる ものの とって: ↻ まわす（ゆびで ぐるっと）・⇆ はんてん・× けす
+    const h = kind && this.pick ? this.handleAt(p) : null;
+    if (h) {
+      const it = this.pickItem();
+      if (h.id === "del") { d[it.k].splice(it.j, 1); this.hist.push({ i: this.di, k: it.k, j: it.j, t: "del", item: it.a }); this.pick = null; Sound.se("cancel"); this.ui(); return; }
+      if (h.id === "flip") { this.edit((a) => { a[5] = a[5] ? 0 : 1; }); Sound.se("puri_stamp"); this.ui(); return; }
+      const v = this.view, k = v.w / Purikura.PW, cx = v.x + it.a[1] * k, cy = v.y + it.a[2] * k;
+      this.grab = { id: p.id, mode: "rot", k: it.k, j: it.j, cx, cy, a0: Math.atan2(p.y - cy, p.x - cx), r0: it.a[4] || 0, prev: it.a.slice() };
+      return;
+    }
     const q = this.toPhoto(p); if (!q) return;
-    const d = this.deco[this.di];
-    if (this.tool === "pen") { if (this.full("p")) return; this.drawing = { id: p.id, st: { c: this.pen.c, w: this.pen.w, pts: [q] } }; d.p.push(this.drawing.st); }
-    else if (this.tool === "stamp") { if (this.full("s")) return; d.s.push([this.stamp, q[0], q[1], this.ssz]); this.hist.push({ i: this.di, k: "s" }); Sound.se("puri_stamp"); this.ui(); }
-    else { if (this.full("x")) return; d.x.push([this.word, q[0], q[1], this.wc]); this.hist.push({ i: this.di, k: "x" }); Sound.se("puri_stamp"); this.ui(); }
+    if (this.tool === "pen") { if (this.full("p")) return; this.drawing = { id: p.id, st: { c: this.pen.c, w: this.pen.w, pts: [q] } }; d.p.push(this.drawing.st); return; }
+    if (!kind) return;
+    // おいた ものを さわる → えらぶ（そのまま ゆびで うごかせる）。えらんで いる ときに ほかの ところ → はなす
+    const hit = this.hitDeco(q, kind);
+    if (hit) {
+      const a = d[hit.k][hit.j], same = this.pick && this.pick.k === hit.k && this.pick.j === hit.j;
+      this.pick = hit; this.grab = { id: p.id, mode: "move", k: hit.k, j: hit.j, sx: q[0], sy: q[1], bx: a[1], by: a[2], prev: a.slice() };
+      if (!same) { Sound.se("tap"); this.ui(); }
+      return;
+    }
+    if (this.pick) { this.pick = null; this.ui(); return; }
+    if (kind === "x") { if (this.full("x")) return; d.x.push([this.word, q[0], q[1], this.wc]); this.hist.push({ i: this.di, k: "x" }); }
+    else { if (this.full("s")) return; d.s.push([this.tool === "face" ? this.face : this.stamp, q[0], q[1], this.ssz]); this.hist.push({ i: this.di, k: "s" }); }
+    Sound.se("puri_stamp"); this.ui();
+  }
+  // ---- らくがきの スタンプ・もじを えらぶ・うごかす・まわす（UI-25）----
+  // いまの どうぐで えらべる もの（スタンプ・かお → スタンプ、もじ → もじ）
+  kindOf() { return this.tool === "text" ? "x" : this.tool === "stamp" || this.tool === "face" ? "s" : null; }
+  pickItem() { const p = this.pick; if (!p || this.phase !== "deco" || this.kindOf() !== p.k) return null; const a = this.deco[this.di][p.k][p.j]; return a ? { k: p.k, j: p.j, a } : null; }
+  // ゆびの ところの もの（あとから おいた ものから）。かたむいた はこの 中か
+  hitDeco(q, k) {
+    const list = this.deco[this.di][k];
+    for (let j = list.length - 1; j >= 0; j--) {
+      const B = PurikuraArt.box(k, list[j]), a = (-B.rot * Math.PI) / 180, dx = q[0] - B.cx, dy = q[1] - B.cy;
+      if (Math.abs(dx * Math.cos(a) - dy * Math.sin(a)) <= B.hw && Math.abs(dx * Math.sin(a) + dy * Math.cos(a)) <= B.hh) return { k, j };
+    }
+    return null;
+  }
+  // とっての ばしょ（ゲームの 座標・カメラの がめんの 中）: ↻ みぎうえ・× ひだりうえ・⇆ ひだりした（スタンプ だけ）。はこと いっしょに かたむく
+  handles() {
+    const it = this.pickItem(), v = this.view; if (!it || !v) return [];
+    const k = v.w / Purikura.PW, B = PurikuraArt.box(it.k, it.a), a = (B.rot * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a), pad = 15 / k;
+    const at = (id, lx, ly) => { const px = B.cx + lx * c - ly * s, py = B.cy + lx * s + ly * c; return { id, x: Math.max(v.x + 14, Math.min(v.x + v.w - 14, v.x + px * k)), y: Math.max(v.y + 14, Math.min(v.y + v.h - 14, v.y + py * k)) }; };
+    const out = [at("rot", B.hw + pad, -B.hh - pad), at("del", -B.hw - pad, -B.hh - pad)];
+    if (it.k === "s") out.push(at("flip", -B.hw - pad, B.hh + pad));
+    return out;
+  }
+  handleAt(p) { let best = null, bd = 23; for (const h of this.handles()) { const dd = Math.hypot(p.x - h.x, p.y - h.y); if (dd < bd) { bd = dd; best = h; } } return best; }
+  // えらんだ ものを かえる（もどす で もとに もどる）
+  edit(fn) {
+    const it = this.pickItem(); if (!it) return;
+    const prev = it.a.slice(); fn(it.a); this.tidy(it.a, it.k);
+    if (JSON.stringify(prev) !== JSON.stringify(it.a)) this.hist.push({ i: this.di, k: it.k, j: it.j, t: "edit", prev });
+  }
+  // かたむき・はんてんは 0 なら かかない（しゃしんの かたちと おなじ）
+  tidy(a, k) {
+    const r = Purikura.turn(a[4]), f = k === "s" && !!a[5];
+    a.length = 4; if (r || f) a.push(r); if (f) a.push(1);
+  }
+  toggleFx(id) {
+    const d = this.deco[this.di], prev = d.e.slice(), on = d.e.includes(id);
+    d.e = Purikura.EFFECTS.map((e) => e.id).filter((x) => (x === id ? !on : d.e.includes(x)));
+    this.hist.push({ i: this.di, k: "e", t: "fx", prev }); Sound.se(on ? "cancel" : "puri_stamp"); this.ui();
   }
   move(p) {
+    const g = this.grab;
+    if (g && (p.id == null || p.id === g.id)) {
+      const a = this.deco[this.di][g.k][g.j], v = this.view; if (!a || !v) return;
+      if (g.mode === "move") {
+        const k = v.w / Purikura.PW, x = Math.round(Math.max(0, Math.min(Purikura.PW, g.bx + (p.x - v.x) / k - g.sx))), y = Math.round(Math.max(0, Math.min(Purikura.PH, g.by + (p.y - v.y) / k - g.sy)));
+        a[1] = x; a[2] = y;
+      } else {
+        // まわした ぶんだけ かたむく（45°の ちかくは ぴったりに）
+        let r = Purikura.turn(g.r0 + ((Math.atan2(p.y - g.cy, p.x - g.cx) - g.a0) * 180) / Math.PI); const near = Math.round(r / 45) * 45;
+        if (Math.abs(r - near) <= 5) r = Purikura.turn(near);
+        a[4] = r; this.tidy(a, g.k);
+      }
+      return;
+    }
     if (this.phase === "shoot") {
       const D = this.drag; if (!D || (p.id != null && p.id !== D.id) || !this.view) return;
       const k = this.view.w / Purikura.PW; this.pos[D.who] = this.clampPos(D.who, [D.base[0] + (p.x - D.x) / k, D.base[1] + (p.y - D.y) / k]);
@@ -547,11 +726,23 @@ class PurikuraScene {
     if (Math.hypot(q[0] - last[0], q[1] - last[1]) >= 2.5 && all < Purikura.LIMIT.points) pts.push(q);
   }
   up(p) {
+    const g = this.grab;
+    if (g && (p.id == null || p.id === g.id)) {
+      this.grab = null; const a = this.deco[this.di][g.k][g.j];
+      if (a && JSON.stringify(a) !== JSON.stringify(g.prev)) { this.hist.push({ i: this.di, k: g.k, j: g.j, t: "edit", prev: g.prev }); Sound.se("tap"); this.ui(); }
+      return;
+    }
     if (this.drag && (p.id == null || p.id === this.drag.id)) { this.drag = null; this.placeReset(); return; }
     if (this.drawing && (p.id == null || p.id === this.drawing.id)) { this.hist.push({ i: this.di, k: "p" }); this.drawing = null; Sound.se("tap"); this.ui(); }
   }
+  // もどす: おいた（pop）・かえた（edit）・けした（del）・キラキラ（fx）を 1つ もどす
   undo() {
-    for (let k = this.hist.length - 1; k >= 0; k--) { const h = this.hist[k]; if (h.i !== this.di) continue; this.deco[h.i][h.k].pop(); this.hist.splice(k, 1); Sound.se("cancel"); break; }
+    for (let n = this.hist.length - 1; n >= 0; n--) {
+      const h = this.hist[n]; if (h.i !== this.di) continue;
+      const d = this.deco[h.i];
+      if (h.t === "edit") d[h.k][h.j] = h.prev; else if (h.t === "del") d[h.k].splice(h.j, 0, h.item); else if (h.t === "fx") d.e = h.prev; else d[h.k].pop();
+      this.hist.splice(n, 1); this.pick = h.t === "edit" && this.kindOf() === h.k ? { k: h.k, j: h.j } : null; Sound.se("cancel"); break;
+    }
     this.ui();
   }
   async ownWord() {
@@ -562,8 +753,9 @@ class PurikuraScene {
   // できあがり: しゃしん 4まいを すまほへ（1かいだけ）
   async done() {
     if (this.saved || UI.busy) return;
+    this.pick = null; this.grab = null;
     const base = Date.now().toString(36);
-    const photos = this.shots.map((s, i) => ({ id: `p${base}-${i}`, t: s.t, bg: this.bg, k: this.booth.id, z: s.z, r: Save.d.order.slice(), c: s.c, o: s.o, d: { p: this.deco[i].p.filter((x) => x.pts.length).map(Purikura.packStroke), s: this.deco[i].s, x: this.deco[i].x }, ...(s.m ? { m: s.m } : {}) }));
+    const photos = this.shots.map((s, i) => ({ id: `p${base}-${i}`, t: s.t, bg: this.bg, k: this.booth.id, z: s.z, r: Save.d.order.slice(), c: s.c, o: s.o, d: { p: this.deco[i].p.filter((x) => x.pts.length).map(Purikura.packStroke), s: this.deco[i].s, x: this.deco[i].x, e: this.deco[i].e }, ...(s.m ? { m: s.m } : {}) }));
     if (!Purikura.finish(photos)) { UI.toast("もう できあがって いるよ"); return; }
     this.saved = true; this.photos = photos.map(Purikura.clean); this.phase = "done"; Sound.se("fanfare"); this.ui(); this.resize();
     await UI.say(Save.d.order.map((id) => ({ who: id, emo: "happy", text: id === "goji" ? "ガゥ♪ いい かお できた！" : id === "gachan" ? "ピヨ！ きらきらに なった♪" : "わん！ すまほで また みようね！" })));
@@ -584,6 +776,22 @@ class PurikuraScene {
     if (this.flash > 0) this.flash -= dt;
     if (this.msgT > 0) this.msgT -= dt;
   }
+  // えらんで いる スタンプ・もじ: てんせんの わく と とって（↻ ピンク・⇆ みずいろ・× くろ）
+  drawPick(ctx) {
+    const it = this.pickItem(), v = this.view; if (!it || !v) return;
+    const k = v.w / Purikura.PW, B = PurikuraArt.box(it.k, it.a);
+    ctx.save(); ctx.translate(v.x + B.cx * k, v.y + B.cy * k); ctx.rotate((B.rot * Math.PI) / 180);
+    U.rr(ctx, -B.hw * k - 4, -B.hh * k - 4, B.hw * 2 * k + 8, B.hh * 2 * k + 8, 8); ctx.setLineDash([6, 5]); ctx.lineWidth = 3.5; ctx.strokeStyle = "#FFFFFF"; ctx.stroke(); ctx.lineWidth = 2; ctx.strokeStyle = "#F0578D"; ctx.stroke(); ctx.restore();
+    for (const h of this.handles()) {
+      ctx.save(); ctx.translate(h.x, h.y);
+      ctx.beginPath(); ctx.arc(0, 0, 13, 0, 7); ctx.fillStyle = h.id === "rot" ? "#F0578D" : h.id === "flip" ? "#3FA9DE" : INK; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
+      ctx.strokeStyle = "#FFFFFF"; ctx.fillStyle = "#FFFFFF"; ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath();
+      if (h.id === "rot") { ctx.arc(0, 0, 6, -2.6, 1.4); ctx.stroke(); const ex = Math.cos(1.4) * 6, ey = Math.sin(1.4) * 6; ctx.beginPath(); ctx.moveTo(ex + 4.2, ey - 0.6); ctx.lineTo(ex, ey); ctx.lineTo(ex + 1.2, ey - 4.4); ctx.stroke(); }
+      else if (h.id === "flip") { ctx.moveTo(-6, -2.5); ctx.lineTo(6, -2.5); ctx.moveTo(3, -5.5); ctx.lineTo(6, -2.5); ctx.lineTo(3, 0.5); ctx.moveTo(6, 3); ctx.lineTo(-6, 3); ctx.moveTo(-3, 0); ctx.lineTo(-6, 3); ctx.lineTo(-3, 6); ctx.stroke(); }
+      else { ctx.moveTo(-4.5, -4.5); ctx.lineTo(4.5, 4.5); ctx.moveTo(4.5, -4.5); ctx.lineTo(-4.5, 4.5); ctx.stroke(); }
+      ctx.restore();
+    }
+  }
   // ---- 描く ----
   render(ctx) {
     const W = G.W, H = G.H, v = this.view;
@@ -601,7 +809,8 @@ class PurikuraScene {
       this.photos.forEach((ph, i) => PurikuraArt.draw(ctx, Purikura.view(ph), v.x + (i % 2) * (gw + 10), oy + Math.floor(i / 2) * (gh + 10), gw));
     } else {
       const shot = this.phase === "deco" ? this.shots[this.di] : null, ph = this.photoOf(shot, this.phase === "deco" ? this.deco[this.di] : null);
-      PurikuraArt.draw(ctx, ph, v.x, v.y, v.w, { frame: this.phase === "deco" });
+      PurikuraArt.draw(ctx, ph, v.x, v.y, v.w, { frame: this.phase === "deco", ...(this.phase === "deco" ? { t: this.clock } : {}) });
+      if (this.phase === "deco") this.drawPick(ctx);
       if (this.phase === "shoot") {
         // カメラの しるし（すみの かぎ・REC）
         ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 3; const c = 16;

@@ -3365,6 +3365,99 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect(ph.length===4&&ph[0].m&&ph[0].m.wanko[0]>15&&ph[0].c.wanko[1]==='love'&&ph[0].c.gachan[1]==='surprise'&&ph[1].m===null&&ph[1].c.goji[0]==='peace'&&ph[2].c.wanko[0]==='wai'&&ph[3].c.gachan[0]==='heart','しゃしんに ポーズ・かお・ばしょが のこらない '+JSON.stringify(ph.map((p)=>({c:p.c,m:p.m}))));
  await H.wait(500);await H.shot('done');
  },{viewport,timeout:180000});
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('purikura-deco-'+viewport.width,async H=>{
+ // ぷりくらの らくがき（UI-25。オーナーの FB 2026-10-01「スタンプと文字は回転可能にせよ」「キラキラなどのエフェクトも用意せよ」「ほほの赤らめや、まつ毛パーマ、涙、くしゃみ、などのスタンプも追加せよ」）:
+ // どうぐ 5つ → スタンプを おく → さわって えらぶ → ↻ で まわす・⇆ はんてん・うごかす・× けす・もどす → かおの スタンプ → もじを まわす → キラキラ → できあがり → しゃしんに のこる → さいかい
+ await H.newGameFast();await H.dbg('coins',900);
+ await H.dbg('venue','arcade',3);await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
+ expect(await H.dbg('venueVisit','がっこう ぷりくら'),'ぷりくらの ブースが ない');
+ await H.page.getByRole('button',{name:'300コインで とる',exact:true}).click();
+ await H.until(()=>!!PokaDebug.puriState()&&!Game.trans,20000);await H.wait(300);
+ await H.page.getByRole('button',{name:'とりはじめる',exact:true}).click();await H.wait(300);await H.dbg('puriFast',8);
+ for(let n=1;n<=4;n++){await H.page.getByRole('button',{name:'とる！',exact:true}).click();await H.until((n)=>PokaDebug.puriState().shots>=n||PokaDebug.puriState().phase==='deco',8000,n);}
+ await H.until(()=>PokaDebug.puriState().phase==='deco',8000);await H.wait(800);
+ let st=await H.dbg('puriState');const V=st.viewCss,at=(fx,fy)=>[V.x+V.w*fx,V.y+V.h*fy],per=300/V.w;
+ // そうさばん: はみ出さない・ボタンは 44px いじょうで 1ぎょう・しゃしんに かさならない（どうぐ 5つ ぜんぶ）
+ const fits=async(tag)=>{const L=await H.eval(()=>{const r=(e)=>e.getBoundingClientRect(),P=document.querySelector('.puri-panel'),pr=r(P),v=PokaDebug.puriState().viewCss,bs=[...P.querySelectorAll('button')].filter((b)=>b.offsetParent);
+   const lines=(b)=>{const w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT),tops=new Set();for(let t=w.nextNode();t;t=w.nextNode()){if(!t.textContent.trim())continue;const g=document.createRange();g.selectNodeContents(t);for(const x of g.getClientRects())tops.add(Math.round(x.top));}return tops.size;};
+   const hint=P.querySelector('.puri-hint');
+   return {small:bs.filter((b)=>{const q=r(b);return q.height<43.5||q.width<43.5;}).map((b)=>b.textContent||b.getAttribute('aria-label')),out:bs.filter((b)=>!b.closest('.puri-chips')).filter((b)=>{const q=r(b);return q.left<pr.left-0.5||q.right>pr.right+0.5;}).map((b)=>b.textContent||b.getAttribute('aria-label')),
+    wrap:[...bs.filter((b)=>b.textContent&&lines(b)>1).map((b)=>b.textContent),...(hint&&lines(hint)>1?[hint.textContent]:[])],over:P.scrollWidth>P.clientWidth+1,edge:pr.left>=0&&pr.right<=innerWidth&&pr.bottom<=innerHeight+0.5,view:v.x>=0&&v.x+v.w<=innerWidth&&v.y>=40&&v.y+v.h<=pr.top+1};});
+  expect(!L.small.length&&!L.out.length&&!L.wrap.length&&!L.over&&L.edge&&L.view,tag+'の そうさばんが はみ出す／ちいさい／2ぎょう／しゃしんに かさなる '+JSON.stringify(L));};
+ const tabs=await H.eval(()=>[...document.querySelectorAll('.puri-panel .puri-tabs .puri-chip')].map((b)=>b.textContent));
+ expect(tabs.join()==='ペン,スタンプ,かお,もじ,キラキラ','らくがきの どうぐ '+JSON.stringify(tabs));await fits('ペン');
+ // スタンプ（ハート・おおきい）を おく: おいただけ では えらばれない → さわって えらぶ（↻・×・⇆ の とって）
+ await H.page.getByRole('button',{name:'スタンプ',exact:true}).click();await H.page.getByRole('button',{name:'ハート',exact:true}).click();await H.page.getByRole('button',{name:'おおきい',exact:true}).click();await fits('スタンプ');
+ await H.page.mouse.click(...at(0.3,0.3));await H.wait(150);st=await H.dbg('puriState');
+ const s0=st.items.s[0].slice();expect(st.items.s.length===1&&s0[0]==='heart'&&Math.abs(s0[1]-90)<=2&&Math.abs(s0[2]-120)<=2&&s0[3]===2&&s0.length===4&&st.pick===null,'スタンプを おけない／おいた だけで えらばれる '+JSON.stringify([st.items.s,st.pick]));
+ let c=st.itemsCss.s[0];await H.page.mouse.click(c.x,c.y);await H.wait(150);st=await H.dbg('puriState');
+ const hs=st.handles,inView=(p)=>p.x>=V.x&&p.x<=V.x+V.w&&p.y>=V.y&&p.y<=V.y+V.h;
+ expect(st.pick&&st.pick.k==='s'&&st.pick.j===0&&hs&&['rot','del','flip'].every((k)=>hs[k]&&inView(hs[k]))&&Math.min(Math.hypot(hs.rot.x-hs.del.x,hs.rot.y-hs.del.y),Math.hypot(hs.del.x-hs.flip.x,hs.del.y-hs.flip.y))>=44,'さわっても えらべない／とって '+JSON.stringify([st.pick,hs]));
+ expect((await H.page.locator('.puri-hint').textContent())==='↻ で まわす・⇆ はんてん・× けす','えらんだ ときの ひんと');
+ await H.shot('picked');
+ // ↻ を ゆびで ぐるっと: 90°（45°の ちかくは ぴったり）→ もどして 28°ぐらい
+ const rotBy=async(deg)=>{const s=await H.dbg('puriState'),h=s.handles.rot,q=s.itemsCss[s.pick.k][s.pick.j],dx=h.x-q.x,dy=h.y-q.y;await H.page.mouse.move(h.x,h.y);await H.page.mouse.down();for(let i=1;i<=12;i++){const a=(deg*Math.PI/180)*i/12;await H.page.mouse.move(q.x+dx*Math.cos(a)-dy*Math.sin(a),q.y+dx*Math.sin(a)+dy*Math.cos(a));}await H.page.mouse.up();await H.wait(150);return (await H.dbg('puriState')).items;};
+ let it=await rotBy(90);expect(it.s[0][4]===90,'90° まわらない '+JSON.stringify(it.s));
+ it=await rotBy(-62);expect(Math.abs(it.s[0][4]-28)<=3,'28° に ならない '+JSON.stringify(it.s));
+ // ⇆ はんてん → ゆびで うごかす（しゃしんの 座標で うごいた ぶん）→ もどす で もとの ばしょ
+ st=await H.dbg('puriState');await H.page.mouse.click(st.handles.flip.x,st.handles.flip.y);await H.wait(150);st=await H.dbg('puriState');
+ expect(st.items.s[0][5]===1&&st.pick&&st.pick.j===0,'はんてん できない '+JSON.stringify(st.items.s));
+ c=st.itemsCss.s[0];await H.page.mouse.move(c.x,c.y);await H.page.mouse.down();for(let i=1;i<=8;i++)await H.page.mouse.move(c.x+i*5,c.y+i*7);await H.page.mouse.up();await H.wait(150);st=await H.dbg('puriState');
+ expect(Math.abs(st.items.s[0][1]-s0[1]-40*per)<=2&&Math.abs(st.items.s[0][2]-s0[2]-56*per)<=2&&st.items.s[0][5]===1,'ゆびで うごかせない '+JSON.stringify(st.items.s));
+ await H.page.getByRole('button',{name:'もどす',exact:true}).click();st=await H.dbg('puriState');
+ expect(st.items.s[0][1]===s0[1]&&st.items.s[0][2]===s0[2]&&st.items.s[0][5]===1&&st.pick&&st.pick.j===0,'もどすで うごかす まえに もどらない '+JSON.stringify(st.items.s));
+ await H.shot('rotated');
+ // べつの スタンプ（ほし）を おいて × で けす → もどす で もどる
+ await H.page.getByRole('button',{name:'ほし',exact:true}).click();st=await H.dbg('puriState');expect(st.pick===null,'スタンプを えらぶと えらんだ ものが はなれない');
+ await H.page.mouse.click(...at(0.78,0.2));await H.wait(150);st=await H.dbg('puriState');expect(st.items.s.length===2&&st.items.s[1][0]==='star','ほしを おけない '+JSON.stringify(st.items.s));
+ c=st.itemsCss.s[1];await H.page.mouse.click(c.x,c.y);await H.wait(150);st=await H.dbg('puriState');
+ await H.page.mouse.click(st.handles.del.x,st.handles.del.y);await H.wait(150);st=await H.dbg('puriState');
+ expect(st.items.s.length===1&&st.pick===null,'× で けせない '+JSON.stringify(st.items.s));
+ await H.page.getByRole('button',{name:'もどす',exact:true}).click();st=await H.dbg('puriState');expect(st.items.s.length===2&&st.items.s[1][0]==='star','もどすで けした スタンプが もどらない');
+ // えらんで いる ときに なにも ない ところ → はなす（おかない）
+ c=st.itemsCss.s[1];await H.page.mouse.click(c.x,c.y);await H.page.mouse.click(...at(0.5,0.92));await H.wait(150);st=await H.dbg('puriState');
+ expect(st.pick===null&&st.items.s.length===2,'なにも ない ところで はなれない／おいて しまう '+JSON.stringify([st.pick,st.items.s.length]));
+ // かおの スタンプ 8しゅ（ほっぺ・まつげ・なみだ・くしゃみ ほか）
+ await H.page.getByRole('button',{name:'かお',exact:true}).click();await fits('かお');
+ const faces=await H.eval(()=>[...document.querySelectorAll('.puri-chips .puri-chip.stamp')].map((b)=>({n:b.getAttribute('aria-label'),ok:b.querySelector('img').complete&&b.querySelector('img').naturalWidth>0})));
+ expect(faces.map((f)=>f.n).join()==='ほっぺ,まつげ,なみだ,くしゃみ,ねこひげ,あせ,ねこみみ,てんしの わ'&&faces.every((f)=>f.ok),'かおの スタンプ '+JSON.stringify(faces));
+ await H.page.getByRole('button',{name:'ちいさい',exact:true}).click();
+ await H.page.mouse.click(...at(0.19,0.66));await H.page.getByRole('button',{name:'まつげ',exact:true}).click();await H.page.mouse.click(...at(0.56,0.56));
+ await H.page.getByRole('button',{name:'くしゃみ',exact:true}).click();await H.page.mouse.click(...at(0.88,0.62));await H.wait(150);st=await H.dbg('puriState');
+ expect(st.items.s.slice(2).map((s)=>s[0]+':'+s[3]).join()==='hoppe:0,matsuge:0,kushami:0','かおの スタンプを おけない '+JSON.stringify(st.items.s));
+ // まつげを ⇆ で はんたいの 目に
+ c=st.itemsCss.s[3];await H.page.mouse.click(c.x,c.y);st=await H.dbg('puriState');await H.page.mouse.click(st.handles.flip.x,st.handles.flip.y);await H.wait(150);st=await H.dbg('puriState');
+ expect(st.items.s[3][0]==='matsuge'&&st.items.s[3][5]===1,'まつげが はんてん できない '+JSON.stringify(st.items.s[3]));
+ await H.shot('face');
+ // もじ: おいて さわって まわす（もじに はんてんは ない）
+ await H.page.getByRole('button',{name:'もじ',exact:true}).click();await fits('もじ');await H.page.getByRole('button',{name:'おなじ クラス',exact:true}).click();
+ await H.page.mouse.click(...at(0.5,0.12));await H.wait(150);st=await H.dbg('puriState');c=st.itemsCss.x[0];await H.page.mouse.click(c.x,c.y);await H.wait(150);st=await H.dbg('puriState');
+ expect(st.pick&&st.pick.k==='x'&&st.handles.rot&&st.handles.del&&!st.handles.flip,'もじを えらべない '+JSON.stringify([st.pick,st.handles]));
+ it=await rotBy(-30);expect(it.x.length===1&&it.x[0][0]==='おなじ クラス'&&Math.abs(it.x[0][4]+30)<=3,'もじが まわらない '+JSON.stringify(it.x));
+ await H.shot('text');
+ // キラキラ: えらぶと しゃしんの 絵が かわる・いくつでも・もう いちど で けす・もどす
+ await H.page.getByRole('button',{name:'キラキラ',exact:true}).click();await fits('キラキラ');st=await H.dbg('puriState');expect(st.pick===null,'キラキラで えらんだ ものが のこる');
+ const fxs=await H.eval(()=>[...document.querySelectorAll('.puri-chips .puri-chip')].map((b)=>b.textContent));
+ expect(fxs.join()==='きらきら,ハート,ほし,しゃぼんだま,さくら,ゆき,ふんわり,にじいろ','キラキラの しゅるい '+JSON.stringify(fxs));
+ const pix=()=>H.eval(()=>{const cv=document.querySelector('canvas'),v=PokaDebug.puriState().view,k=cv.width/innerWidth,d=cv.getContext('2d').getImageData(Math.round(v.x*k),Math.round(v.y*k),Math.round(v.w*k),Math.round(v.h*k)).data;let h=0,n=0;for(let i=0;i<d.length;i+=4*7){h=(h*31+d[i]+d[i+1]*3+d[i+2]*7)>>>0;n++;}return h;});
+ const p0=await pix();
+ await H.page.getByRole('button',{name:'にじいろ',exact:true}).click();await H.page.getByRole('button',{name:'きらきら',exact:true}).click();await H.wait(400);st=await H.dbg('puriState');
+ expect(st.items.e.join()==='kira,niji'&&(await pix())!==p0,'キラキラが かからない '+JSON.stringify(st.items.e));
+ await H.page.getByRole('button',{name:'にじいろ',exact:true}).click();st=await H.dbg('puriState');expect(st.items.e.join()==='kira','キラキラを けせない');
+ await H.page.getByRole('button',{name:'もどす',exact:true}).click();st=await H.dbg('puriState');expect(st.items.e.join()==='kira,niji','もどすで キラキラが もどらない');
+ await H.wait(300);await H.shot('fx');
+ // できあがり → しゃしんに かたむき・はんてん・キラキラが のこる（ほかの 3まいは なし）
+ await H.page.getByRole('button',{name:'できあがり',exact:true}).click();await H.wait(300);await H.dialogs();
+ let ph=await H.dbg('photos');const p1=ph[0];
+ expect(ph.length===4&&p1.k==='school'&&p1.st[0][0]==='heart'&&Math.abs(p1.st[0][4]-28)<=3&&p1.st[0][5]===1&&p1.st[3].join()==='matsuge,'+p1.st[3].slice(1,4).join()+',0,1'&&Math.abs(p1.xt[0][4]+30)<=3&&p1.e.join()==='kira,niji'&&ph[1].e.length===0&&ph[1].st.length===0,'しゃしんに らくがきが のこらない '+JSON.stringify(p1));
+ await H.wait(500);await H.shot('done');
+ // さいかいしても おなじ・すまほの「しゃしん」で 描ける
+ await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+ expect(JSON.stringify(await H.dbg('photos'))===JSON.stringify(ph),'さいかいで しゃしんが かわる');
+ await H.phone('しゃしん');await H.page.locator('.smaho .puri-album .puri-photo').first().waitFor();await H.wait(600);
+ const drawn=await H.eval(()=>[...document.querySelectorAll('.smaho .puri-photo canvas')].every((cv)=>{const d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data;let n=0;for(let i=3;i<d.length;i+=4*97)if(d[i]>0)n++;return cv.width>0&&n>20;}));
+ expect(drawn,'すまほで しゃしんが 描けない');await H.page.locator('.smaho .puri-photo').last().click();await H.page.locator('.smaho .puri-big').waitFor();await H.wait(500);await H.shot('album');
+},{viewport,timeout:180000});
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('arcade-3f-'+viewport.width,async H=>{
  // Meeときょれじゃ 3F（UI-21。オーナーの FB 2026-10-01「3Fを 追加して プリクラを 3台 おけ。残り 2台は コンセプトを 変えよ（使える 背景などを 新たに 加えよ。例えば 学校など）」）:
  // 2F の 南西の エスカレーター → 3F（ふきぬけ・ぷりくら 3台・おめかし コーナー）→ フロアマップの 1F／2F／3F → がっこう ぷりくら（がっこうの はいけい 6つ・ことば）で 4まい → しゃしんに ブース → おでかけ ぷりくらの はいけい
