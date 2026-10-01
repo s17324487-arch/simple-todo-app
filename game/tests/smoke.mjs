@@ -3731,6 +3731,47 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect(e1.n===1&&e1.t<1&&e1.talk>e0.talk,'チンアナゴが かくれない／3人が なにも いわない '+JSON.stringify([e0,e1]));await H.shot('home-eel');
  a=await H.dbg('aquaGifts');expect(a.figs.find(f=>f.id==='aqfig_orca').own===1&&a.goods.filter(g=>g.own).map(g=>g.id).join()==='aqc_eel,aqc_whalehat,aqc_orcapack','もちものの かず '+JSON.stringify(a.goods));
 },{viewport,full:viewport.width===375,timeout:150000});
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('figure-stand-'+viewport.width,async H=>{
+ // フィギュア台（js/figure-stand.js。オーナーの FB 2026-10-01「家具として、各種フィギュアを置ける、フィギュア台を作りなさい」）:
+ // ひなだんを おいて タップ → 3×3 の ばしょ → ばしょを えらんで フィギュアを かざる → ぜんぶ ならべる → とりだす → もようがえの のこり → さいかいしても のこる → ガラスの ケースは よるに あかり
+ await H.newGameFast();await H.dbg('unlockAll');await H.dbg('hour',20);
+ await H.dbg('homeLayout',[{id:'figstand_step',x:80,y:540}]);await H.dbg('homeBubbleFixture');await H.wait(600);
+ let f=await H.dbg('figStand');expect(f.stands.length===1&&f.stands[0].figs.every(x=>x===null)&&f.figures>=32&&f.own===f.figures&&f.free.aqfig_penguin===1,'だいが からっぽで ない／フィギュアの かず '+JSON.stringify({...f,free:undefined}));
+ const c0=f.comfort;
+ const a=await H.dbg('furnLive','figstand_step');expect(a&&a.tap,'だいを タップできない');await H.tap(a.tap.x,a.tap.y);
+ await H.page.locator('.modal-wrap:not(.out) .figst').waitFor({timeout:15000});await H.wait(300);
+ // がめん: ばしょ 9（44px いじょう）・ボタン 44px・はみ出さない・みだしは 1ぎょう
+ const lay=async(tag,sel)=>{const L=await H.eval((sel)=>{const r=e=>e.getBoundingClientRect(),pn=[...document.querySelectorAll('.modal-wrap:not(.out) .panel')].pop(),body=pn.querySelector('.panel-body'),t=pn.querySelector('.panel-title'),g=document.createRange();g.selectNodeContents(t);const bs=[...pn.querySelectorAll(sel)].filter(b=>b.offsetParent);
+   return {n:bs.length,small:bs.filter(b=>{const q=r(b);return q.width<43.5||q.height<43.5;}).length,wide:body.scrollWidth>body.clientWidth+1,edge:r(pn).left>=-0.5&&r(pn).right<=innerWidth+0.5,lines:g.getClientRects().length,title:t.textContent};},sel);
+  expect(!L.small&&!L.wide&&L.edge&&L.lines===1,tag+'の がめん '+JSON.stringify(L));return L;};
+ let L=await lay('かざる','.figst-slot, .btn');expect(L.title==='フィギュアを かざる'&&await H.page.locator('.figst-slot').count()===9,'ばしょが 9つ ない');await H.shot('stand-empty');
+ // うしろの だんの ひだり に ケープペンギン
+ await H.page.getByRole('button',{name:'うしろの だんの ひだり・あいて いる',exact:true}).click();await H.wait(300);
+ L=await lay('えらぶ','.card, .btn');expect(L.title==='うしろの だんの ひだり'&&L.n>=32,'えらぶ がめん '+JSON.stringify(L));await H.shot('stand-pick');
+ // フィギュアの 絵: いれこの svg（ガチャの 3人 など）が アイコンの わくから でない（CSS の「svg { width: 100% }」で 大きく ならない）
+ const spill=sel=>H.eval(sel=>{const names=FigureStand.figures().map(id=>FURN_INDEX[id].name);return [...document.querySelectorAll(sel)].filter(ic=>names.some(n=>(ic.closest('.card')||ic).textContent.includes(n))).flatMap(ic=>{const b=ic.getBoundingClientRect();return [...ic.querySelectorAll('svg svg')].filter(s=>{const q=s.getBoundingClientRect();return q.width>0&&(q.left<b.left-1||q.top<b.top-1||q.right>b.right+1||q.bottom>b.bottom+1);}).map(()=>(ic.closest('.card')||ic).textContent.trim());});},sel);
+ let out=await spill('.modal-wrap:not(.out) .figst-list .figst-ico');expect(!out.length,'えらぶ がめんの フィギュアの 絵が ずれる '+JSON.stringify(out));
+ await H.page.locator('.modal-wrap:not(.out) .figst-list .card',{hasText:'ケープペンギン フィギュア'}).click();await H.wait(400);
+ f=await H.dbg('figStand');expect(f.stands[0].figs[0]==='aqfig_penguin'&&f.free.aqfig_penguin===0&&!f.pick&&f.open,'かざれない '+JSON.stringify(f.stands));
+ expect(await H.page.getByRole('button',{name:'うしろの だんの ひだり・ケープペンギン フィギュア',exact:true}).count()===1,'ばしょに かざった フィギュアが でない');
+ // ぜんぶ ならべる → 9つ。いごこちが あがる
+ await H.page.getByRole('button',{name:'ぜんぶ ならべる',exact:true}).click();await H.wait(400);
+ f=await H.dbg('figStand');expect(f.stands[0].figs.every(Boolean)&&new Set(f.stands[0].figs).size===9&&f.comfort>c0&&f.stands[0].figs.every(id=>f.free[id]===0),'ぜんぶ ならばない／いごこち '+JSON.stringify([f.stands[0].figs,c0,f.comfort]));await H.shot('stand-full');
+ // とりだす（まえの だんの みぎ）→ もちものに もどる
+ const last=f.stands[0].figs[8];await H.page.locator('.figst-slot[data-slot="8"]').click();await H.page.getByRole('button',{name:'とりだす',exact:true}).click();await H.wait(300);
+ f=await H.dbg('figStand');expect(f.stands[0].figs[8]===null&&f.free[last]===1,'とりだせない '+JSON.stringify(f.stands[0].figs));
+ await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.idle();await H.wait(600);await H.shot('stand-room');
+ // さいかいしても のこる
+ await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
+ f=await H.dbg('figStand');expect(f&&f.stands[0].figs[0]==='aqfig_penguin'&&f.stands[0].figs.filter(Boolean).length===8,'さいかいで フィギュアが きえる '+JSON.stringify(f&&f.stands));
+ // ガラスの ケース: よるは あかり・なかに フィギュア
+ await H.dbg('hour',20);await H.dbg('homeLayout',[{id:'figstand_case',x:70,y:540,figs:['aqfig_whaleshark','aqfig_turtle',null,'gacha_friends_3']}]);await H.dbg('homeBubbleFixture');await H.wait(700);
+ const c=await H.dbg('furnLive','figstand_case');f=await H.dbg('figStand');expect(c&&c.on&&c.live&&f.stands[0].figs.filter(Boolean).length===3&&f.free.aqfig_penguin===1,'ケースの あかり／フィギュア '+JSON.stringify([c,f.stands]));await H.shot('case-night');
+ // もようがえの 一覧（UI.icon）でも フィギュアの 絵が わくから でない（おすわり がちゃん・すやすや ねこ など）
+ await H.houseButton('もようがえ');await H.page.locator('.edit-bar .tray .card').filter({hasText:'おすわり がちゃん'}).first().waitFor({timeout:8000});
+ const figN=await H.eval(()=>{const names=FigureStand.figures().map(id=>FURN_INDEX[id].name);return [...document.querySelectorAll('.edit-bar .tray .card')].filter(c=>names.some(n=>c.textContent.includes(n))).length;});
+ out=await spill('.edit-bar .tray .card .ico');expect(figN>=20&&!out.length,'もようがえの フィギュアの 絵が ずれる '+JSON.stringify([figN,out.slice(0,5)]));
+},{viewport,full:viewport.width===375,timeout:150000});
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('nerikasu-korokoro-'+viewport.width,async H=>{
  // ころころ フルーツ（mg-korokoro.js）: ネリカスタウンの お店 → レジで おてつだい →「ちゅうもん モード」→ 小さい くだものを ゆびで おとす → がったい → ちゅうもんが とどく
  await H.newGameFast();const before=await H.dbg('saveData');

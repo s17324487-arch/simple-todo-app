@@ -25,6 +25,8 @@ const PokaDebug = {
   gachaState(){const v=Gacha.view,g=Gacha.st();return{open:!!document.querySelector('.modal-wrap:not(.out) .gacha'),phase:v?v.phase:null,series:v?v.S.id:null,last:v&&v.last?{id:v.last.item.id,k:v.last.k,rare:v.last.rare,first:v.last.first,refund:v.last.refund,complete:v.last.complete}:null,plays:g.plays,got:{...g.got},done:{...g.done},coins:Save.d.coins};},
   // すいぞくかんの おみやげ（aqua-gifts.js）: しなもの（ねだん・もって いる かず）・12F の 台と レジ・ずかんの ヒント
   aquaGifts(){if(typeof AquaGifts==='undefined')return null;const own=(id)=>AquaGifts.INDEX[id].slot?!!Save.d.wardrobe[id]:(Save.d.furn[id]||0),fx=VenueHalls.defs.mall.floors[12].fixtures.filter(f=>f.shopId===AquaGifts.SHOP);return{shop:AquaGifts.SHOP,figs:AquaGifts.FIGS.map(f=>({id:f.id,name:f.name,price:f.price,own:own(f.id)})),goods:AquaGifts.GOODS.map(g=>({id:g.id,name:g.name,price:g.price,kind:g.kind,slot:g.slot||null,own:own(g.id)})),stands:fx.filter(f=>f.action==='buy').map(f=>f.item),register:fx.some(f=>f.kind==='register'&&f.action==='shop'),source:ItemDexSources.source('furn',FURN_INDEX.aqfig_penguin)};},
+  // フィギュア台（figure-stand.js）: いまの へやの だい（figs）・かざれる フィギュア・もって いて おいて いない かず・いごこち・画面
+  figStand(){if(typeof FigureStand==='undefined')return null;const own=FigureStand.figures().filter(id=>(Save.d.furn[id]||0)>0),v=FigureStand.view;return{stands:(Save.d.room.items||[]).filter(it=>FigureStand.isStand(it.id)).map(it=>({uid:it.uid,id:it.id,figs:FigureStand.figsOf(it)})),figures:FigureStand.figures().length,own:own.length,free:Object.fromEntries(own.map(id=>[id,Room.available(id)])),comfort:Room.comfort(),open:!!document.querySelector('.modal-wrap:not(.out) .figst'),pick:!!(v&&v.pick&&v.pick.m.el.isConnected&&!v.pick.m.el.closest('.out'))};},
   // こういしつ（mee-fitting.js）: fitting かりて いる いしょうの かず・まえの ふくの きろく・3人の ふく
   fitting(){return{count:MeeFitting.count(),rental:JSON.parse(JSON.stringify(MeeFitting.st())),outfits:Object.fromEntries(Chara.IDS.map(id=>[id,{...Save.d.chars[id].outfit}])),ids:MeeRentalWear.IDS.slice(),open:!!document.querySelector('.modal-wrap:not(.out) .dress-extra, .modal-wrap:not(.out).dress-extra')};},
   // ぷりくら（purikura.js）: puriState いまの ようす（らくがきの pick・items・handles・itemsCss は UI-25）・puriStart(ブース) 300コインで はじめる（Meeときょれじゃ 3F の その ブースの まえに もどる）・puriFast カウントダウンの はやさ・photos しゃしんの いちらん
@@ -110,6 +112,7 @@ const PokaDebug = {
       "PokaDebug.koro()                      スコア モードの ようす（スコア・ハイスコア・さいきんの きろく・もらった とくべつな かぐ・きろくの まどで とまって いるか・箱の CSS 座標・玉・つぎ・おしまい）",
       "PokaDebug.collab('korokoro')          コラボ グッズの つみたて・もらった もの・つぎ（'puzzle' も）",
       "PokaDebug.aquaGifts()                 すいぞくかんの おみやげ（フィギュア 10・コラボ 5・ねだん・もって いる かず・12F の 台・ずかんの ヒント）",
+      "PokaDebug.figStand()                  フィギュア台（へやの だいと かざった フィギュア・のこりの かず・いごこち・かざる 画面が ひらいて いるか）",
       "PokaDebug.store('clothes', 'town')    歩ける店内へ（入口のある町を選べる）",
       "PokaDebug.storeState()                店員・展示・通路・3人・出口の状態",
       "PokaDebug.storeWalkTo(5, 3)           店内のマスまで実際に歩く",

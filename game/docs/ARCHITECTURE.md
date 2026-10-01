@@ -167,6 +167,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
 | — | `collab-goods.js` / `puzzle-collab.js` / `korokoro-collab.js`（gacha.js・korokoro-score.js の あと・item-dex-sources.js の まえ） | `CollabGoods` ／ `PuzzleCollab` ／ `KorokoroCollab` |
 | — | `aqua-gifts.js`（aqua-art.js の あと・ike-aquarium.js の まえ） | `AquaGifts` |
+| — | `figure-stand.js`（aqua-gifts.js の あと・ike-aquarium.js の まえ） | `FigureStand` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1032,6 +1033,20 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - `MallArt.modelKey` に `f.col`・`f.z` を いれた（おなじ おおきさで いろの ちがう かんばんが おなじ 絵に ならない。12F の「でぐち」が いりぐちと おなじ あおに なって いたのを なおした）。
 - ずかんの ヒントは `AquaGifts.source(id)`（`ItemDexSources.source` が よぶ）。セーブは ふえない（`Save.d.furn`・`Save.d.wardrobe` だけ）。
 - PokaDebug: `aquaGifts()`（しなものの ねだん・もって いる かず・12F の 台・レジ・ずかんの ヒント）。
+
+## フィギュア台（UI-27・`js/figure-stand.js`）
+
+オーナーの FB 2026-10-01「家具として、各種フィギュアを置ける、フィギュア台を作りなさい」。
+読み込みは `aqua-gifts.js` の あと（かざれる フィギュアに すいぞくかんの フィギュアを いれる）。トップレベル名は `FigureStand` だけ。
+
+- だい 2しゅ（`FigureStand.STANDS`・かぐやの ゆかの 家具・`interactive: true`・`figureStand: 9`）: `figstand_step` ひなだんの フィギュア だい（1280・3だん × 3・ピンクの フェルト）／`figstand_case` ガラスの フィギュア ケース（2480・ガラスの たな 3だん × 3・よるは あかり）。ばしょは `slots`（だいの ローカル座標 `[x, y, z]`・うしろ／うえの だんから・おなじ だんは ひだりから）。ばしょの なまえは `slotName(S, i)`（「うしろの だんの ひだり」など）。
+- かざれる フィギュア（`isFigure(id)`・`FURN_INDEX[id].figure = true`）: ガチャガチャの へやに かざる もの（`Gacha.INDEX` の `kind: "furn"`）・はしわたしの フィギュア（`BridgePrizes.INDEX` の `kind: "fig"`）・すいぞくかんの フィギュア（`aquaGift: "fig"`）。ぬいぐるみ・コラボ・だい そのものは かざれない。だいの うえでは `scaleOf(S, id)`（たかさ `cap`・はば `capW` に おさめる・0.7 ばい まで）・`foot(id)`（FurnModels の 2D の 絵は だいの まんなか、池袋の おしなものは 0, 0）で 描く。
+- セーブ: だいの へやの アイテムに `figs`（9 この フィギュアの id か `null`）を たす だけ。`figsOf(it)` が よむ ときに そろえる（しらない id・フィギュアで ない もの・10こめ は すてる）。`Save.SCHEMA` は そのまま（`migrate`・`SaveBackup.validate` で のこる）。
+- おいた かず: `Room.placed` を つつみ、すべての へや（`HomeRooms.all()`）の だいの うえの かずを たす（もようがえで 2こめを おけない・だいを しまうと もちものに もどる）。`Room.comfort` も つつみ、いまの へやの かざった フィギュアの いごこちを たす。
+- プリセット: `RoomPresets.snapshot` は だいの `figs` も おぼえる。`RoomPresets.problem` は ほかの へやの ゆかと だいで つかって いる かずも かぞえて「〜が たりないよ」。
+- 絵: `FurnModels.register` の 立体（ひなだん・ガラスの ケース）。ケースの まえ と みぎの ガラス・まえの はしらは `L()`（live の ときは FurnLive が フィギュアの あとに canvas で 描く）。`FurnLive.register(id, …)`: `draw` で だいの うえの フィギュア（`SvgCache` の `figstand:<id>:<ピクセル>`・8 の ばいすう）・ケースは よる（`DayTint.isNight()`）に たなの あかり（フィギュアの うしろ）と `light()`。
+- タップで「フィギュアを かざる」（`open(sc, it)`・`cls: "full figst-panel"`）: 3 × 3 の ばしょ（`.figst-slot`・72px）→ ばしょを えらぶと もって いて おいて いない フィギュアの いちらん（`×のこり`）・「とりだす」。「ぜんぶ ならべる」「ぜんぶ もどす」。かざると ちかくの 1人が よろこぶ。
+- PokaDebug: `figStand()`（へやの だい・figs・フィギュアの かず・もって いる かず・`free`〔Room.available〕・いごこち・ひらいて いるか・えらんで いる ばしょ）。
 
 ## ネリカスタウンの実寸アセット
 
