@@ -899,7 +899,9 @@ html, body {
 .shop-prize-picture svg{width:90px;height:116px;overflow:visible}
 .shop-prize-card .note{padding:5px;margin:6px 0 0}
 
-.venue-controls{position:absolute;bottom:max(8px,env(safe-area-inset-bottom));left:8px;right:8px;display:flex;flex-wrap:wrap;gap:6px;background:#fff8e8ee;border:2px solid #1f1d1b;border-radius:15px;padding:8px}.venue-controls span{width:100%;font-size:11px;text-align:center}.venue-controls .btn{flex:1;min-height:44px;padding:7px;font-size:12px}
+/* 館の なか: したは あるきかたの ひとことだけ（タップは 下の 絵へ とおす）・フロア案内と でるは ひだりうえに 小さく（おうちへ は みぎうえ） */
+.venue-controls{position:absolute;bottom:max(8px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:calc(100% - 16px);box-sizing:border-box;background:#fff8e8dd;border:1.5px solid #1f1d1b;border-radius:999px;padding:4px 12px;pointer-events:none}.venue-controls span{display:block;font-size:11px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.venue-top{position:absolute;left:10px;top:calc(60px + var(--safe-t));display:flex;gap:6px;z-index:5}.venue-top .btn{min-height:44px;padding:4px 10px;font-size:12px}
 
 /* 町の人の長い相談・大人向けクイズ。画面内で読む長さを選べる。 */
 .dialog-action { order:-1; align-self:flex-end; min-height:44px; margin:0 0 8px; max-width:100%; background:#f5e4b8; }
