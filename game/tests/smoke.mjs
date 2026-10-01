@@ -3689,6 +3689,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  // すいぞくかんの おみやげ（js/aqua-gifts.js。オーナーの FB 2026-10-01「水族館のお土産コーナーに、海の生き物とごわががコラボしたグッズ5種や、海の生き物フィギュア10種を販売しなさい（どれも少し高めの価格）」）:
  // 12F の おみやげ（フィギュアの ショーケース 10・コラボの 台 5・レジ）→ レジの 3つの タブ → フィギュアを かう → ぼうしの 台で かって きる → リュック・クッション → たりないと かえない → おうちに かざって さわる
  await H.newGameFast();const c0=await H.dbg('coins',9000);
+ // かった あとの 画面は 180ms かけて きえる（.modal-wrap.out。なかの「かう」は おせない まま のこる）ので、あいて いる 画面の「かう」だけを さがす
+ const buyBtn=()=>H.page.locator('.modal-wrap:not(.out)').getByRole('button',{name:'かう',exact:true});
  let a=await H.dbg('aquaGifts');
  expect(a.figs.length===10&&a.goods.length===5&&a.stands.length===15&&a.register&&a.figs.every(f=>f.price>=1280&&f.price<=1880&&!f.own)&&a.goods.every(g=>g.price>=1580&&g.price<=2980&&!g.own)&&/すいぞくかん/.test(a.source),'おみやげの しなもの・ねだん '+JSON.stringify(a));
  await H.dbg('venue','mall',12);await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
@@ -3705,20 +3707,20 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await tab('コラボ ふく');L=await lay('コラボ ふく',2);expect(/シャチ ごじ リュック/.test(L.text)&&/ジンベエザメ ごわが ぼうし/.test(L.text),'コラボ ふく');
  // フィギュアを かう（シャチ 1880 コイン）
  await tab('フィギュア');await H.page.locator('.modal-wrap:not(.out) .grid .card',{hasText:'シャチ フィギュア'}).click();
- await H.page.getByRole('button',{name:'かう',exact:true}).waitFor();await H.wait(300);await H.shot('detail-fig');
- await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.wait(400);
+ await buyBtn().waitFor();await H.wait(300);await H.shot('detail-fig');
+ await buyBtn().click();await H.wait(400);
  let d=await H.dbg('saveData');expect(d.coins===c0-1880&&d.furn.aqfig_orca===1,'フィギュアが かえない '+d.coins);
  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.idle();
  // ぼうしの 台（マネキン）を タップ → かう → いま きる
- expect(await H.dbg('venueVisit','ジンベエザメ ごわが ぼうし'),'ぼうしの 台が ない');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor({timeout:20000});await H.wait(300);await H.shot('detail-hat');
- await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.page.getByRole('button',{name:'きる！',exact:true}).click();await H.idle();
+ expect(await H.dbg('venueVisit','ジンベエザメ ごわが ぼうし'),'ぼうしの 台が ない');await buyBtn().waitFor({timeout:20000});await H.wait(300);await H.shot('detail-hat');
+ await buyBtn().click();await H.page.getByRole('button',{name:'きる！',exact:true}).click();await H.idle();
  d=await H.dbg('saveData');const lead=d.order[0];expect(d.coins===c0-1880-1580&&d.wardrobe.aqc_whalehat&&d.chars[lead].outfit.head==='aqc_whalehat','ぼうしが かえない／きられない '+JSON.stringify([d.coins,d.chars[lead].outfit]));
  // リュック（うしろむきの 台）・チンアナゴの クッション
- expect(await H.dbg('venueVisit','シャチ ごじ リュック'),'リュックの 台が ない');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor({timeout:20000});await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.page.getByRole('button',{name:'あとで',exact:true}).click();await H.idle();
- expect(await H.dbg('venueVisit','チンアナゴ ごわが クッション'),'クッションの 台が ない');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor({timeout:20000});await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.idle();
+ expect(await H.dbg('venueVisit','シャチ ごじ リュック'),'リュックの 台が ない');await buyBtn().waitFor({timeout:20000});await buyBtn().click();await H.page.getByRole('button',{name:'あとで',exact:true}).click();await H.idle();
+ expect(await H.dbg('venueVisit','チンアナゴ ごわが クッション'),'クッションの 台が ない');await buyBtn().waitFor({timeout:20000});await buyBtn().click();await H.idle();
  d=await H.dbg('saveData');expect(d.coins===c0-1880-1580-2480-2280&&d.wardrobe.aqc_orcapack&&d.furn.aqc_eel===1,'リュック・クッションが かえない '+d.coins);
  // のこりは 1000 コイン より すくない: ペンギンの ぬいぐるみ（2980）は かえない
- expect(await H.dbg('venueVisit','ペンギン わんこ ぬいぐるみ'),'ぬいぐるみの 台が ない');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor({timeout:20000});await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.wait(300);
+ expect(await H.dbg('venueVisit','ペンギン わんこ ぬいぐるみ'),'ぬいぐるみの 台が ない');await buyBtn().waitFor({timeout:20000});await buyBtn().click();await H.wait(300);
  d=await H.dbg('saveData');expect(d.coins===c0-1880-1580-2480-2280&&d.coins<2980&&!d.furn.aqc_penguin&&/たりない/.test(await H.eval(()=>document.querySelector('.toasts')?.textContent||'')),'コインが たりないのに かえる '+d.coins);
  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.idle();await H.wait(400);await H.shot('wear-hat');
  // おうちに かざる: チンアナゴの クッションを タップすると すなに かくれて、3人の だれかが ひとこと。シャチの フィギュアも おける
