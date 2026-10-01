@@ -2033,7 +2033,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 },{viewport,full:viewport.width===375,timeout:120000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-bubbles-'+viewport.width,async H=>{
-  await H.newGameFast();await H.dbg('coins',987504);await H.wait(4000);const before=await H.dbg('saveData');
+  // 時こくを 固定する（ほんとうの 9:00／18:00 を またぐと ぱぱ・ままの「いってきます／ただいま」の ふきだしが たしかめる ふきだしを おしだす）
+  await H.newGameFast();await H.dbg('hour',7);await H.dbg('coins',987504);await H.wait(4000);const before=await H.dbg('saveData');
   for(const watching of [false,true]){
     if(watching)await H.houseButton('みまもる');await H.dbg('homeBubbleFixture');
     for(const [i,kind]of ['say','shout','cry','think','whisper','rare'].entries()){
@@ -2345,6 +2346,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.locator(".edit-bar .btn.yellow").click();await H.wait(100);
   // 家具と話者のタップ判定は表示された位置を基準にする。
   d=await H.dbg("homeDesign");const cage=d.items.find(it=>it.id==="birdcage_brass");
+  // おうちの タップは 人が さき。あるいて いる 3人が とりかごの まえに いると「なでる」に なるので、きまった ばしょに とめてから タップ
+  await H.dbg("homeBubbleFixture");
   await H.tap(cage.rect.x+cage.rect.w*.5,cage.rect.y+cage.rect.h*.3);
   expect((await H.dbg("homeLife")).furniture[cage.uid]>0,"とりかごがタップで動かない");
   await H.houseButton("みまもる");await H.shot("watch");await H.page.getByRole("button",{name:"みまもりを おわる",exact:true}).click();
