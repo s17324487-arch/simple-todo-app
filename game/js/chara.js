@@ -86,12 +86,27 @@ const EMO = {
 // まばたき（キャラ素材に ない 表情を くみあわせる・ころころ フルーツの 3人 など）: ねむりの 目と ふつうの はな・くち・くちばし。
 // ごじの 目は あたまの うえで ちいさく かくれて いるので、ごじは ふつうの まま
 const CHARA_BLINK = { wanko: (F) => [F.sleep[0], F.sleep[1], F.normal[2], F.normal[3]], gachan: (F) => [F.sleep[0], F.sleep[1], F.normal[2], F.normal[3]] };
-function charaFaceParts(id, name) { const F = CHARA_DATA[id].faces; return name === "blink" && CHARA_BLINK[id] ? CHARA_BLINK[id](F) : F[name] || F.normal; }
+// ほかの ファイルが たす かお（ぷりくらの はっきりした かお など。js/puri-pose.js）: CHARA_FACE_EXTRA[だれ][なまえ] = (F) => [かおの ぶひん]
+const CHARA_FACE_EXTRA = { wanko: {}, gachan: {}, goji: {} };
+function charaFaceParts(id, name) { const F = CHARA_DATA[id].faces, X = CHARA_FACE_EXTRA[id] && CHARA_FACE_EXTRA[id][name]; return X ? X(F) : name === "blink" && CHARA_BLINK[id] ? CHARA_BLINK[id](F) : F[name] || F.normal; }
 function faceOf(id, emo) {
   if (!emo) return "normal";
   if (emo === "blink") return CHARA_BLINK[id] ? "blink" : "normal";
   if (EMO[emo]) return EMO[emo][id];
-  return CHARA_DATA[id].faces[emo] ? emo : "normal";
+  return CHARA_DATA[id].faces[emo] || (CHARA_FACE_EXTRA[id] && CHARA_FACE_EXTRA[id][emo]) ? emo : "normal";
+}
+// うでの ポーズ（ぷりくらの ピース・わーい など。js/puri-pose.js が たす。まえむき だけ）:
+// CHARA_GESTURES[なまえ] = { arms: { だれ: [ひだりの うで, みぎの うで] }, len: { だれ: うでの ながさの ばい }, under(だれ), over(だれ) }。
+// len: だ円の うでを かたから のばす（手が かおの よこまで とどく。そでも いっしょに のびる）
+// うで = { rot: かたを まん中に まわす 角度（とけいまわり +）, front: かおの まえに 描く, deco(A): 手の さきの 絵（まわす まえの 座標。A = { hand, dir, side, fill }）}。
+// under / over: からだの 座標の 絵（まえの うでの した / うえ）
+const CHARA_GESTURES = {};
+// うでの かたと 手の さき（まわす まえ）。だ円の うでは うえが かた・したが 手、ごじの うでは からだの ふち → そと
+function charaArmEnds(P, k) {
+  const ar = P.arms[k];
+  if (ar.path) { const [x0, x1] = ar.clipX, near = k ? x0 : x1, far = k ? x1 + 16 : x0 - 16; return { shoulder: [near, 118], hand: [far, 118], dir: [k ? 1 : -1, 0] }; }
+  const a = (ar.rot * Math.PI) / 180, ux = -Math.sin(a), uy = Math.cos(a);
+  return { shoulder: [ar.cx - ux * ar.ry, ar.cy - uy * ar.ry], hand: [ar.cx + ux * ar.ry, ar.cy + uy * ar.ry], dir: [ux, uy] };
 }
 
 // ---- 小さなSVGヘルパー ----
@@ -590,19 +605,36 @@ function buildCharaSvg(id, opts = {}) {
 
   const dx = view === "side" ? -P.faceShift : 0;
   const uid = "u" + (++buildCharaSvg.n);
-  const ctx = { p: P, a: P.a, view, dx, col: [], uid };
+  // うでの ポーズ（まえむき だけ）
+  const gest = view === "front" && opts.gesture ? CHARA_GESTURES[opts.gesture] : null, ga = gest && gest.arms[id], armK = (ga && gest.len && gest.len[id]) || 1;
+  // うでを のばす ときは かたの いちを そのままに だ円を ながく（そでの 絵も この うでで 描く）
+  const PA = armK === 1 ? P : { ...P, arms: P.arms.map((ar) => { if (ar.path) return ar; const a = (ar.rot * Math.PI) / 180, d = ar.ry * (armK - 1); return { ...ar, cx: ar.cx - Math.sin(a) * d, cy: ar.cy + Math.cos(a) * d, ry: ar.ry * armK }; }) };
+  const ctx = { p: PA, a: P.a, view, dx, col: [], uid, gesture: !!ga };
 
-  const layers = { behind: "", sleeve: "", torso: "", top: "" };
   const outfit = opts.outfit || {};
-  for (const slot of SLOT_ORDER) {
-    const itemId = outfit[slot];
-    if (!itemId) continue;
-    const item = typeof ITEM_INDEX !== "undefined" ? ITEM_INDEX[itemId] : null;
-    if (!item || !WEAR[item.wear]) continue;
-    ctx.col = item.col || [];
-    const r = WEAR[item.wear](ctx);
-    for (const k in r) if (r[k]) layers[k] += r[k];
-  }
+  const wearLayers = (c) => {
+    const L = { behind: "", sleeve: "", torso: "", top: "" };
+    for (const slot of SLOT_ORDER) {
+      const itemId = outfit[slot];
+      if (!itemId) continue;
+      const item = typeof ITEM_INDEX !== "undefined" ? ITEM_INDEX[itemId] : null;
+      if (!item || !WEAR[item.wear]) continue;
+      c.col = item.col || [];
+      const r = WEAR[item.wear](c);
+      for (const k in r) if (r[k]) L[k] += r[k];
+    }
+    return L;
+  };
+  const layers = wearLayers(ctx);
+  // うでの ポーズ: みぎの うでの そでは べつの id で もう 1かい つくる（id が かさならない）。そでは まん中で きって、うでと いっしょに まわす
+  const sleeveOf = ga ? [layers.sleeve, wearLayers({ ...ctx, uid: uid + "r" }).sleeve] : null;
+  const armOf = (i) => (!ga ? -1 : i >= P.armIdx[0] && i < P.armIdx[1] ? 0 : i >= P.armIdx[1] && i < P.torsoIdx ? 1 : -1);
+  const armParts = [[], []];
+  const armSvg = (k) => {
+    const g = ga[k] || {}, E = charaArmEnds(PA, k);
+    const parts = armParts[k].map((el) => (el === null ? `<g clip-path="url(#hs${k}${uid})">${sleeveOf[k]}</g>` : el)).join("");
+    return `<g transform="rotate(${f2(g.rot || 0)} ${f2(E.shoulder[0])} ${f2(E.shoulder[1])})">${parts}${g.deco ? g.deco({ hand: E.hand, dir: E.dir, side: k, fill: P.fill, id }) : ""}</g>`;
+  };
 
   // からだグループの要素列を組み立てる
   const base = D.base.slice();
@@ -610,8 +642,18 @@ function buildCharaSvg(id, opts = {}) {
   let tailEl = null;
   base.forEach((el, i) => {
     if (view === "back" && i === P.tailIdx) { tailEl = el; return; }
+    const a = armOf(i);
+    if (a >= 0) {
+      // うでの ポーズ: うでの ぶひん（ごじは つめも）を あつめる。まえに 描かない うでは もとの ところ（さいごの ぶひんの ところ）に
+      const ar = PA.arms[a];
+      armParts[a].push(i === P.armIdx[a] && armK !== 1 && !ar.path ? `<ellipse cx="${f2(ar.cx)}" cy="${f2(ar.cy)}" rx="${ar.rx}" ry="${f2(ar.ry)}" transform="rotate(${ar.rot} ${f2(ar.cx)} ${f2(ar.cy)})" fill="${P.fill}" ${stroke()}/>` : el);
+      if (i === P.armIdx[a]) armParts[a].push(null);
+      const last = a === 0 ? P.armIdx[1] - 1 : P.torsoIdx - 1;
+      if (i === last && !(ga[a] && ga[a].front)) els.push(armSvg(a));
+      return;
+    }
     els.push(el);
-    if (i === P.armIdx[1]) els.push(layers.sleeve);
+    if (!ga && i === P.armIdx[1]) els.push(layers.sleeve);
     // 胴体の直後（わんこは ぶち模様の後）に服
     const afterTorso = id === "wanko" ? 6 : P.torsoIdx;
     if (i === afterTorso) els.push(layers.torso);
@@ -633,6 +675,8 @@ function buildCharaSvg(id, opts = {}) {
     let face = parts.filter((el) => !eyeTears.includes(el)).join("");
     if (dx) face = `<g transform="translate(${dx},0)">${face}</g>`;
     els.push(face, ...eyeTears);
+    // うでの ポーズ: まえの うで（かおの まえ）と その した・うえの 絵
+    if (ga) { if (gest.under) els.push(gest.under(id)); for (const k of [0, 1]) if (ga[k] && ga[k].front) els.push(armSvg(k)); if (gest.over) els.push(gest.over(id)); }
   }
   els.push(layers.top);
 
@@ -641,7 +685,7 @@ function buildCharaSvg(id, opts = {}) {
   if (dir === "right") inner = `<g transform="matrix(-1,0,0,1,200,0)">${inner}</g>`;
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${VB.x} ${VB.y} ${VB.w} ${VB.h}"${opts.w ? ` width="${opts.w}" height="${Math.round((opts.w * VB.h) / VB.w)}"` : ""}>` +
-    `<defs><clipPath id="torso${uid}"><path d="${P.torsoPath}"/></clipPath></defs>${inner}</svg>`;
+    `<defs><clipPath id="torso${uid}"><path d="${P.torsoPath}"/></clipPath>${ga ? `<clipPath id="hs0${uid}"><rect x="-60" y="-60" width="${f2(P.a.torso.cx + 60)}" height="360"/></clipPath><clipPath id="hs1${uid}"><rect x="${f2(P.a.torso.cx)}" y="-60" width="300" height="360"/></clipPath>` : ""}</defs>${inner}</svg>`;
   if (id === "goji" && opts.color === "dark") svg = svg.replaceAll(GOJI_COLORS.soft, GOJI_COLORS.dark);
   return svg;
 }
@@ -658,7 +702,7 @@ const Chara = {
   PROFILE, IDS: CHARA_IDS, VB, FOOT, EMO, faceOf,
   svg: buildCharaSvg,
   key(id, o) {
-    return `c:${id}:${o.pose || "idle_01"}:${o.dir || "down"}:${faceOf(id, o.face)}:${id === "goji" ? o.color || "soft" : ""}:${outfitKey(o.outfit)}`;
+    return `c:${id}:${o.pose || "idle_01"}:${o.dir || "down"}:${faceOf(id, o.face)}:${id === "goji" ? o.color || "soft" : ""}:${outfitKey(o.outfit)}${o.gesture && CHARA_GESTURES[o.gesture] ? ":" + o.gesture : ""}`;
   },
   // 表示幅 size(論理px) のときのスプライトの幅・高さ(論理px)
   dims(size) { return { w: size, h: (size * VB.h) / VB.w }; },

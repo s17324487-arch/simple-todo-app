@@ -12,7 +12,7 @@ const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
 
 // ---- 1. えらべる もの ----
-ok(P.BGS.length === 18 && P.POSES.length === 6 && P.FACES.length === 8 && P.STAMPS.length === 12 && P.WORDS.length === 8 && P.PENS.length === 6, "えらべる ものの かず");
+ok(P.BGS.length === 18 && P.POSES.length === 11 && P.FACES.length === 8 && P.STAMPS.length === 12 && P.WORDS.length === 8 && P.PENS.length === 6, "えらべる ものの かず");
 // ブース 3台（Meeときょれじゃ 3F・UI-21）: ブースごとに はいけい 6つ（かさならない・ぜんぶで BGS）・わくの いろ・ロゴ・ことば。js/ike-arcade.js の IkeArcade.BOOTHS と id・なまえ・じゅんばんが おなじ
 ok(P.BOOTHS.length === 3 && P.BOOTHS.map((b) => b.id).join() === "yume,school,odekake" && JSON.stringify(R.IkeArcade.BOOTHS) === JSON.stringify(P.BOOTHS.map((b) => ({ id: b.id, name: b.name }))), "ブースの id・なまえが IkeArcade.BOOTHS と ちがう");
 ok(P.BOOTHS.every((b) => b.bgs.length === 6 && b.bgs.every((id) => P.BG[id])) && new Set(P.BOOTHS.flatMap((b) => b.bgs)).size === P.BGS.length, "ブースの はいけい 6つ（ほかの ブースと かさならない・ぜんぶ つかう）");
@@ -99,4 +99,54 @@ const ph = (extra = {}) => ({ id: "ptest-0", t: 1790000000000, bg: "hoshi", z: 1
   const src = readFileSync(new URL("../js/purikura.js", import.meta.url), "utf8");
   ok(!/fetch\(|XMLHttpRequest|WebSocket|sendBeacon|navigator\.share|localStorage/.test(src) && (src.match(/https?:\/\/[^"'`\s]+/g) || []).every((u) => u === "http://www.w3.org/2000/svg"), "ぷりくらが そとへ つうしん する／セーブを じかに さわる");
 }
-console.log(`Purikura: 3 booths (ゆめかわ・がっこう・おでかけ) × 6 backgrounds = 18 / 6 poses / 8 faces / 12 stamps / 8 words + booth words, stroke codec, photo repair and limits, 300-coin session paid once and finished once, 60-photo album, old saves and finite art keys — ${n} checks OK`);
+// ---- 7. はっきりした ポーズ・かお・3人の ばしょ（UI-24）----
+{
+  const C = R.Chara, PP = R.PuriPose, GS = R.CHARA_GESTURES, svg = (id, o) => C.svg(id, o);
+  const gestures = P.POSES.filter((x) => x.gesture);
+  ok(gestures.map((x) => x.id).join() === "peace,shakin,wai,heart,nyan" && gestures.map((x) => x.name).join() === "ピース,しゃきーん,わーい,ハート,にゃん" && P.POSES[0].id === "stand", "あたらしい ポーズ 5しゅ（たつ の つぎに ならぶ）");
+  const idsOf = (s) => [...s.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
+  // 手の さき（まわした あと）: かたを まん中に rot ど まわす（chara.js と おなじ。うでを のばす len も）
+  const handAt = (id, g, k) => { const def = GS[g], a = def.arms[id][k] || {}, L = (def.len && def.len[id]) || 1, P0 = C.PROFILE[id], ar = P0.arms[k], PA = L === 1 || ar.path ? P0 : { ...P0, arms: P0.arms.map((q) => { if (q.path) return q; const t = (q.rot * Math.PI) / 180, d = q.ry * (L - 1); return { ...q, cx: q.cx - Math.sin(t) * d, cy: q.cy + Math.cos(t) * d, ry: q.ry * L }; }) }, E = R.charaArmEnds(PA, k), t = ((a.rot || 0) * Math.PI) / 180, dx = E.hand[0] - E.shoulder[0], dy = E.hand[1] - E.shoulder[1]; return [E.shoulder[0] + dx * Math.cos(t) - dy * Math.sin(t), E.shoulder[1] + dx * Math.sin(t) + dy * Math.cos(t)]; };
+  for (const id of C.IDS) {
+    const stand = svg(id, { face: "happy" });
+    for (const x of gestures) {
+      ok(GS[x.gesture] && GS[x.gesture].arms[id] && GS[x.gesture].arms[id].length === 2, `ポーズ ${x.id}（${id}）の うで`);
+      const s = svg(id, { pose: x.pose, face: "happy", gesture: x.gesture });
+      ok(s.startsWith("<svg") && !/undefined|NaN/.test(s) && s !== stand && new Set(idsOf(s)).size === idsOf(s).length, `ポーズ ${x.id}（${id}）の 絵（id が かさならない）`);
+      // 服を きても id が かさならない・よこむき・うしろむき では うでの ポーズは つかわない
+      for (const outfit of [{ body: "tshirt_star" }, { body: "mee_sailor", head: "mee_schoolhat", back: "mee_randoseru" }, { body: "ike_gothic_1", back: "cape" }]) { const o = svg(id, { pose: x.pose, gesture: x.gesture, outfit }); ok(!/undefined|NaN/.test(o) && new Set(idsOf(o)).size === idsOf(o).length, `ポーズ ${x.id}（${id}・${Object.values(outfit).join("+")}）の id`); }
+      ok(svg(id, { dir: "left", gesture: x.gesture }).replace(/u\d+/g, "") === svg(id, { dir: "left" }).replace(/u\d+/g, ""), `ポーズ ${x.id}（${id}）: よこむきは うでの ポーズ なし`);
+      // うごいた 手: すくなくとも 1つの 手が もとの ばしょから 14 いじょう うごく
+      const moved = [0, 1].map((k) => { const E = R.charaArmEnds(C.PROFILE[id], k), h = handAt(id, x.gesture, k); return Math.hypot(h[0] - E.hand[0], h[1] - E.hand[1]); });
+      ok(Math.max(...moved) > 14, `ポーズ ${x.id}（${id}）の 手が うごかない（${moved.map((v) => v.toFixed(1))}）`);
+    }
+    // 5しゅの ポーズは 手の ばしょが ちがう（2つの 手の ばしょの ちがいが 8 いじょう）
+    for (let i = 0; i < gestures.length; i++) for (let j = i + 1; j < gestures.length; j++) {
+      const a = [0, 1].map((k) => handAt(id, gestures[i].gesture, k)), b = [0, 1].map((k) => handAt(id, gestures[j].gesture, k));
+      ok(Math.max(Math.hypot(a[0][0] - b[0][0], a[0][1] - b[0][1]), Math.hypot(a[1][0] - b[1][0], a[1][1] - b[1][1])) > 8, `${id}: ${gestures[i].id} と ${gestures[j].id} の 手が おなじ`);
+    }
+    // かおの ボタン 8つは 3人とも ちがう かお（まえは わんこ・がちゃん・ごじ で おなじ かおに なる ボタンが あった）
+    const faces = P.FACES.map((f) => svg(id, { face: PP.faceOf(id, f.id) }).replace(/u\d+/g, ""));
+    ok(new Set(faces).size === P.FACES.length, `${id}: かおの ボタンで おなじ かおに なる（${P.FACES.filter((f, i) => faces.indexOf(faces[i]) !== i).map((f) => f.id)}）`);
+    for (const f of P.FACES) { const s = svg(id, { face: PP.faceOf(id, f.id) }); ok(!/undefined|NaN/.test(s) && new Set(idsOf(s)).size === idsOf(s).length, `かお ${f.id}（${id}）の 絵`); }
+  }
+  ok(PP.faceOf("wanko", "love") === "pk_heart" && PP.faceOf("gachan", "surprise") === "pk_odoroki" && PP.faceOf("goji", "happy") === "pk_nikori" && PP.faceOf("wanko", "sad") === "sad", "かおの ボタン → 3人の かお");
+  // ごじの こぶの 目は よこむきで ずれない（data-anchor="eye"）
+  ok(/data-anchor="eye"/.test(svg("goji", { face: "pk_nikori", dir: "left" })), "ごじの こぶの 目");
+  // キャッシュの キー: うでの ポーズ・かおは しゅるい だけ（ある ポーズだけ キーに いれる）
+  ok(C.key("wanko", { gesture: "peace" }) !== C.key("wanko", {}) && C.key("wanko", { gesture: "nazo" }) === C.key("wanko", {}) && C.key("goji", { face: "pk_nikori" }).includes("pk_nikori"), "キャッシュの キー");
+  // しゃしんの ばしょ m: うごかして いなければ なし・はんい・2かい なおしても おなじ・まえの しゃしんは そのまま
+  const base = ph();
+  ok(!("m" in P.clean(base)) && !("m" in P.clean(ph({ m: { wanko: [0, 0] } }))), "うごかして いない しゃしんに m");
+  const mv = P.clean(ph({ m: { wanko: [40, -30], gachan: [999, 999], goji: ["x", 5] } }));
+  ok(mv.m && mv.m.wanko.join() === "40,-30" && mv.m.gachan.join() === `${P.MOVE.x},${P.MOVE.down}` && mv.m.goji.join() === "0,5", "3人の ばしょの はんい");
+  ok(JSON.stringify(P.clean(P.clean(mv))) === JSON.stringify(mv) && JSON.stringify(P.clean(base)) === JSON.stringify(P.clean(P.clean(base))), "ばしょを 2かい なおしても おなじ");
+  // あしもとは しゃしんの 中・したに いる 人ほど まえ
+  const pl = A.placed(P.clean(ph({ m: { wanko: [-300, 0], gachan: [0, -100], goji: [0, 30] } })));
+  ok(pl.every((q) => q.x >= 24 && q.x <= P.PW - 24) && pl[0].id === "gachan" && pl[pl.length - 1].id === "goji", "あしもとと 描く じゅん");
+  ok(A.placed(P.clean(base)).map((q) => q.i).join() === A.LAYOUT[1].order.join(), "うごかして いない ときの じゅんばんは いままでと おなじ");
+  // ポーズの ある しゃしん: 3人の 絵は うでの ポーズと かおの ボタンの かお
+  const po = A.charaOpts(P.clean(ph({ c: { wanko: ["peace", "love"], gachan: ["nyan", "surprise"], goji: ["heart", "happy"] } })), 1);
+  ok(po.gesture === "peace" && po.face === "pk_heart", "しゃしんの 3人の 絵");
+}
+console.log(`Purikura: 3 booths (ゆめかわ・がっこう・おでかけ) × 6 backgrounds = 18 / 11 poses (5 arm gestures) / 8 faces (all different for the three) / 12 stamps / 8 words + booth words, movable positions, stroke codec, photo repair and limits, 300-coin session paid once and finished once, 60-photo album, old saves and finite art keys — ${n} checks OK`);

@@ -942,6 +942,7 @@ html, body {
 .puri-thumbbtn.on{outline:3px solid #F0578D;outline-offset:1px}
 .puri-thumbs .puri-small{margin-left:auto}
 .puri-hint{font-size:12px;font-weight:800;text-align:center;color:#8A5A70}
+.puri-reset{position:absolute;z-index:6;min-height:44px;min-width:44px;padding:4px 10px;font-size:13px;font-weight:900;border-radius:14px;pointer-events:auto}.puri-reset.hidden{display:none}
 .puri-album{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;justify-items:center}
 .puri-photo{padding:3px;border:2.5px solid #1F1D1B;border-radius:8px;background:#FFFFFF;min-height:44px;cursor:pointer}
 .puri-photo canvas{display:block}

@@ -22,12 +22,16 @@ const Purikura = (() => {
     { id: "school", name: "がっこう", logo: "Mee がっこう", bgs: ["kyoshitsu", "rouka", "taiiku", "kotei", "okujo", "toshokan"], col: "#4A67B0", line: "#9FB3DE", words: ["おなじ クラス", "がっこう だいすき", "なかよし はん"] },
     { id: "odekake", name: "おでかけ", logo: "Mee おでかけ", bgs: ["yuenchi", "matsuri", "cafe", "suizoku", "uchu", "oshiro"], col: "#2E9CC9", line: "#9FD8EC", words: ["おでかけ だいすき", "また いこうね", "たのしい いちにち"] },
   ];
-  // ポーズ（キャラ素材の ポーズ）。よこむき は りょうはしの 2人が まんなかを むく
+  // ポーズ（キャラ素材の ポーズ）。よこむき は りょうはしの 2人が まんなかを むく。
+  // gesture: うでの ポーズ（js/puri-pose.js の PuriPose・UI-24。ピース・しゃきーん・わーい・ハート・にゃん）。はっきり ちがう ポーズを さきに ならべる
   const POSES = [
-    { id: "stand", name: "たつ", pose: "idle_01" }, { id: "jump", name: "ジャンプ", pose: "jump_01" }, { id: "crouch", name: "しゃがむ", pose: "land_01" },
+    { id: "stand", name: "たつ", pose: "idle_01" },
+    { id: "peace", name: "ピース", pose: "idle_01", gesture: "peace" }, { id: "shakin", name: "しゃきーん", pose: "idle_01", gesture: "shakin" }, { id: "wai", name: "わーい", pose: "jump_01", gesture: "wai" },
+    { id: "heart", name: "ハート", pose: "idle_01", gesture: "heart" }, { id: "nyan", name: "にゃん", pose: "idle_02", gesture: "nyan" },
+    { id: "jump", name: "ジャンプ", pose: "jump_01" }, { id: "crouch", name: "しゃがむ", pose: "land_01" },
     { id: "sway", name: "ゆらゆら", pose: "idle_02" }, { id: "walk", name: "あるく", pose: "walk_01" }, { id: "side", name: "よこむき", pose: "idle_01", side: true },
   ];
-  // かお（Chara の EMO。3人で それぞれの かおに なる）
+  // かお（Chara の EMO。3人で それぞれの かおに なる。キャラ素材に ない かおは PuriPose.faceOf が くみたてた かおに する: 8つの ボタンが 3人とも ちがう かお）
   const FACES = [
     { id: "happy", name: "にっこり" }, { id: "excited", name: "わくわく" }, { id: "love", name: "らぶらぶ" }, { id: "surprise", name: "びっくり" },
     { id: "angry", name: "ぷんぷん" }, { id: "sad", name: "えーん" }, { id: "sleep", name: "すやすや" }, { id: "normal", name: "ふつう" },
@@ -78,7 +82,17 @@ const Purikura = (() => {
     const stamps = (Array.isArray(d.s) ? d.s : []).filter((s) => Array.isArray(s) && STAMP[s[0]]).map((s) => [s[0], num(s[1], 0, PW), num(s[2], 0, PH), num(s[3], 0, 2)]).filter((s) => s.every((v) => v !== null)).slice(0, LIMIT.stamps);
     const texts = (Array.isArray(d.x) ? d.x : []).filter((s) => Array.isArray(s) && word(s[0])).map((s) => [word(s[0]), num(s[1], 0, PW), num(s[2], 0, PH), num(s[3], 0, PENS.length - 1)]).filter((s) => s.every((v) => v !== null)).slice(0, LIMIT.texts);
     const bg = BG[p.bg] ? p.bg : "yume", k = BOOTH[p.k] && BOOTH[p.k].bgs.includes(bg) ? p.k : boothOf(bg).id;
-    return { id: p.id, t: num(p.t, 0, 9e15) || 0, bg, k, z: p.z ? 1 : 0, r, c, o, d: { p: strokes, s: stamps, x: texts } };
+    const out = { id: p.id, t: num(p.t, 0, 9e15) || 0, bg, k, z: p.z ? 1 : 0, r, c, o, d: { p: strokes, s: stamps, x: texts } }, m = moves(p.m);
+    if (m) out.m = m;
+    return out;
+  };
+  // 3人の ばしょ（UI-24。ならびの ばしょ からの ずれ・しゃしんの 座標）。うごかして いなければ なし（まえの しゃしんと おなじ かたち）
+  const MOVE = { x: 240, up: 150, down: 40 };
+  const moves = (m) => {
+    if (!m || typeof m !== "object") return null;
+    const out = {}; let any = false;
+    for (const id of Chara.IDS) { const v = Array.isArray(m[id]) ? m[id] : [0, 0], x = num(v[0], -MOVE.x, MOVE.x) || 0, y = num(v[1], -MOVE.up, MOVE.down) || 0; out[id] = [x, y]; if (x || y) any = true; }
+    return any ? out : null;
   };
   // 描く ための かたち（せんを 点の ならびに もどす）
   const unpacked = new WeakMap();
@@ -87,7 +101,7 @@ const Purikura = (() => {
   const st = () => { const s = Save.d.purikura || (Save.d.purikura = { plays: 0, active: null, taken: 0 }); if (!Array.isArray(Save.d.photos)) Save.d.photos = []; return s; };
   return {
     PW, PH, MAX, SHOTS, PRICE, BGS, BOOTHS, POSES, FACES, PENS, PEN_W, STAMPS, STAMP_SIZE, WORDS, LIMIT, BG, BOOTH, POSE, FACE, STAMP,
-    packStroke, unpackStroke, clean, view, st, boothOf,
+    packStroke, unpackStroke, clean, view, st, boothOf, MOVE, moves,
     // ブースで つかえる ことば（ブースの ことば → みんなの ことば）
     wordsOf(booth) { const b = BOOTH[booth] || BOOTHS[0]; return [...b.words, ...WORDS]; },
     // こわれて いない しゃしん（ふるい じゅん）。こわれた ものは セーブから のぞく
@@ -319,12 +333,19 @@ const PurikuraArt = (() => {
   const dprOf = () => (typeof G !== "undefined" && G.px) || (typeof devicePixelRatio !== "undefined" ? devicePixelRatio : 2);
   // 3人の ならび（ぜんしん: 足もとが 350・アップ: 大きく かさなって）。order は 描く じゅん（あとが まえ）
   const LAYOUT = [{ S: 156, y: 350, xs: [68, 150, 232], order: [0, 2, 1] }, { S: 212, y: 372, xs: [62, 150, 238], order: [0, 2, 1] }];
+  // gesture: うでの ポーズ・face: ボタンの かお → その 人の かお（PuriPose）
   const charaOpts = (ph, i) => {
     const id = ph.r[i], [poseId, faceId] = ph.c[id] || ["stand", "happy"], pz = P.POSE[poseId] || P.POSES[0], [outfit, color] = ph.o[id] || [{}, "soft"];
-    return { pose: pz.pose, dir: pz.side ? (i === 0 ? "right" : i === 2 ? "left" : "down") : "down", face: faceId, outfit, color };
+    return { pose: pz.pose, dir: pz.side ? (i === 0 ? "right" : i === 2 ? "left" : "down") : "down", face: PuriPose.faceOf(id, faceId), outfit, color, ...(pz.gesture ? { gesture: pz.gesture } : {}) };
+  };
+  // 3人の あしもと（しゃしんの 座標。ならびの ばしょ ＋ うごかした ぶん m）と 描く じゅん（したに いる ほど まえ・おなじ なら ならびの order）
+  const placed = (ph) => {
+    const L = LAYOUT[ph.z ? 1 : 0], m = ph.m || {};
+    return L.order.map((i, n) => { const id = ph.r[i], d = m[id] || [0, 0]; return { i, id, n, x: Math.max(24, Math.min(P.PW - 24, L.xs[i] + d[0])), y: Math.max(L.y - P.MOVE.up, Math.min(L.y + P.MOVE.down, L.y + d[1])) }; })
+      .filter((q) => q.id).sort((a, b) => a.y - b.y || a.n - b.n);
   };
   const A = {
-    BG_SVG, STAMP_SVG, LAYOUT,
+    BG_SVG, STAMP_SVG, LAYOUT, charaOpts, placed,
     keys() { return [...P.BGS.map((b) => "puri:bg:" + b.id), ...P.STAMPS.map((s) => "puri:stamp:" + s.id)]; },
     bgImg(id, px) { const w = bgW(px); return SvgCache.get("puri:bg:" + id, BG_SVG[id] || BG_SVG.yume, w, Math.round((w * 4) / 3)); },
     stampImg(k, px) { const w = stW(px); return SvgCache.get("puri:stamp:" + k, STAMP_SVG[k] || STAMP_SVG.heart, w, w); },
@@ -340,7 +361,7 @@ const PurikuraArt = (() => {
       const k = w / P.PW, h = P.PH * k, dpr = dprOf(), L = LAYOUT[ph.z ? 1 : 0];
       ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
       const bg = this.bgImg(ph.bg, w * dpr); if (bg) ctx.drawImage(bg, x, y, w, h); else { ctx.fillStyle = "#FBE3EC"; ctx.fillRect(x, y, w, h); }
-      for (const i of L.order) if (ph.r[i]) Chara.draw(ctx, ph.r[i], charaOpts(ph, i), x + L.xs[i] * k, y + L.y * k, L.S * k);
+      for (const q of placed(ph)) Chara.draw(ctx, q.id, charaOpts(ph, q.i), x + q.x * k, y + q.y * k, L.S * k);
       this.deco(ctx, ph.d, x, y, k, dpr);
       if (o.frame !== false) this.frame(ctx, ph, x, y, k);
       ctx.restore();
@@ -393,26 +414,39 @@ class PurikuraScene {
     this.booth = Purikura.BOOTH[p.booth] || Purikura.BOOTHS[0];
     this.back = p.back || null; this.phase = "bg"; this.bg = this.booth.bgs[0]; this.z = 0; this.who = "all"; this.tab = "pose";
     this.sel = Object.fromEntries(Chara.IDS.map((id) => [id, ["stand", "happy"]]));
+    // 3人の ばしょ（ならびから の ずれ・しゃしんの 座標）。ゆびで うごかす（drag）
+    this.pos = Object.fromEntries(Chara.IDS.map((id) => [id, [0, 0]])); this.drag = null; this.moved = false;
     this.shots = []; this.deco = []; this.di = 0; this.tool = "pen"; this.pen = { c: 0, w: 1 }; this.stamp = "heart"; this.ssz = 1; this.words = Purikura.wordsOf(this.booth.id); this.word = this.words[0]; this.wc = 0; this.hist = [];
     this.count = null; this.flash = 0; this.clock = 0; this.speed = 1; this.drawing = null; this.saved = false; this.closed = false; this.msg = "";
     UI.showHud(true, this.booth.name + " ぷりくら"); Sound.bgm("arcade_hall");
     this.buildUI(); this.resize();
     const o = Purikura.outfits(), list = [];
-    for (const id of Chara.IDS) for (const P of Purikura.POSES) list.push([id, { pose: P.pose, dir: "down", face: "happy", outfit: o[id][0], color: o[id][1] }]);
+    for (const id of Chara.IDS) for (const P of Purikura.POSES) list.push([id, { pose: P.pose, dir: "down", face: PuriPose.faceOf(id, "happy"), outfit: o[id][0], color: o[id][1], ...(P.gesture ? { gesture: P.gesture } : {}) }]);
     await Promise.all([Chara.preload(list, this.charaSize()), ...this.booth.bgs.map((id) => SvgCache.ensure("puri:bg:" + id, PurikuraArt.BG_SVG[id], 300, 400))]);
   }
-  exit() { this.closed = true; this.panel?.remove(); UI.showHud(false); }
+  exit() { this.closed = true; this.panel?.remove(); this.resetBtn?.remove(); UI.showHud(false); }
   // いまの えらびかた（さつえいの まえの カメラ・とった しゃしん）
   photoOf(shot, deco) {
     const o = shot ? shot.o : Purikura.outfits(), c = shot ? shot.c : this.sel;
-    return { id: "live", t: shot ? shot.t : Date.now(), bg: this.bg, k: this.booth.id, z: shot ? shot.z : this.z, r: Save.d.order.slice(), c, o, d: deco || { p: [], s: [], x: [] } };
+    const m = shot ? shot.m : Purikura.moves(this.pos);
+    return { id: "live", t: shot ? shot.t : Date.now(), bg: this.bg, k: this.booth.id, z: shot ? shot.z : this.z, r: Save.d.order.slice(), c, o, d: deco || { p: [], s: [], x: [] }, ...(m ? { m } : {}) };
   }
   charaSize() { return PurikuraArt.LAYOUT[1].S * ((this.view ? this.view.w : 260) / Purikura.PW); }
   // ---- ボタン ----
   buildUI() {
-    this.panel?.remove();
+    this.panel?.remove(); this.resetBtn?.remove();
     const P = (this.panel = U.el("div", { class: "puri-panel" }));
-    UI.root.append(P); this.ui();
+    // 3人を うごかした ときだけ カメラの がめんの みぎうえに「もとの ならび」
+    this.resetBtn = UI.btn("もとの ならび", () => { Sound.se("cancel"); for (const id of Chara.IDS) this.pos[id] = [0, 0]; this.placeReset(); }, "puri-reset hidden");
+    UI.root.append(P, this.resetBtn); this.ui();
+  }
+  placeReset() {
+    const b = this.resetBtn, v = this.view; if (!b) return;
+    const show = this.phase === "shoot" && !!v && Chara.IDS.some((id) => this.pos[id][0] || this.pos[id][1]);
+    b.classList.toggle("hidden", !show); if (!show) return;
+    // カメラの がめん（ゲームの 座標）→ CSS の px
+    const u = G.cssPerUnit || 1, rc = G.canvas ? G.canvas.getBoundingClientRect() : { left: 0, top: 0 }, root = UI.root.getBoundingClientRect();
+    b.style.right = Math.round(root.right - (rc.left + (v.x + v.w) * u) + 6) + "px"; b.style.top = Math.round(rc.top - root.top + v.y * u + 6) + "px";
   }
   chip(label, on, fn, cls = "") { const b = UI.btn("", () => { Sound.se("tap"); fn(); }, "puri-chip " + cls + (on ? " on" : "")); b.textContent = label; b.setAttribute("aria-pressed", on ? "true" : "false"); return b; }
   row(cls, kids) { return U.el("div", { class: cls }, kids); }
@@ -450,6 +484,20 @@ class PurikuraScene {
   resize() {
     const top = 70, bot = this.panel ? this.panel.getBoundingClientRect().height + 14 : 240, h = Math.max(160, G.H - top - bot), w = Math.min(G.W - 36, h * 0.75);
     this.view = { x: (G.W - w) / 2, y: top + Math.max(0, (h - w / 0.75) / 2), w, h: w / 0.75 };
+    this.placeReset();
+  }
+  // ---- さつえい: 3人を ゆびで うごかす（さわった 人を えらぶ）----
+  // その 人の あしもとが しゃしんの 中に いる はんい（ならびの ばしょ からの ずれ）
+  clampPos(id, [dx, dy]) {
+    const L = PurikuraArt.LAYOUT[this.z ? 1 : 0], i = Math.max(0, Save.d.order.indexOf(id)), M = Purikura.MOVE, x0 = L.xs[i];
+    return [Math.round(Math.max(Math.max(-M.x, 24 - x0), Math.min(Math.min(M.x, Purikura.PW - 24 - x0), dx))), Math.round(Math.max(-M.up, Math.min(M.down, dy)))];
+  }
+  // ゆびの ところに いる 人（まえに いる 人から。からだの はんいは キャラ素材の 座標で よこ ±78・あしもとから うえ 200）
+  hitChara(p) {
+    const v = this.view; if (!v) return null;
+    const k = v.w / Purikura.PW, L = PurikuraArt.LAYOUT[this.z ? 1 : 0], s = (L.S * k) / Chara.VB.w;
+    for (const q of PurikuraArt.placed(this.photoOf(null, null)).reverse()) { const fx = v.x + q.x * k, fy = v.y + q.y * k; if (p.x > fx - 78 * s && p.x < fx + 78 * s && p.y > fy - 200 * s && p.y < fy + 6 * s) return q.id; }
+    return null;
   }
   // ---- さつえい ----
   shoot() {
@@ -458,7 +506,8 @@ class PurikuraScene {
   }
   snap() {
     this.count = null; this.flash = 0.45; Sound.se("puri_shutter");
-    this.shots.push({ c: JSON.parse(JSON.stringify(this.sel)), z: this.z, o: Purikura.outfits(), t: Date.now() }); this.deco.push({ p: [], s: [], x: [] });
+    const m = Purikura.moves(this.pos);
+    this.shots.push({ c: JSON.parse(JSON.stringify(this.sel)), z: this.z, o: Purikura.outfits(), t: Date.now(), ...(m ? { m } : {}) }); this.deco.push({ p: [], s: [], x: [] });
     if (this.shots.length >= Purikura.SHOTS) { this.phase = "deco"; this.di = 0; this.msg = "らくがき しよう！"; } else this.msg = `${this.shots.length}まいめ とれたよ！`;
     this.msgT = 1.2; this.ui();
   }
@@ -471,7 +520,14 @@ class PurikuraScene {
     return over;
   }
   down(p) {
-    if (this.phase !== "deco" || UI.busy) return;
+    if (UI.busy) return;
+    if (this.phase === "shoot") {
+      const id = this.flash > 0 ? null : this.hitChara(p); if (!id) return;
+      this.drag = { id: p.id, who: id, x: p.x, y: p.y, base: this.pos[id].slice() };
+      if (this.who !== id) { this.who = id; Sound.se("tap"); this.ui(); }
+      return;
+    }
+    if (this.phase !== "deco") return;
     const q = this.toPhoto(p); if (!q) return;
     const d = this.deco[this.di];
     if (this.tool === "pen") { if (this.full("p")) return; this.drawing = { id: p.id, st: { c: this.pen.c, w: this.pen.w, pts: [q] } }; d.p.push(this.drawing.st); }
@@ -479,12 +535,21 @@ class PurikuraScene {
     else { if (this.full("x")) return; d.x.push([this.word, q[0], q[1], this.wc]); this.hist.push({ i: this.di, k: "x" }); Sound.se("puri_stamp"); this.ui(); }
   }
   move(p) {
+    if (this.phase === "shoot") {
+      const D = this.drag; if (!D || (p.id != null && p.id !== D.id) || !this.view) return;
+      const k = this.view.w / Purikura.PW; this.pos[D.who] = this.clampPos(D.who, [D.base[0] + (p.x - D.x) / k, D.base[1] + (p.y - D.y) / k]);
+      if (Math.hypot(p.x - D.x, p.y - D.y) > 4) this.moved = true;
+      this.placeReset(); return;
+    }
     const D = this.drawing; if (!D || (p.id != null && p.id !== D.id)) return;
     const q = this.toPhoto(p); if (!q) return;
     const pts = D.st.pts, last = pts[pts.length - 1], d = this.deco[this.di], all = d.p.reduce((s, x) => s + x.pts.length, 0);
     if (Math.hypot(q[0] - last[0], q[1] - last[1]) >= 2.5 && all < Purikura.LIMIT.points) pts.push(q);
   }
-  up(p) { if (this.drawing && (p.id == null || p.id === this.drawing.id)) { this.hist.push({ i: this.di, k: "p" }); this.drawing = null; Sound.se("tap"); this.ui(); } }
+  up(p) {
+    if (this.drag && (p.id == null || p.id === this.drag.id)) { this.drag = null; this.placeReset(); return; }
+    if (this.drawing && (p.id == null || p.id === this.drawing.id)) { this.hist.push({ i: this.di, k: "p" }); this.drawing = null; Sound.se("tap"); this.ui(); }
+  }
   undo() {
     for (let k = this.hist.length - 1; k >= 0; k--) { const h = this.hist[k]; if (h.i !== this.di) continue; this.deco[h.i][h.k].pop(); this.hist.splice(k, 1); Sound.se("cancel"); break; }
     this.ui();
@@ -498,7 +563,7 @@ class PurikuraScene {
   async done() {
     if (this.saved || UI.busy) return;
     const base = Date.now().toString(36);
-    const photos = this.shots.map((s, i) => ({ id: `p${base}-${i}`, t: s.t, bg: this.bg, k: this.booth.id, z: s.z, r: Save.d.order.slice(), c: s.c, o: s.o, d: { p: this.deco[i].p.filter((x) => x.pts.length).map(Purikura.packStroke), s: this.deco[i].s, x: this.deco[i].x } }));
+    const photos = this.shots.map((s, i) => ({ id: `p${base}-${i}`, t: s.t, bg: this.bg, k: this.booth.id, z: s.z, r: Save.d.order.slice(), c: s.c, o: s.o, d: { p: this.deco[i].p.filter((x) => x.pts.length).map(Purikura.packStroke), s: this.deco[i].s, x: this.deco[i].x }, ...(s.m ? { m: s.m } : {}) }));
     if (!Purikura.finish(photos)) { UI.toast("もう できあがって いるよ"); return; }
     this.saved = true; this.photos = photos.map(Purikura.clean); this.phase = "done"; Sound.se("fanfare"); this.ui(); this.resize();
     await UI.say(Save.d.order.map((id) => ({ who: id, emo: "happy", text: id === "goji" ? "ガゥ♪ いい かお できた！" : id === "gachan" ? "ピヨ！ きらきらに なった♪" : "わん！ すまほで また みようね！" })));
@@ -543,6 +608,10 @@ class PurikuraScene {
         for (const [x, y, sx, sy] of [[v.x + 8, v.y + 8, 1, 1], [v.x + v.w - 8, v.y + 8, -1, 1], [v.x + 8, v.y + v.h - 8, 1, -1], [v.x + v.w - 8, v.y + v.h - 8, -1, -1]]) { ctx.beginPath(); ctx.moveTo(x, y + c * sy); ctx.lineTo(x, y); ctx.lineTo(x + c * sx, y); ctx.stroke(); }
         ctx.fillStyle = Math.floor(this.clock * 2) % 2 ? "#FF5A6E" : "rgba(255,90,110,0.4)"; ctx.beginPath(); ctx.arc(v.x + 22, v.y + 24, 5, 0, 7); ctx.fill();
         ctx.font = "900 13px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillStyle = "#FFFFFF"; ctx.fillText(`${Math.min(this.shots.length + 1, Purikura.SHOTS)} / ${Purikura.SHOTS}`, v.x + 32, v.y + 24);
+        // えらんで いる 人の あたまの うえに ▼・はじめは「3人を ゆびで うごかせるよ」
+        const k = v.w / Purikura.PW, L = PurikuraArt.LAYOUT[this.z ? 1 : 0], q = this.who !== "all" && PurikuraArt.placed(ph).find((o) => o.id === this.who);
+        if (q) { const x = v.x + q.x * k, y = Math.max(v.y + 14, v.y + (q.y - L.S * 0.98) * k), b = Math.sin(this.clock * 5) * 3; ctx.fillStyle = "#FF5A8E"; ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 9, y - 10 + b); ctx.lineTo(x + 9, y - 10 + b); ctx.lineTo(x, y + 2 + b); ctx.closePath(); ctx.stroke(); ctx.fill(); }
+        if (!this.moved && !this.count) { ctx.font = "900 13px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 4; ctx.strokeStyle = "rgba(31,29,27,0.75)"; ctx.strokeText("3人を ゆびで うごかせるよ", v.x + v.w / 2, v.y + v.h - 16, v.w - 20); ctx.fillStyle = "#FFFFFF"; ctx.fillText("3人を ゆびで うごかせるよ", v.x + v.w / 2, v.y + v.h - 16, v.w - 20); }
       }
     }
     // カウントダウン・フラッシュ・ひとこと

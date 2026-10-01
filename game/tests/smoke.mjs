@@ -3317,6 +3317,54 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  st=await H.dbg('puriState');expect(st.phase==='bg'&&st.coins===c1-300&&st.active,'とりなおしで また はらう '+JSON.stringify(st));
 },{viewport,timeout:180000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('purikura-pose-'+viewport.width,async H=>{
+ // ぷりくらの はっきりした ポーズ 5しゅ・3人の かお・ならびを うごかす（UI-24。オーナーの FB 2026-10-01「もっと 違いの わかる、はっきりした ポーズを 5種 追加せよ」
+ // 「ごわがの 配置も 動かせる ように しろ」「わんこと がちゃで、顔の ボタンは あるが 変わらない ものが ある ので 直しなさい」）
+ await H.newGameFast();await H.dbg('coins',900);
+ await H.dbg('venue','arcade',3);await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
+ expect(await H.dbg('venueVisit','ゆめかわ ぷりくら'),'ぷりくらの ブースが ない');
+ await H.page.getByRole('button',{name:'300コインで とる',exact:true}).click();
+ await H.until(()=>!!PokaDebug.puriState()&&!Game.trans,20000);await H.wait(300);
+ await H.page.getByRole('button',{name:'とりはじめる',exact:true}).click();await H.wait(300);
+ let st=await H.dbg('puriState');expect(st.phase==='shoot'&&st.pos&&st.spots,'さつえいに ならない '+JSON.stringify(st));
+ // ポーズの チップ: あたらしい 5しゅは「たつ」の つぎ（ぜんぶで 11・44px いじょう）
+ const chips=await H.eval(()=>[...document.querySelectorAll('.puri-chips .puri-chip')].map((b)=>{const r=b.getBoundingClientRect();return{t:b.textContent,h:r.height,w:r.width};}));
+ expect(chips.length===11&&chips.slice(0,6).map((c)=>c.t).join()==='たつ,ピース,しゃきーん,わーい,ハート,にゃん'&&chips.every((c)=>c.h>=43.5&&c.w>=43.5),'ポーズの チップ '+JSON.stringify(chips));
+ // カメラの がめんの 3人の ところ（しゃしんの たて 55〜95%）の ピクセル（えらんだ 人の ▼ は それより うえ）
+ const pix=()=>H.eval(()=>{const cv=document.querySelector('canvas'),v=PokaDebug.puriState().view,k=cv.width/innerWidth,d=cv.getContext('2d').getImageData(Math.round(v.x*k),Math.round((v.y+v.h*0.55)*k),Math.round(v.w*k),Math.round(v.h*0.4*k)).data;let h=0;for(let i=0;i<d.length;i+=4*5)h=(h*31+d[i]+d[i+1]*3+d[i+2]*7)>>>0;return h;});
+ // 5しゅの ポーズ（みんな）: 3人とも その ポーズ・絵が ぜんぶ ちがう
+ const POSE={たつ:'stand',ピース:'peace',しゃきーん:'shakin',わーい:'wai',ハート:'heart',にゃん:'nyan'},hs={};
+ for(const name of Object.keys(POSE)){await H.page.getByRole('button',{name,exact:true}).click();await H.wait(250);st=await H.dbg('puriState');expect(Object.values(st.sel).every((s)=>s[0]===POSE[name]),name+' が 3人に つかない '+JSON.stringify(st.sel));hs[name]=await pix();if(name==='ピース')await H.shot('peace');}
+ expect(new Set(Object.values(hs)).size===6,'ポーズの 絵が おなじ '+JSON.stringify(hs));
+ // かおの ボタン 8つ: わんこ・がちゃん・ごじ とも ぜんぶ ちがう かお（まえは わんこの にっこり・わくわく・らぶらぶ、がちゃんの わくわく・らぶらぶ・びっくり が おなじ だった）
+ await H.page.getByRole('button',{name:'たつ',exact:true}).click();await H.page.getByRole('button',{name:'かお',exact:true}).click();
+ for(const who of ['わんこ','がちゃん','ごじ']){await H.page.getByRole('button',{name:who,exact:true}).click();const fs=[];
+  for(const f of ['にっこり','わくわく','らぶらぶ','びっくり','ぷんぷん','えーん','すやすや','ふつう']){await H.page.getByRole('button',{name:f,exact:true}).click();await H.wait(180);fs.push(await pix());}
+  expect(new Set(fs).size===8,who+' の かおの ボタンで おなじ かおに なる '+JSON.stringify(fs));}
+ // わんこ らぶらぶ・がちゃん びっくり（いまの えらび）で 1まいめ の まえに わんこを ゆびで うごかす（さわった 人が えらばれる）
+ await H.page.getByRole('button',{name:'わんこ',exact:true}).click();await H.page.getByRole('button',{name:'らぶらぶ',exact:true}).click();
+ await H.page.getByRole('button',{name:'がちゃん',exact:true}).click();await H.page.getByRole('button',{name:'びっくり',exact:true}).click();
+ st=await H.dbg('puriState');const sp=st.spots.wanko;
+ await H.page.mouse.move(sp.x,sp.y);await H.page.mouse.down();for(let i=1;i<=8;i++)await H.page.mouse.move(sp.x+i*8,sp.y-i*5);await H.page.mouse.up();await H.wait(200);
+ st=await H.dbg('puriState');
+ expect(st.who==='wanko'&&st.pos.wanko[0]>15&&st.pos.wanko[1]<-10&&st.pos.gachan.join()==='0,0'&&st.pos.goji.join()==='0,0','わんこが うごかない '+JSON.stringify({pos:st.pos,who:st.who}));
+ expect(await H.page.locator('.puri-reset').isVisible(),'「もとの ならび」が でない');
+ const rb=await H.page.locator('.puri-reset').boundingBox(),v=st.viewCss;
+ expect(rb&&rb.height>=43.5&&rb.x>=v.x&&rb.x+rb.width<=v.x+v.w+0.5&&rb.y>=v.y&&rb.y+rb.height<=v.y+v.h,'「もとの ならび」が カメラの がめんの そと／ちいさい '+JSON.stringify({rb,v}));
+ await H.wait(200);await H.shot('moved');
+ await H.dbg('puriFast',8);
+ await H.page.getByRole('button',{name:'とる！',exact:true}).click();await H.until(()=>PokaDebug.puriState().shots===1,8000);
+ // もとの ならび → 2〜4まいめ（ピース・わーい・ハート）
+ await H.page.locator('.puri-reset').click();st=await H.dbg('puriState');
+ expect(Object.values(st.pos).every((p)=>p.join()==='0,0')&&!(await H.page.locator('.puri-reset').isVisible()),'もとの ならびに もどらない '+JSON.stringify(st.pos));
+ await H.page.getByRole('button',{name:'みんな',exact:true}).click();await H.page.getByRole('button',{name:'ポーズ',exact:true}).click();
+ for(const [n,name] of [[2,'ピース'],[3,'わーい'],[4,'ハート']]){await H.page.getByRole('button',{name,exact:true}).click();await H.page.getByRole('button',{name:'とる！',exact:true}).click();await H.until((n)=>PokaDebug.puriState().shots>=n||PokaDebug.puriState().phase==='deco',8000,n);}
+ st=await H.dbg('puriState');expect(st.phase==='deco'&&st.shots===4,'4まい とれない '+JSON.stringify(st));
+ await H.page.getByRole('button',{name:'できあがり',exact:true}).click();await H.wait(300);await H.dialogs();
+ const ph=await H.dbg('photos');
+ expect(ph.length===4&&ph[0].m&&ph[0].m.wanko[0]>15&&ph[0].c.wanko[1]==='love'&&ph[0].c.gachan[1]==='surprise'&&ph[1].m===null&&ph[1].c.goji[0]==='peace'&&ph[2].c.wanko[0]==='wai'&&ph[3].c.gachan[0]==='heart','しゃしんに ポーズ・かお・ばしょが のこらない '+JSON.stringify(ph.map((p)=>({c:p.c,m:p.m}))));
+ await H.wait(500);await H.shot('done');
+ },{viewport,timeout:180000});
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('arcade-3f-'+viewport.width,async H=>{
  // Meeときょれじゃ 3F（UI-21。オーナーの FB 2026-10-01「3Fを 追加して プリクラを 3台 おけ。残り 2台は コンセプトを 変えよ（使える 背景などを 新たに 加えよ。例えば 学校など）」）:
  // 2F の 南西の エスカレーター → 3F（ふきぬけ・ぷりくら 3台・おめかし コーナー）→ フロアマップの 1F／2F／3F → がっこう ぷりくら（がっこうの はいけい 6つ・ことば）で 4まい → しゃしんに ブース → おでかけ ぷりくらの はいけい
