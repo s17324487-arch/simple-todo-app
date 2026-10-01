@@ -2033,7 +2033,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 },{viewport,full:viewport.width===375,timeout:120000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-bubbles-'+viewport.width,async H=>{
-  await H.newGameFast();await H.dbg('coins',987504);await H.wait(4000);const before=await H.dbg('saveData');
+  // 時こくを 固定する（ほんとうの 9:00／18:00 を またぐと ぱぱ・ままの「いってきます／ただいま」の ふきだしが たしかめる ふきだしを おしだす）
+  await H.newGameFast();await H.dbg('hour',7);await H.dbg('coins',987504);await H.wait(4000);const before=await H.dbg('saveData');
   for(const watching of [false,true]){
     if(watching)await H.houseButton('みまもる');await H.dbg('homeBubbleFixture');
     for(const [i,kind]of ['say','shout','cry','think','whisper','rare'].entries()){
