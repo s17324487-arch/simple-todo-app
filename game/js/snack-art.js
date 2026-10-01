@@ -282,6 +282,15 @@ const SnackArt = (() => {
     const [c, band] = it.col;
     return rect(1.5, 1.5, D - 3, H - 3, 4, shade(c, -0.1)) + rect(1.5, H * 0.74, D - 3, H * 0.26 - 1.5, 3, shade(band, -0.1)) + star(D / 2, H * 0.4, Math.min(D, H) * 0.2, "#FFFFFF", `opacity="0.7"`) + rect(1.5, 1.5, D - 3, H - 3, 4, "none", st(3));
   };
+  // ---- ねかせた はこ（3F の おしだし・タワーの 台。11×4.2×7.5）: まえ（11×4.2）は ことばの おび・うえ（11×7.5）は はこの まえの 絵 ----
+  const flatBack = (it, W, D) => {
+    const [c, band] = it.col;
+    return rect(1.5, 1.5, W - 3, D - 3, 4, shade(c, -0.08)) + rect(W * 0.08, D * 0.22, W * 0.46, D * 0.56, 2, "#FFFFFF", st(1.4)) + Array.from({ length: 9 }, (_, i) => rect(W * 0.62 + i * W * 0.03, D * 0.26, i % 3 ? 1 : 1.8, D * 0.48, 0, K)).join("") + rect(1.5, D * 0.8, W - 3, D * 0.2 - 1.5, 2, band) + rect(1.5, 1.5, W - 3, D - 3, 4, "none", st(2.6));
+  };
+  const flatSide = (it, H, D) => {
+    const [c, band] = it.col;
+    return rect(1.5, 1.5, H - 3, D - 3, 3, shade(c, -0.12)) + rect(H * 0.74, 1.5, H * 0.26 - 1.5, D - 3, 2, shade(band, -0.1)) + star(H * 0.38, D / 2, Math.min(H, D) * 0.26, "#FFFFFF", `opacity="0.7"`) + rect(1.5, 1.5, H - 3, D - 3, 3, "none", st(2.6));
+  };
   // ---- こつぶ（スウィートランド。まえ と うしろ）----
   const pieceFront = (it, S) => PIC[it.pic](4, 4, S - 8, S - 8, it.col[0]);
   const pieceBack = (it, S) => `<g transform="translate(${S} 0) scale(-1 1)">${PIC[it.pic](4, 4, S - 8, S - 8, shade(it.col[0], -0.08))}</g>`;
@@ -304,6 +313,13 @@ const SnackArt = (() => {
     } else {
       const S = 64; tex[L + "-front"] = () => wrap(S, S, pieceFront(it, S)); tex[L + "-back"] = () => wrap(S, S, pieceBack(it, S)); texSize[L + "-front"] = [96, 96]; texSize[L + "-back"] = [96, 96];
     }
+  }
+  // 3F の ねかせた はこ: look = "tower-<key>"（front 11×4.2・top 11×7.5・side 7.5×4.2・back）
+  for (const it of ITEMS) if (it.form === "box") {
+    const L = "tower-" + it.key, [w, h, d] = it.size, W = Math.round(w * unit), H = Math.round(h * unit), D = Math.round(d * unit), k = 1.6;
+    tex[L + "-front"] = () => wrap(W, D, boxTop(it, W, D)); tex[L + "-back"] = () => wrap(W, D, flatBack(it, W, D));
+    tex[L + "-top"] = () => wrap(W, H, boxFront(it, W, H)); tex[L + "-side"] = () => wrap(H, D, flatSide(it, H, D));
+    texSize[L + "-front"] = [Math.round(W * k), Math.round(D * k)]; texSize[L + "-back"] = texSize[L + "-front"]; texSize[L + "-top"] = [Math.round(W * k), Math.round(H * k)]; texSize[L + "-side"] = [Math.round(H * k), Math.round(D * k)];
   }
   // 館の 台の なかの 絵・けっかの まど（まえの 絵）。ratio = よこ / たて
   const svg = (id) => { const it = INDEX[id]; return it ? tex["snack-" + it.key + "-front"]() : ""; };

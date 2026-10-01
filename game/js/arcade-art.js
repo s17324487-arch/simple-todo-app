@@ -46,8 +46,9 @@ const ArcadeArt = (() => {
 
   // ---- 台の かたち（しゅるいごと）----
   // GH: ガラスの たかさ・HH: かんばんの たかさ
-  const SPEC = { claw: { base: 74, GH: 124, HH: 42 }, big: { base: 74, GH: 150, HH: 46 }, ring: { base: 74, GH: 124, HH: 42 }, sweet: { base: 70, GH: 104, HH: 40 }, pusher: { base: 74, GH: 96, HH: 40 }, tripod: { base: 70, GH: 116, HH: 42 }, bridge: { base: 74, GH: 140, HH: 46 } };
-  const specOf = (i) => { const d = CraneMachines.DEFS[i]; return d.type === "claw" && d.rig === CraneMachines.DEFS[1].rig ? "big" : d.type; };
+  const SPEC = { claw: { base: 74, GH: 124, HH: 42 }, big: { base: 74, GH: 150, HH: 46 }, ring: { base: 74, GH: 124, HH: 42 }, sweet: { base: 70, GH: 104, HH: 40 }, pusher: { base: 74, GH: 96, HH: 40 }, tripod: { base: 70, GH: 116, HH: 42 }, bridge: { base: 74, GH: 140, HH: 46 }, poke: { base: 70, GH: 112, HH: 42 }, tower: { base: 74, GH: 128, HH: 44 } };
+  // poke: ぼうで おす 台・tower: おかし タワー（リングフック）。3F（UI-23）
+  const specOf = (i) => { const d = CraneMachines.DEFS[i]; return d.tower ? "tower" : d.type === "claw" && d.rig === CraneMachines.DEFS[1].rig ? "big" : d.type; };
 
   // よこに ながい おかし（はこ）は たかさを ひくく（はばが 台から はみでない）
   const tall = (id, h) => (SnackArt.INDEX[id] ? Math.min(h, (h * 0.85) / Math.max(0.6, ratioOf(id))) : h);
@@ -92,6 +93,20 @@ const ArcadeArt = (() => {
       out.push(polyC(S, F, [[u0, v0, z + 0.5], [u1, v0, z + 0.5], [u1, v1, z + 0.5], [u0, v1, z + 0.5]], "#2A2238", 1.2));
       for (const u of [u0, u1]) { for (const v of [v0, v1]) out.push(S.line([F.Q(u, v, z), F.Q(u, v, bz)], "#6C7582", 3)); out.push(S.line([F.Q(u, v0, bz), F.Q(u, v1, bz)], INK, 5.4) + S.line([F.Q(u, v0, bz), F.Q(u, v1, bz)], col, 3)); }
       const id = ids[0], h = 34; out.push(standing(S, F, BridgePrizes.boxSvg(id), (u0 + u1) / 2, D * 0.5, bz + 1, h, BridgePrizes.ratio()));
+    } else if (kind === "poke") {
+      // ぼうで おす 台: たな（まえに ライト）・3だんに つんだ おかしの はこ 3れつ×2・おくの かべから でる ぼう
+      const sv = D * 0.12, top = z + 30, col = (k) => (SnackArt.INDEX[ids[k % ids.length]] || { col: ["#FFE2A8", "#E4983A"] }).col;
+      out.push(boxC(S, F, 0.12, sv, W - 0.24, D - 0.5 - sv, z, 30, [shade("#F7E3C8", 0), shade("#C99B76", 0), shade("#B07E58", 0)], 1.3));
+      out.push(boxC(S, F, 0.12, 0.08, W - 0.24, sv, z, 64, ["#5B97C7", "#7FB8E0", "#4E83B3"], 1.2));
+      for (let j = 0; j < 3; j++) for (const [r, v] of [[0, sv + 0.08], [1, sv + 0.5]]) for (let k = 0; k < 3; k++) { const [c, band] = col(k + r * 3 + j), u = 0.22 + k * ((W - 0.44) / 3); out.push(boxC(S, F, u + 0.04, v, (W - 0.44) / 3 - 0.08, 0.38, top + j * 9, 9, [shade(c, 0.15), c, band], 1.1)); }
+      out.push(S.line([F.Q(W * 0.5, sv + 0.1, top + 6), F.Q(W * 0.5, sv - 0.06, top + 6)], "#C9D0DA", 4) + S.ellipse(W * 0.5, sv + 0.16, top + 6, 0.05, "#FF9FC2", 1));
+    } else if (kind === "tower") {
+      // おかし タワー: とりだしぐちの よこの だいに つんだ はこ 5だん・まんなかの だんに みどりの わっか
+      const cu = W * 0.56, cv = D * 0.62, top = z + 16;
+      out.push(boxC(S, F, cu - 0.5, cv - 0.32, 1.0, 0.6, z, 16, ["#E26A98", "#B996DC", "#9472C2"], 1.3));
+      for (let k = 0; k < 5; k++) { const id = ids[(k * 7 + 1) % ids.length], it = SnackArt.INDEX[id] || { col: ["#FFE2A8", "#E4983A"] }, [c, band] = it.col, wide = k % 2 === 0; out.push(boxC(S, F, cu - (wide ? 0.42 : 0.28), cv - (wide ? 0.26 : 0.36), wide ? 0.84 : 0.56, wide ? 0.52 : 0.72, top + k * 13, 13, [shade(c, 0.15), c, band], 1.1)); }
+      const q = S.P(...F.Q(cu + 0.62, cv, top + 2 * 13 + 6)); S.grow(q.x - 9, q.y - 9, q.x + 9, q.y + 9);
+      out.push(`<circle cx="${f2(q.x)}" cy="${f2(q.y)}" r="6.4" fill="none" stroke="${INK}" stroke-width="3.6"/><circle cx="${f2(q.x)}" cy="${f2(q.y)}" r="6.4" fill="none" stroke="#5BC46A" stroke-width="2.2"/>`);
     } else if (kind === "tripod") {
       // あなと ランプの わ・3本の アームの 上の 景品
       const cu = W / 2, cv = D * 0.5, R = Math.min(W, D) * 0.28;
@@ -104,15 +119,16 @@ const ArcadeArt = (() => {
   };
   // アーム（くるま・ケーブル・つめ）。リングは フック
   const claw = (S, F, i, zTop) => {
-    const kind = specOf(i); if (kind === "sweet" || kind === "tripod" || kind === "pusher") return "";
+    const kind = specOf(i); if (kind === "sweet" || kind === "tripod" || kind === "pusher" || kind === "poke") return "";
     const W = F.W, D = F.D, u = W * 0.62, v = (D - 0.4) * 0.45, big = kind === "big" || kind === "bridge";
     let s = S.line([F.Q(0.16, v, zTop - 5), F.Q(W - 0.16, v, zTop - 5)], "#8A939E", 3);
     s += boxC(S, F, u - 0.13, v - 0.13, 0.26, 0.26, zTop - 14, 10, ["#DDE3EA", "#9AA3AE", "#7E8794"], 1.2);
     const top = S.P(...F.Q(u, v, zTop - 14)), hub = S.P(...F.Q(u, v, zTop - (big ? 58 : 48)));
     s += `<path d="M${f2(top.x)} ${f2(top.y)} V${f2(hub.y)}" stroke="#5E6670" stroke-width="1.6"/>`;
-    s += `<ellipse cx="${f2(hub.x)}" cy="${f2(hub.y)}" rx="${big ? 10 : 7.5}" ry="${big ? 4.6 : 3.6}" fill="${kind === "ring" ? "#F9D56E" : "#9ED36A"}" stroke="${INK}" stroke-width="1.5"/>`;
+    const hook = kind === "ring" || kind === "tower";
+    s += `<ellipse cx="${f2(hub.x)}" cy="${f2(hub.y)}" rx="${big ? 10 : 7.5}" ry="${big ? 4.6 : 3.6}" fill="${hook ? "#F9D56E" : "#9ED36A"}" stroke="${INK}" stroke-width="1.5"/>`;
     const L = big ? 26 : 18, sp = big ? 12 : 8;
-    if (kind === "ring") s += `<path d="M${f2(hub.x - 5)} ${f2(hub.y + 2)} l-2 ${L * 0.8} q3 5 7 1 M${f2(hub.x + 5)} ${f2(hub.y + 2)} l2 ${L * 0.8} q-3 5 -7 1" fill="none" stroke="#8A939E" stroke-width="2.4" stroke-linecap="round"/>`;
+    if (hook) s += `<path d="M${f2(hub.x - 5)} ${f2(hub.y + 2)} l-2 ${L * 0.8} q3 5 7 1 M${f2(hub.x + 5)} ${f2(hub.y + 2)} l2 ${L * 0.8} q-3 5 -7 1" fill="none" stroke="#8A939E" stroke-width="2.4" stroke-linecap="round"/>`;
     else for (const k of big ? [-1, 1] : [-1, 0, 1]) s += `<path d="M${f2(hub.x + k * 3)} ${f2(hub.y + 2)} L${f2(hub.x + k * sp)} ${f2(hub.y + L * 0.62)} L${f2(hub.x + k * (sp - 3))} ${f2(hub.y + L)}" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M${f2(hub.x + k * 3)} ${f2(hub.y + 2)} L${f2(hub.x + k * sp)} ${f2(hub.y + L * 0.62)} L${f2(hub.x + k * (sp - 3))} ${f2(hub.y + L)}" fill="none" stroke="#C9D0DA" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
     return s;
   };
@@ -134,10 +150,10 @@ const ArcadeArt = (() => {
     if (kind === "sweet" || kind === "pusher") for (const [k, c] of kind === "pusher" ? [[0.26, "#FFFFFF"], [0.42, "#FFFFFF"], [0.66, "#7ED957"]] : [[0.34, "#FF7BA8"], [0.62, "#7ED957"]]) { const q = S.P(...F.Q(W * k, panelMid, z0 - 1)); s += `<ellipse cx="${f2(q.x)}" cy="${f2(q.y)}" rx="8" ry="4.2" fill="${shade(c, -0.3)}" stroke="${INK}" stroke-width="1.3"/><ellipse cx="${f2(q.x)}" cy="${f2(q.y - 2)}" rx="7" ry="3.6" fill="${c}" stroke="${INK}" stroke-width="1.2"/>`; }
     else { const j = S.P(...F.Q(W * 0.3, panelMid, z0 - 1)); s += `<ellipse cx="${f2(j.x)}" cy="${f2(j.y)}" rx="6" ry="3" fill="#2B2440"/><path d="M${f2(j.x)} ${f2(j.y)} V${f2(j.y - 12)}" stroke="${INK}" stroke-width="2.4"/><circle cx="${f2(j.x)}" cy="${f2(j.y - 13)}" r="4.4" fill="#FF7BA8" stroke="${INK}" stroke-width="1.3"/>`; const b2 = S.P(...F.Q(W * 0.68, panelMid, z0 - 1)); s += `<ellipse cx="${f2(b2.x)}" cy="${f2(b2.y)}" rx="8" ry="4.2" fill="#3D8A2E" stroke="${INK}" stroke-width="1.3"/><ellipse cx="${f2(b2.x)}" cy="${f2(b2.y - 2)}" rx="7" ry="3.6" fill="#7ED957" stroke="${INK}" stroke-width="1.2"/>`; }
     // まえの 絵: とりだしぐち（ひだり）・100コインの いれぐち（みぎ）・しましま
-    const fw = W * 48, door = kind === "tripod" || kind === "sweet" || kind === "pusher" || kind === "bridge" ? [fw * 0.34, fw * 0.66] : [fw * 0.08, fw * 0.42];
+    const wideDoor = kind === "tripod" || kind === "sweet" || kind === "pusher" || kind === "bridge" || kind === "poke", fw = W * 48, door = wideDoor ? [fw * 0.34, fw * 0.66] : [fw * 0.08, fw * 0.42];
     s += onFace(S, F, "front", 0.06, 0, z0 - 30, `<rect x="0" y="0" width="${f2(fw - 6)}" height="7" fill="${th.trim}" opacity="0.9"/>`);
     s += onFace(S, F, "front", 0, 0, z0 - 34, `<rect x="${f2(door[0])}" y="4" width="${f2(door[1] - door[0])}" height="26" rx="4" fill="#2A2238" stroke="${INK}" stroke-width="1.6"/><rect x="${f2(door[0] + 3)}" y="7" width="${f2(door[1] - door[0] - 6)}" height="9" rx="2" fill="#DDF3FF" opacity="0.55"/>${txt((door[0] + door[1]) / 2, 27, 7.4, "とりだしぐち", "#FFF7E0")}`);
-    const slot = kind === "tripod" || kind === "sweet" || kind === "pusher" || kind === "bridge" ? fw * 0.82 : fw * 0.7;
+    const slot = wideDoor ? fw * 0.82 : fw * 0.7;
     s += onFace(S, F, "front", 0, 0, z0 - 34, `<rect x="${f2(slot - 11)}" y="4" width="22" height="24" rx="3" fill="#E6E0CF" stroke="${INK}" stroke-width="1.4"/><path d="M${f2(slot - 5)} 10 H${f2(slot + 5)}" stroke="${INK}" stroke-width="2"/>${txt(slot, 24, 8, "100", INK)}`);
     // よこの 絵（台の 景品の ポスター）
     const ids = PrizeArcade.prizeList(i), sideLen = gv * 48;
@@ -149,7 +165,7 @@ const ArcadeArt = (() => {
     s += polyC(S, F, [[farSide, 0.1, z0], [farSide, gv, z0], [farSide, gv, z1], [farSide, 0.1, z1]], "#2B244033", 0);
     s += polyC(S, F, [[0.1, 0.1, z0], [W - 0.1, 0.1, z0], [W - 0.1, gv, z0], [0.1, gv, z0]], th.floor === "floor-gold" ? "#24305C" : shade(th.body, 0.35), 1.4);
     // とりだしぐちの 上の とうめいな はこ（アームの 台）
-    if (kind === "claw" || kind === "big" || kind === "ring") s += boxC(S, F, 0.14, gv - 0.62, 0.52, 0.5, z0, 16, ["#DDF3FF55", "#DDF3FF44", "#DDF3FF33"], 1.1);
+    if (kind === "claw" || kind === "big" || kind === "ring" || kind === "tower") s += boxC(S, F, 0.14, gv - 0.62, 0.52, 0.5, z0, 16, ["#DDF3FF55", "#DDF3FF44", "#DDF3FF33"], 1.1);
     s += inside(S, F, i, z0) + claw(S, F, i, z1);
     // ガラス（まえ・よこ）と はしら
     const glassFront = [[0.1, gv, z0], [W - 0.1, gv, z0], [W - 0.1, gv, z1], [0.1, gv, z1]], sideU = F.side === 0 ? 0.1 : W - 0.1;
@@ -261,13 +277,13 @@ const ArcadeArt = (() => {
       const q = S.P(0.5, 0.54, 130); s += `<g transform="matrix(${f2(IsoVenue.A)} ${f2(IsoVenue.B)} 0 1 ${f2(q.x)} ${f2(q.y)})">${txt(0, 6, 15, "でぐち", "#FFFFFF")}</g>`;
       return s;
     },
-    // フロア あんない（1F。2本の あしと いた: 3F ぷりくら・2F おかし・1F ぬいぐるみ）
+    // フロア あんない（1F。2本の あしと いた: 3F ぷりくら・おかし・2F おかし・ガチャ・1F ぬいぐるみ）
     directory(S, f) {
       const F = frame(f), W = F.W, D = F.D, z0 = 40, z1 = 176, fw = (W - 0.16) * 48;
       let s = S.ellipse(W / 2, D / 2, 0, 0.4, "#0000002A", 0);
       for (const u of [0.24, W - 0.36]) s += boxC(S, F, u, D * 0.45, 0.12, 0.12, 0, z0, ["#E8E0D0", "#BFB4A0", "#A89C86"], 1.1);
       s += boxC(S, F, 0.08, D * 0.38, W - 0.16, 0.24, z0, z1 - z0, ["#FFFFFF", "#2B2346", "#241E36"], 1.6);
-      const rows = [["3F", "ぷりくら", "#D6A6F2"], ["2F", "おかし・ガチャ", "#FFB86B"], ["1F", "ぬいぐるみ", "#7FB8E0"]];
+      const rows = [["3F", "ぷりくら・おかし", "#D6A6F2"], ["2F", "おかし・ガチャ", "#FFB86B"], ["1F", "ぬいぐるみ", "#7FB8E0"]];
       s += onFace(S, { ...F, D: D * 0.62 }, "front", 0.08, 0, z1, `<rect x="3" y="3" width="${f2(fw - 6)}" height="${z1 - z0 - 6}" rx="6" fill="#2B2346" stroke="#FFE07A" stroke-width="1.6"/>${txt(fw / 2, 22, 11, "フロア あんない", "#FFE07A")}${rows.map(([fl, t, c], i) => `<rect x="8" y="${32 + i * 32}" width="${f2(fw - 16)}" height="26" rx="5" fill="${c}" stroke="${INK}" stroke-width="1"/>${txt(22, 50 + i * 32, 11, fl, INK)}${txt((fw + 30) / 2, 50 + i * 32, 10, t, INK)}`).join("")}`);
       return s;
     },

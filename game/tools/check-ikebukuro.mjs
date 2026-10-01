@@ -33,10 +33,10 @@ for(const type of Object.keys(R.IkebukuroCatalog.appliances))for(let i=0;i<3;i++
 for(let i=0;i<3;i++)assert(R.ITEM_INDEX['ike_phone_'+i].rare&&R.ITEM_INDEX['ike_phone_'+i].slot==='neck');
 for(const id of R.IkebukuroCatalog.groups.luxury)assert(R.FURN_INDEX[id].price>=10000&&R.FURN_INDEX[id].price<=50000);
 for(const shop of ['clothes','furniture','market'])for(const [tab]of R.BUY_SHOPS[shop].tabs)assert(!R.BUY_SHOPS[shop].items(tab).some(i=>i.exclusive));
-assert.equal(R.PrizeArcade.machines.length,19);assert.equal(R.CraneMachines.DEFS.length,19);
+assert.equal(R.PrizeArcade.machines.length,21);assert.equal(R.CraneMachines.DEFS.length,21);
 for(const id of ['prize_uma','prize_pie','prize_cookie',...R.IkebukuroCatalog.groups.marche])assert.equal(R.BAG_INDEX[id].kind,'food',id+' must be edible');
 for(const food of R.FOODS.filter(f=>f.exclusive==='ikebukuro')){const svg=R.Art.iconSvg('bag',food.id);assert(!/=>|\$\{|undefined/.test(svg),food.id+' must register SVG markup, not a renderer function');assert(/<(path|rect|circle)\b/.test(svg),food.id+' must have visible artwork');}
-for(const [type,min] of [['claw',2],['sweet',1],['pusher',1],['tripod',2],['ring',2],['bridge',2]])assert(R.PrizeArcade.machines.filter(m=>m.type===type).length>=min,type);
+for(const [type,min] of [['claw',2],['sweet',1],['pusher',1],['tripod',2],['ring',2],['bridge',2],['poke',1]])assert(R.PrizeArcade.machines.filter(m=>m.type===type).length>=min,type);
 // 100コインの 支払いと ごほうびは 1かいだけ（くわしい 物理の 検査は tools/check-crane.mjs）
 R.Save.d=R.Save.fresh();R.Save.d.coins=99999;const before=R.Save.d.coins,back={venue:'arcade',floor:1,back:{map:'city',x:mee.x+mee.door,y:mee.y+mee.h}};
 const run=R.PrizeArcade.start(0,back);assert(run);assert.equal(R.Save.d.coins,before-100);assert.equal(R.PrizeArcade.start(1,back),null);
@@ -59,13 +59,20 @@ let hiddenChecks=0;
   // ガチャ コーナーの 台は、てまえの 高い もの（はしら など）にも かくれない
   const corner=fl[2].fixtures.filter(f=>['gacha','capbin','gachaboard'].includes(f.kind)),depth=f=>f.x+f.w/2+f.y+f.h/2;
   for(const f of corner)for(const o of fl[2].fixtures){if(corner.includes(o)||(o.height??40)<=150||depth(o)<=depth(f))continue;const a=ccw(I.hull(f)),c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/area(a):0;hiddenChecks++;assert(k<=0.12,'2F の ガチャ コーナーの '+f.kind+'（'+f.x+','+f.y+'）が '+o.kind+'（'+o.x+','+o.y+'）に かくれる '+Math.round(k*100)+'%');}
-  // 3F の ぷりくら・おめかし コーナー・こういしつ・かしだしの ラック（UI-21・UI-22）も、てまえの 高い もの（はしら・ラック など）に かくれない
-  const puri=fl[3].fixtures.filter(f=>['photobooth','vanity','fitting','costumerack'].includes(f.kind));
+  // 3F の ぷりくら・おめかし コーナー・こういしつ・かしだしの ラック・おかし コーナーの 台（UI-21〜23）も、てまえの 高い もの（はしら・ラック など）に かくれない
+  const puri=fl[3].fixtures.filter(f=>['photobooth','vanity','fitting','costumerack','crane'].includes(f.kind));
   for(const f of puri)for(const o of fl[3].fixtures){if(o===f||(o.height??40)<=150||o.over||depth(o)<=depth(f))continue;const a=ccw(I.hull(f)),c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/area(a):0;hiddenChecks++;assert(k<=0.12,'3F の '+(f.label||f.kind)+'（'+f.x+','+f.y+'）が '+(o.label||o.kind)+'（'+o.x+','+o.y+'）に かくれる '+Math.round(k*100)+'%');}}
 // 3F（ぷりくらの フロア・UI-21）: 2F の 南西の すみの エスカレーターで 2F ⇄ 3F（3F は ふきぬけ）・1F は ぷりくらの かわりに フロア あんない
 {const fl=R.VenueHalls.defs.arcade.floors,up=fl[2].fixtures.find(f=>f.kind==='escalator'&&f.to===3),down=fl[3]&&fl[3].fixtures.find(f=>f.kind==='escalator'&&f.to===2);
   assert(Object.keys(fl).join()==='1,2,3'&&up&&down&&up.x===down.x&&up.y===down.y&&fl[3].holes.length===1&&fl[3].holes[0].x===down.x,'2F と 3F の エスカレーター');
   assert(r2walk(fl[3],up.spawn)&&r2walk(fl[2],down.spawn),'エスカレーターの おりばに たてる');
-  assert(fl[1].fixtures.some(f=>f.kind==='directory'&&f.action==='info'&&/3F ぷりくら/.test(f.text))&&fl[3].fixtures.filter(f=>f.kind==='photobooth').length===3,'1F の フロア あんない・3F の ぷりくら 3台');}
+  assert(fl[1].fixtures.some(f=>f.kind==='directory'&&f.action==='info'&&/3F ぷりくら/.test(f.text)&&/おかし タワー/.test(f.text))&&fl[3].fixtures.filter(f=>f.kind==='photobooth').length===3,'1F の フロア あんない・3F の ぷりくら 3台');
+  // 3F の おかし コーナー（UI-23）: ぼうで おす 台（19）と おかし タワー（20）。まえに たてる・フロアマップの コーナー・ほかの 階に ない
+  const s3=fl[3].fixtures.filter(f=>f.kind==='crane');
+  assert(s3.map(f=>f.machine).sort().join()==='19,20'&&s3.every(f=>f.action==='crane'&&f.spots.every(p=>r2walk(fl[3],p))),'3F の おかし コーナーの 2台');
+  assert(R.IkeArcade.floorOf(19)===3&&R.IkeArcade.floorOf(20)===3&&![1,2].some(n=>fl[n].fixtures.some(f=>f.machine===19||f.machine===20)),'おかしの 2台は 3F だけ');
+  assert(fl[3].zones.some(z=>z.shop==='arcSnack3'&&s3.every(f=>f.x>=z.x&&f.x+f.w<=z.x+z.w&&f.y>=z.y&&f.y+f.h<=z.y+z.h))&&R.MallArt.SHOP.arcSnack3,'フロアマップの おかし コーナー');
+  for(const f of s3){const m=R.ArcadeArt.model(f);assert(m&&/^<svg /.test(m.svg)&&!/NaN|undefined/.test(m.svg)&&m.vb.w>0&&m.vb.h>0&&!/NaN|undefined/.test(R.ArcadeArt.modelKey(f)),'3F の '+f.label+' の 絵');}
+  assert(R.ArcadeArt.specOf(19)==='poke'&&R.ArcadeArt.specOf(20)==='tower','台の しゅるい');}
 function r2walk(r,[x,y]){return !R.IsoVenue.solidAt(r,x,y)&&!r.fixtures.some(f=>!f.walk&&!f.over&&f.kind!=='hangsign'&&x>=f.x&&x<f.x+f.w&&y>=f.y&&y<f.y+f.h);}
-console.log('Ikebukuro: layout (station west / electronics・Mee・mall top / S60 to the mall / range・office on Green Odori), '+city.buildings.length+' buildings reachable, exclusive catalogs, nineteen machines (twelve on 1F, five snack catchers and two bridges on 2F), the gacha corner in the middle of 2F, 3F (three purikura booths) by the 2F south-west escalator, nothing hidden behind the escalator landing ('+hiddenChecks+' checks), six distinct mechanics, fee/reward idempotency and legacy money OK');
+console.log('Ikebukuro: layout (station west / electronics・Mee・mall top / S60 to the mall / range・office on Green Odori), '+city.buildings.length+' buildings reachable, exclusive catalogs, twenty-one machines (twelve on 1F, five snack catchers and two bridges on 2F, a stick pusher and a snack tower on 3F), the gacha corner in the middle of 2F, 3F (three purikura booths) by the 2F south-west escalator, nothing hidden behind the escalator landing ('+hiddenChecks+' checks), seven distinct mechanics, fee/reward idempotency and legacy money OK');
