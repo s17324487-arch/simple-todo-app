@@ -113,6 +113,7 @@ const PokaDebug = {
       "PokaDebug.collab('korokoro')          コラボ グッズの つみたて・もらった もの・つぎ（'puzzle' も）",
       "PokaDebug.aquaGifts()                 すいぞくかんの おみやげ（フィギュア 10・コラボ 5・ねだん・もって いる かず・12F の 台・ずかんの ヒント）",
       "PokaDebug.figStand()                  フィギュア台（へやの だいと かざった フィギュア・のこりの かず・いごこち・かざる 画面が ひらいて いるか）",
+      "PokaDebug.burgerMenu()                バーガーやさんの メニュー（4つの タブ）・にこにこ セットの おまけの おもちゃ（6しゅ・もって いる かず）",
       "PokaDebug.store('clothes', 'town')    歩ける店内へ（入口のある町を選べる）",
       "PokaDebug.storeState()                店員・展示・通路・3人・出口の状態",
       "PokaDebug.storeWalkTo(5, 3)           店内のマスまで実際に歩く",
@@ -688,6 +689,8 @@ const PokaDebug = {
   // ⑤ 寄贈の きろく（2番で ふえる）と 入った へや
   // きふの ごほうびの 服（js/museum-wear.js・UI-33）: 館ごとの きふの かず・もらった 服・つぎ・みだしの ことば
   museumWear() { return typeof MuseumWear === "undefined" ? null : MuseumWear.state(); },
+  // バーガーやさんの メニュー（タブ・食べ物の id）と にこにこ セットの おまけの おもちゃ（もって いる かず。js/burger-menu.js）
+  burgerMenu() { return typeof BurgerMenu === "undefined" ? null : BurgerMenu.state(); },
   museumState() { const st = Save.d.museum; return { fish: Object.keys(st.fish).length, bones: Object.keys(st.bones).length, done: Object.keys(st.done), rooms: Object.keys(st.rooms), intro: document.querySelector(".museum-intro")?.innerText || null }; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
   // ⑥ 射撃場: ロビーを とばして あそびを はじめる（ロックは むし・もどり先は シティの 入口の まえ）

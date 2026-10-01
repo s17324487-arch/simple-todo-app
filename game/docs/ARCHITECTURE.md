@@ -19,7 +19,7 @@ ShopScene の作業中は「おてつだいを やめる」から確認できる
 
 - `STORE_INTERIORS` の展示は `[kind,x,y,w,d,label]`。描画は奥から足元順、当たり判定は床面の矩形。床タップと方向キーで3人が一緒に歩く。店員または「てんいんと はなす」でレジ前まで経路探索してから会話する。入店しただけでは商品画面を開かない。
 - `StoreArt` が各業種の壁・床・棚・作業設備のSVGを作る。部屋は店ID、展示は固定種類、店員は店IDでキャッシュする。蒸気と点灯の時間はCanvas描画だけに使う。
-- 商品UIは既存の `ShopUI` を再利用。洋服・家具・スーパーの品揃えと価格は維持し、クレープ・パン・花のお店は既存商品の専門棚を使う。`BUY_SHOPS.kind` がある場合は購入先（bag/furn）を指定する。購入直後に `Save.write()`。
+- 商品UIは既存の `ShopUI` を再利用。洋服・家具・スーパーの品揃えと価格は維持し、クレープ・パン・花のお店は既存商品の専門棚を使う。`BUY_SHOPS.kind` がある場合は購入先（bag/furn）を指定する。購入直後に `Save.write()`。`BUY_SHOPS[id]` には おまけ `bought(it, qty)`（かった あと・セーブの まえに よぶ。かえりの かんすうを かった あとに よぶ）・せつめいの ひとこと `note(it)`・まどの クラス `cls` を つけられる（バーガーやさん `js/burger-menu.js`）。
 - おてつだい開始に `returnStore:true` を渡すと、報酬を保存して同じ店内に戻る。従来の `PokaDebug.shop()` など、指定しない入口は町へ戻る契約を維持する。空腹時には開始しない。
 - KEY/SCHEMA/保存項目の形は変えない。店内へ入る際に `world` に入口の外を保存するため、再読み込み後は同じ町の同じお店の外から再開。店内専用座標を町の座標として保存しない。部屋・アイテム・所持金・育成・お店の進行は共通。
 - 開発用API: `PokaDebug.store(id,map='town')`、`storeState()`（店員/出口の画面座標、全床の到達性、展示・パーティ・BGM）、`storeWalkTo(x,y)`。後者も実際に床を歩く。新シーンの操作テストはこのAPI経由。
@@ -171,6 +171,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `aqua-gifts.js`（aqua-art.js の あと・ike-aquarium.js の まえ） | `AquaGifts` |
 | — | `figure-stand.js`（aqua-gifts.js の あと・ike-aquarium.js の まえ） | `FigureStand` |
 | — | `museum-wear.js`（aqua-gifts.js の あと・item-dex-sources.js の まえ） | `MuseumWear`（きふの ごほうびの 服 8つ・UI-33） |
+| — | `burger-menu.js`（scene-store.js・shop.js・puri-pose.js の あと・figure-stand.js の まえ） | `BurgerMenu`（バーガーやさんの メニュー・にこにこ セットの おまけ・UI-34） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1049,6 +1050,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - わたしかた: `Museum.talk`（館の 人に はなした とき）と `Museum.donate` の きふの あと に `MuseumWear.reward(館, 人, かお)` → `claim(館)`（めやすに とどいて まだ もらって いない ものを `WearStock.add(id, 1)`）→ 1つずつ カード（3人が つけた 絵・「ありがとう！」）。まえから きふして いる 人は つぎに はなした ときに まとめて もらえる。きふの まどの みだしの したに `hint(館)`（つぎの ごほうびまで あと なん しゅ／こ）。
 - セーブ: `Save.d.museum.wear = { id: もらった 日 }`（fresh に たす だけ・SCHEMA は 2 の まま）。ずかんの ヒントは `MuseumWear.source(id)`（`ItemDexSources.source`）。
 - PokaDebug: `museumWear()`。検査は `tools/check-museum-wear.mjs`、スモークは `tests/museum-wear-smoke.mjs`（`museum-wear-390/375`）。
+
+## バーガーやさんの メニュー（UI-34・`js/burger-menu.js`）
+
+オーナーの FB 2026-10-01「ハンバーガー屋さんのお買い物に、複数のハンバーガーの種類と、ポテト、シェイク、ハッピーセットを加えて」。「ハッピーセット」は マクドナルドの 登録商標 なので「にこにこ セット」。
+
+- `BurgerMenu.TABS`: `BUY_SHOPS.burger`（`scene-store.js` が つくる。マックさん・まちなかの バーガーやさん など ぜんぶ）の `tabs`・`items`・`hello`・`cls`（`shop-bm`: なまえは ことばの きれめで おりかえす）を かきかえる。バーガー（`bm_hamburger`・`burger`〔いままでの チーズバーガー〕・`bm_teriyaki`・`bm_fish`・`bm_chicken`・`bm_ebi`・`bm_double`・`bm_big`）／サイド（`bm_fries_s|m|l`・`bm_nugget`）／のみもの（`bm_shake_vanilla|berry|choco`〔`deza`〕・`juice`・`milk`）／セット（`bm_nikoniko`）。あたらしい 食べ物は `FOODS`・`BAG_INDEX`・`FOOD_ART` に たす（`exclusive: "burger"`・`burgerMenu: true`）。`ikebukuro-catalog.js` の exclusive の フィルタより あとで `items` を おきかえる ので、この おみせ では ならぶ。
+- おまけの おもちゃ `BurgerMenu.TOYS`（6しゅ・`bm_toy_*`）: 家具（`price: 0`・`exclusive: "burger"`・`burgerToy: true`・50×55）。絵は 100×110（`toySvg`）。3人は `Chara.svg` の うでの ポーズ `CHARA_GESTURES.bm_hug_burger|fries|shake`（まえむき・むねの まえに 食べ物の 絵）を `<g transform>` で おく（いれこの `<svg>` に しない: CSS の `.ico svg` などで 大きさが かわらない）。`FigureStand.isFigure` が `BurgerMenu.TOY_INDEX` を みる（`figure-stand.js` の まえに よむ）。
+- かう: `ShopUI.detail` が かった あと（セーブの まえ）に `BUY_SHOPS.burger.bought(it, qty)` → にこにこ セット なら かずだけ `nextToy()`（まだ もって いない ものから・ぜんぶ あれば どれでも）を `Save.d.furn` に たし、かった あとに おまけの まど（`.bm-reveal`: はじめて！・おもちゃ あつめ N / 6・「やったー！」48px）。せつめいの さいごに `note(it)`（ぜんぶで 6しゅ・もってる なんしゅ）。
+- セーブは `bag`・`furn` だけ（SCHEMA は 2 の まま）。ずかんの ヒントは `BurgerMenu.source(id)`（`ItemDexSources.source`）。
+- PokaDebug: `burgerMenu()`。検査は `tools/check-burger-menu.mjs`、スモークは `tests/burger-menu-smoke.mjs`（`burger-menu-390/375`）。
 
 ## すいぞくかんの おみやげ（UI-26・`js/aqua-gifts.js`）
 

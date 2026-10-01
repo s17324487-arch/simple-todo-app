@@ -1,12 +1,12 @@
 // フィギュア台（js/figure-stand.js）の 検査。ブラウザ なしで たしかめる。
-// だい 2しゅ（かぐやで かえる・ばしょ 9）・かざれる フィギュア（ガチャ・はしわたし・すいぞくかん）・figs の よみかた（しらない id・フィギュアで ない もの）・
+// だい 2しゅ（かぐやで かえる・ばしょ 9）・かざれる フィギュア（ガチャ・はしわたし・すいぞくかん・バーガーやさんの おまけ）・figs の よみかた（しらない id・フィギュアで ない もの）・
 // おいた かず（Room.placed・ほかの へや・もようがえ）・いごこち・プリセット（おぼえる・たりない とき）・セーブの ほぞん（SaveBackup）・立体（はんてん・live）・
 // だいの ばしょ（だんの うえ・たかさに おさまる）・フィギュアの 足もと。
 import assert from "node:assert/strict";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
-const { FigureStand: FS, FURN_INDEX, FURNITURE, BUY_SHOPS, HomeDesign, FurnLive, FurnModels, Room, RoomPresets, Save, SaveBackup, HomeRooms, Gacha, BridgePrizes, AquaGifts, ItemDexSources } = R;
+const { FigureStand: FS, FURN_INDEX, FURNITURE, BUY_SHOPS, HomeDesign, FurnLive, FurnModels, Room, RoomPresets, Save, SaveBackup, HomeRooms, Gacha, BridgePrizes, AquaGifts, BurgerMenu, ItemDexSources } = R;
 R.UI.toast = () => {}; R.UI.updateHud = () => {};
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
@@ -31,8 +31,8 @@ for (const id of STANDS) {
 }
 ok(FS.STANDS.figstand_step.price < FS.STANDS.figstand_case.price && FS.STANDS.figstand_step.price >= 1000 && FS.STANDS.figstand_case.price <= 3000, "ねだん（ほんだな 1040・みどりの たな 1520 くらい）");
 // ---- 2. かざれる フィギュア ----
-const figs = FS.figures(), gf = Gacha.ITEMS.filter((it) => it.kind === "furn").map((it) => it.id), bf = BridgePrizes.ITEMS.filter((it) => it.kind === "fig").map((it) => it.id), af = AquaGifts.FIGS.map((f) => f.id);
-ok(figs.length === gf.length + bf.length + af.length && [...gf, ...bf, ...af].every((id) => figs.includes(id) && FURN_INDEX[id].figure === true), `かざれる フィギュア ${figs.length}しゅ（ガチャ ${gf.length}・はしわたし ${bf.length}・すいぞくかん ${af.length}）`);
+const figs = FS.figures(), gf = Gacha.ITEMS.filter((it) => it.kind === "furn").map((it) => it.id), bf = BridgePrizes.ITEMS.filter((it) => it.kind === "fig").map((it) => it.id), af = AquaGifts.FIGS.map((f) => f.id), tf = BurgerMenu.TOYS.map((t) => t.id);
+ok(figs.length === gf.length + bf.length + af.length + tf.length && [...gf, ...bf, ...af, ...tf].every((id) => figs.includes(id) && FURN_INDEX[id].figure === true), `かざれる フィギュア ${figs.length}しゅ（ガチャ ${gf.length}・はしわたし ${bf.length}・すいぞくかん ${af.length}・バーガーやさんの おまけ ${tf.length}）`);
 ok(!FS.isFigure("teddy") && !FS.isFigure("figstand_step") && !FS.isFigure("aqc_penguin") && !FS.isFigure("gacha_ears_0") && !FS.isFigure(BridgePrizes.ITEMS.find((it) => it.kind !== "fig").id) && !FS.isFigure("nothing"), "ぬいぐるみ・だい・コラボ・服・ざっかは かざれない");
 for (const id of figs) {
   const S = FS.STANDS.figstand_step, k = FS.scaleOf(S, id), f = FURN_INDEX[id], ft = FS.foot(id), m = HomeDesign.model(id);

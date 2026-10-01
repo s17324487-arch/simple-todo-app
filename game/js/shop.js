@@ -115,6 +115,9 @@ const ShopUI = {
     if (kind === "wear") info.push(`1こで ひとり きられるよ（もってる: ${WearStock.count(it.id)}こ）`);
     if (it.comfort) info.push(`いごこち +${it.comfort}`);
     if (it.hunger) info.push(`おなか +${it.hunger}` + (it.mood ? ` ／ ごきげん ${it.mood > 0 ? "+" : ""}${it.mood}` : ""));
+    // おみせの ひとこと（バーガーやさんの おまけの おもちゃ など。js/burger-menu.js）
+    const shopNote = BUY_SHOPS[shopId] && BUY_SHOPS[shopId].note ? BUY_SHOPS[shopId].note(it) : "";
+    if (shopNote) info.push(shopNote);
     if (info.length) body.append(U.el("div", { class: "note", html: info.join("<br>") }));
     let qty = 1;
     const foot = U.el("div", { class: "row", style: "width:100%" });
@@ -144,6 +147,8 @@ const ShopUI = {
       else if (kind === "floor") Save.d.room.floors[it.id] = true;
       else if (kind === "furn") Save.d.furn[it.id] = (Save.d.furn[it.id] || 0) + qty;
       else Save.addBag(it.id, qty);
+      // おまけ（にこにこ セットの おもちゃ など）は セーブの まえに わたす。かえりは かった あとに ひらく まど
+      const extra = BUY_SHOPS[shopId] && BUY_SHOPS[shopId].bought ? BUY_SHOPS[shopId].bought(it, qty) : null;
       Save.mark();
       Save.write();
       m.close();
@@ -157,6 +162,7 @@ const ShopUI = {
         }
       } else if (kind === "furn" || kind === "wall" || kind === "floor") UI.toast("おうちの「もようがえ」で つかえるよ", "good");
       else UI.toast(`${it.name}を ${qty}こ かった！`, "good");
+      if (extra) await extra();
     }, owned ? "" : "yellow");
     if (owned) buy.disabled = true;
     foot.append(buy);

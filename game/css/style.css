@@ -275,6 +275,22 @@ html, body {
 .mw-card .mw-who { width: 31%; max-width: 96px; aspect-ratio: 220 / 240; }
 .mw-card .mw-who svg { width: 100%; height: 100%; }
 .mw-panel .panel-foot .btn { min-height: 48px; font-size: 16px; }
+/* バーガーやさんの にこにこ セットの おまけ（js/burger-menu.js）: でた おもちゃ・あつめた かず（6しゅ） */
+.bm-reveal { text-align: center; }
+.bm-lead { margin: 0 0 10px; font-size: 15px; font-weight: 900; }
+.bm-got { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 0 0 10px; }
+.bm-toy { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 104px; padding: 6px 8px 8px; border: 3px solid var(--ink); border-radius: 16px; background: linear-gradient(#fff8dc, #fff); }
+.bm-pic { display: block; }
+.bm-pic > svg { display: block; width: 100%; height: 100%; }
+.bm-name { font-size: 13px; word-break: keep-all; overflow-wrap: anywhere; }
+.bm-new { position: absolute; top: -11px; right: -8px; padding: 0 6px; border: 2.5px solid var(--ink); border-radius: 8px; background: var(--pink); font-size: 11px; font-weight: 900; }
+.bm-count { margin: 0 0 6px; font-weight: 900; }
+.bm-all { display: grid; grid-template-columns: repeat(6, 40px); justify-content: center; gap: 6px; margin: 0 auto 6px; }
+.bm-mini { display: grid; place-items: center; width: 40px; height: 46px; border: 2.5px solid var(--ink); border-radius: 10px; background: #fff; font-weight: 900; color: #c9b79b; }
+.bm-mini.none { background: #f3eee4; }
+.bm-panel .panel-foot .btn { min-height: 48px; font-size: 16px; }
+.shop-bm .card > div { word-break: keep-all; overflow-wrap: anywhere; }
+.shop-bm .tab { min-height: 44px; }
 /* 服は 1こで 1人（js/wear-stock.js）: のこりが ない 服は いろを おとして、つかって いる 人の なまえ */
 .card.busy:not(.on) { background: #f1ede6; }
 .card.busy:not(.on) .ico { opacity: .6; }
