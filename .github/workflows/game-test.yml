@@ -32,7 +32,8 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6]
     runs-on: ubuntu-latest
     # シナリオが ふえて 4分割では 1ジョブ 21〜25分に なった（2026-09-30）ので 6分割に。1ジョブ 15分 くらい
-    timeout-minutes: 30
+    # ブラウザを入れる ステップの やりなおし（下）の ぶん、上限は 45分（2026-10-01）
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: game
@@ -51,8 +52,17 @@ jobs:
       - name: 静的チェック
         run: npm run check
 
+      # apt の ミラーが おそい ときに 上限まで とまって しまわない ように（2026-10-01 PR #135 の webkit 1・5 が 2かい とまった）:
+      # apt に 再試行と 短い タイムアウトを つけ、インストールは 1かい 10分で くぎって 1どだけ やりなおす
       - name: ブラウザを入れる
-        run: npx playwright install --with-deps ${{ matrix.browser }}
+        run: |
+          echo 'Acquire::Retries "5"; Acquire::http::Timeout "20"; Acquire::https::Timeout "20";' | sudo tee /etc/apt/apt.conf.d/80-retries
+          for i in 1 2; do
+            if timeout 600 npx playwright install --with-deps ${{ matrix.browser }}; then exit 0; fi
+            echo "ブラウザの インストールを やりなおす（$i）"
+            sudo dpkg --configure -a || true
+          done
+          exit 1
 
       - name: スモークテスト（全部・スクリーンショットつき）
         env:
