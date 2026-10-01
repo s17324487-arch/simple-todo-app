@@ -225,7 +225,7 @@ const CraneArt = (() => {
     hashi: { wall: "wall-hashi", floor: "floor-hashi", body: "#6F7FD0", body2: "#4B5AA8", trim: "#FFE68A", glow: "#C9D2FF", head: "#FFE68A", sign: "はしわたし フィギュア" },
     hashigum: { wall: "wall-hashigum", floor: "floor-sweet", body: "#6CC7B2", body2: "#45A38E", trim: "#FFD1E2", glow: "#CFF2E8", head: "#FFB3CC", sign: "はしわたし ざっか" },
     // 3F の おかしの 台（UI-23）
-    snackpoke: { wall: "wall-poke", floor: "floor-cookie", body: "#7FB8E0", body2: "#5B97C7", trim: "#FFE9A8", glow: "#DDF2FF", head: "#FFFFFF", sign: "おかし おしだし" },
+    snackroad: { wall: "wall-poke", floor: "floor-cookie", body: "#7FB8E0", body2: "#5B97C7", trim: "#FFE9A8", glow: "#DDF2FF", head: "#FFFFFF", sign: "おかし ロード" },
     snacktower: { wall: "wall-tower", floor: "floor-sweet", body: "#B996DC", body2: "#9472C2", trim: "#FFF1B8", glow: "#EBDDFA", head: "#F9D56E", sign: "おかし タワー" },
   };
   // ---- canvas の たすけ ----

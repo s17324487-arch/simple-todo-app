@@ -242,11 +242,12 @@ const CranePhys = (() => {
         this.push(p, h.nx, h.ny, h.nz, pen, c);
       }
     }
-    // おしだす ＋ まさつ（c が うごく ものなら その うごきに ついて いく）
+    // おしだす ＋ まさつ（c が うごく ものなら その うごきに ついて いく。c.belt は うごかない ベルトの おもての 1サブステップの うごき）
     push(p, nx, ny, nz, pen, c) {
       p.x += nx * pen; p.y += ny * pen; p.z += nz * pen;
       let vx = 0, vy = 0, vz = 0;
       if (c && (c.move || c.spin)) { const v = this.vel(c, p.x - nx * p.r, p.y - ny * p.r, p.z - nz * p.r); vx = v[0]; vy = v[1]; vz = v[2]; }
+      else if (c && c.belt) { vx = c.belt[0]; vy = c.belt[1]; vz = c.belt[2]; }
       const rx = (p.x - p.px) - vx, ry = (p.y - p.py) - vy, rz = (p.z - p.pz) - vz, rn = rx * nx + ry * ny + rz * nz;
       const tx = rx - rn * nx, ty = ry - rn * ny, tz = rz - rn * nz, tl = Math.hypot(tx, ty, tz), mu = c ? Math.min(p.fr, c.fr) * (c.grip || 1) : 0.3;
       if (tl < 1e-9) return;

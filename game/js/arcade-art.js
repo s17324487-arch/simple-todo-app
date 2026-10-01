@@ -46,8 +46,8 @@ const ArcadeArt = (() => {
 
   // ---- 台の かたち（しゅるいごと）----
   // GH: ガラスの たかさ・HH: かんばんの たかさ
-  const SPEC = { claw: { base: 74, GH: 124, HH: 42 }, big: { base: 74, GH: 150, HH: 46 }, ring: { base: 74, GH: 124, HH: 42 }, sweet: { base: 70, GH: 104, HH: 40 }, pusher: { base: 74, GH: 96, HH: 40 }, tripod: { base: 70, GH: 116, HH: 42 }, bridge: { base: 74, GH: 140, HH: 46 }, poke: { base: 70, GH: 112, HH: 42 }, tower: { base: 74, GH: 128, HH: 44 } };
-  // poke: ぼうで おす 台・tower: おかし タワー（リングフック）。3F（UI-23）
+  const SPEC = { claw: { base: 74, GH: 124, HH: 42 }, big: { base: 74, GH: 150, HH: 46 }, ring: { base: 74, GH: 124, HH: 42 }, sweet: { base: 70, GH: 104, HH: 40 }, pusher: { base: 74, GH: 96, HH: 40 }, tripod: { base: 70, GH: 116, HH: 42 }, bridge: { base: 74, GH: 140, HH: 46 }, road: { base: 70, GH: 112, HH: 42 }, tower: { base: 74, GH: 128, HH: 44 } };
+  // road: おかし ロード（ベルトの トレジャーロード。UI-29）・tower: おかし タワー（リングフック）。3F（UI-23）
   const specOf = (i) => { const d = CraneMachines.DEFS[i]; return d.tower ? "tower" : d.type === "claw" && d.rig === CraneMachines.DEFS[1].rig ? "big" : d.type; };
 
   // よこに ながい おかし（はこ）は たかさを ひくく（はばが 台から はみでない）
@@ -93,13 +93,14 @@ const ArcadeArt = (() => {
       out.push(polyC(S, F, [[u0, v0, z + 0.5], [u1, v0, z + 0.5], [u1, v1, z + 0.5], [u0, v1, z + 0.5]], "#2A2238", 1.2));
       for (const u of [u0, u1]) { for (const v of [v0, v1]) out.push(S.line([F.Q(u, v, z), F.Q(u, v, bz)], "#6C7582", 3)); out.push(S.line([F.Q(u, v0, bz), F.Q(u, v1, bz)], INK, 5.4) + S.line([F.Q(u, v0, bz), F.Q(u, v1, bz)], col, 3)); }
       const id = ids[0], h = 34; out.push(standing(S, F, BridgePrizes.boxSvg(id), (u0 + u1) / 2, D * 0.5, bz + 1, h, BridgePrizes.ratio()));
-    } else if (kind === "poke") {
-      // ぼうで おす 台: たな（まえに ライト）・3だんに つんだ おかしの はこ 3れつ×2・おくの かべから でる ぼう
-      const sv = D * 0.12, top = z + 30, col = (k) => (SnackArt.INDEX[ids[k % ids.length]] || { col: ["#FFE2A8", "#E4983A"] }).col;
+    } else if (kind === "road") {
+      // おかし ロード: 7れつの ベルト（しましま）の たな・まえの ふちの ひかり・2れつに またがる おかしの はこ（3ぎょう・まえの ぎょうは 2だん）
+      const sv = D * 0.12, top = z + 30, n = 7, lw = (W - 0.24) / n, col = (k) => (SnackArt.INDEX[ids[k % ids.length]] || { col: ["#FFE2A8", "#E4983A"] }).col;
       out.push(boxC(S, F, 0.12, sv, W - 0.24, D - 0.5 - sv, z, 30, [shade("#F7E3C8", 0), shade("#C99B76", 0), shade("#B07E58", 0)], 1.3));
-      out.push(boxC(S, F, 0.12, 0.08, W - 0.24, sv, z, 64, ["#5B97C7", "#7FB8E0", "#4E83B3"], 1.2));
-      for (let j = 0; j < 3; j++) for (const [r, v] of [[0, sv + 0.08], [1, sv + 0.5]]) for (let k = 0; k < 3; k++) { const [c, band] = col(k + r * 3 + j), u = 0.22 + k * ((W - 0.44) / 3); out.push(boxC(S, F, u + 0.04, v, (W - 0.44) / 3 - 0.08, 0.38, top + j * 9, 9, [shade(c, 0.15), c, band], 1.1)); }
-      out.push(S.line([F.Q(W * 0.5, sv + 0.1, top + 6), F.Q(W * 0.5, sv - 0.06, top + 6)], "#C9D0DA", 4) + S.ellipse(W * 0.5, sv + 0.16, top + 6, 0.05, "#FF9FC2", 1));
+      for (let k = 0; k < n; k++) out.push(polyC(S, F, [[0.12 + k * lw, sv, top + 0.2], [0.12 + (k + 1) * lw, sv, top + 0.2], [0.12 + (k + 1) * lw, D - 0.5, top + 0.2], [0.12 + k * lw, D - 0.5, top + 0.2]], k % 2 ? "#4A4458" : "#5B5670", 0.8));
+      for (let k = 0; k < n; k++) out.push(S.ellipse(0.12 + (k + 0.5) * lw, sv + 0.02, top - 4, 0.035, k === 3 ? "#FFF3A0" : "#FF9FC2", 0.8));
+      out.push(boxC(S, F, 0.12, 0.08, W - 0.24, sv, z, 64, ["#E58DAE", "#F7B6CF", "#D07A9C"], 1.2));
+      [[1, 3, 5], [2, 4, 6], [1, 3, 5]].forEach((ks, j) => ks.forEach((k, i) => { const [c, band] = col(i + j * 3), u = 0.12 + k * lw - lw * 0.85, v = sv + 0.06 + j * ((D - 0.62 - sv) / 3); out.push(boxC(S, F, u, v, lw * 1.7, 0.36, top, 9, [shade(c, 0.15), c, band], 1.1)); if (j === 0) out.push(boxC(S, F, u, v, lw * 1.7, 0.36, top + 9, 9, [shade(c, 0.15), c, band], 1.1)); }));
     } else if (kind === "tower") {
       // おかし タワー: とりだしぐちの よこの だいに つんだ はこ 5だん・まんなかの だんに みどりの わっか
       const cu = W * 0.56, cv = D * 0.62, top = z + 16;
@@ -119,7 +120,7 @@ const ArcadeArt = (() => {
   };
   // アーム（くるま・ケーブル・つめ）。リングは フック
   const claw = (S, F, i, zTop) => {
-    const kind = specOf(i); if (kind === "sweet" || kind === "tripod" || kind === "pusher" || kind === "poke") return "";
+    const kind = specOf(i); if (kind === "sweet" || kind === "tripod" || kind === "pusher" || kind === "road") return "";
     const W = F.W, D = F.D, u = W * 0.62, v = (D - 0.4) * 0.45, big = kind === "big" || kind === "bridge";
     let s = S.line([F.Q(0.16, v, zTop - 5), F.Q(W - 0.16, v, zTop - 5)], "#8A939E", 3);
     s += boxC(S, F, u - 0.13, v - 0.13, 0.26, 0.26, zTop - 14, 10, ["#DDE3EA", "#9AA3AE", "#7E8794"], 1.2);
@@ -150,7 +151,7 @@ const ArcadeArt = (() => {
     if (kind === "sweet" || kind === "pusher") for (const [k, c] of kind === "pusher" ? [[0.26, "#FFFFFF"], [0.42, "#FFFFFF"], [0.66, "#7ED957"]] : [[0.34, "#FF7BA8"], [0.62, "#7ED957"]]) { const q = S.P(...F.Q(W * k, panelMid, z0 - 1)); s += `<ellipse cx="${f2(q.x)}" cy="${f2(q.y)}" rx="8" ry="4.2" fill="${shade(c, -0.3)}" stroke="${INK}" stroke-width="1.3"/><ellipse cx="${f2(q.x)}" cy="${f2(q.y - 2)}" rx="7" ry="3.6" fill="${c}" stroke="${INK}" stroke-width="1.2"/>`; }
     else { const j = S.P(...F.Q(W * 0.3, panelMid, z0 - 1)); s += `<ellipse cx="${f2(j.x)}" cy="${f2(j.y)}" rx="6" ry="3" fill="#2B2440"/><path d="M${f2(j.x)} ${f2(j.y)} V${f2(j.y - 12)}" stroke="${INK}" stroke-width="2.4"/><circle cx="${f2(j.x)}" cy="${f2(j.y - 13)}" r="4.4" fill="#FF7BA8" stroke="${INK}" stroke-width="1.3"/>`; const b2 = S.P(...F.Q(W * 0.68, panelMid, z0 - 1)); s += `<ellipse cx="${f2(b2.x)}" cy="${f2(b2.y)}" rx="8" ry="4.2" fill="#3D8A2E" stroke="${INK}" stroke-width="1.3"/><ellipse cx="${f2(b2.x)}" cy="${f2(b2.y - 2)}" rx="7" ry="3.6" fill="#7ED957" stroke="${INK}" stroke-width="1.2"/>`; }
     // まえの 絵: とりだしぐち（ひだり）・100コインの いれぐち（みぎ）・しましま
-    const wideDoor = kind === "tripod" || kind === "sweet" || kind === "pusher" || kind === "bridge" || kind === "poke", fw = W * 48, door = wideDoor ? [fw * 0.34, fw * 0.66] : [fw * 0.08, fw * 0.42];
+    const wideDoor = kind === "tripod" || kind === "sweet" || kind === "pusher" || kind === "bridge" || kind === "road", fw = W * 48, door = wideDoor ? [fw * 0.34, fw * 0.66] : [fw * 0.08, fw * 0.42];
     s += onFace(S, F, "front", 0.06, 0, z0 - 30, `<rect x="0" y="0" width="${f2(fw - 6)}" height="7" fill="${th.trim}" opacity="0.9"/>`);
     s += onFace(S, F, "front", 0, 0, z0 - 34, `<rect x="${f2(door[0])}" y="4" width="${f2(door[1] - door[0])}" height="26" rx="4" fill="#2A2238" stroke="${INK}" stroke-width="1.6"/><rect x="${f2(door[0] + 3)}" y="7" width="${f2(door[1] - door[0] - 6)}" height="9" rx="2" fill="#DDF3FF" opacity="0.55"/>${txt((door[0] + door[1]) / 2, 27, 7.4, "とりだしぐち", "#FFF7E0")}`);
     const slot = wideDoor ? fw * 0.82 : fw * 0.7;
