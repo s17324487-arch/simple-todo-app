@@ -1,6 +1,9 @@
 // ごわが × ころころ フルーツ の コラボ グッズ（オーナーの FB 2026-09-30「コロコロフルーツに ついても 同様だ。5000てん・8000てん・10000てん・13000てん・15000てんの
-// 景品を コロコロフルーツと ごわがの コラボグッズとして 用意せよ」）。スコア モードの 1かいは こどもの ボットで 1200てん くらい（とくべつな かぐも 2500てん まで）
-// なので、なかよしパズルと おなじ つみたて（CollabGoods）で もらう。はじめて よむ ときは まえからの きろく（ランキングの 5かいの ごうけい）から はじめる。
+// 景品を コロコロフルーツと ごわがの コラボグッズとして 用意せよ」）。はじめは つみたて だったが、オーナーの FB 2026-10-01「コロコロフルーツの景品が
+// 積立になっているが、そうでなく、一度の達成ポイントにしてくれ」で スコア モードの 1かいの スコアに した（CollabGoods の mode: "best"）。
+// 1かいの スコアは こどもの ボットで まんなか 990てん・いちばん 3050てん、ていねいな ボットで まんなか 1210てん・いちばん 4270てん（24かい）。
+// 5000〜15000てんは 1かいでは とどかない ので、めやすを 5で わって 1000・1600・2000・2600・3000てん に した（ならびの わりあいは そのまま）。
+// はじめて よむ ときは まえからの ハイスコアから（もう とどいて いる グッズは その とき わたす）。
 // デザインは ころころ フルーツの 見た目（きの はこ・あかい てんせん・くだもの 5しゅと がちゃん・わんこ・ごじの 玉）に そろえた。
 // ほんものの スイカゲームの グッズ（くっつけられる ぬいぐるみ・いちばん 大きい くだものの BIG クッション など）を 参考に した。
 // 服 2つ（WEAR.kc_tee・WEAR.kc_cap。IkeWear と おなじ かさね）・家具 3つ（FurnModels の 立体・FurnLive の さわる うごき）。
@@ -11,16 +14,16 @@ const KorokoroCollab = (() => {
   // だんの いろ（プリント・バッジ の ちいさな 玉。korokoro-art.js の 玉と おなじ）
   const TIER_COL = ["#E8545E", "#F0606B", "#F7A43A", "#E9525A", "#EBD27C", "#FADA78", "#FFFFFF", "#8C8686"];
   const ITEMS = [
-    { id: "kc_tee", need: 5000, kind: "wear", slot: "body", wear: "kc_tee", col: ["#FFF6E4", "#E8545E"], st: { hp: 5, spd: 1 }, name: "ころころ フルーツ Tシャツ",
+    { id: "kc_tee", need: 1000, kind: "wear", slot: "body", wear: "kc_tee", col: ["#FFF6E4", "#E8545E"], st: { hp: 5, spd: 1 }, name: "ころころ フルーツ Tシャツ",
       desc: "むねに はこから のぞく 3にんの たま。せなかには 8しゅの たまが まるく ならぶよ。" },
-    { id: "kc_pool", need: 8000, kind: "furn", w: 100, depth: 100, h: 40, comfort: 9, name: "ころころ ボールプール",
+    { id: "kc_pool", need: 1600, kind: "furn", w: 100, depth: 100, h: 40, comfort: 9, name: "ころころ ボールプール",
       desc: "ころころ フルーツの はこに たまが いっぱい。タップすると ぽんぽん はねるよ。" },
-    { id: "kc_cap", need: 10000, kind: "wear", slot: "head", wear: "kc_cap", col: ["#EE5A64", "#7CC46E"], st: { sp: 3 }, name: "ころころ いちご ぼうし",
+    { id: "kc_cap", need: 2000, kind: "wear", slot: "head", wear: "kc_cap", col: ["#EE5A64", "#7CC46E"], st: { sp: 3 }, name: "ころころ いちご ぼうし",
       desc: "いちごの かたちの ニットぼう。よこに 3にんの たまの バッジ。" },
-    { id: "kc_bed", need: 13000, kind: "furn", w: 110, depth: 84, h: 80, comfort: 11, sleep: 2, name: "ころころ はこの ベッド",
+    { id: "kc_bed", need: 2600, kind: "furn", w: 110, depth: 84, h: 80, comfort: 11, sleep: 2, name: "ころころ はこの ベッド",
       desc: "きの はこの ベッドに 3にんの たまの まくら。ねると ごきげんが ふえるよ。" },
-    { id: "kc_plush", need: 15000, kind: "furn", w: 76, depth: 66, h: 140, comfort: 12, name: "ごわが くっつき ぬいぐるみ",
-      desc: "15000てんの あかし。ごじ・わんこ・がちゃんが くっついた おおきな ぬいぐるみ。" },
+    { id: "kc_plush", need: 3000, kind: "furn", w: 76, depth: 66, h: 140, comfort: 12, name: "ごわが くっつき ぬいぐるみ",
+      desc: "1かいで 3000てんの あかし。ごじ・わんこ・がちゃんが くっついた おおきな ぬいぐるみ。" },
   ];
 
   // ---- ちいさな 玉（服の プリント・バッジ・もうふの もよう）: だん t を (x, y) に 半径 r で。w は 線の はば・face は かお ----
@@ -304,14 +307,14 @@ const KorokoroCollab = (() => {
   }, true);
 
   // ---- ライン（CollabGoods）----
-  // つみたての はじめ: まえからの ランキング（上から 5かい）の ごうけい。ランキングが なければ ハイスコア（そのぶんは もう あそんだ）
+  // 1かいの さいこうの はじめ: まえからの ハイスコア（ランキングの いちばん うえ）
   const seed = () => {
     const st = Save.d.shops && Save.d.shops.korokoro;
     if (!st) return 0;
-    const tops = (Array.isArray(st.tops) ? st.tops : []).filter((e) => e && Number.isFinite(e.s)).reduce((a, e) => a + Math.max(0, e.s), 0);
-    return Math.max(tops, Number.isFinite(st.hi) ? st.hi : 0);
+    const top = (Array.isArray(st.tops) ? st.tops : []).filter((e) => e && Number.isFinite(e.s)).reduce((a, e) => Math.max(a, e.s), 0);
+    return Math.max(0, top, Number.isFinite(st.hi) ? st.hi : 0);
   };
-  const line = CollabGoods.register({ id: "korokoro", name: "ごわが × ころころ フルーツ コラボ", game: "ころころ フルーツ", unit: "てん", seed, items: ITEMS,
-    lead: "スコア モードで あそんだ てんを ぜんぶ たして（つみたて）、めやすに とどくと げんていの ふくや かぐが もらえるよ。" });
+  const line = CollabGoods.register({ id: "korokoro", name: "ごわが × ころころ フルーツ コラボ", game: "ころころ フルーツ", unit: "てん", mode: "best", seed, items: ITEMS,
+    lead: "スコア モードの 1かいの スコアが めやすに とどくと、げんていの ふくや かぐが もらえるよ（たさないで 1かいで！）。" });
   return { ITEMS, line, mini, POOL_BALLS, BED_PILLOWS, PLUSH, seed };
 })();

@@ -1,7 +1,7 @@
 // コラボ グッズ（js/collab-goods.js・js/puzzle-collab.js・js/korokoro-collab.js）の 検査。ブラウザ なしで たしかめる。
 // ライン（なかよしパズル・ころころ フルーツ）・めやす・服と 家具の とうろく（おみせに ならばない）・なまえ・つみたて（はじめは まえの ベスト・なんかいも もらわない・いちどに いくつも）・
 // パズルの けっかで つみたてる（れんしゅうは なし・おなじ 1かいは 1かい だけ・ほぞんに しっぱいしたら もとに もどす）・ふつうに あそんで とどく（パズルの ボット）・
-// ころころの つみたての はじめ（ランキングの ごうけい）・ベッド・
+// ころころは 1かいの スコア（mode: best・はじめは まえの ハイスコア・とどいて いた ものは すぐ わたす・つぎの けっかにも のせる）・ベッド・
 // 服の 絵（3人 × まえ・よこ・うしろ・id）・家具の 立体（はんてん・id・さわる・live でも 絵の はんいが おなじ）・ずかんの ヒント。
 import assert from "node:assert/strict";
 import { gameContext } from "./game-context.mjs";
@@ -22,7 +22,8 @@ ok(L && L.items.length === 5 && L.items === PC.ITEMS, "なかよしパズルの 
 ok(L.items.map((it) => it.need).join() === "30000,50000,80000,100000,150000", "めやすは 30000・50000・80000・100000・150000 pt（オーナーの 指示）");
 ok(L.unit === "pt" && L.game === "なかよしパズル" && /ごわが/.test(L.name), "ラインの なまえ");
 ok(KL && KL.items.length === 5 && KL.items === KC.ITEMS, "ころころ フルーツの コラボは 5しゅ");
-ok(KL.items.map((it) => it.need).join() === "5000,8000,10000,13000,15000", "めやすは 5000・8000・10000・13000・15000 てん（オーナーの 指示）");
+ok(KL.items.map((it) => it.need).join() === "1000,1600,2000,2600,3000" && KL.mode === "best", "めやすは 1かいの スコアで 1000・1600・2000・2600・3000 てん（オーナーの 指示 5000〜15000 を 5で わった。2026-10-01「一度の達成ポイントにしてくれ」）");
+ok(L.mode !== "best", "なかよしパズルは つみたての まま");
 ok(KL.unit === "てん" && KL.game === "ころころ フルーツ" && /ごわが/.test(KL.name) && /スコア モード/.test(KL.lead) && !kanji.test(KL.lead), "ころころの ラインの なまえ・せつめい");
 for (const [line, pre] of [[L, "pc_"], [KL, "kc_"]]) {
   ok(line.items.some((it) => it.kind === "wear") && line.items.some((it) => it.kind === "furn"), `${line.id}: げんていの 服と 家具の りょうほう`);
@@ -89,22 +90,34 @@ const run = (score, practice = false) => { const r = { id: "t" + Math.random().t
   ok(res3 && res3.collab.join() === "pc_cushion,pc_band,pc_table" && CG.total("puzzle") === 115000 && S.d.furn.pc_cushion === 1 && S.d.furn.pc_table === 1 && S.d.wardrobe.pc_band, "つぎの 1かいで 35000 → 115000（クッション・カチューシャ・テーブル）");
 }
 
-// ---- 3b. ころころ フルーツ: つみたての はじめは まえからの ランキング（5かい）の ごうけい・スコア モードの けっかで たす ----
+// ---- 3b. ころころ フルーツ: 1かいの スコア（つみたて では ない）。はじめは まえからの ハイスコア・とどいて いた ものは すぐ ----
 {
   const old = S.fresh(); delete old.collab;
-  Object.assign(old.shops.korokoro, { hi: 2400, games: 12, tops: [2400, 1800, 1500, 900, 600].map((v) => ({ s: v, d: "2026-9-20" })) });
+  Object.assign(old.shops.korokoro, { hi: 1700, games: 12, tops: [1700, 1500, 1200, 900, 600].map((v) => ({ s: v, d: "2026-9-20" })) });
   S.d = S.migrate(JSON.parse(JSON.stringify(old)));
-  ok(KC.seed() === 7200 && CG.total("korokoro") === 7200 && CG.next("korokoro").id === "kc_tee", "まえの セーブ: つみたては ランキングの ごうけい 7200 から（まだ なにも もらって いない）");
-  ok(CG.add("korokoro", 900).map((it) => it.id).join() === "kc_tee,kc_pool" && S.d.wardrobe.kc_tee === true && S.d.furn.kc_pool === 1 && CG.total("korokoro") === 8100, "つぎの 1かい（900てん）で 8100 → Tシャツと ボールプール");
-  ok(CG.total("puzzle") === 0 && !CG.has("pc_hoodie"), "ころころの つみたては なかよしパズルに まざらない");
-  // ランキングが ない・こわれた セーブ（ハイスコアだけ）
-  const o2 = S.fresh(); delete o2.collab; o2.shops.korokoro.hi = 1300; o2.shops.korokoro.tops = "x";
-  S.d = S.migrate(JSON.parse(JSON.stringify(o2)));
-  ok(KC.seed() === 1300 && CG.total("korokoro") === 1300, "ランキングが よめない ときは ハイスコアから");
-  S.d = S.fresh();
+  CG.pending = {};
+  ok(KC.seed() === 1700 && CG.total("korokoro") === 1700 && CG.has("kc_tee") && CG.has("kc_pool") && !CG.has("kc_cap") && S.d.wardrobe.kc_tee === true && S.d.furn.kc_pool === 1, "まえの セーブ: ハイスコア 1700 で Tシャツ（1000）と ボールプール（1600）を すぐ もらう");
+  ok(CG.next("korokoro").id === "kc_cap" && S.d.collab.korokoro.mode === "best", "つぎは いちご ぼうし（2000）");
+  // つぎの けっか（900てん）: とどかない・まえの ハイスコアで もらった 2つを けっかに のせる
+  let got = CG.add("korokoro", 900);
+  ok(got.map((it) => it.id).join() === "kc_tee,kc_pool" && CG.total("korokoro") === 1700 && !CG.has("kc_cap"), "900てんは とどかない（さいこうは 1700 の まま・たさない）");
+  ok(CG.add("korokoro", 1999).length === 0 && CG.add("korokoro", 1999).length === 0 && !CG.has("kc_cap") && CG.total("korokoro") === 1999, "1999てんを 2かいでも いちご ぼうしは もらえない（たさない）");
+  got = CG.add("korokoro", 2700);
+  ok(got.map((it) => it.id).join() === "kc_cap,kc_bed" && S.d.wardrobe.kc_cap === true && S.d.furn.kc_bed === 1 && CG.total("korokoro") === 2700 && CG.next("korokoro").id === "kc_plush", "2700てんで いちご ぼうしと ベッド");
+  ok(CG.add("korokoro", 3000).map((it) => it.id).join() === "kc_plush" && CG.next("korokoro") === null && CG.add("korokoro", 9999).length === 0, "3000てんで ぬいぐるみ・2かい もらわない");
+  ok(CG.total("puzzle") === 0 && !CG.has("pc_hoodie"), "ころころは なかよしパズルに まざらない");
+  // まえの つみたての きろく（total）が ある セーブ: total は つかわない（のこす）・ハイスコアから
+  const o2 = S.fresh(); o2.collab = { korokoro: { total: 7200, got: { kc_tee: "2026-9-25" } } }; o2.shops.korokoro.hi = 1300; o2.shops.korokoro.tops = "x"; o2.wardrobe.kc_tee = true;
+  S.d = S.migrate(JSON.parse(JSON.stringify(o2))); CG.pending = {};
+  ok(KC.seed() === 1300 && CG.total("korokoro") === 1300 && S.d.collab.korokoro.total === 7200 && CG.has("kc_tee") && !CG.has("kc_pool"), "つみたての きろくが あっても ハイスコア 1300 から（もらった Tシャツは そのまま・ボールプールは まだ）");
+  ok(S.d.wardrobe.kc_tee === true, "もって いた Tシャツは ふえない");
+  S.d = S.fresh(); CG.pending = {};
   ok(KC.seed() === 0 && CG.total("korokoro") === 0, "はじめての セーブは 0 から");
-  ok(CG.add("korokoro", 15000).map((it) => it.id).join() === "kc_tee,kc_pool,kc_cap,kc_bed,kc_plush" && ["kc_pool", "kc_bed", "kc_plush"].every((id) => S.d.furn[id] === 1) && S.d.wardrobe.kc_cap === true && CG.next("korokoro") === null, "15000てんで 5しゅ ぜんぶ");
-  ok(CG.source("kc_bed").includes("13,000てん") && CG.source("kc_bed").includes("ころころ フルーツ"), "ずかんの ヒントの てん");
+  ok(CG.add("korokoro", 999).length === 0 && CG.add("korokoro", 1000).map((it) => it.id).join() === "kc_tee", "1000てんちょうどで Tシャツ");
+  ok(CG.add("korokoro", 15000).map((it) => it.id).join() === "kc_pool,kc_cap,kc_bed,kc_plush" && ["kc_pool", "kc_bed", "kc_plush"].every((id) => S.d.furn[id] === 1) && S.d.wardrobe.kc_cap === true && CG.next("korokoro") === null, "1かいで 3000てん いじょうなら のこり ぜんぶ");
+  ok(CG.add("korokoro", -5).length === 0 && CG.add("korokoro", NaN).length === 0 && CG.total("korokoro") === 15000, "マイナス・NaN");
+  ok(CG.source("kc_bed").includes("1かいに 2,600てん") && CG.source("kc_bed").includes("ころころ フルーツ") && !CG.source("kc_bed").includes("ごうけい"), "ずかんの ヒント（1かいで）");
+  ok(CG.source("pc_hoodie").includes("ごうけい"), "パズルの ヒントは つみたての まま");
 }
 
 // ---- 4. ふつうに あそんで とどく（パズルの ボット・人の 実測では ない。ころころは tools/check-korokoro.mjs の こどもの ボット）----
