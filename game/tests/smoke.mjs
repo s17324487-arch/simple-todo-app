@@ -3357,6 +3357,71 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();
  expect((await H.dbg('state')).coins===c0-300,'やめても コインが へる');
 },{viewport,timeout:180000});
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('arcade-fitting-'+viewport.width,async H=>{
+ // Meeときょれじゃ 3F の こういしつ（UI-22。オーナーの FB 2026-10-01「3Fには、更衣室を 設置し、服を 着替えられる ように せよ」）:
+ // こういしつで じぶんの Tシャツ → かしだしの ラックで セーラーふく・つうがく ぼうし（みんな おそろい）→ がっこう ぷりくらの しゃしんに のこる → たてものを でると もとの ふくに もどる
+ await H.newGameFast();await H.dbg('coins',2000);
+ await H.eval(()=>{window.__toastLog=[];new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.classList&&n.classList.contains('toast'))window.__toastLog.push(n.textContent);}).observe(document.body,{childList:true,subtree:true});});
+ await H.dbg('venue','arcade',3);await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
+ let s=await H.dbg('venueState');
+ expect(s.fixtures.filter(f=>f.action==='fitting').map(f=>f.kind).sort().join()==='costumerack,fitting'&&s.routeCount.every(r=>r.reachable),'3F の こういしつ・かしだしの ラック '+JSON.stringify(s.routeCount.filter(r=>!r.reachable)));
+ await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
+ const spots=await H.eval(()=>[...document.querySelectorAll('.mall-guide .mg-spot')].map(b=>b.dataset.label));
+ expect(spots.includes('こういしつ')&&spots.includes('かしだし いしょう'),'フロアマップ '+JSON.stringify(spots));
+ await H.page.locator('.modal-wrap .close').last().click();await H.idle();
+ const lead=await H.eval(()=>Save.d.order[0]);
+ const tab=async(name)=>{await H.page.locator('.modal-wrap:not(.out) .tabs .tab',{hasText:name}).first().click();await H.wait(150);};
+ const cards=()=>H.eval(()=>[...document.querySelectorAll('.modal-wrap:not(.out) .grid .card')].map(c=>({t:c.textContent.trim(),lent:c.classList.contains('lent'),on:c.classList.contains('on')})));
+ const pick=async(name)=>{await H.page.locator('.modal-wrap:not(.out) .grid .card',{hasText:name}).first().click();await H.wait(150);};
+ const close=async()=>{await H.page.locator('.modal-wrap:not(.out) .close').click();await H.until(()=>!document.querySelector('.modal-wrap:not(.out)'),8000);await H.wait(300);};
+ // 1かいめ: はじめての せつめい（かしだしの いしょうの なまえ）→ じぶんの Tシャツ（あか）
+ expect(await H.dbg('venueVisit','こういしつ'),'こういしつを しらべられない');
+ await H.page.locator('.dlg-next:not(.hidden)').first().waitFor({timeout:15000});
+ const intro=await H.eval(()=>document.querySelector('.dlg-text').textContent);
+ expect(/セーラーふく/.test(intro)&&/ランドセル/.test(intro)&&/ただ/.test(intro),'はじめての せつめい '+intro);
+ await H.dialogs();
+ await H.page.locator('.modal-wrap:not(.out) .panel.dress-extra .who-tabs').waitFor({timeout:15000});
+ expect(await H.eval(()=>document.querySelector('.modal-wrap:not(.out) .panel-title').textContent)==='こういしつ','こういしつの がめんの なまえ');
+ await tab('ふく');let cs=await cards();
+ expect(cs.filter(c=>c.lent).map(c=>c.t.replace('かしだし','')).join()==='セーラーふく,ブレザー,たいそうふく,ゆかた'&&cs.some(c=>!c.lent&&/Tシャツ（あか）/.test(c.t)),'ふくの かしだし '+JSON.stringify(cs));
+ await pick('Tシャツ（あか）');await close();
+ let fit=await H.dbg('fitting');
+ expect(fit.count===0&&fit.outfits[lead].body==='tshirt_red'&&Object.keys(fit.rental).length===0,'じぶんの ふくは かしだしに ならない '+JSON.stringify(fit));
+ // 2かいめ（かしだしの ラック）: つうがく ぼうし・セーラーふく → みんな おそろい
+ expect(await H.dbg('venueVisit','かしだし いしょう'),'かしだしの ラックを しらべられない');
+ await H.page.locator('.modal-wrap:not(.out) .panel.dress-extra .who-tabs').waitFor({timeout:15000});
+ await tab('あたま');cs=await cards();expect(cs.some(c=>c.lent&&/つうがく ぼうし/.test(c.t)),'あたまの かしだし '+JSON.stringify(cs));
+ await pick('つうがく ぼうし');await tab('ふく');await pick('セーラーふく');
+ await tab('せなか');cs=await cards();expect(cs.some(c=>c.lent&&/ランドセル/.test(c.t)),'せなかの かしだし '+JSON.stringify(cs));
+ await H.page.getByRole('button',{name:'みんな おそろい',exact:true}).click();await H.wait(250);
+ const lay=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),cs=[...document.querySelectorAll('.modal-wrap:not(.out) .grid .card'),...document.querySelectorAll('.modal-wrap:not(.out) .tabs .tab')],tag=document.querySelector('.modal-wrap:not(.out) .dress-tag'),note=document.querySelector('.modal-wrap:not(.out) .dress-note');return {out:cs.filter(c=>r(c).left<-0.5||r(c).right>innerWidth+0.5).length,tag:!!tag&&r(tag).width>10,note:!!note&&r(note).right<=innerWidth+0.5,parents:document.querySelectorAll('.modal-wrap:not(.out) .who-tab').length};});
+ expect(lay.out===0&&lay.tag&&lay.note&&lay.parents===3,'こういしつの がめん '+JSON.stringify(lay));
+ await H.shot('dress');
+ await close();
+ fit=await H.dbg('fitting');
+ expect(fit.count===6&&Object.values(fit.outfits).every(o=>o.body==='mee_sailor'&&o.head==='mee_schoolhat')&&fit.rental[lead].body==='tshirt_red'&&fit.rental[lead].head===null,'かしだしを きた '+JSON.stringify(fit));
+ await H.until(()=>window.__toastLog.some(x=>x.includes('かえしてね')),5000);
+ await H.shot('wear');
+ // がっこう ぷりくら: しゃしんに かしだしの いしょう
+ expect(await H.dbg('puriStart','school'),'ぷりくらを はじめられない');
+ await H.until(()=>!!PokaDebug.puriState()&&!Game.trans,20000);await H.wait(300);
+ await H.page.getByRole('button',{name:'とりはじめる',exact:true}).click();await H.wait(250);await H.dbg('puriFast',8);
+ for(let n=1;n<=4;n++){await H.page.getByRole('button',{name:'とる！',exact:true}).click();await H.until((n)=>PokaDebug.puriState().shots>=n||PokaDebug.puriState().phase==='deco',8000,n);}
+ await H.page.getByRole('button',{name:'できあがり',exact:true}).click();await H.until(()=>PokaDebug.puriState()?.saved,8000);await H.dialogs();
+ let ph=await H.dbg('photos');
+ expect(ph.length===4&&ph.every(p=>p.k==='school'&&Object.values(p.o).every(o=>o.body==='mee_sailor'&&o.head==='mee_schoolhat')),'しゃしんに かしだしの いしょう '+JSON.stringify(ph.map(p=>p.o)));
+ await H.wait(300);await H.shot('photo');
+ await H.page.getByRole('button',{name:'おみせに もどる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='venue'&&PokaDebug.idle(),15000);
+ expect((await H.dbg('fitting')).count===6,'ぷりくらの あとも きて いる');
+ // たてものを でる → もとの ふくに もどる（しゃしんは そのまま）
+ await H.page.getByRole('button',{name:'たてものを でる',exact:true}).click();
+ await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle(),15000);
+ await H.until(()=>window.__toastLog.some(x=>x.includes('かえしたよ')),5000);
+ fit=await H.dbg('fitting');
+ expect(fit.count===0&&fit.outfits[lead].body==='tshirt_red'&&fit.outfits[lead].head===null&&Object.entries(fit.outfits).every(([id,o])=>id===lead||(!o.body&&!o.head))&&Object.keys(fit.rental).length===0,'でると もとの ふく '+JSON.stringify(fit));
+ ph=await H.dbg('photos');expect(ph.length===4&&ph.every(p=>Object.values(p.o).every(o=>o.body==='mee_sailor')),'しゃしんは かしだしの まま');
+ await H.wait(300);await H.shot('returned');
+},{viewport,timeout:180000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('gacha-'+viewport.width,async H=>{
  // ガチャガチャ（gacha.js・UI-12。オーナーの FB 2026-09-30「ガチャガチャも 実際の 機能として」「景品は ミニマスコットみたいに 部屋に 置けたり、服だったり」「シリーズで 4種類・一つは レアで 確率を 下げて」）:

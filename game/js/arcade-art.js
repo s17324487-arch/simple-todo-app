@@ -289,6 +289,61 @@ const ArcadeArt = (() => {
       s += it(0.6, "#FF7BA8", 12) + it(0.8, "#FFFFFF", 9) + it(W * 0.5, "#B79BEA", 14) + it(W - 0.7, "#7FD3F0", 11);
       return s;
     },
+    // こういしつ（3F・UI-22。カーテンの こしつ 3つ・うえに「こういしつ」の かんばん・よこに かしだしの ポスター。カーテンの したに すきま）
+    fitting(S, f) {
+      const F = frame(f), W = F.W, D = F.D, h = 214, n = 3, cw = (W - 0.36) / n, CUR = [["#FFD1E3", "#F6A9C6"], ["#CFF2E3", "#93D9BC"], ["#FFF1B8", "#F2D46E"]];
+      let s = S.ellipse(W / 2, D / 2, 0, Math.max(W, D) * 0.42, "#0000002A", 0) + boxC(S, F, 0.06, 0.06, W - 0.12, D - 0.12, 0, h, ["#F7EEFB", "#E6D4F4", "#CDB3E6"], 1.8);
+      for (let k = 0; k < n; k++) {
+        const u0 = 0.18 + k * cw, w = cw * 48, [c0, c1] = CUR[k];
+        // こしつの いりぐち（おくの くらい ところ）→ カーテン（ひだ）→ カーテンの ぼう → ばんごう
+        let g = `<rect x="4" y="18" width="${f2(w - 8)}" height="${h - 30}" rx="4" fill="#B79BCF" stroke="${INK}" stroke-width="1.4"/>`;
+        g += `<path d="M6 22 H${f2(w - 6)} V${h - 26} Q${f2(w * 0.75)} ${h - 20} ${f2(w / 2)} ${h - 26} Q${f2(w * 0.25)} ${h - 20} 6 ${h - 26} Z" fill="${c0}" stroke="${INK}" stroke-width="1.4"/>`;
+        for (let j = 1; j < 6; j++) g += `<path d="M${f2(6 + (j * (w - 12)) / 6)} 24 V${h - 28}" stroke="${c1}" stroke-width="2.2" stroke-linecap="round"/>`;
+        g += `<rect x="2" y="16" width="${f2(w - 4)}" height="6" rx="3" fill="#C9A2E0" stroke="${INK}" stroke-width="1.2"/>`;
+        g += `<circle cx="${f2(w / 2)}" cy="7" r="8" fill="#FFFFFF" stroke="${INK}" stroke-width="1.2"/>${txt(w / 2, 11.5, 11, String(k + 1), "#9B6BC4")}`;
+        s += onFace(S, F, "front", u0, 0, h - 2, g);
+      }
+      // かんばん（上）: こういしつ・ハンガーの しるし
+      s += boxC(S, F, 0.02, 0.02, W - 0.04, D - 0.12, h, 30, ["#FFF8EE", "#FFFFFF", "#F2E6EC"], 1.6);
+      const hanger = (x, y, c) => `<path d="M${f2(x)} ${f2(y - 9)} q0 -5 4 -5 q4 0 4 4 q0 3 -4 4 L${f2(x + 15)} ${f2(y + 4)} H${f2(x - 15)} Z" fill="none" stroke="${c}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      s += onFace(S, F, "front", 0.02, 0, h + 30, `${txt((W - 0.04) * 24, 21, 16, "こういしつ", "#9B6BC4", `stroke="#FFFFFF" stroke-width="3" paint-order="stroke"`)}${hanger(26, 16, "#F29BB8")}${hanger((W - 0.04) * 48 - 30, 16, "#7FC6E4")}`);
+      // よこ: かしだしの ポスター（セーラーふくの えりと ゆかたの あさがお）
+      s += onFace(S, F, "side", F.dx ? 0.3 : D - 0.3, 0, h - 26, `<rect x="0" y="0" width="${f2((D - 0.6) * 48)}" height="96" rx="8" fill="#FFFFFF" stroke="${INK}" stroke-width="1.4"/>${txt((D - 0.6) * 24, 22, 11, "かしだし", "#9B6BC4")}${txt((D - 0.6) * 24, 38, 10, "いしょう", "#9B6BC4")}` +
+        `<path d="M${f2((D - 0.6) * 24 - 16)} 50 L${f2((D - 0.6) * 24)} 70 L${f2((D - 0.6) * 24 + 16)} 50 Z" fill="#3E4F8F" stroke="${INK}" stroke-width="1.2"/><path d="M${f2((D - 0.6) * 24 - 5)} 66 L${f2((D - 0.6) * 24)} 76 L${f2((D - 0.6) * 24 + 5)} 66 Z" fill="#E8453C" stroke="${INK}" stroke-width="1"/>${txt((D - 0.6) * 24, 90, 9, "ただ", "#E0668F")}`);
+      return s;
+    },
+    // かしだし いしょうの ラック（3F・UI-22。ハンガーの いしょう 4まい・したの たなに つうがく ぼうしと ランドセル・うえに かんばん）
+    costumerack(S, f) {
+      const F = frame(f), W = F.W, D = F.D, rz = 150, fw = (W - 0.2) * 48;
+      let s = S.ellipse(W / 2, D / 2, 0, W * 0.42, "#0000002A", 0);
+      // たな（した）と 2ほんの はしら・ぼう
+      s += boxC(S, F, 0.1, 0.2, W - 0.2, D - 0.4, 0, 30, ["#FFF6E6", "#E8C9A0", "#D2AE80"], 1.4);
+      for (const u of [0.14, W - 0.24]) s += boxC(S, F, u, D / 2 - 0.05, 0.1, 0.1, 30, rz - 26, ["#E8EDF0", "#C9D2DA", "#AEB9C4"], 1.1);
+      s += polyC(S, F, [[0.12, D / 2, rz], [W - 0.12, D / 2, rz], [W - 0.12, D / 2, rz + 5], [0.12, D / 2, rz + 5]], "#C9D2DA", 1.2);
+      // ハンガーの いしょう（セーラー・ブレザー・たいそうふく・ゆかた）
+      const cloth = (x, top, body, trim, kind) => {
+        const w = 30, y = 8;
+        let g = `<path d="M${f2(x)} 0 q0 -5 4 -5 q4 0 4 4 q0 3 -4 4" fill="none" stroke="#8C96A0" stroke-width="1.6" stroke-linecap="round"/>`;
+        g += `<path d="M${f2(x - w / 2)} ${y + 6} L${f2(x - 6)} ${y} H${f2(x + 6)} L${f2(x + w / 2)} ${y + 6} L${f2(x + w / 2 + 4)} ${y + 18} L${f2(x + w / 2 - 3)} ${y + 20} V${y + 62} H${f2(x - w / 2 + 3)} V${y + 20} L${f2(x - w / 2 - 4)} ${y + 18} Z" fill="${body}" stroke="${INK}" stroke-width="1.3" stroke-linejoin="round"/>`;
+        if (kind === "sailor") g += `<path d="M${f2(x - 9)} ${y} L${f2(x)} ${y + 14} L${f2(x + 9)} ${y} H${f2(x + 12)} L${f2(x)} ${y + 20} L${f2(x - 12)} ${y} Z" fill="${trim}" stroke="${INK}" stroke-width="1"/><path d="M${f2(x - 3)} ${y + 18} L${f2(x)} ${y + 24} L${f2(x + 3)} ${y + 18} Z" fill="#E8453C"/><path d="M${f2(x - w / 2 + 3)} ${y + 40} H${f2(x + w / 2 - 3)} V${y + 62} H${f2(x - w / 2 + 3)} Z" fill="${trim}" stroke="${INK}" stroke-width="1"/>`;
+        if (kind === "blazer") g += `<path d="M${f2(x - 5)} ${y} L${f2(x)} ${y + 18} L${f2(x + 5)} ${y} Z" fill="#FFFFFF" stroke="${INK}" stroke-width="1"/><circle cx="${f2(x)}" cy="${y + 3}" r="2.4" fill="#E8453C"/><circle cx="${f2(x - 2)}" cy="${y + 30}" r="1.6" fill="#E8C872"/><circle cx="${f2(x - 2)}" cy="${y + 40}" r="1.6" fill="#E8C872"/><path d="M${f2(x + 6)} ${y + 22} h5 v4 q-2.5 3 -5 0 Z" fill="#E8C872"/>`;
+        if (kind === "gym") g += `<rect x="${f2(x - 7)}" y="${y + 18}" width="14" height="9" rx="2" fill="#FFFFFF" stroke="${trim}" stroke-width="1.2"/><path d="M${f2(x - w / 2 + 3)} ${y + 46} H${f2(x + w / 2 - 3)} V${y + 62} H${f2(x - w / 2 + 3)} Z" fill="${trim}" stroke="${INK}" stroke-width="1"/>`;
+        if (kind === "yukata") g += `<path d="M${f2(x + 6)} ${y} L${f2(x - 6)} ${y + 28}" stroke="${shade(body, -0.3)}" stroke-width="2.4"/><rect x="${f2(x - w / 2 + 3)}" y="${y + 28}" width="${w - 6}" height="8" fill="${trim}" stroke="${INK}" stroke-width="1"/><circle cx="${f2(x - 6)}" cy="${y + 46}" r="3" fill="#F59BBE"/><circle cx="${f2(x + 6)}" cy="${y + 14}" r="2.6" fill="#F59BBE"/>`;
+        return g;
+      };
+      const xs = [0.16, 0.39, 0.62, 0.85].map((k) => fw * k);
+      const R = { ...F, D: D / 2 };
+      s += onFace(S, R, "front", 0.1, 0, rz + 4, cloth(xs[0], 0, "#FFFFFF", "#3E4F8F", "sailor") + cloth(xs[1], 0, "#3B4A7A", "#FFFFFF", "blazer") + cloth(xs[2], 0, "#FFFFFF", "#3E4F8F", "gym") + cloth(xs[3], 0, "#CFE6F7", "#FFD86B", "yukata"));
+      // したの たな: つうがく ぼうし・ランドセル
+      const hat = S.P(...F.Q(W * 0.32, D / 2, 30)), bag = S.P(...F.Q(W * 0.66, D / 2, 30)); S.grow(hat.x - 16, hat.y - 18, bag.x + 16, bag.y + 2);
+      s += `<ellipse cx="${f2(hat.x)}" cy="${f2(hat.y - 2)}" rx="15" ry="4" fill="#FFD84D" stroke="${INK}" stroke-width="1.2"/><path d="M${f2(hat.x - 10)} ${f2(hat.y - 3)} C${f2(hat.x - 11)} ${f2(hat.y - 17)} ${f2(hat.x + 11)} ${f2(hat.y - 17)} ${f2(hat.x + 10)} ${f2(hat.y - 3)} Z" fill="#FFD84D" stroke="${INK}" stroke-width="1.2"/>`;
+      s += `<rect x="${f2(bag.x - 9)}" y="${f2(bag.y - 17)}" width="18" height="17" rx="4" fill="#C4372F" stroke="${INK}" stroke-width="1.2"/><path d="M${f2(bag.x - 9)} ${f2(bag.y - 11)} C${f2(bag.x - 9)} ${f2(bag.y - 18)} ${f2(bag.x + 9)} ${f2(bag.y - 18)} ${f2(bag.x + 9)} ${f2(bag.y - 11)} V${f2(bag.y - 4)} H${f2(bag.x - 9)} Z" fill="#E2453F" stroke="${INK}" stroke-width="1.2"/><rect x="${f2(bag.x - 2.5)}" y="${f2(bag.y - 6)}" width="5" height="4" rx="1" fill="#F2C14E"/>`;
+      // かんばん（ぼうの うえ）
+      const s0 = S.P(...F.Q(0.2, D / 2, rz + 34)), s1 = S.P(...F.Q(W - 0.2, D / 2, rz + 10)); S.grow(Math.min(s0.x, s1.x) - 2, Math.min(s0.y, s1.y) - 2, Math.max(s0.x, s1.x) + 2, Math.max(s0.y, s1.y) + 26);
+      s += polyC(S, F, [[0.3, D / 2, rz + 5], [0.3, D / 2, rz + 12], [W - 0.3, D / 2, rz + 12], [W - 0.3, D / 2, rz + 5]], "#C9D2DA", 0.8);
+      s += onFace(S, R, "front", 0.2, 0, rz + 34, `<rect x="0" y="0" width="${f2(fw - 20)}" height="24" rx="8" fill="#FFFDF5" stroke="${INK}" stroke-width="1.4"/>${txt((fw - 20) / 2, 17, 12, "かしだし いしょう", "#9B6BC4")}`);
+      return s;
+    },
     // カプセルの かいしゅう ばこ（ガチャ コーナー。あいた カプセルを いれる まるい あな・カプセルの え）
     capbin(S, f) {
       const F = frame(f), W = F.W, D = F.D, h = 64;
@@ -483,6 +538,8 @@ const ArcadeArt = (() => {
       if (f.action === "crane") { sc.busy = true; try { const at = f.spots && f.spots[0]; await PrizeArcade.open(f.machine, { venue: sc.id, floor: sc.floor, back: sc.back, at }); } finally { sc.busy = false; } return true; }
       // ぷりくら（js/purikura.js）: 300コインで さつえい → らくがき → すまほの「しゃしん」
       if (f.action === "photo") { sc.busy = true; try { const at = f.spots && f.spots[0]; await Purikura.open({ venue: sc.id, floor: sc.floor, back: sc.back, at }, f.booth); } finally { sc.busy = false; } return true; }
+      // こういしつ・かしだし いしょう（js/mee-fitting.js）: きがえの 画面（じぶんの ふく ＋ かしだし）
+      if (f.action === "fitting") { sc.busy = true; try { await MeeFitting.open(); } finally { sc.busy = false; } return true; }
       // ガチャガチャ（js/gacha.js）: 200コインで まわす → カプセル → フィギュアか 服
       if (f.action === "gacha") { sc.busy = true; try { await Gacha.open(f.series ?? f.variant ?? 0); } finally { sc.busy = false; } return true; }
       if (f.action === "counter") { sc.busy = true; try { const i = await UI.ask("けいひん カウンター\nとった けいひんは もちものに はいるよ。\nまえの けいひんも コインで こうかん できるよ。", ["まえの けいひんを みる", "コインの けいひんの きまり", "やめておく"]); if (i === 0) await ShopUI.open("ike_arcade"); else if (i === 1) await UI.say([{ name: "てんいん", text: `コインの けいひんは 1にち ${ArcadePrizes.COIN_DAY_MAX}コイン まで。\nきょうは あと ${ArcadePrizes.coinLeft()}コイン とれるよ。` }]); } finally { sc.busy = false; } return true; }

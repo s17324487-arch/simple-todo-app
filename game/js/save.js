@@ -22,7 +22,7 @@ const Save = {
       created: Date.now(),
       last: Date.now(),
       coins: 150,
-      arcade: {active:null,settled:null,plays:0,wins:0,boards:{},miss:{},got:{}}, // クレーン: 台ごとの ようす（景品の 位置）・はずれの かず・とれた かず
+      arcade: {active:null,settled:null,plays:0,wins:0,boards:{},miss:{},got:{},rental:{}}, // クレーン: 台ごとの ようす（景品の 位置）・はずれの かず・とれた かず。rental: こういしつで かりた いしょうの まえの ふく（js/mee-fitting.js）
       chars: { wanko: chara("wanko"), gachan: chara("gachan"), goji: chara("goji") },
       order: ["wanko", "gachan", "goji"],
       parents: {

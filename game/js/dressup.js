@@ -1,7 +1,9 @@
 // きせかえ画面
 const DressUp = {
-  open(startWho) {
+  // opts（ほかの 画面から ひらく とき）: title・extra（もって いなくても きられる ふく。Meeときょれじゃ の こういしつの かしだし）・tag（extra の ふだ）・note（したの せつめい）
+  open(startWho, opts = {}) {
     if(["papa","mama"].includes(startWho))return ParentWardrobe.open(startWho);
+    const extra = (opts.extra || []).filter(Boolean), extraIds = new Set(extra.map((it) => it.id));
     return new Promise((resolve) => {
       const d = Save.d;
       let who = startWho || d.order[0];
@@ -18,7 +20,7 @@ const DressUp = {
       let frame = 0;
       const timer = setInterval(() => { frame ^= 1; drawStage(); }, 500);
       const m = UI.modal({
-        title: "きがえ", body, cls: "full",
+        title: opts.title || "きがえ", body, cls: "full" + (extra.length ? " dress-extra" : ""),
         onClose: () => {
           clearInterval(timer);
           const after = JSON.stringify(Chara.IDS.map((id) => d.chars[id].outfit)) + d.chars.goji.color;
@@ -41,7 +43,7 @@ const DressUp = {
         }
       };
       const drawChildren=drawWho;
-      const drawFamily=()=>{drawChildren();for(const id of ["papa","mama"]){const b=U.el("button",{class:"who-tab",html:ParentCare.svg(id,ParentCare.look(id))+ParentCare.name(id)});b.onclick=()=>{m.close();ParentWardrobe.open(id);};wt.append(b);}};
+      const drawFamily=()=>{drawChildren();if(extra.length)return;for(const id of ["papa","mama"]){const b=U.el("button",{class:"who-tab",html:ParentCare.svg(id,ParentCare.look(id))+ParentCare.name(id)});b.onclick=()=>{m.close();ParentWardrobe.open(id);};wt.append(b);}};
       const statLine = (id) => {
         const k = ["hp", "sp", "atk", "def", "spd"], nm = { hp: "HP", sp: "SP", atk: "こうげき", def: "ぼうぎょ", spd: "すばやさ" };
         return k.map((s) => { const e = Stats.equip(id, s); return `${nm[s]} ${Stats.max(id, s)}${e ? `<span style="color:${e > 0 ? "#2e7d32" : "#c62828"}">(${e > 0 ? "+" : ""}${e})</span>` : ""}`; }).join("<br>");
@@ -77,9 +79,10 @@ const DressUp = {
         const none = U.el("button", { class: "card" + (!c.outfit[slot] ? " on" : ""), html: `<div class="ico" style="width:44px;height:44px;font-size:26px">✕</div><div>なし</div>` });
         none.addEventListener("click", () => { c.outfit[slot] = null; Sound.se("tap"); Save.mark(); drawAll(); });
         grid.append(none);
-        const owned = WEAR_ITEMS.filter((w) => w.slot === slot && d.wardrobe[w.id]);
+        const owned = [...extra.filter((w) => w.slot === slot && !d.wardrobe[w.id]), ...WEAR_ITEMS.filter((w) => w.slot === slot && d.wardrobe[w.id])];
         for (const it of owned) {
-          const b = U.el("button", { class: "card" + (c.outfit[slot] === it.id ? " on" : ""), html: `${UI.icon("wear", it.id, 44)}<div>${it.name}</div>` });
+          const lent = extraIds.has(it.id) && !d.wardrobe[it.id];
+          const b = U.el("button", { class: "card" + (c.outfit[slot] === it.id ? " on" : "") + (lent ? " lent" : ""), html: `${lent ? `<span class="dress-tag">${opts.tag || ""}</span>` : ""}${UI.icon("wear", it.id, 44)}<div>${it.name}</div>` });
           b.addEventListener("click", () => {
             c.outfit[slot] = c.outfit[slot] === it.id ? null : it.id;
             Sound.se("pop");
@@ -101,6 +104,7 @@ const DressUp = {
         tools.append(UI.btn("ぜんぶ ぬぐ", () => { d.chars[who].outfit = { head: null, face: null, neck: null, body: null, back: null }; Sound.se("tap"); Save.mark(); drawAll(); }, "small"));
       };
       const drawAll = () => { drawFamily(); drawStage(); drawTabs(); drawGrid(); drawTools(); };
+      if (opts.note) body.append(U.el("div", { class: "note dress-note", text: opts.note }));
       drawAll();
     });
   },

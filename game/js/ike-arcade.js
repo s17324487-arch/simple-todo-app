@@ -1,7 +1,7 @@
 // Meeときょれじゃ（池袋の ゲームセンター）の 館。サンシャインいけぶ と おなじ 斜め上の 館（IsoVenueScene・絵は ArcadeArt）。
 // 1F: 12台の クレーン（ぬいぐるみ コーナー・スウィートランド・コイン プッシャー・トライポッド・リングフック）・フロア あんない・けいひん カウンター・りょうがえき。
 // 2F: おかしの フロア。おかし キャッチャー 5台（ふくろ・はこ・リング・スウィートランド・ビッグ おかし）・はしわたし 2台（フィギュア・ざっか）・まんなかの ガチャ コーナー（6だい）・やすむ ところ。けいひんは 日がわり。
-// 3F: ぷりくらの フロア。ぷりくら 3台（ゆめかわ・がっこう・おでかけ。はいけいが ちがう）・おめかし コーナー（かがみ）。
+// 3F: ぷりくらの フロア。ぷりくら 3台（ゆめかわ・がっこう・おでかけ。はいけいが ちがう）・おめかし コーナー（かがみ）・こういしつ と かしだし いしょう（js/mee-fitting.js）。
 // 1F と 2F は ひがしの エスカレーター、2F と 3F は 南西の すみの エスカレーター（サンシャインいけぶと おなじ 絵。うえの 階は ふきぬけ）。フロアマップは 1F・2F・3F の タブ。
 // 台を タップすると その まえまで あるいて あそぶ 画面（SCENES.prize）へ。もどると 台の まえに たつ。
 const IkeArcade = {
@@ -129,7 +129,7 @@ const IkeArcade = {
       },
     };
   },
-  // 3F（ぷりくらの フロア）。北の かべに ぷりくら 3台・ひがしに おめかし コーナー（かがみ）・南西に 2F へ くだる エスカレーター（ふきぬけ）
+  // 3F（ぷりくらの フロア）。北の かべに ぷりくら 3台・ひがしに おめかし コーナー（かがみ）・西の かべに こういしつ・南西に 2F へ くだる エスカレーター（ふきぬけ）
   floor3() {
     const W = this.W, H = this.H, rows = Array.from({ length: H }, () => Array(W).fill(".")), e = this.ESC3;
     const paint = (ch, x0, y0, x1, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) rows[y][x] = ch; };
@@ -142,13 +142,17 @@ const IkeArcade = {
     this.BOOTHS.forEach((b, v) => { const x = 1 + v * 6; fixtures.push({ kind: "photobooth", x, y: 0, w: 4, h: 3, dir: "y", height: 240, variant: v, booth: b.id, label: b.name + " ぷりくら", action: "photo", spots: [[x + 2, 3]] }); });
     // おめかし コーナー（北の かべの ひがし: かがみの ならぶ カウンターと いす）
     fixtures.push({ kind: "vanity", x: 20, y: 0, w: 5, h: 1, dir: "y", height: 168, label: "おめかし コーナー", action: "info", text: "かがみの まえで まえがみを なおそう♪ ぷりくらの まえに おめかし！", spots: [[22, 1]] });
+    // こういしつ（西の かべ。カーテンの こしつ 3つ）と かしだし いしょうの ラック: しらべると きがえの 画面（じぶんの ふく ＋ かしだし 6しゅ）
+    fixtures.push({ kind: "fitting", x: 0, y: 5, w: 2, h: 6, dir: "x", height: 244, label: "こういしつ", action: "fitting", spots: [[2, 8], [2, 6], [2, 10]] });
+    fixtures.push({ kind: "costumerack", x: 6, y: 8, w: 3, h: 1, dir: "y", height: 190, label: "かしだし いしょう", action: "fitting", spots: [[7, 9], [6, 9], [8, 9]] });
     // エスカレーター（2F へ くだる）と つりさげの あんない
     fixtures.push({ kind: "escalator", pair: true, dir: "down", x: e.x, y: e.y, w: e.w, h: e.h, rise: 210, height: 40, label: "2Fへ おりる", action: "floor", to: 2, spawn: [e.x + 3, e.y + e.h] });
     fixtures.push({ kind: "hangsign", x: e.x, y: e.y - 1, w: e.w, h: 1, z: 232, text: "2F おかし・ガチャ", col: "#E0668F", over: true, walk: true, fadeOver: true });
     // やすむ ところ・はしら・うえきばち
     for (const [x, y] of [[8, 18], [17, 18]]) fixtures.push({ kind: "bench", x, y, w: 3, h: 1, height: 46, label: "ベンチ", action: "sit", text: "とった ぷりくらを すまほで みせあおう。", spots: [[x + 1, y + 1]] });
     for (const [x, y] of [[7, 18], [11, 18], [16, 18], [20, 18]]) fixtures.push({ kind: "planter", x, y, w: 1, h: 1, height: 70 });
-    for (const [x, y] of [[4, 12], [24, 16]]) fixtures.push({ kind: "apillar", x, y, w: 1, h: 1, height: 330 });
+    // はしら（ひがし だけ。にしの (4,12) は こういしつの カーテンを かくすので おかない）
+    for (const [x, y] of [[24, 16]]) fixtures.push({ kind: "apillar", x, y, w: 1, h: 1, height: 330 });
     // 町の人（ぷりくらを とりに きた おきゃくさん）
     fixtures.push({ kind: "npc", sp: "rabbit", ci: 0, x: 6, y: 4, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "ぷりくらは 3台とも はいけいが ちがうんだって！ きょうは がっこうに しようかな。", spots: [[7, 4]] });
     fixtures.push({ kind: "npc", sp: "cat", ci: 1, x: 21, y: 2, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "まえがみ よし！ リボンも よし！ さあ、とりに いこう。", spots: [[21, 3]] });
@@ -159,10 +163,11 @@ const IkeArcade = {
       zones: [
         ...this.BOOTHS.map((b, v) => ({ x: 1 + v * 6, y: 0, w: 4, h: 4, shop: "arcPhoto" + v, label: b.name + " ぷりくら", map: b.name })),
         { x: 20, y: 0, w: 5, h: 4, shop: "arcVanity", label: "おめかし コーナー", map: "おめかし" },
+        { x: 0, y: 5, w: 3, h: 6, shop: "arcFitting", label: "こういしつ" }, { x: 6, y: 8, w: 3, h: 2, shop: "arcRental", label: "かしだし いしょう", map: "かしだし" },
       ],
       walls: {
         north: [{ kind: "neon", from: 0.5, to: 17.5, z: 300, size: 40, text: "ぷりくら", col: "#FF8FB8", stars: true }, { kind: "neon", from: 19.2, to: 25.8, z: 300, size: 28, text: "おめかし", col: "#FFD2E6" }, { kind: "neon", from: 26, to: 27.6, z: 300, size: 22, text: "3F", col: "#9FD3F0" }],
-        west: [{ kind: "poster", from: 4.5, to: 8.5, z0: 140, z1: 300, col: "#E6D6FF", lines: ["はいけいは", "3しゅるい"] }, { kind: "poster", from: 9, to: 13, z0: 140, z1: 300, col: "#CDE8F8", lines: ["しゃしんは", "すまほで みてね"] }, { kind: "neon", from: 14.2, to: 21.6, z: 300, size: 24, text: "2F おかし", col: "#FF8FB8" }],
+        west: [{ kind: "neon", from: 5, to: 11, z: 310, size: 26, text: "きがえ", col: "#D6A6F2", stars: true }, { kind: "neon", from: 14.2, to: 21.6, z: 300, size: 24, text: "2F おかし", col: "#FF8FB8" }],
       },
     };
   },
@@ -178,7 +183,7 @@ const IkeArcade = {
     // フロアマップの コーナーの いろ
     Object.assign(MallArt.SHOP, {
       arcPlush: { name: "ぬいぐるみ", c: ["#CDE8F8", "#A9D3EE", "#7FB8E0"] }, arcInfo: { name: "あんない", c: ["#FFF3C4", "#FFE07A", "#E0B640"] },
-      arcPhoto0: { name: "ゆめかわ", c: ["#F8C8DA", "#F29BB8", "#D9789B"] }, arcPhoto1: { name: "がっこう", c: ["#D3DEF2", "#9FB3DE", "#6F86C2"] }, arcPhoto2: { name: "おでかけ", c: ["#D2EEF7", "#9FD8EC", "#5FB3D3"] }, arcVanity: { name: "おめかし", c: ["#FCE3EE", "#F6C2D8", "#E59BBB"] }, arcBear: { name: "ビッグ", c: ["#F2D3B0", "#E1B387", "#C98E5C"] },
+      arcPhoto0: { name: "ゆめかわ", c: ["#F8C8DA", "#F29BB8", "#D9789B"] }, arcPhoto1: { name: "がっこう", c: ["#D3DEF2", "#9FB3DE", "#6F86C2"] }, arcPhoto2: { name: "おでかけ", c: ["#D2EEF7", "#9FD8EC", "#5FB3D3"] }, arcVanity: { name: "おめかし", c: ["#FCE3EE", "#F6C2D8", "#E59BBB"] }, arcFitting: { name: "こういしつ", c: ["#F3E9FB", "#E1CDF3", "#B996DC"] }, arcRental: { name: "かしだし", c: ["#EAF2FB", "#C9DCF2", "#8FB0DA"] }, arcBear: { name: "ビッグ", c: ["#F2D3B0", "#E1B387", "#C98E5C"] },
       arcGacha: { name: "ガチャ", c: ["#D6EFD8", "#B6DFBA", "#86C08C"] }, arcRing: { name: "リングフック", c: ["#FFF0B8", "#F9D56E", "#E0B640"] }, arcSweet: { name: "スウィートランド", c: ["#FBD3E0", "#F2A7C0", "#E58BAA"] }, arcPusher: { name: "コイン プッシャー", c: ["#FFF3C4", "#F2C84B", "#D6A231"] },
       arcTripod: { name: "トライポッド", c: ["#FFE0C2", "#F7B98A", "#E58A3A"] }, arcCounter: { name: "けいひん カウンター", c: ["#E6DCF5", "#C9B6EE", "#9B7BD0"] }, arcRest: { name: "ソファ", c: ["#E3EFD6", "#C3DDAA", "#9CC47E"] },
       arcSnack: { name: "おかし キャッチャー", c: ["#FFE2C4", "#FFB86B", "#F2944A"] }, arcSnackSweet: { name: "スウィートランド おかし", c: ["#D4F2E8", "#8ED1C0", "#5DB29B"] },

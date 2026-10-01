@@ -922,6 +922,15 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - PokaDebug: `puriState()`（`booth`・`bgs`・`words` も）・`puriStart(ブース)`（300コインで はじめる・もどると Meeときょれじゃ 3F の その ブースの まえ）・`puriFast(ばい)`（カウントダウンを はやく）・`photos()`（`k` も）。検査は `tools/check-purikura.mjs`、スモーク「purikura-390 / 375」・「arcade-3f-390 / 375」。
 
 
+## こういしつ と かしだしの いしょう（Meeときょれじゃ 3F・UI-22）
+
+- 読み込みは `js/mee-rental-wear.js` → `js/mee-fitting.js`（gacha.js の あと。ike-wear.js・dressup.js・scene-world.js・scene-house.js より あと）。トップレベル名は `MeeRentalWear`・`MeeFitting`。
+- `MeeRentalWear.ITEMS`（6。`id: mee_<なまえ>`・`slot`・`col`・`theme`）と `WEAR.mee_sailor`・`mee_blazer`・`mee_gym`・`mee_yukata`（IkeWear の `frame`・`sleeves`・`skirtD`・`band`・`bow`）・`mee_schoolhat`（`hatWrap`）・`mee_randoseru`（`backWrap`。まえむきは かたの ベルト）。`ITEM_INDEX` に `{ rental: true, exclusive: "rental", price: 0, rare: true }` で いれる。`WEAR_ITEMS` には いれない（ようふくやさん・ずかん〔`ItemDex.catalog`〕・`SlowLifePrices`・ぱぱ ままの ふく・PokaDebug の ぜんぶ もつ に でない）。絵・アイコン・ぷりくらの しゃしん（`Purikura.clean` は ITEM_INDEX を みる）は ふつうの 服と おなじ。
+- `MeeFitting`: `open()`（3F の 什器 `fitting`・`costumerack` の `action: "fitting"` → arcade-art.js の interact。はじめは `Save.d.arcade.fitSeen` まで せつめい → `DressUp.open(null, { title, extra, tag, note })` → `track(まえ)` → `Save.write()`）。`track` は 3人 × ばしょごとに、かしだしの いしょうを きて いれば `Save.d.arcade.rental[だれ][ばしょ]` に まえの ふく（まえも かしだし なら いまの きろくの まま・なければ null）・じぶんの ふくなら きろくを けす。`giveBack()` は かしだしの いしょうを きて いる ばしょを まえの ふく（もって いて ばしょが あう ときだけ）か なしに して `rental = {}`。`isRental(id)` は もって いる ふく（`Save.d.wardrobe`）を のぞく。`install()` が `WorldScene`・`HouseScene` の `prototype.enter` を つつんで かえす（おみせを でる・おうちへ・セーブを よみなおした あとの さいしょの 画面）。
+- `DressUp.open(startWho, opts)`: `opts.title`・`opts.extra`（ふくの もの〔ITEM_INDEX の かたち〕の リスト。もって いなくても その ばしょの さきに ならぶ・`.card.lent` と `.dress-tag`）・`opts.tag`・`opts.note`（`.dress-note`）。extra が ある ときは ぱぱ・ままの タブを ださない。
+- 館: `IkeArcade.floor3()` の `fitting`（0,5・2×6・`dir: "x"`）と `costumerack`（6,8・3×1）・ゾーン `arcFitting`・`arcRental`・ネオン「きがえ」。ArcadeArt の `fitting`（こしつ 3つ・カーテン・ばんごう・かんばん・よこの ポスター）・`costumerack`（ぼうの ハンガー・たな・かんばん）。3F の しらべる もの（ぷりくら・おめかし・こういしつ・ラック）が てまえの 高い もの に かくれない ことは `tools/check-ikebukuro.mjs`。
+- PokaDebug: `fitting()`・`photos()` の `o`。検査は `tools/check-fitting.mjs`、スモーク「arcade-fitting-390 / 375」。
+
 ## ガチャガチャ（Meeときょれじゃ・UI-12）
 
 - 読み込みは `js/gacha-art.js` → `js/gacha.js`（purikura.js の あと）。トップレベル名は `GachaArt`・`Gacha`。こうかおんは `CraneSE` に `gacha_turn`・`gacha_drop`・`gacha_open`・`gacha_rare`。
