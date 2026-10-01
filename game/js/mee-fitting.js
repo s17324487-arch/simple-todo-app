@@ -33,7 +33,8 @@ const MeeFitting = {
       const o = Save.d.chars[id].outfit || (Save.d.chars[id].outfit = {}), rec = (R[id] && typeof R[id] === "object" && R[id]) || {};
       for (const slot of Object.keys(SLOT_NAMES)) {
         if (!this.isRental(o[slot])) continue;
-        const prev = rec[slot], ok = prev && ITEM_INDEX[prev] && ITEM_INDEX[prev].slot === slot && Save.d.wardrobe[prev] && !this.isRental(prev);
+        // 1こで 1人（js/wear-stock.js）: まえの ふくを ほかの 人が つかって いて のこりが なければ もどさない
+        const prev = rec[slot], ok = prev && ITEM_INDEX[prev] && ITEM_INDEX[prev].slot === slot && Save.d.wardrobe[prev] && !this.isRental(prev) && WearStock.can(prev, id);
         o[slot] = ok ? prev : null; n++;
       }
     }

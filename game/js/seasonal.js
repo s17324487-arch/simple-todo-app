@@ -31,7 +31,7 @@ const Seasonal = {
     const e=this.current();if(e.key!==key)return false;
     const r=this.record(key);if(r.claimed||!e.targets.every(t=>r.stamps[t[1]]))return false;
     // 表示・演出より先に一度だけ確定する。連打・閉じ直し・再起動で増えない。
-    r.claimed=true;Save.d.wardrobe[e.items.wear]=true;
+    r.claimed=true;WearStock.add(e.items.wear,1);
     Save.d.furn[e.items.furn]=(Save.d.furn[e.items.furn]||0)+1;Save.addBag(e.items.food,3);
     Save.mark();Save.write();return true;
   },

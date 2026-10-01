@@ -76,7 +76,7 @@ const AnnualFestivals = {
   claim(key) {
     const e=this.current(),r=Seasonal.record(key);
     if(key!==e.key||r.claimed||!e.targets.every(t=>r.stamps[t[1]]))return false;
-    r.claimed=true;Save.d.wardrobe[e.items.wear]=true;Save.d.furn[e.items.furn]=(Save.d.furn[e.items.furn]||0)+1;Save.addBag(e.items.food,3);Save.mark();Save.write();return true;
+    r.claimed=true;WearStock.add(e.items.wear,1);Save.d.furn[e.items.furn]=(Save.d.furn[e.items.furn]||0)+1;Save.addBag(e.items.food,3);Save.mark();Save.write();return true;
   },
   open() {
     UI.toastBox.replaceChildren();let month=this.current().month;

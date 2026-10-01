@@ -2669,7 +2669,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(saved.collab.puzzle.total===151000&&["pc_cushion","pc_table","pc_arcade"].every(id=>saved.furn[id]===1)&&saved.wardrobe.pc_band===true,"のこりの コラボ グッズ "+JSON.stringify(saved.collab));
   // おうち: 3にんが パーカーと カチューシャ・家具を かざる・アーケードを さわる
   await H.page.getByRole("button",{name:"おうちへ",exact:true}).click();await H.idle();
-  d=await H.dbg("saveData");for(const id of ["wanko","gachan","goji"])d.chars[id].outfit={...d.chars[id].outfit,body:"pc_hoodie",head:"pc_band"};await H.dbg("seedSave",d);await H.dbg("house");await H.idle();
+  // 服は 1こで ひとり（UI-31）なので 3人が きる ぶん 3こに して から
+  d=await H.dbg("saveData");d.wardrobe.pc_hoodie=3;d.wardrobe.pc_band=3;for(const id of ["wanko","gachan","goji"])d.chars[id].outfit={...d.chars[id].outfit,body:"pc_hoodie",head:"pc_band"};await H.dbg("seedSave",d);await H.dbg("house");await H.idle();
   await H.dbg("homeLayout",[{id:"pc_arcade",x:300,y:420},{id:"pc_table",x:150,y:470},{id:"pc_cushion",x:120,y:360}]);await H.wait(500);
   const lv=await H.dbg("furnLive","pc_arcade");expect(lv&&lv.tap,"アーケードを さわれない "+JSON.stringify(lv));
   await H.page.mouse.click(lv.tap.x,lv.tap.y);await H.wait(700);const lv2=await H.dbg("furnLive","pc_arcade");expect(lv2.t>=0&&lv2.t<3,"アーケードの うごき "+JSON.stringify(lv2));
@@ -3649,7 +3650,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('gacha-'+viewport.width,async H=>{
  // ガチャガチャ（gacha.js・UI-12。オーナーの FB 2026-09-30「ガチャガチャも 実際の 機能として」「景品は ミニマスコットみたいに 部屋に 置けたり、服だったり」「シリーズで 4種類・一つは レアで 確率を 下げて」）:
- // 館の 台 → ラインナップ → 200コインで まわす → カプセル → あける（レア）→ ふくの 台で ダブりは 50コイン もどる・4しゅで コンプリート → さいかい → きがえで きる・もようがえで かざる → コインが たりないと まわせない
+ // 館の 台 → ラインナップ → 200コインで まわす → カプセル → あける（レア）→ ふくの 台で ダブりは 2こめ（服は 1こで ひとり・UI-31）・5こ もって いれば 50コイン もどる・4しゅで コンプリート → さいかい → きがえで きる・もようがえで かざる → コインが たりないと まわせない
  await H.newGameFast();const c0=await H.dbg('coins',1850);
  // ガチャは 2F の まんなかの ガチャ コーナー（UI-20。1F では エスカレーターの うえの ゆかに かくれて いた）
  await H.dbg('venue','arcade',2);await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
@@ -3681,12 +3682,14 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await lay('けっか');await H.shot('rare');
  // ✕ で とじる → 館に もどる
  await H.page.locator('.modal-wrap:not(.out) .close').click();await H.until(()=>!PokaDebug.gachaState().open&&PokaDebug.idle(),8000);
- // ふくの 台（どうぶつ みみ）: はじめては ふくに・ダブりは 50コイン もどる・4しゅで コンプリート
+ // ふくの 台（どうぶつ みみ）: はじめては ふくに・ダブりは 2こめ（1こで ひとり）・5こ もって いれば 50コイン もどる・4しゅで コンプリート
  await H.dbg('gachaOpen',4);await H.page.locator('.modal-wrap:not(.out) .gacha').waitFor();await H.wait(300);
  const turn=async(k)=>{await H.dbg('gachaNext',k);await H.page.locator('.gacha-go').click();await H.until(()=>PokaDebug.gachaState().phase==='capsule',8000);await H.page.getByRole('button',{name:'カプセルを あける',exact:true}).click();await H.until(()=>PokaDebug.gachaState().phase==='done',8000);return H.dbg('gachaState');};
  g=await turn(1);expect(g.last.id==='gacha_ears_1'&&!g.last.refund&&(await H.dbg('saveData')).wardrobe.gacha_ears_1===true,'ふくが もちものに ない '+JSON.stringify(g));
  const c1=g.coins;g=await turn(1);
- expect(g.last.refund===50&&g.coins===c1-150&&/50コイン もどったよ/.test(await H.eval(()=>document.querySelector('.gacha-prize').textContent)),'ダブった ふくで 50コイン もどらない '+JSON.stringify(g));
+ expect(!g.last.refund&&g.coins===c1-200&&(await H.dbg('saveData')).wardrobe.gacha_ears_1===2&&/2こめ！ 2にんで つかえるよ/.test(await H.eval(()=>document.querySelector('.gacha-prize').textContent)),'ダブった ふくが 2こめに ならない '+JSON.stringify(g));
+ await H.dbg('wearSet','gacha_ears_1',5);const c2=g.coins;g=await turn(1);
+ expect(g.last.refund===50&&g.coins===c2-150&&(await H.dbg('wearStock','gacha_ears_1')).count===5&&/5こ もって いる ので 50コイン もどったよ/.test(await H.eval(()=>document.querySelector('.gacha-prize').textContent)),'5こ もって いる ふくで 50コイン もどらない '+JSON.stringify(g));
  await turn(0);await turn(2);g=await turn(3);
  expect(g.last.complete&&g.done.ears&&/コンプリート/.test(await H.eval(()=>document.querySelector('.gacha').textContent)),'4しゅ そろっても コンプリートに ならない '+JSON.stringify(g));
  await lay('コンプリート');await H.shot('complete');
@@ -4133,7 +4136,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.until(()=>PokaDebug.idle()&&!document.querySelector('.dlg-shade'),8000);
  // おうち（ひる 14じ）: 3にんが Tシャツと いちご ぼうし。ボールプール・ベッド・ぬいぐるみを おいて さわる
  await H.dbg('hour',14);
- d=await H.dbg('saveData');for(const id of ['wanko','gachan','goji'])d.chars[id].outfit={...d.chars[id].outfit,body:'kc_tee',head:'kc_cap'};await H.dbg('seedSave',d);
+ // 服は 1こで ひとり（UI-31）なので 3人が きる ぶん 3こに して から
+ d=await H.dbg('saveData');d.wardrobe.kc_tee=3;d.wardrobe.kc_cap=3;for(const id of ['wanko','gachan','goji'])d.chars[id].outfit={...d.chars[id].outfit,body:'kc_tee',head:'kc_cap'};await H.dbg('seedSave',d);
  await H.dbg('house');await H.until(()=>PokaDebug.state().scene==='house'&&!PokaDebug.state().transitioning,15000);await H.idle(20000);
  await H.dbg('homeLayout',[{id:'kc_bed',x:150,y:262},{id:'kc_pool',x:420,y:300},{id:'kc_plush',x:70,y:540}]);
  await H.dbg('homeBubbleFixture');await H.wait(900);await H.shot('room');
@@ -4210,6 +4214,8 @@ await (await import("./indoor-walk-smoke.mjs")).indoorWalkSmoke({scenario,expect
 await (await import("./room-presets-smoke.mjs")).roomPresetsSmoke({scenario,expect});
 
 await (await import("./parent-wardrobe-smoke.mjs")).parentWardrobeSmoke({scenario,expect});
+// 服は 1こで ひとり（UI-31）: かう・きがえ・わたす・おそろい・ぱぱ・さいかい・5こ まで
+await (await import("./wear-stock-smoke.mjs")).wearStockSmoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 

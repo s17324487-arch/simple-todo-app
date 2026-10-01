@@ -47,7 +47,7 @@ const CollabGoods = {
     if (add || out.length) Save.mark();
     return out;
   },
-  give(it) { if (it.kind === "wear") Save.d.wardrobe[it.id] = true; else Save.d.furn[it.id] = (Save.d.furn[it.id] || 0) + 1; },
+  give(it) { if (it.kind === "wear") WearStock.add(it.id, 1); else Save.d.furn[it.id] = (Save.d.furn[it.id] || 0) + 1; },
   pic(it) { return it.kind === "wear" ? Art.iconSvg("wear", it.id) : Art.furnSvg(it.id); },
   // ずかんの ヒント
   source(id) { const x = this.find(id); return x ? `${x.line.game}で あそんだ スコアの ごうけいが ${U.fmt(x.item.need)}${x.line.unit}に とどくと もらえる コラボ グッズ だよ。` : ""; },

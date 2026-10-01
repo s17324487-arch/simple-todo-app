@@ -494,7 +494,7 @@ class BattleScene {
       Save.d.dex[f.kind].won = (Save.d.dex[f.kind].won || 0) + 1;
       const tbl = { meadow: ["apple", "candy", "bandaid", "milk"], forest: ["corn", "drink", "juice", "bandaid"], cave: ["bigbandaid", "feather", "drink", "fish"], coast: ["deza_ice", "bigbandaid", "fish"] }[this.area] || ["bandaid"];
       if (!f.e.boss && Math.random() < 0.22) drops.push({ bag: U.pick(tbl) });
-      if (f.kind === "koumori" && Math.random() < 0.05 && !Save.d.wardrobe.batwings) drops.push({ wear: "batwings" });
+      if (f.kind === "koumori" && Math.random() < 0.05 && WearStock.room("batwings")) drops.push({ wear: "batwings" });
     }
     const lines = [];
     if (this.boss) {

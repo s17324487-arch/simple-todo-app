@@ -156,5 +156,5 @@ const save=JSON.parse(readFileSync(new URL('../tests/fixtures/save-v1.json',impo
 const migrated=R.Save.migrate(JSON.parse(JSON.stringify(save)));assert.equal(migrated.coins,987654);
 for(const key of ['bag','furn','wardrobe','room'])assert.equal(JSON.stringify(migrated[key]),JSON.stringify(save[key]),key);
 for(const [id,progress]of Object.entries(save.shops))assert.equal(JSON.stringify(migrated.shops[id]),JSON.stringify(progress),id);
-assert.equal(R.Save.KEY,'pokapoka-town-save-v1');assert.equal(R.Save.SCHEMA,1);
+assert.equal(R.Save.KEY,'pokapoka-town-save-v1');assert.equal(R.Save.SCHEMA,2);
 console.log(`Nerikasu: ${d.buildings.length} native-size buildings on the owner's map, ${ponds.length} fishing ponds, parks and forest; two convenience stores, a family restaurant, gas-station and post-office jobs, a two-floor apartment, a quest board (${R.NeriQuests.Q.length} requests, ${Math.min(...R.NeriQuests.Q.map(q=>q.reward))}-${Math.max(...R.NeriQuests.Q.map(q=>q.reward))} coins); old IDs / shops / NPCs / ${rescued} old save spots rescued`);

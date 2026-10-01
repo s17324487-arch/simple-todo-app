@@ -18,7 +18,7 @@ const entry=(kind,id,d=Save.d)=>D.entries(kind,d).find(row=>row.id===id);
 const saved=()=>Save.migrate(JSON.parse(localStorage.getItem(Save.KEY)));
 
 assert.equal(Save.KEY,'pokapoka-town-save-v1');
-assert.equal(Save.SCHEMA,1,'additive collection data must keep v1 saves compatible');
+assert.equal(Save.SCHEMA,2,'the item dex adds no schema step (2 is the wear counts of UI-31)');
 assert.deepEqual(copy(Save.fresh().itemDex),{furn:{},wear:{},claimed:{furn:{},wear:{}}});
 
 // The whole runtime catalog is the source of truth, including later prize scripts.
@@ -50,6 +50,7 @@ const legacy=JSON.parse(readFileSync(new URL('../tests/fixtures/save-v1.json',im
 assert.equal(legacy.coins,987654);assert.equal(legacy.itemDex,undefined);
 const legacyRaw=JSON.stringify(legacy);Save.d=Save.migrate(copy(legacy));
 function retained(before,after,path='save'){
+  if(path==='save.v'){assert(after>=before,'save.v went down');return;} // 形式の 番号だけは 上がる（SCHEMA 2 = 服の かず・UI-31）
   if(before&&typeof before==='object')for(const key of Object.keys(before)){
     assert(Object.hasOwn(after,key),path+'.'+key+' missing');retained(before[key],after[key],path+'.'+key);
   }else assert.equal(after,before,path+' changed');

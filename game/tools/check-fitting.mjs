@@ -47,6 +47,7 @@ for (const id of MW.IDS) {
 const reset = () => {
   S.d = S.fresh();
   for (const id of ["tshirt_red", "ribbon_pink", "dress", "backpack"]) S.d.wardrobe[id] = true;
+  S.d.wardrobe.ribbon_pink = 2; // 服は 1こで 1人（UI-31）。したの おそろいで わんこと ごじが つける
   S.d.chars.wanko.outfit = { head: null, face: null, neck: null, body: "tshirt_red", back: null };
   S.d.chars.gachan.outfit = { head: null, face: null, neck: null, body: "dress", back: "backpack" };
   S.d.chars.goji.outfit = { head: null, face: null, neck: null, body: null, back: null };
@@ -87,6 +88,15 @@ ok(Object.keys(S.fresh().arcade.rental).length === 0, "あたらしい セーブ
   // きろくが こわれて いても かりた いしょうは かえす
   S.d.chars.gachan.outfit.body = "mee_yukata"; S.d.arcade.rental = { gachan: { body: "armor" } };
   ok(MF.giveBack() === 1 && S.d.chars.gachan.outfit.body === null, "もって いない まえの ふく（armor）には もどさない");
+}
+{
+  // 1こで 1人（UI-31）: まえの ふくを いまは ほかの 人が つかって いて のこりが なければ もどさない・2こ あれば もどす
+  reset();
+  let b = snap(); S.d.chars.wanko.outfit.body = "mee_gym"; MF.track(b); S.d.chars.goji.outfit.body = "tshirt_red";
+  ok(MF.giveBack() === 1 && S.d.chars.wanko.outfit.body === null && S.d.chars.goji.outfit.body === "tshirt_red", "のこりが ない まえの ふくには もどさない");
+  reset(); S.d.wardrobe.tshirt_red = 2;
+  b = snap(); S.d.chars.wanko.outfit.body = "mee_gym"; MF.track(b); S.d.chars.goji.outfit.body = "tshirt_red";
+  ok(MF.giveBack() === 1 && S.d.chars.wanko.outfit.body === "tshirt_red" && S.d.chars.goji.outfit.body === "tshirt_red", "2こ あれば まえの ふくに もどす");
 }
 {
   // ぜんぶ もって いる とき（PokaDebug）は かしだしに しない

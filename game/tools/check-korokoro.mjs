@@ -300,7 +300,7 @@ ok(Art.HERO.wanko.crop >= 1.33 && Art.HERO.gachan.crop >= 1.5 && Art.HERO.goji.c
   ok(!m.isSolid(b.x + b.door, b.y + b.h) && m.doors.some((d) => d.b.act.shop === "korokoro"), "お店の 入口に いけない");
   const fresh = R.Save.fresh(), old = JSON.parse(JSON.stringify(fresh)); delete old.shops.korokoro;
   const mig = R.Save.migrate(old);
-  ok(fresh.shops.korokoro.lv === 1 && fresh.shops.korokoro.pts === 0 && mig.shops.korokoro && mig.shops.korokoro.lv === 1 && R.Save.SCHEMA === 1, "セーブ（ふるい セーブにも お店が たされる）");
+  ok(fresh.shops.korokoro.lv === 1 && fresh.shops.korokoro.pts === 0 && mig.shops.korokoro && mig.shops.korokoro.lv === 1 && R.Save.SCHEMA === 2, "セーブ（ふるい セーブにも お店が たされる）");
   // スコア モードの きろく（2026-09-30 に たした）: まえの セーブの ころころ フルーツにも hi・tops・games が たされる。ほかの あたいは そのまま
   const v0 = JSON.parse(JSON.stringify(fresh)); v0.shops.korokoro = { lv: 3, rep: 40, best: 120, plays: 5, pts: 300 };
   const v1 = R.Save.migrate(v0).shops.korokoro;

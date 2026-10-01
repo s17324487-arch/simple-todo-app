@@ -15,8 +15,11 @@ const Loot = {
     }
     if (loot.wear) {
       const it = ITEM_INDEX[loot.wear];
-      if (d.wardrobe[loot.wear]) { Save.addCoins(60); return `「${it.name}」は もう もっているので\nコイン 60まいに かえた！`; }
-      d.wardrobe[loot.wear] = true; Save.mark();
+      // 服は 1こで 1人（js/wear-stock.js）: 5こ までは もう 1こ。それより おおいと コインに かえる
+      const had = WearStock.count(loot.wear);
+      if (!WearStock.add(loot.wear, 1)) { Save.addCoins(60); return `「${it.name}」は もう ${WearStock.CAP}こ もっているので\nコイン 60まいに かえた！`; }
+      Save.mark();
+      if (had) return `きせかえ「${it.name}」を もう 1こ てにいれた！\n${had + 1}にんで きられるよ。`;
       return `きせかえ「${it.name}」を てにいれた！\nおうちの「きがえ」で きられるよ。`;
     }
     if (loot.furn) {

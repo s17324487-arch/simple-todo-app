@@ -60,5 +60,5 @@ const port=new R.WorldMap('harbor');
 for(const y of [11,25,35]){assert.equal(port.groundAt(30,y),'bridge','pier must cross sea');assert.equal(port.groundAt(30,y-3),'water','sea beside pier');assert(!port.isSolid(30,y),'pier lane blocked');}
 const air=new R.WorldMap('airport');assert(air.isSolid(20,5),'runway must be closed');assert(!air.isSolid(50,11),'observation deck must open');
 assert.notDeepEqual(R.TownRenewal.motion('airport',0),R.TownRenewal.motion('airport',30));
-assert.equal(R.Save.KEY,'pokapoka-town-save-v1');assert.equal(R.Save.SCHEMA,1);
+assert.equal(R.Save.KEY,'pokapoka-town-save-v1');assert.equal(R.Save.SCHEMA,2);
 console.log(`Town audit / entrances / old IDs / old save positions: OK (${rescued} positions rescued; 987654 coins preserved)`);

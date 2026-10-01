@@ -83,7 +83,7 @@ ok(roadMap.isSolid(43,21)&&!roadMap.isSolid(43,28),"ロータリーの島と車�
 const obstacle=structuredClone(roadFixture);obstacle.rows[28]=obstacle.rows[28].slice(0,43)+"T"+obstacle.rows[28].slice(44);
 ok(new R.WorldMap("road-obstacle",obstacle).isSolid(43,28),"ベクター道路が既存の木の衝突を消した");
 ok(new R.WorldMap("meadow").roadGrid===null,"道のないはらっぱにもベクター判定が追加された");
-ok(R.Save.KEY==="pokapoka-town-save-v1"&&R.Save.SCHEMA===1,"道路追加でセーブ形式を変えた");
+ok(R.Save.KEY==="pokapoka-town-save-v1"&&R.Save.SCHEMA===2,"セーブの キー・形式の 番号が ちがう（2 = 服の かず・UI-31）");
 
 // ---------- 3. バージョン ----------
 const pkg = JSON.parse(readFileSync(join(GAME, "package.json"), "utf8"));

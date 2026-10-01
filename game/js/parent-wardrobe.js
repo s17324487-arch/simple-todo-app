@@ -1,8 +1,9 @@
-// 3人と同じ所持服・5スロットを、人間の体形に合わせて合成する。
+// 3人と同じ所持服・5スロットを、人間の体形に合わせて合成する。服は 1こで 1人（3人と ぱぱ・ままで わけあう。js/wear-stock.js）。
 const ParentWardrobe = {
   uid:0,
   equipment(id){const saved=Save.d.parents[id].equipment||{},out={};for(const slot of Object.keys(SLOT_NAMES)){const it=ITEM_INDEX[saved[slot]];out[slot]=it?.slot===slot&&Save.d.wardrobe[it.id]?it.id:null;}return out;},
-  equip(id,slot,item){if(!['papa','mama'].includes(id)||!Object.hasOwn(SLOT_NAMES,slot)||item&&(!Save.d.wardrobe[item]||ITEM_INDEX[item]?.slot!==slot))return false;Save.d.parents[id].equipment[slot]=item;Save.mark();Save.write();return true;},
+  // 服は 1こで 1人（js/wear-stock.js）: のこりが ない 服は つけられない（ほかの 人から わたす ときは WearStock.ask）
+  equip(id,slot,item){if(!['papa','mama'].includes(id)||!Object.hasOwn(SLOT_NAMES,slot)||item&&(!Save.d.wardrobe[item]||ITEM_INDEX[item]?.slot!==slot||!WearStock.can(item,id)))return false;Save.d.parents[id].equipment[slot]=item;Save.mark();Save.write();return true;},
   layers(equipment){
     const p={torsoPath:'M65,105 Q64,100 76,103 L124,103 Q138,102 135,116 L135,171 Q136,181 123,181 H77 Q64,181 65,170Z',arms:[]};
     const a={hat:{x:100,y:32,w:78},eyes:{x:100,y:76,gap:28},cheek:{y:89,gap:46},mouth:{x:100,y:94},neck:{x:100,y:109,w:66},torso:{cx:100,top:103,bottom:181,w:70},back:{x:100,y:128,w:80}};
@@ -27,9 +28,11 @@ const ParentWardrobe = {
         const equipped=this.equipment(who)[slot];
         const none=UI.btn('なし',()=>{this.equip(who,slot,null);render();},'card'+(!equipped?' on':''));grid.append(none);
         for(const it of WEAR_ITEMS.filter(it=>it.slot===slot&&Save.d.wardrobe[it.id])){
-          const b=U.el('button',{class:'card'+(equipped===it.id?' on':''),'aria-label':it.name,html:UI.icon('wear',it.id,44)+'<div>'+it.name+'</div>'});b.onclick=()=>{this.equip(who,slot,equipped===it.id?null:it.id);Sound.se('pop');render();};grid.append(b);
+          const bd=WearStock.badge(it.id,who);
+          const b=U.el('button',{class:'card'+(equipped===it.id?' on':'')+(bd.from?' busy':''),'aria-label':it.name,html:(bd.n>1?`<span class="cnt">×${bd.n}</span>`:'')+UI.icon('wear',it.id,44)+'<div>'+it.name+'</div>'+(bd.from?`<small class="dress-who">${bd.text}</small>`:'')});
+          b.onclick=async()=>{if(equipped===it.id)this.equip(who,slot,null);else{if(!await WearStock.ask(who,slot,it))return;Save.mark();Save.write();}Sound.se('pop');render();};grid.append(b);
         }
-        looks.append(U.el('p',{class:'note',text:'もっている ふくを みんなで つかえるよ。ふくは へらないよ。'}));
+        looks.append(U.el('p',{class:'note',text:'ふくは 1こで ひとり きられるよ。みんなで きる ときは おみせで かずを そろえてね。'}));
         const names={outfit:'いつもの ふく',color:'いろ',face:'かお',hair:'かみがた',accessory:'こもの',skin:'はだいろ',hairColor:'かみのいろ'};
         for(const [key,options]of Object.entries(ParentCare.options)){
           const label=U.el('label',{class:'parent-choice',text:names[key]}),select=U.el('select',{'aria-label':names[key]});

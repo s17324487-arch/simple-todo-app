@@ -22,7 +22,8 @@ const ItemDex = {
     } else if (kind === "wear") {
       const worn = new Set(Object.values(d.chars || {}).flatMap(c => Object.values(c.outfit || {})));
       // ぱぱ・ままの無料の着せ替えは別の仕組み。同名の服を入手扱いにしない。
-      for (const it of this.catalog(kind)) counts[it.id] = d.wardrobe?.[it.id] || worn.has(it.id) ? 1 : 0;
+      // 服は もって いる かず（1こで 1人。js/wear-stock.js）
+      for (const it of this.catalog(kind)) counts[it.id] = Math.max(typeof WearStock !== "undefined" ? WearStock.count(it.id, d) : d.wardrobe?.[it.id] ? 1 : 0, worn.has(it.id) ? 1 : 0);
     }
     return counts;
   },
@@ -182,7 +183,7 @@ const ItemDex = {
     }
     body.append(U.el("div", { class: "item-dex-detail-tags", text: `${this.label(kind, it)}${it.rare ? "　★ レア" : ""}　${e.seen ? "あつめた ✓" : "まだ ない"}` }));
     if (e.seen && it.desc) body.append(U.el("p", { class: "item-dex-description", text: it.desc }));
-    if (e.seen) body.append(U.el("p", { text: kind === "furn" ? `もっている かず：${e.count}こ（おへやの ぶんも ふくむ）` : e.owned ? "みんなで きられる ふくだよ。" : "いちど てにいれた ふくだよ。" }));
+    if (e.seen) body.append(U.el("p", { text: kind === "furn" ? `もっている かず：${e.count}こ（おへやの ぶんも ふくむ）` : e.owned ? `もっている かず：${e.count}こ（1こで ひとり きられるよ）` : "いちど てにいれた ふくだよ。" }));
     const hint = U.el("div", { class: "item-dex-hint" }, [U.el("b", { text: "てにいれる ヒント" }), U.el("p", { text: e.source })]);
     body.append(hint);
     const m = UI.modal({ title: e.seen ? it.name : "まだ ない もの", body, cls: "item-dex-detail" });

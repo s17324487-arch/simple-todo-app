@@ -1,7 +1,7 @@
 // ガチャガチャ（Meeときょれじゃ の カプセルトイ・UI-12）: 館の 12だいの 台が 12の シリーズ（UI-28 で 6 → 12。2F の ガチャ コーナーは 2れつ）。
 // 1かい 200コインで シリーズの 4しゅの どれかが でる（ふつう 3しゅは 30%ずつ・レア 1しゅは 10%）。ほんものの カプセルトイと おなじく、
 // まわす → カプセルが でてくる → タップで あける。けいひんは へやに かざる フィギュア（家具・ほしは ださない）か 服・アクセサリー（acc）。
-// ダブった 服は 50コイン もどる（フィギュアは いくつでも かざれる）。4しゅ そろうと コンプリート。絵は js/gacha-art.js（ふえた 6シリーズは js/gacha-art-more.js）。
+// 服は 1こで 1人（js/wear-stock.js）なので、ダブった 服も 5こ までは もう 1こ もらえる（それより おおいと 50コイン もどる）。フィギュアは いくつでも かざれる。4しゅ そろうと コンプリート。絵は js/gacha-art.js（ふえた 6シリーズは js/gacha-art-more.js）。
 // セーブ: Save.d.gacha（plays まわした かず・got { けいひん: でた かず }・done { シリーズ: そろった 日 }）。もちものは Save.d.furn／Save.d.wardrobe。
 const Gacha = (() => {
   const PRICE = 200, DUP = 50, RATE = [0.3, 0.3, 0.3, 0.1], RARE = 3;
@@ -105,11 +105,11 @@ const Gacha = (() => {
       const it = S.list[k], g = st(), first = !got(it.id), was = complete(si);
       Save.d.coins -= PRICE; g.plays++; g.got[it.id] = got(it.id) + 1;
       let refund = 0;
-      if (it.kind === "wear") { if (Save.d.wardrobe[it.id]) { refund = DUP; Save.d.coins += DUP; } else Save.d.wardrobe[it.id] = true; }
+      if (it.kind === "wear") { if (!WearStock.add(it.id, 1)) { refund = DUP; Save.d.coins += DUP; } }
       else Save.d.furn[it.id] = (Save.d.furn[it.id] || 0) + 1;
       const done = !was && complete(si); if (done) g.done[S.id] = U.today();
       Save.write(); if (typeof UI !== "undefined" && UI.updateHud) UI.updateHud();
-      return { item: it, k, rare: k === RARE, first, refund, complete: done };
+      return { item: it, k, rare: k === RARE, first, refund, complete: done, copies: it.kind === "wear" ? WearStock.count(it.id) : 0 };
     },
     // 絵（ラインナップの カード・けっか）
     pic(it) { return it.kind === "wear" ? Art.iconSvg("wear", it.id) : GachaArt.figure(it.id); },
@@ -171,11 +171,12 @@ Gacha.open = function (si) {
         U.el("div", { class: "gacha-price", text: `1かい ${this.PRICE}コイン` }),
         U.el("div", { class: "gacha-coins", text: `もって いる コイン ${U.fmt(Save.d.coins)}` }),
         U.el("div", { class: "gacha-rate", text: "ふつう 3しゅ 30%ずつ・レア 10%" }),
-        U.el("div", { class: "gacha-kind", text: S.kind === "wear" ? (S.acc ? `でるのは アクセサリー（おなじ ものは ${this.DUP}コイン もどる）` : `でるのは ふく（おなじ ふくは ${this.DUP}コイン もどる）`) : "でるのは へやに かざる フィギュア" }),
+        U.el("div", { class: "gacha-kind", text: S.kind === "wear" ? (S.acc ? `でるのは アクセサリー（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : `でるのは ふく（1こで ひとり・おなじ ふくは ${WearStock.CAP}こ まで）`) : "でるのは へやに かざる フィギュア" }),
         ...(this.complete(si) ? [U.el("div", { class: "gacha-done", text: "コンプリート！" })] : []),
       );
       line.replaceChildren(...S.list.map((it) => {
-        const n = this.got(it.id), c = U.el("div", { class: "gacha-card" + (it.rare ? " rare" : "") + (n ? " own" : "") });
+        // 服は もって いる かず（1こで 1人・5こ まで）、フィギュアは でた かず
+        const n = it.kind === "wear" ? WearStock.count(it.id) : this.got(it.id), c = U.el("div", { class: "gacha-card" + (it.rare ? " rare" : "") + (n ? " own" : "") });
         c.append(U.el("img", { src: U.svgUrl(this.pic(it)), alt: "" }), U.el("div", { class: "gacha-name", text: it.name }), U.el("div", { class: "gacha-own", text: it.rare ? (n ? `レア・もってる ×${n}` : "レア・まだ") : n ? `もってる ×${n}` : "まだ" }));
         return c;
       }));
@@ -217,7 +218,8 @@ Gacha.open = function (si) {
       card.append(U.el("img", { src: U.svgUrl(this.pic(r.item)), alt: r.item.name }));
       const txt = U.el("div", { class: "gacha-prize-text" });
       txt.append(U.el("div", { class: "gacha-badges", text: [r.rare ? "レア！" : "", r.first ? "NEW" : ""].filter(Boolean).join(" ") }), U.el("b", { text: r.item.name }), U.el("div", { class: "gacha-desc", text: r.item.desc }));
-      if (r.refund) txt.append(U.el("div", { class: "gacha-dup", text: `もう もって いる ふく だったので ${r.refund}コイン もどったよ` }));
+      if (r.refund) txt.append(U.el("div", { class: "gacha-dup", text: `もう ${WearStock.CAP}こ もって いる ので ${r.refund}コイン もどったよ` }));
+      else if (r.copies > 1) txt.append(U.el("div", { class: "gacha-dup", text: `${r.copies}こめ！ ${r.copies}にんで つかえるよ` }));
       txt.append(U.el("div", { class: "gacha-say", text: `${Save.d.chars[who].name}「${line1}」` }));
       card.append(txt);
       result.replaceChildren(card);
