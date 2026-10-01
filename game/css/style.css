@@ -962,6 +962,7 @@ html, body {
 .crane-dir{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:2px solid #1F1D1B;border-radius:12px;background:linear-gradient(#FFFFFF,#E4DCEB);font-size:17px;font-weight:900;color:#1F1D1B;box-shadow:0 3px 0 #1F1D1B;touch-action:none}
 .crane-dir.on,.crane-dir:active{transform:translateY(2px);box-shadow:0 1px 0 #1F1D1B;background:#FFE7A0}
 .crane-dir:disabled{opacity:.45}
+.crane-pad.ud .crane-dir.lvl{font-size:14px}.crane-dir.sel{background:linear-gradient(#FFF6C8,#FFE07A)}
 .crane-knob{grid-column:2;grid-row:2;width:30px;height:30px;margin:auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FF9FC2,#D9577F);border:2px solid #1F1D1B;pointer-events:none}
 .crane-acts{flex:1;display:flex;gap:8px;justify-content:center}
 .crane-go{min-width:96px;min-height:96px;width:96px;height:96px;border-radius:50%;border:3px solid #1F1D1B;background:radial-gradient(circle at 35% 30%,#B8F08A,#57B83C);font-size:18px;font-weight:900;color:#1F1D1B;box-shadow:0 5px 0 #1F1D1B;padding:0}
