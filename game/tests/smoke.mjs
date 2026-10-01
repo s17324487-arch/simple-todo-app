@@ -1290,7 +1290,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   let coins=(await H.dbg('state')).coins,spots=await H.dbg('folkSpots','town');
   expect(spots.length===3&&spots.filter(s=>s.hit).length===1&&spots.every(s=>s.prop==='sparkle'),'きらきらが 3つ（あたり 1つ）で ない');
   const miss=spots.find(s=>!s.hit),hit=spots.find(s=>s.hit);
-  await folkTapSpot(H,'town',miss,'sparkle');await H.page.locator('.dlg-text').waitFor();
+  // ことばは 1もじずつ でるので、でおわった しるし（.dlg-next）を まってから よむ
+  await folkTapSpot(H,'town',miss,'sparkle');await H.page.locator('.dlg-next:not(.hidden)').waitFor({timeout:10000});
   expect(/ここには ない/.test(await H.eval(()=>document.querySelector('.dlg-text').innerText)),'はずれの ことばが 出ない');
   await H.dialogs();await H.idle();
   spots=await H.dbg('folkSpots','town');expect(spots.length===2&&!spots.some(s=>s.i===miss.i),'しらべた きらきらが きえない');
