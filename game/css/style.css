@@ -211,6 +211,9 @@ html, body {
 .card .price .coin-ico { width: 13px; height: 13px; border-width: 2px; }
 .card .price .coin-ico::after { display: none; }
 .card .cnt { position: absolute; top: 3px; right: 6px; font-size: 12px; font-weight: 800; }
+/* すいぞくかんの おみやげ（js/aqua-gifts.js）: なまえは ことばの きれめで おりかえす・タブは 44px */
+.shop-aq .card > div { word-break: keep-all; overflow-wrap: anywhere; }
+.shop-aq .tab { min-height: 44px; }
 .card .tag { position: absolute; top: -8px; left: -6px; background: var(--pink); border: 2.5px solid var(--ink); border-radius: 8px; padding: 0 5px; font-size: 11px; }
 .ico { display: grid; place-items: center; }
 .ico svg { width: 100%; height: 100%; }

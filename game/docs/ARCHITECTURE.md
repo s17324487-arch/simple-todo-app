@@ -166,6 +166,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
 | — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
 | — | `collab-goods.js` / `puzzle-collab.js` / `korokoro-collab.js`（gacha.js・korokoro-score.js の あと・item-dex-sources.js の まえ） | `CollabGoods` ／ `PuzzleCollab` ／ `KorokoroCollab` |
+| — | `aqua-gifts.js`（aqua-art.js の あと・ike-aquarium.js の まえ） | `AquaGifts` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1015,6 +1016,22 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 13F へは エレベーターが いかない（`noElevator`）。フロアマップで 13F を えらぶと、12F の かいだんを のぼった ところ から あるく。
 - みなとの 建物 `harbor_aquarium` は `act: { type: "visit" }` の おしらせ（12かいに おひっこし）。`WorldScene.prototype.enter` を つつみ、`map: "aquarium"` の セーブは 池袋の サンシャインいけぶの まえ に かえる（`MAP_DEFS.aquarium` は のこす）。みなとの 町の人の ことば `tf0381`（すいぞくかんが できて みなとが にぎやかに）は `TOWNSFOLK_DATA` が 自動生成なので install で「12かいへ おひっこし」に かえる。
 - PokaDebug: `museumGo("aquarium", へや)`（あたらしい へやの id。むかしの へやの 名前も うけつける）・`museumDonate()`・`museumShow(objId)`・`aquaTank(objId)`（`{ here, floor, fish }`）。
+
+## すいぞくかんの おみやげ（UI-26・`js/aqua-gifts.js`）
+
+オーナーの FB 2026-10-01「水族館のお土産コーナーに、海の生き物とごわががコラボしたグッズ5種や、海の生き物フィギュア10種を販売しなさい（どれも少し高めの価格）」。
+読み込みは `aqua-art.js` の あと・`ike-aquarium.js` の まえ（`IkeAquarium.floor12()` が `AquaGifts.shopFixtures(r)` で おみやげの 台を おく）。トップレベル名は `AquaGifts` だけ。
+
+- しなもの（どれも `exclusive: "aquarium"` で ようふくや・かぐやには ならばない・`aquaGift: "fig" | "collab"`）:
+  - `AquaGifts.FIGS`: うみの いきもの フィギュア 10しゅ（`aqfig_<k>`。ペンギン・アシカ・ラッコ・イルカ・シャチ・ジンベエザメ・ウミガメ・マンボウ・クラゲ・チンアナゴ）。絵は `ART[k]()`（たて 110・よこ `vw`。だいは `base()`、およぐ いきものは とうめいな ぼう）・`figure(id)` が `<svg>` 1まい。家具は `h` 55・`w` = `vw / 2`。`FURN_ART` は `<g transform="scale(0.5)">`（FurnModels の 2D の 絵の 家具と おなじ: かげ と たてた 絵）。
+  - `AquaGifts.GOODS`: ごわが コラボ 5しゅ。家具 3つ（`aqc_penguin` ペンギン わんこ ぬいぐるみ・`aqc_jelly` くらげ がちゃん ランプ・`aqc_eel` チンアナゴ ごわが クッション）は `FurnModels.register` の 立体と `FurnLive.register(…, true)`。服 2つ（`aqc_whalehat` あたま・`aqc_orcapack` せなか）は `WEAR.aqc_whalehat`（`hatWrap`。まえ・よこ・うしろで ちがう 絵）・`WEAR.aqc_orcapack`（`backWrap`。うしろすがたで ごじの かお、まえ・よこは せなかから はみでる ひれと かたひも）。
+  - ねだんは「すこし たかめ」= おなじ なかまの ふつうの しなものより たかく その 2ばい まで・池袋の 専門店（4800〜）より やすい（`tools/check-aqua-gifts.mjs` が その ときの ようふくや・かぐやの ねだんと くらべる）。フィギュア 1280〜1880・コラボの 家具 2280〜2980・ぼうし 1580・リュック 2480。
+- さわる うごき（`FurnLive`）: ぬいぐるみは よちよち（ゆれて ぴょこっ）・ランプは あかり（あお → ピンク → むらさき → きいろ → けす。よるは はじめから つく・`light()` で へやを てらす）・クッションは 3にんが すなに かくれて 1にんずつ にょろっ（`eelOut(st, i)`）。絵は `SvgCache` の `aqgift:<しゅるい>:<ピクセル>`（8 の ばいすう。うごきは きまった コマ だけ）。
+- おみせ `BUY_SHOPS.aq_shop`（「おみやげ うみの ポケット」・てんいんは アザラシ）: タブ フィギュア／コラボ かぐ／コラボ ふく。`ShopUI.kindOf` を つつんで タブごとに 家具・服。`cls: "shop-aq"`（css: カードの なまえは ことばの きれめで おりかえす・タブは 44px）。`SONGS.shop_aq_shop` は すいぞくかんの 曲。`ShopUI.open(shopId, startTab)` で はじめの タブを えらべる（`action: "shop"` の 台の `tab`）。
+- 12F の おみやげ（x 1〜11・y 19〜27）: フィギュアの ショーケース 10（`kind: "figstand"`・`itemZ: 35`）・コラボの ひくい 台 3（`stand`）・ぼうしの マネキン（`pedestal`）・リュックの 台（`aqpack`。うしろむきの 絵を 台に のせる・`ownArt` で マネキンを 描かない）・レジ（`action: "shop"`）・てんいん・かんばん「ごわが × すいぞくかん」。ひくい 台は `noFade`（うしろの 3人を かくさない）。`MallArt.drawItem` は `f.itemZ`・`f.ownArt` を みる。
+- `MallArt.modelKey` に `f.col`・`f.z` を いれた（おなじ おおきさで いろの ちがう かんばんが おなじ 絵に ならない。12F の「でぐち」が いりぐちと おなじ あおに なって いたのを なおした）。
+- ずかんの ヒントは `AquaGifts.source(id)`（`ItemDexSources.source` が よぶ）。セーブは ふえない（`Save.d.furn`・`Save.d.wardrobe` だけ）。
+- PokaDebug: `aquaGifts()`（しなものの ねだん・もって いる かず・12F の 台・レジ・ずかんの ヒント）。
 
 ## ネリカスタウンの実寸アセット
 

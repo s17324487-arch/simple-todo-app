@@ -74,10 +74,8 @@ const IkeAquarium = {
     r.fixtures.push({ kind: "stairs", x: 29, y: 24, w: 4, h: 4, height: 190, label: "13Fへ のぼる", action: "floor", to: 13, spawn: [30, 23], spots: [[30, 23], [31, 23]] });
     // 13F から おりて くる かいだん（おみやげの よこ。のぼると 13F の テラスの かえり道へ もどる）
     r.fixtures.push({ kind: "stairs", x: 20, y: 24, w: 4, h: 4, height: 190, label: "13Fへ もどる かいだん", action: "floor", to: 13, spawn: [21, 23], spots: [[21, 23], [22, 23]] });
-    // おみやげ
-    for (const [x, y] of [[2, 21], [2, 24], [6, 21], [6, 24]]) r.fixtures.push({ kind: "giftshelf", x, y, w: 3, h: 1, height: 100, label: "おみやげの たな", action: "info", text: "さかなの ぬいぐるみ・ペンギンの クッキー・くらげの キーホルダー。\nながめるだけでも たのしいね。" });
-    r.fixtures.push({ kind: "register", shop: "aq_shop", x: 9, y: 25, w: 2, h: 1, height: 70, label: "おみやげの レジ", action: "info", text: "ありがとう ございました！ また きてね。" });
-    IkeMall.clerk(r, "seal", 10, 24, "ペンギンの ぬいぐるみが いちばん にんき だよ。");
+    // おみやげ（js/aqua-gifts.js）: うみの いきもの フィギュア 10しゅ・ごわが コラボ 5しゅの 台と レジ
+    AquaGifts.shopFixtures(r);
     // やじるし（順路）
     for (const [x, y, d, b] of [[3.5, 7.5, "y", true], [8, 4.5, "x"], [15, 4.5, "x"], [22, 5.5, "x"], [29.5, 9.5, "y"], [29.5, 16, "y"], [29.5, 21.5, "y"], [18.5, 23.5, "x", true], [13, 22, "x", true], [3.5, 18.5, "y", true]]) this.arrow(r, x, y, d, b);
     r.fixtures.push({ kind: "hangsign", x: 1, y: 6, w: 4, h: 1, z: 232, text: "いりぐち ↑", col: "#3E8FB0", over: true, walk: true });

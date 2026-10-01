@@ -21,13 +21,13 @@ const BUY_SHOPS = {
 };
 
 const ShopUI = {
-  open(shopId) {
+  open(shopId, startTab) {
     return new Promise((resolve) => {
       const S = BUY_SHOPS[shopId];
       const previousMusic = Sound.cur?.name || Sound.want || (G.sceneName === "house" ? "house" : G.scene?.map?.bgm || "town");
       Sound.bgm("shop_" + shopId);
       const body = U.el("div");
-      const m = UI.modal({ title: S.name, body, cls: "full", onClose: () => { Sound.bgm(previousMusic); resolve(); } });
+      const m = UI.modal({ title: S.name, body, cls: "full" + (S.cls ? " " + S.cls : ""), onClose: () => { Sound.bgm(previousMusic); resolve(); } });
       const keeper = Art.npcSvg({ ...S.keeper, emo: "happy" });
       const greet = U.el("div", { class: "chara-card", style: "align-items:center" });
       greet.innerHTML = `<div class="portrait" style="width:64px;flex-basis:64px">${keeper}</div><div class="info"><div class="nm" style="font-size:14px">${S.keeperName}</div><div>${U.pick(S.hello)}</div></div>`;
@@ -37,7 +37,7 @@ const ShopUI = {
       const tabs = U.el("div", { class: "tabs" });
       const grid = U.el("div", { class: "grid" });
       body.append(greet, coins, tabs, grid);
-      let cur = S.tabs[0][0];
+      let cur = S.tabs.some((t) => t[0] === startTab) ? startTab : S.tabs[0][0];
       const render = () => {
         tabs.querySelectorAll(".tab").forEach((b) => b.classList.toggle("on", b.dataset.k === cur));
         grid.innerHTML = "";

@@ -172,7 +172,7 @@ class IsoVenueScene extends VenueScene {
   async interact(f) {
     if (!this.iso || this.busy || this.closed) return super.interact(f);
     if (f.action === "buy" && f.shopId) { this.busy = true; try { ShopUI.detail(f.shopId, f.buyKind, VenueHalls.item(f.item), () => UI.updateHud()); } finally { this.busy = false; } return; }
-    if (f.action === "shop" && f.shopId) { this.busy = true; try { await ShopUI.open(f.shopId); } finally { this.busy = false; } return; }
+    if (f.action === "shop" && f.shopId) { this.busy = true; try { await ShopUI.open(f.shopId, f.tab); } finally { this.busy = false; } return; }
     const art = this.def.art; if (art && art.interact && (await art.interact(this, f))) return;
     return super.interact(f);
   }
