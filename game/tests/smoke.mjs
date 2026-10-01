@@ -2926,14 +2926,14 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  // 1F の 7台は 日がわり（UI-16）で 山の ならびが 日で かわる → 日を きめる（10/9 は わんこの 台の 山で 1〜3こめを ねらうと とれる 日）
  await H.newGameFast();await H.dbg('coins',9850);await H.dbg('calendar','2026-10-09');await H.dbg('venue','arcade');await H.idle();await H.until(()=>PokaDebug.venueIso()&&PokaDebug.venueIso().ready,20000);
  const iso=await H.dbg('venueIso');expect(iso.iso&&iso.crowd>=2,'斜めの 館・あるく おきゃくさん '+JSON.stringify(iso));
- const s=await H.dbg('venueState');expect(s.fixtures.filter(f=>f.action==='crane').length===12&&s.fixtures.some(f=>f.kind==='gacha')&&s.fixtures.some(f=>f.kind==='photobooth')&&s.fixtures.some(f=>f.kind==='counter'),'12台の筐体・ガチャ・ぷりくら・カウンター');await H.shot('hall');
+ const s=await H.dbg('venueState');expect(s.fixtures.filter(f=>f.action==='crane').length===12&&!s.fixtures.some(f=>f.kind==='gacha')&&s.fixtures.some(f=>f.kind==='photobooth')&&s.fixtures.some(f=>f.kind==='counter'),'12台の筐体・ぷりくら・カウンター（ガチャは 2F の ガチャ コーナー）');await H.shot('hall');
  expect(s.routeCount.every(r=>r.reachable),'いけない ところが ある '+JSON.stringify(s.routeCount.filter(r=>!r.reachable)));
  const vis=s.fixtures.filter(f=>f.action==='crane'&&f.screen.x>0&&f.screen.x<viewport.width);expect(vis.length>=3,'店に はいった ところで 台が 見えない '+vis.length);
  const bgm=await H.eval(()=>Sound.want||Sound.cur?.name);expect(bgm==='arcade_hall','店の BGM '+bgm);
  // フロアマップ: コーナーの 一覧 → けいひん カウンター まで あるく → まえの けいひんの こうかん
  await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
  const g=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.mall-guide .btn')];return {spots:[...document.querySelectorAll('.mall-guide .mg-spot')].map(b=>b.dataset.label),small:bs.filter(b=>r(b).height<43.5).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5).length};});
- expect(['ぬいぐるみ コーナー','スウィートランド','コイン プッシャー','トライポッド','リングフック','けいひん カウンター','ぷりくら','カプセルトイ'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'フロアマップ '+JSON.stringify(g));await H.shot('guide');
+ expect(['ぬいぐるみ コーナー','スウィートランド','コイン プッシャー','トライポッド','リングフック','けいひん カウンター','ぷりくら'].every(l=>g.spots.includes(l))&&!g.spots.some(l=>/カプセル|ガチャ/.test(l))&&g.small===0&&g.out===0,'フロアマップ '+JSON.stringify(g));await H.shot('guide');
  await H.page.locator('.mall-guide .mg-spot[data-label="けいひん カウンター"]').click();await H.until(()=>{const v=PokaDebug.venueState();return v&&v.party[0].y>=17.5&&PokaDebug.idle();},20000);
  await H.dbg('venueVisit','けいひん カウンター');await H.page.getByRole('button',{name:'まえの けいひんを みる',exact:true}).click();await H.page.locator('.modal-wrap .grid > *').first().waitFor();
  const shop=await H.eval(()=>[...document.querySelectorAll('.modal-wrap .grid > *')].length);expect(shop===2,'こうかんの しなもの（かざり）'+shop);await H.shot('counter');
@@ -3011,6 +3011,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect(await H.dbg('venueVisit','2Fへ のぼる'),'エスカレーターを しらべられない');await H.until(()=>{const v=PokaDebug.venueIso();return v&&v.floor===2&&v.ready&&PokaDebug.idle()&&!PokaDebug.venueState().changingFloor;},20000);await H.wait(300);
  const iso=await H.dbg('venueIso'),s2=await H.dbg('venueState');
  expect(iso.holes===1&&iso.crowd>=2&&s2.floor===2&&/2F/.test(await H.eval(()=>document.querySelector('.hud').textContent)),'2F（ふきぬけ・おきゃくさん・HUD）'+JSON.stringify(iso));
+ const gachas=s2.fixtures.filter(f=>f.kind==='gacha'&&f.action==='gacha');expect(gachas.length===6&&gachas.every(f=>f.x>=8&&f.x+f.w<=18&&f.y>=5&&f.y<=8)&&s2.fixtures.filter(f=>f.kind==='gachaboard').length===2,'2F の まんなかの ガチャ コーナー（6だい・かんばん）'+JSON.stringify(gachas.map(f=>[f.x,f.y])));
  const cranes=s2.fixtures.filter(f=>f.action==='crane');expect(cranes.length===7&&cranes.map(f=>f.machine).sort((a,b)=>a-b).join()==='12,13,14,15,16,17,18'&&s2.fixtures.some(f=>f.kind==='escalator'&&f.to===1),'2F の おかし キャッチャー 5台・はしわたし 2台・くだりの エスカレーター '+cranes.map(f=>f.machine));
  expect(s2.routeCount.every(r=>r.reachable),'2F に いけない ところ '+JSON.stringify(s2.routeCount.filter(r=>!r.reachable)));
  const vis=cranes.filter(f=>f.screen.x>-40&&f.screen.x<viewport.width+40&&f.screen.y>0&&f.screen.y<viewport.height);await H.shot('arrive');
@@ -3018,7 +3019,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  // フロアマップ: 1F・2F の タブ・2F の コーナー → 1F を えらぶと エスカレーターで おりて あるく
  await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
  const g=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.mall-guide .btn')];return {tabs:[...document.querySelectorAll('.mall-guide .mg-tabs .btn')].map(b=>b.textContent),spots:[...document.querySelectorAll('.mall-guide .mg-spot')].map(b=>b.dataset.label),small:bs.filter(b=>r(b).height<43.5).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5).length};});
- expect(g.tabs.join()==='1F,2F'&&['おかし キャッチャー','スウィートランド','はしわたし','1Fへ おりる'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'2F の フロアマップ '+JSON.stringify(g));await H.shot('guide');
+ expect(g.tabs.join()==='1F,2F'&&['おかし キャッチャー','スウィートランド','はしわたし','ガチャ コーナー','1Fへ おりる'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'2F の フロアマップ '+JSON.stringify(g));await H.shot('guide');
  await H.page.getByRole('button',{name:'1F',exact:true}).click();await H.page.locator('.mall-guide .mg-spot[data-label="けいひん カウンター"]').click();
  await H.until(()=>{const v=PokaDebug.venueState();return v&&v.floor===1&&v.party[0].y>=17.5&&PokaDebug.idle();},25000);
  expect(await H.dbg('venueVisit','2Fへ のぼる'),'1F から もういちど のぼれない');await H.until(()=>{const v=PokaDebug.venueIso();return v&&v.floor===2&&v.ready&&PokaDebug.idle()&&!PokaDebug.venueState().changingFloor;},20000);
@@ -3316,8 +3317,11 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  // ガチャガチャ（gacha.js・UI-12。オーナーの FB 2026-09-30「ガチャガチャも 実際の 機能として」「景品は ミニマスコットみたいに 部屋に 置けたり、服だったり」「シリーズで 4種類・一つは レアで 確率を 下げて」）:
  // 館の 台 → ラインナップ → 200コインで まわす → カプセル → あける（レア）→ ふくの 台で ダブりは 50コイン もどる・4しゅで コンプリート → さいかい → きがえで きる・もようがえで かざる → コインが たりないと まわせない
  await H.newGameFast();const c0=await H.dbg('coins',1850);
- await H.dbg('venue','arcade');await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
- const s0=await H.dbg('venueState');expect(s0.fixtures.filter((f)=>f.kind==='gacha'&&f.action==='gacha').length===6,'ガチャの 台が 6だい ない');
+ // ガチャは 2F の まんなかの ガチャ コーナー（UI-20。1F では エスカレーターの うえの ゆかに かくれて いた）
+ await H.dbg('venue','arcade',2);await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
+ const s0=await H.dbg('venueState');expect(s0.floor===2&&s0.fixtures.filter((f)=>f.kind==='gacha'&&f.action==='gacha').length===6,'2F に ガチャの 台が 6だい ない');
+ // ガチャ コーナーの まえ（2F の まんなかの とおりみち）まで あるく
+ expect(await H.dbg('venueWalk',12,9),'ガチャ コーナーへ あるけない');await H.until(()=>{const v=PokaDebug.venueState();return v&&Math.hypot(v.party[0].x-12,v.party[0].y-9)<0.6&&PokaDebug.idle();},25000);await H.wait(500);await H.shot('corner');
  // いちばん ひだりの 台（なかよし フィギュア）まで あるいて しらべる
  expect(await H.dbg('venueVisit','カプセルトイ'),'カプセルトイ が ない');
  await H.page.locator('.modal-wrap:not(.out) .gacha').waitFor({timeout:20000});await H.wait(400);

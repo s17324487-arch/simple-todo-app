@@ -929,6 +929,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 絵 `GachaArt`: フィギュアは 100×110（`figure(id)`。3人は `Chara.svg`、どうぶつは `Art.npcSvg`〔`emo: "sleep"`〕、おかし・のりものは ここで 描く）。服の かたちは `hatWrap`／`eyeWrap`／`neckWrap`（chara.js）で 3人の あたま・め・くびに あわせる。`capsule(いろ, あく, uid)`（clipPath の id は `gcap-<uid>`）・`machine(シリーズ, カードの SVG)`・`knob(いろ)`。館の 台の カードは シリーズの レアの 絵（arcade-art.js の `gacha`）。
 - 画面 `Gacha.open(シリーズ)`: `UI.modal`（`full gacha-panel`）の 中に 台の 絵・よこの らん（ねだん・コイン・かくりつ・でる もの・コンプリート・まわす ボタン）・けっか・ラインナップ。`view.phase`: `ready` → `turn`（つまみ）→ `capsule`（おおきな カプセルの ボタン）→ `open` → `done`。えんしゅつの まちは `Gacha.speed` で みじかく できる。
 - セーブ: `Save.d.gacha`（`plays`・`got { けいひん: でた かず }`・`done { シリーズ: そろった 日 }`）。`Gacha.st()` が こわれた ところを なおす。
+- 館の 台: 2F の まんなかの「ガチャ コーナー」（`js/ike-arcade.js` の `floor2`・UI-20）。6だい（`kind: "gacha"`・`series`）・うしろの かんばん `gachaboard`（もじは `variant`）・カプセルの かいしゅう ばこ `capbin`・ゆかは `rows` の `g`（arcade-art.js の `gacha` の ゆか）。どの 階でも しらべる ものが エスカレーターの うえの ゆかや つりさげの かんばんに かくれない ことは `tools/check-ikebukuro.mjs` が しらべる（投影した 箱の かさなり）。
 - PokaDebug: `gachaOpen(シリーズ)`・`gachaNext(0〜3)`・`gachaFast(ばい)`・`gachaState()`。検査は `tools/check-gacha.mjs`、スモーク「gacha-390 / 375」。
 
 ## エリアの ちず（すまほ の「ちず」→「この エリア」・UI-13）
