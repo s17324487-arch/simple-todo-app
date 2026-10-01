@@ -59,5 +59,10 @@ let hiddenChecks=0;
   // ガチャ コーナーの 台は、てまえの 高い もの（はしら など）にも かくれない
   const corner=fl[2].fixtures.filter(f=>['gacha','capbin','gachaboard'].includes(f.kind)),depth=f=>f.x+f.w/2+f.y+f.h/2;
   for(const f of corner)for(const o of fl[2].fixtures){if(corner.includes(o)||(o.height??40)<=150||depth(o)<=depth(f))continue;const a=ccw(I.hull(f)),c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/area(a):0;hiddenChecks++;assert(k<=0.12,'2F の ガチャ コーナーの '+f.kind+'（'+f.x+','+f.y+'）が '+o.kind+'（'+o.x+','+o.y+'）に かくれる '+Math.round(k*100)+'%');}}
+// 3F（ぷりくらの フロア・UI-21）: 2F の 南西の すみの エスカレーターで 2F ⇄ 3F（3F は ふきぬけ）・1F は ぷりくらの かわりに フロア あんない
+{const fl=R.VenueHalls.defs.arcade.floors,up=fl[2].fixtures.find(f=>f.kind==='escalator'&&f.to===3),down=fl[3]&&fl[3].fixtures.find(f=>f.kind==='escalator'&&f.to===2);
+  assert(Object.keys(fl).join()==='1,2,3'&&up&&down&&up.x===down.x&&up.y===down.y&&fl[3].holes.length===1&&fl[3].holes[0].x===down.x,'2F と 3F の エスカレーター');
+  assert(r2walk(fl[3],up.spawn)&&r2walk(fl[2],down.spawn),'エスカレーターの おりばに たてる');
+  assert(fl[1].fixtures.some(f=>f.kind==='directory'&&f.action==='info'&&/3F ぷりくら/.test(f.text))&&fl[3].fixtures.filter(f=>f.kind==='photobooth').length===3,'1F の フロア あんない・3F の ぷりくら 3台');}
 function r2walk(r,[x,y]){return !R.IsoVenue.solidAt(r,x,y)&&!r.fixtures.some(f=>!f.walk&&!f.over&&f.kind!=='hangsign'&&x>=f.x&&x<f.x+f.w&&y>=f.y&&y<f.y+f.h);}
-console.log('Ikebukuro: layout (station west / electronics・Mee・mall top / S60 to the mall / range・office on Green Odori), '+city.buildings.length+' buildings reachable, exclusive catalogs, nineteen machines (twelve on 1F, five snack catchers and two bridges on 2F), the gacha corner in the middle of 2F, nothing hidden behind the escalator landing ('+hiddenChecks+' checks), six distinct mechanics, fee/reward idempotency and legacy money OK');
+console.log('Ikebukuro: layout (station west / electronics・Mee・mall top / S60 to the mall / range・office on Green Odori), '+city.buildings.length+' buildings reachable, exclusive catalogs, nineteen machines (twelve on 1F, five snack catchers and two bridges on 2F), the gacha corner in the middle of 2F, 3F (three purikura booths) by the 2F south-west escalator, nothing hidden behind the escalator landing ('+hiddenChecks+' checks), six distinct mechanics, fee/reward idempotency and legacy money OK');
