@@ -53,7 +53,7 @@ let hiddenChecks=0;
   for(const [n,r] of Object.entries(fl)){const tops=r.fixtures.filter(f=>f.over),items=r.fixtures.filter(f=>f.action&&f.action!=='floor'&&!f.over);
     for(const f of items){const a=ccw(I.hull(f)),A=area(a);for(const o of tops){const c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/A:0;hiddenChecks++;assert(k<=0.12,n+'F の '+(f.label||f.kind)+'（'+f.x+','+f.y+'）が '+(o.text||o.kind)+' に かくれる '+Math.round(k*100)+'%');}}}
   const g1=fl[1].fixtures.filter(f=>f.kind==='gacha'),g2=fl[2].fixtures.filter(f=>f.kind==='gacha'),cx=g2.reduce((s,f)=>s+f.x+f.w/2,0)/g2.length;
-  assert(g1.length===0&&g2.length===6&&g2.map(f=>f.series).sort().join()==='0,1,2,3,4,5','ガチャは 2F に 6だい（6シリーズ）');
+  assert(g1.length===0&&g2.length===12&&g2.map(f=>f.series).sort((a,b)=>a-b).join()==='0,1,2,3,4,5,6,7,8,9,10,11'&&g2.every(f=>f.variant===f.series),'ガチャは 2F に 12だい（12シリーズ・UI-28）');
   assert(Math.abs(cx-fl[2].w/2)<=2&&fl[2].zones.some(z=>z.shop==='arcGacha'&&z.label==='ガチャ コーナー')&&!fl[1].zones.some(z=>z.shop==='arcGacha'),'ガチャ コーナーは 2F の まんなか '+cx);
   assert(g2.every(f=>r2walk(fl[2],f.spots[0])),'ガチャの まえに たてる');
   // ガチャ コーナーの 台は、てまえの 高い もの（はしら など）にも かくれない

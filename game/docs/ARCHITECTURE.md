@@ -165,6 +165,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
 | — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
 | — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
+| — | `gacha-art.js` / `gacha-art-more.js` / `gacha.js`（purikura.js の あと） | `GachaArt` ／ `GachaArtMore` ／ `Gacha` |
 | — | `collab-goods.js` / `puzzle-collab.js` / `korokoro-collab.js`（gacha.js・korokoro-score.js の あと・item-dex-sources.js の まえ） | `CollabGoods` ／ `PuzzleCollab` ／ `KorokoroCollab` |
 | — | `aqua-gifts.js`（aqua-art.js の あと・ike-aquarium.js の まえ） | `AquaGifts` |
 | — | `figure-stand.js`（aqua-gifts.js の あと・ike-aquarium.js の まえ） | `FigureStand` |
@@ -957,14 +958,14 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 ## ガチャガチャ（Meeときょれじゃ・UI-12）
 
-- 読み込みは `js/gacha-art.js` → `js/gacha.js`（purikura.js の あと）。トップレベル名は `GachaArt`・`Gacha`。こうかおんは `CraneSE` に `gacha_turn`・`gacha_drop`・`gacha_open`・`gacha_rare`。
-- `Gacha.SERIES`（6つ。`id`・`name`・`kind: "furn" | "wear"`・`color`・`caps`・`list`〔4しゅ。`k === Gacha.RARE`（3）が レア〕）・`ITEMS`（24。id は `gacha_<シリーズ>_<0〜3>`）・`RATE`（0.3・0.3・0.3・0.1）・`roll(r)`（0〜1 → 0〜3）・`spin(シリーズ, r)`（200コイン・`Gacha.next` が あれば それ〔PokaDebug〕・もちものに いれて `{ item, k, rare, first, refund, complete }`。コインが たりなければ null）。
+- 読み込みは `js/gacha-art.js` → `js/gacha-art-more.js` → `js/gacha.js`（purikura.js の あと）。トップレベル名は `GachaArt`・`GachaArtMore`・`Gacha`。こうかおんは `CraneSE` に `gacha_turn`・`gacha_drop`・`gacha_open`・`gacha_rare`。
+- `Gacha.SERIES`（12。UI-28 で 6 → 12。`id`・`name`・`kind: "furn" | "wear"`・`acc`〔アクセサリーの シリーズ: キラキラ アクセ・ゆめかわ ヘアアクセ・キラキラ ネックレス・パーティー アクセ。台の よこの らんが「でるのは アクセサリー」〕・`color`〔台の いろ。12 ぜんぶ ちがう〕・`caps`・`list`〔4しゅ。`k === Gacha.RARE`（3）が レア〕）・`ITEMS`（48。id は `gacha_<シリーズ>_<0〜3>`。まえからの 6シリーズは じゅんばんも id も そのまま）・`RATE`（0.3・0.3・0.3・0.1）・`roll(r)`（0〜1 → 0〜3）・`spin(シリーズ, r)`（200コイン・`Gacha.next` が あれば それ〔PokaDebug〕・もちものに いれて `{ item, k, rare, first, refund, complete }`。コインが たりなければ null）。
 - とうろく（よみこみ時）: 家具は `FURNITURE`／`FURN_INDEX`（`exclusive: "gacha"`・`gachaPrize`・`sparkle: false`・`cityItem: { type: "gachafig" }`・50×55〔3にん なかよし は 90×55〕）と `FURN_ART`、おうちの 立体は `IkebukuroItemArt.model` を つつむ（ArcadePrizes と おなじ たった 絵）。服は `WEAR_ITEMS`／`ITEM_INDEX`（`slot`・`wear`・`col`・`exclusive: "gacha"`）。
-- 絵 `GachaArt`: フィギュアは 100×110（`figure(id)`。3人は `Chara.svg`、どうぶつは `Art.npcSvg`〔`emo: "sleep"`〕、おかし・のりものは ここで 描く）。服の かたちは `hatWrap`／`eyeWrap`／`neckWrap`（chara.js）で 3人の あたま・め・くびに あわせる。`capsule(いろ, あく, uid)`（clipPath の id は `gcap-<uid>`）・`machine(シリーズ, カードの SVG)`・`knob(いろ)`。館の 台の カードは シリーズの レアの 絵（arcade-art.js の `gacha`）。
+- 絵 `GachaArt`: フィギュアは 100×110（`figure(id)`。3人は `Chara.svg`、どうぶつは `Art.npcSvg`〔`emo: "sleep"`〕、おかし・のりものは ここで 描く）。ふえた 6シリーズ（UI-28）の 絵は `GachaArtMore`（`GachaArt.FIG` と `WEAR` に たす）: ミニ どうぶつえん（`Art.npcSvg` の パンダ・ぞう・ライオン・しろい とら ＋ しばふの だい・ささ・みずしぶき・いわ）・こんがり パンやさん（きの トレーと しきがみ・メロンパンの あみめは ドームの なかだけ に けいさん）・ちび きょうりゅう（ティラノ・トリケラ・ステゴ・ブラキオ）・アクセサリー 12（`gacha_barrette`・`gacha_berrytie`・`gacha_pearlband`・`gacha_butterfly`・`gacha_clover`・`gacha_locket`・`gacha_pearls`・`gacha_shootingstar`・`gacha_roundshades`・`gacha_starsticker`・`gacha_dotbow`・`gacha_boppers`。ネックレスと ちょうネクタイは うしろすがたでは 描かない）。フィギュアの 絵には id を つかわない（もようがえ・フィギュア台で ならべて ページに いれる）。服の かたちは `hatWrap`／`eyeWrap`／`neckWrap`（chara.js）で 3人の あたま・め・くびに あわせる。`capsule(いろ, あく, uid)`（clipPath の id は `gcap-<uid>`）・`machine(シリーズ, カードの SVG)`・`knob(いろ)`。館の 台の カードは シリーズの レアの 絵（arcade-art.js の `gacha`）。
 - 画面 `Gacha.open(シリーズ)`: `UI.modal`（`full gacha-panel`）の 中に 台の 絵・よこの らん（ねだん・コイン・かくりつ・でる もの・コンプリート・まわす ボタン）・けっか・ラインナップ。`view.phase`: `ready` → `turn`（つまみ）→ `capsule`（おおきな カプセルの ボタン）→ `open` → `done`。えんしゅつの まちは `Gacha.speed` で みじかく できる。
 - セーブ: `Save.d.gacha`（`plays`・`got { けいひん: でた かず }`・`done { シリーズ: そろった 日 }`）。`Gacha.st()` が こわれた ところを なおす。
-- 館の 台: 2F の まんなかの「ガチャ コーナー」（`js/ike-arcade.js` の `floor2`・UI-20）。6だい（`kind: "gacha"`・`series`）・うしろの かんばん `gachaboard`（もじは `variant`）・カプセルの かいしゅう ばこ `capbin`・ゆかは `rows` の `g`（arcade-art.js の `gacha` の ゆか）。どの 階でも しらべる ものが エスカレーターの うえの ゆかや つりさげの かんばんに かくれない ことは `tools/check-ikebukuro.mjs` が しらべる（投影した 箱の かさなり）。
-- PokaDebug: `gachaOpen(シリーズ)`・`gachaNext(0〜3)`・`gachaFast(ばい)`・`gachaState()`。検査は `tools/check-gacha.mjs`、スモーク「gacha-390 / 375」。
+- 館の 台: 2F の まんなかの「ガチャ コーナー」（`js/ike-arcade.js` の `floor2`・UI-20。UI-28 で 2れつ 12だい・ゆか x 8〜17・y 5〜10）。おくの れつ（y 6・シリーズ 0〜5）と てまえの れつ（y 9・6〜11。`label` は 0 が「カプセルトイ」・9 が「アクセサリー」）。台の いろは シリーズの `color`（arcade-art.js の `gacha`）。おくの れつの うしろの かんばん `gachaboard`（もじは `variant`）・てまえの れつの うしろは ひくい しきり `divider`（おくの 台を かくさない）・カプセルの かいしゅう ばこ `capbin`・ゆかは `rows` の `g`（arcade-art.js の `gacha` の ゆか）。どの 階でも しらべる ものが エスカレーターの うえの ゆかや つりさげの かんばんに かくれない ことは `tools/check-ikebukuro.mjs` が しらべる（投影した 箱の かさなり）。
+- PokaDebug: `gachaOpen(シリーズ)`・`gachaNext(0〜3)`・`gachaFast(ばい)`・`gachaState()`。検査は `tools/check-gacha.mjs`（12シリーズ・アクセサリー 16・台の いろ・服の かたちが ぜんぶ ちがう など）と `tools/check-ikebukuro.mjs`（2F に 12だい）、スモーク「gacha-390 / 375」「gacha-more-390 / 375」。
 
 ## エリアの ちず（すまほ の「ちず」→「この エリア」・UI-13）
 

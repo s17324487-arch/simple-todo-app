@@ -1,5 +1,5 @@
 // ガチャガチャ（js/gacha.js・js/gacha-art.js）の 検査。ブラウザ なしで シリーズ・かくりつ・もちもの・コイン・セーブ・絵を たしかめる。
-// 6シリーズ × 4しゅ（レアは 1つ・10%）・くじの わりあい・家具／服に はいる・200コイン・ダブりの ふくは 50コイン もどる・コンプリート・ふるい セーブ・おみせに ならばない・ずかんの ヒント・SVG。
+// 12シリーズ × 4しゅ（レアは 1つ・10%。UI-28 で 6 → 12・アクセサリー 4シリーズ）・くじの わりあい・家具／服に はいる・200コイン・ダブりの ふくは 50コイン もどる・コンプリート・ふるい セーブ・おみせに ならばない・ずかんの ヒント・SVG。
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
@@ -12,9 +12,17 @@ const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
 
 // ---- 1. シリーズと けいひん ----
-ok(GA.SERIES.length === 6 && GA.ITEMS.length === 24, "6シリーズ・24しゅ");
-ok(GA.SERIES.filter((s) => s.kind === "furn").length === 4 && GA.SERIES.filter((s) => s.kind === "wear").length === 2, "へやに かざる もの 4シリーズ・服 2シリーズ");
-ok(new Set(GA.ITEMS.map((it) => it.id)).size === 24 && new Set(GA.SERIES.map((s) => s.id)).size === 6, "id が かさなる");
+ok(GA.SERIES.length === 12 && GA.ITEMS.length === 48, "12シリーズ・48しゅ（UI-28 で 2ばい）");
+ok(GA.SERIES.filter((s) => s.kind === "furn").length === 7 && GA.SERIES.filter((s) => s.kind === "wear").length === 5, "へやに かざる もの 7シリーズ・服 5シリーズ");
+ok(GA.SERIES.filter((s) => s.acc).map((s) => s.id).join() === "sparkle,hair,neck,party" && GA.SERIES.filter((s) => s.acc).every((s) => s.kind === "wear"), "アクセサリーの シリーズ 4つ（キラキラ アクセ・ヘアアクセ・ネックレス・パーティー）");
+ok(GA.SERIES.slice(0, 6).map((s) => s.id).join() === "friends,sleepy,sweets,ride,ears,sparkle", "まえの 6シリーズの じゅんばんは そのまま（台の ばんごう・セーブの id）");
+ok(new Set(GA.ITEMS.map((it) => it.id)).size === 48 && new Set(GA.SERIES.map((s) => s.id)).size === 12, "id が かさなる");
+ok(new Set(GA.SERIES.map((s) => s.color.toUpperCase())).size === 12, "台の いろが ぜんぶ ちがう");
+{
+  const wears = GA.ITEMS.filter((it) => it.kind === "wear");
+  ok(new Set(wears.map((it) => it.wear)).size === wears.length && wears.filter((it) => !it.wear.startsWith("gacha_")).map((it) => it.wear).join() === "catears", "アクセサリー・服の かたちが ぜんぶ ちがう（しろねこ だけ まえからの ねこみみ）");
+  ok(GA.ITEMS.filter((it) => it.kind === "wear" && GA.SERIES[it.series].acc).length === 16, "アクセサリー 16しゅ");
+}
 for (const S0 of GA.SERIES) {
   ok(S0.list.length === 4 && S0.list.filter((it) => it.rare).length === 1 && S0.list[GA.RARE].rare, `${S0.name}: 4しゅで レアは 1つ`);
   ok(S0.name && !kanji.test(S0.name) && S0.name.length <= 10 && /^#[0-9A-F]{6}$/i.test(S0.color) && S0.caps.length >= 2, `${S0.name}: なまえ・いろ`);
@@ -102,4 +110,4 @@ for (const f of ["../js/gacha.js", "../js/gacha-art.js"]) {
   const texts = [...src.matchAll(/text: `?"?([^"`]*)["`]/g)].map((m) => m[1]).concat(Object.values(GA.REACT).flat());
   for (const t of texts) ok(!kanji.test(t.replace(/\$\{[^}]*\}/g, "")), `ガチャの ことばに 漢字: ${t}`);
 }
-console.log(`Gacha: 6 series x 4 (1 rare each, 30/30/30/10), roll split, furniture/clothes registration and room models, not sold in shops, dex hints, figure/clothes/capsule/machine SVG, 200-coin spin, duplicate clothes refund, complete once, old and broken saves — ${n} checks OK`);
+console.log(`Gacha: 12 series x 4 (1 rare each, 30/30/30/10), roll split, furniture/clothes registration and room models, not sold in shops, dex hints, figure/clothes/capsule/machine SVG, 200-coin spin, duplicate clothes refund, complete once, old and broken saves — ${n} checks OK`);

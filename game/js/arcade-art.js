@@ -187,7 +187,7 @@ const ArcadeArt = (() => {
     crane,
     // ガチャガチャ（1だい。カプセルの まるい まど・まわす つまみ・景品の カード）
     gacha(S, f) {
-      const F = frame(f), W = F.W, D = F.D, v = f.variant || 0, c = ["#F29BB2", "#8EC5E8", "#F7C95B", "#9ED3A8", "#C9B6EE", "#F2A65E"][v % 6];
+      const F = frame(f), W = F.W, D = F.D, v = f.variant || 0, GS0 = typeof Gacha !== "undefined" ? Gacha.SERIES[v % Gacha.SERIES.length] : null, c = GS0 ? GS0.color : ["#F29BB2", "#8EC5E8", "#F7C95B", "#9ED3A8", "#C9B6EE", "#F2A65E"][v % 6];
       let s = S.ellipse(W / 2, D / 2, 0, 0.46, "#0000002A", 0) + boxC(S, F, 0.12, 0.12, W - 0.24, D - 0.24, 0, 64, [shade(c, 0.15), c, shade(c, -0.18)], 1.6);
       s += boxC(S, F, 0.1, 0.1, W - 0.2, D - 0.2, 64, 5, ["#FFFFFF", "#E8E0D0", "#D6CFC2"], 1.2);
       const g = S.P(...F.Q(W / 2, D / 2, 96)); S.grow(g.x - 22, g.y - 24, g.x + 22, g.y + 22);

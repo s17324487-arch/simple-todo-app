@@ -79,7 +79,7 @@ const IkeArcade = {
     const W = this.W, H = this.H, rows = Array.from({ length: H }, () => Array(W).fill(".")), e = this.ESC;
     const paint = (ch, x0, y0, x1, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) rows[y][x] = ch; };
     // とおりみち（エスカレーターから おかし コーナー・やすむ ところへ）と ガチャ コーナーの ゆか（'g'）
-    paint("w", 1, 2, 27, 3); paint("w", 2, 2, 3, 13); paint("w", 2, 11, 27, 13); paint("w", 12, 2, 13, 13); paint("g", 8, 5, 17, 8);
+    paint("w", 1, 2, 27, 3); paint("w", 2, 2, 3, 13); paint("w", 2, 11, 27, 13); paint("w", 12, 2, 13, 13); paint("g", 8, 5, 17, 10);
     // 3F への エスカレーターの のりばへ（南西の すみ）
     paint("w", 4, 13, 5, 21); paint("w", 0, 21, 5, 21);
     // ふきぬけ（'o'）
@@ -91,10 +91,13 @@ const IkeArcade = {
     crane(15, 0, 4, "x");
     // はしわたし（北の かべの まんなか）: フィギュア・ざっか
     crane(17, 15, 0, "y"); crane(18, 18, 0, "y");
-    // ガチャ コーナー（まんなか。js/gacha.js の 6シリーズ。variant = シリーズの ばんごう）: まんなかの とおりみちの りょうがわに 3だいずつ。
-    // うしろに しきりと かんばん（つりさげの かんばんは おくの 台に かさなるので、台の うしろに たてる）
+    // ガチャ コーナー（まんなか。js/gacha.js の 12シリーズ。variant = シリーズの ばんごう）: まんなかの とおりみちの りょうがわに 3だいずつ × 2れつ（UI-28 で 2ばい）。
+    // おくの れつ（0〜5）の うしろに しきりと かんばん（つりさげの かんばんは おくの 台に かさなるので、台の うしろに たてる）。
+    // てまえの れつ（6〜11: どうぶつえん・パン・きょうりゅう・ヘアアクセ・ネックレス・パーティー）の うしろは ひくい しきり（おくの 台を かくさない）
     [9, 10, 11, 14, 15, 16].forEach((x, v) => fixtures.push({ kind: "gacha", x, y: 6, w: 1, h: 1, dir: "y", variant: v, series: v, height: 112, label: v === 0 ? "カプセルトイ" : "", action: "gacha", spots: [[x, 7]] }));
+    [9, 10, 11, 14, 15, 16].forEach((x, i) => fixtures.push({ kind: "gacha", x, y: 9, w: 1, h: 1, dir: "y", variant: 6 + i, series: 6 + i, height: 112, label: i === 3 ? "アクセサリー" : "", action: "gacha", spots: [[x, 10]] }));
     fixtures.push({ kind: "gachaboard", x: 9, y: 5, w: 3, h: 1, dir: "y", height: 170, variant: 0 }, { kind: "gachaboard", x: 14, y: 5, w: 3, h: 1, dir: "y", height: 170, variant: 1 });
+    fixtures.push({ kind: "divider", x: 9, y: 8, w: 3, h: 1, height: 45 }, { kind: "divider", x: 14, y: 8, w: 3, h: 1, height: 45 });
     fixtures.push({ kind: "capbin", x: 17, y: 6, w: 1, h: 1, dir: "y", height: 78, label: "カプセル かいしゅう", action: "info", text: "あけた カプセルは ここに いれてね。きれいに して また つかうよ。", spots: [[17, 7]] });
     // エスカレーター（1F へ くだる）
     fixtures.push({ kind: "escalator", pair: true, dir: "down", x: e.x, y: e.y, w: e.w, h: e.h, rise: 210, height: 40, label: "1Fへ おりる", action: "floor", to: 1, spawn: [e.x + 3, e.y + e.h] });
@@ -114,6 +117,7 @@ const IkeArcade = {
     fixtures.push({ kind: "npc", sp: "pig", ci: 1, x: 7, y: 3, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "おかしの けいひんは まいにち かわるんだって！ きょうは なにかな？", spots: [[8, 3]] });
     fixtures.push({ kind: "npc", sp: "hamster", ci: 0, x: 3, y: 9, w: 1, h: 1, dir: "left", emo: "happy", label: "おきゃくさん", action: "info", text: "スウィートランドは ショベルで すくって、ステージに おとすと おちて くるよ。", spots: [[3, 10]] });
     fixtures.push({ kind: "npc", sp: "fox", ci: 1, x: 8, y: 7, w: 1, h: 1, dir: "right", emo: "normal", label: "おきゃくさん", action: "info", text: "レアの ユニコーン カチューシャ、でないかなあ。どの 台も 4しゅの うち 1つが レアなんだって。", spots: [[8, 8]] });
+    fixtures.push({ kind: "npc", sp: "cat", ci: 2, x: 18, y: 9, w: 1, h: 1, dir: "left", emo: "happy", label: "おきゃくさん", action: "info", text: "てまえの れつに アクセサリーの ガチャが ふえたよ！ ちょうちょの ヘアクリップが ほしいなあ。", spots: [[18, 10]] });
     fixtures.push({ kind: "npc", sp: "rabbit", ci: 2, x: 21, y: 3, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "はしわたしは はこの まんなかじゃ なくて、はしを ねらうと ずれるよ。ななめに なったら、うえに ういた はしを ねらって みて！", spots: [[21, 2]] });
     // つりさげの あんない（エスカレーターの のりばの うえ）
     fixtures.push({ kind: "hangsign", x: e.x, y: e.y - 1, w: e.w, h: 1, z: 232, text: "1F ぬいぐるみ", col: "#5A8FB4", over: true, walk: true, fadeOver: true });
@@ -122,7 +126,7 @@ const IkeArcade = {
       title: "Meeときょれじゃ 2F", fixtures, holes: [{ kind: "rect", x: e.x, y: e.y + 1, w: e.w, h: e.h - 1 }],
       zones: [
         { x: 1, y: 0, w: 9, h: 3, shop: "arcSnack", label: "おかし キャッチャー" }, { x: 0, y: 4, w: 3, h: 3, shop: "arcSnackSweet", label: "スウィートランド", map: "スウィート ランド" },
-        { x: 15, y: 0, w: 6, h: 3, shop: "arcBridge", label: "はしわたし" }, { x: 8, y: 5, w: 10, h: 4, shop: "arcGacha", label: "ガチャ コーナー" },
+        { x: 15, y: 0, w: 6, h: 3, shop: "arcBridge", label: "はしわたし" }, { x: 8, y: 5, w: 10, h: 6, shop: "arcGacha", label: "ガチャ コーナー" },
       ],
       walls: {
         north: [{ kind: "neon", from: 0.5, to: 10, z: 300, size: 34, text: "おかし", col: "#FF8FB8", stars: true }, { kind: "poster", from: 11, to: 14, z0: 150, z1: 300, col: "#FFE9A8", lines: ["けいひんは", "まいにち かわる"] }, { kind: "neon", from: 14.6, to: 21.4, z: 300, size: 30, text: "はしわたし", col: "#FFE68A", stars: true }, { kind: "neon", from: 22.6, to: 27.4, z: 300, size: 26, text: "Mee 2F", col: "#9FD3F0" }],

@@ -3014,7 +3014,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect(await H.dbg('venueVisit','2Fへ のぼる'),'エスカレーターを しらべられない');await H.until(()=>{const v=PokaDebug.venueIso();return v&&v.floor===2&&v.ready&&PokaDebug.idle()&&!PokaDebug.venueState().changingFloor;},20000);await H.wait(300);
  const iso=await H.dbg('venueIso'),s2=await H.dbg('venueState');
  expect(iso.holes===1&&iso.crowd>=2&&s2.floor===2&&/2F/.test(await H.eval(()=>document.querySelector('.hud').textContent)),'2F（ふきぬけ・おきゃくさん・HUD）'+JSON.stringify(iso));
- const gachas=s2.fixtures.filter(f=>f.kind==='gacha'&&f.action==='gacha');expect(gachas.length===6&&gachas.every(f=>f.x>=8&&f.x+f.w<=18&&f.y>=5&&f.y<=8)&&s2.fixtures.filter(f=>f.kind==='gachaboard').length===2,'2F の まんなかの ガチャ コーナー（6だい・かんばん）'+JSON.stringify(gachas.map(f=>[f.x,f.y])));
+ const gachas=s2.fixtures.filter(f=>f.kind==='gacha'&&f.action==='gacha');expect(gachas.length===12&&gachas.every(f=>f.x>=8&&f.x+f.w<=18&&f.y>=5&&f.y<=10)&&s2.fixtures.filter(f=>f.kind==='gachaboard').length===2,'2F の まんなかの ガチャ コーナー（12だい・2れつ・かんばん）'+JSON.stringify(gachas.map(f=>[f.x,f.y])));
  const cranes=s2.fixtures.filter(f=>f.action==='crane');expect(cranes.length===7&&cranes.map(f=>f.machine).sort((a,b)=>a-b).join()==='12,13,14,15,16,17,18'&&s2.fixtures.some(f=>f.kind==='escalator'&&f.to===1),'2F の おかし キャッチャー 5台・はしわたし 2台・くだりの エスカレーター '+cranes.map(f=>f.machine));
  expect(s2.routeCount.every(r=>r.reachable),'2F に いけない ところ '+JSON.stringify(s2.routeCount.filter(r=>!r.reachable)));
  const vis=cranes.filter(f=>f.screen.x>-40&&f.screen.x<viewport.width+40&&f.screen.y>0&&f.screen.y<viewport.height);await H.shot('arrive');
@@ -3628,7 +3628,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.newGameFast();const c0=await H.dbg('coins',1850);
  // ガチャは 2F の まんなかの ガチャ コーナー（UI-20。1F では エスカレーターの うえの ゆかに かくれて いた）
  await H.dbg('venue','arcade',2);await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
- const s0=await H.dbg('venueState');expect(s0.floor===2&&s0.fixtures.filter((f)=>f.kind==='gacha'&&f.action==='gacha').length===6,'2F に ガチャの 台が 6だい ない');
+ const s0=await H.dbg('venueState');expect(s0.floor===2&&s0.fixtures.filter((f)=>f.kind==='gacha'&&f.action==='gacha').length===12,'2F に ガチャの 台が 12だい ない');
  // ガチャ コーナーの まえ（2F の まんなかの とおりみち）まで あるく
  expect(await H.dbg('venueWalk',12,9),'ガチャ コーナーへ あるけない');await H.until(()=>{const v=PokaDebug.venueState();return v&&Math.hypot(v.party[0].x-12,v.party[0].y-9)<0.6&&PokaDebug.idle();},25000);await H.wait(500);await H.shot('corner');
  // いちばん ひだりの 台（なかよし フィギュア）まで あるいて しらべる
@@ -3684,6 +3684,45 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  while((await H.dbg('state')).coins>=200){await H.dbg('gachaNext',0);await H.page.locator('.gacha-go').click();await H.until(()=>PokaDebug.gachaState().phase==='capsule',8000);await H.page.getByRole('button',{name:'カプセルを あける',exact:true}).click();await H.until(()=>PokaDebug.gachaState().phase==='done',8000);}
  expect(await H.page.locator('.gacha-go').isDisabled()&&/コインが たりないよ/.test(await H.eval(()=>document.querySelector('.gacha').textContent)),'コインが たりなくても まわせる');
 },{viewport,timeout:180000});
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('gacha-more-'+viewport.width,async H=>{
+ // ガチャを 2ばいに（UI-28。オーナーの FB 2026-10-01「meeときょれじゃのガチャガチャを2倍の規模にしなさい。ガチャガチャの景品にはアクセサリーを追加しなさい」）:
+ // 2F の ガチャ コーナーは 2れつ 12だい → てまえの とおりみちから 12だい ぜんぶ みえる → アクセサリーの 台（ゆめかわ ヘアアクセ）で レアの ちょうちょ → きょうりゅうの 台 → きがえで つける・もようがえで かざる
+ await H.newGameFast();const c0=await H.dbg('coins',1850);
+ await H.dbg('venue','arcade',2);await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
+ let s=await H.dbg('venueState');const g=s.fixtures.filter(f=>f.kind==='gacha'&&f.action==='gacha');
+ expect(g.length===12&&new Set(g.map(f=>f.series)).size===12&&g.filter(f=>f.y===9).length===6&&g.filter(f=>f.y===6).length===6&&s.routeCount.every(r=>r.reachable),'2れつ 12だい '+JSON.stringify(g.map(f=>[f.x,f.y,f.series])));
+ expect(await H.dbg('venueWalk',13,11),'ガチャ コーナーの まえへ あるけない');await H.until(()=>{const v=PokaDebug.venueState();return v&&Math.hypot(v.party[0].x-13,v.party[0].y-11)<0.6&&PokaDebug.idle();},25000);await H.wait(600);
+ s=await H.dbg('venueState');const vis=s.fixtures.filter(f=>f.kind==='gacha'&&f.screen.x>8&&f.screen.x<viewport.width-8&&f.screen.y>40&&f.screen.y<viewport.height-120);
+ expect(vis.length===12,'ガチャの 台が 画面に ぜんぶ みえない '+vis.length+' '+JSON.stringify(s.fixtures.filter(f=>f.kind==='gacha').map(f=>[f.series,Math.round(f.screen.x),Math.round(f.screen.y)])));await H.shot('corner');
+ // アクセサリーの 台（てまえの れつ・ゆめかわ ヘアアクセ）
+ expect(await H.dbg('venueVisit','アクセサリー'),'アクセサリー の 台が ない');
+ await H.page.locator('.modal-wrap:not(.out) .gacha').waitFor({timeout:20000});await H.wait(400);
+ const L=await H.eval(()=>{const r=(e)=>e.getBoundingClientRect(),pn=document.querySelector('.modal-wrap:not(.out) .panel'),body=pn.querySelector('.panel-body'),t=pn.querySelector('.panel-title'),g=document.createRange();g.selectNodeContents(t);const bs=[...pn.querySelectorAll('button')].filter((b)=>b.offsetParent);
+  return {small:bs.filter((b)=>{const q=r(b);return q.width<43.5||q.height<43.5;}).length,wide:body.scrollWidth>body.clientWidth+1,edge:r(pn).left>=0&&r(pn).right<=innerWidth+0.5,cards:pn.querySelectorAll('.gacha-card').length,rare:pn.querySelectorAll('.gacha-card.rare').length,title:t.textContent,lines:new Set([...g.getClientRects()].map((x)=>Math.round(x.top))).size,text:pn.textContent};});
+ expect(!L.small&&!L.wide&&L.edge&&L.cards===4&&L.rare===1&&L.lines===1&&L.title==='「ゆめかわ ヘアアクセ」'&&/でるのは アクセサリー/.test(L.text)&&/リボンの バレッタ/.test(L.text)&&/ちょうちょの ヘアクリップ/.test(L.text),'アクセサリーの 台の がめん '+JSON.stringify({...L,text:L.text.slice(0,120)}));
+ await H.shot('lineup');
+ await H.dbg('gachaFast',4);await H.dbg('gachaNext',3);
+ await H.page.getByRole('button',{name:'200コインで まわす',exact:true}).click();
+ await H.until(()=>PokaDebug.gachaState().phase==='capsule',8000);await H.page.getByRole('button',{name:'カプセルを あける',exact:true}).click();await H.until(()=>PokaDebug.gachaState().phase==='done',8000);await H.wait(300);
+ let st=await H.dbg('gachaState');expect(st.last.id==='gacha_hair_3'&&st.last.rare&&st.last.first&&(await H.dbg('saveData')).wardrobe.gacha_hair_3===true,'レアの ちょうちょが でない '+JSON.stringify(st.last));
+ await H.shot('rare');
+ await H.page.locator('.modal-wrap:not(.out) .close').click();await H.until(()=>!PokaDebug.gachaState().open&&PokaDebug.idle(),8000);
+ // きょうりゅうの 台（てまえの れつ）: ティラノサウルス → もちものの 家具
+ await H.dbg('gachaOpen',8);await H.page.locator('.modal-wrap:not(.out) .gacha').waitFor();await H.wait(300);
+ expect(/ちび きょうりゅう/.test(await H.eval(()=>document.querySelector('.modal-wrap:not(.out) .panel-title').textContent))&&/でるのは へやに かざる フィギュア/.test(await H.eval(()=>document.querySelector('.modal-wrap:not(.out) .gacha').textContent)),'きょうりゅうの 台で ない');
+ await H.dbg('gachaNext',0);await H.page.locator('.gacha-go').click();await H.until(()=>PokaDebug.gachaState().phase==='capsule',8000);await H.page.getByRole('button',{name:'カプセルを あける',exact:true}).click();await H.until(()=>PokaDebug.gachaState().phase==='done',8000);
+ st=await H.dbg('gachaState');expect(st.last.id==='gacha_dino_0'&&(await H.dbg('saveData')).furn.gacha_dino_0===1&&st.coins===c0-400,'ティラノサウルスが でない '+JSON.stringify(st.last));
+ await H.page.locator('.modal-wrap:not(.out) .close').click();await H.until(()=>!PokaDebug.gachaState().open&&PokaDebug.idle(),8000);
+ // おうち: きがえで ちょうちょの ヘアクリップ・もようがえで ティラノサウルス
+ await H.dbg('house');await H.until(()=>G.sceneName==='house'&&PokaDebug.idle(),15000);await H.wait(300);
+ await H.houseButton('きがえ');await H.page.locator('.panel .grid .card').filter({hasText:'ちょうちょの ヘアクリップ'}).click();await H.wait(200);
+ expect(await H.eval(()=>Save.d.chars[Save.d.order[0]].outfit.head)==='gacha_hair_3','きがえで ちょうちょの ヘアクリップを つけられない');
+ await H.shot('dressup');await H.page.click('.modal-wrap .close');await H.until(()=>!G.scene.mode,8000);
+ const n0=await H.eval(()=>Save.d.room.items.length);
+ await H.houseButton('もようがえ');await H.page.locator('.edit-bar .tray .card').filter({hasText:'ティラノサウルス'}).click();await H.wait(300);await H.page.click('.edit-bar .btn.yellow');
+ const room=await H.eval(()=>Save.d.room.items.map(it=>it.id));expect(room.length===n0+1&&room.includes('gacha_dino_0'),'ティラノサウルスを かざれない '+room);
+ await H.wait(600);await H.shot('room');
+},{viewport,full:viewport.width===375,timeout:150000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('aqua-gifts-'+viewport.width,async H=>{
  // すいぞくかんの おみやげ（js/aqua-gifts.js。オーナーの FB 2026-10-01「水族館のお土産コーナーに、海の生き物とごわががコラボしたグッズ5種や、海の生き物フィギュア10種を販売しなさい（どれも少し高めの価格）」）:

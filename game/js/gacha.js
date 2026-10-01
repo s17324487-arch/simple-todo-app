@@ -1,7 +1,7 @@
-// ガチャガチャ（Meeときょれじゃ の カプセルトイ・UI-12）: 館の 6だいの 台が 6つの シリーズ。
+// ガチャガチャ（Meeときょれじゃ の カプセルトイ・UI-12）: 館の 12だいの 台が 12の シリーズ（UI-28 で 6 → 12。2F の ガチャ コーナーは 2れつ）。
 // 1かい 200コインで シリーズの 4しゅの どれかが でる（ふつう 3しゅは 30%ずつ・レア 1しゅは 10%）。ほんものの カプセルトイと おなじく、
-// まわす → カプセルが でてくる → タップで あける。けいひんは へやに かざる フィギュア（家具・ほしは ださない）か 服。
-// ダブった 服は 50コイン もどる（フィギュアは いくつでも かざれる）。4しゅ そろうと コンプリート。絵は js/gacha-art.js。
+// まわす → カプセルが でてくる → タップで あける。けいひんは へやに かざる フィギュア（家具・ほしは ださない）か 服・アクセサリー（acc）。
+// ダブった 服は 50コイン もどる（フィギュアは いくつでも かざれる）。4しゅ そろうと コンプリート。絵は js/gacha-art.js（ふえた 6シリーズは js/gacha-art-more.js）。
 // セーブ: Save.d.gacha（plays まわした かず・got { けいひん: でた かず }・done { シリーズ: そろった 日 }）。もちものは Save.d.furn／Save.d.wardrobe。
 const Gacha = (() => {
   const PRICE = 200, DUP = 50, RATE = [0.3, 0.3, 0.3, 0.1], RARE = 3;
@@ -37,11 +37,48 @@ const Gacha = (() => {
       ["しろねこ カチューシャ", "しろい ねこの みみの カチューシャ。", "head", "catears", ["#FFFFFF", "#F8A5C2"]],
       ["ユニコーン カチューシャ", "きんの つのと おはなの レアの カチューシャ。", "head", "gacha_unicorn", ["#D8C8F2", "#F7C948"]],
     ] },
-    { id: "sparkle", name: "キラキラ アクセ", kind: "wear", color: "#F2A65E", caps: ["#FFB25B", "#FFFFFF", "#FFE07A"], items: [
+    { id: "sparkle", name: "キラキラ アクセ", kind: "wear", acc: true, color: "#F2A65E", caps: ["#FFB25B", "#FFFFFF", "#FFE07A"], items: [
       ["ほしの めがね", "おほしさまの かたちの めがね。", "face", "gacha_starglasses", ["#FFD84D"]],
       ["きらきら ペンダント", "みずいろの ほうせきの ペンダント。", "neck", "gacha_pendant", ["#7FD3F0", "#F7C948"]],
       ["ハートの ヘアピン", "ピンクの ハートの ヘアピン。", "head", "gacha_heartclip", ["#FF7BA8"]],
       ["にじいろ ティアラ", "にじいろの ほうせきが ならぶ レアの ティアラ。", "head", "gacha_tiara", ["#E6E9F2"]],
+    ] },
+    // ---- UI-28 で ふえた 6シリーズ（へやに かざる もの 3・アクセサリー 3）----
+    { id: "zoo", name: "ミニ どうぶつえん", kind: "furn", color: "#8CC63F", caps: ["#C8E6A0", "#FFFFFF", "#FFE07A"], items: [
+      ["ささと パンダ", "ささの はを かかえた パンダの フィギュア。"],
+      ["みずあび ぞう", "はなで みずを しゅわっと とばす ぞう。"],
+      ["いわの うえの ライオン", "いわの うえで むねを はる ライオン。"],
+      ["ホワイトタイガー", "しろい からだに はいいろの しまの レアの フィギュア。"],
+    ] },
+    { id: "bakery", name: "こんがり パンやさん", kind: "furn", color: "#E0A066", caps: ["#F6D3A8", "#FFFFFF", "#FFE07A"], items: [
+      ["ミニ メロンパン", "あみめの もようの メロンパンの ミニチュア。"],
+      ["ミニ クロワッサン", "さくさくの クロワッサンの ミニチュア。"],
+      ["ミニ しょくパン", "ふんわり やけた しょくパンの ミニチュア。"],
+      ["ミニ パンかご", "いろいろな パンが ならぶ かごの レアの ミニチュア。"],
+    ] },
+    { id: "dino", name: "ちび きょうりゅう", kind: "furn", color: "#6CC3B0", caps: ["#BFE9DD", "#FFFFFF", "#FFE07A"], items: [
+      ["ティラノサウルス", "おおきな あたまで がおっと ほえる きょうりゅう。"],
+      ["トリケラトプス", "つの 3つと えりかざりの きょうりゅう。"],
+      ["ステゴサウルス", "せなかに いたが ならぶ きょうりゅう。"],
+      ["ブラキオサウルス", "くびの ながい おおきな レアの きょうりゅう。"],
+    ] },
+    { id: "hair", name: "ゆめかわ ヘアアクセ", kind: "wear", acc: true, color: "#F59AC0", caps: ["#FBD3E6", "#FFFFFF", "#D7C6EE"], items: [
+      ["リボンの バレッタ", "みずたまの リボンに きんの ピンの バレッタ。", "head", "gacha_barrette", ["#C9B6EE", "#F7C948"]],
+      ["いちごの ヘアゴム", "いちごが ふたつ ついた ヘアゴム。", "head", "gacha_berrytie", ["#FF5A6E", "#7CCB6B"]],
+      ["パールの カチューシャ", "しろい パールが ならぶ カチューシャ。", "head", "gacha_pearlband", ["#F8D2E0", "#FFFFFF"]],
+      ["ちょうちょの ヘアクリップ", "ほうせきの はねの レアの ヘアクリップ。", "head", "gacha_butterfly", ["#9FD8F2", "#F8A5C2"]],
+    ] },
+    { id: "neck", name: "キラキラ ネックレス", kind: "wear", acc: true, color: "#6FB7E0", caps: ["#BFE6F7", "#FFFFFF", "#E6E9F2"], items: [
+      ["クローバーの ネックレス", "よつばの クローバーの ネックレス。", "neck", "gacha_clover", ["#7CCB6B", "#D9DEE8"]],
+      ["ハートの ロケット", "あけしめ できる ハートの ロケット。", "neck", "gacha_locket", ["#F7C948", "#FF7BA8"]],
+      ["パールの ネックレス", "まるい パールが ならんだ ネックレス。", "neck", "gacha_pearls", ["#FFFFFF", "#F2E6D9"]],
+      ["ながれぼしの ネックレス", "ほしが ながれる レアの ネックレス。", "neck", "gacha_shootingstar", ["#FFE066", "#B79BEA"]],
+    ] },
+    { id: "party", name: "パーティー アクセ", kind: "wear", acc: true, color: "#A98BE0", caps: ["#D7C6EE", "#FFFFFF", "#FFE07A"], items: [
+      ["まんまる サングラス", "ピンクの まるい レンズの サングラス。", "face", "gacha_roundshades", ["#FF9EC4", "#F7C948"]],
+      ["ほしの フェイスシール", "ほっぺに はる ほしの シール。", "face", "gacha_starsticker", ["#FFD84D", "#FF7BA8"]],
+      ["みずたまの ちょうネクタイ", "あかに しろい みずたまの ちょうネクタイ。", "neck", "gacha_dotbow", ["#E8434F", "#FFFFFF"]],
+      ["ぴょこぴょこ カチューシャ", "ばねの さきに ほしが ゆれる レアの カチューシャ。", "head", "gacha_boppers", ["#B79BEA", "#FFD84D"]],
     ] },
   ];
   // けいひん（id: gacha_<シリーズ>_<0〜3>。3 が レア）
@@ -134,7 +171,7 @@ Gacha.open = function (si) {
         U.el("div", { class: "gacha-price", text: `1かい ${this.PRICE}コイン` }),
         U.el("div", { class: "gacha-coins", text: `もって いる コイン ${U.fmt(Save.d.coins)}` }),
         U.el("div", { class: "gacha-rate", text: "ふつう 3しゅ 30%ずつ・レア 10%" }),
-        U.el("div", { class: "gacha-kind", text: S.kind === "wear" ? `でるのは ふく（おなじ ふくは ${this.DUP}コイン もどる）` : "でるのは へやに かざる フィギュア" }),
+        U.el("div", { class: "gacha-kind", text: S.kind === "wear" ? (S.acc ? `でるのは アクセサリー（おなじ ものは ${this.DUP}コイン もどる）` : `でるのは ふく（おなじ ふくは ${this.DUP}コイン もどる）`) : "でるのは へやに かざる フィギュア" }),
         ...(this.complete(si) ? [U.el("div", { class: "gacha-done", text: "コンプリート！" })] : []),
       );
       line.replaceChildren(...S.list.map((it) => {
