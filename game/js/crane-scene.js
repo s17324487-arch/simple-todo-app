@@ -2,20 +2,21 @@
 // 台の なかは 3D の 物理（CraneMachines）。ここでは カメラで うつして、筐体・アーム・景品を 描く。まえ と よこ の 2つの カメラ。
 const PrizeArcade = {
   // 19台（台の 番号は CraneMachines.DEFS・館の 什器 machine と おなじ。0〜11 は 1F・12〜16 は 2F の おかし キャッチャー・17〜18 は 2F の はしわたし）。qty: 1こ とれた ときに もらえる かず・coins: 1こ とれた ときの コイン
-  // prize は 台の だいひょうの 景品（まぜて ある 台は 形ごとの 景品 CraneMachines.SHAPES[...].prize を わたす）
+  // prize は 台の だいひょうの 景品（まぜて ある 台は 形ごとの 景品 CraneMachines.SHAPES[...].prize を わたす）・mix: その日に まぜて ある しゅるいの かず・
+  // daily: 日がわり（1F は 3人の ぬいぐるみ・ミニマスコット・どうぶつえん・ビッグ ぬいぐるみ・みずべの なかま の 7台。UI-16）
   machines: [
-    { id: "chibi-wanko", type: "claw", name: "わんこの ぬいぐるみ", label: "わんこ ぬいぐるみ", prize: "ike_chibi_wanko_0", mix: 4, qty: 1 },
+    { id: "chibi-wanko", type: "claw", name: "わんこの ぬいぐるみ", label: "わんこ ぬいぐるみ", prize: "ike_chibi_wanko_0", mix: 4, qty: 1, daily: true },
     { id: "goji-big", type: "claw", name: "ごじの おおきな ぬいぐるみ", label: "ごじ おおきな", prize: "ike_prize_1", qty: 1, legacy: true },
-    { id: "mini", type: "sweet", name: "スウィートランド・ミニマスコット", label: "ミニマスコット", prize: "ike_mini_wanko", mix: 3, qty: 1 },
+    { id: "mini", type: "sweet", name: "スウィートランド・ミニマスコット", label: "ミニマスコット", prize: "ike_mini_wanko", mix: 3, qty: 1, daily: true },
     { id: "pusher", type: "pusher", name: "コイン プッシャー", label: "コイン プッシャー", coins: 10, qty: 1, medals: 10 },
     { id: "wanko-big", type: "tripod", name: "トライポッド・わんこ", label: "わんこ トライポッド", prize: "ike_prize_3", qty: 1, legacy: true },
-    { id: "panda-big", type: "tripod", name: "トライポッド・パンダ", label: "パンダ トライポッド", prize: "ike_plush_panda", qty: 1 },
+    { id: "panda-big", type: "tripod", name: "トライポッド・どうぶつえん", label: "どうぶつえん", prize: "ike_plush_panda", qty: 1, daily: true },
     { id: "gachan-ring", type: "ring", name: "リングフック・がちゃん", label: "がちゃん リング", prize: "ike_prize_4", qty: 1, legacy: true },
     { id: "coin-chest", type: "ring", name: "リングフック・たからばこ", label: "コイン たからばこ", coins: 300, qty: 1 },
-    { id: "chibi-gachan", type: "claw", name: "がちゃんの ぬいぐるみ", label: "がちゃん ぬいぐるみ", prize: "ike_chibi_gachan_0", mix: 4, qty: 1 },
-    { id: "chibi-goji", type: "claw", name: "ごじの ぬいぐるみ", label: "ごじ ぬいぐるみ", prize: "ike_chibi_goji_0", mix: 4, qty: 1 },
-    { id: "bear-big", type: "claw", name: "くまの おおきな ぬいぐるみ", label: "くま おおきな", prize: "ike_plush_bear", qty: 1 },
-    { id: "penguin-ring", type: "ring", name: "リングフック・ぺんぎん", label: "ぺんぎん リング", prize: "ike_plush_penguin", qty: 1 },
+    { id: "chibi-gachan", type: "claw", name: "がちゃんの ぬいぐるみ", label: "がちゃん ぬいぐるみ", prize: "ike_chibi_gachan_0", mix: 4, qty: 1, daily: true },
+    { id: "chibi-goji", type: "claw", name: "ごじの ぬいぐるみ", label: "ごじ ぬいぐるみ", prize: "ike_chibi_goji_0", mix: 4, qty: 1, daily: true },
+    { id: "bear-big", type: "claw", name: "ビッグ ぬいぐるみ", label: "ビッグ ぬいぐるみ", prize: "ike_plush_bear", qty: 1, daily: true },
+    { id: "penguin-ring", type: "ring", name: "リングフック・みずべの なかま", label: "みずべの なかま", prize: "ike_plush_penguin", mix: 3, qty: 1, daily: true },
     // 2F の おかし キャッチャー（日がわり。とれた おかしは たべもの）。prize は ならびが ない ときの だいひょう
     { id: "snack-bag", type: "claw", name: "おかし キャッチャー・ふくろ", label: "おかし ふくろ", prize: "ike_snack_gummy", mix: 3, qty: 1, daily: true },
     { id: "snack-box", type: "claw", name: "おかし キャッチャー・はこ", label: "おかし はこ", prize: "ike_snack_choco", mix: 3, qty: 1, daily: true },
@@ -54,16 +55,27 @@ const PrizeArcade = {
     got.forEach((_, k) => { const sh = shapes[k], S = sh && CraneMachines.SHAPES[sh], id = (S && S().prize) || m.prize; out.set(id, (out.get(id) || 0) + m.qty); });
     return [...out].map(([id, n]) => ({ id, n }));
   },
+  // 台の いまの 日（日がわりの ならびを きめる 日）: とちゅうの 1かいが あれば それを はじめた 日・keep の 台（トライポッド・はしわたし）に
+  // まえの 日の けいひんが のこって いれば その日（とれるまで かわらない）・ほかは きょう
+  dayOf(machine) {
+    const d = CraneMachines.DEFS[machine], now = CraneMachines.today();
+    if (typeof Save === "undefined" || !Save.d) return now;
+    const a = this.norm(), run = a.active;
+    if (run && run.machine === machine && run.cp && run.cp.day) return run.cp.day;
+    return CraneMachines.keepDay(d, a.boards[machine], now);
+  },
   // 台の 景品の 一覧（まぜて ある 台は ぜんぶの しゅるい）
-  // 日がわりの 台は その日の ならび（day を わたさなければ きょう）
+  // 日がわりの 台は その日の ならび（day を わたさなければ dayOf）
   prizeList(machine, day) {
-    const d = CraneMachines.DEFS[machine], m = this.machines[machine], shapes = CraneMachines.lineup(d, day) || (d.fill && d.fill.mix ? d.fill.mix : Array.isArray(d.sweet) ? d.sweet : []);
+    const d = CraneMachines.DEFS[machine], m = this.machines[machine], shapes = CraneMachines.lineup(d, day || (d.pool ? this.dayOf(machine) : undefined)) || (d.fill && d.fill.mix ? d.fill.mix : Array.isArray(d.sweet) ? d.sweet : []);
     const ids = shapes.map((sh) => CraneMachines.SHAPES[sh]().prize).filter(Boolean);
     return ids.length ? ids : m.prize ? [m.prize] : [];
   },
   // コインの 台は 1にちの 上限（ArcadePrizes.COIN_DAY_MAX）まで。1こぶんの コインが のこって いれば あそべる（プッシャーは 1かいぶん 100コイン）
   coinOpen(machine) { const m = this.machines[machine]; return !m.coins || ArcadePrizes.coinLeft() >= (m.type === "pusher" ? this.PRICE : m.coins * m.qty); },
   item(id) { return FURN_INDEX[id] || BAG_INDEX[id] || ITEM_INDEX[id] || { name: id }; },
+  // その日の けいひんの よびかた（おなじ なかまは「わんこの ぬいぐるみ 4しゅ（にっこり・…）」・ほかは なまえを ならべる）
+  todayText(machine, day) { const ids = this.prizeList(machine, day); return ArcadePrizes.group(ids) || ids.map((id) => this.item(id).name).join("・"); },
   // とれた 景品の 絵（はじめの 1つ。コインは "coin"）と その SVG（とりだしぐち・けっかの まど）
   picture(machine, round) { const p = this.prizesOf(machine, round)[0]; return !p ? this.machines[machine].prize || "coin" : p.coins ? "coin" : p.id; },
   pictureSvg(id) { return id === "coin" ? CraneArt.coinSvg() : FURN_INDEX[id] ? Art.furnSvg(id) : Art.iconSvg("bag", id); },
@@ -75,7 +87,7 @@ const PrizeArcade = {
     if (a.active) { const yes = await UI.confirm("とちゅうの クレーンが あるよ。おかねを はらわずに つづける？", "つづける", "やめる"); if (yes) Game.goto("prize", { run: a.active }); return; }
     if (a.refunded) { UI.toast("台が あたらしく なったので、とちゅうだった 1かいの " + this.PRICE + "コインを かえしたよ"); a.refunded = 0; Save.write(); }
     if (!this.coinOpen(machine)) { await UI.say([{ name: "Meeときょれじゃ", text: "きょうの コインの けいひんは おしまい。\nまた あした あそびに きてね！" }]); return; }
-    const each = m.type === "sweet" ? "（おちた ぶんだけ）" : "", prize = m.type === "pusher" ? `てまえに おちた メダル 1まい ${m.coins}コイン` : m.coins ? `コイン ${m.coins} ${each}` : m.daily ? `きょうは ${this.prizeList(machine).map((id) => this.item(id).name).join("・")}${each}\n（けいひんは まいにち かわるよ）` : m.mix ? `${this.item(m.prize).name.replace(/^\S+ /, "")}（${m.mix}しゅるい）${each}` : this.item(m.prize).name + " " + (each || "×" + m.qty);
+    const each = m.type === "sweet" ? "（おちた ぶんだけ）" : "", prize = m.type === "pusher" ? `てまえに おちた メダル 1まい ${m.coins}コイン` : m.coins ? `コイン ${m.coins} ${each}` : m.daily ? `きょうは ${this.todayText(machine)}${each}\n（けいひんは まいにち かわるよ${CraneMachines.DEFS[machine].keep ? "。とちゅうの けいひんは とれるまで そのまま" : ""}）` : m.mix ? `${this.item(m.prize).name.replace(/^\S+ /, "")}（${m.mix}しゅるい）${each}` : this.item(m.prize).name + " " + (each || "×" + m.qty);
     const cap = m.coins ? `\nコインの けいひんは 1にち ${ArcadePrizes.COIN_DAY_MAX}コイン まで（きょう のこり ${ArcadePrizes.coinLeft()}）。` : "";
     const fee = m.type === "pusher" ? `\n1かい ${this.PRICE}コインで メダル ${m.medals}まい。` : "\n1かい " + this.PRICE + "コイン。とれない ことも あるよ。";
     if (!(await UI.confirm(m.name + "\n" + this.rules[m.type] + "\nけいひん：" + prize + cap + fee, this.PRICE + "コインで あそぶ", "やめる"))) return;

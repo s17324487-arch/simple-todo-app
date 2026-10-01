@@ -395,7 +395,7 @@ const ArcadeArt = (() => {
   Object.assign(art, {
     M: { ...MallArt.M, ...M }, L: { ...MallArt.L, ...L }, models: new Map(),
     // 日がわりの 台は その日の ならび（pool の くみあわせ だけ → 有限）も キーに
-    modelKey(f) { return "arcade:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.machine ?? "") + ":" + (f.dir || "") + ":" + (f.variant ?? "") + ":" + (f.item || "") + (f.kind === "crane" && CraneMachines.DEFS[f.machine].pool ? ":" + CraneMachines.lineup(CraneMachines.DEFS[f.machine]).join(",") : ""); },
+    modelKey(f) { return "arcade:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.machine ?? "") + ":" + (f.dir || "") + ":" + (f.variant ?? "") + ":" + (f.item || "") + (f.kind === "crane" && CraneMachines.DEFS[f.machine].pool ? ":" + PrizeArcade.prizeList(f.machine).join(",") : ""); },
     frame, specOf, SPEC,
     async prepare(r, sc) {
       const k = Math.min(sc.k, 1.2), jobs = [];
