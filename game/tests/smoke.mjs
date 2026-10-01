@@ -2346,6 +2346,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.locator(".edit-bar .btn.yellow").click();await H.wait(100);
   // 家具と話者のタップ判定は表示された位置を基準にする。
   d=await H.dbg("homeDesign");const cage=d.items.find(it=>it.id==="birdcage_brass");
+  // おうちの タップは 人が さき。あるいて いる 3人が とりかごの まえに いると「なでる」に なるので、きまった ばしょに とめてから タップ
+  await H.dbg("homeBubbleFixture");
   await H.tap(cage.rect.x+cage.rect.w*.5,cage.rect.y+cage.rect.h*.3);
   expect((await H.dbg("homeLife")).furniture[cage.uid]>0,"とりかごがタップで動かない");
   await H.houseButton("みまもる");await H.shot("watch");await H.page.getByRole("button",{name:"みまもりを おわる",exact:true}).click();
