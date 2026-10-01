@@ -203,4 +203,63 @@ export async function townDialogueSmoke({ scenario, expect }) {
     expect(quiz.active.level === 1 && quiz.plays === 2 && quiz.correct === 1, '保留中の初級/これまでの正誤記録が再読込で消える');
     assertKept(earned, await H.dbg('saveData'));
   }, { viewport, timeout: 120000 });
+
+  // クイズ係 6人（オーナーの FB 2026-10-01「クイズを出す人をネリカスタウンに3人、池袋駅に3人配置しなさい」）。
+  // 池袋えきの まえの 3人 → れきし はかせ（とくいは れきしと ちり）で 初級 → ネリカスの 2人 → 中級を ほりゅう → ふんすいの 係で つづきを こたえる
+  for (const viewport of screens) await scenario('quiz-hosts-' + viewport.width, async H => {
+    await H.newGameFast(); await H.dbg('hour', 11); await H.dbg('weather', 'clear');
+    const before = await H.dbg('saveData');
+    const hosts = await H.eval(() => Object.entries(TownQuiz.HOSTS).map(([id, h]) => {
+      const map = Object.keys(MAP_DEFS).find(k => (MAP_DEFS[k].npcs || []).some(n => n.id === id)), n = map && MAP_DEFS[map].npcs.find(n => n.id === id);
+      return { id, map, theme: h.theme, topics: h.topics, name: n && n.name, x: n && n.x, y: n && n.y };
+    }));
+    expect(hosts.filter(h => h.map === 'town').length === 3 && hosts.filter(h => h.map === 'city').length === 3 && hosts.every(h => /^クイズずきの /.test(h.name)), 'クイズ係が 3人・3人 で ない ' + JSON.stringify(hosts));
+    const topicOf = id => H.eval(id => TOWN_QUIZ_DATA.find(q => q.id === id).topic, id);
+    const menu = async (id, theme) => {
+      expect(await H.dbg('folkTalk', id), 'クイズ係に はなしかけられない ' + id);
+      // とじた 画面は 180ms かけて きえる（.modal-wrap.out）ので、あいて いる 画面だけを みる
+      await H.until(() => PokaDebug.quizState().mode === 'menu' && !!document.querySelector('.modal-wrap:not(.out) .town-quiz'), 15000);
+      const q = await H.dbg('quizState'), ui = await H.eval(() => { const b = document.querySelector('.modal-wrap:not(.out) .town-quiz .panel-body'); return { text: b.textContent, theme: !!b.querySelector('.town-quiz-theme') }; });
+      expect(q.host === id && q.theme === theme && (theme ? ui.text.includes('「' + theme + '」') : !ui.theme) && ui.text.includes(hosts.find(h => h.id === id).name), 'クイズ係の とくい ' + JSON.stringify([id, q.host, q.theme, ui.text.slice(0, 80)]));
+      expect(await H.eval(() => document.documentElement.scrollWidth <= innerWidth), 'クイズの がめんが よこに はみ出す');
+      await checkButtons(H, '.modal-wrap:not(.out) .town-quiz-actions button');
+    };
+    // 池袋えきの まえ（3人 と えきの 入口）
+    await H.dbg('teleport', 'city', 10, 47, 'up'); await H.idle(); await H.wait(900); await H.shot('station');
+    const st = await H.eval(() => { const s = G.scene, near = s.npcs.filter(n => TownQuiz.host(n)).map(n => n.id); return near; });
+    expect(['ike_quiz_history', 'ike_quiz_art', 'ike_quiz_all'].every(id => st.includes(id)), '池袋えきの まえに 3人 いない ' + JSON.stringify(st));
+    await menu('ike_quiz_history', 'れきしと ちり'); await H.shot('history-menu');
+    await H.page.getByRole('button', { name: /^初級 ／/ }).click();
+    await H.until(() => PokaDebug.quizState().mode === 'question');
+    let quiz = await H.dbg('quizState');
+    expect(hosts.find(h => h.id === 'ike_quiz_history').topics.includes(await topicOf(quiz.active.id)), 'れきし はかせの とくいな 分野の 問題が でない ' + quiz.active.id);
+    await H.page.locator('.town-quiz-prompt').scrollIntoViewIfNeeded(); await H.shot('history-question');
+    await H.page.locator('.town-quiz-actions button').nth(quiz.active.correctIndex).click();
+    await H.until(() => PokaDebug.quizState().mode === 'result');
+    expect((await H.dbg('quizState')).last.correct, 'せいかいに ならない');
+    await H.dbg('quizCancel'); await H.idle();
+    await menu('ike_quiz_art', 'げいじゅつと おんがく'); await H.dbg('quizCancel'); await H.idle();
+    await menu('ike_quiz_all', null); await H.dbg('quizCancel'); await H.idle();
+    // ネリカスタウン: いこいの もりの そば・しょうがっこうの まえ
+    const near = async (id, tag) => { const h = hosts.find(h => h.id === id); await H.dbg('teleport', h.map, h.x, h.y + 1, 'up'); await H.idle(); await H.wait(900); await H.shot(tag); };
+    await menu('neri_quiz_nature', 'しぜんと いきもの'); await H.dbg('quizCancel'); await H.idle(); await near('neri_quiz_nature', 'forest');
+    await menu('neri_quiz_science', 'うちゅうと かがく'); await H.shot('science-menu');
+    await H.page.getByRole('button', { name: /^中級 ／/ }).click();
+    await H.until(() => PokaDebug.quizState().mode === 'question');
+    quiz = await H.dbg('quizState'); const pending = quiz.active;
+    expect(hosts.find(h => h.id === 'neri_quiz_science').topics.includes(await topicOf(pending.id)), 'ほしぞら はかせの とくいな 分野の 問題が でない ' + pending.id);
+    await H.dbg('quizCancel'); await H.idle(); await near('neri_quiz_science', 'school');
+    // ほりゅうした 問題は どの 係でも つづきから（ふんすいの ひろばの 係）
+    expect(await H.dbg('folkTalk', 'town_walker3'), 'ふんすいの 係に はなしかけられない');
+    await H.until(() => PokaDebug.quizState().mode === 'question', 15000);
+    quiz = await H.dbg('quizState');
+    expect(quiz.active.token === pending.token && quiz.host === 'town_walker3', 'ほりゅうした 問題が つづかない');
+    await H.page.locator('.town-quiz-actions button').nth(quiz.active.correctIndex).click();
+    await H.until(() => PokaDebug.quizState().mode === 'result');
+    quiz = await H.dbg('quizState');
+    expect(quiz.plays === 2 && quiz.correct === 2 && !quiz.active, 'クイズの きろく ' + JSON.stringify([quiz.plays, quiz.correct]));
+    await H.dbg('quizCancel'); await H.idle();
+    const after = await H.dbg('saveData');
+    assertKept(before, after, ['wardrobe', 'room', 'rooms', 'shops']);
+  }, { viewport, timeout: 150000 });
 }
