@@ -4221,6 +4221,7 @@ await (await import("./wear-stock-smoke.mjs")).wearStockSmoke({scenario,expect})
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
 await (await import("./burger-menu-smoke.mjs")).burgerMenuSmoke({scenario,expect});
 await (await import("./food-balance-smoke.mjs")).foodBalanceSmoke({scenario,expect});
+await (await import("./fashion-show-smoke.mjs")).fashionShowSmoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 

@@ -97,6 +97,9 @@ const Save = {
       puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },
       // コラボ グッズ（js/collab-goods.js）: ライン → { total: つみたての スコア, got: { id: もらった 日 } }。ラインは はじめて よむ ときに つくる
       collab: {},
+      // ファッションショー（js/fashion-show.js・UI-36）: entry うけつけで さんかひを はらった じこく（0 は まだ）・shows でた かず・best さいこうの てんすう・
+      // ranks { ランク: とった かず }・got { けいひん: もらった 日 }・photos きねん しゃしん（絵の データ・12まい まで）・last さいごの ショー（ごほうびは 1かいだけ）
+      fashion: { entry: 0, shows: 0, best: 0, ranks: {}, got: {}, photos: [], last: null },
       world: { map: "town", x: 7, y: 7, dir: "down" },
       flags: { intro: false, chests: {}, boss: false, talked: {} },
       events: { records: {}, activeAnnual: null },

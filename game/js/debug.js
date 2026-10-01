@@ -115,6 +115,14 @@ const PokaDebug = {
       "PokaDebug.figStand()                  フィギュア台（へやの だいと かざった フィギュア・のこりの かず・いごこち・かざる 画面が ひらいて いるか）",
       "PokaDebug.burgerMenu()                バーガーやさんの メニュー（4つの タブ）・にこにこ セットの おまけの おもちゃ（6しゅ・もって いる かず）",
       "PokaDebug.foodBalance()               たべものの バランス（そのままの やさい・りょうりと ざいりょうの ごうけい・ねだんで ごきげんを あげた もの）",
+      "PokaDebug.fashion()                   ファッションショー（うけつけ・テーマ・3人の おしゃれ レベル・ランク・けいひん・しゃしん）",
+      "PokaDebug.fashionGo([13, 2])          ほんの ギャラリー（ファッションショーの 会場）へ（at: たつ マス）",
+      "PokaDebug.fashionStart()              ショーを はじめる（うけつけが まだ なら さんかひを はらう）",
+      "PokaDebug.fashionAuto(0.02)           カメラの わが かさなって から 0.02びょうで じどうで おす（null で やめる）",
+      "PokaDebug.fashionSpeed(4)             ショーを 4ばいで すすめる",
+      "PokaDebug.fashionTheme('kawaii')      きょうの テーマを きめる（null で 日がわりに もどす）",
+      "PokaDebug.fashionScene()              ランウェイの ようす（だんかい・いま あるく 人・カメラの わ・はんてい・しんさ・けっか）",
+      "PokaDebug.fashionPress()              「ポーズ！」を おす（いまの じこくで はんてい）",
       "PokaDebug.store('clothes', 'town')    歩ける店内へ（入口のある町を選べる）",
       "PokaDebug.storeState()                店員・展示・通路・3人・出口の状態",
       "PokaDebug.storeWalkTo(5, 3)           店内のマスまで実際に歩く",
@@ -253,6 +261,23 @@ const PokaDebug = {
   feed(id, food) { return Care.feed(id, food); },
   // たべものの バランス（js/food-balance.js・UI-35）: そのままの やさい・りょうり（ざいりょうの ごうけい つき）・ねだんで ごきげんを あげた もの
   foodBalance() { return FoodBalance.state(); },
+  // ファッションショー（js/fashion-show.js・js/fashion-hall.js・js/fashion-scene.js・UI-36）
+  fashion() { const st = FashionShow.state(), d = VenueHalls.defs.fashion; return { ...st, fee: FashionShow.FEE, coins: Save.d.coins, prizes: { ...FashionShow.PRIZES }, venue: !!d, building: (MAP_DEFS.city.buildings.find((b) => b.act && b.act.venue === "fashion") || {}).id || null, trophies: FashionHall.trophiesGot(), wall: FashionHall.myPhotos().length, source: ItemDexSources.source("wear", ITEM_INDEX.fs_star_tiara) }; },
+  fashionGo(at = null) { const b = MAP_DEFS.city.buildings.find((b) => b.act && b.act.venue === "fashion"); if (!b) return false; Game.goto("venue", { venue: "fashion", ...(at ? { at } : {}), back: { map: "city", x: b.x + b.door, y: b.y + b.h, dir: "down" } }, "none"); return true; },
+  fashionStart() { const b = MAP_DEFS.city.buildings.find((b) => b.act && b.act.venue === "fashion"); if (!b) return false; if (!FashionShow.hasEntry() && !FashionShow.pay().ok) return false; Game.goto("fashion", { back: { venue: "fashion", floor: 1, back: { map: "city", x: b.x + b.door, y: b.y + b.h, dir: "down" }, at: FashionHall.AT_GATE } }, "none"); return true; },
+  fashionAuto(off = 0.02) { FashionScene.auto = off == null ? null : +off; return FashionScene.auto; },
+  fashionSpeed(k = 1) { FashionScene.speed = Math.max(0.25, Math.min(8, +k || 1)); return FashionScene.speed; },
+  fashionTheme(id = null) { FashionShow.override = id && FashionShow.THEME[id] ? id : null; return FashionShow.theme().id; },
+  fashionPress() { if (G.sceneName !== "fashion") return false; G.scene.press(); return true; },
+  fashionScene() {
+    const s = G.sceneName === "fashion" ? G.scene : null; if (!s || !s.models) return null;
+    const btn = s.btn && s.btn.getBoundingClientRect();
+    return { phase: s.phase, cur: s.cur, theme: s.show.theme, order: s.show.order.slice(), t: +s.t.toFixed(2), cam: +s.cam.k.toFixed(2), ring: s.ring ? { k: s.ring.k, dur: s.ring.dur, left: +(s.ring.t1 - s.t).toFixed(3) } : null,
+      models: s.models.map((m) => ({ id: m.id, z: +m.z.toFixed(2), face: s.face(m.id, m.face), gesture: m.gesture, judgments: m.judgments.slice(), line: m.line ? m.line.text : null })),
+      mc: s.mc ? s.mc.text : null, panel: s.panel ? { k: s.panel.k, cards: s.panel.r.cards.slice(), comments: s.panel.r.comments.slice(), total: s.panel.r.total } : null, results: s.results.map((r) => r && r.total),
+      banner: s.banner ? { rank: s.banner.R.id, score: s.banner.score } : null, summary: s.summary ? { score: s.summary.score, rank: s.summary.rank, coins: s.summary.coins, got: s.summary.got.slice() } : null,
+      button: btn ? { w: Math.round(btn.width), h: Math.round(btn.height), disabled: s.btn.disabled, hidden: s.ui.classList.contains("fs-off") } : null, reward: !!document.querySelector(".fs-panel") };
+  },
   homeSay(id,text,kind='say') {if(G.sceneName!=='house')return false;HomeLife.say(G.scene,id,String(text),kind==='rare',kind);return true;},
   homeTalkLog() {return G.sceneName==='house'?G.scene.life.log.map(x=>({...x})):[];},
   // かけあいを 1つ 流す（HOME_TALK_DATA.talks の id）

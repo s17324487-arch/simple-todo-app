@@ -294,6 +294,10 @@ html, body {
 /* 服は 1こで 1人（js/wear-stock.js）: のこりが ない 服は いろを おとして、つかって いる 人の なまえ */
 .card.busy:not(.on) { background: #f1ede6; }
 .card.busy:not(.on) .ico { opacity: .6; }
+/* ファッションショーの きがえ（js/fashion-hall.js）: おしゃれ レベルと テーマに あう ふくの ふだ */
+.dress-stage .dress-info { position: absolute; left: 8px; bottom: 8px; max-width: 46%; background: #FFF3C4; border: 2.5px solid var(--ink); border-radius: 12px; padding: 3px 8px; font-size: 11px; font-weight: 800; line-height: 1.45; z-index: 1; word-break: keep-all; overflow-wrap: anywhere; }
+.dress-stage .dress-info b { color: #E59A2A; letter-spacing: -1px; }
+.card .dress-mark { position: absolute; top: -8px; left: -6px; background: #FFE07A; border: 2.5px solid var(--ink); border-radius: 8px; padding: 0 5px; font-size: 10px; font-weight: 800; color: #8A5A00; }
 .card .dress-who { display: block; max-width: 100%; font-size: 10px; font-weight: 800; color: #8a6234; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dress-stage { position: relative; height: 230px; border: 3px solid var(--ink); border-radius: 18px; background: linear-gradient(#dff3ff, #fff3c4); overflow: hidden; margin-bottom: 10px; }
 .dress-stage .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; background: #f6e3bf; border-top: 3px solid var(--ink); }
@@ -1193,3 +1197,30 @@ html, body {
 .amap-here-pulse { transform-box:fill-box; transform-origin:center; animation:amap-pulse 1.6s ease-out infinite; }
 @keyframes amap-pulse { 0% { transform:scale(.6); opacity:.5; } 100% { transform:scale(2.2); opacity:0; } }
 @media (prefers-reduced-motion: reduce) { .amap-here-pulse { animation:none; } }
+/* ---- ファッションショー（UI-36・js/fashion-scene.js）: ポーズの ボタン・やめる・けっかの まど ---- */
+.fs-ui { position:absolute; inset:0; pointer-events:none; }
+.fs-pose { pointer-events:auto; position:absolute; left:calc(50% - 46px); bottom:max(14px,env(safe-area-inset-bottom)); width:92px; height:92px; border-radius:50%; padding:0; font-size:18px; font-weight:900; background:radial-gradient(circle at 35% 30%,#FFE1EC,#FF6FA0); box-shadow:0 5px 0 var(--ink); }
+.fs-pose:disabled { filter:grayscale(.5); opacity:.5; }
+.fs-ui.fs-off .fs-pose, .fs-ui.fs-end .fs-quit { visibility:hidden; }
+.fs-quit { pointer-events:auto; position:absolute; top:max(10px,env(safe-area-inset-top)); right:10px; min-width:64px; min-height:44px; }
+.fs-panel .panel-body { padding-top:6px; }
+.fs-panel .panel-foot .btn { min-height:48px; font-size:16px; }
+.fs-result { display:flex; flex-direction:column; gap:8px; }
+.fs-rank { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+.fs-rank b { padding:5px 16px; border:3px solid var(--ink); border-radius:999px; font-size:19px; }
+.fs-rank span { font-size:20px; font-weight:900; }
+.fs-rows { display:flex; flex-direction:column; gap:5px; }
+.fs-row { display:grid; grid-template-columns:1fr auto; gap:0 8px; padding:6px 10px; border:2px solid #E3D6F2; border-radius:12px; background:#FFFBF3; }
+.fs-row b { font-size:14px; }
+.fs-pt { font-weight:900; font-size:15px; }
+.fs-detail { grid-column:1 / -1; font-size:11px; color:#6B5B8A; line-height:1.5; }
+.fs-coins { display:flex; align-items:center; justify-content:center; gap:6px; font-weight:900; font-size:16px; }
+.fs-lead { margin:4px 0 0; font-size:12px; font-weight:800; text-align:center; }
+.fs-got { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+.fs-prize { width:100px; word-break:keep-all; overflow-wrap:anywhere; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; text-align:center; line-height:1.35; }
+.fs-photo { display:block; align-self:center; width:220px; height:auto; border:3px solid var(--ink); border-radius:6px; background:#231C42; }
+.fs-album { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; justify-items:center; }
+.fs-album-photo { width:100%; max-width:150px; height:auto; border:3px solid var(--ink); border-radius:6px; background:#231C42; }
+.fs-ph-tabs { display:flex; gap:6px; justify-content:center; margin:0 0 6px; }
+.fs-ph-tabs .btn { min-height:44px; }
+.fs-ph-big { display:block; margin:0 auto; border:3px solid var(--ink); border-radius:6px; background:#231C42; width:auto; max-width:100%; }

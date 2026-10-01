@@ -173,6 +173,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `museum-wear.js`（aqua-gifts.js の あと・item-dex-sources.js の まえ） | `MuseumWear`（きふの ごほうびの 服 8つ・UI-33） |
 | — | `burger-menu.js`（scene-store.js・shop.js・puri-pose.js の あと・figure-stand.js の まえ） | `BurgerMenu`（バーガーやさんの メニュー・にこにこ セットの おまけ・UI-34） |
 | — | `food-balance.js`（farm-cook.js の あと＝ぜんぶの たべものが そろった あと） | `FoodBalance`（たべものの バランス: そのままの やさい・りょうり・ねだんで ごきげん・「おなか+N ごきげん+M」・UI-35） |
+| — | `fashion-show.js` → `fashion-art.js` → `fashion-hall.js` → `fashion-scene.js`（food-balance.js の あと・item-dex-sources.js の まえ） | `FashionShow`（ファッションショーの きまり・セーブ）／ `FashionArt`（かお・ポーズ・けいひん・しゃしん）／ `FashionHall`（会場・ほんの ギャラリー）／ `FashionScene`（ランウェイ・`SCENES.fashion`）・UI-36 |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1071,6 +1072,26 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ねだんで ごきげん: `FoodBalance.moodFloor(p)` = 50コイン いじょうは `round(6 × log2(p ÷ 20))`（50 → 8・100 → 14・300 → 23・690 → 31）。よみこみの さいご（`farm-cook.js` の あと）に 1かいだけ、やさい・りょうり いがいの たべもの（`BAG_INDEX` と `FOODS` の 両方）の `mood` を めやすまで あげる（`SlowLifePrices` と おなじ やりかた・もとから おおい ものは そのまま）。あげた ものは `FoodBalance.raised`。
 - がめん: `FoodBalance.gainHtml(f)`（`<span class="fb-gain">おなか+N</span> <span class="fb-gain">ごきげん+M</span>`・へる ときは `.down`）を おうちの「ごはん」の カード（`.food-gain`）と とれたて りょうりの まど（`FarmCook.gain(id)`・`.farm-gain`）に。おみせの せつめいは まえから「おなか +N ／ ごきげん +M」。
 - セーブは かわらない（SCHEMA は 2 の まま）。PokaDebug: `foodBalance()`（`rawVeg`・`dishes`〔`raw`: ざいりょうの ごうけい〕・`raised`・`floor`）。検査は `tools/check-food-balance.mjs`、スモークは `tests/food-balance-smoke.mjs`（`food-balance-390/375`）。
+
+## ファッションショー（UI-36・`js/fashion-show.js`・`js/fashion-art.js`・`js/fashion-hall.js`・`js/fashion-scene.js`）
+
+オーナーの FB 2026-10-01「池袋駅にファションショーができる所を追加してほしい。ファッションのレベルとタイミングに合わせてごわががポーズをとる(ボタンを押す)ことで、点数が決まる。…参加費500円もとる。実施できる場所は既存の建物(ほんのギャラリー)でよい」。
+読み込みは `food-balance.js` の あと・`item-dex-sources.js` の まえ（きまり → 絵 → 会場 → ランウェイ）。トップレベル名は `FashionShow`・`FashionArt`・`FashionHall`・`FashionScene` だけ。
+
+- きまり（`FashionShow`）: テーマ 8しゅ（`THEMES`・日がわり `themeOn()`・テスト用 `override`）。テーマに あう ふくは `RULES`（ふくの かたち `wear`・なまえの `name`・いろの なかま `fam`／`pastel`／`dark`）で `tagsOf(id)`。
+  - おしゃれ レベル `level(id, theme)` = ふくの かず 4 × 5かしょ（20）＋ ねだん（`15 × ln(1 + 合計 ÷ 150) ÷ ln 81`・けいひんは 2500 あつかい・15）＋ テーマに あう かず（0／6／11／15）＋ いろの そろえかた（2つ 5・3つ 10）。★ は 12てんごと（1〜5）。
+  - ポーズ: `WINDOW`（ぴったり 0.05・いいね 0.1・おしい 0.17 びょう）・`POINTS`（10／7／4／0）・わの じかん `ringDur(人, かい)` = `RING[かい] × SPEED[人]`（1.0 → 0.62）・テーマの ポーズ `POSES`（`CHARA_GESTURES`）。
+  - しんさ `scoreModel(level, judgments, theme, seed)`: 1人 100てん（おしゃれ 60・ポーズ 30・ぜんぶ ぴったり 10）・しんさいん 3人の ふだ（`total ÷ 10` に みる ところの ずれ）・ひとこと `commentOf`（`{t}` テーマ・`{i}` ふく・`{s}` つけて いない ところ・`{c}` いろ）。ランク `RANKS`（90／75／60／40／0 てん・2000／1200／800／500／200 コイン）。
+  - ながれ: `pay()`（500コイン → `entry`）→ `begin(seed)`（`entry` を つかう・ならび・ふく・おしゃれ レベル）→ `modelResult()`（ランウェイの しんさ）→ `finish(show, results)`（コイン・はじめての ランクの けいひん〔下の ランクの ぶんも〕・きろく・しゃしん。おなじ ショーは 1かいだけ）。
+  - けいひん: トロフィー 4しゅ（家具 `fs_trophy_*`）と 服 4しゅ（`fs_flash_glasses`・`fs_runway_cape`・`fs_star_tiara`・`fs_best_sash`）。どれも `price: 0`・`exclusive: "fashion"`。ずかんの ヒントは `FashionShow.source(id)`。
+  - セーブ: `Save.d.fashion = { entry, shows, best, ranks, got, photos（12まい まで）, last }`（あたらしい 項目だけ・SCHEMA は 2 の まま・`st()` が こわれた データを なおす）。しゃしんは 絵の データ（テーマ・ランク・ならび・ふく・ポーズ・かお）。
+- 絵（`FashionArt`）: かお `fs_doki`（どきどき）・`fs_kime`（キメ）を 3人に（`CHARA_FACE_EXTRA`）・ポーズ `fs_hip`／`fs_point`／`fs_wave`／`fs_star`（`CHARA_GESTURES`）・けいひんの 服（`WEAR.*`・4むき）・トロフィー（`FurnModels`・`FURN_ART`）・きねん しゃしん（`bgSvg(theme, rank)` は SvgCache・`drawPhoto(ctx, ph, x, y, w)`・`preloadPhoto`）。
+- 会場（`FashionHall`・`VenueHalls.defs.fashion`・22×18 マス・`IsoVenueScene`）: 池袋の `ike_annex1` の `act` を `{ type: "venue", venue: "fashion" }` に（建物の 場所と 絵は そのまま）。絵は `FashionHall.art`（`Object.create(MallArt)`）: 什器の SVG（`gate`・`reception`・`backpanel`・`booth`・`vanity`・`bookshelf`・`trophycase`・`gpedestal`・`photospot`・`lsofa`・`ctable`・`armchair`・`column`・`easel`・`fstand`・`rope`・`chandelier`）は キーが 種類・大きさ・向き・ランク・もって いる トロフィー だけ。字・でんきゅう・きらきら は `L.*`（`faceText`）。かべは `wallSvg`（かべがみ・ビロードの こしいた・金の はしら・がくぶち・これまでの ショーの しゃしん `pastSvg`）＋ `paintWalls`（ゲームの 字）、じぶんたちの しゃしんは `under()` で かべの 面に 毎フレーム（ショーの あとも そのまま あたらしい）。しらべる ことは `FashionHall.ACT`（`reception`・`gate`・`dress`・`stylist`・`books`・`prize`・`gallery`・`trophies`・`photospot`・`theme`）。
+  - きがえ: `DressUp.open(null, { info, mark })` — `info(だれ)` は ステージの したの おしゃれ ★、`mark(ふく)` は カードの「テーマ」の ふだ（`js/dressup.js` に たした ひっかけ。ほかの 画面では つかわない）。
+  - フロア案内は `MallGuide`（`places()` が うけつけ・きがえ など の action も ひろう）。BGM `SONGS.fashion_hall`・`SONGS.fashion_show`（この ゲームの ために つくった 曲）。
+  - すまほの「しゃしん」: `Purikura.phoneView` を つつみ、ショーの しゃしんが あれば「ぷりくら」「ファッションショー」の タブ（`FashionHall.phoneShow`・`download`）。
+- ランウェイ（`FashionScene`）: `enter({ back, show })`（show が なければ `FashionShow.begin()`。うけつけ なしは すぐ もどる）→ `run()`（まく → しかい → まつ 3人に ズームして ひとりずつ ひとこと → 1人ずつ `walk(m)` → `finale()` → `result()` → `rewards()`）。時間は ショーの とけい `this.t`（`FashionScene.speed` ばい）と `wait(sec, skip)`。カメラは `camTarget({ k, m | back | group })` へ なめらかに。わは ボタンの まわり（`btnAt()`）。ボタンを おした じこくは まえの フレームからの ずれも たす（`performance.now()`）。でる ときは きりかえが おわってから 1かいだけ（`leave()` → `update()` → `goBack()`）。3人の かおは `FashionScene.FACE`（ごじには smile が なく、がちゃんには surprise が ない）・ひとことは `FashionScene.LINES`。ラスタは 2つの 大きさ だけ（あるく とき と ズームの とき）。
+- PokaDebug: `fashion()`・`fashionGo(at)`・`fashionStart()`・`fashionAuto(ずれ)`・`fashionSpeed(ばい)`・`fashionTheme(id)`・`fashionScene()`・`fashionPress()`。検査は `tools/check-fashion.mjs`、スモークは `tests/fashion-show-smoke.mjs`（`fashion-show-390/375`）。
 
 ## すいぞくかんの おみやげ（UI-26・`js/aqua-gifts.js`）
 
