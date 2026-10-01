@@ -22,7 +22,15 @@ const IkebukuroCatalog={
     for(const [id,n]of [['uma','うまーぼう'],['pie','ぱいのみん'],['cookie','かんとりーまむまむ']])this.food('prize_'+id,n,'prize',0,true);
     for(let v=0;v<5;v++)this.furniture('ike_prize_'+v,['ほしの おおきな ソファ','ごじの おおきな ぬいぐるみ','ゆめいろ メリーゴーランド','わんこの おおきな ぬいぐるみ','がちゃんの おおきな ぬいぐるみ'][v],0,['starsofa','plush','carousel','plush','plush'][v],v,'prize',{rare:true,w:160,h:140,comfort:12,interactive:true});
     for(const s of Object.values(BUY_SHOPS)){const fn=s.items;s.items=t=>fn(t).filter(i=>!i.exclusive);}
-    for(const [id,name,kind]of [['electronics','ネリカス電機','furn'],['luxury','いいつか家具','furn'],['hane','はねーず','wear'],['animal','あにまるず','wear'],['gothic','ごしごし','wear'],['marche','池袋マルシェ','bag']])BUY_SHOPS['ike_'+id]={name,kind,keeper:{sp:'cat'},keeperName:'てんいん',hello:['ごゆっくり ごらんください。'],tabs:[['all','限定のおしなもの']],items:()=>this.groups[id].map(id=>VenueHalls.item(id))};
+
+    for(const [id,name,kind]of [['electronics','ネリカス電機','furn'],['hane','はねーず','wear'],['animal','あにまるず','wear'],['gothic','ごしごし','wear'],['marche','池袋マルシェ','bag']])BUY_SHOPS['ike_'+id]={name,kind,keeper:{sp:'cat'},keeperName:'てんいん',hello:['ごゆっくり ごらんください。'],tabs:[['all','限定のおしなもの']],items:()=>this.groups[id].map(id=>VenueHalls.item(id))};
+    BUY_SHOPS['ike_luxury']={name:'いいつか家具',kind:'furn',keeper:{sp:'cat'},keeperName:'てんいん',hello:['最高級の 家具を そろえて おります。'],tabs:[['furn','最高級家具'],['wp','壁紙・床']],items:(tab)=>{
+        if (typeof hkItems === "undefined") return this.groups['luxury']?.map(id=>VenueHalls.item(id)) || [];
+        if (tab === 'furn') return [...hkItems.floor, ...hkItems.wall].map(f => ({...f, exclusive: true}));
+        if (tab === 'wp') return [...hkItems.wp, ...hkItems.fl].map(f => ({...f, exclusive: true}));
+        return [];
+    }};
+
   },
 };
 const IkebukuroItemArt={
