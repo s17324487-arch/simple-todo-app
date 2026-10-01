@@ -175,6 +175,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `food-balance.js`（farm-cook.js の あと＝ぜんぶの たべものが そろった あと） | `FoodBalance`（たべものの バランス: そのままの やさい・りょうり・ねだんで ごきげん・「おなか+N ごきげん+M」・UI-35） |
 | — | `fashion-show.js` → `fashion-art.js` → `fashion-hall.js` → `fashion-scene.js`（food-balance.js の あと・item-dex-sources.js の まえ） | `FashionShow`（ファッションショーの きまり・セーブ）／ `FashionArt`（かお・ポーズ・けいひん・しゃしん）／ `FashionHall`（会場・ほんの ギャラリー）／ `FashionScene`（ランウェイ・`SCENES.fashion`）・UI-36 |
 | — | `furn-tray.js`（home-floors.js の あと） | `FurnTray`（もようがえの 一覧を ひろげる・さがす・ならびかえ・しゅるい・UI-37） |
+| — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび 44この 立体と さわる うごき・UI-38） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -877,8 +878,14 @@ CIは両ブラウザの全シナリオを6分割し（4分割では 1ジョブ 2
 テスト専用のPlaywrightを1.63.0へ更新。旧1.56.1のLinux WebKitで描画プロセスのクラッシュが複数発生したため、ブラウザの診断ログも保存する。ゲームの実行時依存や保存データは変わらない。
 
 ### おてつだいのレベル報酬
-`shop-rewards.js` の ShopRewards が8店舗×Lv5/10/15/30の非売品家具32種を登録する。SHOP_LV_REPは旧Lv1〜5の値を保ち、Lv6〜30の必要評判を追加。ShopSceneの表示・育成はLv30まで、workLv（注文と報酬）はLv5まで。ShopRewardArtは4種の立体モデルと8種の店舗モチーフを有限キャッシュで描く。
-Save.fresh().shopRewardsは受け取った家具IDの真偽値。結果画面で到達した節目を自動配布し、メニュー→ようす→おみせの ごほうびで既存プレイヤーも過去の評判に応じた報酬を受け取れる。家具と受取記録を同時保存し、コインには触れない。Save.KEY/SCHEMAは維持。PokaDebug.shopRewards(shop)/shopRewardClaim(shop)/shopRewardOpen(shop)とshop(shop,30)、mg().workLvで検証する。
+`shop-rewards.js` の ShopRewards が 11店舗×Lv5/10/15/30 の非売品家具 44種を登録する（`ITEMS` の [なまえ, せつめい, はば, おくゆき, たかさ, しゅるい, そのほか]。id は `shop_<店>_<Lv>`）。SHOP_LV_REPは旧Lv1〜5の値を保ち、Lv6〜30の必要評判を追加。ShopSceneの表示・育成はLv30まで、workLv（注文と報酬）はLv5まで。
+Save.fresh().shopRewardsは受け取った家具IDの真偽値。結果画面で到達した節目を自動配布し、すまほの「ごほうび」で既存プレイヤーも過去の評判に応じた報酬を受け取れる。家具と受取記録を同時保存し、コインには触れない。Save.KEY/SCHEMAは維持。PokaDebug.shopRewards(shop)/shopRewardClaim(shop)/shopRewardOpen(shop)とshop(shop,30)、mg().workLvで検証する。
+
+UI-38（2026-10-01）で 44種の絵を 店ごとに ちがう 立体に 作り直した。`shop-reward-art.js` の `ShopRewardArt` が `FurnModels.register` で 44の 立体を、`FurnLive.register` で さわる うごきを 登録する（`HomeDesign.model` は `FurnModels.has(id)` を 先に みるので、`shopPrize` の 古い 描きかたは つかわれない。`scene-house.js` の `ShopRewardArt.draw()` の よびだしは けした）。
+- あかり 8: `lamp()`（`isOn` は `st.on` か よる・`draw` は ひかる ところ・`light()` は くらさの うえに へやを てらす）。ネオンの カウンターも おなじ。
+- live 7: 立体の 中の `L()`（`opts.live` の とき ぬく）を FurnLive が 毎フレーム canvas に 描く（シェイクの カップ・サインポールの しま〔見える はんぶん −45°〜135°〕・ブランコ・プロペラ・メーターの はり・ミニカー・とけいの はりと かね）。
+- ほか: `simple()`（ひとこと・おと・こうか `FXS`）と 店ごとの うごき。よるの まどの あかりは `light()`（くらさの あと）で 描く。SvgCache は つかわない。
+- 検査は `tools/check-shop-rewards.mjs`、スモークは `shop-prize-touch` と `shop-rewards`。
 
 ## ネリカスタウン・池袋の交通
 

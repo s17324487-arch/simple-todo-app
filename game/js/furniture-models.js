@@ -165,6 +165,15 @@ const FurnModels = (() => {
       return `url(#${id})`;
     };
     const shadow = (a = 0.12, inset = 3, r = 12) => shape(TP(0), rr(-w / 2 + inset, -d + inset, w - inset * 2, d - inset * 2, r), INK, 0, `fill-opacity="${a}"`);
+    // ---- まるい 立体（UI-38）: まわりの 線だけの 凸な かたち（かざりは あとから 描く）----
+    // rings: [[はんけい, たかさ], …] を まわした 形（ランプの かさ・つぼ・パンの あたま）。くびれの ある 形は かさねて つかう。sy は おくゆきの ばい
+    const lathe = (cx, cy, rings, fill, sw = 1.5, e = "", sy = 1, n = 32) => `<polygon points="${hull(rings.flatMap(([r, z]) => ov(cx, cy, r, r * sy, n).map(([s, t]) => P(s, t, z)))).map(xy).join(" ")}" fill="${fill}" ${sk(sw)}${ex(e)}/>`;
+    // はんぶんの だえん体（ドーム）: そこの はんけい rx・ry、たかさ hz
+    const dome = (cx, cy, z0, rx, ry, hz, fill, sw = 1.5, e = "") => lathe(cx, cy, Array.from({ length: 9 }, (_, i) => { const t = (i / 8) * (Math.PI / 2); return [rx * Math.cos(t), z0 + hz * Math.sin(t)]; }), fill, sw, e, ry / rx);
+    // だえん体（まんなか cz・たての はんけい rz）
+    const egg = (cx, cy, cz, rx, ry, rz, fill, sw = 1.5, e = "") => lathe(cx, cy, Array.from({ length: 17 }, (_, i) => { const t = -Math.PI / 2 + (i / 16) * Math.PI; return [rx * Math.cos(t), cz + rz * Math.sin(t)]; }), fill, sw, e, ry / rx);
+    // だえん体の おもての 点（a: よこの むき・b: うえ下 −π/2〜π/2）
+    const eggAt = (cx, cy, cz, rx, ry, rz, a, b) => [cx + Math.cos(a) * Math.cos(b) * rx, cy + Math.sin(a) * Math.cos(b) * ry, cz + Math.sin(b) * rz];
     // live（ART-03b で canvas に うごく 絵を かさねる とき）は その ぶぶんを 描かない。点は 数えるので 絵の はんいは おなじ
     const L = (svg) => (opts.live ? "" : svg);
     const byDepth = (ps) => ps.slice().sort((p, q) => p[0] + p[1] - (q[0] + q[1]));
@@ -176,7 +185,7 @@ const FurnModels = (() => {
       return { x: x0, y: y0, w: x1 - x0, h: y1 - y0, footW: flip ? d : w, footD: flip ? w : d, height: h,
         full: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f2(x0)} ${f2(y0)} ${f2(x1 - x0)} ${f2(y1 - y0)}">${defs.length ? "<defs>" + defs.join("") + "</defs>" : ""}${body}</svg>` };
     };
-    return { id, w, d, h, flip, opts, L, P, plane, FR, SD, TP, tilt, away, poly, shape, line, lineOn, rod, smooth, prism, slab, box, cyl, frustum, ball, at, onP, lg, rg, shadow, byDepth, done };
+    return { id, w, d, h, flip, opts, L, P, xy, hull, plane, FR, SD, TP, tilt, away, poly, shape, line, lineOn, rod, smooth, prism, slab, box, cyl, frustum, ball, lathe, dome, egg, eggAt, at, onP, lg, rg, shadow, byDepth, done };
   }
 
   // ---- いろ ----
