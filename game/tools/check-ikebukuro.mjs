@@ -42,4 +42,22 @@ R.Save.d=R.Save.fresh();R.Save.d.coins=99999;const before=R.Save.d.coins,back={v
 const run=R.PrizeArcade.start(0,back);assert(run);assert.equal(R.Save.d.coins,before-100);assert.equal(R.PrizeArcade.start(1,back),null);
 const round={got:[1],board:()=>({v:1,n:2,b:[],s:{}})};assert(R.PrizeArcade.finish(run,round));assert.equal(R.Save.d.furn.ike_chibi_wanko_0,1);assert(!R.PrizeArcade.finish(run,round));assert.equal(R.Save.d.furn.ike_chibi_wanko_0,1);
 const migrated=R.Save.migrate({...R.Save.fresh(),coins:987654,arcade:undefined});assert.equal(migrated.coins,987654);assert(migrated.arcade);
-console.log('Ikebukuro: layout (station west / electronics・Mee・mall top / S60 to the mall / range・office on Green Odori), '+city.buildings.length+' buildings reachable, exclusive catalogs, nineteen machines (twelve on 1F, five snack catchers and two bridges on 2F), six distinct mechanics, fee/reward idempotency and legacy money OK');
+// Meeときょれじゃ の 階: しらべる もの（台・ガチャ・ぷりくら・りょうがえき・おきゃくさん など）は、エスカレーターの うえの ゆか（slab）や つりさげの かんばん（over）の うしろに かくれない。
+// ガチャは 2F の まんなかの「ガチャ コーナー」（UI-20。1F では エスカレーターの うえの ゆかに かくれて いた）
+let hiddenChecks=0;
+{const fl=R.VenueHalls.defs.arcade.floors,I=R.IsoVenue;
+  // 投影した 箱は 凸な かたち → かさなりは Sutherland–Hodgman で きりとった かたちの めんせき
+  const ccw=P=>{const h=I.convex(P);let a=0;for(let i=0;i<h.length;i++){const p=h[i],q=h[(i+1)%h.length];a+=p.x*q.y-q.x*p.y;}return a<0?h.slice().reverse():h;},area=P=>{let a=0;for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length];a+=p.x*q.y-q.x*p.y;}return Math.abs(a)/2;};
+  const clip=(S,C)=>{let out=S;for(let i=0;i<C.length&&out.length;i++){const a=C[i],b=C[(i+1)%C.length],inside=p=>(b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x)>=0,cross=(p,q)=>{const d1=(b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x),d2=(b.x-a.x)*(q.y-a.y)-(b.y-a.y)*(q.x-a.x),t=d1/(d1-d2);return {x:p.x+(q.x-p.x)*t,y:p.y+(q.y-p.y)*t};},inp=out;out=[];
+    for(let j=0;j<inp.length;j++){const p=inp[j],q=inp[(j+1)%inp.length];if(inside(q)){if(!inside(p))out.push(cross(p,q));out.push(q);}else if(inside(p))out.push(cross(p,q));}}return out;};
+  for(const [n,r] of Object.entries(fl)){const tops=r.fixtures.filter(f=>f.over),items=r.fixtures.filter(f=>f.action&&f.action!=='floor'&&!f.over);
+    for(const f of items){const a=ccw(I.hull(f)),A=area(a);for(const o of tops){const c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/A:0;hiddenChecks++;assert(k<=0.12,n+'F の '+(f.label||f.kind)+'（'+f.x+','+f.y+'）が '+(o.text||o.kind)+' に かくれる '+Math.round(k*100)+'%');}}}
+  const g1=fl[1].fixtures.filter(f=>f.kind==='gacha'),g2=fl[2].fixtures.filter(f=>f.kind==='gacha'),cx=g2.reduce((s,f)=>s+f.x+f.w/2,0)/g2.length;
+  assert(g1.length===0&&g2.length===6&&g2.map(f=>f.series).sort().join()==='0,1,2,3,4,5','ガチャは 2F に 6だい（6シリーズ）');
+  assert(Math.abs(cx-fl[2].w/2)<=2&&fl[2].zones.some(z=>z.shop==='arcGacha'&&z.label==='ガチャ コーナー')&&!fl[1].zones.some(z=>z.shop==='arcGacha'),'ガチャ コーナーは 2F の まんなか '+cx);
+  assert(g2.every(f=>r2walk(fl[2],f.spots[0])),'ガチャの まえに たてる');
+  // ガチャ コーナーの 台は、てまえの 高い もの（はしら など）にも かくれない
+  const corner=fl[2].fixtures.filter(f=>['gacha','capbin','gachaboard'].includes(f.kind)),depth=f=>f.x+f.w/2+f.y+f.h/2;
+  for(const f of corner)for(const o of fl[2].fixtures){if(corner.includes(o)||(o.height??40)<=150||depth(o)<=depth(f))continue;const a=ccw(I.hull(f)),c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/area(a):0;hiddenChecks++;assert(k<=0.12,'2F の ガチャ コーナーの '+f.kind+'（'+f.x+','+f.y+'）が '+o.kind+'（'+o.x+','+o.y+'）に かくれる '+Math.round(k*100)+'%');}}
+function r2walk(r,[x,y]){return !R.IsoVenue.solidAt(r,x,y)&&!r.fixtures.some(f=>!f.walk&&!f.over&&f.kind!=='hangsign'&&x>=f.x&&x<f.x+f.w&&y>=f.y&&y<f.y+f.h);}
+console.log('Ikebukuro: layout (station west / electronics・Mee・mall top / S60 to the mall / range・office on Green Odori), '+city.buildings.length+' buildings reachable, exclusive catalogs, nineteen machines (twelve on 1F, five snack catchers and two bridges on 2F), the gacha corner in the middle of 2F, nothing hidden behind the escalator landing ('+hiddenChecks+' checks), six distinct mechanics, fee/reward idempotency and legacy money OK');

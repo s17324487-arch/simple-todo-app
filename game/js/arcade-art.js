@@ -254,6 +254,28 @@ const ArcadeArt = (() => {
       const q = S.P(0.5, 0.54, 130); s += `<g transform="matrix(${f2(IsoVenue.A)} ${f2(IsoVenue.B)} 0 1 ${f2(q.x)} ${f2(q.y)})">${txt(0, 6, 15, "でぐち", "#FFFFFF")}</g>`;
       return s;
     },
+    // カプセルの かいしゅう ばこ（ガチャ コーナー。あいた カプセルを いれる まるい あな・カプセルの え）
+    capbin(S, f) {
+      const F = frame(f), W = F.W, D = F.D, h = 64;
+      let s = S.ellipse(W / 2, D / 2, 0, 0.42, "#0000002A", 0) + boxC(S, F, 0.16, 0.18, W - 0.32, D - 0.36, 0, h, ["#FFFFFF", "#86C08C", "#6AA472"], 1.6);
+      s += boxC(S, F, 0.12, 0.14, W - 0.24, D - 0.28, h, 6, ["#F4FBF2", "#D6EFD8", "#B6DFBA"], 1.2);
+      const t = S.P(...F.Q(W / 2, D / 2, h + 6)); S.grow(t.x - 14, t.y - 8, t.x + 14, t.y + 6);
+      s += `<ellipse cx="${f2(t.x)}" cy="${f2(t.y)}" rx="11" ry="5.5" fill="#2A2238" stroke="${INK}" stroke-width="1.2"/>`;
+      const fw = (W - 0.32) * 48;
+      s += onFace(S, F, "front", 0.16, 0, h - 6, `<rect x="4" y="4" width="${f2(fw - 8)}" height="${h - 20}" rx="5" fill="#FFFDF5" stroke="${INK}" stroke-width="1.1"/><path d="M${f2(fw / 2 - 11)} 24 a11 11 0 0 1 22 0 Z" fill="#F7A9C8" stroke="${INK}" stroke-width="1.1"/><path d="M${f2(fw / 2 - 11)} 27 h22 a11 11 0 0 1 -22 0 Z" fill="#FFFFFF" stroke="${INK}" stroke-width="1.1"/>${txt(fw / 2, 50, 9, "カプセル", "#4E8B56")}`);
+      return s;
+    },
+    // ガチャ コーナーの かんばん（台の うしろ: ひくい しきり・2本の ぼう・うえの いた。いたの まえは 台の せなかに ぴったり）。もじは variant（キャッシュの キー）で きまる
+    gachaboard(S, f) {
+      const text = ["ガチャ コーナー", "1かい 200コイン"][(f.variant || 0) % 2];
+      const F = frame(f), W = F.W, D = F.D, z0 = 126, hh = 40, fw = (W - 0.04) * 48;
+      let s = boxC(S, F, 0.04, D - 0.42, W - 0.08, 0.38, 0, 44, ["#D6EFD8", "#5FA866", "#4E8B56"], 1.4);
+      for (const u of [0.16, W - 0.28]) s += boxC(S, F, u, D - 0.2, 0.12, 0.14, 44, z0 - 44, ["#F4F0E6", "#C9BFA9", "#AFA48C"], 1.1);
+      s += boxC(S, F, 0.02, D - 0.24, W - 0.04, 0.24, z0, hh, ["#FFFFFF", "#FFFDF5", "#E2EFE0"], 1.6);
+      const caps = [0, 1, 2, 3].map((k) => { const x = k < 2 ? 14 + k * 17 : fw - 14 - (k - 2) * 17, c = ["#F7A9C8", "#FFE07A", "#9FD3F0", "#C9B6EE"][k]; return `<path d="M${f2(x - 7)} 20 a7 7 0 0 1 14 0 Z" fill="${c}" stroke="${INK}" stroke-width="1"/><path d="M${f2(x - 7)} 20 h14 a7 7 0 0 1 -14 0 Z" fill="#FFFFFF" stroke="${INK}" stroke-width="1"/>`; }).join("");
+      s += onFace(S, F, "front", 0.02, 0, z0 + hh, `<rect x="3" y="3" width="${f2(fw - 6)}" height="${hh - 6}" rx="6" fill="#F4FBF2" stroke="#5FA866" stroke-width="2"/>${caps}${txt(fw / 2, 26, text.length > 7 ? 13 : 15, text, "#3E7A47")}`);
+      return s;
+    },
     // ひくい しきり（島の うしろ）
     divider(S, f) { return S.box(0.05, 0.3, f.w - 0.1, 0.4, 0, 40, ["#FFE07A", "#5A4F86", "#4B4175"], 1.4) + S.box(0.02, 0.26, f.w - 0.04, 0.48, 40, 5, ["#FFF6D0", "#E6C95B", "#CFB24A"], 1.1); },
     // ソファ（やすむ ところ）
@@ -284,20 +306,23 @@ const ArcadeArt = (() => {
   };
 
   // ---- 床と かべ（静止画）----
-  const MATS = { carpet: ["#3B3363", "#382F5E"], lane: ["#5A5286", "#554D80"], mat: ["#4A4458", "#454052"], staff: ["#6B6275", "#655C70"] };
+  const MATS = { carpet: ["#3B3363", "#382F5E"], lane: ["#5A5286", "#554D80"], mat: ["#4A4458", "#454052"], staff: ["#6B6275", "#655C70"], gacha: ["#4C7F78", "#3F6E68"] };
   // 2F（おかしの フロア）: じゅうたんは プラムいろ・とおりみちは ピンク
-  const MAT2 = { carpet: ["#4A2F57", "#462C53"], lane: ["#7A4E7E", "#744A78"], mat: ["#4A4458", "#454052"], staff: ["#6B6275", "#655C70"] };
+  // ガチャ コーナー（'g'）: ミントいろの いちまつ もよう・ところどころ カプセルの え
+  const MAT2 = { carpet: ["#4A2F57", "#462C53"], lane: ["#7A4E7E", "#744A78"], mat: ["#4A4458", "#454052"], staff: ["#6B6275", "#655C70"], gacha: ["#4C7F78", "#3F6E68"] };
   const paintFloor = (g, r) => {
     const MAT = r.carpet === "candy" ? MAT2 : MATS;
     const P = (x, y, z = 0) => IsoVenue.p(x, y, z), tile = (x, y) => { const a = P(x, y), b = P(x + 1, y), c = P(x + 1, y + 1), d = P(x, y + 1); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(c.x, c.y); g.lineTo(d.x, d.y); g.closePath(); };
     const slab = 26, edge = (pts, fill) => { g.beginPath(); pts.forEach((q, i) => (i ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y))); g.closePath(); g.fillStyle = fill; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.6; g.stroke(); };
     edge([P(0, r.h), P(r.w, r.h), P(r.w, r.h, -slab), P(0, r.h, -slab)], "#2A2440");
     edge([P(r.w, 0), P(r.w, r.h), P(r.w, r.h, -slab), P(r.w, 0, -slab)], "#342D50");
-    const matAt = (x, y) => ({ ".": "carpet", w: "lane", m: "mat", "#": "staff" })[r.rows[y][x]] || "carpet";
+    const matAt = (x, y) => ({ ".": "carpet", w: "lane", m: "mat", "#": "staff", g: "gacha" })[r.rows[y][x]] || "carpet";
     for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) {
       const m = matAt(x, y), c = MAT[m], h = U.hash(x, y, 7);
-      tile(x, y); g.fillStyle = c[h < 0.5 ? 0 : 1]; g.fill();
-      if (m === "lane") { g.strokeStyle = "#6E6699"; g.lineWidth = 1; g.stroke(); if (h > 0.8) { const q = P(x + 0.5, y + 0.5); g.fillStyle = "rgba(255,255,255,0.12)"; g.beginPath(); g.ellipse(q.x - 6, q.y - 2, 8, 2.4, -0.5, 0, 7); g.fill(); } }
+      tile(x, y); g.fillStyle = m === "gacha" ? c[(x + y) & 1] : c[h < 0.5 ? 0 : 1]; g.fill();
+      if (m === "gacha") {
+        if (h > 0.55) { const q = P(x + 0.5, y + 0.5), col = ["#F7A9C8", "#FFE07A", "#9FD3F0", "#C9B6EE"][Math.floor(U.hash(x, y, 9) * 4)]; g.lineWidth = 1.1; g.strokeStyle = "rgba(255,255,255,0.75)"; g.fillStyle = col; g.beginPath(); g.ellipse(q.x, q.y, 6, 3.6, 0, Math.PI, 0); g.closePath(); g.fill(); g.stroke(); g.fillStyle = "rgba(255,255,255,0.85)"; g.beginPath(); g.ellipse(q.x, q.y, 6, 3.6, 0, 0, Math.PI); g.closePath(); g.fill(); g.stroke(); }
+      } else if (m === "lane") { g.strokeStyle = "#6E6699"; g.lineWidth = 1; g.stroke(); if (h > 0.8) { const q = P(x + 0.5, y + 0.5); g.fillStyle = "rgba(255,255,255,0.12)"; g.beginPath(); g.ellipse(q.x - 6, q.y - 2, 8, 2.4, -0.5, 0, 7); g.fill(); } }
       else if (m === "carpet") {
         // うちゅうの じゅうたん（ほし・わくせい・かみふぶき）
         const q = P(x + 0.5, y + 0.5), k = Math.floor(h * 1000);
