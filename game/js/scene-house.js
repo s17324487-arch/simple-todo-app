@@ -61,7 +61,8 @@ class HouseScene {
   layout() {
     const b = HomeDesign.bounds(), editing = this.mode === "edit";
     const top = editing || this.watching ? 112 : 194;
-    const bottom = editing ? Math.max(174, (this.editUI?.getBoundingClientRect().height || 0) / G.cssPerUnit + 8) : this.watching ? 65 : 142;
+    // もようがえの 一覧を ひろげた ときは へやを うえの のこりに おさめる（ほぼ ぜんぶ の ときは したに かくれて よい。js/furn-tray.js）
+    const bottom = editing ? Math.max(174, Math.min(G.H * 0.62, (this.editUI?.getBoundingClientRect().height || 0) / G.cssPerUnit + 8)) : this.watching ? 65 : 142;
     this.view = { top, bottom: G.H - bottom };
     this.baseScale = Math.min((G.W - 18) / b.w, Math.max(80, G.H - top - bottom) / b.h);
     this.s = this.baseScale * (this.zoom || 1);
@@ -74,7 +75,7 @@ class HouseScene {
     this.parentButton?.classList.toggle("hidden", !!this.mode);
     this.placeTools();
   }
-  resize() { this.layout(); }
+  resize() { if (this.editUI) FurnTray.apply(this); else this.layout(); }
   // ---- ズーム: 2本ゆびの ピンチ（オーナーの FB 2026-09-30。ボタンは ない）----
   // 1〜ZMAX ばい。ゆびの まんなかの ところを ゆびの 下に のこしたまま 大きく／小さく する（2本ゆびで うごかす ことも できる）。
   // いちばん 小さく すると ぜんたいが 見える もとの 画面（まんなか）に もどる。
@@ -448,19 +449,13 @@ class HouseScene {
     head.append(tabs, UI.btn("おわる", () => this.endEdit(), "small yellow"));
     const info = U.el("div", { class: "muted", html: `いごこち ${"★".repeat(Room.stars())}${"☆".repeat(5 - Room.stars())}（${Room.comfort()}）　かぐは ドラッグで うごかせるよ` });
     const tray = U.el("div", { class: "tray" });
-    if (this.editTab === "furn") {
-      const ids = FURNITURE.filter((f) => Room.available(f.id) > 0 && (!HomeGarden.active() || f.kind!=="wall"));
-      if (!ids.length) tray.append(U.el("div", { class: "note", text: "おける かぐが ないよ。まちの かぐやさんで かえるよ！" }));
-      for (const f of ids) {
-        const c = U.el("button", { class: "card", html: `<span class="cnt">×${Room.available(f.id)}</span>${UI.icon("furn", f.id, 50)}<div>${f.name}</div>` });
-        c.addEventListener("click", () => this.placeNew(f.id));
-        tray.append(c);
-      }
-    } else {
+    // かぐの カード・ひろげる つまみ・さがす／ならびかえ／しゅるい（js/furn-tray.js）
+    const extra = FurnTray.build(this, { head, info, tray, furn: this.editTab === "furn" });
+    if (this.editTab !== "furn") {
       const own = this.editTab === "wall" ? WALLPAPERS.filter((w) => Save.d.room.wallpapers[w.id]) : FLOORS.filter((w) => Save.d.room.floors[w.id]);
       for (const w of own) {
         const on = this.editTab === "wall" ? Save.d.room.wall === w.id : Save.d.room.floor === w.id;
-        const c = U.el("button", { class: "card" + (on ? " on" : ""), html: `${UI.icon(this.editTab, w.id, 50)}<div>${w.name}</div>` });
+        const c = U.el("button", { class: "card" + (on ? " on" : ""), html: `${UI.icon(this.editTab, w.id, 50)}<div class="nm">${w.name}</div>` });
         c.addEventListener("click", async () => {
           if (this.editTab === "wall") Save.d.room.wall = w.id; else Save.d.room.floor = w.id;
           Save.mark(); Sound.se("pop");
@@ -471,8 +466,8 @@ class HouseScene {
       }
       if (own.length <= 1) tray.append(U.el("div", { class: "note", text: "かぐやさんで あたらしい もようが かえるよ！" }));
     }
-    e.append(head, info, tray);
-    this.layout();
+    e.append(head, info, ...extra, tray);
+    FurnTray.apply(this);
   }
   async placeNew(id) {
     if (Room.available(id) <= 0 || Save.d.room.items.length >= 64) { UI.toast("おける かぐが ないよ（1へや 64こまで）"); return; }

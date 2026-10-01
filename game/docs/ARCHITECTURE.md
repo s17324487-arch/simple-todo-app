@@ -174,6 +174,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `burger-menu.js`（scene-store.js・shop.js・puri-pose.js の あと・figure-stand.js の まえ） | `BurgerMenu`（バーガーやさんの メニュー・にこにこ セットの おまけ・UI-34） |
 | — | `food-balance.js`（farm-cook.js の あと＝ぜんぶの たべものが そろった あと） | `FoodBalance`（たべものの バランス: そのままの やさい・りょうり・ねだんで ごきげん・「おなか+N ごきげん+M」・UI-35） |
 | — | `fashion-show.js` → `fashion-art.js` → `fashion-hall.js` → `fashion-scene.js`（food-balance.js の あと・item-dex-sources.js の まえ） | `FashionShow`（ファッションショーの きまり・セーブ）／ `FashionArt`（かお・ポーズ・けいひん・しゃしん）／ `FashionHall`（会場・ほんの ギャラリー）／ `FashionScene`（ランウェイ・`SCENES.fashion`）・UI-36 |
+| — | `furn-tray.js`（home-floors.js の あと） | `FurnTray`（もようがえの 一覧を ひろげる・さがす・ならびかえ・しゅるい・UI-37） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1072,6 +1073,18 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ねだんで ごきげん: `FoodBalance.moodFloor(p)` = 50コイン いじょうは `round(6 × log2(p ÷ 20))`（50 → 8・100 → 14・300 → 23・690 → 31）。よみこみの さいご（`farm-cook.js` の あと）に 1かいだけ、やさい・りょうり いがいの たべもの（`BAG_INDEX` と `FOODS` の 両方）の `mood` を めやすまで あげる（`SlowLifePrices` と おなじ やりかた・もとから おおい ものは そのまま）。あげた ものは `FoodBalance.raised`。
 - がめん: `FoodBalance.gainHtml(f)`（`<span class="fb-gain">おなか+N</span> <span class="fb-gain">ごきげん+M</span>`・へる ときは `.down`）を おうちの「ごはん」の カード（`.food-gain`）と とれたて りょうりの まど（`FarmCook.gain(id)`・`.farm-gain`）に。おみせの せつめいは まえから「おなか +N ／ ごきげん +M」。
 - セーブは かわらない（SCHEMA は 2 の まま）。PokaDebug: `foodBalance()`（`rawVeg`・`dishes`〔`raw`: ざいりょうの ごうけい〕・`raised`・`floor`）。検査は `tools/check-food-balance.mjs`、スモークは `tests/food-balance-smoke.mjs`（`food-balance-390/375`）。
+
+## もようがえの 一覧（UI-37・`js/furn-tray.js`）
+
+オーナーの FB 2026-10-01「模様替えの時にもっている家具が増えると、探しにくい。スライド操作で家具一覧の画面の面積を増やせるなど工夫してほしい」。
+`HouseScene.renderEditBar()` が タブ（head）・いごこち（info）・カードの ならび（tray）を つくり、`FurnTray.build(sc, { head, info, tray, furn })` が つまみ・▲▼・（ひろげた ときは）さがす／ならびかえ／しゅるいの ボタンを たして かぐの カードを ならべる。さいごに `FurnTray.apply(sc)` が たかさと `tall` を きめて `sc.layout()`。
+
+- おおきさ `state.size`: `s`（いままでの 1れつ・たかさは なかみ しだい）・`m`（`#ui` の 55%）・`l`（`#ui` − 64px）。`setSize` は `renderEditBar` を よびなおす。`resize()` も `apply`。
+- スライド: edit-bar に pointerdown を 1かいだけ つける（`WeakSet`）。うごきは window で うけ、8px うごいたら `setPointerCapture`・`setHeight`（`s` の たかさ〜`l`。24px こえたら `tall`）。はなすと `snap`（いちばん ちかい おおきさ・30px いじょう うごかして かわらない ときは 1つ すすむ）。カードの ならび（`.tray`）からは `s` の ときだけ・たての うごきが よこの 1.5ばい いじょうの ときだけ（よこは ふつうの スクロール）。スライドの あとの click は すてる。ボタン・いれる ところ・しゅるいの ボタンからは はじめない。
+- CSS: `.edit-bar.ft`（`touch-action: none`・たての ならび）・`.tray`（`s` は `pan-x`・`tall` は grid の 4れつ いじょう・`pan-y`）・`.ft-pill`・`.ft-size`・`.ft-tools`・`.ft-q`・`.ft-sort`・`.ft-chips`・`.ft-chip`。タブと「おわる」は 42px。
+- いちらん `list(state)`: おける かぐ（`Room.available > 0`・にわでは かべの 家具を のぞく）→ しゅるい → なまえ（`norm`: NFKC・カタカナ → ひらがな・すきまと「・」を とる）→ ならび（`new` は `Save.d.furn` の キーの じゅん〔はじめて てに いれた じゅん〕の ぎゃく・`name` は `Intl.Collator("ja")`・`comfort` は おおきい じゅん）。
+- しゅるい `cats(f)`（`Set`・きまった 家具は 1かいだけ けいさんして おぼえる）: `wall`／`rug` は kind で それだけ。`f.cat`（文字か 配列）が あれば それ。フィギュア（`figure`・`gachaPrize`・`burgerToy`）は `toy`。ほかは id と なまえの ことばで `light`・`sit`（`f.sleep` も）・`table`・`toy`・`plant`、どれでも なければ `misc`。まちがえやすい ことば（グランプリ・たなばた・はなび・はなかんむり・おはなみ）は さきに けす。`special` は レア・限定・けいひん・0コインの 家具。あたらしい 家具は `cat` を つけると たしか。
+- PokaDebug: `furnTray()`（ひろさ・しゅるい・ならび・さがす ことば・カードの かずと れつ・しゅるいの ボタン・スクロール）・`furnTraySize(s|m|l)`。検査は `tools/check-furn-tray.mjs`。
 
 ## ファッションショー（UI-36・`js/fashion-show.js`・`js/fashion-art.js`・`js/fashion-hall.js`・`js/fashion-scene.js`）
 
