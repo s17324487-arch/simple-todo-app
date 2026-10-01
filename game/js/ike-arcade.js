@@ -15,7 +15,7 @@ const IkeArcade = {
   BOOTHS: [{ id: "yume", name: "ゆめかわ" }, { id: "school", name: "がっこう" }, { id: "odekake", name: "おでかけ" }],
   // クレーンの 台（x y は 奥の かど・dir: 'y' は まえが +y・'x' は まえが +x）。spots: しらべる マス・back: もどる マス
   crane(fixtures, i, x, y, dir) {
-    const kind = ArcadeArt.specOf(i), wide = kind === "big" || kind === "sweet" || kind === "pusher" || kind === "bridge" || kind === "poke" ? 3 : 2, w = dir === "x" ? 2 : wide, h = dir === "x" ? wide : 2, P = ArcadeArt.SPEC[kind], m = PrizeArcade.machines[i];
+    const kind = ArcadeArt.specOf(i), wide = kind === "big" || kind === "sweet" || kind === "pusher" || kind === "bridge" || kind === "road" ? 3 : 2, w = dir === "x" ? 2 : wide, h = dir === "x" ? wide : 2, P = ArcadeArt.SPEC[kind], m = PrizeArcade.machines[i];
     const spot = dir === "x" ? [x + w, y + Math.floor(h / 2)] : [x + Math.floor(w / 2), y + h];
     fixtures.push({ kind: "crane", machine: i, x, y, w, h, dir, height: P.base + P.GH + P.HH, label: m.label, action: "crane", spots: [spot], back: dir === "x" ? [spot[0] + 2, spot[1]] : [spot[0] + 1, spot[1] + 1] });
   },

@@ -9,11 +9,11 @@ const PokaDebug = {
   cityCatalog(){return IkebukuroCatalog.groups;},
   // クレーン（crane-scene.js）。arcadeState: いまの 台の ようす・arcadeMove: アームを dx・dz cm うごかす（うごかせる ときだけ）
   arcadeState(){const s=G.sceneName==='prize'?G.scene:null,r=s&&s.round;if(!r)return null;const R=r.rig,claw=CraneMachines.clawy(r.type),hb=r.type==='bridge'&&r.list()[0],hc=hb&&r.W.centroid(hb),hx=hb&&CranePhys.qrot(hb.q,[1,0,0]);return{bridge:r.type==='bridge'?{box:hc?{x:+hc[0].toFixed(2),y:+hc[1].toFixed(2),z:+hc[2].toFixed(2),along:+Math.abs(hx[2]).toFixed(2)}:null,hint:r.hint?r.hint.slice():null,staff:r.staff||null,snapped:!!r.snapped,shape:hb?hb.data.shape:null,miss:PrizeArcade.norm().miss[s.i]||0}:null,machine:s.i,type:r.type,phase:r.phase,done:r.done,finished:!!s.finished,got:r.got.length,time:claw?+r.time.toFixed(2):null,claw:claw?{x:+R.x.toFixed(2),y:+R.y.toFixed(2),z:+R.z.toFixed(2)}:null,stops:r.stops??null,scoops:r.scoops??null,arms:r.type==='tripod'?R.arms.map(a=>a.up?1:0):null,light:r.type==='tripod'?R.cell():null,strong:r.strong,camera:s.camMode,bodies:r.list().length,coins:Save.d.coins,status:s.status.textContent,pusher:r.type==='pusher'?{left:r.left,lost:r.lost,hits:r.hits,queue:r.queue,shower:r.shower,slot:r.slot?{res:r.slot.res.slice(),win:r.slot.win,paid:r.slot.paid}:null,lx:+R.lx.toFixed(2),gate:+R.gateX().toFixed(2)}:null,
-    // 3F の おかしの 台（UI-23）: ぼうで おす（ばしょ・たかさ・のびた ながさ・のこり・とまった か）・おかし タワー（たって いるか・ペラわの わの ばしょ・おみせの 人）
-    poke:r.type==='poke'?{x:+R.x.toFixed(2),lv:R.lv,ext:+R.ext.toFixed(2),hit:R.hit,pokes:r.pokes,stalled:!!r.stalled,staff:r.staff||null}:null,
+    // 3F の おかしの 台（UI-23）: おかし ロード（UI-29。ひかりの れつ・ランプ・のこり・とめた れつ・うごいて いる ベルトの のこり・れつごとの うごいた ながさ・おみせの 人）・おかし タワー（たって いるか・ペラわの わの ばしょ・おみせの 人）
+    road:r.type==='road'?{at:R.at(),pos:+R.pos.toFixed(2),lit:r.lit.slice(),stops:r.stops,lane:r.lastLane??null,lastLit:r.lastLit??null,left:+R.left.toFixed(2),moved:R.moved.map(v=>+v.toFixed(2)),staff:r.staff||null}:null,
     tower:r.def.tower?(()=>{const pb=r.list().find(b=>b.data.pera),p=pb&&CraneMachines.toWorld(r.W,pb,pb.data.ring.slice(0,3));return{ok:r.towerOk(),ring:p?p.map(v=>+v.toFixed(2)):null,staff:r.staff||null,minY:r.def.minY};})():null};},
-  // ぼうで おす 台: ぼうを x（たかさ lv: 0 = した・1 = うえ）へ（えらんで いる ときだけ）・おかし タワー: フックを ペラわの まうえへ（dx・dz cm ずらす）
-  arcadePokeAt(x,lv){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='poke'||r.phase!=='aim')return false;r.rig.load({x,l:lv?1:0});G.scene.refresh();return true;},
+  // おかし ロード: ひかりを れつ lane へ（lit を わたすと その れつの ランプの かず も。ひかりが うごいて いる ときだけ）・おかし タワー: フックを ペラわの まうえへ（dx・dz cm ずらす）
+  arcadeRoadAt(lane,lit){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='road'||r.phase!=='sweep'||!(lane>=0&&lane<r.def.lanes.n))return false;r.rig.pos=lane;r.rig.hold=lane;if(Number.isInteger(lit)&&lit>=0&&lit<=r.def.lanes.lamps)r.lit[lane]=lit;G.scene.refresh();return true;},
   arcadeAimRing(dx=0,dz=0){const r=G.sceneName==='prize'&&G.scene.round;if(!r||!r.def.tower||r.phase!=='move')return false;const pb=r.list().find(b=>b.data.pera);if(!pb)return false;const p=CraneMachines.toWorld(r.W,pb,pb.data.ring.slice(0,3));r.rig.load({x:p[0]+dx,z:p[2]+dz});return true;},
   // コイン プッシャー: ランチャーを x cm へ（うごかせる ときだけ）・チャンス（スロットを まわす）
   arcadePusherAt(x){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='pusher'||r.phase!=='play')return false;r.rig.lx=Math.max(r.rig.o.lim[0],Math.min(r.rig.o.lim[1],x));return true;},
@@ -129,6 +129,7 @@ const PokaDebug = {
       "PokaDebug.roadPreview(def, view)       道の検証画像（セーブ・現在地は変えない）",
       "PokaDebug.fps(2000)                   指定ミリ秒のあいだの平均FPSを返す（Promise）",
       "PokaDebug.venue('arcade', 2)         Meeときょれじゃ の 2F（おかし キャッチャー・はしわたし）。arcadeLineup(12) で 日がわりの けいひん・arcadeStart(12〜18) で 2F の 台・arcadeMiss(17, 4) で はしわたしの たすけ・arcadeHint() で しるしへ",
+      "PokaDebug.venue('arcade', 3)         Meeときょれじゃ の 3F（ぷりくら・こういしつ・おかしの 台）。arcadeStart(19) で おかし ロード（arcadeRoadAt(2, 15) で ひかりを れつ 2 に まつ・ランプ 15）・arcadeStart(20) で おかし タワー（arcadeAimRing() で わっかの うえ）",
       "PokaDebug.areaMap()                  すまほ の ちず「この エリア」の ようす（めじるし・なまえ・えらんだ もの）。areaMapLayout('town', 4.46) で ならびだけ",
     ];
     console.log(lines.join("\n"));
