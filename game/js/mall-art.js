@@ -65,8 +65,8 @@ const MallArt = {
     return o;
   },
   shade(hex, k) { const n = parseInt(hex.slice(1), 16), c = (s) => Math.max(0, Math.min(255, Math.round(((n >> s) & 255) * (1 + k)))); return "#" + ((1 << 24) | (c(16) << 16) | (c(8) << 8) | c(0)).toString(16).slice(1); },
-  // ---- 什器の モデル（{ svg, vb }）。キーに 入れる ものは f.kind・f.w・f.h・f.variant・f.shop だけ ----
-  modelKey(f) { return "mall:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.variant || "") + ":" + (f.shop || "") + ":" + (f.item || "") + ":" + (f.dir || ""); },
+  // ---- 什器の モデル（{ svg, vb }）。キーに 入れる ものは f.kind・f.w・f.h・f.variant・f.shop・f.item・f.dir・f.col・f.z だけ（いろの ちがう かんばんが まざらない）----
+  modelKey(f) { return "mall:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.variant || "") + ":" + (f.shop || "") + ":" + (f.item || "") + ":" + (f.dir || "") + ":" + (f.col || "") + ":" + (f.z || ""); },
   models: new Map(),
   model(f) {
     const key = this.modelKey(f); if (this.models.has(key)) return this.models.get(key);
@@ -108,7 +108,7 @@ const MallArt = {
     if (sp) { const q = sc.toScreen(IsoVenue.p(f.x, f.y, 0), off); ctx.drawImage(sp.c, q.x + sp.m.vb.x * s, q.y + sp.m.vb.y * s, sp.m.vb.w * s, sp.m.vb.h * s); }
     const live = this.L[f.kind]; if (live) live.call(this, ctx, sc, f, off);
     if (clip) ctx.restore();
-    if (f.item) this.drawItem(ctx, sc, f, off);
+    if (f.item && !f.ownArt) this.drawItem(ctx, sc, f, off);
   },
   drawNpc(ctx, sc, f, off) {
     const c = this.npcSprite(sc, f, false), q = sc.toScreen(IsoVenue.p(f.x + 0.5, f.y + 0.5, f.z || 0), off), size = sc.charSize(), s = sc.s;
@@ -686,7 +686,7 @@ const MallArt = {
   // 品物（台の 上）: 家具は おうちと おなじ 立体、服は マネキンが きて いる（WearMannequin）、たべものは アイコン
   drawItem(ctx, sc, f, off) {
     const s = sc.s, it = VenueHalls.item(f.item); if (!it) return;
-    const z = f.kind === "pedestal" ? 20 : f.low ? 10 : 30, q = sc.toScreen(IsoVenue.p(f.x + f.w / 2, f.y + f.h / 2 + (f.kind === "stand" && FURN_INDEX[f.item] ? 0.35 : 0), z), off);
+    const z = f.itemZ ?? (f.kind === "pedestal" ? 20 : f.low ? 10 : 30), q = sc.toScreen(IsoVenue.p(f.x + f.w / 2, f.y + f.h / 2 + (f.kind === "stand" && FURN_INDEX[f.item] ? 0.35 : 0), z), off);
     if (FURN_INDEX[f.item]) {
       const m = HomeDesign.model(f.item), pw = Math.ceil(m.w * sc.k), ph = Math.ceil(m.h * sc.k), img = SvgCache.get("mallfurn:" + f.item, () => m.full, pw, ph);
       if (img) ctx.drawImage(img, q.x + m.x * s, q.y + m.y * s, m.w * s, m.h * s);
@@ -701,7 +701,7 @@ const MallArt = {
   itemJobs(r, sc) {
     const out = [];
     for (const f of r.fixtures) {
-      if (!f.item) continue; const it = VenueHalls.item(f.item); if (!it) continue;
+      if (!f.item || f.ownArt) continue; const it = VenueHalls.item(f.item); if (!it) continue;
       if (FURN_INDEX[f.item]) { const m = HomeDesign.model(f.item); out.push(SvgCache.ensure("mallfurn:" + f.item, () => m.full, Math.ceil(m.w * sc.k), Math.ceil(m.h * sc.k))); }
       else if (ITEM_INDEX[f.item]) { const pw = Chara.pxSize(this.mannequinSize(sc)); out.push(SvgCache.ensure("mannequin:" + f.item, () => WearMannequin.svg(f.item), pw, Math.round((pw * VB.h) / VB.w))); }
       else { const sz = 34 * sc.s; out.push(SvgCache.ensure("mallbag:" + f.item, () => Art.iconSvg("bag", f.item), Math.ceil(sz * G.px), Math.ceil(sz * G.px))); }
