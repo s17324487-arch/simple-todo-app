@@ -44,7 +44,8 @@ export async function nerikasuQuestsSmoke({scenario,expect,folkTalk,folkTapSpot}
     const spots=(await H.dbg('folkSpots','town')).filter(s=>s.req==='neriq:'+find.id);
     expect(spots.length>=4&&spots.filter(s=>s.hit).length===1,'さがしものの きらきらが ない '+spots.length);
     const miss=spots.find(s=>!s.hit),hit=spots.find(s=>s.hit);
-    await folkTapSpot(H,'town',miss);await H.page.locator('.dlg-text').waitFor();expect(/ここには ない/.test(await H.eval(()=>document.querySelector('.dlg-text').innerText)),'はずれの ことばが 出ない');await H.dialogs();await H.idle();
+    // ことばは 1もじずつ でるので、でおわった しるし（.dlg-next）を まってから よむ（WebKit で 会話が おそく ひらくと とちゅうの 文を よんで いた）
+    await folkTapSpot(H,'town',miss);await H.page.locator('.dlg-next:not(.hidden)').waitFor({timeout:10000});expect(/ここには ない/.test(await H.eval(()=>document.querySelector('.dlg-text').innerText)),'はずれの ことばが 出ない');await H.dialogs();await H.idle();
     await folkTapSpot(H,'town',hit,'found');await H.page.locator('.dlg-next:not(.hidden)').waitFor({timeout:10000});await H.dialogs();await H.idle();
     q=await H.dbg('quests');expect(q.active.find(a=>a.id===find.id).progress.done,'さがしものが みつからない');
     if(find.follow){expect(await H.dbg('folkKitten'),'みつけた どうぶつが ついて こない');await H.shot('follow');}
