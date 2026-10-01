@@ -362,6 +362,11 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - まえは `js/ikebukuro-district.js` の `changed` で、えきまえ館・マルシェ館・インテリア館・カフェテラス・フードホール・おとどけ ぐち・ちかみち の 7つの 入口が いけぶの 中に つながって いた。`js/ikebukuro-town.js` の `NOT_MALL` で 入口の うごきを かえた: 6つは ひとこと（`visit`・いけぶの なんかいに その おみせが あるか）、駅まえ ひろばの ちかみちは 地下を とおって いけぶの 入口の まえに でる（あたらしい `act.type = "walkway"`・`scene-world.js` の `enterDoor`）。館の 1F の 西の かべの「いりぐち（えき）」は「いりぐち」に。
 - 受け入れ条件: 池袋で いけぶ（`venue: "mall"`）に つながる 入口は `ike_mall` の 2つ だけ・ひとことは 漢字なし・ちかみちの でぐちは いけぶの 大きい 入口の まえで とおれる マス（`tools/town-check.mjs`・`tools/check.mjs`）。スモーク「ikebukuro-mall-doors」: 6つの 入口で ひとこと → 町の まま、ちかみち → いけぶの 入口の まえ → いけぶの 入口から 館へ。
 
+### [x] TOWN-IKE-03 池袋: えきまえ館・マルシェ館・インテリア館を ふつうの ビルに・おくじょう ていえんを けして はくぶつかんを 大きく（オーナーの FB 2026-10-01） ✅
+- オーナーの 指示「池袋のマルシェ館とインテリア館、サンシャイン池袋駅前館は普通のビルに改めなさい。屋上庭園は削除し、恐竜博物館を大きくしなさい」。池袋の 街区は Codex の 担当だが、TOWN-IKE-01 と おなじく オーナーの 指示で Claude Code が した（あいて いる Codex の PR は なかった）。
+- `js/ikebukuro-town.js`: `city_clothes`／`city_market`／`city_furniture` の 絵と なまえ（えきまえ ビル・れんが ビル・あおぞら ビル）と ひとこと、`ike_annex3` を けして `REMOVED` に、`city_museum` を x 33・17×7・入口 8 に。原画 `tools/town-design/ikebukuro-buildings.mjs`（`officeBlock`・`slimBuilding`・大きな `museum`。`department`・`wing`・`rooftopGarden` は けした）→ `node tools/build-ikebukuro-town.mjs`。`js/area-map.js`: すまほの ちずの なまえと めじるし（ビルは オフィスの めじるし）。`tools/town-check.mjs`: `IkebukuroTown.REMOVED` の 建物は「なくなった」を ゆるす。
+- 受け入れ条件: いけぶの 別館と おくじょう ていえんの なまえが のこらない・3つの ビルは ふつうの ビルの 絵と ひとこと（いけぶに つながらない）・はくぶつかんは 17マスで ほかの 建物と かさならない・どの 入口にも 駅から いける・古い セーブの 位置は ちかい 歩道へ（`tools/check-ikebukuro.mjs`・`tools/town-check.mjs`）。スモーク「ikebukuro-buildings-390 / 375」・「ikebukuro-mall-doors」・「museum-visit」（はくぶつかんの 入口と 出口）。
+
 ### [x] UI-08 町の ズーム（オーナーの FB 2026-09-29） ✅
 - オーナーの 指示「全体マップで 歩いている ときに、ズームアウトと ズームインが できる ように」。
 - `js/world-zoom.js`（`WorldZoom`: ピンチ・＋ −・ホイール・キーボード、0.5〜1.5 倍、倍率は セーブの `settings.worldZoom`）。`scene-world.js` は 地面の 位置あわせ 1か所だけ。

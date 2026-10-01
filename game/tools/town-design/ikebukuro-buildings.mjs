@@ -149,28 +149,28 @@ function bookstore(o={}){
   return s;
 }
 // ===== いけぶ えきまえ館（駅に つながる デパート） =====
-function mannequin(x,bottom,c,skirt=true){return L(x,bottom,x,bottom-6,INK,1)+R(x-5,bottom-2,10,2,'#9A8F80',{sw:.4})+Pth(skirt?`M${x-4},${bottom-24} h8 l4,16 h-16Z`:`M${x-4},${bottom-24} h8 l1,16 h-10Z`,c,{sw:.8})+R(x-3.5,bottom-32,7,9,shade(c,.3),{sw:.7})+C(x,bottom-35.5,3.2,'#F1E3CF',{sw:.7});}
-function department(o={}){
-  const n=!!o.night,W=384,H=416,cx=208,wall='#EADFCB',bronze='#A98661';let s=dropShadow(W,H,16);
-  s+=roofDeck(4,4,W-8,50,'#CDC6B8');
-  for(const [x,c]of [[70,'#E27D6B'],[192,'#F2B846'],[314,'#7FB0C9']])s+=L(x,40,x,-22,'#8C8578',1.4)+Pth(`M${x},-22 l20,6 l-20,6Z`,c,{sw:.8})+C(x,-23,1.8,'#E9D38E',{sw:.5});
-  s+=acUnit(110,20)+acUnit(250,20);
-  s+=R(6,54,W-12,H-54,wall,{sw:1.3})+sideFace(W-6,54,H-54,10,wall);
-  // うえの おび: マークと 館の 名前
-  s+=R(6,54,W-12,46,'#B79468',{sw:1.2})+L(10,58,W-10,58,'#E3CDA5',1)+sunMark(40,77,11)+T(206,82,'サンシャインいけぶ えきまえ館',{size:17,fill:'#FFF7E4'})+T(206,94,'SUNSHINE IKEBU  STATION ANNEX',{size:6,fill:'#F4E2C0',ls:1.2});
-  // たての フィンと 高い まど（4かい）
-  for(let f=0;f<4;f++){const y=108+f*56;for(let c=0;c<7;c++){const x=18+c*50;s+=pane(x,y,36,46,n,f*9+c,{tint:'#B8CCCF'})+L(x+18,y,x+18,y+46,'#E8E2D2',.9);}}
-  for(let c=0;c<=7;c++)s+=R(12+c*50,104,6,228,bronze,{sw:.8});
-  // たれまく
-  for(const [x,c,rows]of [[58,'#D9738A',['あきの','おしゃれ','フェア']],[298,'#6FA3BF',['12かい','すいぞく','かん']]])s+=R(x,112,34,96,c,{sw:1})+Pth(`M${x},208 l17,9 l17,-9`,c,{sw:1})+L(x+3,116,x+31,116,shade(c,.45),.8)+lines(x+17,140,rows,7.2);
-  // 1かい: マネキンの ショーウィンドー・回転ドア・日よけ
-  s+=R(6,334,W-12,6,bronze,{sw:.9});
-  for(const [x,cols] of [[16,['#E8A0B4','#9FC7D8','#F2D16B']],[262,['#B8A2D8','#9CCB9A','#F0B38E']]]){s+=R(x,352,106,H-356,n?'#F7E3B5':'#F6F1E6',{sw:1})+Rn(x+2,H-12,102,8,'#D8C8AA');cols.forEach((c,i)=>s+=mannequin(x+22+i*31,H-12,c,i!==1));if(!n)s+=Pth(`M${x+6},${H-6} L${x+44},354 h14 L${x+20},${H-6}Z`,'#FFFFFF',{sw:0,op:.25});}
-  s+=awning(14,340,114,'#8F3B45')+awning(258,340,114,'#8F3B45');
-  s+=R(136,344,144,H-346,'#6B5642',{sw:1})+Pth(`M144,344 Q208,318 272,344Z`,'#8F3B45',{sw:1});
-  s+=autoDoor(cx,H-3,74,56,n,{frame:'#5A4636',mat:'#A98661'})+L(cx-37,H-30,cx+37,H-30,'#E8E2D2',1);
-  s+=planter(142,H-12,24,n)+planter(250,H-12,24,n);
-  if(n)s+=E(cx,H-4,110,10,'#FFE3A0',{sw:0,op:.22})+Rn(6,54,W-12,46,'#FFF1C4',{op:.08});
+// ===== えきまえ ビル（駅の となりの ふつうの じむしょの ビル。12×13。オーナーの FB 2026-10-01 で「いけぶ えきまえ館」から かえた） =====
+function officeBlock(o={}){
+  const n=!!o.night,W=384,H=416,cx=208,wall='#DCD7CC',trim='#B7B0A2';let s=dropShadow(W,H,16);
+  s+=roofDeck(4,4,W-8,46,'#C9C6BE')+tank(36,14)+acUnit(118,24)+acUnit(142,24)+acUnit(286,24)+antenna(350,40,24);
+  s+=R(6,50,W-12,H-50,wall,{sw:1.3})+sideFace(W-6,50,H-50,10,wall);
+  // かべの タイルの め
+  {let d='';for(let y=60;y<304;y+=11)d+=`M8,${y} H${W-8}`;s+=Pth(d,'none',{sw:.55,stroke:shade(wall,-.05)});}
+  // 6かいぶんの よこながの まど（ひるは ところどころ ブラインド）・まどの したの おび
+  for(let f=0;f<6;f++){const y=58+f*42;for(let c=0;c<4;c++){const x=18+c*82;s+=pane(x,y,66,28,n,f*7+c,{tint:'#BCCFD3',litRate:.5});if(!n&&hash(f,c,4)<.4)s+=Rn(x+1,y+1,64,10,'#ECE8DE',{op:.9})+L(x+1,y+11,x+65,y+11,'#C9C5BA',.6);}s+=band(6,y+32,W-56,trim);}
+  // たての かんばん（なかの テナント）
+  s+=R(W-46,62,28,236,'#55636F',{sw:1,rx:2})+R(W-43,65,22,230,'#5F6E7A',{sw:0});
+  for(const [y,rows,c] of [[84,['カ','フ','ェ'],'#F6C76B'],[160,['じ','む','しょ'],'#BFE3EA'],[236,['じゅ','く'],'#F4B1C2']])s+=lines(W-32,y,rows,10,c,1.2);
+  s+=L(W-42,138,W-22,138,'#8C9BA6',.8)+L(W-42,214,W-22,214,'#8C9BA6',.8);
+  // 1かい: なまえの いた・ガラスの ロビー・あんないばん・うえき
+  s+=R(6,322,W-12,10,trim,{sw:1});
+  s+=R(124,305,168,19,'#4E5A63',{sw:1,rx:2})+T(cx,319,'えきまえ ビル',{size:12,fill:'#FFFFFF'});
+  s+=R(10,336,W-20,H-338,'#5B6670',{sw:1});
+  s+=pane(16,342,100,H-348,n,11,{litRate:1})+pane(W-116,342,100,H-348,n,12,{litRate:1});
+  s+=autoDoor(cx,H-3,72,56,n,{frame:'#3F4A52',mat:'#9AA3A8'});
+  s+=R(126,H-46,24,36,'#EEEAE0',{sw:.9})+L(130,H-38,146,H-38,'#8C9BA6',.8)+L(130,H-32,146,H-32,'#8C9BA6',.8)+L(130,H-26,146,H-26,'#8C9BA6',.8)+L(130,H-20,142,H-20,'#8C9BA6',.8);
+  s+=planter(272,H-12,30,n)+planter(30,H-12,30,n);
+  if(n)s+=E(cx,H-4,110,10,'#FFE3A0',{sw:0,op:.22});
   return s;
 }
 // ===== ネリカス電機（10かいだての 家電の お店） =====
@@ -275,17 +275,26 @@ function mall(o={}){
   if(n)s+=E(ax,H-4,120,11,'#FFE3A0',{sw:0,op:.24})+C(tx+tw/2,ty-27,8,'#FF8A7A',{sw:0,op:.35});
   return s;
 }
-// ===== いけぶの 別館（ほそい 棟: マルシェ館・インテリア館） =====
-function wing(kind,o={}){
-  const n=!!o.night,W=160,H=416,cx=80,wall='#E6D6BE',terra='#C99873',accent=kind==='marche'?'#6E9F5C':'#4F6D8C';let s=dropShadow(W,H,12);
-  s+=roofDeck(4,6,W-8,40,'#CFC6B6')+acUnit(20,18)+tank(110,14);
-  s+=R(6,46,W-12,H-46,wall,{sw:1.3})+sideFace(W-6,46,H-46,9,wall)+R(6,46,W-12,10,terra,{sw:1});
-  for(let f=0;f<6;f++){const y=66+f*44;s+=pane(18,y,54,32,n,f*5+(kind==='marche'?1:2),{tint:'#B8CCCF'})+pane(88,y,54,32,n,f*5+3,{tint:'#B8CCCF'})+band(6,y+36,W-12,'#DCC9AE');}
-  s+=R(22,330,116,22,accent,{sw:1.1,rx:2})+sunMark(36,341,6)+T(88,345,kind==='marche'?'マルシェ館':'インテリア館',{size:10.5,fill:'#FFFFFF'});
-  s+=R(8,356,W-16,H-358,'#8E7A63',{sw:1})+awning(12,356,136,accent);
-  if(kind==='marche'){for(const [x,c]of [[16,'#E25B4F'],[40,'#F2A33A']]){s+=R(x,H-24,22,18,'#B98E6B',{sw:.7});for(let i=0;i<3;i++)s+=C(x+5+i*6,H-26,3.2,c,{sw:.5});}s+=R(116,H-40,28,34,'#3E4A45',{sw:.8})+T(130,H-28,'きょうの',{size:4.6,fill:'#FFFFFF'})+T(130,H-19,'くだもの',{size:4.6,fill:'#FFFFFF'});}
-  else{s+=R(14,H-36,40,30,n?'#F7E3B5':'#F6F1E6',{sw:.8})+R(18,H-20,32,8,'#6F8CB0',{sw:.6})+R(18,H-26,8,8,'#6F8CB0',{sw:.5})+L(44,H-34,44,H-22,INK,.7)+Pth(`M39,H-34 h10 l-2,-6 h-6Z`.replace('H-34',String(H-34)).replace('H-34',String(H-34)),'#F2D16B',{sw:.6})+R(108,H-36,40,30,n?'#F7E3B5':'#F6F1E6',{sw:.8})+C(128,H-22,8,'#C8B08A',{sw:.7})+R(124,H-14,8,6,'#8E7A63',{sw:.5});}
-  s+=autoDoor(cx,H-3,46,40,n,{frame:'#5A4636',mat:terra});
+// ===== ほそい ふつうの ビル（5×13。れんが ビル・あおぞら ビル。オーナーの FB 2026-10-01 で「マルシェ館」「インテリア館」から かえた） =====
+function slimBuilding(kind,o={}){
+  const n=!!o.night,W=160,H=416,cx=80,brick=kind==='brick',wall=brick?'#B9705A':'#DDE5E8',trim=brick?'#8E5444':'#AFC0C7';let s=dropShadow(W,H,12);
+  s+=roofDeck(4,6,W-8,40,'#C9C6BE')+(brick?acUnit(18,18)+tank(100,14):acUnit(16,18)+acUnit(40,18)+antenna(132,30,24));
+  s+=R(6,46,W-12,H-46,wall,{sw:1.3})+sideFace(W-6,46,H-46,9,wall);
+  if(brick){
+    // れんがの め・まどと ベランダの てすり
+    let d='';for(let y=54,r=0;y<318;y+=8,r++){d+=`M8,${y} H${W-8}`;for(let x=8+(r%2)*10;x<W-8;x+=20)d+=` M${x},${y} v8`;}s+=Pth(d,'none',{sw:.5,stroke:shade(wall,.16)});
+    for(let f=0;f<6;f++){const y=58+f*44;
+      for(const x0 of [18,86]){s+=R(x0-2,y-2,60,34,'#E9E2D4',{sw:.8})+pane(x0+2,y+2,52,26,n,f*5+x0,{tint:'#B8CCCF'});for(let k=0;k<6;k++)s+=L(x0+3+k*10,y+30,x0+3+k*10,y+38,'#5E5A54',.9);s+=L(x0-2,y+30,x0+58,y+30,'#5E5A54',1.1)+L(x0-2,y+38,x0+58,y+38,'#5E5A54',1.1);}}
+  }else{
+    // そらが うつる ガラスと しろい たての ひれ
+    s+=curtain(16,54,W-32,262,3,6,n,7,{tint:'#9EC3D6',hi:'#E8F4F8',frame:'#5D7380'});
+    for(const x of [16,58,102,144])s+=R(x-3,52,6,266,'#F1F4F2',{sw:.8});
+  }
+  // なまえの いた・1かいの ガラスと ドア
+  s+=R(16,324,128,22,brick?'#5A3A31':'#3E5966',{sw:1.1,rx:2})+T(cx,339,brick?'れんが ビル':'あおぞら ビル',{size:11,fill:'#FFFFFF'});
+  s+=R(8,350,W-16,H-352,brick?'#6E4B3E':'#56636C',{sw:1});
+  s+=pane(14,356,30,H-362,n,9,{litRate:1})+pane(W-44,356,30,H-362,n,10,{litRate:1});
+  s+=autoDoor(cx,H-3,46,40,n,{frame:brick?'#4A3329':'#3C4E55',mat:trim});
   if(n)s+=E(cx,H-4,50,8,'#FFE3A0',{sw:0,op:.22});
   return s;
 }
@@ -353,26 +362,41 @@ function officeLobby(o={}){
   if(n)s+=E(cx,H-4,80,9,'#FFE3A0',{sw:0,op:.22});
   return s;
 }
-// ===== きょうりゅう はくぶつかん =====
+// ===== きょうりゅう はくぶつかん（17×7。オーナーの FB 2026-10-01「屋上庭園は削除し、恐竜博物館を大きくしなさい」で 8 → 17マスに） =====
+// まんなかの 石の 三角やねと はしら・りょうがわの てんじしつ（大きな まどに ほねの もけい）・うしろから のぞく 2とうの きょうりゅう
 function museum(o={}){
-  const n=!!o.night,W=256,H=224,cx=144,stoneC='#E6DCC8';let s=dropShadow(W,H,13);
-  // うしろから のぞく くびの ながい きょうりゅう
-  s+=Pth('M196,60 C204,10 214,-38 232,-52 C244,-60 258,-52 252,-42 C246,-36 236,-38 232,-30 C222,-6 216,30 214,64Z','#8BBF76',{sw:1.3})+C(244,-48,1.6,INK,{sw:0})+Pth('M246,-40 q4,1 6,-2','none',{sw:.9,stroke:INK});
-  for(const [x,y]of [[222,-20],[217,0],[214,22]])s+=E(x,y,3,2,'#A9D494',{sw:0});
-  // ぜんたい: 石の やね（三角）と はしら
-  s+=R(8,56,W-16,H-56,stoneC,{sw:1.3})+sideFace(W-8,56,H-56,9,stoneC);
-  s+=Pth(`M2,60 L${W/2},6 L${W-2},60Z`,'#EFE7D6',{sw:1.3})+Pth(`M22,55 L${W/2},17 L${W-22},55Z`,'#E1D5BE',{sw:.8});
-  s+=Pth(`M${W/2-12},40 q-4,-8 2,-12 q3,4 -2,12 M${W/2},40 q0,-10 6,-12 q1,6 -6,12 M${W/2+10},42 q4,-8 10,-8 q-2,6 -10,8`,'#8B7355',{sw:.6})+E(W/2+2,46,9,5,'#8B7355',{sw:.6});
-  s+=R(4,58,W-8,8,'#D3C6AE',{sw:1});
-  s+=R(20,70,W-40,24,'#6E5A3E',{sw:1,rx:2})+T(W/2,87,'きょうりゅう はくぶつかん',{size:13,fill:'#F6E7C1'});
-  for(const x of [30,76,166,212]){s+=R(x,98,16,H-122,'#F3ECDD',{sw:1})+R(x-4,98,24,6,'#E1D5BE',{sw:.8})+R(x-4,H-26,24,6,'#E1D5BE',{sw:.8});for(let k=1;k<4;k++)s+=L(x+k*4,106,x+k*4,H-28,'#DDD2BE',.7);}
+  const n=!!o.night,W=544,H=224,cx=272,stoneC='#E6DCC8',pale='#F3ECDD',mid='#E1D5BE',green='#8BBF76',orange='#E59A5C';let s=dropShadow(W,H,14);
+  // うしろの きょうりゅう: くびの ながい ブラキオサウルス（ひだりの てんじしつの うしろ）と ティラノサウルスの あたま（みぎ）
+  s+=Pth('M96,74 C104,18 114,-50 142,-72 C156,-82 176,-72 168,-60 C162,-52 150,-54 144,-44 C130,-14 124,34 122,76Z',green,{sw:1.4})+C(159,-67,1.9,INK,{sw:0})+Pth('M163,-58 q5,1 7,-2','none',{sw:1,stroke:INK});
+  for(const [x,y]of [[134,-34],[128,-8],[124,18],[122,44]])s+=E(x,y,3.6,2.4,'#A9D494',{sw:0});
+  s+=Pth('M410,76 C406,52 412,30 430,20 C448,10 482,10 500,24 C510,32 508,44 496,46 L468,48 C462,56 466,66 470,76Z',orange,{sw:1.4})+C(474,28,2.1,INK,{sw:0})+Pth('M476,46 l4,5 l4,-5 l4,5 l4,-5 l4,5','none',{sw:.9,stroke:INK})+E(458,26,3.4,2.2,'#F2BC8C',{sw:0})+Pth('M492,32 q4,-3 7,0','none',{sw:.8,stroke:INK});
+  // りょうがわの てんじしつ（ひくい やね）
+  s+=R(8,78,W-16,H-78,stoneC,{sw:1.3})+sideFace(W-8,78,H-78,9,stoneC);
+  s+=R(4,72,W-8,10,'#D3C6AE',{sw:1})+L(8,75,W-8,75,'#EDE3CF',.9);
+  for(const [x0,kind] of [[22,'brachio'],[388,'trike']]){
+    s+=R(x0,96,134,82,'#46545D',{sw:1.1,rx:2})+pane(x0+4,100,126,74,n,x0,{litRate:1,tint:'#C9DCE0'});
+    // まどの なかの ほねの もけい（しろい せん）
+    const bone='#FBF6EA';
+    if(kind==='brachio')s+=Pth(`M${x0+18},166 q12,-22 40,-24 q20,-2 32,-26 q8,-18 18,-30 q6,-6 10,0`,'none',{sw:3,stroke:bone})+[0,1,2,3,4].map(i=>L(x0+34+i*10,152-i*3,x0+34+i*10,170,bone,2)).join('')+C(x0+119,110,4,bone,{sw:0});
+    else s+=Pth(`M${x0+24},150 q20,-14 52,-10 q14,2 22,-6`,'none',{sw:3,stroke:bone})+Pth(`M${x0+98},134 l14,-14 M${x0+102},140 l16,-8 M${x0+96},128 q10,-14 22,-12`,'none',{sw:2.4,stroke:bone})+[0,1,2,3].map(i=>L(x0+40+i*12,148,x0+40+i*12,170,bone,2)).join('')+C(x0+104,138,4,bone,{sw:0});
+    s+=R(x0-4,178,142,6,mid,{sw:.8});
+  }
+  // まんなかの 石の やかた（たかい やね・三角の ペディメント・あしあとの マーク）
+  s+=R(170,46,204,H-46,stoneC,{sw:1.3});
+  s+=Pth(`M162,50 L${cx},-8 L382,50Z`,'#EFE7D6',{sw:1.3})+Pth(`M186,46 L${cx},6 L358,46Z`,mid,{sw:.8});
+  s+=Pth(`M${cx-12},36 q-4,-8 2,-12 q3,4 -2,12 M${cx},36 q0,-10 6,-12 q1,6 -6,12 M${cx+10},38 q4,-8 10,-8 q-2,6 -10,8`,'#8B7355',{sw:.6})+E(cx+2,42,9,5,'#8B7355',{sw:.6});
+  s+=R(166,48,212,8,'#D3C6AE',{sw:1});
+  s+=R(186,60,172,24,'#6E5A3E',{sw:1,rx:2})+T(cx,77,'きょうりゅう はくぶつかん',{size:13,fill:'#F6E7C1'});
+  for(const x of [184,220,308,344]){s+=R(x,90,16,H-114,pale,{sw:1})+R(x-4,90,24,6,mid,{sw:.8})+R(x-4,H-30,24,6,mid,{sw:.8});for(let k=1;k<4;k++)s+=L(x+k*4,98,x+k*4,H-32,'#DDD2BE',.7);}
   // ガラスの 入口と ほねの かざり
-  s+=R(96,100,64,H-122,'#46545D',{sw:1})+pane(100,104,56,40,n,5,{litRate:1});
-  s+=Pth('M110,132 q18,-16 36,0','none',{sw:2,stroke:'#F3ECDD'})+L(116,126,116,138,'#F3ECDD',1.6)+L(128,122,128,138,'#F3ECDD',1.6)+L(140,126,140,138,'#F3ECDD',1.6);
-  s+=autoDoor(128,H-24,46,50,n,{frame:'#5A4636',mat:'#C9A46A'});
-  for(const [x,c,rows]of [[52,'#8BBF76',['ほね','の','てんじ']],[188,'#E7A15A',['かせき','ほり','たいけん']]])s+=R(x-12,104,24,56,c,{sw:.9})+Pth(`M${x-12},160 l12,6 l12,-6`,c,{sw:.9})+lines(x,118,rows,6,'#FFFFFF',1.45);
-  s+=R(8,H-24,W-16,10,'#D8CDB8',{sw:.9})+R(2,H-14,W-4,12,'#CBBFA8',{sw:.9});
-  if(n)s+=E(cx,H-4,70,8,'#FFE3A0',{sw:0,op:.22});
+  s+=R(240,92,64,H-114,'#46545D',{sw:1})+pane(244,96,56,38,n,5,{litRate:1});
+  s+=Pth(`M${cx-18},124 q18,-16 36,0`,'none',{sw:2,stroke:pale})+L(cx-12,118,cx-12,130,pale,1.6)+L(cx,114,cx,130,pale,1.6)+L(cx+12,118,cx+12,130,pale,1.6);
+  s+=autoDoor(cx,H-26,46,50,n,{frame:'#5A4636',mat:'#C9A46A'});
+  // たれまく（ほねの てんじ・かせき ほり たいけん）
+  for(const [x,c,rows]of [[166,green,['ほね','の','てんじ']],[378,orange,['かせき','ほり','たいけん']]])s+=R(x-12,96,24,58,c,{sw:.9})+Pth(`M${x-12},154 l12,6 l12,-6`,c,{sw:.9})+lines(x,110,rows,6,'#FFFFFF',1.45);
+  // まえの かいだん
+  s+=R(8,H-26,W-16,10,'#D8CDB8',{sw:.9})+R(2,H-16,W-4,14,'#CBBFA8',{sw:.9})+L(180,H-16,364,H-16,'#E6DCCA',1);
+  if(n)s+=E(cx,H-4,120,9,'#FFE3A0',{sw:0,op:.22})+Rn(22,96,134,82,'#FFF1C4',{op:.12})+Rn(388,96,134,82,'#FFF1C4',{op:.12});
   return s;
 }
 // ===== なかよし パズル（ちいさな パズルの お店） =====
@@ -461,24 +485,6 @@ function foodHall(o={}){
   return s;
 }
 // ===== おくじょう ていえん（屋上に 庭の ある たてもの） =====
-function rooftopGarden(o={}){
-  const n=!!o.night,W=256,H=224,cx=144,wall='#E4E7DD';let s=dropShadow(W,H,12);
-  s+=R(8,40,W-16,H-40,wall,{sw:1.3})+sideFace(W-8,40,H-40,9,wall);
-  // 屋上の 木と パーゴラと はな（へりから こぼれる）
-  s+=R(12,26,W-24,16,'#A58F6E',{sw:1});
-  for(const [x,y,r]of [[34,8,18],[70,0,22],[196,4,20],[228,12,15]])s+=L(x,y+r,x,34,'#7A5A40',3)+C(x,y,r,'#6FAE5E',{sw:1})+C(x-r*.3,y-r*.3,r*.5,'#94C48C',{sw:0});
-  s+=R(104,-2,64,6,'#B98E6B',{sw:.8});for(const x of [108,134,160])s+=L(x,4,x,30,'#8C6A52',2);
-  for(let i=0;i<8;i++)s+=Pth(`M${108+i*8},4 q2,8 0,14`,'none',{sw:2.4,stroke:'#B8A2D8'});
-  for(let x=14;x<W-14;x+=9)s+=E(x,40,5,4,'#7FA563',{sw:.5})+C(x+2,38,1.5,['#E8A0B4','#F2D16B','#FFFFFF'][Math.floor(hash(x,1,2)*3)],{sw:0});
-  for(let x=18;x<W-18;x+=22)s+=Pth(`M${x},44 q-4,20 2,40 q-6,16 0,30`,'none',{sw:1.6,stroke:'#6FAE5E'});
-  for(let f=0;f<2;f++){const y=56+f*44;for(let c=0;c<5;c++)s+=pane(22+c*44,y,32,30,n,f*5+c,{tint:'#B9D2C8'});}
-  s+=R(26,148,W-52,22,'#4F8A5B',{sw:1,rx:3})+T(cx-10,163,'おくじょう ていえん ↑',{size:10.5,fill:'#FFFFFF'});
-  s+=R(10,174,W-20,H-176,'#6B5A46',{sw:1})+awning(14,174,228,'#4F8A5B');
-  for(const [x,c]of [[24,'#E8A0B4'],[46,'#F2D16B'],[68,'#B8A2D8'],[196,'#F0A36B'],[218,'#E8738E']]){s+=R(x-8,H-18,16,14,'#8FA1AE',{sw:.7});for(let i=0;i<4;i++)s+=L(x-4+i*3,H-18,x-5+i*3,H-28,'#5E8B5A',.8)+C(x-5+i*3,H-29,2.4,c,{sw:.3});}
-  s+=autoDoor(cx,H-3,48,40,n,{frame:'#4A3A2E',mat:'#4F8A5B'});
-  if(n)s+=E(cx,H-4,60,8,'#FFE3A0',{sw:0,op:.22});
-  return s;
-}
 // ===== ちかみちの 入口（いけぶへ つづく 地下）と おとどけ ぐち =====
 function pavilion(kind,o={}){
   const n=!!o.night,W=128,H=96,cx=80;let s=dropShadow(W,H,9);
@@ -611,22 +617,21 @@ export const IKEBUKURO_PROPS=[
 export const IKEBUKURO_BUILDINGS=[
   {id:'ikebukuro.station',buildingId:'city_station',name:'池袋えき（東口の 駅ビル）',w:12,h:12,door:6,draw:station,details:['ガラスの アーチ天窓','ガラスの 吹きぬけと 横長の まど','駅名と 3つの 路線マーク','まちあわせの 時計','東口の ひさしと 改札ホール','きっぷうりば・コインロッカー・えきの ちず']},
   {id:'ikebukuro.bookstore',buildingId:'ike_annex1',name:'ほんの ギャラリー（おおきな 本やさん）',w:12,h:12,door:6,draw:bookstore,details:['屋上の 庭と BOOKS の 文字','れんがと 石の 柱','本だなの 見える アーチの まど','ひらいた 本の たてかんばん','えほんフェアの かざり まど・本の ワゴン']},
-  {id:'ikebukuro.department',buildingId:'city_clothes',name:'いけぶ えきまえ館（駅の デパート）',w:12,h:13,door:6,draw:department,details:['屋上の はた','おひさまの マークと 館の 名前','ブロンズの たての ひれ','たれまく（あきの おしゃれ・12かい すいぞくかん）','マネキンの ショーウィンドー','アーチの 日よけと 植えこみ']},
+  {id:'ikebukuro.officeblock',buildingId:'city_clothes',name:'えきまえ ビル（駅の となりの ふつうの ビル）',w:12,h:13,door:6,draw:officeBlock,details:['屋上の 水の タンクと アンテナ','よこながの まどと ブラインド','たての テナントの かんばん（カフェ・じむしょ・じゅく）','ガラスの ロビーと あんないばん']},
   {id:'ikebukuro.electronics',buildingId:'ike_electronics',name:'ネリカス電機（10かいの 家電の お店）',w:18,h:14,door:9,top:40,draw:electronics,details:['屋上の 文字の かんばんと ほし','あかい たてかんばん','10かいの 売り場の おび','4K テレビの 大きな 画面','ポイント 10%','ならんだ テレビ・せんたくき・すいはんき・風船']},
   {id:'ikebukuro.arcade',buildingId:'ike_arcade',name:'Meeときょれじゃ（ゲームセンター）',w:13,h:13,door:6,top:60,draw:arcade,details:['まるい Mee の かんばんと でんきゅう','ほしの かざり','ネオンの ときょれじゃ','まどの むこうの クレーンゲーム（3人の ぬいぐるみ）','でんきゅうの ふちの 入口','ガチャと 1かい 100コイン']},
   {id:'ikebukuro.mall',buildingId:'ike_mall',name:'サンシャインいけぶ（モールと 60かいの タワー）',w:15,h:13,door:5,top:154,draw:mall,details:['60かいの タワーと 赤い ランプ','3かいの モール','おおきな アーチの ガラスの 入口','おひさまの マーク','たれまく（12かい すいぞくかん・3かい マルシェ・1かい ファッション）','みぎの 入口と 日よけ']},
-  {id:'ikebukuro.wing_marche',buildingId:'city_market',name:'いけぶ マルシェ館',w:5,h:13,door:2,draw:o=>wing('marche',o),details:['モールと おなじ テラコッタの おび','みどりの 日よけ','くだものの 木箱と こくばん']},
-  {id:'ikebukuro.wing_interior',buildingId:'city_furniture',name:'いけぶ インテリア館',w:5,h:13,door:2,draw:o=>wing('interior',o),details:['モールと おなじ テラコッタの おび','あいいろの 日よけ','ソファと ランプの かざり まど']},
+  {id:'ikebukuro.slim_brick',buildingId:'city_market',name:'れんが ビル（ほそい ふつうの ビル）',w:5,h:13,door:2,draw:o=>slimBuilding('brick',o),details:['れんがの かべ','ベランダの てすり','なまえの いた']},
+  {id:'ikebukuro.slim_glass',buildingId:'city_furniture',name:'あおぞら ビル（ほそい ふつうの ビル）',w:5,h:13,door:2,draw:o=>slimBuilding('glass',o),details:['そらが うつる ガラス','しろい たての ひれ','なまえの いた']},
   {id:'ikebukuro.range',buildingId:'city_range',name:'シューティング レンジ（競技の 射撃場）',w:10,h:7,door:5,top:40,draw:range,details:['屋上の 大きな まと','チャコールと オレンジの おび','レーンと まとの スタンドが 見える まど','あんぜん だいいち・ゴーグル','トロフィーの かざり まど']},
   {id:'ikebukuro.office_tower',buildingId:'ike_office',name:'ままの オフィス（ガラスの タワー）',w:15,h:17,door:7,draw:officeTower,details:['ななめの クラウンと アンテナ','12かいの カーテンウォールと しろい ひれ','はっぱの 会社の マーク','2かいぶんの ロビー（受付・エレベーター）','ひさしと 植えこみの 木']},
   {id:'ikebukuro.office_lobby',buildingId:'city_office',name:'オフィス うけつけ（ロビー館）',w:9,h:12,door:4,draw:officeLobby,details:['屋上の 庭','タワーと おなじ ガラスの おび','うけつけの かんばん','ガラスの ロビー']},
-  {id:'ikebukuro.museum',buildingId:'city_museum',name:'きょうりゅう はくぶつかん',w:8,h:7,door:4,top:66,draw:museum,details:['うしろから のぞく くびの ながい きょうりゅう','石の 三角やねと あしあとの マーク','4本の はしら','ほねの かざりの ガラスの 入口','ほね・かせきの たれまく']},
+  {id:'ikebukuro.museum',buildingId:'city_museum',name:'きょうりゅう はくぶつかん（17マスの 大きな 館）',w:17,h:7,door:8,top:90,draw:museum,details:['うしろから のぞく ブラキオサウルスと ティラノサウルス','石の 三角やねと あしあとの マーク','4本の はしら・ガラスの 入口','りょうがわの てんじしつの ほねの もけい','たれまくと まえの かいだん']},
   {id:'ikebukuro.puzzle',buildingId:'link',name:'なかよし パズル',w:7,h:4,door:3,top:14,draw:puzzleShop,details:['いろとりどりの ブロックの やね','ジグソーの かんばん','玉の ならぶ まど','きょうの もんだい']},
   {id:'ikebukuro.hotel',buildingId:'ike_annex2',name:'ひがしぐち ホテル',w:7,h:10,door:3,draw:hotel,details:['テラコッタの 名前の おび','はなの ある まど','たての HOTEL の 文字','ひさしと 回転ドア・植木']},
   {id:'ikebukuro.cafe',buildingId:'city_cafe',name:'いけぶ カフェテラス',w:6,h:10,door:3,draw:cafe,details:['れんがと アーチの まど','みどりの 日よけ','コーヒーカップの かんばん','テラスの せき・きょうの ケーキ']},
   {id:'ikebukuro.cinema',buildingId:'ike_annex0',name:'シネマ いけぶくろ',w:7,h:10,door:3,draw:cinema,details:['でんきゅうの CINEMA','3まいの ポスター（きょうりゅう・うちゅう・うさぎ）','フィルムの まるい かざり','ポップコーンの きっぷうりば','つぎの じょうえい']},
   {id:'ikebukuro.foodhall',buildingId:'city_reading',name:'いけぶ フードホール',w:7,h:7,door:3,draw:foodHall,details:['木の はりの 名前','フォークと スプーン','ちょうちんと ながい テーブル','メニューの こくばん']},
-  {id:'ikebukuro.garden',buildingId:'ike_annex3',name:'おくじょう ていえん',w:8,h:7,door:4,top:50,draw:rooftopGarden,details:['屋上の 木と ふじだな','へりから こぼれる 花と つた','花やさんの バケツ','みどりの 日よけ']},
   {id:'ikebukuro.koban',buildingId:'ike_koban',name:'ひがしどおり こうばん',w:2,h:3,door:0,top:12,draw:koban,details:['あかい ランプの やね','こうばんの かんばん','まいごの あんない']},
   {id:'ikebukuro.passage',buildingId:'city_gallery',name:'いけぶへの ちかみち（地下の 入口）',w:4,h:3,door:2,top:12,draw:o=>pavilion('passage',o),details:['ガラスの まるい やね','地下へ おりる かいだん','おひさまの マークの あんない','B1']},
   {id:'ikebukuro.parcel',buildingId:'relay',name:'いけぶ おとどけ ぐち',w:4,h:3,door:2,top:12,draw:o=>pavilion('parcel',o),details:['テラコッタの やね','にもつの はこと 台車','ガラスの まどぐち']},

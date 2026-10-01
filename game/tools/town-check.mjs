@@ -10,7 +10,7 @@ for(const id of R.TownRenewal.ids){
   const pictures=styles.map(style=>R.Art.worldSvg('building',{style,w:6,h:4,door:3}).full);
   assert.equal(new Set(pictures).size,styles.length,id+': renamed identical building art');
   assert(new Set(d.objects.filter(o=>R.TownRenewalArt.exclusive(id).includes(o.kind)).map(o=>o.kind)).size>=6,id+': exclusive props');
-  for(const b of old.buildings){const n=d.buildings.find(n=>n.id===b.id);if(!n&&id==='town'&&R.NerikasuLayout.REMOVED[b.id])continue; // オーナーが「なくても よい」と した 建物（js/nerikasu-layout.js）
+  for(const b of old.buildings){const n=d.buildings.find(n=>n.id===b.id);if(!n&&(id==='town'&&R.NerikasuLayout.REMOVED[b.id]||id==='city'&&R.IkebukuroTown.REMOVED[b.id]))continue; // オーナーが「なくても よい」と した 建物（js/nerikasu-layout.js・js/ikebukuro-town.js）
     assert(n,id+': lost building '+b.id);
     // 池袋で いけぶの 中へ つながって いた 建物は ひとこと・ちかみちに かえた（js/ikebukuro-town.js の NOT_MALL）。下で くわしく しらべる
     const notMall=id==='city'&&R.IkebukuroTown.NOT_MALL[b.id];

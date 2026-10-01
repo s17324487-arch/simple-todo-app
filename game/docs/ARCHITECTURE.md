@@ -1109,6 +1109,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 電車は `TownRenewal.drawMoving` の あとに 2へんせい（`ikebukuro.train`・昼夜の 2つ）。夜の あかりは `HeiwadaiLife.lights` の あと。夜の 絵は `HeiwadaiTown.canvas` を つつんで えらぶ（キーは 絵の ID × 昼夜）。
 - サンシャインいけぶ（`venue: "mall"`）に 入れるのは `ike_mall` の 入口 2つ だけ（TOWN-IKE-02）。`ikebukuro-district.js` の `changed` で いけぶに つながって いた 7つの 建物は `IkebukuroTown.NOT_MALL` の act に 上がき: ひとこと（`visit`）と ちかみち（`walkway`: `act.to` は install で いけぶの 大きい 入口の まえ）。`town-check.mjs` が「いけぶに 入れる 入口は ike_mall だけ」を しらべる。
 - はくぶつかん・射撃場の 出入り口: 生成データの `MUSEUM_DATA.buildings.museum.outside`・`MAP_DEFS.museum.warps`・`RANGE_DATA.outside` を install で 新しい 入口に あわせる（生成データは 手で なおさない）。
+- ふつうの ビルと 大きな はくぶつかん（TOWN-IKE-03）: えきまえ館・マルシェ館・インテリア館（`city_clothes`・`city_market`・`city_furniture`）は「えきまえ ビル」「れんが ビル」「あおぞら ビル」（絵 `ikebukuro.officeblock`・`slim_brick`・`slim_glass`。`NOT_MALL` の ひとことも ふつうの ビルの ことばに）。おくじょう ていえん（`ike_annex3`）は けして `IkebukuroTown.REMOVED` に（`town-check.mjs` は これだけ「なくなった」を ゆるす）、きょうりゅう はくぶつかんを その ばしょまで 8 → 17マス（`city_museum` x 33・入口 8）に。中の 館は かえない（入口と 出口は 上の しくみで あう）。
 - 町の はしの そとは `def.edgeColor`（scene-world.js の 背景。ほかの 町は いままでの 草の 色）。
 - 検査: `tools/check-ikebukuro.mjs`（配置イメージの ならび・駅から すべての 入口へ・絵の 登録）・`tools/town-check.mjs`（入口 2つの 建物は `doors` の それぞれを しらべる）・`node tools/build-ikebukuro-town.mjs --check`。
 

@@ -2880,6 +2880,29 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  const after=await H.dbg('saveData');for(const k of ['coins','bag','wardrobe','furn'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'入口で 持ち物が 変わる '+k);
 },{viewport,timeout:120000});
 
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('ikebukuro-buildings-'+viewport.width,async H=>{
+ // 池袋の ふつうの ビル と 大きな はくぶつかん（オーナーの FB 2026-10-01「池袋のマルシェ館とインテリア館、サンシャイン池袋駅前館は普通のビルに改めなさい。屋上庭園は削除し、恐竜博物館を大きくしなさい」）
+ await H.newGameFast();await H.dbg('hour',12);await H.dbg('weather','clear');const before=await H.dbg('saveData');
+ const B=await H.eval(()=>MAP_DEFS.city.buildings.map(b=>({id:b.id,x:b.x,y:b.y,w:b.w,h:b.h,door:b.door,label:b.label||'',asset:b.asset,act:b.act||null})));
+ const by=id=>B.find(b=>b.id===id),labels=B.map(b=>b.label).join('／');
+ expect(!by('ike_annex3')&&!/ていえん|マルシェ館|インテリア館|えきまえ館/.test(labels),'おくじょう ていえん・いけぶの 別館が のこって いる '+labels);
+ for(const [id,label,asset] of [['city_clothes','えきまえ ビル','ikebukuro.officeblock'],['city_market','れんが ビル','ikebukuro.slim_brick'],['city_furniture','あおぞら ビル','ikebukuro.slim_glass']]){
+  const b=by(id);expect(b&&b.label===label&&b.asset===asset&&b.act.type==='visit'&&/ふつうの ビル/.test(b.act.text)&&!/いけぶの いりぐち|じゅんびちゅう/.test(b.act.text),'ふつうの ビル '+id+' '+JSON.stringify(b));}
+ const mu=by('city_museum');expect(mu.x===33&&mu.y===38&&mu.w===17&&mu.h===7&&mu.door===8&&mu.asset==='ikebukuro.museum'&&mu.act.type==='indoor','はくぶつかんが 大きく ない '+JSON.stringify(mu));
+ // はくぶつかんの まえの みち（いりぐちの まえ）・ほかの 建物と かさならない
+ expect(B.every(b=>b===mu||b.x+b.w<=mu.x||b.x>=mu.x+mu.w||b.y+b.h<=mu.y||b.y>=mu.y+mu.h),'はくぶつかんが ほかの 建物と かさなる');
+ const said=t=>H.until(t=>document.querySelector('.dlg-text')?.textContent.includes(t),10000,t);
+ // まちで みる: えきまえ ビル（駅の となり）・れんが ビルと あおぞら ビル（Mee と いけぶの あいだ）→ はいると ひとこと
+ for(const [id,tag] of [['city_clothes','station'],['city_market','slim']]){
+  const b=by(id),d=[b.x+b.door,b.y+b.h-1];await H.dbg('teleport','city',d[0],d[1]+2,'up');await H.idle();await H.wait(900);await H.shot(tag);
+  await H.dbg('walkTo',d[0],d[1]);await said(b.act.text.split('\n')[0].slice(0,10));await H.dialogs();await H.idle();
+  const st=await H.dbg('state');expect(st.scene==='world'&&st.map==='city','ふつうの ビルに はいって しまう '+id+' '+JSON.stringify(st));}
+ // はくぶつかん（ひる・よる）。ひるの 画面に はくぶつかんの なまえの いた
+ const md=[mu.x+mu.door,mu.y+mu.h-1];
+ for(const [tag,hour] of [['museum',12],['museum-night',21]]){await H.dbg('hour',hour);await H.dbg('teleport','city',md[0],md[1]+3,'up');await H.idle();await H.wait(900);await H.shot(tag);}
+ await H.dbg('hour',12);
+ const after=await H.dbg('saveData');for(const k of ['coins','bag','wardrobe','furn'])expect(JSON.stringify(after[k])===JSON.stringify(before[k]),'もちものが かわる '+k);
+},{viewport,full:viewport.width===375,timeout:120000});
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('ikebukuro-mall-'+viewport.width,async H=>{
  // サンシャインいけぶ（斜め上から 見る モール・js/iso-venue.js・mall-art.js・ike-mall.js）: 1F〜3F・タップで あるく・台を タップして かう・フロアマップ・エレベーター・エスカレーター・ステージ
  await H.newGameFast();await H.dbg('coins',99850);await H.dbg('hour',12);
