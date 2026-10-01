@@ -165,7 +165,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
 | — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
 | — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
-| — | `collab-goods.js` / `puzzle-collab.js`（gacha.js の あと・item-dex-sources.js の まえ） | `CollabGoods` ／ `PuzzleCollab` |
+| — | `collab-goods.js` / `puzzle-collab.js` / `korokoro-collab.js`（gacha.js・korokoro-score.js の あと・item-dex-sources.js の まえ） | `CollabGoods` ／ `PuzzleCollab` ／ `KorokoroCollab` |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1100,10 +1100,12 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 ### 屋外のお庭
 `HomeGarden`（`js/home-garden.js`）は部屋ID `yard` の固定背景と初期配置。既存 `garden`（サンルーム）とは別。`HomeRooms.purchase()` は購入と家具の付与をバックアップ検査・書込成功まで一括処理する。室内/庭の家具は共有在庫で、配置・プリセット・拡張は部屋ごと。庭の壁紙・床は固定で、壁掛け家具の追加は不可。`PokaDebug.homeRoom(id)` は所有済み部屋の切替。
 
-### コラボ グッズ（UI-18・`js/collab-goods.js`・`js/puzzle-collab.js`）
+### コラボ グッズ（UI-18・UI-19・`js/collab-goods.js`・`js/puzzle-collab.js`・`js/korokoro-collab.js`）
 
-- `CollabGoods.register(line)`: `line = { id, name, game, unit, seed(), items: [{ id, need, kind: "wear" | "furn", name, desc, … }] }`。服は `WEAR_ITEMS`・`ITEM_INDEX`（`exclusive: "collab"`・`collab: ライン`）、家具は `FURNITURE`・`FURN_INDEX`・`FURN_ART`（`HomeDesign.model(id).full`）。`BUY_SHOPS` は exclusive を ならべない（ikebukuro-catalog.js）。
+- `CollabGoods.register(line)`: `line = { id, name, game, unit, seed(), lead?, items: [{ id, need, kind: "wear" | "furn", name, desc, sleep?, … }] }`（`lead` は まとめの せつめい・`sleep` は ベッドの 家具に わたす）。服は `WEAR_ITEMS`・`ITEM_INDEX`（`exclusive: "collab"`・`collab: ライン`）、家具は `FURNITURE`・`FURN_INDEX`・`FURN_ART`（`HomeDesign.model(id).full`）。`BUY_SHOPS` は exclusive を ならべない（ikebukuro-catalog.js）。
 - セーブ: `Save.d.collab[ライン] = { total: つみたての スコア, got: { id: もらった 日 } }`（fresh は `collab: {}`。ラインは `state(ライン)` が はじめて よむ ときに `seed()` で つくる）。`add(ライン, スコア)` が つみたてて、とどいた ものを `Save.d.wardrobe`／`Save.d.furn` に いれる（2かいは わたさない）。
 - 画面: `section(ライン)`（うけつけ: メーター・カード）・`result(ライン, もらった もの, たした スコア)`（けっか）・`card()`。ずかんの ヒントは `ItemDexSources.source` が いちばん はじめに `CollabGoods.source(id)` を みる。
 - `PuzzleCollab`: グッズ 5しゅ（`pc_hoodie`・`pc_cushion`・`pc_band`・`pc_table`・`pc_arcade`）・`WEAR.pc_hoodie`・`WEAR.pc_band`（IkeWear の ぶひん）・`FurnModels.register`・`FurnLive.register`。3人は `Chara.svg` の なかみを `<g transform>` で うめこむ（いれこの `<svg>` に すると CSS の `.ico svg { width: 100% }` などで くずれる）。
 - `PuzzleArcade.settle` は `CollabGoods.state("puzzle")` を ベストを かえる まえに よむ（はじめての つみたてに この 1かいを 2かい たさない）。`rec.last.collab` に もらった id。
+- `KorokoroCollab`（UI-19）: グッズ 5しゅ（`kc_tee`・`kc_pool`・`kc_cap`・`kc_bed`〔`sleep: 2`〕・`kc_plush`）・`WEAR.kc_tee`・`WEAR.kc_cap`・`FurnModels.register`・`FurnLive.register`（3つとも live。玉は `KorokoroArt.draw`・かざりは `SvgCache` の キー `kcbit:しゅるい:ピクセル`）。玉の 絵は `KorokoroArt.svg` の なかみを `<g transform>` で うめこむ。`seed()` は ランキング（`shops.korokoro.tops`）の ごうけい（なければ ハイスコア）。
+- `KorokoroScoreScene.results` は `CollabGoods.state("korokoro")` を `KorokoroScore.record` の まえに よみ、`add("korokoro", てん)` で たす。きろくの まど（`KorokoroScore.openRecords`）の「コラボ」タブは `CollabGoods.section("korokoro")`。

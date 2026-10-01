@@ -5,7 +5,7 @@
 // 服は WEAR_ITEMS（Save.d.wardrobe）、家具は FURNITURE（Save.d.furn・FurnModels の 立体）。どちらも おみせに ならばない（exclusive）。
 const CollabGoods = {
   LINES: {},
-  // line: { id, name（コラボの なまえ）, game（ゲームの なまえ）, unit（"pt" など）, seed(), items: [{ id, need, kind: "wear" | "furn", name, desc, … }] }
+  // line: { id, name（コラボの なまえ）, game（ゲームの なまえ）, unit（"pt" など）, seed(), lead（まとめの せつめい・なくても よい）, items: [{ id, need, kind: "wear" | "furn", name, desc, sleep（ベッド）, … }] }
   register(line) {
     this.LINES[line.id] = line;
     for (const it of line.items) {
@@ -15,6 +15,7 @@ const CollabGoods = {
         WEAR_ITEMS.push(w); ITEM_INDEX[it.id] = w;
       } else {
         const f = { id: it.id, name: it.name, price: 0, rare: true, exclusive: "collab", collab: line.id, kind: "floor", w: it.w, depth: it.depth, h: it.h, comfort: it.comfort || 8, interactive: true, desc: it.desc };
+        if (it.sleep) f.sleep = it.sleep; // ベッド（おうちの「ねる」で ごきげんが ふえる）
         FURNITURE.push(f); FURN_INDEX[it.id] = f;
         FURN_ART[it.id] = () => HomeDesign.model(it.id).full;
       }
@@ -64,7 +65,7 @@ const CollabGoods = {
     const L = this.LINES[lineId], st = this.state(lineId), nx = this.next(lineId), box = U.el("div", { class: "collab-box collab-" + lineId });
     const top = nx ? nx.need : L.items[L.items.length - 1].need, k = Math.max(0, Math.min(1, st.total / top));
     box.append(U.el("div", { class: "collab-head", html: `<span class="collab-eyebrow">ごわが × ${L.game}</span><h3>${L.name}</h3>` +
-      `<p>あそんだ スコアを ぜんぶ たして（つみたて）、めやすに とどくと げんていの ふくや かぐが もらえるよ。</p>` +
+      `<p>${L.lead || "あそんだ スコアを ぜんぶ たして（つみたて）、めやすに とどくと げんていの ふくや かぐが もらえるよ。"}</p>` +
       `<div class="collab-total"><b>つみたて ${U.fmt(st.total)} ${L.unit}</b><span>${nx ? `つぎ「${nx.name}」まで あと ${U.fmt(nx.need - st.total)} ${L.unit}` : "ぜんぶ そろったよ！"}</span></div>` +
       `<div class="collab-meter"><i style="width:${(k * 100).toFixed(1)}%"></i></div>` }));
     for (const it of L.items) box.append(this.card(it, !!st.got[it.id], Math.max(0, it.need - st.total)));
