@@ -1,12 +1,26 @@
-// ぷりくら（Meeときょれじゃ の しゃしんの ブース・UI-11）: 300コイン → はいけいを えらぶ → 4まい とる（ポーズ・かお・アップ／ぜんしん・3・2・1）→ らくがき（ペン・スタンプ・もじ）→ すまほの「しゃしん」アプリで みる。
+// ぷりくら（Meeときょれじゃ 3F の しゃしんの ブース 3台・UI-11／UI-21）: 300コイン → はいけいを えらぶ → 4まい とる（ポーズ・かお・アップ／ぜんしん・3・2・1）→ らくがき（ペン・スタンプ・もじ）→ すまほの「しゃしん」アプリで みる。
+// ブースは 3つの コンセプト（ゆめかわ・がっこう・おでかけ）。ブースごとに はいけい 6つ・わくの いろ・ことばが ちがう（BOOTHS）。
 // ほんものの プリクラと おなじ ながれ（お金を いれる → はいけい → さつえい → らくがき → スマホで みる）。
 // しゃしんは 画像では なく 絵の データ（Save.d.photos）。みる ときに 描く ので セーブが 大きく ならない。しゃしんの 座標は 300×400（たて）。
 // 3人は Chara.draw、はいけい・スタンプは SvgCache（キーは しゅるいと 3だんかいの 大きさ だけ）。
 const Purikura = (() => {
   const PW = 300, PH = 400, MAX = 60, SHOTS = 4, PRICE = 300;
   const BGS = [
+    // ゆめかわ
     { id: "yume", name: "ゆめかわ" }, { id: "hana", name: "おはな" }, { id: "hoshi", name: "ほしぞら" },
     { id: "umi", name: "うみ" }, { id: "heart", name: "ハート" }, { id: "mee", name: "Mee" },
+    // がっこう
+    { id: "kyoshitsu", name: "きょうしつ" }, { id: "rouka", name: "ろうか" }, { id: "taiiku", name: "たいいくかん" },
+    { id: "kotei", name: "こうてい" }, { id: "okujo", name: "おくじょう" }, { id: "toshokan", name: "としょしつ" },
+    // おでかけ
+    { id: "yuenchi", name: "ゆうえんち" }, { id: "matsuri", name: "おまつり" }, { id: "cafe", name: "カフェ" },
+    { id: "suizoku", name: "すいぞくかん" }, { id: "uchu", name: "うちゅう" }, { id: "oshiro", name: "おしろ" },
+  ];
+  // ブース（Meeときょれじゃ 3F の 3台。id と なまえは js/ike-arcade.js の IkeArcade.BOOTHS と おなじ）。はいけい 6つ・わくの いろ（col・line）・わくの もじ（logo）・ことば（words は ぜんぶの ブースの WORDS の まえに ならぶ）
+  const BOOTHS = [
+    { id: "yume", name: "ゆめかわ", logo: "Mee ぷりくら", bgs: ["yume", "hana", "hoshi", "umi", "heart", "mee"], col: "#FF7BA8", line: "#FF9EC4", words: [] },
+    { id: "school", name: "がっこう", logo: "Mee がっこう", bgs: ["kyoshitsu", "rouka", "taiiku", "kotei", "okujo", "toshokan"], col: "#4A67B0", line: "#9FB3DE", words: ["おなじ クラス", "がっこう だいすき", "なかよし はん"] },
+    { id: "odekake", name: "おでかけ", logo: "Mee おでかけ", bgs: ["yuenchi", "matsuri", "cafe", "suizoku", "uchu", "oshiro"], col: "#2E9CC9", line: "#9FD8EC", words: ["おでかけ だいすき", "また いこうね", "たのしい いちにち"] },
   ];
   // ポーズ（キャラ素材の ポーズ）。よこむき は りょうはしの 2人が まんなかを むく
   const POSES = [
@@ -28,7 +42,9 @@ const Purikura = (() => {
   const WORDS = ["なかよし", "だいすき", "ずっと いっしょ", "ぽかぽか", "イェーイ", "ともだち", "たのしい！", "Mee"];
   const LIMIT = { strokes: 40, points: 1500, stamps: 30, texts: 6, word: 10 };
   const INDEX = (list) => Object.fromEntries(list.map((x) => [x.id, x]));
-  const BG = INDEX(BGS), POSE = INDEX(POSES), FACE = INDEX(FACES), STAMP = INDEX(STAMPS);
+  const BG = INDEX(BGS), POSE = INDEX(POSES), FACE = INDEX(FACES), STAMP = INDEX(STAMPS), BOOTH = INDEX(BOOTHS);
+  // はいけいの ある ブース（ふるい しゃしんは ゆめかわ）
+  const boothOf = (bg) => BOOTHS.find((b) => b.bgs.includes(bg)) || BOOTHS[0];
 
   // ---- せんの データ（色 1もじ・太さ 1もじ・点は x y を 2もじずつ。0〜4095）----
   const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -44,7 +60,8 @@ const Purikura = (() => {
   const word = (t) => (typeof t === "string" ? t.replace(/[<>&"'`\u0000-\u001f]/g, "").slice(0, LIMIT.word) : "");
 
   // ---- しゃしん 1まい（セーブの かたち）をたしかめる。こわれて いれば null。つかえない ぶぶんは すてる ----
-  // { id, t, bg, z: 0 ぜんしん|1 アップ, r: [3人の じゅんばん], c: { だれ: [ポーズ, かお] }, o: { だれ: [服, いろ] }, d: { p: [せん], s: [[スタンプ, x, y, 大きさ]], x: [[ことば, x, y, いろ]] } }
+  // { id, t, bg, k: ブース, z: 0 ぜんしん|1 アップ, r: [3人の じゅんばん], c: { だれ: [ポーズ, かお] }, o: { だれ: [服, いろ] }, d: { p: [せん], s: [[スタンプ, x, y, 大きさ]], x: [[ことば, x, y, いろ]] } }
+  // k が ない（UI-21 より まえの）しゃしんは はいけいの ブース
   const clean = (p) => {
     if (!p || typeof p !== "object" || typeof p.id !== "string" || !/^[a-z0-9-]{3,40}$/.test(p.id)) return null;
     const ids = Chara.IDS, r = Array.isArray(p.r) && p.r.length === 3 && p.r.every((id) => ids.includes(id)) && new Set(p.r).size === 3 ? p.r.slice() : ids.slice();
@@ -60,7 +77,8 @@ const Purikura = (() => {
     const strokes = (Array.isArray(d.p) ? d.p : []).filter((s) => { const u = unpackStroke(s); if (!u || pts + u.pts.length > LIMIT.points) return false; pts += u.pts.length; return true; }).slice(0, LIMIT.strokes);
     const stamps = (Array.isArray(d.s) ? d.s : []).filter((s) => Array.isArray(s) && STAMP[s[0]]).map((s) => [s[0], num(s[1], 0, PW), num(s[2], 0, PH), num(s[3], 0, 2)]).filter((s) => s.every((v) => v !== null)).slice(0, LIMIT.stamps);
     const texts = (Array.isArray(d.x) ? d.x : []).filter((s) => Array.isArray(s) && word(s[0])).map((s) => [word(s[0]), num(s[1], 0, PW), num(s[2], 0, PH), num(s[3], 0, PENS.length - 1)]).filter((s) => s.every((v) => v !== null)).slice(0, LIMIT.texts);
-    return { id: p.id, t: num(p.t, 0, 9e15) || 0, bg: BG[p.bg] ? p.bg : "yume", z: p.z ? 1 : 0, r, c, o, d: { p: strokes, s: stamps, x: texts } };
+    const bg = BG[p.bg] ? p.bg : "yume", k = BOOTH[p.k] && BOOTH[p.k].bgs.includes(bg) ? p.k : boothOf(bg).id;
+    return { id: p.id, t: num(p.t, 0, 9e15) || 0, bg, k, z: p.z ? 1 : 0, r, c, o, d: { p: strokes, s: stamps, x: texts } };
   };
   // 描く ための かたち（せんを 点の ならびに もどす）
   const unpacked = new WeakMap();
@@ -68,8 +86,10 @@ const Purikura = (() => {
 
   const st = () => { const s = Save.d.purikura || (Save.d.purikura = { plays: 0, active: null, taken: 0 }); if (!Array.isArray(Save.d.photos)) Save.d.photos = []; return s; };
   return {
-    PW, PH, MAX, SHOTS, PRICE, BGS, POSES, FACES, PENS, PEN_W, STAMPS, STAMP_SIZE, WORDS, LIMIT, BG, POSE, FACE, STAMP,
-    packStroke, unpackStroke, clean, view, st,
+    PW, PH, MAX, SHOTS, PRICE, BGS, BOOTHS, POSES, FACES, PENS, PEN_W, STAMPS, STAMP_SIZE, WORDS, LIMIT, BG, BOOTH, POSE, FACE, STAMP,
+    packStroke, unpackStroke, clean, view, st, boothOf,
+    // ブースで つかえる ことば（ブースの ことば → みんなの ことば）
+    wordsOf(booth) { const b = BOOTH[booth] || BOOTHS[0]; return [...b.words, ...WORDS]; },
     // こわれて いない しゃしん（ふるい じゅん）。こわれた ものは セーブから のぞく
     list() { st(); const ok = Save.d.photos.map(clean).filter(Boolean); if (ok.length !== Save.d.photos.length || ok.some((p, i) => JSON.stringify(p) !== JSON.stringify(Save.d.photos[i]))) Save.d.photos = ok; return Save.d.photos; },
     full() { return this.list().length > MAX - SHOTS; },
@@ -90,14 +110,14 @@ const Purikura = (() => {
     remove(id) { const n = this.list().length; Save.d.photos = Save.d.photos.filter((p) => p.id !== id); if (Save.d.photos.length !== n) { Save.write(); return true; } return false; },
     // いまの 3人の 服（しゃしんに のこす）
     outfits() { const o = {}; for (const id of Chara.IDS) { const c = Save.d.chars[id]; o[id] = [{ ...(c.outfit || {}) }, c.color === "dark" ? "dark" : "soft"]; } return o; },
-    // ブースを しらべた とき（館の 什器 photobooth）
-    async open(back) {
-      const s = st();
-      if (s.active) { if (await UI.confirm("とちゅうだった ぷりくらが あるよ。\nおかねは はらわずに もういちど とる？", "もういちど とる", "やめる")) Game.goto("purikura", { back }); return; }
+    // ブースを しらべた とき（館の 什器 photobooth。booth = ブースの id）
+    async open(back, booth) {
+      const s = st(), b = BOOTH[booth] || BOOTHS[0];
+      if (s.active) { if (await UI.confirm("とちゅうだった ぷりくらが あるよ。\nおかねは はらわずに もういちど とる？", "もういちど とる", "やめる")) Game.goto("purikura", { back, booth: b.id }); return; }
       if (this.full()) { await UI.say([{ name: "ぷりくら", text: "すまほの しゃしんが いっぱい。\n「しゃしん」アプリで いらない しゃしんを けしてから きてね。" }]); return; }
-      if (!(await UI.confirm(`ぷりくら 1かい ${PRICE}コイン。\nはいけいを えらんで 4まい とって、ペンや スタンプで らくがき できるよ。\nとった しゃしんは すまほの「しゃしん」アプリで みられるよ。`, `${PRICE}コインで とる`, "やめる"))) return;
+      if (!(await UI.confirm(`${b.name} ぷりくら 1かい ${PRICE}コイン。\nはいけい: ${b.bgs.map((id) => BG[id].name).join("・")}\n4まい とって、ペンや スタンプで らくがき できるよ。とった しゃしんは すまほの「しゃしん」アプリで みられるよ。`, `${PRICE}コインで とる`, "やめる"))) return;
       if (!this.pay()) { UI.toast("コインが たりないよ"); return; }
-      Game.goto("purikura", { back });
+      Game.goto("purikura", { back, booth: b.id });
     },
     dateText(t) { const d = new Date(t || Date.now()); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; },
   };
@@ -131,6 +151,152 @@ const PurikuraArt = (() => {
       <rect x="40" y="46" width="220" height="92" rx="24" fill="none" stroke="#FF8FB8" stroke-width="7" opacity="0.9"/><rect x="40" y="46" width="220" height="92" rx="24" fill="none" stroke="#FFFFFF" stroke-width="2"/>
       <text x="150" y="113" font-size="58" font-weight="900" text-anchor="middle" fill="#FFE3EF" stroke="#FF8FB8" stroke-width="3" font-family="'M PLUS Rounded 1c',sans-serif">Mee</text>
       ${scatter(24, 9, (x, y, r, i) => star(x, 150 + (y % 250), 3 + r * 5, ["#FFE07A", "#7FD3F0", "#FF8FB8"][i % 3]))}`),
+    // ---- がっこう（ブース「がっこう」）----
+    // きょうしつ: こくばん（チョークの らくがき・3人の にがおえ・にっちょく）・とけい・きの ゆか
+    kyoshitsu: () => {
+      const chs = `stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"`, ch = `fill="none" ${chs}`;
+      return svg(300, 400, `<defs>${grad("pk-kyo", [[0, "#FFF4DA"], [1, "#F4DDB2"]])}</defs><rect width="300" height="400" fill="url(#pk-kyo)"/>
+      <rect y="292" width="300" height="108" fill="#D9A46A"/>${[0, 1, 2, 3, 4].map((k) => `<path d="M0 ${304 + k * 20} H300" stroke="#C48C52" stroke-width="2"/>`).join("")}${[40, 130, 220].map((x, k) => `<path d="M${x + k * 12} 292 V400" stroke="#C48C52" stroke-width="1.6" opacity="0.6"/>`).join("")}
+      <rect x="20" y="46" width="260" height="152" rx="6" fill="#B98552" stroke="${K}" stroke-width="3"/><rect x="30" y="56" width="240" height="130" rx="3" fill="#3E7A5C"/>
+      <path d="M36 62 L120 62" stroke="#FFFFFF" stroke-width="3" opacity="0.08"/>
+      <text x="112" y="104" font-size="30" font-weight="900" text-anchor="middle" fill="#FFFFFF" opacity="0.92" font-family="'M PLUS Rounded 1c',sans-serif">なかよし</text>
+      <path d="M58 116 Q112 128 166 116" ${ch}/>
+      <g transform="translate(60 152)"><circle r="14" ${ch}/><path d="M-12 -6 q-8 -10 -2 -14 M12 -6 q8 -10 2 -14" ${ch}/><circle cx="-5" cy="-2" r="1.4" fill="#FFFFFF"/><circle cx="5" cy="-2" r="1.4" fill="#FFFFFF"/><path d="M-4 5 q4 3 8 0" ${ch}/></g>
+      <g transform="translate(100 152)"><circle r="13" ${ch}/><path d="M-3 2 L0 7 L3 2" ${ch}/><circle cx="-5" cy="-3" r="1.4" fill="#FFFFFF"/><circle cx="5" cy="-3" r="1.4" fill="#FFFFFF"/><path d="M-6 -13 q6 -6 12 0" ${ch}/></g>
+      <g transform="translate(140 152)"><path d="M-13 12 Q-15 -14 0 -14 Q15 -14 13 12 Z" ${ch}/><path d="M-6 -14 l3 -6 l3 6 M2 -14 l3 -6 l3 6" ${ch}/><circle cx="-5" cy="-3" r="1.4" fill="#FFFFFF"/><circle cx="5" cy="-3" r="1.4" fill="#FFFFFF"/><path d="M-6 5 h12" ${ch}/></g>
+      ${heart(196, 92, 9, "none", chs)}${star(232, 82, 10, "none", chs)}<path d="M200 128 q10 -12 20 0 t20 0" ${ch}/>
+      <rect x="212" y="140" width="50" height="38" rx="3" ${ch}/><text x="237" y="155" font-size="9" font-weight="800" text-anchor="middle" fill="#FFFFFF" opacity="0.9" font-family="'M PLUS Rounded 1c',sans-serif">にっちょく</text><text x="237" y="172" font-size="11" font-weight="900" text-anchor="middle" fill="#FFE07A" font-family="'M PLUS Rounded 1c',sans-serif">わんこ</text>
+      <rect x="26" y="194" width="248" height="9" rx="3" fill="#A87444" stroke="${K}" stroke-width="2"/>${[[70, "#FFFFFF"], [86, "#FFB3CF"], [102, "#FFE07A"]].map(([x, c]) => `<rect x="${x}" y="190" width="12" height="5" rx="2" fill="${c}" stroke="${K}" stroke-width="1"/>`).join("")}
+      <circle cx="150" cy="24" r="15" fill="#FFFFFF" stroke="${K}" stroke-width="3"/><path d="M150 24 V14 M150 24 L157 28" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>
+      ${[[6, 210], [246, 210]].map(([x, y]) => `<rect x="${x}" y="${y}" width="48" height="12" rx="2" fill="#E9C38E" stroke="${K}" stroke-width="2"/><path d="M${x + 6} ${y + 12} V${y + 70} M${x + 42} ${y + 12} V${y + 70}" stroke="#8C8C8C" stroke-width="3"/>`).join("")}`);
+    },
+    // ろうか: おくへ のびる ろうか（ひだりに まど・みぎに きょうしつの ドアと ふだ・てんじょうの あかり）
+    rouka: () => {
+      const L = (d, f) => { const yt = 120 * d, yb = 400 - 200 * d; return [110 * d, yt + f * (yb - yt)]; }, R = (d, f) => { const [x, y] = L(d, f); return [300 - x, y]; };
+      const quad = (P, d0, d1, f0, f1, fill, extra = "") => { const a = P(d0, f0), b = P(d1, f0), c = P(d1, f1), e = P(d0, f1); return `<path d="M${f1v(a)} L${f1v(b)} L${f1v(c)} L${f1v(e)} Z" fill="${fill}" stroke="${K}" stroke-width="2" ${extra}/>`; };
+      const f1v = ([x, y]) => `${f1(x)} ${f1(y)}`;
+      return svg(300, 400, `<defs>${grad("pk-rousky", [[0, "#8FD0FF"], [1, "#E2F6FF"]])}</defs><rect width="300" height="400" fill="#EEF3EF"/>
+      <path d="M0 0 L300 0 L190 120 L110 120 Z" fill="#FAFCFA"/><path d="M0 400 L110 200 L190 200 L300 400 Z" fill="#CDD8C6"/>
+      ${[0.12, 0.38, 0.64].map((d) => { const a = L(d, 0), b = R(d, 0); return `<path d="M${f1(a[0] + 18 * (1 - d))} ${f1(a[1] + 8)} L${f1(b[0] - 18 * (1 - d))} ${f1(b[1] + 8)}" stroke="#FFFFFF" stroke-width="${f1(6 * (1 - d) + 2)}" stroke-linecap="round"/>`; }).join("")}
+      ${[0.2, 0.5, 0.8].map((d) => { const a = L(d, 1), b = R(d, 1); return `<path d="M${f1v(a)} L${f1v(b)}" stroke="#B9C6B1" stroke-width="1.6"/>`; }).join("")}
+      <path d="M150 400 L150 200" stroke="#E3EADF" stroke-width="10" opacity="0.6"/>
+      <path d="M0 0 L110 120 L110 200 L0 400 Z" fill="#E1EAE3"/><path d="M300 0 L190 120 L190 200 L300 400 Z" fill="#E8EFE9"/>
+      ${[[0.04, 0.3], [0.38, 0.62], [0.7, 0.9]].map(([d0, d1]) => quad(L, d0, d1, 0.18, 0.55, "url(#pk-rousky)") + (() => { const m = L((d0 + d1) / 2, 0.18), n = L((d0 + d1) / 2, 0.55); return `<path d="M${f1v(m)} L${f1v(n)}" stroke="${K}" stroke-width="1.6"/>`; })()).join("")}
+      ${[[0.05, 0.3, "1-1"], [0.45, 0.66, "1-2"]].map(([d0, d1, t]) => { const dm = (d0 + d1) / 2, [px, py] = R(dm, 0.12), k = 1 - dm * 0.7, pw = 34 * k, ph = 15 * k; return quad(R, d0, d1, 0.2, 0.9, "#C69A6B") + quad(R, d0 + (d1 - d0) * 0.55, d1 - (d1 - d0) * 0.12, 0.32, 0.5, "#E6F4FF") + `<rect x="${f1(px - pw / 2)}" y="${f1(py - ph / 2)}" width="${f1(pw)}" height="${f1(ph)}" rx="3" fill="#FFFFFF" stroke="${K}" stroke-width="1.6"/><text x="${f1(px)}" y="${f1(py + ph * 0.32)}" font-size="${f1(11 * k)}" font-weight="900" text-anchor="middle" fill="${K}" font-family="'M PLUS Rounded 1c',sans-serif">${t}</text>`; }).join("")}
+      <rect x="110" y="120" width="80" height="80" fill="#F4F7F3" stroke="${K}" stroke-width="2"/><rect x="124" y="132" width="52" height="40" fill="url(#pk-rousky)" stroke="${K}" stroke-width="1.6"/><path d="M150 132 V172" stroke="${K}" stroke-width="1.2"/>
+      ${scatter(5, 21, (x, y) => `<ellipse cx="${f1(20 + (x % 70))}" cy="${f1(110 + (y % 60))}" rx="7" ry="2.6" fill="#FFFFFF" opacity="0.7"/>`)}`);
+    },
+    // たいいくかん: きの ゆか（コートの せん）・バスケットの ゴール・うえの まど・さんかくの はた
+    taiiku: () => svg(300, 400, `<defs>${grad("pk-tai", [[0, "#F6EAD2"], [1, "#EBD6B0"]])}${grad("pk-taifl", [[0, "#E9BC7E"], [1, "#D49A57"]])}</defs><rect width="300" height="400" fill="url(#pk-tai)"/>
+      <rect y="18" width="300" height="40" fill="#E4D2B0"/>${[0, 1, 2, 3, 4, 5].map((k) => `<rect x="${8 + k * 50}" y="22" width="40" height="30" rx="3" fill="#CFEFFF" stroke="${K}" stroke-width="2"/><path d="M${28 + k * 50} 22 V52" stroke="${K}" stroke-width="1.2"/>`).join("")}
+      <path d="M0 66 Q75 84 150 66 Q225 84 300 66" fill="none" stroke="${K}" stroke-width="1.6"/>${Array.from({ length: 12 }, (_, k) => { const x = 12 + k * 25, y = 66 + Math.sin(((k + 0.5) / 12) * Math.PI * 2) * 0 + (k % 6 < 3 ? (k % 6) * 6 : (5 - (k % 6)) * 6) * 0.5; return `<path d="M${x - 8} ${f1(70 + Math.abs(Math.sin((k * Math.PI) / 6)) * 8)} L${x + 8} ${f1(70 + Math.abs(Math.sin((k * Math.PI) / 6)) * 8)} L${x} ${f1(86 + Math.abs(Math.sin((k * Math.PI) / 6)) * 8)} Z" fill="${["#FF7BA8", "#FFD84D", "#6FC7EF", "#7CCB6B"][k % 4]}" stroke="${K}" stroke-width="1.2"/>`; }).join("")}
+      <rect x="112" y="98" width="76" height="52" rx="4" fill="#FFFFFF" stroke="${K}" stroke-width="3"/><rect x="134" y="118" width="32" height="24" fill="none" stroke="#FF6B6B" stroke-width="3"/>
+      <ellipse cx="150" cy="152" rx="17" ry="5" fill="none" stroke="#F28C28" stroke-width="4"/>${[-12, -6, 0, 6, 12].map((dx) => `<path d="M${150 + dx} 154 L${150 + dx * 0.6} 178" stroke="#FFFFFF" stroke-width="1.6"/>`).join("")}<path d="M136 166 H164 M139 176 H161" stroke="#FFFFFF" stroke-width="1.2"/>
+      <rect y="240" width="300" height="160" fill="url(#pk-taifl)"/>${[0, 1, 2, 3, 4, 5, 6].map((k) => `<path d="M0 ${252 + k * 22} H300" stroke="#C4884A" stroke-width="1.4" opacity="0.7"/>`).join("")}
+      <path d="M0 300 H300" stroke="#FFFFFF" stroke-width="4"/><ellipse cx="150" cy="320" rx="70" ry="22" fill="none" stroke="#FFFFFF" stroke-width="4"/><path d="M60 240 Q150 280 240 240" fill="none" stroke="#FFE07A" stroke-width="4"/>
+      <circle cx="54" cy="226" r="16" fill="#F28C28" stroke="${K}" stroke-width="2.4"/><path d="M38 226 H70 M54 210 V242 M42 214 Q54 226 42 238 M66 214 Q54 226 66 238" fill="none" stroke="${K}" stroke-width="1.6"/>`),
+    // こうてい: さくらの 木・こうしゃ（とけい）・すなの こうてい・はなびら
+    kotei: () => svg(300, 400, `<defs>${grad("pk-kot", [[0, "#AEE2FF"], [1, "#EAF8FF"]])}</defs><rect width="300" height="400" fill="url(#pk-kot)"/>
+      ${[[70, 54, 30], [236, 38, 24]].map(([x, y, r]) => `<g fill="#FFFFFF" opacity="0.85"><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.42}"/><ellipse cx="${x - r * 0.5}" cy="${y + 4}" rx="${r * 0.6}" ry="${r * 0.34}"/><ellipse cx="${x + r * 0.5}" cy="${y + 4}" rx="${r * 0.55}" ry="${r * 0.3}"/></g>`).join("")}
+      <rect x="40" y="118" width="220" height="132" fill="#FFFDF7" stroke="${K}" stroke-width="3"/><path d="M30 118 L150 92 L270 118 Z" fill="#E8D7C4" stroke="${K}" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="150" cy="112" r="11" fill="#FFFFFF" stroke="${K}" stroke-width="2.4"/><path d="M150 112 V105 M150 112 L155 114" stroke="${K}" stroke-width="1.8" stroke-linecap="round"/>
+      ${[0, 1, 2].map((j) => [0, 1, 2, 3, 4, 5, 6].map((i) => `<rect x="${52 + i * 29}" y="${130 + j * 36}" width="20" height="22" rx="2" fill="#BFE6FF" stroke="${K}" stroke-width="1.6"/>`).join("")).join("")}
+      <rect x="132" y="216" width="36" height="34" fill="#C69A6B" stroke="${K}" stroke-width="2.4"/><path d="M150 216 V250" stroke="${K}" stroke-width="1.6"/>
+      <rect y="250" width="300" height="150" fill="#E8D3A8"/><path d="M0 250 H300" stroke="${K}" stroke-width="2"/><ellipse cx="150" cy="330" rx="120" ry="30" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.8"/>
+      ${[[18, 1], [282, -1]].map(([x, s]) => `<path d="M${x} 300 L${x + s * 6} 180" stroke="#8B5E3C" stroke-width="12" stroke-linecap="round"/><path d="M${x + s * 4} 220 L${x + s * 26} 190" stroke="#8B5E3C" stroke-width="6" stroke-linecap="round"/>${[[0, 150, 40], [s * 30, 170, 30], [s * -14, 186, 28], [s * 38, 132, 26], [s * 8, 112, 26]].map(([dx, y, r]) => `<circle cx="${x + dx}" cy="${y}" r="${r}" fill="#FFC6DA" stroke="${K}" stroke-width="2"/>`).join("")}${[[s * 10, 148], [s * 30, 168], [s * -6, 176], [s * 24, 128]].map(([dx, y]) => `<g transform="translate(${x + dx} ${y})">${[0, 72, 144, 216, 288].map((a) => `<ellipse cx="0" cy="-3.4" rx="2.2" ry="3.4" fill="#FFFFFF" transform="rotate(${a})"/>`).join("")}</g>`).join("")}`).join("")}
+      ${scatter(26, 13, (x, y, r) => `<ellipse cx="${f1(x)}" cy="${f1(y * 0.9 + 20)}" rx="3.4" ry="2.2" fill="#FFB3CF" transform="rotate(${f1(r * 180)} ${f1(x)} ${f1(y * 0.9 + 20)})"/>`)}`),
+    // おくじょう: おおきな あおぞら・とおくの まち・みどりの フェンス・かみひこうき
+    okujo: () => svg(300, 400, `<defs>${grad("pk-oku", [[0, "#6EC3FF"], [0.7, "#CDEBFF"], [1, "#F2FAFF"]])}</defs><rect width="300" height="400" fill="url(#pk-oku)"/>
+      ${[[64, 70, 40], [220, 50, 34], [170, 120, 26]].map(([x, y, r]) => `<g fill="#FFFFFF" opacity="0.9"><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.42}"/><ellipse cx="${x - r * 0.5}" cy="${y + 5}" rx="${r * 0.62}" ry="${r * 0.34}"/><ellipse cx="${x + r * 0.52}" cy="${y + 5}" rx="${r * 0.56}" ry="${r * 0.3}"/></g>`).join("")}
+      ${[[0, 238, 30, 42], [32, 226, 26, 54], [60, 244, 34, 36], [100, 232, 22, 48], [126, 246, 40, 34], [170, 222, 26, 58], [200, 240, 36, 40], [240, 230, 24, 50], [266, 244, 34, 36]].map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h + 20}" fill="#B9D3E6"/>${[0, 1, 2].map((j) => `<rect x="${x + 5}" y="${y + 8 + j * 14}" width="${w - 10}" height="5" fill="#DDEBF5"/>`).join("")}`).join("")}
+      <path d="M210 92 l30 -10 l-14 16 Z" fill="#FFFFFF" stroke="${K}" stroke-width="2" stroke-linejoin="round"/><path d="M226 98 l-4 8" stroke="${K}" stroke-width="2"/>
+      ${[[90, 30], [108, 40]].map(([x, y]) => `<path d="M${x - 7} ${y} q3.5 -5 7 0 q3.5 -5 7 0" fill="none" stroke="${K}" stroke-width="2" stroke-linecap="round"/>`).join("")}
+      <rect x="0" y="198" width="300" height="104" fill="none"/>${Array.from({ length: 16 }, (_, i) => `<path d="M${i * 20 - 50} 200 L${i * 20 + 50} 300 M${i * 20 + 50} 200 L${i * 20 - 50} 300" stroke="#5FAE6E" stroke-width="1.6" opacity="0.75"/>`).join("")}
+      <path d="M0 198 H300 M0 300 H300" stroke="#3F8A4E" stroke-width="5"/>${[10, 80, 150, 220, 290].map((x) => `<path d="M${x} 190 V306" stroke="#3F8A4E" stroke-width="6" stroke-linecap="round"/>`).join("")}
+      <rect y="306" width="300" height="94" fill="#CBD2D6"/>${[0, 1, 2].map((k) => `<path d="M0 ${330 + k * 26} H300" stroke="#B5BDC2" stroke-width="2"/>`).join("")}
+      <rect x="8" y="132" width="44" height="58" rx="10" fill="#E8EDF0" stroke="${K}" stroke-width="2.4"/><path d="M8 150 H52 M8 170 H52" stroke="#B5BDC2" stroke-width="2"/><path d="M14 190 V200 M46 190 V200" stroke="${K}" stroke-width="3"/>`),
+    // としょしつ: いろとりどりの 本の たな・まどの ひかり・ちきゅうぎ・「しずかに ね」
+    toshokan: () => {
+      let books = "";
+      const shelf = (x0, y0, w, rows, seed) => { let a = seed, s = `<rect x="${x0 - 6}" y="${y0 - 8}" width="${w + 12}" height="${rows * 48 + 10}" fill="#B07A4C" stroke="${K}" stroke-width="2.4"/>`; const r = () => ((a = (a * 1103515245 + 12345) >>> 0) / 4294967296);
+        for (let j = 0; j < rows; j++) { const y = y0 + j * 48; s += `<rect x="${x0}" y="${y}" width="${w}" height="40" fill="#7A4E2C"/>`; let x = x0 + 2; while (x < x0 + w - 8) { const bw = 7 + Math.floor(r() * 7), bh = 26 + Math.floor(r() * 12), c = ["#FF7BA8", "#FFD84D", "#6FC7EF", "#7CCB6B", "#B79BEA", "#F28C5B", "#FFFFFF"][Math.floor(r() * 7)]; s += `<rect x="${x}" y="${y + 40 - bh}" width="${bw}" height="${bh}" rx="1.5" fill="${c}" stroke="${K}" stroke-width="1"/>`; x += bw + 1; } s += `<rect x="${x0 - 6}" y="${y + 40}" width="${w + 12}" height="6" fill="#C4925E" stroke="${K}" stroke-width="1.4"/>`; }
+        return s; };
+      books = shelf(10, 70, 86, 6, 3) + shelf(204, 70, 86, 6, 9);
+      return svg(300, 400, `<defs>${grad("pk-tos", [[0, "#FBEFD8"], [1, "#F1DDBA"]])}${grad("pk-tossun", [[0, "#FFF6C8"], [1, "#FFF6C800"]])}</defs><rect width="300" height="400" fill="url(#pk-tos)"/>
+        <rect x="112" y="40" width="76" height="96" rx="38" fill="#CFEFFF" stroke="${K}" stroke-width="3"/><path d="M150 40 V136 M112 92 H188" stroke="${K}" stroke-width="2"/><path d="M112 136 L60 400 L240 400 L188 136 Z" fill="url(#pk-tossun)" opacity="0.5"/>
+        ${books}
+        <rect y="364" width="300" height="36" fill="#C99A68"/><path d="M0 364 H300" stroke="${K}" stroke-width="2"/>
+        <rect x="114" y="150" width="72" height="26" rx="6" fill="#FFFFFF" stroke="${K}" stroke-width="2"/><text x="150" y="168" font-size="12" font-weight="900" text-anchor="middle" fill="#4E8B56" font-family="'M PLUS Rounded 1c',sans-serif">しずかに ね</text>
+        <circle cx="52" cy="46" r="16" fill="#6FC7EF" stroke="${K}" stroke-width="2.4"/><path d="M40 40 q8 -6 14 2 q6 8 12 2 M42 54 q8 2 12 -4" fill="none" stroke="#7CCB6B" stroke-width="4" stroke-linecap="round"/><path d="M52 62 V68 M44 68 H60" stroke="${K}" stroke-width="2.4"/>`);
+    },
+    // ---- おでかけ（ブース「おでかけ」）----
+    // ゆうえんち: かんらんしゃ・サーカスの テント・ふうせん・はた
+    yuenchi: () => {
+      const cx = 208, cy = 146, R = 92, n = 10;
+      const spokes = Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2; return `<path d="M${cx} ${cy} L${f1(cx + Math.cos(a) * R)} ${f1(cy + Math.sin(a) * R)}" stroke="#F2A7C0" stroke-width="2"/>`; }).join("");
+      const cabs = Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R; return `<rect x="${f1(x - 9)}" y="${f1(y - 2)}" width="18" height="16" rx="5" fill="${["#FF7BA8", "#FFD84D", "#6FC7EF", "#7CCB6B", "#B79BEA"][i % 5]}" stroke="${K}" stroke-width="1.6"/><path d="M${f1(x)} ${f1(y - 2)} V${f1(y - 6)}" stroke="${K}" stroke-width="1.4"/>`; }).join("");
+      return svg(300, 400, `<defs>${grad("pk-yue", [[0, "#FFD3EA"], [0.6, "#D9EEFF"], [1, "#F0F9FF"]])}</defs><rect width="300" height="400" fill="url(#pk-yue)"/>
+        <path d="M${cx} ${cy} L${cx - 54} 330 M${cx} ${cy} L${cx + 54} 330" stroke="#B6A2D8" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#F29BB8" stroke-width="5"/><circle cx="${cx}" cy="${cy}" r="${R - 12}" fill="none" stroke="#FFD1E2" stroke-width="2"/>${spokes}${cabs}<circle cx="${cx}" cy="${cy}" r="10" fill="#FFE07A" stroke="${K}" stroke-width="2"/>
+        <path d="M14 260 L66 196 L118 260 Z" fill="#FFFFFF" stroke="${K}" stroke-width="2.6" stroke-linejoin="round"/>${[0, 1, 2].map((k) => `<path d="M${66 - 8 + k * 0} 196 L${28 + k * 30} 260 L${42 + k * 30} 260 Z" fill="#FF6B7A"/>`).join("")}<path d="M14 260 L66 196 L118 260" fill="none" stroke="${K}" stroke-width="2.6" stroke-linejoin="round"/><rect x="20" y="260" width="92" height="40" fill="#FFF1F6" stroke="${K}" stroke-width="2.4"/><path d="M58 300 Q66 276 74 300" fill="#2A2238"/><path d="M66 196 V178" stroke="${K}" stroke-width="2"/><path d="M66 178 l14 5 l-14 5 Z" fill="#FFD84D" stroke="${K}" stroke-width="1.4"/>
+        ${[[32, 70, "#FF7BA8"], [54, 52, "#6FC7EF"], [78, 76, "#FFD84D"]].map(([x, y, c]) => `<path d="M${x} ${y + 22} Q${x - 6} ${y + 50} ${x + 4} ${y + 80}" fill="none" stroke="${K}" stroke-width="1.4"/><ellipse cx="${x}" cy="${y}" rx="15" ry="19" fill="${c}" stroke="${K}" stroke-width="2"/><ellipse cx="${x - 5}" cy="${y - 7}" rx="3.4" ry="5" fill="#FFFFFF" opacity="0.7"/>`).join("")}
+        <path d="M0 330 Q150 318 300 330 L300 400 L0 400 Z" fill="#BFE3A8"/>`);
+    },
+    // おまつり: よるの そら・はなび・ちょうちん・やたい（わたあめ・きんぎょ）
+    matsuri: () => {
+      const burst = (x, y, r, c) => Array.from({ length: 16 }, (_, i) => { const a = (i / 16) * Math.PI * 2; return `<path d="M${f1(x + Math.cos(a) * r * 0.3)} ${f1(y + Math.sin(a) * r * 0.3)} L${f1(x + Math.cos(a) * r)} ${f1(y + Math.sin(a) * r)}" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/><circle cx="${f1(x + Math.cos(a) * r * 1.08)}" cy="${f1(y + Math.sin(a) * r * 1.08)}" r="2" fill="${c}"/>`; }).join("");
+      const lantern = (x, y, c) => `<path d="M${x} ${y - 14} V${y - 9}" stroke="${K}" stroke-width="1.4"/><rect x="${x - 9}" y="${y - 10}" width="18" height="4" rx="1" fill="${K}"/><ellipse cx="${x}" cy="${y + 6}" rx="12" ry="15" fill="${c}" stroke="${K}" stroke-width="1.8"/><path d="M${x - 12} ${y + 2} H${x + 12} M${x - 11} ${y + 10} H${x + 11}" stroke="${K}" stroke-width="0.9" opacity="0.5"/><rect x="${x - 9}" y="${y + 19}" width="18" height="4" rx="1" fill="${K}"/>`;
+      return svg(300, 400, `<defs>${grad("pk-mat", [[0, "#151A4A"], [0.7, "#352B6C"], [1, "#5B3E7E"]])}</defs><rect width="300" height="400" fill="url(#pk-mat)"/>
+        ${scatter(30, 17, (x, y, r) => `<circle cx="${f1(x)}" cy="${f1(y * 0.55)}" r="${f1(0.8 + r)}" fill="#FFFFFF" opacity="${f1(0.4 + r * 0.5)}"/>`)}
+        ${burst(78, 92, 46, "#FF8FB8")}${burst(214, 70, 54, "#FFE07A")}${burst(160, 150, 30, "#7FD3F0")}
+        <path d="M0 196 Q75 222 150 200 Q225 178 300 204" fill="none" stroke="${K}" stroke-width="1.6"/>${[[20, 202, "#FF6B6B"], [64, 214, "#FFFFFF"], [108, 210, "#FF6B6B"], [150, 200, "#FFFFFF"], [194, 192, "#FF6B6B"], [238, 192, "#FFFFFF"], [282, 200, "#FF6B6B"]].map(([x, y, c]) => lantern(x, y + 14, c)).join("")}
+        ${[[0, 290, "わたあめ", "#FFB3CF"], [196, 290, "きんぎょ", "#7FD3F0"]].map(([x, y, t, c]) => `<rect x="${x}" y="${y}" width="104" height="110" fill="#8C5A3C" stroke="${K}" stroke-width="2.4"/><path d="M${x - 6} ${y} L${x + 110} ${y} L${x + 100} ${y - 22} L${x + 4} ${y - 22} Z" fill="#FFFFFF" stroke="${K}" stroke-width="2.4" stroke-linejoin="round"/>${[0, 1, 2, 3, 4].map((k) => `<path d="M${x + 4 + k * 21} ${y - 22} L${x - 6 + k * 23} ${y} L${x + 5 + k * 23} ${y} L${x + 14 + k * 21} ${y - 22} Z" fill="#FF6B6B"/>`).join("")}<rect x="${x + 14}" y="${y + 12}" width="76" height="24" rx="4" fill="${c}" stroke="${K}" stroke-width="2"/><text x="${x + 52}" y="${y + 30}" font-size="14" font-weight="900" text-anchor="middle" fill="${K}" font-family="'M PLUS Rounded 1c',sans-serif">${t}</text>`).join("")}`);
+    },
+    // カフェ: しましまの かべ・まるい まどと カーテン・ランプ・ケーキの ショーケース・メニュー
+    cafe: () => svg(300, 400, `<rect width="300" height="400" fill="#FFF7EC"/>${Array.from({ length: 10 }, (_, k) => `<rect x="${k * 30}" y="0" width="15" height="300" fill="#DDF3EA"/>`).join("")}
+      <rect x="86" y="44" width="128" height="140" rx="64" fill="#CDEBFF" stroke="${K}" stroke-width="3"/><path d="M150 44 V184 M86 120 H214" stroke="${K}" stroke-width="2"/>
+      <path d="M78 40 Q92 110 84 192 L104 192 Q100 110 112 40 Z" fill="#FFB3CF" stroke="${K}" stroke-width="2.2"/><path d="M222 40 Q208 110 216 192 L196 192 Q200 110 188 40 Z" fill="#FFB3CF" stroke="${K}" stroke-width="2.2"/><rect x="70" y="32" width="160" height="10" rx="5" fill="#C69A6B" stroke="${K}" stroke-width="2"/>
+      ${[40, 260].map((x) => `<path d="M${x} 0 V36" stroke="${K}" stroke-width="1.6"/><path d="M${x - 16} 52 Q${x} 30 ${x + 16} 52 Z" fill="#FFE07A" stroke="${K}" stroke-width="2"/><circle cx="${x}" cy="56" r="5" fill="#FFF6C8"/>`).join("")}
+      <rect x="10" y="70" width="58" height="76" rx="4" fill="#3E5E52" stroke="#B98552" stroke-width="5"/><text x="39" y="92" font-size="10" font-weight="900" text-anchor="middle" fill="#FFFFFF" font-family="'M PLUS Rounded 1c',sans-serif">きょうの</text><text x="39" y="106" font-size="10" font-weight="900" text-anchor="middle" fill="#FFFFFF" font-family="'M PLUS Rounded 1c',sans-serif">おすすめ</text><path d="M28 116 h22 l-4 16 h-14 Z" fill="#FFB3CF" stroke="#FFFFFF" stroke-width="1.4"/><circle cx="39" cy="114" r="5" fill="#FF6B7A"/>
+      <rect x="230" y="96" width="62" height="12" rx="3" fill="#C69A6B" stroke="${K}" stroke-width="2"/>${[0, 1, 2].map((k) => `<path d="M${238 + k * 18} 96 q0 -14 8 -14 q8 0 8 14 Z" fill="${["#FFFFFF", "#FFE07A", "#B79BEA"][k]}" stroke="${K}" stroke-width="1.6"/>`).join("")}
+      <rect y="300" width="300" height="100" fill="#E8C9A4"/><rect x="0" y="230" width="300" height="76" fill="#FFFFFF" stroke="${K}" stroke-width="2.4"/><rect x="8" y="238" width="284" height="56" fill="#E9F7FF" opacity="0.8"/><path d="M8 266 H292" stroke="${K}" stroke-width="1.4"/>
+      ${[[24, 262, "#FFFFFF", "#FF6B7A"], [64, 262, "#F7C98A", "#7A4E2C"], [104, 262, "#FFB3CF", "#FF6B7A"], [196, 262, "#FFFFFF", "#6FC7EF"], [236, 262, "#F7C98A", "#FFD84D"], [272, 262, "#B79BEA", "#FFFFFF"]].map(([x, y, c, t]) => `<path d="M${x - 12} ${y} L${x + 12} ${y} L${x + 12} ${y - 14} L${x - 12} ${y - 20} Z" fill="${c}" stroke="${K}" stroke-width="1.6"/><path d="M${x - 12} ${y - 20} L${x + 12} ${y - 14}" stroke="${t}" stroke-width="3"/><circle cx="${x + 4}" cy="${y - 22}" r="4" fill="#FF6B7A" stroke="${K}" stroke-width="1"/>`).join("")}
+      ${[[132, 290], [150, 290], [168, 290], [141, 280], [159, 280]].map(([x, y], i) => `<ellipse cx="${x}" cy="${y}" rx="8" ry="5" fill="${["#FFB3CF", "#BDE7C5", "#FFE07A", "#C9B6EE", "#9FD3F0"][i]}" stroke="${K}" stroke-width="1.4"/><path d="M${x - 8} ${y} H${x + 8}" stroke="#FFFFFF" stroke-width="1.6"/>`).join("")}`),
+    // すいぞくかん: あおい 水そう・ひかりの すじ・さかな・くらげ・あわ・さんご
+    suizoku: () => {
+      const fish = (x, y, s, c, dir = 1) => `<g transform="translate(${x} ${y}) scale(${dir * s} ${s})"><path d="M-14 0 Q-4 -10 10 0 Q-4 10 -14 0 Z" fill="${c}" stroke="${K}" stroke-width="1.6"/><path d="M-14 0 L-22 -7 L-22 7 Z" fill="${c}" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="4" cy="-2" r="1.6" fill="${K}"/></g>`;
+      const jelly = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})" opacity="0.85"><path d="M-14 0 Q-14 -16 0 -16 Q14 -16 14 0 Z" fill="#FFD1E8" stroke="#FFFFFF" stroke-width="1.6"/>${[-9, -3, 3, 9].map((dx) => `<path d="M${dx} 0 q3 8 0 16 q-3 8 0 14" fill="none" stroke="#FFD1E8" stroke-width="1.6"/>`).join("")}</g>`;
+      return svg(300, 400, `<defs>${grad("pk-sui", [[0, "#4FB3E8"], [0.6, "#1F78B8"], [1, "#0E4E86"]])}${grad("pk-suiray", [[0, "#FFFFFF66"], [1, "#FFFFFF00"]])}</defs><rect width="300" height="400" fill="url(#pk-sui)"/>
+        ${[[40, 90], [130, 200], [210, 260]].map(([a, b]) => `<path d="M${a} 0 L${a + 40} 0 L${b + 30} 400 L${b - 20} 400 Z" fill="url(#pk-suiray)"/>`).join("")}
+        <path d="M0 0 H300" stroke="#BFE9FF" stroke-width="6" opacity="0.6"/>
+        ${fish(60, 80, 1.3, "#FFD84D")}${fish(110, 60, 0.9, "#FF8FB8", -1)}${fish(220, 120, 1.5, "#7FD3F0")}${fish(250, 70, 0.8, "#FFB25B", -1)}${fish(170, 180, 1.1, "#B79BEA")}${fish(40, 170, 0.8, "#7CCB6B", -1)}
+        ${jelly(150, 60, 1)}${jelly(270, 200, 0.8)}${jelly(26, 250, 0.7)}
+        <path d="M150 112 C170 100 200 104 214 116 C200 120 186 124 176 136 C170 128 160 122 150 112 Z" fill="#9FC7E0" stroke="${K}" stroke-width="1.6" opacity="0.8"/>
+        ${scatter(18, 31, (x, y, r) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(2 + r * 4)}" fill="none" stroke="#FFFFFF" stroke-width="1.4" opacity="0.7"/>`)}
+        <path d="M0 360 Q40 340 80 356 Q130 372 170 352 Q220 334 300 356 L300 400 L0 400 Z" fill="#E9D7B0"/>
+        ${[[24, 360, "#FF8FB8"], [60, 366, "#FFB25B"], [250, 358, "#FF8FB8"], [280, 364, "#B79BEA"]].map(([x, y, c]) => `<path d="M${x} ${y} q-6 -22 -2 -34 M${x} ${y} q4 -18 12 -26 M${x} ${y} q-14 -10 -18 -22" fill="none" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`).join("")}
+        ${[[100, 362], [200, 358]].map(([x, y]) => `<path d="M${x} ${y} q-4 -30 4 -60 q6 20 -4 60 M${x + 10} ${y} q6 -24 -2 -48" fill="none" stroke="#5FAE6E" stroke-width="4" stroke-linecap="round"/>`).join("")}`);
+    },
+    // うちゅう: ほしぞら・わの ある わくせい・つき・ロケット・UFO・ながれぼし
+    uchu: () => svg(300, 400, `<defs>${grad("pk-uch", [[0, "#0E0B33"], [0.6, "#24185C"], [1, "#3B2478"]])}${grad("pk-uchpl", [[0, "#FFC6A8"], [1, "#F28C8C"]], false)}</defs><rect width="300" height="400" fill="url(#pk-uch)"/>
+      ${scatter(60, 23, (x, y, r, i) => (i % 6 ? `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(0.7 + r * 1.5)}" fill="#FFFFFF" opacity="${f1(0.5 + r * 0.5)}"/>` : star(x, y, 3 + r * 4, "#FFE07A")))}
+      <ellipse cx="226" cy="84" rx="62" ry="15" fill="none" stroke="#FFE7A8" stroke-width="5" transform="rotate(-16 226 84)"/><circle cx="226" cy="84" r="38" fill="url(#pk-uchpl)" stroke="${K}" stroke-width="2.4"/><path d="M196 76 Q226 66 256 78 M192 92 Q226 100 260 90" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.5"/><path d="M168 98 A62 15 -16 0 0 284 66" fill="none" stroke="#FFE7A8" stroke-width="5" transform="rotate(0)"/>
+      <circle cx="62" cy="62" r="26" fill="#FFF3B0" stroke="${K}" stroke-width="2.4"/>${[[54, 54, 5], [70, 68, 4], [58, 74, 3]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#F2DE8A"/>`).join("")}
+      <g transform="translate(58 196) rotate(-30)"><path d="M0 -38 Q14 -20 14 12 L-14 12 Q-14 -20 0 -38 Z" fill="#FFFFFF" stroke="${K}" stroke-width="2.4"/><circle cx="0" cy="-12" r="6" fill="#7FD3F0" stroke="${K}" stroke-width="2"/><path d="M-14 0 L-24 16 L-14 12 Z M14 0 L24 16 L14 12 Z" fill="#FF7BA8" stroke="${K}" stroke-width="2" stroke-linejoin="round"/><path d="M-8 12 Q0 34 8 12 Z" fill="#FFB25B"/><path d="M-4 12 Q0 24 4 12 Z" fill="#FFE07A"/></g>
+      <g transform="translate(236 210)"><ellipse rx="28" ry="9" fill="#C9B6EE" stroke="${K}" stroke-width="2"/><path d="M-14 -4 Q0 -24 14 -4 Z" fill="#BFE9FF" stroke="${K}" stroke-width="2"/>${[-16, 0, 16].map((x) => `<circle cx="${x}" cy="2" r="2.4" fill="#FFE07A"/>`).join("")}</g>
+      <path d="M120 140 L190 112" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" opacity="0.8"/>${star(192, 111, 6, "#FFFFFF")}`),
+    // おしろ: パステルの そら・にじ・おとぎの おしろ・くも・きらきら
+    oshiro: () => {
+      const tower = (x, top, w, roof) => `<rect x="${x - w / 2}" y="${top}" width="${w}" height="${250 - top}" fill="#FFF6FB" stroke="${K}" stroke-width="2.4"/><path d="M${x - w / 2 - 6} ${top} L${x} ${top - w * 1.3} L${x + w / 2 + 6} ${top} Z" fill="${roof}" stroke="${K}" stroke-width="2.4" stroke-linejoin="round"/><path d="M${x} ${top - w * 1.3} V${top - w * 1.3 - 16}" stroke="${K}" stroke-width="1.6"/><path d="M${x} ${top - w * 1.3 - 16} l12 4 l-12 4 Z" fill="#FFE07A" stroke="${K}" stroke-width="1.2"/><rect x="${x - 5}" y="${top + 16}" width="10" height="14" rx="5" fill="#CDEBFF" stroke="${K}" stroke-width="1.6"/>`;
+      return svg(300, 400, `<defs>${grad("pk-osh", [[0, "#FFE1F0"], [0.6, "#EAE2FF"], [1, "#F8F4FF"]])}</defs><rect width="300" height="400" fill="url(#pk-osh)"/>
+        ${["#FF9EC4", "#FFD84D", "#9EE3B5", "#9FD3F0", "#C9B6EE"].map((c, i) => `<path d="M${-10 + i * 10} 250 A${160 - i * 10} ${150 - i * 10} 0 0 1 ${310 - i * 10} 250" fill="none" stroke="${c}" stroke-width="10" opacity="0.75"/>`).join("")}
+        ${tower(72, 150, 34, "#C9B6EE")}${tower(228, 150, 34, "#C9B6EE")}${tower(118, 118, 30, "#FF9EC4")}${tower(182, 118, 30, "#FF9EC4")}${tower(150, 86, 42, "#B79BEA")}
+        <rect x="88" y="176" width="124" height="74" fill="#FFF6FB" stroke="${K}" stroke-width="2.4"/>${[100, 116, 132, 148, 164, 180, 196].map((x) => `<rect x="${x - 4}" y="168" width="10" height="10" fill="#FFF6FB" stroke="${K}" stroke-width="1.8"/>`).join("")}
+        <path d="M134 250 V218 Q150 198 166 218 V250 Z" fill="#E59BBB" stroke="${K}" stroke-width="2.4"/>${heart(150, 196, 7, "#FF7BA8", `stroke="${K}" stroke-width="1.4"`)}
+        ${[[40, 262, 50], [150, 272, 64], [262, 262, 50]].map(([x, y, r]) => `<g fill="#FFFFFF"><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.36}"/><ellipse cx="${x - r * 0.5}" cy="${y + 8}" rx="${r * 0.6}" ry="${r * 0.32}"/><ellipse cx="${x + r * 0.5}" cy="${y + 8}" rx="${r * 0.56}" ry="${r * 0.3}"/></g>`).join("")}
+        <rect y="282" width="300" height="118" fill="#F6E9FF"/>
+        ${scatter(18, 41, (x, y, r, i) => (i % 2 ? star(x, y * 0.6, 3 + r * 4, "#FFE07A") : heart(x, y * 0.6, 3 + r * 3, "#FFB3CF")))}`);
+    },
   };
   // スタンプ（64×64。ふちは INK）
   const S = (body) => svg(64, 64, body), st = `stroke="${K}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
@@ -193,17 +359,17 @@ const PurikuraArt = (() => {
         ctx.lineWidth = 7 * k; ctx.strokeStyle = c === 5 ? "#FF7BA8" : "#FFFFFF"; ctx.strokeText(t, x + tx * k, y + ty * k, (P.PW - 12) * k); ctx.fillStyle = P.PENS[c] || P.PENS[0]; ctx.fillText(t, x + tx * k, y + ty * k, (P.PW - 12) * k); ctx.restore();
       }
     },
-    // わく: しろい ふち・したの おび（Mee ぷりくら と 日づけ）
+    // わく: しろい ふち・したの おび（ブースの ロゴ と 日づけ。いろは ブースの いろ）
     frame(ctx, ph, x, y, k) {
-      const w = P.PW * k, h = P.PH * k, b = 7 * k, band = 30 * k;
+      const w = P.PW * k, h = P.PH * k, b = 7 * k, band = 30 * k, B = P.BOOTH[ph.k] || P.BOOTHS[0];
       ctx.save(); ctx.fillStyle = "#FFFFFF";
       ctx.fillRect(x, y, w, b); ctx.fillRect(x, y, b, h); ctx.fillRect(x + w - b, y, b, h); ctx.fillRect(x, y + h - band, w, band);
-      ctx.strokeStyle = "#FF9EC4"; ctx.lineWidth = Math.max(1, 2 * k); ctx.strokeRect(x + b, y + b, w - b * 2, h - band - b);
+      ctx.strokeStyle = B.line; ctx.lineWidth = Math.max(1, 2 * k); ctx.strokeRect(x + b, y + b, w - b * 2, h - band - b);
       // ちいさい しゃしん（アルバム・らくがきの えらび）は ロゴ だけ
-      ctx.textBaseline = "middle"; ctx.fillStyle = "#FF7BA8";
-      if (k < 0.5) { ctx.font = `900 ${Math.max(6, 18 * k)}px 'M PLUS Rounded 1c', sans-serif`; ctx.textAlign = "center"; ctx.fillText("Mee ぷりくら", x + w / 2, y + h - band / 2, w - 4); }
+      ctx.textBaseline = "middle"; ctx.fillStyle = B.col;
+      if (k < 0.5) { ctx.font = `900 ${Math.max(6, 18 * k)}px 'M PLUS Rounded 1c', sans-serif`; ctx.textAlign = "center"; ctx.fillText(B.logo, x + w / 2, y + h - band / 2, w - 4); }
       else {
-        ctx.font = `900 ${15 * k}px 'M PLUS Rounded 1c', sans-serif`; ctx.textAlign = "left"; ctx.fillText("Mee ぷりくら", x + 14 * k, y + h - band / 2);
+        ctx.font = `900 ${15 * k}px 'M PLUS Rounded 1c', sans-serif`; ctx.textAlign = "left"; ctx.fillText(B.logo, x + 14 * k, y + h - band / 2);
         ctx.textAlign = "right"; ctx.fillStyle = INK; ctx.font = `800 ${12 * k}px 'M PLUS Rounded 1c', sans-serif`; ctx.fillText(Purikura.dateText(ph.t), x + w - 14 * k, y + h - band / 2);
       }
       ctx.restore();
@@ -224,21 +390,22 @@ const PurikuraArt = (() => {
 // ---- ぷりくらの 画面（SCENES.purikura）: はいけい → さつえい 4まい → らくがき → できあがり ----
 class PurikuraScene {
   async enter(p = {}) {
-    this.back = p.back || null; this.phase = "bg"; this.bg = "yume"; this.z = 0; this.who = "all"; this.tab = "pose";
+    this.booth = Purikura.BOOTH[p.booth] || Purikura.BOOTHS[0];
+    this.back = p.back || null; this.phase = "bg"; this.bg = this.booth.bgs[0]; this.z = 0; this.who = "all"; this.tab = "pose";
     this.sel = Object.fromEntries(Chara.IDS.map((id) => [id, ["stand", "happy"]]));
-    this.shots = []; this.deco = []; this.di = 0; this.tool = "pen"; this.pen = { c: 0, w: 1 }; this.stamp = "heart"; this.ssz = 1; this.word = Purikura.WORDS[0]; this.wc = 0; this.hist = [];
+    this.shots = []; this.deco = []; this.di = 0; this.tool = "pen"; this.pen = { c: 0, w: 1 }; this.stamp = "heart"; this.ssz = 1; this.words = Purikura.wordsOf(this.booth.id); this.word = this.words[0]; this.wc = 0; this.hist = [];
     this.count = null; this.flash = 0; this.clock = 0; this.speed = 1; this.drawing = null; this.saved = false; this.closed = false; this.msg = "";
-    UI.showHud(true, "ぷりくら"); Sound.bgm("arcade_hall");
+    UI.showHud(true, this.booth.name + " ぷりくら"); Sound.bgm("arcade_hall");
     this.buildUI(); this.resize();
     const o = Purikura.outfits(), list = [];
     for (const id of Chara.IDS) for (const P of Purikura.POSES) list.push([id, { pose: P.pose, dir: "down", face: "happy", outfit: o[id][0], color: o[id][1] }]);
-    await Promise.all([Chara.preload(list, this.charaSize()), ...Purikura.BGS.map((b) => SvgCache.ensure("puri:bg:" + b.id, PurikuraArt.BG_SVG[b.id], 300, 400))]);
+    await Promise.all([Chara.preload(list, this.charaSize()), ...this.booth.bgs.map((id) => SvgCache.ensure("puri:bg:" + id, PurikuraArt.BG_SVG[id], 300, 400))]);
   }
   exit() { this.closed = true; this.panel?.remove(); UI.showHud(false); }
   // いまの えらびかた（さつえいの まえの カメラ・とった しゃしん）
   photoOf(shot, deco) {
     const o = shot ? shot.o : Purikura.outfits(), c = shot ? shot.c : this.sel;
-    return { id: "live", t: shot ? shot.t : Date.now(), bg: this.bg, z: shot ? shot.z : this.z, r: Save.d.order.slice(), c, o, d: deco || { p: [], s: [], x: [] } };
+    return { id: "live", t: shot ? shot.t : Date.now(), bg: this.bg, k: this.booth.id, z: shot ? shot.z : this.z, r: Save.d.order.slice(), c, o, d: deco || { p: [], s: [], x: [] } };
   }
   charaSize() { return PurikuraArt.LAYOUT[1].S * ((this.view ? this.view.w : 260) / Purikura.PW); }
   // ---- ボタン ----
@@ -254,7 +421,7 @@ class PurikuraScene {
     if (ph === "bg") {
       P.append(U.el("div", { class: "puri-title", text: "はいけいを えらんでね" }));
       const grid = U.el("div", { class: "puri-bgs" });
-      for (const b of Purikura.BGS) { const btn = UI.btn("", () => { Sound.se("tap"); this.bg = b.id; this.ui(); }, "puri-bg" + (this.bg === b.id ? " on" : "")); btn.setAttribute("aria-label", b.name); btn.append(U.el("img", { src: U.svgUrl(PurikuraArt.BG_SVG[b.id]()), alt: "" }), U.el("span", { text: b.name })); grid.append(btn); }
+      for (const b of this.booth.bgs.map((id) => Purikura.BG[id])) { const btn = UI.btn("", () => { Sound.se("tap"); this.bg = b.id; this.ui(); }, "puri-bg" + (this.bg === b.id ? " on" : "")); btn.setAttribute("aria-label", b.name); btn.append(U.el("img", { src: U.svgUrl(PurikuraArt.BG_SVG[b.id]()), alt: "" }), U.el("span", { text: b.name })); grid.append(btn); }
       P.append(grid, this.row("puri-actions", [UI.btn("やめる", () => this.quit(), "puri-small"), UI.btn("とりはじめる", () => { Sound.se("ok"); this.phase = "shoot"; this.ui(); this.resize(); }, "yellow puri-main")]));
     } else if (ph === "shoot") {
       const whoRow = this.row("puri-who", [["all", "みんな"], ...Save.d.order.map((id) => [id, Save.d.chars[id].name])].map(([k, name]) => this.chip(name, this.who === k, () => { this.who = k; this.ui(); })));
@@ -272,7 +439,7 @@ class PurikuraScene {
       let opts = [];
       if (this.tool === "pen") opts = [...Purikura.PENS.map((c, i) => { const b = this.chip("", this.pen.c === i, () => { this.pen.c = i; this.ui(); }, "swatch"); b.style.setProperty("--sw", c); b.setAttribute("aria-label", ["ピンク", "きいろ", "みずいろ", "みどり", "むらさき", "しろ"][i]); return b; }), this.chip("ほそい", this.pen.w === 0, () => { this.pen.w = 0; this.ui(); }), this.chip("ふとい", this.pen.w === 1, () => { this.pen.w = 1; this.ui(); })];
       else if (this.tool === "stamp") opts = [...Purikura.STAMPS.map((s) => { const b = this.chip("", this.stamp === s.id, () => { this.stamp = s.id; this.ui(); }, "stamp"); b.setAttribute("aria-label", s.name); b.append(U.el("img", { src: U.svgUrl(PurikuraArt.STAMP_SVG[s.id]()), alt: "" })); return b; }), ...["ちいさい", "ふつう", "おおきい"].map((t, i) => this.chip(t, this.ssz === i, () => { this.ssz = i; this.ui(); }))];
-      else opts = [...Purikura.WORDS.map((w) => this.chip(w, this.word === w, () => { this.word = w; this.ui(); })), this.chip("じぶんで かく", false, () => this.ownWord()), ...Purikura.PENS.map((c, i) => { const b = this.chip("", this.wc === i, () => { this.wc = i; this.ui(); }, "swatch"); b.style.setProperty("--sw", c); b.setAttribute("aria-label", "もじの いろ " + (i + 1)); return b; })];
+      else opts = [...this.words.map((w) => this.chip(w, this.word === w, () => { this.word = w; this.ui(); })), this.chip("じぶんで かく", false, () => this.ownWord()), ...Purikura.PENS.map((c, i) => { const b = this.chip("", this.wc === i, () => { this.wc = i; this.ui(); }, "swatch"); b.style.setProperty("--sw", c); b.setAttribute("aria-label", "もじの いろ " + (i + 1)); return b; })];
       P.append(thumbs, tools, this.row("puri-chips", opts), this.row("puri-actions", [UI.btn("できあがり", () => this.done(), "yellow puri-main")]));
       P.append(U.el("div", { class: "puri-hint", text: this.tool === "pen" ? "しゃしんを なぞって かこう" : this.tool === "stamp" ? "しゃしんを タップして スタンプ" : "しゃしんを タップして もじ" }));
     } else {
@@ -325,13 +492,13 @@ class PurikuraScene {
   async ownWord() {
     const t = await UI.input(`しゃしんに かく ことば（${Purikura.LIMIT.word}もじ まで）`, "", { max: Purikura.LIMIT.word });
     const w = t ? t.replace(/[<>&"'`\u0000-\u001f]/g, "").slice(0, Purikura.LIMIT.word) : "";
-    if (w) { this.word = w; if (!Purikura.WORDS.includes(w)) this.customWord = w; } this.ui();
+    if (w) { this.word = w; if (!this.words.includes(w)) this.customWord = w; } this.ui();
   }
   // できあがり: しゃしん 4まいを すまほへ（1かいだけ）
   async done() {
     if (this.saved || UI.busy) return;
     const base = Date.now().toString(36);
-    const photos = this.shots.map((s, i) => ({ id: `p${base}-${i}`, t: s.t, bg: this.bg, z: s.z, r: Save.d.order.slice(), c: s.c, o: s.o, d: { p: this.deco[i].p.filter((x) => x.pts.length).map(Purikura.packStroke), s: this.deco[i].s, x: this.deco[i].x } }));
+    const photos = this.shots.map((s, i) => ({ id: `p${base}-${i}`, t: s.t, bg: this.bg, k: this.booth.id, z: s.z, r: Save.d.order.slice(), c: s.c, o: s.o, d: { p: this.deco[i].p.filter((x) => x.pts.length).map(Purikura.packStroke), s: this.deco[i].s, x: this.deco[i].x } }));
     if (!Purikura.finish(photos)) { UI.toast("もう できあがって いるよ"); return; }
     this.saved = true; this.photos = photos.map(Purikura.clean); this.phase = "done"; Sound.se("fanfare"); this.ui(); this.resize();
     await UI.say(Save.d.order.map((id) => ({ who: id, emo: "happy", text: id === "goji" ? "ガゥ♪ いい かお できた！" : id === "gachan" ? "ピヨ！ きらきらに なった♪" : "わん！ すまほで また みようね！" })));
