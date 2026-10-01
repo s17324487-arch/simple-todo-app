@@ -101,8 +101,9 @@ const IkeWear = {
       return s + "</g>";
     }).join("");
   },
-  // マントや ポンチョから のぞく 手（からだの いろ）
+  // マントや ポンチョから のぞく 手（からだの いろ）。うでの ポーズ（ぷりくらの ピース など）では うでが そとに でる ので 描かない
   paws(ctx, k = 0.8) {
+    if (ctx.gesture) return "";
     return ctx.p.arms.map((ar) => {
       if (ar.path) return "";
       const { cx, cy, rx, ry, rot } = ar, y = cy - ry + 2 * ry * k;
