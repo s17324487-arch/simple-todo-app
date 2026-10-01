@@ -1,5 +1,5 @@
 // ぷりくら（js/purikura.js）と すまほの「しゃしん」アプリの 検査。ブラウザ なしで データ・セーブ・お金・しゃしんの かたちを たしかめる。
-// えらべる もの（はいけい・ポーズ・かお・スタンプ・ことば）・ことばに 漢字なし・SVG・せんの データの いきき・こわれた しゃしん・300コイン と できあがり（1かいだけ）・60まい まで・ふるい セーブ・キャッシュの キー。
+// えらべる もの（はいけい・ポーズ・かお・スタンプ・キラキラ・ことば）・ことばに 漢字なし・SVG・せんの データの いきき・こわれた しゃしん・300コイン と できあがり（1かいだけ）・60まい まで・ふるい セーブ・キャッシュの キー・かたむき／はんてん／キラキラ と らくがきの へんしゅう（UI-25）。
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
@@ -12,7 +12,7 @@ const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
 
 // ---- 1. えらべる もの ----
-ok(P.BGS.length === 18 && P.POSES.length === 11 && P.FACES.length === 8 && P.STAMPS.length === 12 && P.WORDS.length === 8 && P.PENS.length === 6, "えらべる ものの かず");
+ok(P.BGS.length === 18 && P.POSES.length === 11 && P.FACES.length === 8 && P.STAMPS.length === 20 && P.STAMPS.filter((x) => x.face).length === 8 && P.EFFECTS.length === 8 && P.WORDS.length === 8 && P.PENS.length === 6, "えらべる ものの かず");
 // ブース 3台（Meeときょれじゃ 3F・UI-21）: ブースごとに はいけい 6つ（かさならない・ぜんぶで BGS）・わくの いろ・ロゴ・ことば。js/ike-arcade.js の IkeArcade.BOOTHS と id・なまえ・じゅんばんが おなじ
 ok(P.BOOTHS.length === 3 && P.BOOTHS.map((b) => b.id).join() === "yume,school,odekake" && JSON.stringify(R.IkeArcade.BOOTHS) === JSON.stringify(P.BOOTHS.map((b) => ({ id: b.id, name: b.name }))), "ブースの id・なまえが IkeArcade.BOOTHS と ちがう");
 ok(P.BOOTHS.every((b) => b.bgs.length === 6 && b.bgs.every((id) => P.BG[id])) && new Set(P.BOOTHS.flatMap((b) => b.bgs)).size === P.BGS.length, "ブースの はいけい 6つ（ほかの ブースと かさならない・ぜんぶ つかう）");
@@ -25,7 +25,7 @@ ok(P.BOOTHS[0].bgs.join() === "yume,hana,hoshi,umi,heart,mee" && P.boothOf("hosh
 { const fl = R.VenueHalls.defs.arcade.floors, booths = fl[3].fixtures.filter((f) => f.kind === "photobooth");
   ok(booths.length === 3 && booths.map((f) => f.booth).join() === "yume,school,odekake" && booths.every((f, v) => f.variant === v && f.action === "photo" && f.label === P.BOOTHS[v].name + " ぷりくら"), "3F の ぷりくらの ブース 3台");
   ok(!fl[1].fixtures.some((f) => f.kind === "photobooth") && !fl[2].fixtures.some((f) => f.kind === "photobooth"), "1F・2F に ぷりくらが のこる"); }
-for (const [name, list] of [["はいけい", P.BGS], ["ポーズ", P.POSES], ["かお", P.FACES], ["スタンプ", P.STAMPS]]) {
+for (const [name, list] of [["はいけい", P.BGS], ["ポーズ", P.POSES], ["かお", P.FACES], ["スタンプ", P.STAMPS], ["キラキラ", P.EFFECTS]]) {
   ok(new Set(list.map((x) => x.id)).size === list.length, `${name}の id が かさなる`);
   for (const x of list) ok(x.name && !kanji.test(x.name) && x.name.length <= 6, `${name}「${x.name}」`);
 }
@@ -36,8 +36,14 @@ ok(P.PRICE === 300 && P.SHOTS === 4 && P.MAX === 60, "300コイン・4まい・6
 
 // ---- 2. 絵（SVG・キャッシュの キー）----
 for (const b of P.BGS) { const s = A.BG_SVG[b.id](); ok(s.startsWith("<svg") && s.includes('viewBox="0 0 300 400"') && !/undefined|NaN/.test(s), `はいけい ${b.id} の SVG`); const ids = [...s.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]); ok(new Set(ids).size === ids.length && ids.every((id) => id.startsWith("pk-")), `はいけい ${b.id} の id`); }
-for (const x of P.STAMPS) { const s = A.STAMP_SVG[x.id](); ok(s.startsWith("<svg") && s.includes('viewBox="0 0 64 64"') && !/undefined|NaN/.test(s), `スタンプ ${x.id} の SVG`); }
-ok(A.keys().length === P.BGS.length + P.STAMPS.length && A.keys().every((k) => /^puri:(bg|stamp):[a-z]+$/.test(k)), "キャッシュの キーは しゅるい だけ");
+for (const x of P.STAMPS) { const s = A.STAMP_SVG[x.id](); ok(s.startsWith("<svg") && s.includes('viewBox="0 0 64 64"') && !/undefined|NaN/.test(s) && !/ id="/.test(s), `スタンプ ${x.id} の SVG`); }
+// キラキラ（UI-25）: 300×400・id は pkfx-（1まいの 中で 一意）・もじを つかわない・まいかい おなじ 絵・まん中（3人の かお）は すくなめ
+for (const e of P.EFFECTS) {
+  const s = A.FX_SVG[e.id](), ids = [...s.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
+  ok(s.startsWith("<svg") && s.includes('viewBox="0 0 300 400"') && !/undefined|NaN|<text/.test(s) && s === A.FX_SVG[e.id](), `キラキラ ${e.id} の SVG`);
+  ok(new Set(ids).size === ids.length && ids.every((id) => id.startsWith("pkfx-" + e.id + "-")) && [...s.matchAll(/url\(#([^)]+)\)/g)].every((m) => ids.includes(m[1])), `キラキラ ${e.id} の id`);
+}
+ok(A.keys().length === P.BGS.length + P.STAMPS.length + P.EFFECTS.length && new Set(A.keys()).size === A.keys().length && A.keys().every((k) => /^puri:(bg|stamp|fx):[a-z]+$/.test(k)), "キャッシュの キーは しゅるい だけ");
 // はいけいの id は ほかの はいけいと かさならない（SvgCache で べつべつに ラスタ に する ので、id は 1まいの 中で 一意なら よい）。ブースの はいけいは 2かい つくっても おなじ 絵
 for (const b of P.BGS) ok(A.BG_SVG[b.id]() === A.BG_SVG[b.id](), `はいけい ${b.id} が まいかい かわる`);
 ok(A.LAYOUT.length === 2 && A.LAYOUT.every((L) => L.xs.length === 3 && L.order.slice().sort().join() === "0,1,2"), "3人の ならび（ぜんしん・アップ）");
@@ -149,4 +155,50 @@ const ph = (extra = {}) => ({ id: "ptest-0", t: 1790000000000, bg: "hoshi", z: 1
   const po = A.charaOpts(P.clean(ph({ c: { wanko: ["peace", "love"], gachan: ["nyan", "surprise"], goji: ["heart", "happy"] } })), 1);
   ok(po.gesture === "peace" && po.face === "pk_heart", "しゃしんの 3人の 絵");
 }
-console.log(`Purikura: 3 booths (ゆめかわ・がっこう・おでかけ) × 6 backgrounds = 18 / 11 poses (5 arm gestures) / 8 faces (all different for the three) / 12 stamps / 8 words + booth words, movable positions, stroke codec, photo repair and limits, 300-coin session paid once and finished once, 60-photo album, old saves and finite art keys — ${n} checks OK`);
+// ---- 8. らくがき: かたむき・はんてん・キラキラ・かおの スタンプ・えらんで うごかす（UI-25）----
+{
+  // しゃしんの かたち: かたむき（-180〜179 の せいすう）・はんてん（スタンプ だけ）・キラキラ（きまった じゅん・かさならない）。0／ない ときは かかない
+  const T = (s, x = [], e) => P.clean(ph({ d: { p: [], s, x, ...(e !== undefined ? { e } : {}) } })).d;
+  ok(P.turn(370) === 10 && P.turn(-190) === 170 && P.turn(180) === -180 && P.turn(45.6) === 46 && P.turn("x") === 0 && P.turn(undefined) === 0 && P.turn(-0) === 0, "かたむきの かず");
+  let d = T([["heart", 10, 20, 1], ["heart", 10, 20, 1, 0], ["heart", 10, 20, 1, 90], ["heart", 10, 20, 1, 370], ["heart", 10, 20, 1, 0, 1], ["heart", 10, 20, 1, -45, true], ["heart", 10, 20, 1, "x", "yes"], ["hoppe", 10, 20, 0, 30, 0]]);
+  ok(JSON.stringify(d.s) === JSON.stringify([["heart", 10, 20, 1], ["heart", 10, 20, 1], ["heart", 10, 20, 1, 90], ["heart", 10, 20, 1, 10], ["heart", 10, 20, 1, 0, 1], ["heart", 10, 20, 1, -45, 1], ["heart", 10, 20, 1], ["hoppe", 10, 20, 0, 30]]), "スタンプの かたむき・はんてん " + JSON.stringify(d.s));
+  d = T([], [["なかよし", 150, 60, 1], ["なかよし", 150, 60, 1, 0], ["なかよし", 150, 60, 1, -30], ["なかよし", 150, 60, 1, 30, 1]]);
+  ok(JSON.stringify(d.x) === JSON.stringify([["なかよし", 150, 60, 1], ["なかよし", 150, 60, 1], ["なかよし", 150, 60, 1, -30], ["なかよし", 150, 60, 1, 30]]), "もじの かたむき（はんてんは ない） " + JSON.stringify(d.x));
+  ok(!("e" in T([])) && !("e" in T([], [], [])) && !("e" in T([], [], "kira")) && !("e" in T([], [], ["nazo", 5])), "キラキラが ない しゃしんに e");
+  ok(JSON.stringify(T([], [], ["niji", "kira", "nazo", "kira", "heart"]).e) === '["kira","heart","niji"]', "キラキラの じゅんばん・かさならない");
+  const full = P.clean(ph({ d: { p: [], s: [["kira", 1, 2, 0, 15, 1]], x: [["ぽかぽか", 3, 4, 2, -15]], e: P.EFFECTS.map((x) => x.id).reverse() } }));
+  ok(JSON.stringify(P.clean(full)) === JSON.stringify(full) && full.d.e.join() === P.EFFECTS.map((x) => x.id).join(), "2かい なおしても おなじ（かたむき・キラキラ）");
+  // まえの しゃしん（かたむき・キラキラ なし）は かわらない（list() で かきなおさない）
+  const old = P.clean(ph()); ok(JSON.stringify(old.d) === JSON.stringify({ p: old.d.p, s: [["heart", 100, 120, 2]], x: [["なかよし", 150, 60, 1]] }), "まえの しゃしんの かたちが かわる");
+  S.d.photos = [old]; const before = JSON.stringify(S.d.photos); P.list(); ok(JSON.stringify(S.d.photos) === before, "まえの しゃしんを かきなおす");
+  // いちばん 大きい しゃしん（かたむき・はんてん・キラキラ ぜんぶ）でも 小さい
+  const big = P.clean(ph({ id: "pbig2", d: { p: Array.from({ length: 40 }, () => P.packStroke({ c: 2, w: 1, pts: Array.from({ length: 37 }, (_, i) => [i * 8, 400 - i * 10]) })), s: Array.from({ length: 30 }, (_, i) => ["nekomimi", i * 10, i * 13, i % 3, -179, 1]), x: Array.from({ length: 6 }, () => ["ずっと いっしょ", 150, 200, 3, -179]), e: P.EFFECTS.map((x) => x.id) } }));
+  ok(JSON.stringify(big).length < 9500, `かたむき つきの しゃしん 1まいが 大きすぎる（${JSON.stringify(big).length}）`);
+  ok(P.view(full).d.e.join() === full.d.e.join() && P.view(old).d.e.length === 0, "描く ための かたちに キラキラ");
+  // かおの スタンプ: ほっぺ・まつげ・なみだ・くしゃみ（オーナーの れい）と ねこひげ・あせ・ねこみみ・てんしの わ
+  ok(P.STAMPS.filter((x) => x.face).map((x) => x.id).join() === "hoppe,matsuge,namida,kushami,hige,ase,nekomimi,wakka" && P.STAMPS.slice(0, 12).every((x) => !x.face), "かおの スタンプ 8しゅ（まえの 12しゅの あと）");
+  // はこ（さわる・まわす）: スタンプは 大きさの 0.43 ばい・もじは はば。かたむきは はこも かたむく
+  const bs = A.box("s", ["heart", 150, 200, 1, 30]), bx = A.box("x", ["なかよし", 150, 60, 1]);
+  ok(Math.abs(bs.hw - P.STAMP_SIZE[1] * 0.43) < 0.01 && bs.hh === bs.hw && bs.rot === 30 && bx.hw > 40 && bx.hh === 17 && bx.rot === 0, "スタンプ・もじの はこ");
+  // らくがきの 画面（ブラウザ なしで うごかす）: えらぶ・はこの 中だけ・とっては かたむきと いっしょに まわる・かえる／けす／キラキラ を もどす
+  const sc = Object.assign(Object.create(R.PurikuraScene.prototype), { phase: "deco", tool: "stamp", di: 0, hist: [], pick: null, grab: null, view: { x: 30, y: 60, w: 300, h: 400 }, deco: [{ p: [], s: [["heart", 150, 200, 1, 45]], x: [["なかよし", 150, 60, 2]], e: [] }] });
+  R.UI.root = { getBoundingClientRect: () => ({}) }; sc.ui = () => {};
+  const rotP = (lx, ly, r) => { const a = (r * Math.PI) / 180; return [150 + lx * Math.cos(a) - ly * Math.sin(a), 200 + lx * Math.sin(a) + ly * Math.cos(a)]; };
+  const hw = bs.hw;
+  ok(sc.hitDeco(rotP(hw * 0.9, hw * 0.9, 45), "s") && sc.hitDeco(rotP(-hw * 0.9, hw * 0.9, 45), "s") && !sc.hitDeco(rotP(hw * 1.1, 0, 45), "s") && !sc.hitDeco([150 + hw * 1.15, 200 + hw * 1.15], "s"), "かたむいた スタンプを さわる");
+  ok(!sc.hitDeco([150, 200], "x") && sc.hitDeco([150, 60], "x") && !sc.hitDeco([150, 60], "s"), "もじ と スタンプは べつべつに えらぶ");
+  sc.pick = { k: "s", j: 0 }; const H = sc.handles(), at = (id) => H.find((h) => h.id === id), ang = (h) => (Math.atan2(h.y - (60 + 200), h.x - (30 + 150)) * 180) / Math.PI;
+  ok(H.map((h) => h.id).join() === "rot,del,flip" && Math.abs(ang(at("rot")) - 0) < 1 && Math.abs(ang(at("del")) + 90) < 1 && Math.abs(ang(at("flip")) - 180) < 1, "とっては スタンプと いっしょに かたむく " + H.map((h) => h.id + ":" + ang(h).toFixed(1)).join(" "));
+  ok(sc.handleAt({ x: at("rot").x + 10, y: at("rot").y + 10 }).id === "rot" && !sc.handleAt({ x: 30 + 150, y: 60 + 200 }), "とってを さわる");
+  // とっては ひろい（ゆびで おせる 23 いじょう はなれて いる）
+  ok(Math.min(...H.flatMap((a, i) => H.slice(i + 1).map((b) => Math.hypot(a.x - b.x, a.y - b.y)))) >= 46, "とっての あいだが せまい");
+  sc.edit((a) => { a[4] = 0; }); ok(JSON.stringify(sc.deco[0].s[0]) === '["heart",150,200,1]' && sc.hist.length === 1, "かたむき 0 は かかない");
+  sc.edit((a) => { a[5] = 1; }); ok(JSON.stringify(sc.deco[0].s[0]) === '["heart",150,200,1,0,1]', "はんてん");
+  sc.tool = "text"; ok(sc.pickItem() === null, "どうぐを かえると えらんだ スタンプは はなれる"); sc.tool = "stamp";
+  sc.toggleFx("niji"); sc.toggleFx("kira"); ok(sc.deco[0].e.join() === "kira,niji", "キラキラを かさねる");
+  sc.toggleFx("niji"); ok(sc.deco[0].e.join() === "kira", "キラキラを けす");
+  const it = sc.pickItem(); sc.deco[0].s.splice(0, 1); sc.hist.push({ i: 0, k: "s", j: 0, t: "del", item: it.a }); sc.pick = null;
+  for (let i = 0; i < 6; i++) sc.undo();
+  ok(JSON.stringify(sc.deco[0]) === JSON.stringify({ p: [], s: [["heart", 150, 200, 1, 45]], x: [["なかよし", 150, 60, 2]], e: [] }) && sc.hist.length === 0, "もどす で ぜんぶ もとに もどらない " + JSON.stringify(sc.deco[0]));
+}
+console.log(`Purikura: 3 booths (ゆめかわ・がっこう・おでかけ) × 6 backgrounds = 18 / 11 poses (5 arm gestures) / 8 faces (all different for the three) / 20 stamps (8 for faces) / 8 effects / 8 words + booth words, rotation and flip of stamps and words, effect layers, select-move-rotate-delete and undo, movable positions, stroke codec, photo repair and limits, 300-coin session paid once and finished once, 60-photo album, old saves and finite art keys — ${n} checks OK`);
