@@ -112,17 +112,18 @@ const SKILLS = {
 };
 
 // ---- たべもの（ごはん・バトルでも使える） ----
+// そのままの やさい（とうもろこし・ピーマン と はたけの やさい）は おなかが すくなめ。りょうりに すると おなかも ごきげんも もっと もどる（UI-35・js/food-balance.js）
 const FOODS = [
   {id:"burger",name:"チーズバーガー",price:70,hunger:44,mood:10,hp:42,desc:"こんがり おにくと やさいの バーガー"},
   { id: "apple", name: "りんご", price: 15, hunger: 12, mood: 4, hp: 15, desc: "あまずっぱい りんご" },
   { id: "onigiri", name: "おにぎり", price: 20, hunger: 26, mood: 4, hp: 25, desc: "おなかが ふくれる" },
   { id: "bread", name: "メロンパン", price: 25, hunger: 22, mood: 6, hp: 20, desc: "がちゃんの だいこうぶつ" },
-  { id: "corn", name: "とうもろこし", price: 30, hunger: 22, mood: 5, hp: 22, desc: "つぶつぶ あまい" },
+  { id: "corn", name: "とうもろこし", price: 30, hunger: 11, mood: 5, hp: 22, desc: "つぶつぶ あまい" },
   { id: "bone", name: "ほねっこクッキー", price: 35, hunger: 14, mood: 12, hp: 12, desc: "わんこの だいこうぶつ" },
   { id: "fish", name: "やきざかな", price: 45, hunger: 32, mood: 6, hp: 35, desc: "ごじの だいこうぶつ" },
   { id: "meat", name: "ほねつきにく", price: 60, hunger: 42, mood: 8, hp: 45, desc: "ボリューム まんてん" },
   { id: "curry", name: "カレーライス", price: 80, hunger: 55, mood: 8, hp: 60, spicy: true, desc: "からくて 3にんとも にがて" },
-  { id: "pepper", name: "ピーマン", price: 12, hunger: 10, mood: -4, hp: 30, desc: "からだに いいけど にがい" },
+  { id: "pepper", name: "ピーマン", price: 12, hunger: 5, mood: -4, hp: 30, desc: "からだに いいけど にがい" },
   { id: "milk", name: "ぎゅうにゅう", price: 20, hunger: 8, mood: 5, sp: 8, desc: "げんき(SP)が すこし もどる" },
   { id: "juice", name: "オレンジジュース", price: 30, hunger: 6, mood: 8, sp: 15, desc: "げんき(SP)が もどる" },
   { id: "candy", name: "キャンディ", price: 10, hunger: 3, mood: 7, sp: 5, desc: "ちいさな しあわせ" },

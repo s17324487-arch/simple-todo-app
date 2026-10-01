@@ -4220,6 +4220,7 @@ await (await import("./wear-stock-smoke.mjs")).wearStockSmoke({scenario,expect})
 // すいぞくかん・はくぶつかんの きふの ごほうび（UI-33）: みだし・カード・はくぶつかんで 4つ・もちもの・おうち
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
 await (await import("./burger-menu-smoke.mjs")).burgerMenuSmoke({scenario,expect});
+await (await import("./food-balance-smoke.mjs")).foodBalanceSmoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 

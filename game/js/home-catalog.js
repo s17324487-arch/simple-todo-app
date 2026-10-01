@@ -27,7 +27,8 @@
   WEAR.starclip = ctx => ({ top: hatWrap(ctx, s => `<path d="${starPath(28, -12, 18, 8)}" fill="${ctx.col[0]}" ${stroke(s)}/><circle cx="23" cy="-14" r="2" fill="${INK}"/><circle cx="32" cy="-14" r="2" fill="${INK}"/>`) });
   for (const item of [{ id: "bunnyhood", name: "うさぎの フード", slot: "head", wear: "bunnyhood", col: ["#FFF1E2"], price: 330 }, { id: "starclip", name: "おほしさま ピン", slot: "head", wear: "starclip", col: ["#FFE39A"], price: 190 }]) { WEAR_ITEMS.push(item); ITEM_INDEX[item.id] = item; }
   for (const id of ["candy", "pudding", "cake", "bone"]) { const f = FOODS.find(f => f.id === id); f.deza = true; f.name = "デザ・" + f.name; Object.assign(BAG_INDEX[id], f); }
-  for (const [id, name, price, hunger, mood, art] of [["deza_ice", "デザ・アイス", 35, 8, 14, "pudding"], ["deza_jelly", "デザ・ゼリー", 25, 7, 10, "pudding"], ["deza_tart", "デザ・タルト", 65, 16, 22, "cake"], ["mild_curry", "あまくちカレー", 55, 42, 8, "curry"], ["sandwich", "たまごサンド", 35, 32, 6, "bread"], ["soup", "おやさいスープ", 25, 24, 6, "milk"]]) {
+  // あまくちカレー・おやさいスープは はたけの りょうりでも つくれる（js/farm-cook.js）。りょうりなので おなかも ごきげんも おおめ（UI-35）
+  for (const [id, name, price, hunger, mood, art] of [["deza_ice", "デザ・アイス", 35, 8, 14, "pudding"], ["deza_jelly", "デザ・ゼリー", 25, 7, 10, "pudding"], ["deza_tart", "デザ・タルト", 65, 16, 22, "cake"], ["mild_curry", "あまくちカレー", 55, 50, 16, "curry"], ["sandwich", "たまごサンド", 35, 32, 6, "bread"], ["soup", "おやさいスープ", 25, 28, 14, "milk"]]) {
     const f = { id, name, price, hunger, mood, hp: hunger, deza: id.startsWith("deza"), desc: id.startsWith("deza") ? "ごはんの あとの おたのしみ" : "からくない やさしい あじ" };
     FOODS.push(f); BAG_INDEX[id] = { ...f, kind: "food" }; FOOD_ART[id] = FOOD_ART[art];
   }

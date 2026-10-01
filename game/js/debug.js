@@ -114,6 +114,7 @@ const PokaDebug = {
       "PokaDebug.aquaGifts()                 すいぞくかんの おみやげ（フィギュア 10・コラボ 5・ねだん・もって いる かず・12F の 台・ずかんの ヒント）",
       "PokaDebug.figStand()                  フィギュア台（へやの だいと かざった フィギュア・のこりの かず・いごこち・かざる 画面が ひらいて いるか）",
       "PokaDebug.burgerMenu()                バーガーやさんの メニュー（4つの タブ）・にこにこ セットの おまけの おもちゃ（6しゅ・もって いる かず）",
+      "PokaDebug.foodBalance()               たべものの バランス（そのままの やさい・りょうりと ざいりょうの ごうけい・ねだんで ごきげんを あげた もの）",
       "PokaDebug.store('clothes', 'town')    歩ける店内へ（入口のある町を選べる）",
       "PokaDebug.storeState()                店員・展示・通路・3人・出口の状態",
       "PokaDebug.storeWalkTo(5, 3)           店内のマスまで実際に歩く",
@@ -250,6 +251,8 @@ const PokaDebug = {
     return { watching: !!G.scene.watching, quarrel: l.quarrel, bubbles: l.bubbles.map(b => ({ ...b })), room: Save.d.rooms.active, owned: { ...Save.d.rooms.owned }, coins: Save.d.coins, rare: Save.d.flags.rareChats || 0, furniture: { ...l.furniture }, chars: Object.fromEntries(Chara.IDS.map(id => [id, { ...Save.d.chars[id] }])) };
   },
   feed(id, food) { return Care.feed(id, food); },
+  // たべものの バランス（js/food-balance.js・UI-35）: そのままの やさい・りょうり（ざいりょうの ごうけい つき）・ねだんで ごきげんを あげた もの
+  foodBalance() { return FoodBalance.state(); },
   homeSay(id,text,kind='say') {if(G.sceneName!=='house')return false;HomeLife.say(G.scene,id,String(text),kind==='rare',kind);return true;},
   homeTalkLog() {return G.sceneName==='house'?G.scene.life.log.map(x=>({...x})):[];},
   // かけあいを 1つ 流す（HOME_TALK_DATA.talks の id）

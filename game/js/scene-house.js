@@ -211,7 +211,7 @@ class HouseScene {
     if (typeof FarmCook !== "undefined") body.prepend(UI.btn("とれたて りょうりを つくる", () => { m.close(); FarmCook.open(() => { if (G.scene === this) this.menuFood(); }); }, "farm-cook-btn"));
     const grid = U.el("div", { class: "grid" });
     for (const f of foods) {
-      const card = U.el("button", { class: "card", html: `<span class="cnt">×${bag[f.id]}</span>${UI.icon("bag", f.id, 46)}<div>${f.name}</div><div class="muted">おなか+${f.hunger || 0}</div>` });
+      const card = U.el("button", { class: "card", html: `<span class="cnt">×${bag[f.id]}</span>${UI.icon("bag", f.id, 46)}<div>${f.name}</div><div class="muted food-gain">${FoodBalance.gainHtml(f)}</div>` });
       card.addEventListener("click", async () => {
         Sound.se("tap");
         const opts = Save.d.order.map((id) => Save.d.chars[id].name + (CHARA_INFO[id].like.includes(f.id) ? " ♥" : ""));
