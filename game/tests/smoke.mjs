@@ -2759,6 +2759,57 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("hour",null);
 },{viewport,full:viewport.width===375,timeout:120000});
 
+// UI-39: ラグと ランプ（js/rug-lamp.js）。かぐやの ラグ 8・ランプ 8。ランプは さわると つく／きえる（よるは はじめから）・ラグも さわると うごく
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('rug-lamp-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg("hour",21);await H.dbg("unlockAll");
+  const touch=async(id,ok,msg)=>{
+    const a=await H.dbg("furnLive",id);expect(a&&a.tap,`${id}: タップできる 点が ない`);
+    await H.tap(a.tap.x,a.tap.y);await H.wait(300);
+    const b=await H.dbg("furnLive",id);expect(ok(a,b),`${msg} ${JSON.stringify([a,b])}`);expect(b.talk>a.talk,`${id}: 3人が なにも いわない`);
+    return b;
+  };
+  const sets=[
+    [{id:"rug_bear",x:120,y:400},{id:"rug_road",x:350,y:410},{id:"lamp_lava",x:70,y:585},{id:"lamp_candle",x:410,y:585}],
+    [{id:"rug_honey",x:120,y:400},{id:"rug_flower",x:350,y:400},{id:"lamp_mushroom",x:70,y:585},{id:"lamp_arc",x:400,y:585}],
+    [{id:"rug_cloud",x:120,y:400},{id:"rug_heart",x:350,y:410},{id:"lamp_andon",x:70,y:585},{id:"lamp_moon",x:410,y:585}],
+    [{id:"rug_rainbow",x:130,y:400},{id:"rug_berry",x:350,y:410},{id:"lamp_cat",x:70,y:585},{id:"lamp_tulip",x:410,y:585}],
+  ];
+  const lamp=id=>id.startsWith("lamp_");
+  const layout=async i=>{await H.dbg("homeLayout",sets[i]);await H.dbg("homeBubbleFixture");await H.wait(700);};
+  // よる: ランプは はじめから ついて いて、タップで きえる。どうろの マットは ミニカーが はしりだす
+  await layout(0);
+  for(const it of sets[0]){const st=await H.dbg("furnLive",it.id);expect(st&&st.live===["rug_road","lamp_lava","lamp_candle"].includes(it.id),`${it.id}: live の とうろく`);if(lamp(it.id))expect(st.on===true,`${it.id}: よるに あかりが ついて いない`);}
+  await H.shot("night");
+  await touch("lamp_candle",(a,b)=>a.on===true&&b.on===false,"よるの しょくだいが タップで きえない");
+  await touch("rug_road",(a,b)=>b.n===a.n+1&&b.t<1,"どうろの マットを タップしても ミニカーが はしらない");
+  // ひる: ランプは タップで つく・ラグは タップで ひとこと
+  // 時こくを とばすと ぱぱ・ままは つぎの フレームで いなくなる。それまでは よるの ばしょ（かぐの まえ）に いるので、いなくなるまで まつ
+  await H.dbg("hour",11);await H.until(()=>{const w=PokaDebug.parentWork();return !!w&&w.away&&!w.visible.length;},8000);
+  for(const [i,set] of sets.entries()){
+    if(i)await layout(i);
+    for(const it of set){
+      if(i===0&&(it.id==="lamp_candle"||it.id==="rug_road"))continue;
+      if(lamp(it.id))await touch(it.id,(a,b)=>a.on===false&&b.on===true,`${it.id}: ひるに タップで あかりが つかない`);
+      else await touch(it.id,(a,b)=>b.n===a.n+1&&b.t<1,`${it.id}: タップしても うごかない`);
+    }
+    await H.shot("day-"+(i+1));
+  }
+  // もようがえの 一覧: 「ラグ」と「あかり」の しゅるい・なまえで さがす（へやに おいた ものは 一覧に でないので、へやを からに する）
+  await H.dbg("homeLayout",[]);await H.wait(300);
+  await H.page.locator(".house-bar .btn",{hasText:"もようがえ"}).click();await H.page.waitForSelector(".edit-bar .tray .card");
+  await H.dbg("furnTraySize","m");await H.wait(300);
+  await H.page.locator(".ft-chip",{hasText:"ラグ"}).click();await H.page.fill(".ft-q","くま");await H.wait(250);
+  let v=await H.dbg("furnTray");expect(v.cat==="rug"&&v.names.includes("くまの かおの ラグ"),"ラグの しゅるいで くまの ラグが みつからない "+JSON.stringify(v.names));
+  await H.page.locator(".ft-chip",{hasText:"あかり"}).click();await H.page.fill(".ft-q","らば");await H.wait(250);
+  v=await H.dbg("furnTray");expect(v.cat==="light"&&v.names.includes("とろとろ ラバランプ"),"あかりの しゅるいで ラバランプが みつからない "+JSON.stringify(v.names));
+  for(const nm of ["きのこの ランプ","わしの あんどん","まんまる つきの ランプ","ねこの ナイトライト","アーチの フロアライト","キャンドルの しょくだい","チューリップの スタンド"]){
+    await H.page.fill(".ft-q",nm);await H.wait(200);v=await H.dbg("furnTray");expect(v.cat==="light"&&v.names.includes(nm),"あかりの しゅるいで みつからない: "+nm+" "+JSON.stringify(v.names));
+  }
+  await H.page.fill(".ft-q","");await H.wait(250);await H.shot("tray-light");
+  await H.page.locator(".edit-bar button",{hasText:"おわる"}).click();
+  await H.dbg("hour",null);
+},{viewport,full:viewport.width===375,timeout:120000});
+
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-idle-life-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('pause',true);await H.dbg('homeBubbleFixture');await H.dbg('homeActionSchedule');
   const before=await H.dbg('saveData');

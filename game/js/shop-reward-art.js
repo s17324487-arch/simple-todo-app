@@ -1318,5 +1318,7 @@ const ShopRewardArt = (() => {
   return {
     ids: Object.keys(M),
     model(id, opts = {}) { return FurnModels.build(id, opts); },
+    // さわる うごきの 道具（ほかの 家具の ファイルでも つかう。js/rug-lamp.js）
+    liveKit: { mapper, since, say, tone, glow, lampOn, ink, path, FXS, simple, lamp, shiny },
   };
 })();
