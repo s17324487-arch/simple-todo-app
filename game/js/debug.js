@@ -435,11 +435,13 @@ const PokaDebug = {
     const r = sc.itemRect(it), c = G.canvas.getBoundingClientRect(), actors = [...sc.chars.map((a) => [a, false]), ...sc.parents.map((a) => [a, true])].filter(([a]) => !a.hidden);
     let tap = null;
     // 3人・ぱぱ ままに かさならず、その 家具に あたる 点（タップは 人が さき）。人の わくの すぐ そとは さける
-    // （ブラウザに よっては タッチの 座標が 1px まるめられて 人に あたる）。よゆうが とれない ときだけ わくの そと ぎりぎり
-    for (const pad of [10, 0]) for (let fy = 0.2; fy <= 0.9 && !tap; fy += 0.1) for (const fx of [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8]) {
-      const sx = r.x + r.w * fx, sy = r.y + r.h * fy, q = sc.toRoom(sx, sy);
+    // （ブラウザに よっては タッチの 座標が 1px まるめられて 人に あたる）。家具の ふちも さける: まわり 2px（CSS）も その 家具に あたる 点
+    // （WebKit は タッチの 座標を まるめるので、ふちの 点は 家具の そとに でる。おはなばたけの ラグの うえの ふち など）。よゆうが とれない ときだけ ぎりぎり
+    const inside = (sx, sy, m) => [[0, 0], [m, 0], [-m, 0], [0, m], [0, -m]].every(([dx, dy]) => { const q = sc.toRoom(sx + dx, sy + dy); return sc.hitItem(q.x, q.y) === it; });
+    for (const [pad, edge] of [[10, 2], [0, 2], [10, 0], [0, 0]]) for (let fy = 0.2; fy <= 0.9 && !tap; fy += 0.1) for (const fx of [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8]) {
+      const sx = r.x + r.w * fx, sy = r.y + r.h * fy;
       if (actors.some(([a, parent]) => sc.contains(sc.actorRect(a, parent), { x: sx, y: sy }, pad))) continue;
-      if (sc.hitItem(q.x, q.y) === it) { tap = { x: c.left + sx * G.cssPerUnit, y: c.top + sy * G.cssPerUnit }; break; }
+      if (inside(sx, sy, edge / (G.cssPerUnit || 1))) { tap = { x: c.left + sx * G.cssPerUnit, y: c.top + sy * G.cssPerUnit }; break; }
     }
     return { ...FurnLive.state(it), tap, talk: sc.life.log.length };
   },
