@@ -265,6 +265,8 @@ html, body {
 .card.lent:not(.on) { background: #f6efff; }
 .card .dress-tag { position: absolute; top: -8px; left: -6px; background: #e6d4f4; border: 2.5px solid var(--ink); border-radius: 8px; padding: 0 5px; font-size: 11px; font-weight: 800; color: #6b3fa0; }
 .dress-note { word-break: keep-all; overflow-wrap: anywhere; }
+/* あたまは 2つ まで（UI-43）: グリッドの いちばん うえに 1ぎょう ぶん */
+.grid > .head-pair-note { grid-column: 1 / -1; margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 /* すいぞくかん・はくぶつかんの きふの ごほうび（js/museum-wear.js・UI-33） */
 .mw-hint { margin: 2px 0 8px; padding: 6px 10px; border: 2px dashed #9cc6dd; border-radius: 10px; background: #f1f9ff; font-size: 12px; font-weight: 800; color: #2d5d7a; word-break: keep-all; overflow-wrap: anywhere; }
 .mw-card { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }

@@ -50,15 +50,18 @@ const WearStock = {
   put(who, slot, id, d = Save.d) {
     const o = this.slots(who, d);
     if (!o) return { ok: false, from: null };
-    if (!id) { o[slot] = null; return { ok: true, from: null }; }
+    if (!id) { o[slot] = null; if (typeof HeadPair !== "undefined") HeadPair.fix(o); return { ok: true, from: null }; }
     let from = null;
     if (!this.can(id, who, d)) {
       from = this.holder(id, who, d);
       if (!from) return { ok: false, from: null }; // もって いない
       const f = this.slots(from, d);
       for (const s of Object.keys(f)) if (f[s] === id) f[s] = null;
+      if (typeof HeadPair !== "undefined") HeadPair.fix(f);
     }
     o[slot] = id;
+    // あたまは 2つ まで（UI-43）: あわない 2つめを はずす
+    if (typeof HeadPair !== "undefined" && (slot === "head" || slot === "head2")) HeadPair.fix(o);
     return { ok: true, from };
   },
   // つける まえの たしかめ（ほかの 人が つかって いる ときは「わたす？」と きく）。つけたら true

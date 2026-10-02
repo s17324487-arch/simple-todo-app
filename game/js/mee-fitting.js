@@ -18,7 +18,7 @@ const MeeFitting = {
     const R = this.st();
     for (const id of Chara.IDS) {
       const o = Save.d.chars[id].outfit || {}, b = (before && before[id]) || {}, rec = R[id] && typeof R[id] === "object" ? R[id] : {};
-      for (const slot of Object.keys(SLOT_NAMES)) {
+      for (const slot of WEAR_SLOT_KEYS) {
         if (!this.isRental(o[slot])) { delete rec[slot]; continue; }
         if (!Object.hasOwn(rec, slot)) rec[slot] = this.isRental(b[slot]) ? null : b[slot] || null;
       }
@@ -31,12 +31,13 @@ const MeeFitting = {
     const R = this.st(); let n = 0;
     for (const id of Chara.IDS) {
       const o = Save.d.chars[id].outfit || (Save.d.chars[id].outfit = {}), rec = (R[id] && typeof R[id] === "object" && R[id]) || {};
-      for (const slot of Object.keys(SLOT_NAMES)) {
+      for (const slot of WEAR_SLOT_KEYS) {
         if (!this.isRental(o[slot])) continue;
-        // 1こで 1人（js/wear-stock.js）: まえの ふくを ほかの 人が つかって いて のこりが なければ もどさない
-        const prev = rec[slot], ok = prev && ITEM_INDEX[prev] && ITEM_INDEX[prev].slot === slot && Save.d.wardrobe[prev] && !this.isRental(prev) && WearStock.can(prev, id);
+        // 1こで 1人（js/wear-stock.js）: まえの ふくを ほかの 人が つかって いて のこりが なければ もどさない。head2 は あたまの 2つめ
+        const prev = rec[slot], ok = prev && ITEM_INDEX[prev] && ITEM_INDEX[prev].slot === (slot === "head2" ? "head" : slot) && Save.d.wardrobe[prev] && !this.isRental(prev) && WearStock.can(prev, id);
         o[slot] = ok ? prev : null; n++;
       }
+      HeadPair.fix(o);
     }
     Save.d.arcade.rental = {};
     return n;

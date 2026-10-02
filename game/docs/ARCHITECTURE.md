@@ -133,8 +133,8 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 1 | `version.js` | `GAME_VERSION` |
 | 2 | `chara-data.js` | `CHARA_DATA`（自動生成） |
 | 3 | `util.js` | `U`, `SvgCache` |
-| 4 | `data.js` | `WEAR_ITEMS`, `SLOT_NAMES`, `PERK_TEXT`, `ITEM_INDEX`, `CHARA_STATS`, `CHARA_INFO`, `SKILLS`, `FOODS`, `TOOLS`, `BAG_INDEX`, `FURNITURE`, `FURN_INDEX`, `WALLPAPERS`, `FLOORS`, `WALL_INDEX`, `FLOOR_INDEX`, `ENEMIES`, `AREAS`, `SHOPS`, `SHOP_LV_REP` |
-| 5 | `chara.js` | `INK`, `VB`, `FOOT`, `PROFILE`, `GOJI_COLORS`, `CHARA_IDS`, `EMO`, `WEAR`, `SLOT_ORDER`, `Chara`, 補助関数 `faceOf` `charaFaceParts`（`CHARA_BLINK`: まばたきの かお・`CHARA_FACE_EXTRA`: ほかの ファイルが たす かお）`CHARA_GESTURES`（うでの ポーズ・まえむき だけ）`charaArmEnds`（うでの かたと 手の さき）`f2` `stroke` `shade` `heartPath` `starPath` `flowerSvg` `hatWrap` `eyeWrap` `neckWrap` `torsoClip` `garment` `sleeves` `t` `backWrap` `buildCharaSvg` `outfitKey` |
+| 4 | `data.js` | `WEAR_ITEMS`, `SLOT_NAMES`, `WEAR_SLOT_KEYS`（outfit の キー。`head2` は あたまの 2つめ・UI-43）, `PERK_TEXT`, `ITEM_INDEX`, `CHARA_STATS`, `CHARA_INFO`, `SKILLS`, `FOODS`, `TOOLS`, `BAG_INDEX`, `FURNITURE`, `FURN_INDEX`, `WALLPAPERS`, `FLOORS`, `WALL_INDEX`, `FLOOR_INDEX`, `ENEMIES`, `AREAS`, `SHOPS`, `SHOP_LV_REP` |
+| 5 | `chara.js` | `INK`, `VB`, `FOOT`, `PROFILE`, `GOJI_COLORS`, `CHARA_IDS`, `EMO`, `WEAR`, `SLOT_ORDER`, `HeadPair`（あたまの アクセサリーは 2つ まで・しゅるいと くみあわせ・描く じゅん。UI-43）, `Chara`, 補助関数 `faceOf` `charaFaceParts`（`CHARA_BLINK`: まばたきの かお・`CHARA_FACE_EXTRA`: ほかの ファイルが たす かお）`CHARA_GESTURES`（うでの ポーズ・まえむき だけ）`charaArmEnds`（うでの かたと 手の さき）`f2` `stroke` `shade` `heartPath` `starPath` `flowerSvg` `hatWrap` `eyeWrap` `neckWrap` `torsoClip` `garment` `sleeves` `t` `backWrap` `buildCharaSvg` `outfitKey` |
 | 6 | `art.js` | `Art`, `SK`, `outlineLine`, `vbChar`, `NPC_PROFILE`, `npcEyes`, `SPECIES`, `enemyFace`, `ENEMY_ART`, `FS`, `FURN_ART`, `IS`, `FOOD_ART` |
 | 7 | `tiles.js` | `TS`, `GROUND`, `SOLID_CH`, `OBJ_CH`, `Tiles`, `OS`, `WorldArt`, `SIGN_ICON` |
 | 8 | `maps.js` | `MAP_DEFS`, `FieldGen`, `genMeadow`, `genForest`, `genCave`, `WorldMap` |

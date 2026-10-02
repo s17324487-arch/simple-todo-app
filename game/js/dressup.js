@@ -77,18 +77,32 @@ const DressUp = {
           }
           return;
         }
-        const none = U.el("button", { class: "card" + (!c.outfit[slot] ? " on" : ""), html: `<div class="ico" style="width:44px;height:44px;font-size:26px">✕</div><div>なし</div>` });
-        none.addEventListener("click", () => { c.outfit[slot] = null; Sound.se("tap"); Save.mark(); drawAll(); });
+        // あたまは 2つ まで（HeadPair・UI-43）: head と head2 を いっしょに あつかう
+        const head = slot === "head", worn = (id) => (head ? c.outfit.head === id || c.outfit.head2 === id : c.outfit[slot] === id);
+        if (head) grid.append(U.el("div", { class: "note head-pair-note", text: "あたまは 2つ まで つけられるよ。リボンや ピンは ぼうしとも いっしょ。みみの カチューシャと かんむりも いっしょに できるよ。" }));
+        const none = U.el("button", { class: "card" + (!c.outfit[slot] && !(head && c.outfit.head2) ? " on" : ""), html: `<div class="ico" style="width:44px;height:44px;font-size:26px">✕</div><div>なし</div>` });
+        none.addEventListener("click", () => { c.outfit[slot] = null; if (head) c.outfit.head2 = null; Sound.se("tap"); Save.mark(); drawAll(); });
         grid.append(none);
         const owned = [...extra.filter((w) => w.slot === slot && !d.wardrobe[w.id]), ...WEAR_ITEMS.filter((w) => w.slot === slot && d.wardrobe[w.id])];
         for (const it of owned) {
-          const lent = extraIds.has(it.id) && !d.wardrobe[it.id], on = c.outfit[slot] === it.id, mk = opts.mark ? opts.mark(it) : "";
+          const lent = extraIds.has(it.id) && !d.wardrobe[it.id], on = worn(it.id), mk = opts.mark ? opts.mark(it) : "";
           // 1こで 1人（js/wear-stock.js）: 2こ いじょう もって いれば かず、のこりが ない ときは つかって いる 人。かしだしは いくつでも
           const bd = lent ? null : WearStock.badge(it.id, who);
           const b = U.el("button", { class: "card" + (on ? " on" : "") + (lent ? " lent" : "") + (bd && bd.from ? " busy" : ""),
             html: `${lent ? `<span class="dress-tag">${opts.tag || ""}</span>` : ""}${mk ? `<span class="dress-mark">${mk}</span>` : ""}${bd && bd.n > 1 ? `<span class="cnt">×${bd.n}</span>` : ""}${UI.icon("wear", it.id, 44)}<div>${it.name}</div>${bd && bd.from ? `<small class="dress-who">${bd.text}</small>` : ""}` });
           b.addEventListener("click", async () => {
-            if (on) c.outfit[slot] = null;
+            if (head) {
+              // 2つめに つける・あわない ものは とりかえる（HeadPair.plan）。やめたら もとの まま
+              if (on) HeadPair.off(c.outfit, it.id);
+              else {
+                const p = HeadPair.plan(c.outfit, it.id), keep = { head: c.outfit.head, head2: c.outfit.head2 };
+                for (const s of p.drop) c.outfit[s] = null;
+                if (lent) c.outfit[p.slot] = it.id;
+                else if (!(await WearStock.ask(who, p.slot, it))) { Object.assign(c.outfit, keep); return; }
+                const msg = HeadPair.say(p, it.id);
+                if (msg) UI.toast(msg);
+              }
+            } else if (on) c.outfit[slot] = null;
             else if (lent) c.outfit[slot] = it.id;
             else if (!(await WearStock.ask(who, slot, it))) return;
             Sound.se("pop");
@@ -108,7 +122,8 @@ const DressUp = {
           for (const id of Chara.IDS) {
             if (id === who) continue;
             const o = d.chars[id].outfit;
-            for (const [s, item] of Object.entries(src)) {
+            // あたまの 2つめ（head2）は 1つめの あと（HeadPair.fix が あわない 2つめを はずす ため）
+            for (const [s, item] of Object.entries(src).sort((a, b) => (a[0] === "head2") - (b[0] === "head2"))) {
               if (!item || (extraIds.has(item) && !d.wardrobe[item])) { o[s] = item || null; continue; }
               if (o[s] === item) continue;
               if (WearStock.can(item, id)) WearStock.put(id, s, item); else if (!short.includes(item)) short.push(item);
@@ -119,7 +134,7 @@ const DressUp = {
           else UI.toast("3にん おそろいに したよ！", "good");
           drawAll();
         }, "small pink"));
-        tools.append(UI.btn("ぜんぶ ぬぐ", () => { d.chars[who].outfit = { head: null, face: null, neck: null, body: null, back: null }; Sound.se("tap"); Save.mark(); drawAll(); }, "small"));
+        tools.append(UI.btn("ぜんぶ ぬぐ", () => { const o = d.chars[who].outfit; for (const k of Object.keys(o)) o[k] = null; Sound.se("tap"); Save.mark(); drawAll(); }, "small"));
       };
       const drawAll = () => { drawFamily(); drawStage(); drawTabs(); drawGrid(); drawTools(); };
       if (opts.note) body.append(U.el("div", { class: "note dress-note", text: opts.note }));
