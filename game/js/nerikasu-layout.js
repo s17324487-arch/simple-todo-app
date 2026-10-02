@@ -95,7 +95,9 @@ const NerikasuLayout = (() => {
   // 住人の 場所（旧IDの まま）。村長は おまつりの けいじばん、ねこの ミントは 大きい 公園、クイズの 人は ふんすいの ひろば、かわべの 3人は 池の そば、
   // ペンギンは ローリソン、ぶたは びっくぽ、うさぎは 洋服屋さん、ひつじは 家具屋さん、ねずみは パン屋さんの まえ。のこりは スマホの 画面 11×19マスの
   // どこから 見ても 1人は いるように くばった（tools/check-nerikasu-town.mjs が しらべる）
-  const NPC_SPOTS = { mayor: [36, 48], cat: [38, 38], rabbit: [17, 25], penguin: [31, 14], frog: [59, 17], sheep: [11, 28], mouse: [57, 60], pig: [41, 8], parkcat: [42, 28], town_walker0: [68, 53], town_walker1: [10, 55], town_walker2: [24, 53], town_walker3: [41, 23], town_neighbor0: [55, 40], town_neighbor1: [68, 19], town_neighbor2: [51, 19], town_neighbor3: [46, 53], town_riverwalk0: [60, 26], town_riverwalk1: [38, 20], town_riverwalk2: [29, 28], nerikasu_neighbor0: [10, 41], nerikasu_neighbor1: [67, 39], nerikasu_neighbor2: [21, 46], nerikasu_neighbor3: [35, 53], nerikasu_neighbor4: [49, 36], nerikasu_neighbor5: [28, 33], nerikasu_neighbor6: [21, 63], nerikasu_neighbor7: [63, 46], nerikasu_neighbor8: [22, 28], nerikasu_neighbor9: [64, 6], nerikasu_neighbor10: [70, 63], nerikasu_neighbor11: [55, 49], nerikasu_neighbor12: [3, 32], nerikasu_neighbor13: [31, 63] };
+  const NPC_SPOTS = { mayor: [36, 48], cat: [38, 38], rabbit: [17, 25], penguin: [31, 14], frog: [59, 17], sheep: [11, 28], mouse: [57, 60], pig: [41, 8], parkcat: [42, 28], town_walker0: [68, 53], town_walker1: [10, 55], town_walker2: [24, 53], town_walker3: [41, 23], town_neighbor0: [55, 40], town_neighbor1: [68, 19], town_neighbor2: [51, 19], town_neighbor3: [46, 53], town_riverwalk0: [60, 26], town_riverwalk1: [38, 20], town_riverwalk2: [29, 28], nerikasu_neighbor0: [10, 41], nerikasu_neighbor1: [67, 39], nerikasu_neighbor2: [21, 46], nerikasu_neighbor3: [35, 53], nerikasu_neighbor4: [49, 36], nerikasu_neighbor5: [28, 33], nerikasu_neighbor6: [21, 63], nerikasu_neighbor7: [63, 46], nerikasu_neighbor8: [22, 28], nerikasu_neighbor9: [64, 6], nerikasu_neighbor10: [70, 63], nerikasu_neighbor11: [55, 49], nerikasu_neighbor12: [3, 32], nerikasu_neighbor13: [31, 63],
+    // クイズ係（js/town-quiz.js の TownQuiz.HOSTS。オーナーの FB 2026-10-01「クイズを出す人をネリカスタウンに3人」: ふんすいの ひろばの town_walker3 ＋ いこいの もり・しょうがっこうの まえ）
+    neri_quiz_nature: [27, 45], neri_quiz_science: [37, 62] };
   let installed = null, previous = null;
   function install() {
     const old = MAP_DEFS.town, byId = (list, id) => list.find((o) => o.id === id);
@@ -286,7 +288,8 @@ const NerikasuLayout = (() => {
     for (let y = 1; y < H - 1; y++) for (const x of [0, W - 1]) if (g[y][x] === "#" && !occupied.has(key(x, y))) bg("nat.hedge", x, y);
     // ---- 住人（旧IDの まま。スマホの 画面 11×19マスの どこから 見ても 1人は いるように） ----
     const standOk = (x, y) => inside(x, y) && !solidAt(x, y) && rg[y][x] !== "road" && !reserved.has(key(x, y)) && !occupied.has(key(x, y)) && !npcAt.has(key(x, y)) && !signAt.has(key(x, y));
-    old.npcs.forEach((n) => {
+    const quizHosts = typeof TownQuiz !== "undefined" ? TownQuiz.npcs("town").filter((q) => !old.npcs.some((n) => n.id === q.id)) : [];
+    [...old.npcs, ...quizHosts].forEach((n) => {
       let [x, y] = NPC_SPOTS[n.id] || front(B("home"));
       // よていの 場所が かべ・入口の まえなら いちばん ちかい あいている 地面へ
       if (!standOk(x, y)) { let best = null, bd = 1e9;

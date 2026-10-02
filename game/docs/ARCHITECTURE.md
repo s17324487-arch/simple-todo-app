@@ -874,6 +874,8 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 `town-quiz-data.js` はdocsの2JSONから生成。`TownQuiz` は既存town_walker3の会話を出題パネルへつなぐ。activeに出題時点の問題スナップショット・選択肢順・抽選済み景品・開始日を保存し、回答時にactive消去とlast／コイン／袋／家具を同時保存する。Save.writeの失敗が例外を返さないため保存結果のtokenを読み戻し、失敗時は状態を復元する。日次枠は回答した時に消費。UIを閉じてもactiveは保留として残る。
 
+クイズ係は 6人（TOWN-QUIZ-HOSTS・オーナーの FB 2026-10-01「クイズを出す人をネリカスタウンに3人、池袋駅に3人配置しなさい」）。`TownQuiz.HOSTS` に id・マップ・とくいな 分野（`topics`・`theme`）。`host(n)` は HOSTS に ある 人、`npcs(map)` が あたらしく たつ 人（`fresh`: 種・名前〔given〕・TALKS の ひとこと）を かえし、`js/nerikasu-layout.js`（`NPC_SPOTS` の いこいの もり・しょうがっこうの まえ）と `js/ikebukuro-town.js`（`PEOPLE` の 駅まえ ひろば）が その 場所に たたせる（npc-cast.js より まえ なので 見た目は 1人ずつ ちがう）。`talk()` が はなした 係を `_host` に のこし、`start()` は `_next(level, data, topics)`: 難易度ごとの 一巡（`rotation[level]`）は みんなで 1つ の まま、のこりの 中に とくいな 分野の 問題が あれば それを さきに だす（まえの 問題とは つづけない）。セーブの 形は かえない。`state()` に `host`・`hosts`・`theme`。
+
 限定家具5品はQuizPrizesへ登録し、HomeDesignと同じ投影で描画。5品×2方向の有限キャッシュ。PokaDebug.conversation／quizState／quizStart／quizAnswer／quizCancelを検証の入口とする。既存Save.KEY／SCHEMAは維持し、conversationsとtownQuizを追加する。
 
 ## クレーンゲーム（Meeときょれじゃ・UI-03・UI-07）

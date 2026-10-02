@@ -76,7 +76,9 @@ const IkebukuroTown = (() => {
     ["city_local1", 8, 14], ["city_local3", 17, 10], ["city_editor", 27, 18], ["ike_visitor0", 38, 18], ["ike_visitor1", 47, 12], ["ike_visitor2", 58, 18], ["ike_visitor3", 68, 18], ["ike_visitor4", 78, 18], ["ike_visitor5", 89, 18],
     ["city_commuter0", 8, 30], ["city_commuter1", 17, 24], ["city_local4", 30, 34], ["city_local5", 38, 35], ["ike_visitor7", 49, 30], ["city_musician", 57, 31], ["ike_visitor8", 68, 32], ["ike_visitor9", 78, 27], ["ike_visitor10", 88, 25],
     ["cityguide", 8, 46], ["city_commuter2", 17, 50], ["city_local6", 28, 46], ["city_commuter3", 38, 55], ["ike_visitor11", 48, 46], ["ike_visitor14", 58, 55], ["ike_visitor12", 68, 46], ["ike_visitor15", 78, 55], ["ike_visitor13", 88, 46],
-    ["city_local0", 13, 48], ["city_local2", 23, 40], ["ike_visitor17", 64, 23], ["city_local7", 75, 22], ["ike_visitor6", 44, 37], ["ike_visitor16", 58, 42], ["ike_visitor18", 92, 55], ["city_local8", 26, 55], ["ike_walker0", 24, 21], ["ike_walker1", 16, 28], ["ike_walker2", 70, 35],
+    ["city_local0", 13, 48], ["city_local2", 23, 40],
+    // クイズ係 3人（js/town-quiz.js の TownQuiz.HOSTS。オーナーの FB 2026-10-01「池袋駅に3人」: 駅の 入口の ひだり・みぎと いけふくろうの そば）
+    ["ike_quiz_history", 7, 44], ["ike_quiz_art", 13, 44], ["ike_quiz_all", 6, 47], ["ike_visitor17", 64, 23], ["city_local7", 75, 22], ["ike_visitor6", 44, 37], ["ike_visitor16", 58, 42], ["ike_visitor18", 92, 55], ["city_local8", 26, 55], ["ike_walker0", 24, 21], ["ike_walker1", 16, 28], ["ike_walker2", 70, 35],
   ];
   const VISITOR_LINES = [
     ["えきから サンシャイン60どおりを あるくと、いけぶに つくよ。", "とちゅうに Meeときょれじゃ も あるの。"],
@@ -129,10 +131,10 @@ const IkebukuroTown = (() => {
     const people = PEOPLE.map(([id, x, y], i) => {
       if (solidAt(x, y)) throw new Error("ikebukuro: 人が かべの 中 " + id + " " + x + "," + y);
       npcAt.add(key(x, y)); keep(x, y);
-      const prev = byId(old.npcs, id);
-      const n = { ...(prev || { id, sp: ["cat", "rabbit", "sheep", "bear", "mouse"][i % 5], dir: "down", name: "おかいものの ひと", talk: id }), x, y };
+      const prev = byId(old.npcs, id), quiz = typeof TownQuiz !== "undefined" && TownQuiz.npcs("city").find((q) => q.id === id);
+      const n = { ...(prev || quiz || { id, sp: ["cat", "rabbit", "sheep", "bear", "mouse"][i % 5], dir: "down", name: "おかいものの ひと", talk: id }), x, y };
       delete n.wander;
-      if (!prev || id.startsWith("ike_visitor")) { const L = VISITOR_LINES[i % VISITOR_LINES.length]; TALKS[id] = { first: [L[0]], lines: L.map((t) => [t]) }; if (typeof TOWNSFOLK_DATA !== "undefined") TOWNSFOLK_DATA.crowd[id] = TOWNSFOLK_DATA.crowd[id] || "city_commuter"; }
+      if (!quiz && (!prev || id.startsWith("ike_visitor"))) { const L = VISITOR_LINES[i % VISITOR_LINES.length]; TALKS[id] = { first: [L[0]], lines: L.map((t) => [t]) }; if (typeof TOWNSFOLK_DATA !== "undefined") TOWNSFOLK_DATA.crowd[id] = TOWNSFOLK_DATA.crowd[id] || "city_commuter"; }
       return n;
     });
     d.npcs.push(...people);

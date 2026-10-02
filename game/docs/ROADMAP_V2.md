@@ -366,6 +366,11 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - オーナーの 指示「池袋のマルシェ館とインテリア館、サンシャイン池袋駅前館は普通のビルに改めなさい。屋上庭園は削除し、恐竜博物館を大きくしなさい」。池袋の 街区は Codex の 担当だが、TOWN-IKE-01 と おなじく オーナーの 指示で Claude Code が した（あいて いる Codex の PR は なかった）。
 - `js/ikebukuro-town.js`: `city_clothes`／`city_market`／`city_furniture` の 絵と なまえ（えきまえ ビル・れんが ビル・あおぞら ビル）と ひとこと、`ike_annex3` を けして `REMOVED` に、`city_museum` を x 33・17×7・入口 8 に。原画 `tools/town-design/ikebukuro-buildings.mjs`（`officeBlock`・`slimBuilding`・大きな `museum`。`department`・`wing`・`rooftopGarden` は けした）→ `node tools/build-ikebukuro-town.mjs`。`js/area-map.js`: すまほの ちずの なまえと めじるし（ビルは オフィスの めじるし）。`tools/town-check.mjs`: `IkebukuroTown.REMOVED` の 建物は「なくなった」を ゆるす。
 - 受け入れ条件: いけぶの 別館と おくじょう ていえんの なまえが のこらない・3つの ビルは ふつうの ビルの 絵と ひとこと（いけぶに つながらない）・はくぶつかんは 17マスで ほかの 建物と かさならない・どの 入口にも 駅から いける・古い セーブの 位置は ちかい 歩道へ（`tools/check-ikebukuro.mjs`・`tools/town-check.mjs`）。スモーク「ikebukuro-buildings-390 / 375」・「ikebukuro-mall-doors」・「museum-visit」（はくぶつかんの 入口と 出口）。
+### [x] TOWN-QUIZ-HOSTS クイズを だす 人を ネリカスタウンに 3人・池袋えきに 3人（オーナーの FB 2026-10-01） ✅
+- オーナーの 指示「クイズを出す人をネリカスタウンに3人、池袋駅に3人配置しなさい」。ネリカスタウンは まえからの ふんすいの ひろばの 係（`town_walker3`）に 2人 たして 3人、池袋は 駅の 入口の まえの ひろば（東口）に 3人（池袋えきは 電車の のりば なので 中は ない）。
+- 係ごとに とくいな 分野: もりの ふくろう（しぜんと いきもの: 生き物・地球・地学）・ほしぞら はかせ（うちゅうと かがく: 宇宙・化学・物理・数学）・れきし はかせ（れきしと ちり: 歴史・地理・建築・文化）・えかきさん（げいじゅつと おんがく: 芸術・音楽・文学）・えきの ものしり と まえからの 係（ぜんぶ）。問題は 50もんの まま、とくいな 分野の 問題を さきに だす（どの 係に きいても 一巡するまで おなじ 問題は でない・ほりゅうした 問題は どの 係でも つづきから・ごほうびの 1日 10かいは みんなで 1つ）。
+- `js/town-quiz.js`（`HOSTS`・`npcs(map)`・`_next` の とくいな 分野）・`js/nerikasu-layout.js`（`NPC_SPOTS`）・`js/ikebukuro-town.js`（`PEOPLE`）。セーブの 形は かえない。
+- 受け入れ条件: ネリカスタウンに 3人・池袋えきの まえ（入口から 8マス いない）に 3人・なまえは「クイズずきの …」で かぶらない・とくいな 分野は どの 難易度にも 1もん いじょう・とくいな 分野が さきに でる・係を かえても 一巡で ぜんぶ・さかいめで つづけない（`tools/check-town-quiz.mjs`）・町の 検査（`tools/check-nerikasu-town.mjs`・`tools/check-ikebukuro.mjs`・`tools/town-check.mjs`・`tools/check-npc-life.mjs`）。スモーク「quiz-hosts-390 / 375」（池袋えきの まえに 3人 → れきし はかせの 初級は れきしと ちりの 問題 → ネリカスの 2人 → ほりゅうした 中級を ふんすいの 係で つづきから）。
 
 ### [x] UI-08 町の ズーム（オーナーの FB 2026-09-29） ✅
 - オーナーの 指示「全体マップで 歩いている ときに、ズームアウトと ズームインが できる ように」。

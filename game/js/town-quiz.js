@@ -11,8 +11,31 @@ const TownQuiz = {
   _context: null,
   _finish: null,
   _working: false,
+  // クイズ係（オーナーの FB 2026-10-01「クイズを出す人をネリカスタウンに3人、池袋駅に3人配置しなさい」）。
+  // ネリカスタウンは まえからの 1人（town_walker3）＋ 2人、池袋は 駅まえ ひろばに 3人（場所は js/nerikasu-layout.js・js/ikebukuro-town.js）。
+  // topics: その人が さきに だす 分野（null は ぜんぶ）。問題の じゅんばん（難易度ごとの 一巡）は みんなで 1つ なので、
+  // どの 係に きいても 一巡するまで おなじ 問題は でない。fresh: まちに あたらしく たつ 人（sp・name は ここで きめる）
+  HOSTS: {
+    town_walker3: { map: 'town', theme: null, topics: null },
+    neri_quiz_nature: { map: 'town', fresh: true, sp: 'owl', name: 'クイズずきの もりの ふくろう', theme: 'しぜんと いきもの', topics: ['生き物', '地球', '地学'], hello: 'いこいの もりの そばで、しぜんの クイズを だして いるよ。' },
+    neri_quiz_science: { map: 'town', fresh: true, sp: 'hedgehog', name: 'クイズずきの ほしぞら はかせ', theme: 'うちゅうと かがく', topics: ['宇宙', '化学', '物理', '数学'], hello: 'がっこうの まえで、うちゅうと かがくの クイズを だして いるよ。' },
+    ike_quiz_history: { map: 'city', fresh: true, sp: 'elephant', name: 'クイズずきの れきし はかせ', theme: 'れきしと ちり', topics: ['歴史', '地理', '建築', '文化'], hello: 'えきの まえで、れきしと ちりの クイズを だして いるよ。' },
+    ike_quiz_art: { map: 'city', fresh: true, sp: 'redpanda', name: 'クイズずきの えかきさん', theme: 'げいじゅつと おんがく', topics: ['芸術', '音楽', '文学'], hello: 'えと おんがくの クイズは まかせて！' },
+    ike_quiz_all: { map: 'city', fresh: true, sp: 'fox', name: 'クイズずきの えきの ものしり', theme: null, topics: null, hello: 'でんしゃを まつ あいだに、クイズは いかが？' },
+  },
+  _host: null,
 
-  host(n) { return !!n && n.id === 'town_walker3'; },
+  host(n) { return !!n && Object.prototype.hasOwnProperty.call(this.HOSTS, n.id); },
+  // まちに あたらしく たつ クイズ係（マップの 人の かたち。会話は TALKS に 1つ。名前は きまって いる ので given）。
+  // 町の なかまの 役（TOWNSFOLK_DATA.crowd）は town_walker3・池袋の おかいものの ひと と おなじ その 町の 通りの 人
+  npcs(map) {
+    const role = { town: 'town_walker', city: 'city_commuter' }[map];
+    return Object.entries(this.HOSTS).filter(([, h]) => h.fresh && h.map === map).map(([id, h]) => {
+      if (typeof TALKS !== 'undefined' && !TALKS[id]) TALKS[id] = { first: [h.hello], lines: [[h.hello]] };
+      if (role && typeof TOWNSFOLK_DATA !== 'undefined' && !TOWNSFOLK_DATA.crowd[id]) TOWNSFOLK_DATA.crowd[id] = role;
+      return { id, sp: h.sp, dir: 'down', name: h.name, talk: id, given: true };
+    });
+  },
   data() {
     if (!Save.d.townQuiz) Save.d.townQuiz = { active: null, history: {}, rotation: {}, last: null, plays: 0, correct: 0, daily: { day: '', attempts: 0 } };
     return Save.d.townQuiz;
@@ -71,7 +94,7 @@ const TownQuiz = {
     if (Math.random() < rule.luxury) loot.push(QuizPrizes.rollLuxury(Math.random));
     return loot.filter(Boolean);
   },
-  _next(level, data) {
+  _next(level, data, topics = null) {
     const ids = TOWN_QUIZ_DATA.filter((q) => q.level === level).map((q) => q.id);
     if (!ids.length) throw new Error('empty-quiz-level');
     let r = data.rotation[level];
@@ -82,7 +105,13 @@ const TownQuiz = {
       if (r.remaining.length > 1 && r.remaining[0] === r.last) [r.remaining[0], r.remaining[1]] = [r.remaining[1], r.remaining[0]];
       r.round++;
     }
-    const id = r.remaining.shift();
+    // とくいな 分野の 問題が まだ のこって いれば それを さきに（まえの 問題とは つづけない）
+    let at = 0;
+    if (topics) {
+      const k = r.remaining.findIndex((id) => id !== r.last && topics.includes(TOWN_QUIZ_DATA.find((q) => q.id === id).topic));
+      if (k >= 0) at = k;
+    }
+    const id = r.remaining.splice(at, 1)[0];
     r.last = id;
     data.rotation[level] = r;
     return TOWN_QUIZ_DATA.find((q) => q.id === id);
@@ -91,6 +120,7 @@ const TownQuiz = {
     if (!this.host(n)) return Promise.resolve(false);
     Save.d.flags.talked[n.id] = true;
     Save.mark();
+    this._host = n.id;
     this._context = { name: who.name || n.name || 'クイズ係', face: who.face || Art.npcSvg(n) };
     if (this._finish) this._finish(true);
     return new Promise((resolve) => {
@@ -107,7 +137,7 @@ const TownQuiz = {
     const ok = this._commit(() => {
       const d = this.data();
       if (d.daily.day !== day) d.daily = { day, attempts: 0 };
-      const q = this._next(level, d), eligible = d.daily.attempts < this.LIMIT;
+      const host = this.HOSTS[this._host], q = this._next(level, d, host ? host.topics : null), eligible = d.daily.attempts < this.LIMIT;
       d.active = { token, id: q.id, level, day, slot: d.daily.attempts + 1, eligible,
         question: this._copy(q), order: this._shuffle(q.choices.map((_, i) => i)),
         loot: this._loot(level, eligible), started: Date.now() };
@@ -157,7 +187,8 @@ const TownQuiz = {
   state() {
     const d = this.data(), a = d.active, day = U.today();
     const attempts = d.daily.day === day ? d.daily.attempts : 0;
-    return { open: !!this._panel, mode: this._mode, host: 'town_walker3',
+    const host = this._host || 'town_walker3';
+    return { open: !!this._panel, mode: this._mode, host, hosts: Object.keys(this.HOSTS), theme: this.HOSTS[host] ? this.HOSTS[host].theme : null,
       active: a ? { token: a.token, id: a.id, level: a.level, day: a.day, slot: a.slot, eligible: a.eligible,
         prompt: a.question.prompt, choices: a.order.map((i) => a.question.choices[i]), correctIndex: a.order.indexOf(a.question.answer) } : null,
       last: d.last ? this._copy(d.last) : null, daily: { day, attempts, remaining: Math.max(0, this.LIMIT - attempts) },
@@ -196,6 +227,8 @@ const TownQuiz = {
     if (!body) return;
     this._portrait(body);
     this._text(body, '世界のふしぎを、3人といっしょに考えよう。科学・歴史・芸術など、出典を調べた50問から出題するよ。');
+    const theme = this.state().theme;
+    if (theme) this._text(body, `この ひとの とくいは「${theme}」の もんだい。さきに だして くれるよ。`, 'town-quiz-meta town-quiz-theme');
     this._text(body, `今日のごほうび対象は、あと${this.state().daily.remaining}回答。正解・不正解にかかわらず最初の10回答までだよ。`, 'town-quiz-meta');
     const actions = U.el('div', { class: 'town-quiz-actions' });
     for (let level = 1; level <= 3; level++) {
