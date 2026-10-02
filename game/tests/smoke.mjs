@@ -625,15 +625,15 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.page.locator(".help-row").count()>=5,"あそびかたが ない");
   await H.shot("menu-help");
   await H.page.locator(".modal-wrap:not(.out) .close").click();await H.wait(300);
-  // すまほ: ホーム画面（時計・アプリ 12こ・44px いじょう・はみ出さない）
+  // すまほ: ホーム画面（時計・アプリ 13こ・44px いじょう・はみ出さない）
   await H.phone();await H.shot("home");
   s=await H.dbg("smahoState");
   const home=await H.eval(()=>{const ph=document.querySelector(".smaho").getBoundingClientRect(),apps=[...document.querySelectorAll(".smaho-app")].map(b=>b.getBoundingClientRect());return {ph:[ph.left,ph.top,ph.right,ph.bottom],w:innerWidth,h:innerHeight,apps:apps.length,small:apps.filter(r=>r.width<44||r.height<44).length,clock:document.querySelector(".smaho-clock")?.textContent||"",date:document.querySelector(".smaho-date")?.textContent||""};});
-  expect(s.open&&home.apps===12&&home.small===0&&/^\d\d:\d\d$/.test(home.clock),"すまほの ホームが 不正 "+JSON.stringify(home));
+  expect(s.open&&home.apps===13&&home.small===0&&/^\d\d:\d\d$/.test(home.clock),"すまほの ホームが 不正 "+JSON.stringify(home));
   expect(/^\d+がつ \d+にち（(にち|げつ|か|すい|もく|きん|ど)ようび）$/.test(home.date),"すまほの 日づけが 不正 "+home.date);
   expect(home.ph[0]>=0&&home.ph[1]>=0&&home.ph[2]<=home.w+0.5&&home.ph[3]<=home.h+0.5,"すまほが 画面から はみ出す "+JSON.stringify(home));
   // アプリを ひとつずつ（もどる で ホーム）
-  const checks={"いらい":".neri-quests","ようす":".chara-card","もちもの":".card, .note","ずかん":".dex-kinds","イベント":".annual-hero","スタンプラリー":".festival-target","ひんと":".smaho-hint","うらない":".smaho-draw","ごほうび":"select","おんがく":".smaho-disc","しゃしん":".puri-album, .note","ちず":".area-map .amap-svg"};
+  const checks={"いらい":".neri-quests","ようす":".chara-card","もちもの":".card, .note","ずかん":".dex-kinds","イベント":".annual-hero","スタンプラリー":".festival-target","ひんと":".smaho-hint","うらない":".smaho-draw","ごほうび":"select","おんがく":".smaho-disc","しゃしん":".puri-album, .note","おねがい":".wish-app","ちず":".area-map .amap-svg"};
   for(const [app,sel] of Object.entries(checks)){
     await H.page.locator(".smaho").getByRole("button",{name:app,exact:true}).click();await H.wait(300);
     expect(await H.page.locator(".smaho-body").locator(sel).count()>0,app+" の 中みが ない");
@@ -4389,6 +4389,7 @@ await (await import("./wear-stock-smoke.mjs")).wearStockSmoke({scenario,expect})
 await (await import("./head-pair-smoke.mjs")).headPairSmoke({scenario,expect});
 await (await import("./work-exp-smoke.mjs")).workExpSmoke({scenario,expect});
 await (await import("./home-talk-more-smoke.mjs")).homeTalkMoreSmoke({scenario,expect});
+await (await import("./gowaga-wish-smoke.mjs")).gowagaWishSmoke({scenario,expect});
 // すいぞくかん・はくぶつかんの きふの ごほうび（UI-33）: みだし・カード・はくぶつかんで 4つ・もちもの・おうち
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
 await (await import("./dino-museum-smoke.mjs")).dinoMuseumSmoke({scenario,expect});

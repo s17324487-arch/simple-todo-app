@@ -1266,3 +1266,21 @@ html, body {
 .fs-ph-tabs { display:flex; gap:6px; justify-content:center; margin:0 0 6px; }
 .fs-ph-tabs .btn { min-height:44px; }
 .fs-ph-big { display:block; margin:0 auto; border:3px solid var(--ink); border-radius:6px; background:#231C42; width:auto; max-width:100%; }
+/* ごわがの おねがい（UI-46・js/gowaga-wish.js）: トースト・すまほの「おねがい」 */
+.toast .wish-toast { display: inline-flex; align-items: center; gap: 6px; }
+.wish-app { display: flex; flex-direction: column; gap: 10px; }
+.wish-head { display: flex; align-items: center; gap: 6px; font-size: 16px; }
+.wish-card { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; align-items: center; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 10px; }
+.wish-card.done { background: var(--pink-l); }
+.wish-face svg { width: 64px; height: auto; display: block; }
+.wish-who { font-weight: 800; font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
+.wish-text { font-weight: 800; font-size: 15px; margin: 4px 0; word-break: keep-all; overflow-wrap: anywhere; }
+.wish-hint { font-size: 12px; font-weight: 700; color: #6d604d; word-break: keep-all; overflow-wrap: anywhere; }
+.wish-kind { display: inline-block; border: 2px solid var(--ink); border-radius: 999px; padding: 0 8px; font-size: 11px; font-weight: 800; background: #fff; white-space: nowrap; }
+.wish-kind.k-go { background: #BFE6C9; }
+.wish-kind.k-eat { background: #FBE3A0; }
+.wish-kind.k-do { background: #F9CFDE; }
+.wish-count { font-weight: 800; font-size: 14px; }
+.wish-log { display: flex; flex-direction: column; gap: 6px; }
+.wish-log-row { display: flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 700; }
+.wish-log-text { min-width: 0; overflow-wrap: anywhere; }
