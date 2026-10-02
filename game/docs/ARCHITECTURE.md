@@ -140,6 +140,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 8 | `maps.js` | `MAP_DEFS`, `FieldGen`, `genMeadow`, `genForest`, `genCave`, `WorldMap` |
 | 9 | `save.js` | `Save`, `Stats`, `Care` |
 | 9b | `wear-stock.js` | `WearStock`（服の かず。1こで ひとり・UI-31） |
+| 9c | `work-exp.js` | `WorkExp`（いらい・おてつだい・町の人の おねがいの けいけんち。UI-44） |
 | 10 | `sound.js` | `Sound`, `DR`, `SONGS` |
 | 11 | `ui.js` | `UI` |
 | 12 | `main.js` | `G`, `Game`, `SCENES` |
@@ -434,6 +435,16 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
 - ガチャ・もらいもの（`Loot`）・おまつり（`Seasonal`・`AnnualFestivals`）・コラボ（`CollabGoods.give`）は 1こ ずつ（5こ より おおい ぶんは まえと おなじ コイン）。こうもりの はねは 5こ まで おちる。
 - Meeときょれじゃ の かしだしの いしょう（もって いない もの）は いくつでも・かず に いれない。こういしつを でる とき（`MeeFitting.giveBack`）は、まえの ふくを ほかの 人が つかって いて のこりが なければ もどさない。
 - PokaDebug: `wearStock(id)`・`wearSet(id, n)`・`unlockAll()` は 5こずつ。検査は `tools/check-wear-stock.mjs`、スモークは `tests/wear-stock-smoke.mjs`（`wear-stock-390/375`）。
+
+### いらい・おてつだいの けいけんち（`js/work-exp.js`・`WorkExp`・UI-44）
+
+オーナーの FB 2026-10-02「日々のクエストやバイトで、少しずつ経験値が増えてレベルがアップするようにして欲しい」。
+
+- `rate(kind, v)`: `shift`（[ranks, はたらいた ぶん]。2〜8%）・`quest`（★ 1〜5。7〜19%）・`folk`（5%）。`amount(id, rate)` = `Stats.expNeed(lv) × rate`（1 いじょう・Lv50 は 0）。
+- `give(kind, v)` は 3人 みんなに `Stats.gainExp` で わたし、[{ id, name, n, lv0, lv, exp, need, ups }] を かえす（`WorkExp.last` にも のこす）。
+- がめん: `html(rows)`（おてつだいの「きょうの けっか」の ぼう）・`text(rows)`／`toast(rows)`（いらい・おねがい）・`cheer(rows, delay)`（レベルが あがった ときの `jingle_lv`）。
+- よぶ ところ: `ShopScene.results`（`js/minigames.js`）・`NeriQuests.report`（`js/neri-quests.js`）・`TownFolk.finish`（`js/townsfolk.js`）。
+- PokaDebug: `workExp()`・`nearLevelUp(id, left)`。検査は `tools/check-work-exp.mjs`、スモークは `tests/work-exp-smoke.mjs`（`work-exp-390/375`）。
 
 ---
 

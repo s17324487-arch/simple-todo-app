@@ -57,6 +57,9 @@ export async function nerikasuQuestsSmoke({scenario,expect,folkTalk,folkTapSpot}
     // けいじばんで ほうこく → ほうしゅう
     const coins0=(await H.dbg('saveData')).coins;await openBoard(H);
     for(const b of [hunt,errand,find])await H.page.getByRole('button',{name:`「${b.title}」を ほうこくする`,exact:true}).click();
+    // けいけんち（UI-44）: ほうこくすると 3人に ★の ぶん・トースト
+    {const w=await H.dbg('workExp');expect(w.kind==='quest'&&w.rows.length===3&&w.rows.every(r=>r.n>0),'いらいの ほうこくで けいけんちが ふえない '+JSON.stringify(w));
+     expect(await H.eval(()=>[...document.querySelectorAll('.toast .wexp-toast')].some(t=>/3にんに けいけんち/.test(t.textContent))),'けいけんちの トーストが でない');}
     await H.shot('reported');
     const d=await H.dbg('saveData');expect(d.coins===coins0+hunt.reward+errand.reward+find.reward,'ほうしゅうが ちがう '+[coins0,d.coins]);
     q=await H.dbg('quests');expect(!q.active.length&&q.done.length===3&&q.total===3&&q.earned===hunt.reward+errand.reward+find.reward,'ほうこくが のこらない');

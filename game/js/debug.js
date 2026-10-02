@@ -594,6 +594,19 @@ const PokaDebug = {
     return { day: s.day, board: s.board.map((id) => ({ id, type: Q[id].type, stars: Q[id].stars, reward: Q[id].reward, title: NeriQuests.title(Q[id]), enemy: Q[id].enemy || null, n: Q[id].n || 0, item: Q[id].item || null, to: Q[id].to || null, follow: !!Q[id].follow })),
       active: s.active.map((a) => ({ ...JSON.parse(JSON.stringify(a)), title: NeriQuests.title(Q[a.id]), progress: NeriQuests.progress(a) })), done: [...s.done], total: s.total, earned: s.earned };
   },
+  // いらい・おてつだい・町の人の おねがいの けいけんち（js/work-exp.js・UI-44）: いちばん あとの けっか（kind: shift・quest・folk）と 3人の レベル
+  workExp() {
+    if (typeof WorkExp === "undefined") return null;
+    const l = WorkExp.last;
+    return { kind: l ? l.kind : null, rate: l ? l.rate : 0, rows: l ? l.rows.map((r) => ({ id: r.id, n: r.n, lv0: r.lv0, lv: r.lv, exp: r.exp, need: r.need, ups: r.ups.map((u) => u.lv) })) : [],
+      levels: Save.d.order.map((id) => { const c = Save.d.chars[id]; return { id, lv: c.lv, exp: c.exp, need: Stats.expNeed(c.lv) }; }) };
+  },
+  // その 子を つぎの レベルの あと left の ところに（テスト用）
+  nearLevelUp(id = "goji", left = 1) {
+    const c = Save.d.chars[id]; if (!c || c.lv >= 50) return null;
+    c.exp = Math.max(0, Stats.expNeed(c.lv) - Math.max(1, left)); Save.mark();
+    return { id, lv: c.lv, exp: c.exp, need: Stats.expNeed(c.lv) };
+  },
   // けいじばんの マスと 画面の 位置（町に いる とき）
   questBoardAt() {
     const [x, y] = NeriQuests.BOARD, sc = G.sceneName === "world" && G.scene.mapId === "town" ? G.scene : null, r = G.canvas.getBoundingClientRect();

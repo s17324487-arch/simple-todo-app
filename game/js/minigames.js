@@ -232,6 +232,8 @@ class ShopScene {
     const good = this.ranks.filter((r) => r >= 2).length / Math.max(1, this.ranks.length);
     const fraction = interrupted ? this.ranks.length / this.total : 1;
     if (fraction) Save.careAll({ hunger: -6 * fraction, mood: (good >= 0.6 ? 4 : -2) * fraction, bond: interrupted ? 0 : 1 });
+    // けいけんち（UI-44）: ○◎ が おおいほど・はたらいた ぶんだけ。3人 みんな
+    const xp = WorkExp.give("shift", [this.ranks, fraction]);
     const previousLevel = st.lv;
     st.lv = ShopRewards.level(st);
     const lvUp = st.lv > previousLevel;
@@ -255,8 +257,10 @@ class ShopScene {
     body.append(U.el("div", { class: "muted", text: `あそびかた: ${GameEconomy.mode(this.difficulty).name}` }));
     if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！ ${st.lv <= 5 ? "ちゅうもんが むずかしく なって、コインも ふえるよ。" : "つぎの ごほうびを めざそう！"}` }));
     for (const p of prizes) body.append(U.el("div", { class: "note", text: `Lv.${p.level}の ごほうび！ 「${p.name}」を もらったよ。` }));
+    if (xp.some((r) => r.n)) body.append(U.el("div", { class: "wexp-box", html: `<div class="wexp-ttl">けいけんち</div>${WorkExp.html(xp)}` }));
     if (fraction) body.append(U.el("div", { class: "muted", style: "margin-top:8px", text: "はたらいたので おなかが すこし へった。" }));
     Save.write();
+    WorkExp.cheer(xp, 1200); // レベルが あがったら おいわいの おと（victory の あと）
     await new Promise((res) => {
       const m = UI.modal({ title: "きょうの けっか", body, closable: false, footer: UI.btn(this.returnStore || this.returnVenue ? "てんないに もどる" : "まちに もどる", () => { Sound.se("ok"); m.close(); res(); }, "yellow wide") });
     });

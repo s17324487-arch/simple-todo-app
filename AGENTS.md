@@ -154,6 +154,7 @@
 | `js/maps.js` | マップ（町は ASCII の手描き、外の世界は `FieldGen` で決まった形に生成） |
 | `js/save.js` | セーブ（`Save`）、ステータス計算（`Stats`）、お世話（`Care`） |
 | `js/wear-stock.js` | 服の かず（`WearStock`。1こで ひとり・3人と ぱぱ・ままで わける・5こ まで・わたす。`Save.d.wardrobe` は `true`=1こ か かず） |
+| `js/work-exp.js` | まいにちの いらい・おてつだい・町の人の おねがいで 3人の けいけんち（`WorkExp`。つぎの レベルまでの 2〜19%・おてつだいの けっかの ぼう・トースト） |
 | `js/sound.js` | 効果音と BGM（WebAudio 合成） |
 | `js/ui.js` | 会話・選択肢・入力・モーダル・トースト・HUD（`UI`） |
 | `js/main.js` | 起動・画面サイズ・ループ・入力・シーン切り替え（`G`・`Game`・`SCENES`） |
