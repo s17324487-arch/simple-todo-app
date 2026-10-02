@@ -3,6 +3,7 @@
 // さわる うごき（FurnLive）・live で ぬく ぶぶんが ある ものだけ live・いごこちは レベルで ふえる・ベッド・もようがえの しゅるい・ずかんの ヒント。
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import vm from "node:vm";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
@@ -94,5 +95,22 @@ for (const l of lines) ok(!kanji.test(l) && l.length <= 18, `ことば ${l}`);
 const srs = readFileSync(new URL("../js/shop-rewards.js", import.meta.url), "utf8").replace(/\/\/.*$/gm, "");
 for (const m of srs.matchAll(/(?:text|"aria-label"):\s*["`]([^"`]+)["`]/g)) ok(!kanji.test(m[1].replace(/\$\{[^}]+\}/g, "")), `ごほうびの がめんの ことば ${m[1]}`);
 ok(/さわると うごく/.test(srs), "ごほうびの がめんで さわると うごく ことを いう");
+
+// ---- 素材プレビュー（tools/preview.html）でも 描ける ----
+// プレビューは index.html の 一部の js だけを よむ。ごほうびの 立体（shop-reward-art.js）を よまないと、
+// かぐの 絵で ShopRewardArt が みつからず ページが とまる（スモーク「落ち葉・背景に固定」が まつ 見出しが でない）。
+const pv = [...readFileSync(new URL("./preview.html", import.meta.url), "utf8").matchAll(/<script src="\.\.\/(js\/[^"]+)"><\/script>/g)].map((m) => m[1]);
+for (const f of ["js/furniture-models.js", "js/furniture-live.js", "js/shop-rewards.js", "js/shop-reward-art.js"]) ok(pv.includes(f), `プレビューが ${f} を よむ`);
+ok(pv.indexOf("js/shop-reward-art.js") > Math.max(pv.indexOf("js/shop-rewards.js"), pv.indexOf("js/furniture-live.js")), "プレビューは shop-rewards.js・furniture-live.js の あとに shop-reward-art.js");
+{
+  const noop = () => {}, el = () => ({ style: {}, append: noop, addEventListener: noop, getContext: () => null, setAttribute: noop, dataset: {} });
+  const P = { console: { log: noop, warn: noop, error: noop, info: noop }, performance, setTimeout, clearTimeout, URL, location: { search: "" }, document: { getElementById: el, createElement: el, addEventListener: noop }, addEventListener: noop };
+  P.window = P;
+  vm.createContext(P);
+  for (const f of pv) vm.runInContext(readFileSync(new URL("../" + f, import.meta.url), "utf8"), P, { filename: f });
+  const bad = vm.runInContext("FURNITURE.filter((f) => { try { return !/<svg/.test(Art.furnSvg(f.id)); } catch { return true; } }).map((f) => f.id)", P);
+  ok(!bad.length, "プレビューで 描けない かぐ: " + bad.join(" "));
+  ok(vm.runInContext("ShopRewards.prizes.every((p) => /<svg/.test(ShopRewardArt.model(p.id).full))", P), "プレビュー（?shop-rewards）で 44こ とも 描ける");
+}
 
 console.log(`✓ shop rewards: ${n} checks（11 おみせ × 4・live ${LIVE.length}・あかり ${tapped.on}・ことば ${lines.length}）`);
