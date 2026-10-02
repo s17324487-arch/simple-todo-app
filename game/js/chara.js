@@ -736,6 +736,11 @@ const Chara = {
     ctx.drawImage(c, x - ax, y - ay, w, h);
     if (alpha !== 1) ctx.restore();
   },
+  // その 大きさの 絵が もう できて いるか（なければ つくりはじめる）。おうちの ズームの あと、できる まで まえの 大きさの 絵で 描く。
+  ready(id, o, size) {
+    const pw = this.pxSize(size), ph = Math.round((pw * VB.h) / VB.w);
+    return !!SvgCache.get(this.key(id, o), () => buildCharaSvg(id, o), pw, ph);
+  },
   preload(list, size) {
     const pw = this.pxSize(size), ph = Math.round((pw * VB.h) / VB.w);
     return Promise.all(list.map(([id, o]) => SvgCache.ensure(this.key(id, o), () => buildCharaSvg(id, o), pw, ph)));
