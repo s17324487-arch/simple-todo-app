@@ -2551,7 +2551,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 },{viewport,full:viewport.width===375,timeout:180000});
 
 await scenario("店員から購入・保存・おてつだい",async H=>{
-  await H.newGameFast();await H.dbg("coins",5000);
+  // かぐやの いちばん まえは ひがわりの かぐ（6000 まで・UI-40）。どの 日でも 6けんで 1つずつ かえる コイン。
+  await H.newGameFast();await H.dbg("coins",12000);
   const original=await H.dbg("saveData");
   for(const [id,kind] of [["clothes","wardrobe"],["furniture","furn"],["market","bag"],["crepe","bag"],["bakery","bag"],["florist","furn"]]){
     await H.dbg("store",id);await H.idle();
@@ -2809,6 +2810,73 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.locator(".edit-bar button",{hasText:"おわる"}).click();
   await H.dbg("hour",null);
 },{viewport,full:viewport.width===375,timeout:120000});
+
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('furn-collection-'+viewport.width,async H=>{
+  // UI-40: あき・ふゆの かぐと ハイクオリティの ひがわり かぐ（js/furniture-collection.js）
+  await H.newGameFast();await H.dbg("coins",987654);await H.dbg("unlockAll");
+  const closeAll=async()=>{for(let i=0;i<6&&await H.page.locator('.modal-wrap:not(.out)').count();i++){await H.page.locator('.modal-wrap:not(.out)').last().getByRole('button',{name:'とじる',exact:true}).click();await H.wait(300);}};
+  const open=async()=>{await H.dbg('store','furniture');await H.idle(30000);await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'かいものを する',exact:true}).click();await H.page.waitForSelector('.modal-wrap .grid .card');await H.wait(300);};
+  const cards=()=>H.page.$$eval('.modal-wrap:not(.out) .grid .card',cs=>cs.map(c=>{const r=c.getBoundingClientRect(),t=c.querySelector('.daily-tag'),q=t&&t.getBoundingClientRect();return{name:((c.querySelector('.ico + div')||{}).textContent||'').trim(),daily:!!t,inside:!t||(q.left>=r.left-1&&q.right<=r.right+1&&q.top>=r.top-1&&q.bottom<=r.bottom+1)};}));
+  const front=async(names,tab)=>{
+    const c=await cards();expect(c.length>4,tab+": カードが すくない");
+    expect(c[0].daily&&c[1].daily&&!c.slice(2).some(x=>x.daily),tab+": ひがわりの ふだ "+JSON.stringify(c.slice(0,3)));
+    expect(names.every((nm,i)=>c[i].name===nm),tab+": まえの 2つが きょうの ひがわり "+JSON.stringify([names,c.slice(0,2).map(x=>x.name)]));
+    expect(c.every(x=>x.inside),tab+": ふだが カードから はみ出す");
+  };
+  // かぐやさん: 2026-10-02（2にちの くぎりの はじめ）は「あした まで」
+  await H.dbg("calendar","2026-10-02");
+  const d1=await H.dbg("furnDaily");expect(d1&&d1.left===2&&d1.floor.length===2&&d1.wall.length===2,"ひがわりの ようす "+JSON.stringify(d1));
+  await open();await front(d1.names.floor,"かぐ");await H.shot("shop-floor");
+  await H.page.locator('.modal-wrap:not(.out) .tab',{hasText:'かべかざり'}).click();await H.wait(300);
+  await front(d1.names.wall,"かべかざり");await H.shot("shop-wall");
+  await H.page.locator('.modal-wrap:not(.out) .grid .card').first().click();await H.wait(300);
+  const note=await H.page.locator('.modal-wrap:not(.out) .note').last().textContent();expect(/ひがわり/.test(note)&&/あした まで/.test(note),"くわしくに ひがわりの ひとこと が ない: "+note);
+  await H.shot("detail");
+  const before=(await H.dbg("saveData")).furn[d1.wall[0]]||0;
+  await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.wait(400);
+  expect(((await H.dbg("saveData")).furn[d1.wall[0]]||0)===before+1,"ひがわりの かべかざりを かえない");
+  await closeAll();
+  // 2にち あと（2026-10-05 は くぎりの 2にちめ → きょう だけ）: ちがう 2つずつ
+  await H.dbg("calendar","2026-10-05");
+  const d2=await H.dbg("furnDaily");expect(d2.left===1&&!d2.floor.some(id=>d1.floor.includes(id))&&!d2.wall.some(id=>d1.wall.includes(id)),"2にち あとも おなじ ひがわり "+JSON.stringify([d1,d2]));
+  await open();await front(d2.names.floor,"かぐ（2にち あと）");
+  await H.page.locator('.modal-wrap:not(.out) .grid .card').first().click();await H.wait(300);
+  expect(/きょう だけ/.test(await H.page.locator('.modal-wrap:not(.out) .note').last().textContent()),"くぎりの 2にちめに「きょう だけ」が ない");
+  await closeAll();await H.dbg("calendar",null);
+  // へや: よるの あかり・ひるに 25こ ぜんぶ タップ
+  await H.dbg('house');await H.until(()=>G.sceneName==='house'&&PokaDebug.idle(),15000);await H.wait(300);
+  const touch=async(id,ok,msg)=>{
+    const a=await H.dbg("furnLive",id);expect(a&&a.tap,`${id}: タップできる 点が ない`);
+    await H.tap(a.tap.x,a.tap.y);await H.wait(300);
+    const b=await H.dbg("furnLive",id);expect(ok(a,b),`${msg} ${JSON.stringify([a,b])}`);expect(b.talk>a.talk,`${id}: 3人が なにも いわない`);
+    return b;
+  };
+  const sets=[
+    [{id:"hq_gold_lamp",x:50,y:585},{id:"quiz_starry_fireplace",x:170,y:585},{id:"aw_snow_tree",x:300,y:585},{id:"aw_acorn_lamp",x:420,y:585},{id:"hq_wall_sconce",x:120,y:100},{id:"hq_heart_neon",x:340,y:100}],
+    [{id:"aw_knit_sofa",x:80,y:585},{id:"hq_velvet_sofa",x:230,y:585},{id:"hq_marble_table",x:390,y:585},{id:"aw_maple_rug",x:240,y:430},{id:"hq_cuckoo_clock",x:120,y:100},{id:"hq_sunflower_art",x:340,y:100}],
+    [{id:"hq_canopy_bed",x:80,y:590},{id:"hq_crystal_piano",x:240,y:590},{id:"hq_antique_shelf",x:400,y:590},{id:"hq_gold_mirror",x:80,y:90},{id:"hq_knight_shield",x:240,y:95},{id:"hq_plush_deer",x:400,y:95}],
+    [{id:"hq_silver_clock",x:50,y:585},{id:"hq_velvet_chair",x:150,y:585},{id:"hq_home_theater",x:300,y:585},{id:"hq_wave_sculpture",x:430,y:585},{id:"hq_castle_tapestry",x:80,y:100},{id:"hq_wall_shelf",x:240,y:100},{id:"hq_gold_wreath",x:400,y:100}],
+  ];
+  const LAMPS=["aw_acorn_lamp","hq_gold_lamp","hq_wall_sconce","hq_heart_neon"],LIVE=["aw_snow_tree","quiz_starry_fireplace","hq_silver_clock","hq_sunflower_art","hq_cuckoo_clock","hq_heart_neon","hq_gold_wreath"];
+  const layout=async i=>{await H.dbg("homeLayout",sets[i]);await H.dbg("homeBubbleFixture");await H.wait(700);};
+  await H.dbg("hour",21);await layout(0);
+  for(const it of sets[0]){const st=await H.dbg("furnLive",it.id);expect(st&&st.live===LIVE.includes(it.id),`${it.id}: live の とうろく`);if(LAMPS.includes(it.id))expect(st.on===true,`${it.id}: よるに あかりが ついて いない`);}
+  await H.shot("night");
+  await touch("aw_acorn_lamp",(a,b)=>a.on===true&&b.on===false,"よるの どんぐりの ランプが タップで きえない");
+  await touch("hq_heart_neon",(a,b)=>a.on===true&&b.on===false,"よるの ネオンが タップで きえない");
+  // 時こくを とばすと ぱぱ・ままは つぎの フレームで いなくなる。それまでは よるの ばしょ（かぐの まえ）に いるので、いなくなるまで まつ
+  await H.dbg("hour",11);await H.until(()=>{const w=PokaDebug.parentWork();return !!w&&w.away&&!w.visible.length;},8000);
+  for(const [i,set] of sets.entries()){
+    if(i)await layout(i);
+    for(const it of set){
+      if(i===0&&(it.id==="aw_acorn_lamp"||it.id==="hq_heart_neon"))continue;
+      if(LAMPS.includes(it.id))await touch(it.id,(a,b)=>a.on===false&&b.on===true,`${it.id}: ひるに タップで あかりが つかない`);
+      else{const b=await touch(it.id,(a,b)=>b.n===a.n+1&&b.t<1,`${it.id}: タップしても うごかない`);if(it.id==="hq_cuckoo_clock")expect(b.bird,"はとどけいの ことりが でない");if(it.id==="hq_home_theater")expect(b.ch===1,"テレビの ばんぐみが つかない");}
+    }
+    await H.shot("day-"+(i+1));
+  }
+  await H.dbg("hour",null);
+},{viewport,full:viewport.width===375,timeout:180000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-idle-life-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('pause',true);await H.dbg('homeBubbleFixture');await H.dbg('homeActionSchedule');

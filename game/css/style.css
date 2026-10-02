@@ -211,6 +211,9 @@ html, body {
 .card .price .coin-ico { width: 13px; height: 13px; border-width: 2px; }
 .card .price .coin-ico::after { display: none; }
 .card .cnt { position: absolute; top: 3px; right: 6px; font-size: 12px; font-weight: 800; }
+/* かぐやの ひがわり（js/furniture-collection.js）: カードの ひだり うえの ふだ */
+.card.daily { box-shadow: 0 3px 0 var(--ink), inset 0 0 0 3px #F5C76E; }
+.card .daily-tag { position: absolute; top: 3px; left: 5px; background: var(--orange); color: #fff; font-size: 10px; font-weight: 800; line-height: 1; border-radius: 8px; padding: 3px 5px; pointer-events: none; }
 /* フィギュア台（js/figure-stand.js）: 3×3 の ばしょ・えらぶ リスト */
 .figst-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
 .figst-slot { min-height: 72px; border: 3px solid var(--ink); border-radius: 14px; background: #FFF8EC; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 0 var(--ink); font: inherit; padding: 4px; }

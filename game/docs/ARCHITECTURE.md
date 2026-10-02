@@ -177,6 +177,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `furn-tray.js`（home-floors.js の あと） | `FurnTray`（もようがえの 一覧を ひろげる・さがす・ならびかえ・しゅるい・UI-37） |
 | — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび 44この 立体と さわる うごき・UI-38） |
 | — | `rug-lamp.js`（shop-reward-art.js の あと・slow-life-prices.js の まえ） | `RugLamp`（かぐやの ラグ 8 と ランプ 8・UI-39） |
+| — | `furniture-collection.js`（slow-life-prices.js・quiz-prizes.js の あと） | `FurnCollection`（あき・ふゆの かぐ 4・ひがわり 20・クイズの だんろ・UI-40） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -894,6 +895,14 @@ UI-38（2026-10-01）で 44種の絵を 店ごとに ちがう 立体に 作り�
 - ラグ: `simple()` と 店ごとの うごき。どうろの マットの ミニカーは `RugLamp.roadAt(u)`（まんなかの せんの うえ）。ラグも 絵の ピクセルで あたり（`hitItem`）なので タップできる。
 - 検査は `tools/check-rug-lamp.mjs`、スモークは `rug-lamp`。
 
+### あき・ふゆの かぐと ひがわり（UI-40・`js/furniture-collection.js`）
+Jules の PR #116 の かぐ 25こを つくりなおした もの。`FurnCollection` の `AUTUMN`（4）・`FLOOR`（ひがわりの ゆか 10）・`WALL`（ひがわりの かべかざり 10）を `FURNITURE`・`FURN_INDEX`・`FURN_ART` に たし、`QUIZ`（ほしぞらの だんろ）を `QuizPrizes.items` と `FURNITURE`（`rare`・`quizPrize`）に たす。`slow-life-prices.js` の あとに よむので、ねだんは `SlowLifePrices.price("furniture", もとの ねだん)` で じぶんで 4ばいに する。
+- ゆかの かぐ と だんろ: `FurnModels.register`（`HomeDesign.model` は `FurnModels.has` を さきに みるので、だんろも `QuizPrizes.model` では なく この 立体）。へこみの ある 形は `extrude()`（見える よこの 面を つないで 1まいずつ）。
+- かべかざり: `FURN_ART[id](opts)` が 0..w × 0..h の 2D の 絵を かえす（`Art.furnSvg` が はんてん・よはく を つける）。live の ときは うごく ぶぶんを ぬく。
+- ひがわり: `featured(tab, d)`（`Date.UTC` の 日の かず ÷ 2 の くぎりで 2つ）・`daysLeft(d)`。`BUY_SHOPS.furniture.items` を つつみ、「かぐ」「かべかざり」の まえに きょうの 2つ（ほかの ひがわりは ださない）。`ShopUI.card` の「ひがわり」の ふだ・`BUY_SHOPS.furniture.note` の「あした まで／きょう だけ」。
+- さわる: `ShopRewardArt.liveKit` の `lamp`・`simple`・`FXS` と、かべ用の `wallTf`・`wallAt`・`wallMapper`・`sayWall`・`wallSimple`。
+- 検査は `tools/check-furn-collection.mjs`、スモークは `furn-collection`。
+
 ## ネリカスタウン・池袋の交通
 
 district-travel.js は全体地図の後に読み込み、町IDを変えずに名称・接続・地図の配置を更新する。池袋の屋外徒歩ワープはなく、館から町へ戻る室内出口は維持する。Transit.fare/payは池袋への電車だけ `Transit.CITY_FARE`（50コイン。2026-09-30 までは 500）を払い、中止・残高不足では変更しない。帰路は無料。PokaDebug.districtTravel/station/atlas と2画面のスモークで確認。
@@ -910,7 +919,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 クイズ係は 6人（TOWN-QUIZ-HOSTS・オーナーの FB 2026-10-01「クイズを出す人をネリカスタウンに3人、池袋駅に3人配置しなさい」）。`TownQuiz.HOSTS` に id・マップ・とくいな 分野（`topics`・`theme`）。`host(n)` は HOSTS に ある 人、`npcs(map)` が あたらしく たつ 人（`fresh`: 種・名前〔given〕・TALKS の ひとこと）を かえし、`js/nerikasu-layout.js`（`NPC_SPOTS` の いこいの もり・しょうがっこうの まえ）と `js/ikebukuro-town.js`（`PEOPLE` の 駅まえ ひろば）が その 場所に たたせる（npc-cast.js より まえ なので 見た目は 1人ずつ ちがう）。`talk()` が はなした 係を `_host` に のこし、`start()` は `_next(level, data, topics)`: 難易度ごとの 一巡（`rotation[level]`）は みんなで 1つ の まま、のこりの 中に とくいな 分野の 問題が あれば それを さきに だす（まえの 問題とは つづけない）。セーブの 形は かえない。`state()` に `host`・`hosts`・`theme`。
 
-限定家具5品はQuizPrizesへ登録し、HomeDesignと同じ投影で描画。5品×2方向の有限キャッシュ。PokaDebug.conversation／quizState／quizStart／quizAnswer／quizCancelを検証の入口とする。既存Save.KEY／SCHEMAは維持し、conversationsとtownQuizを追加する。
+限定家具5品はQuizPrizesへ登録し、HomeDesignと同じ投影で描画。5品×2方向の有限キャッシュ。UI-40 で ごうかに「ほしぞらの だんろ」（`js/furniture-collection.js`。絵は `FurnModels`）が ふえて 6品（ごうか 4）。PokaDebug.conversation／quizState／quizStart／quizAnswer／quizCancelを検証の入口とする。既存Save.KEY／SCHEMAは維持し、conversationsとtownQuizを追加する。
 
 ## クレーンゲーム（Meeときょれじゃ・UI-03・UI-07）
 
