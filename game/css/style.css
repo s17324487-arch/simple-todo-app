@@ -957,6 +957,8 @@ html, body {
 .shop-prize-picture{height:124px;display:flex;align-items:center;justify-content:center;background:#f5efdd;border-radius:14px}
 .shop-prize-picture svg{width:90px;height:116px;overflow:visible}
 .shop-prize-card .note{padding:5px;margin:6px 0 0}
+/* ことばの きれめ（半角スペース）で おりかえす（UI-38） */
+.shop-prize-intro,.shop-prize-card>div{word-break:keep-all;overflow-wrap:anywhere}
 
 /* 館の なか: したは あるきかたの ひとことだけ（タップは 下の 絵へ とおす）・フロア案内と でるは ひだりうえに 小さく（おうちへ は みぎうえ） */
 .venue-controls{position:absolute;bottom:max(8px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:calc(100% - 16px);box-sizing:border-box;background:#fff8e8dd;border:1.5px solid #1f1d1b;border-radius:999px;padding:4px 12px;pointer-events:none}.venue-controls span{display:block;font-size:11px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

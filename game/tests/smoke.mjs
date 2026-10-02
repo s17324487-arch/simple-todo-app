@@ -2702,7 +2702,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("shopRewardOpen","crepe");const cards=H.page.locator(".shop-prize-card");await cards.last().scrollIntoViewIfNeeded();await H.shot("level30");
   expect(await H.eval(()=>document.documentElement.scrollWidth<=innerWidth),"横にはみ出す");
   await H.page.getByRole("button",{name:"とじる",exact:true}).last().click();
-  const rows=(await H.dbg("shopRewards","crepe")).rows;await H.dbg("homeLayout",rows.map((p,i)=>({id:p.id,x:65+i*90,y:450})));await H.wait(700);await H.shot("rare-room");
+  const rows=(await H.dbg("shopRewards","crepe")).rows;await H.dbg("homeLayout",rows.map((p,i)=>({id:p.id,x:[80,390,130,360][i],y:[330,360,560,585][i]})));await H.wait(700);await H.shot("rare-room");
   await H.dbg("pause",false);
   if(viewport.width===390){
     const step=await H.dbg("saveData");step.shops.crepe={lv:4,rep:1599,plays:1,best:0};delete step.shopRewards.shop_crepe_5;delete step.furn.shop_crepe_5;
@@ -2712,6 +2712,52 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("shop","crepe",30);await H.until(()=>PokaDebug.state().scene==="shop"&&!PokaDebug.state().transitioning,30000);await H.dialogs();await H.until(()=>PokaDebug.mg()?.phase==="work",30000);
   const mg=await H.dbg("mg");expect(mg.lv===30&&mg.workLv===5&&mg.total===7,"Lv30で難易度や客数が際限なく上がる");await H.shot("work-lv30");
 },{viewport,timeout:180000});
+
+// UI-38: おてつだいの ごほうび 44こ（js/shop-reward-art.js）。おみせごとに ちがう 立体・さわると うごく・よるは あかりが つく
+for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('shop-prize-touch-'+viewport.width,async H=>{
+  await H.newGameFast();await H.dbg("hour",21);await H.dbg("unlockAll");
+  const touch=async(id,ok,msg)=>{
+    const a=await H.dbg("furnLive",id);expect(a&&a.tap,`${id}: タップできる 点が ない`);
+    await H.tap(a.tap.x,a.tap.y);await H.wait(300);
+    const b=await H.dbg("furnLive",id);expect(ok(a,b),`${msg} ${JSON.stringify([a,b])}`);expect(b.talk>a.talk,`${id}: 3人が なにも いわない`);
+    return b;
+  };
+  const sets=[
+    [{id:"shop_groom_5",x:60,y:330},{id:"shop_burger_10",x:420,y:330},{id:"shop_burger_30",x:150,y:560},{id:"shop_relay_30",x:360,y:585}],
+    [{id:"shop_cake_10",x:60,y:330},{id:"shop_korokoro_10",x:420,y:330},{id:"shop_florist_30",x:140,y:560},{id:"shop_postoffice_30",x:370,y:570}],
+    [{id:"shop_relay_10",x:60,y:330},{id:"shop_gasstand_10",x:420,y:330},{id:"shop_groom_15",x:140,y:560},{id:"shop_gasstand_30",x:370,y:585}],
+    [{id:"shop_cake_15",x:110,y:360},{id:"shop_crepe_15",x:380,y:380},{id:"shop_dentist_30",x:130,y:585},{id:"shop_bakery_30",x:370,y:585}],
+  ];
+  const lamps=new Set(["shop_burger_10","shop_burger_30","shop_cake_10","shop_cake_15","shop_korokoro_10","shop_relay_10","shop_gasstand_10","shop_groom_15"]);
+  const live=new Set(["shop_burger_30","shop_groom_5","shop_florist_30","shop_relay_30","shop_gasstand_10","shop_gasstand_30","shop_postoffice_30"]);
+  const layout=async i=>{await H.dbg("homeLayout",sets[i]);await H.dbg("homeBubbleFixture");await H.wait(700);};
+  // よる: あかりの ごほうびは はじめから ついて いて、タップで きえる
+  await layout(0);
+  for(const it of sets[0]){const st=await H.dbg("furnLive",it.id);expect(st&&st.live===live.has(it.id),`${it.id}: live の とうろく`);if(lamps.has(it.id))expect(st.on===true,`${it.id}: よるに あかりが ついて いない`);}
+  await H.shot("night");
+  await touch("shop_burger_10",(a,b)=>a.on===true&&b.on===false,"よるの ポテトの ライトが タップで きえない");
+  // ひる: タップで あかりが つく・うごく・3人が ひとこと
+  // 時こくを とばすと ぱぱ・ままは つぎの フレームで いなくなる。それまでは よるの ばしょ（かぐの まえ）に いるので、いなくなるまで まつ
+  await H.dbg("hour",11);await H.until(()=>{const w=PokaDebug.parentWork();return !!w&&w.away&&!w.visible.length;},8000);
+  for(const [i,set] of sets.entries()){
+    if(i)await layout(i);
+    for(const it of set){
+      if(i===0&&it.id==="shop_burger_10"){await touch(it.id,(a,b)=>a.on===false&&b.on===true,"ポテトの ライトが また つかない");continue;}
+      if(lamps.has(it.id))await touch(it.id,(a,b)=>a.on===false&&b.on===true,`${it.id}: ひるに タップで あかりが つかない`);
+      else await touch(it.id,(a,b)=>b.n===a.n+1&&b.t<1,`${it.id}: タップしても うごかない`);
+    }
+    await H.shot("day-"+(i+1));
+  }
+  // ごほうびの がめん: 4つの 立体の 絵と「さわると うごく」
+  await H.dbg("shopRewardOpen","gasstand");
+  const pics=await H.eval(()=>[...document.querySelectorAll(".shop-prize-picture svg")].map(s=>{const r=s.getBoundingClientRect();return r.width>20&&r.height>20;}));
+  expect(pics.length===4&&pics.every(Boolean),"ごほうびの 絵が 4つ でない "+JSON.stringify(pics));
+  expect(await H.eval(()=>/さわると うごく/.test(document.querySelector(".modal-wrap:last-of-type")?.textContent||"")),"ごほうびの がめんに さわると うごく の せつめいが ない");
+  expect(await H.eval(()=>document.documentElement.scrollWidth<=innerWidth),"ごほうびの がめんが 横に はみ出す");
+  await H.shot("prize-list");
+  await H.page.getByRole("button",{name:"とじる",exact:true}).last().click();
+  await H.dbg("hour",null);
+},{viewport,full:viewport.width===375,timeout:120000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-idle-life-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('pause',true);await H.dbg('homeBubbleFixture');await H.dbg('homeActionSchedule');
