@@ -3841,12 +3841,15 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.page.getByRole('button',{name:'200コインで まわす',exact:true}).click();
  let g=await H.dbg('gachaState');expect(g.coins===c0-200&&g.plays===1&&['turn','capsule'].includes(g.phase)&&await H.page.locator('.gacha-go').isDisabled(),'まわす ときに 200コイン へらない／もう1かい おせる '+JSON.stringify(g));
  await H.until(()=>PokaDebug.gachaState().phase==='capsule',8000);
+ // あける まで どれが でたか わからない（UI-51）: ラインナップに「もってる」の わくが つかない・カプセルは レアの 金いろ では ない
+ const hid=await H.eval(()=>({own:document.querySelectorAll('.modal-wrap:not(.out) .gacha-card.own').length,line:document.querySelector('.modal-wrap:not(.out) .gacha-line').textContent,cap:document.querySelector('.gacha-bigcap').innerHTML,done:!!document.querySelector('.modal-wrap:not(.out) .gacha-info .gacha-done')}));
+ expect(hid.own===0&&!/もってる/.test(hid.line)&&/レア・まだ/.test(hid.line)&&!hid.cap.includes('#F7C948')&&!hid.done,'カプセルを あける まえに でた けいひんが わかる '+JSON.stringify({own:hid.own,line:hid.line,done:hid.done}));
  const cap=await H.page.getByRole('button',{name:'カプセルを あける',exact:true}).boundingBox();expect(cap&&cap.width>=44&&cap.height>=44,'カプセルが ちいさい '+JSON.stringify(cap));
  await H.shot('capsule');
  await H.page.getByRole('button',{name:'カプセルを あける',exact:true}).click();await H.until(()=>PokaDebug.gachaState().phase==='done',8000);await H.wait(300);
  g=await H.dbg('gachaState');const prize=await H.eval(()=>document.querySelector('.gacha-prize').textContent);
  expect(g.last.id==='gacha_friends_3'&&g.last.rare&&g.last.first&&/レア！/.test(prize)&&/NEW/.test(prize)&&/3にん なかよし/.test(prize)&&(await H.dbg('saveData')).furn.gacha_friends_3===1,'レアが でない／もちものに ない '+JSON.stringify([g,prize]));
- expect(/レア・もってる ×1/.test(await H.eval(()=>document.querySelector('.gacha-card.rare').textContent)),'ラインナップに もってる が でない');
+ expect(/レア・もってる ×1/.test(await H.eval(()=>document.querySelector('.gacha-card.rare').textContent))&&await H.eval(()=>document.querySelectorAll('.modal-wrap:not(.out) .gacha-card.own').length)===1,'あけても ラインナップに もってる が でない');
  await lay('けっか');await H.shot('rare');
  // ✕ で とじる → 館に もどる
  await H.page.locator('.modal-wrap:not(.out) .close').click();await H.until(()=>!PokaDebug.gachaState().open&&PokaDebug.idle(),8000);
