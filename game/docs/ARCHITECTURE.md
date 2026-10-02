@@ -176,6 +176,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `fashion-show.js` → `fashion-art.js` → `fashion-hall.js` → `fashion-scene.js`（food-balance.js の あと・item-dex-sources.js の まえ） | `FashionShow`（ファッションショーの きまり・セーブ）／ `FashionArt`（かお・ポーズ・けいひん・しゃしん）／ `FashionHall`（会場・ほんの ギャラリー）／ `FashionScene`（ランウェイ・`SCENES.fashion`）・UI-36 |
 | — | `furn-tray.js`（home-floors.js の あと） | `FurnTray`（もようがえの 一覧を ひろげる・さがす・ならびかえ・しゅるい・UI-37） |
 | — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび 44この 立体と さわる うごき・UI-38） |
+| — | `rug-lamp.js`（shop-reward-art.js の あと・slow-life-prices.js の まえ） | `RugLamp`（かぐやの ラグ 8 と ランプ 8・UI-39） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -886,6 +887,12 @@ UI-38（2026-10-01）で 44種の絵を 店ごとに ちがう 立体に 作り�
 - live 7: 立体の 中の `L()`（`opts.live` の とき ぬく）を FurnLive が 毎フレーム canvas に 描く（シェイクの カップ・サインポールの しま〔見える はんぶん −45°〜135°〕・ブランコ・プロペラ・メーターの はり・ミニカー・とけいの はりと かね）。
 - ほか: `simple()`（ひとこと・おと・こうか `FXS`）と 店ごとの うごき。よるの まどの あかりは `light()`（くらさの あと）で 描く。SvgCache は つかわない。
 - 検査は `tools/check-shop-rewards.mjs`、スモークは `shop-prize-touch` と `shop-rewards`。
+
+### ラグと ランプ（UI-39・`js/rug-lamp.js`）
+`RugLamp.ITEMS` の 16こを `FURNITURE`・`FURN_INDEX`・`FURN_ART` に たす（`slow-life-prices.js` の まえに よむので ねだんは 4ばいに なる）。立体は `FurnModels.register`、さわる うごきは `ShopRewardArt.liveKit`（`mapper`・`say`・`tone`・`glow`・`FXS`・`simple`・`lamp`）。
+- ランプ: `lamp()`（つく／きえる・よるは はじめから・`light()`）。ラバランプと しょくだいは `extra` で たまと ほのおを 描く（立体の 中の `L()` を live で ぬく）。
+- ラグ: `simple()` と 店ごとの うごき。どうろの マットの ミニカーは `RugLamp.roadAt(u)`（まんなかの せんの うえ）。ラグも 絵の ピクセルで あたり（`hitItem`）なので タップできる。
+- 検査は `tools/check-rug-lamp.mjs`、スモークは `rug-lamp`。
 
 ## ネリカスタウン・池袋の交通
 
