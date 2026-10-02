@@ -81,7 +81,8 @@ for (const id of ["wanko", "gachan", "goji"]) for (const T of [W.OTHER[id], [W.A
   for (const [obj, fn, sig] of [["FashionShow", "finish", '"do", "fashion"'], ["Fishing", "record", '"do", "fishing"'], ["Farm", "harvest", '"do", "harvest"']]) ok(src.includes(`after(${obj}, "${fn}"`) && src.includes(`GowagaWish.signal(${sig})`), `${obj}.${fn} で かなう`);
   // WorldScene.prototype.enter は あとで world-zoom.js が つつむ ので ソースで たしかめる
   ok(src.includes("VP.loadFloor = function") && src.includes("GowagaWish.arrive({ venue: this.id, floor: this.floor })") && src.includes("WP.enter = async function") && src.includes("GowagaWish.arrive({ map: this.mapId })") && typeof VenueScene.prototype.loadFloor === "function" && typeof WorldScene.prototype.enter === "function", "館の かい・町と フィールドに はいると しらべる");
-  ok(String(SCENES.house.prototype.update).includes("GowagaWish.house"), "おうちの まいフレーム");
+  // おうちの update は あとで home-toilet.js なども つつむ ので ソースで たしかめる
+  ok(src.includes("HS.update = function (dt) { up.call(this, dt); GowagaWish.house(this, dt); };") && typeof SCENES.house.prototype.update === "function", "おうちの まいフレーム");
 }
 
 // ---- 6. おうち: きく じかん・おれいを まつ・あまえる ----

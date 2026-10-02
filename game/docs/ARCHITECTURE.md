@@ -181,6 +181,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `rug-lamp.js`（shop-reward-art.js の あと・slow-life-prices.js の まえ） | `RugLamp`（かぐやの ラグ 8 と ランプ 8・UI-39） |
 | — | `furniture-collection.js`（slow-life-prices.js・quiz-prizes.js の あと） | `FurnCollection`（あき・ふゆの かぐ 4・ひがわり 20・クイズの だんろ・UI-40） |
 | — | `gowaga-wish.js`（くみこむ ものの あと・world-zoom.js の まえ） | `GowagaWish`（おうちで ごわがの おねがい・かなえて おれいと あまえる・UI-46） |
+| — | `home-toilet.js`（gowaga-wish.js の あと・world-zoom.js の まえ） | `HomeToilet`（おうちの おトイレ・3人の いきたさ・UI-47） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1257,6 +1258,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - おうち: `sc.wishFx` = { t, ask, busy, amae, beat }。`ask(sc, id)`・`thank(sc)`・`amaeTick(sc, h, dt)`（state "amae" で ぶらぶら しない・`sc.life.next` を のばす）。
 - すまほ: `Smaho.APPS` の `wish`（`phoneView(el, ph)`）と `Smaho.ICON.wish`。
 - PokaDebug: `wish()`・`wishAsk(id)`。検査は `tools/check-gowaga-wish.mjs`、スモークは `tests/gowaga-wish-smoke.mjs`（`gowaga-wish-390/375`）。
+
+## おうちの おトイレ（UI-47・`js/home-toilet.js`・`HomeToilet`）
+
+オーナーの FB 2026-10-02「またおトイレにも行かせたい」。
+
+- ドア: `TX`（282）・`W`（56）・`H`（136）。`door(sc)` を `HomeDoors.list` の さいごに たす（おにわ では たさない）。`HomeDoors.open` の「toilet」は `tap(sc)`。へやの 絵は `HomeDesign.roomSvg` の おくの かべで `doorSvg(H)`（id なし）。ランプと あいた ときの くらさは `drawDoor`（`HomeDoors.drawSigns` の あと）。
+- いきたさ: `st()`（`Save.d.toilet` を つくる・なおす）・`need(id)`（じかん `FULL` ＋ `add`）・`ate(id, item)`（`Care.feed` の あと。`DRINK_RE` で のみもの）・`done(id)`・`set(id, v)`。
+- おうち（`sc.wc` = { who, inside, open, nag, hold }。セーブしない）: `update(sc, dt)`（`SCENES.house.prototype.update` の あと）→ `step`（あるく → はいる → でる）・`nag`（state "moji"）・がまんの げんかい（`HOLD`）。`calm(sc)` で まつ。`abort` は ほかの うごき（state が かわる・mode）で でて くる。
+- つつむ もの: `HouseScene` の `enter`・`update`・`pose`（moji・wc）・`baseFace`（こまった かお）・`react`（トイレの とちゅうは とびはねない）、`HomeLife.heads`（なかから はなす ふきだし）、`ParentCare.next`（あとまわし）、`Care.feed`、`GowagaWish.house`（おれいは トイレの あと）、`Sound.se`（wc_flush・wc_knock）。
+- PokaDebug: `toilet()`・`toiletNeed(id, v, o)`。検査は `tools/check-home-toilet.mjs`、スモークは `tests/home-toilet-smoke.mjs`（`home-toilet-390/375`）。
 
 ## 町の ズーム（UI-08）
 

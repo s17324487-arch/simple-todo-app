@@ -6,7 +6,7 @@ export async function homeDoorsSmoke({ scenario, expect }) {
     const tapDoor = async (id, dx = 0) => { const d = await door(id); expect(d, "ドアが ない " + id); await H.tap(d.cx + dx, d.cy); };
     const inRoom = (id) => H.until((id) => G.sceneName === "house" && !Game.trans && PokaDebug.idle() && Save.d.rooms.active === id && !PokaDebug.homeDoors()?.walking, 15000, id);
     let st = await H.dbg("homeDoors");
-    expect(st.doors.map((d) => d.id).join() === "out,room" && st.doors.every((d) => d.w > 0 && d.h > 0), "おへやの ドアが 2つ ない " + JSON.stringify(st.doors));
+    expect(st.doors.map((d) => d.id).join() === "out,room,toilet" && st.doors.every((d) => d.w > 0 && d.h > 0), "おへやの ドアが 3つ（おでかけ・おへや・おトイレ〔UI-47〕）ない " + JSON.stringify(st.doors));
     for (const d of st.doors) expect(d.x >= 0 && d.x + d.w <= viewport.width && d.y >= 0 && d.y + d.h <= viewport.height, "ドアが 画面の そと " + d.id);
     await H.shot("main");
     // ほかの へやが ない: しらせるだけ（ドアの はしを タップ → はば 44px の はんい）
