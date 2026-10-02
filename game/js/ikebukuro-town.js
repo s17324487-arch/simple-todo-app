@@ -1,5 +1,5 @@
 // 池袋（MAP_DEFS.city）の 街区を、オーナーの 配置イメージ（2026-09-29）どおりに 作りなおす。
-//   西: 線路と 駅ビル（北から 本の ギャラリー・いけぶ えきまえ館・池袋えき）と 東口の えきまえ ひろば。明治通りが 駅に そって 南北に はしる。
+//   西: 線路と 駅ビル（北から 本の ギャラリー・えきまえ ビル・池袋えき）と 東口の えきまえ ひろば。明治通りが 駅に そって 南北に はしる。
 //   上: 左から ネリカス電機・Meeときょれじゃ・サンシャインいけぶ（右上）。東通りが 上から 右下へ ななめに おりて 緑の大通りへ。
 //   東通りの かど K（よこちょうの はし）から サンシャイン60通りが 右上の いけぶへ。下は 緑の大通り（まんなかに しばふと いちょう）。
 //   射撃場は 下の まんなか、ままの オフィスは 右下（どちらも 緑の大通りの 北がわ）。
@@ -23,25 +23,28 @@ const IkebukuroTown = (() => {
   // ここの 建物は まえは いけぶの 中へ つながって いた（js/ikebukuro-district.js の changed）ので、ひとことに かえる。
   // ちかみちは 地下を とおって いけぶの 入口の まえに でる（walkway。中へは 入らない）
   const NOT_MALL = Object.freeze({
-    city_clothes: { type: "visit", text: "ここは いけぶの あんないじょ。\nおかいものは 60どおりの さきの\nいけぶの いりぐちから どうぞ！" },
-    city_market: { type: "visit", text: "マルシェかんは いま じゅんびちゅう。\nマルシェは いけぶの 3かい だよ。\nいけぶの いりぐちから どうぞ！" },
-    city_furniture: { type: "visit", text: "インテリアかんは じゅんびちゅう。\nかぐは いけぶの 1かいに あるよ。\nいけぶの いりぐちから どうぞ！" },
+    // えきまえ ビル・れんが ビル・あおぞら ビルは ふつうの ビル（オーナーの FB 2026-10-01。まえは いけぶの えきまえ館・マルシェ館・インテリア館）
+    city_clothes: { type: "visit", text: "えきまえの ふつうの ビル。\nうえの かいは じむしょ だよ。\nおかいものは いけぶへ どうぞ！" },
+    city_market: { type: "visit", text: "れんがの ふつうの ビル。\nベランダの てすりが ならんでるね。" },
+    city_furniture: { type: "visit", text: "ガラスの ふつうの ビル。\nまどに そらが うつってる！" },
     city_cafe: { type: "visit", text: "テラスの せきで ひとやすみ。\nコーヒーの いい かおり！\nカフェは いけぶの 2かいに あるよ。" },
     city_reading: { type: "visit", text: "おいしそうな におい！\nフードホールは まだ じゅんびちゅう。\nごはんは いけぶの 2かいで どうぞ。" },
     city_gallery: { type: "walkway", text: "ちかみちを とおって、\nいけぶの まえに でるよ！" },
     relay: { type: "visit", text: "いけぶの にもつの うけつけ。\nおおきな かぐも ここから\nおうちへ とどけるよ。" },
   });
+  // オーナーが けした 建物（tools/town-check.mjs は これだけ「なくなった」を ゆるす）
+  const REMOVED = Object.freeze({ ike_annex3: "おくじょう ていえん（2026-10-01 はくぶつかんを 大きく するため）" });
   // 建物: id, x, y, w, h, door（左からの マス）, 絵, ほか
   const BUILDINGS = [
     // 駅の 列（線路の ひがし）
     ["ike_annex1", 4, 1, 12, 12, 6, "bookstore", { label: "ほんの ギャラリー", act: { type: "visit", text: "おおきな 本やさん。えほんの コーナーも あるよ。\nおかいものは サンシャインいけぶへ！" } }],
-    ["city_clothes", 4, 16, 12, 13, 6, "department", { label: "いけぶ えきまえ館" }],
+    ["city_clothes", 4, 16, 12, 13, 6, "officeblock", { label: "えきまえ ビル" }],
     ["city_station", 4, 32, 12, 12, 6, "station", {}],
     // 上の 列（なかどおりの 北がわ）
     ["ike_electronics", 26, 3, 18, 14, 9, "electronics", {}],
     ["ike_arcade", 55, 4, 13, 13, 6, "arcade", {}],
-    ["city_market", 69, 4, 5, 13, 2, "wing_marche", { label: "いけぶ マルシェ館" }],
-    ["city_furniture", 75, 4, 5, 13, 2, "wing_interior", { label: "いけぶ インテリア館" }],
+    ["city_market", 69, 4, 5, 13, 2, "slim_brick", { label: "れんが ビル" }],
+    ["city_furniture", 75, 4, 5, 13, 2, "slim_glass", { label: "あおぞら ビル" }],
     ["ike_mall", 81, 4, 15, 13, 5, "mall", { doors: [5, 11] }],
     // なかどおりと サンシャイン60通りの あいだ
     ["link", 57, 23, 7, 4, 3, "puzzle", {}],
@@ -50,8 +53,8 @@ const IkebukuroTown = (() => {
     ["city_cafe", 33, 24, 6, 10, 3, "cafe", { label: "いけぶ カフェテラス" }],
     ["ike_annex0", 40, 24, 7, 10, 3, "cinema", { label: "シネマ いけぶくろ", act: { type: "visit", text: "きょうは きょうりゅうの えいが！\nつぎの じょうえいを まって、まちを おさんぽ しよう。" } }],
     ["city_reading", 25, 38, 7, 7, 3, "foodhall", { label: "いけぶ フードホール" }],
-    ["ike_annex3", 33, 38, 8, 7, 4, "garden", { label: "おくじょう ていえん", act: { type: "visit", text: "おくじょうに ちいさな もりが あるよ。\nふじだなの したで ひとやすみ。" } }],
-    ["city_museum", 42, 38, 8, 7, 4, "museum", {}],
+    // おくじょう ていえん（ike_annex3）は けして、きょうりゅう はくぶつかんを その ばしょまで 大きく した（8 → 17マス。オーナーの FB 2026-10-01）
+    ["city_museum", 33, 38, 17, 7, 8, "museum", {}],
     // サンシャイン60通りの 南・緑の大通りの 北
     ["city_range", 60, 38, 10, 7, 5, "range", {}],
     ["city_office", 71, 33, 9, 12, 4, "office_lobby", { label: "オフィス うけつけ" }],
@@ -365,7 +368,7 @@ const IkebukuroTown = (() => {
     for (const b of scene.map.def.buildings) for (const dx of b.doors || [b.door]) glow(ox + (b.x + dx + .5) * TSZ, oy + (b.y + b.h) * TSZ - 6, 40, .26);
     ctx.restore();
   }
-  return { W, H, ROADS, BUILDINGS, NOT_MALL, K, EAST_X, along, road, install, preload, ready, drawGround, drawOver, drawMoving, lights, get def() { return installed; } };
+  return { W, H, ROADS, BUILDINGS, NOT_MALL, REMOVED, K, EAST_X, along, road, install, preload, ready, drawGround, drawOver, drawMoving, lights, get def() { return installed; } };
 })();
 IkebukuroTown.install();
 // 描画の つなぎこみ（既存の 経路を 共用。池袋の マップの ときだけ はたらく）
