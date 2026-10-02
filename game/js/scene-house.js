@@ -79,7 +79,8 @@ class HouseScene {
   // ---- ズーム: 2本ゆびの ピンチ（オーナーの FB 2026-09-30。ボタンは ない）----
   // 1〜ZMAX ばい。ゆびの まんなかの ところを ゆびの 下に のこしたまま 大きく／小さく する（2本ゆびで うごかす ことも できる）。
   // いちばん 小さく すると ぜんたいが 見える もとの 画面（まんなか）に もどる。
-  get ZMAX() { return 2; }
+  // さいだいは 3ばい（オーナーの FB 2026-10-02「もう少し上げて」。まえは 2ばい）。1.6ばいを こえると かぐ と へやは こまかい 絵（rasterK）。
+  get ZMAX() { return 3; }
   pinchable() { return (!this.mode || this.mode === "edit") && !this.climb && !UI.busy; }
   zoomAt(z, cx, cy, q = null) {
     const s0 = this.s, p = q || { x: (cx - this.ox) / s0, y: (cy - this.oy) / s0 }; // ゆびの 下の 点（へやの 絵の 座標）
@@ -94,7 +95,7 @@ class HouseScene {
     if (this.drag?.moved) Save.mark();
     this.drag = null; this.panDrag = null; this.gesture = true;
     if (this.mode === "edit" && this.sel !== this.touchSel) this.select(this.touchSel || null);
-    this.pinch = { ids: [a.id, b.id], d0: Math.max(24, Math.hypot(a.x - b.x, a.y - b.y)), z0: this.zoom, q: { x: (cx - this.ox) / this.s, y: (cy - this.oy) / this.s } };
+    this.pinch = { ids: [a.id, b.id], d0: Math.max(24, Math.hypot(a.x - b.x, a.y - b.y)), z0: this.zoom, q: { x: (cx - this.ox) / this.s, y: (cy - this.oy) / this.s }, actor: HOUSE_SIZE * this.actorScale };
   }
   movePinch() {
     const P = this.pinch, [a, b] = P.ids.map((id) => this.fingers.get(id));
@@ -140,7 +141,10 @@ class HouseScene {
     }
     return Chara.preload(list, HOUSE_SIZE * this.actorScale);
   }
-  furnCanvas(it, ensure) {
+  // 絵の こまかさ（へやの 1 が 絵の なん px か）。1.6ばいより 大きく ズームした ときは 3 の こまかい 絵に かえる。
+  // 2しゅるい だけ なので SvgCache の キーは ふえすぎない。こまかい 絵が できる までは いつもの 絵で 描く（きえない）。
+  rasterK() { return this.zoom > 1.6 ? 3 : 2; }
+  furnCanvas(it, ensure, k = ensure ? 2 : this.rasterK()) {
     const f = FURN_INDEX[it.id];
     const opts = { flip: !!it.flip };
     if (it.id === "window") opts.sky = Weather.sky();
@@ -148,16 +152,22 @@ class HouseScene {
     const key = "furn:" + it.id + ":" + JSON.stringify(opts);
     const m = f.kind === "wall" ? { w: f.w + 24, h: f.h + 24 } : HomeDesign.model(it.id, opts);
     // Fixed raster sizes keep zooming and dragging out of the cache key.
-    const pw = Math.ceil(m.w * 2), ph = Math.ceil(m.h * 2);
+    const pw = Math.ceil(m.w * k), ph = Math.ceil(m.h * k);
     const fn = () => Art.furnSvg(it.id, opts);
-    return ensure ? SvgCache.ensure(key, fn, pw, ph) : SvgCache.get(key, fn, pw, ph);
+    if (ensure) return SvgCache.ensure(key, fn, pw, ph);
+    return SvgCache.get(key, fn, pw, ph) || (k !== 2 ? this.furnCanvas(it, false, 2) : null);
   }
   preloadFurn() { return Promise.all(Save.d.room.items.map((it) => this.furnCanvas(it, true))); }
   buildBg() {
     const r = Save.d.room, size = HomeDesign.size(), b = HomeDesign.bounds(size);
-    this.bgArgs = ["house-design:" + Save.d.rooms.active + ":" + r.wall + ":" + r.floor + ":" + size.w + "x" + size.d, () => HomeGarden.active()?HomeGarden.svg(size):HomeDesign.roomSvg(r.wall, r.floor, size), Math.ceil(b.w * 2), Math.ceil(b.h * 2)];
+    const key = "house-design:" + Save.d.rooms.active + ":" + r.wall + ":" + r.floor + ":" + size.w + "x" + size.d, fn = () => HomeGarden.active() ? HomeGarden.svg(size) : HomeDesign.roomSvg(r.wall, r.floor, size);
+    this.bgArgs = [key, fn, Math.ceil(b.w * 2), Math.ceil(b.h * 2)];
+    // ズームの ときの こまかい 絵（3。ひろい へやは 900まん px まで に おさえる）
+    const k = Math.min(3, Math.sqrt(9e6 / (b.w * b.h)));
+    this.bgFine = [key, fn, Math.ceil(b.w * k), Math.ceil(b.h * k)];
     return SvgCache.ensure(...this.bgArgs);
   }
+  bgImage() { return (this.rasterK() > 2 && SvgCache.get(...this.bgFine)) || SvgCache.get(...this.bgArgs); }
 
   // ---- UI ----
   buildUI() {
@@ -615,7 +625,7 @@ class HouseScene {
   }
   up(p) {
     this.fingers.delete(p.id);
-    if (this.pinch && this.pinch.ids.includes(p.id)) this.pinch = null;
+    if (this.pinch && this.pinch.ids.includes(p.id)) { this.actorHold = this.pinch.actor; this.pinch = null; }
     if (this.gesture) { if (!this.fingers.size) this.gesture = false; return; }
     const panned = this.panDrag?.moved; this.panDrag = null;
     if (this.mode === "edit") {
@@ -641,7 +651,7 @@ class HouseScene {
     this.fingers.delete(p.id); this.panDrag = null;
     if (this.drag?.moved) Save.mark();
     this.drag = null;
-    if (this.pinch && this.pinch.ids.includes(p.id)) this.pinch = null;
+    if (this.pinch && this.pinch.ids.includes(p.id)) { this.actorHold = this.pinch.actor; this.pinch = null; }
     if (!this.fingers.size) this.gesture = false;
   }
   pet(c) {
@@ -728,7 +738,7 @@ class HouseScene {
   render(ctx) {
     ctx.fillStyle = "#E7E4D4"; ctx.fillRect(0, 0, G.W, G.H);
     if (typeof HomeFloors !== "undefined") HomeFloors.drawUnder(ctx, this); // 2かい: いない ほうの かい（へやの 絵の まえ）
-    const bg = SvgCache.get(...this.bgArgs), b = HomeDesign.bounds();
+    const bg = this.bgImage(), b = HomeDesign.bounds();
     if (bg) {
       ctx.save(); ctx.shadowColor = "rgba(69,49,29,.22)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 10;
       ctx.drawImage(bg, this.ox + b.x * this.s, this.oy + b.y * this.s, b.w * this.s, b.h * this.s); ctx.restore();
@@ -796,9 +806,9 @@ class HouseScene {
     const alpha = this.mode === "edit" ? 0.35 : 1;
     if (motion) {
       ctx.save();ctx.translate(p.x+motion.x*s,p.y+motion.y*s);ctx.rotate(motion.angle);ctx.scale(motion.sx,motion.sy);
-      Chara.draw(ctx,c.id,this.charOpts(c,motion.pose,motion.dir,face),0,0,HOUSE_SIZE*s,alpha*motion.alpha);ctx.restore();
+      this.charSprite(ctx,c.id,this.charOpts(c,motion.pose,motion.dir,face),0,0,alpha*motion.alpha);ctx.restore();
       HomeActions.props(this,ctx,c,p,s);
-    } else Chara.draw(ctx, c.id, this.charOpts(c, pose, c.state === "sleep" ? "down" : c.dir, face), p.x, p.y - dy * s, HOUSE_SIZE * s, alpha);
+    } else this.charSprite(ctx, c.id, this.charOpts(c, pose, c.state === "sleep" ? "down" : c.dir, face), p.x, p.y - dy * s, alpha);
     if (c.state === "eat" && c.food) {
       const k = 1 - Math.max(0, c.t) / 1.7;
       const sz = 30 * s * (1 - k * 0.6);
@@ -808,6 +818,15 @@ class HouseScene {
       if (ic) ctx.drawImage(ic, p.x - sz / 2, p.y - 46 * s - sz / 2 + Math.sin(c.anim * 20) * 1.5, sz, sz);
       if (Math.floor(c.anim * 3) % 2) { ctx.font = `800 ${11 * s}px 'M PLUS Rounded 1c', sans-serif`; ctx.fillStyle = INK; ctx.textAlign = "center"; ctx.fillText("もぐもぐ", p.x, p.y - 96 * s); }
     }
+  }
+  // 3人の 絵（大きさ HOUSE_SIZE × actorScale）。ピンチの あいだは ピンチの まえの 大きさの 絵を のばして 描き、
+  // おわった あとも いまの 大きさの 絵が できる まで それで 描く（ズームの とちゅうで 絵を 何まいも 作らない・きえない）。
+  charSprite(ctx, id, o, x, y, alpha) {
+    const size = HOUSE_SIZE * this.actorScale;
+    let raster = this.pinch ? this.pinch.actor : size;
+    if (!this.pinch && this.actorHold && !Chara.ready(id, o, size)) raster = this.actorHold;
+    if (Math.abs(raster - size) < 0.5) return Chara.draw(ctx, id, o, x, y, size, alpha);
+    ctx.save(); ctx.translate(x, y); ctx.scale(size / raster, size / raster); Chara.draw(ctx, id, o, 0, 0, raster, alpha); ctx.restore();
   }
   drawBall(ctx) {
     const b = this.ball, s = this.actorScale;

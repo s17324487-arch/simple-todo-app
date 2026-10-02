@@ -2341,6 +2341,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(free,"ひろげた 画面で かぐの ない ところが ない");
   const pan0=d.pan.x;await H.page.mouse.move(free[0],free[1]);await H.page.mouse.down();await H.page.mouse.move(free[0]+35,free[1]+30,{steps:10});await H.page.mouse.up();
   expect(Math.abs((await H.dbg("homeDesign")).pan.x-pan0)>5,"拡大後に画面を動かせない "+JSON.stringify(free));
+  // さいだいは 3ばい（オーナーの FB 2026-10-02）。1.6ばいを こえると かぐ と へやは こまかい 絵（3）に なる
+  await H.pinch(viewport.width/2,viewport.height*0.5,50,200);d=await H.dbg("homeDesign");
+  expect(d.zoomMax===3&&Math.abs(d.zoom-3)<0.01&&d.tier===3,"3ばいまで 拡大できない "+JSON.stringify([d.zoom,d.zoomMax,d.tier]));
+  await H.until(()=>PokaDebug.homeDesign().fine,10000);await H.wait(200);await H.shot("zoom-3");
   await H.pinch(viewport.width/2,viewport.height*0.5,170,40);d=await H.dbg("homeDesign");
   expect(d.zoom===1&&d.pan.x===0&&d.pan.y===0,"ピンチで 全体表示に戻らない "+JSON.stringify([d.zoom,d.pan]));await H.shot("editing");
   await H.page.locator(".edit-bar .btn.yellow").click();await H.wait(100);
