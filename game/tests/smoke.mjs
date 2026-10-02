@@ -3213,10 +3213,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect(s2.routeCount.every(r=>r.reachable),'2F に いけない ところ '+JSON.stringify(s2.routeCount.filter(r=>!r.reachable)));
  const vis=cranes.filter(f=>f.screen.x>-40&&f.screen.x<viewport.width+40&&f.screen.y>0&&f.screen.y<viewport.height);await H.shot('arrive');
  const bgm=await H.eval(()=>Sound.want||Sound.cur?.name);expect(bgm==='arcade_hall','2F の BGM '+bgm);
- // フロアマップ: 1F・2F の タブ・2F の コーナー → 1F を えらぶと エスカレーターで おりて あるく
+ // フロアマップ: 1F〜4F の タブ・2F の コーナー → 1F を えらぶと エスカレーターで おりて あるく
  await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
  const g=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.mall-guide .btn')];return {tabs:[...document.querySelectorAll('.mall-guide .mg-tabs .btn')].map(b=>b.textContent),spots:[...document.querySelectorAll('.mall-guide .mg-spot')].map(b=>b.dataset.label),small:bs.filter(b=>r(b).height<43.5).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5).length};});
- expect(g.tabs.join()==='1F,2F,3F'&&['おかし キャッチャー','スウィートランド','はしわたし','ガチャ コーナー','1Fへ おりる','3Fへ のぼる'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'2F の フロアマップ '+JSON.stringify(g));await H.shot('guide');
+ expect(g.tabs.join()==='1F,2F,3F,4F'&&['おかし キャッチャー','スウィートランド','はしわたし','ガチャ コーナー','1Fへ おりる','3Fへ のぼる'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'2F の フロアマップ '+JSON.stringify(g));await H.shot('guide');
  await H.page.getByRole('button',{name:'1F',exact:true}).click();await H.page.locator('.mall-guide .mg-spot[data-label="けいひん カウンター"]').click();
  await H.until(()=>{const v=PokaDebug.venueState();return v&&v.floor===1&&v.party[0].y>=17.5&&PokaDebug.idle();},25000);
  expect(await H.dbg('venueVisit','2Fへ のぼる'),'1F から もういちど のぼれない');await H.until(()=>{const v=PokaDebug.venueIso();return v&&v.floor===2&&v.ready&&PokaDebug.idle()&&!PokaDebug.venueState().changingFloor;},20000);
@@ -3663,10 +3663,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  const iso=await H.dbg('venueIso');s=await H.dbg('venueState');const booths=s.fixtures.filter(f=>f.kind==='photobooth');
  expect(iso.holes===1&&s.floor===3&&booths.length===3&&booths.map(f=>f.booth).join()==='yume,school,odekake'&&s.fixtures.some(f=>f.kind==='vanity')&&s.fixtures.some(f=>f.kind==='escalator'&&f.to===2)&&/3F/.test(await H.eval(()=>document.querySelector('.hud').textContent)),'3F（ふきぬけ・ぷりくら 3台・おめかし・くだりの エスカレーター）'+JSON.stringify([iso.holes,booths.map(f=>f.booth)]));
  expect(s.routeCount.every(r=>r.reachable),'3F に いけない ところ '+JSON.stringify(s.routeCount.filter(r=>!r.reachable)));await H.shot('arrive');
- // フロアマップ: 1F・2F・3F の タブ・3F の コーナー
+ // フロアマップ: 1F〜4F の タブ（4F は ガチャガチャの もり・UI-52）・3F の コーナー
  await H.page.getByRole('button',{name:'フロア案内',exact:true}).click();await H.page.locator('.mall-guide svg').waitFor();
  const g=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.mall-guide .btn')];return {tabs:[...document.querySelectorAll('.mall-guide .mg-tabs .btn')].map(b=>b.textContent),spots:[...document.querySelectorAll('.mall-guide .mg-spot')].map(b=>b.dataset.label),small:bs.filter(b=>r(b).height<43.5).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5).length};});
- expect(g.tabs.join()==='1F,2F,3F'&&['ゆめかわ ぷりくら','がっこう ぷりくら','おでかけ ぷりくら','おめかし コーナー','2Fへ おりる'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'3F の フロアマップ '+JSON.stringify(g));await H.shot('guide');
+ expect(g.tabs.join()==='1F,2F,3F,4F'&&['ゆめかわ ぷりくら','がっこう ぷりくら','おでかけ ぷりくら','おめかし コーナー','2Fへ おりる','4Fへ のぼる'].every(l=>g.spots.includes(l))&&g.small===0&&g.out===0,'3F の フロアマップ '+JSON.stringify(g));await H.shot('guide');
  await H.page.locator('.modal-wrap .close').last().click();await H.idle();
  // がっこう ぷりくら: かくにんに がっこうの はいけい → 300コイン → はいけいは がっこうの 6つ
  expect(await H.dbg('venueVisit','がっこう ぷりくら'),'がっこう ぷりくらが ない');await H.page.locator('.dlg-shade.ask .dialog').waitFor();
@@ -4397,6 +4397,7 @@ await (await import("./home-toilet-smoke.mjs")).homeToiletSmoke({scenario,expect
 await (await import("./hand-items-smoke.mjs")).handItemsSmoke({scenario,expect});
 await (await import("./pet-walk-smoke.mjs")).petWalkSmoke({scenario,expect});
 await (await import("./rare-calm-smoke.mjs")).rareCalmSmoke({scenario,expect});
+await (await import("./gacha-forest-smoke.mjs")).gachaForestSmoke({scenario,expect});
 // すいぞくかん・はくぶつかんの きふの ごほうび（UI-33）: みだし・カード・はくぶつかんで 4つ・もちもの・おうち
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
 await (await import("./dino-museum-smoke.mjs")).dinoMuseumSmoke({scenario,expect});

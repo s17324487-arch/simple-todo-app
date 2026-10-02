@@ -13,7 +13,7 @@ const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
 const fresh = () => { S.d = S.fresh(); return S.d; };
 // かぶる ぼうし（しらない ものも ぼうしに なる。あたらしい あたまの 服を たしたら HeadPair.KIND か ここに いれる）
-const HATS = ["strawhat", "beret", "knit", "partyhat", "chefhat", "helmet", "tophat", "bunnyhood", "mee_schoolhat", "kc_cap", "aqc_whalehat"];
+const HATS = ["strawhat", "beret", "knit", "partyhat", "chefhat", "helmet", "tophat", "bunnyhood", "mee_schoolhat", "kc_cap", "aqc_whalehat", "gacha_ebifry", "gacha_sushihat", "gacha_kinokohat", "gacha_cakehat"]; // さいごの 4つは 4F の おもしろ かぶりもの（UI-52）
 
 // ---- 1. あたまの 服は どれも しゅるいが きまって いる ----
 const heads = Object.values(ITEM_INDEX).filter((it) => it && it.slot === "head");

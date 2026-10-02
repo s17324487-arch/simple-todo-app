@@ -198,6 +198,12 @@ const ArcadeArt = (() => {
       const who = ["wanko", "gachan", "goji", "bear", "panda", "penguin"][v % 6], GS = typeof Gacha !== "undefined" ? Gacha.SERIES[v % Gacha.SERIES.length] : null;
       const card = GS ? Gacha.pic(GS.list[Gacha.RARE]) : ArcadePrizes.INDEX[`ike_mini_${who}`] ? ArcadePrizes.svg(`ike_mini_${who}`) : ArcadePrizes.svg(`ike_plush_${who}`);
       s += onFace(S, F, "front", 0.12, 0, 60, `<rect x="4" y="4" width="${f2((W - 0.24) * 48 - 8)}" height="26" rx="4" fill="#FFFDF5" stroke="${INK}" stroke-width="1.2"/>${img(card, (W - 0.24) * 24 - 13, 6, 26, 22)}<circle cx="${f2((W - 0.24) * 24)}" cy="42" r="7" fill="#F4F0FA" stroke="${INK}" stroke-width="1.4"/><path d="M${f2((W - 0.24) * 24 - 6)} 42 H${f2((W - 0.24) * 24 + 6)}" stroke="${INK}" stroke-width="2"/><rect x="${f2((W - 0.24) * 24 - 8)}" y="52" width="16" height="8" rx="2" fill="#2A2238"/>`);
+      // 4F（ガチャガチャの もり）の 台: まるい まどの うえに はっぱ 2まい と どんぐり
+      if (GS0 && GS0.forest) {
+        const t = S.P(...F.Q(W / 2, D / 2, 118)); S.grow(t.x - 20, t.y - 16, t.x + 20, t.y + 8);
+        for (const [dx, a, c2] of [[-7, -32, "#7DBA4C"], [7, 32, "#9ED36A"]]) s += `<ellipse cx="${f2(t.x + dx)}" cy="${f2(t.y - 4)}" rx="9" ry="4.6" transform="rotate(${a} ${f2(t.x + dx)} ${f2(t.y - 4)})" fill="${c2}" stroke="${INK}" stroke-width="1.2"/>`;
+        s += `<ellipse cx="${f2(t.x)}" cy="${f2(t.y + 1)}" rx="4.2" ry="5" fill="#C98E5C" stroke="${INK}" stroke-width="1.2"/><path d="M${f2(t.x - 5)} ${f2(t.y - 1)} q5 -6 10 0 z" fill="#7A5230" stroke="${INK}" stroke-width="1.2"/>`;
+      }
       return s;
     },
     // ぷりくら（しゃしんの ブース。まえに カーテン・よこに ポスター）。variant = ブース（0 ゆめかわ・1 がっこう・2 おでかけ）で いろ・かんばん・ポスターが ちがう
@@ -283,9 +289,11 @@ const ArcadeArt = (() => {
       const F = frame(f), W = F.W, D = F.D, z0 = 40, z1 = 176, fw = (W - 0.16) * 48;
       let s = S.ellipse(W / 2, D / 2, 0, 0.4, "#0000002A", 0);
       for (const u of [0.24, W - 0.36]) s += boxC(S, F, u, D * 0.45, 0.12, 0.12, 0, z0, ["#E8E0D0", "#BFB4A0", "#A89C86"], 1.1);
-      s += boxC(S, F, 0.08, D * 0.38, W - 0.16, 0.24, z0, z1 - z0, ["#FFFFFF", "#2B2346", "#241E36"], 1.6);
-      const rows = [["3F", "ぷりくら・おかし", "#D6A6F2"], ["2F", "おかし・ガチャ", "#FFB86B"], ["1F", "ぬいぐるみ", "#7FB8E0"]];
-      s += onFace(S, { ...F, D: D * 0.62 }, "front", 0.08, 0, z1, `<rect x="3" y="3" width="${f2(fw - 6)}" height="${z1 - z0 - 6}" rx="6" fill="#2B2346" stroke="#FFE07A" stroke-width="1.6"/>${txt(fw / 2, 22, 11, "フロア あんない", "#FFE07A")}${rows.map(([fl, t, c], i) => `<rect x="8" y="${32 + i * 32}" width="${f2(fw - 16)}" height="26" rx="5" fill="${c}" stroke="${INK}" stroke-width="1"/>${txt(22, 50 + i * 32, 11, fl, INK)}${txt((fw + 30) / 2, 50 + i * 32, 10, t, INK)}`).join("")}`);
+      const wood = f.variant === "forest", board = wood ? ["#E9C99A", "#7A5436", "#6A472C"] : ["#FFFFFF", "#2B2346", "#241E36"];
+      s += boxC(S, F, 0.08, D * 0.38, W - 0.16, 0.24, z0, z1 - z0, board, 1.6);
+      const rows = f.rows || [["4F", "ガチャの もり", "#A9D98A"], ["3F", "ぷりくら・おかし", "#D6A6F2"], ["2F", "おかし・ガチャ", "#FFB86B"], ["1F", "ぬいぐるみ", "#7FB8E0"]], rh = Math.min(32, Math.floor(98 / rows.length)), bh = rh - 5;
+      s += onFace(S, { ...F, D: D * 0.62 }, "front", 0.08, 0, z1, `<rect x="3" y="3" width="${f2(fw - 6)}" height="${z1 - z0 - 6}" rx="6" fill="${board[1]}" stroke="${wood ? "#E9C99A" : "#FFE07A"}" stroke-width="1.6"/>${txt(fw / 2, 22, 11, f.title || "フロア あんない", wood ? "#FFF3D6" : "#FFE07A")}${rows.map(([fl, t, c], i) => `<rect x="8" y="${30 + i * rh}" width="${f2(fw - 16)}" height="${bh}" rx="5" fill="${c}" stroke="${f.here === fl ? "#FFFFFF" : INK}" stroke-width="${f.here === fl ? 2.4 : 1}"/>${txt(22, 30 + i * rh + bh / 2 + 4, 11, fl, INK)}${txt((fw + 30) / 2, 30 + i * rh + bh / 2 + 4, 10, f.here === fl ? t + " ← いま ここ" : t, INK)}`).join("")}`);
+      if (wood) { const t = S.P(...F.Q(0.2, D * 0.38, z1 + 6)), u = S.P(...F.Q(W - 0.2, D * 0.38, z1 + 6)); for (const q of [t, u]) for (const [dx, a, c2] of [[-6, -30, "#7DBA4C"], [6, 30, "#9ED36A"]]) s += `<ellipse cx="${f2(q.x + dx)}" cy="${f2(q.y)}" rx="9" ry="4.4" transform="rotate(${a} ${f2(q.x + dx)} ${f2(q.y)})" fill="${c2}" stroke="${INK}" stroke-width="1.1"/>`; S.grow(t.x - 18, t.y - 10, u.x + 18, u.y + 6); }
       return s;
     },
     // おめかし コーナー（3F。かがみ 3まい〔まわりに ライト〕・カウンターの ブラシ・ドライヤー・まるい いす）
@@ -419,23 +427,39 @@ const ArcadeArt = (() => {
   const MAT2 = { carpet: ["#4A2F57", "#462C53"], lane: ["#7A4E7E", "#744A78"], mat: ["#4A4458", "#454052"], staff: ["#6B6275", "#655C70"], gacha: ["#4C7F78", "#3F6E68"] };
   // 3F（ぷりくらの フロア）: すみれいろの じゅうたん・とおりみちは ラベンダー・ところどころ ハート
   const MAT3 = { carpet: ["#46305F", "#422D5A"], lane: ["#83619A", "#7D5C94"], mat: ["#4A4458", "#454052"], staff: ["#6B6275", "#655C70"], gacha: ["#4C7F78", "#3F6E68"] };
+  // 4F（ガチャガチャの もり）: こけいろの じゅうたん・とおりみちは 木の いた・ところどころ はっぱ／クローバー／はな／どんぐり
+  const MAT4 = { carpet: ["#5E8C4C", "#5A8849"], lane: ["#C79C68", "#C29763"], mat: ["#6B5A44", "#65553F"], staff: ["#8A7458", "#846E53"], gacha: ["#4C7F78", "#3F6E68"] };
   const paintFloor = (g, r) => {
-    const MAT = r.carpet === "candy" ? MAT2 : r.carpet === "puri" ? MAT3 : MATS;
+    const forest = r.carpet === "forest", MAT = r.carpet === "candy" ? MAT2 : r.carpet === "puri" ? MAT3 : forest ? MAT4 : MATS;
     const P = (x, y, z = 0) => IsoVenue.p(x, y, z), tile = (x, y) => { const a = P(x, y), b = P(x + 1, y), c = P(x + 1, y + 1), d = P(x, y + 1); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(c.x, c.y); g.lineTo(d.x, d.y); g.closePath(); };
     const slab = 26, edge = (pts, fill) => { g.beginPath(); pts.forEach((q, i) => (i ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y))); g.closePath(); g.fillStyle = fill; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.6; g.stroke(); };
-    edge([P(0, r.h), P(r.w, r.h), P(r.w, r.h, -slab), P(0, r.h, -slab)], "#2A2440");
-    edge([P(r.w, 0), P(r.w, r.h), P(r.w, r.h, -slab), P(r.w, 0, -slab)], "#342D50");
+    edge([P(0, r.h), P(r.w, r.h), P(r.w, r.h, -slab), P(0, r.h, -slab)], forest ? "#4A3524" : "#2A2440");
+    edge([P(r.w, 0), P(r.w, r.h), P(r.w, r.h, -slab), P(r.w, 0, -slab)], forest ? "#5A4130" : "#342D50");
     const matAt = (x, y) => ({ ".": "carpet", w: "lane", m: "mat", "#": "staff", g: "gacha" })[r.rows[y][x]] || "carpet";
     for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) {
       const m = matAt(x, y), c = MAT[m], h = U.hash(x, y, 7);
       tile(x, y); g.fillStyle = m === "gacha" ? c[(x + y) & 1] : c[h < 0.5 ? 0 : 1]; g.fill();
       if (m === "gacha") {
         if (h > 0.55) { const q = P(x + 0.5, y + 0.5), col = ["#F7A9C8", "#FFE07A", "#9FD3F0", "#C9B6EE"][Math.floor(U.hash(x, y, 9) * 4)]; g.lineWidth = 1.1; g.strokeStyle = "rgba(255,255,255,0.75)"; g.fillStyle = col; g.beginPath(); g.ellipse(q.x, q.y, 6, 3.6, 0, Math.PI, 0); g.closePath(); g.fill(); g.stroke(); g.fillStyle = "rgba(255,255,255,0.85)"; g.beginPath(); g.ellipse(q.x, q.y, 6, 3.6, 0, 0, Math.PI); g.closePath(); g.fill(); g.stroke(); }
+      } else if (m === "lane" && forest) {
+        // 木の いた（よこ 2まい・つぎめは たがいちがい・ときどき ふし）
+        g.strokeStyle = "#A87C4E"; g.lineWidth = 1; g.stroke();
+        const a = P(x, y + 0.5), b = P(x + 1, y + 0.5); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke();
+        for (const [u, v0] of [[(x + y) & 1 ? 0.3 : 0.7, 0], [(x + y) & 1 ? 0.75 : 0.25, 0.5]]) { const c1 = P(x + u, y + v0), c2 = P(x + u, y + v0 + 0.5); g.beginPath(); g.moveTo(c1.x, c1.y); g.lineTo(c2.x, c2.y); g.stroke(); }
+        if (h > 0.84) { const q = P(x + 0.3 + h * 0.3, y + 0.25); g.strokeStyle = "#A8784A"; g.beginPath(); g.ellipse(q.x, q.y, 4, 1.6, 0, 0, 7); g.stroke(); }
       } else if (m === "lane") { g.strokeStyle = "#6E6699"; g.lineWidth = 1; g.stroke(); if (h > 0.8) { const q = P(x + 0.5, y + 0.5); g.fillStyle = "rgba(255,255,255,0.12)"; g.beginPath(); g.ellipse(q.x - 6, q.y - 2, 8, 2.4, -0.5, 0, 7); g.fill(); } }
       else if (m === "carpet") {
         // うちゅうの じゅうたん（ほし・わくせい・かみふぶき）
         const q = P(x + 0.5, y + 0.5), k = Math.floor(h * 1000);
-        if (r.carpet === "puri" && k % 6 === 0) { const c3 = ["#FF9EC4", "#FFD2E6", "#C9B6EE"][k % 3]; g.fillStyle = c3; g.beginPath(); g.moveTo(q.x, q.y + 3.4); g.bezierCurveTo(q.x - 7, q.y - 1, q.x - 4, q.y - 6, q.x, q.y - 2.4); g.bezierCurveTo(q.x + 4, q.y - 6, q.x + 7, q.y - 1, q.x, q.y + 3.4); g.fill(); }
+        if (forest) {
+          g.save(); g.translate(q.x, q.y); g.scale(1, 0.6);
+          if (k % 5 === 0) { g.rotate(h * 6.28); g.fillStyle = ["#8CC63F", "#B5D96A", "#6FAE5A"][k % 3]; g.beginPath(); g.ellipse(0, 0, 7, 3, 0, 0, 7); g.fill(); g.strokeStyle = "rgba(40,70,30,0.6)"; g.lineWidth = 0.9; g.beginPath(); g.moveTo(-6, 0); g.lineTo(6, 0); g.stroke(); }
+          else if (k % 9 === 1) { g.fillStyle = "#86C25A"; for (let j = 0; j < 3; j++) { const a2 = -Math.PI / 2 + (j * Math.PI * 2) / 3; g.beginPath(); g.arc(Math.cos(a2) * 2.8, Math.sin(a2) * 2.8, 2.8, 0, 7); g.fill(); } g.strokeStyle = "#4F7A40"; g.lineWidth = 1; g.beginPath(); g.moveTo(0, 1); g.lineTo(1.5, 6); g.stroke(); }
+          else if (k % 13 === 2) { g.fillStyle = k % 2 ? "#FFFFFF" : "#F7A9C8"; for (let j = 0; j < 5; j++) { const a2 = (j * Math.PI * 2) / 5; g.beginPath(); g.arc(Math.cos(a2) * 2.6, Math.sin(a2) * 2.6, 2, 0, 7); g.fill(); } g.fillStyle = "#FFE07A"; g.beginPath(); g.arc(0, 0, 1.6, 0, 7); g.fill(); }
+          else if (k % 17 === 3) { g.fillStyle = "#B07A44"; g.beginPath(); g.ellipse(0, 1.4, 3.4, 4.2, 0, 0, 7); g.fill(); g.fillStyle = "#7A5230"; g.beginPath(); g.ellipse(0, -1.6, 4, 2.2, 0, 0, 7); g.fill(); }
+          else { g.strokeStyle = h > 0.5 ? "#7BA862" : "#4F7A40"; g.lineWidth = 1.1; g.globalAlpha = 0.8; for (let j = 0; j < 3; j++) { const ox = (U.hash(x, y, 20 + j) - 0.5) * 30, oy = (U.hash(x, y, 40 + j) - 0.5) * 30; g.beginPath(); g.moveTo(ox - 2, oy + 3); g.lineTo(ox - 1, oy - 2); g.moveTo(ox + 1, oy + 3); g.lineTo(ox + 2.5, oy - 1.5); g.stroke(); } g.globalAlpha = 1; }
+          g.restore();
+        } else if (r.carpet === "puri" && k % 6 === 0) { const c3 = ["#FF9EC4", "#FFD2E6", "#C9B6EE"][k % 3]; g.fillStyle = c3; g.beginPath(); g.moveTo(q.x, q.y + 3.4); g.bezierCurveTo(q.x - 7, q.y - 1, q.x - 4, q.y - 6, q.x, q.y - 2.4); g.bezierCurveTo(q.x + 4, q.y - 6, q.x + 7, q.y - 1, q.x, q.y + 3.4); g.fill(); }
         else if (r.carpet === "candy" && k % 7 === 0) { g.fillStyle = ["#F7A9C8", "#9ED3C6", "#FFE07A"][k % 3]; g.beginPath(); g.ellipse(q.x, q.y, 5, 3, 0, 0, 7); g.fill(); g.strokeStyle = "rgba(255,255,255,0.7)"; g.lineWidth = 1.2; g.beginPath(); g.ellipse(q.x, q.y, 2.4, 1.4, 0, 0, 7); g.stroke(); }
         else if (k % 7 === 0) { g.fillStyle = "#FFE07A"; g.beginPath(); const R = 5, rr = 2.2; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, l = i % 2 ? rr : R; g.lineTo(q.x + Math.cos(a) * l, q.y + Math.sin(a) * l * 0.6); } g.closePath(); g.fill(); }
         else if (k % 11 === 1) { g.fillStyle = "#9FD3F0"; g.beginPath(); g.ellipse(q.x + 6, q.y, 5, 3, 0, 0, 7); g.fill(); g.strokeStyle = "#F7A9C8"; g.lineWidth = 1.4; g.beginPath(); g.ellipse(q.x + 6, q.y, 9, 2.4, -0.3, 0, 7); g.stroke(); }
@@ -443,7 +467,7 @@ const ArcadeArt = (() => {
       } else if (m === "mat") { g.strokeStyle = "#5A5566"; g.lineWidth = 1; for (let i = 1; i < 4; i++) { const a = P(x + i / 4, y), b = P(x + i / 4, y + 1); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); } }
     }
     // 材質の さかい
-    g.strokeStyle = "#8C82B8"; g.lineWidth = 1.6;
+    g.strokeStyle = forest ? "#8A6440" : "#8C82B8"; g.lineWidth = 1.6;
     for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) {
       const m = matAt(x, y);
       if (x + 1 < r.w && matAt(x + 1, y) !== m) { const a = P(x + 1, y), b = P(x + 1, y + 1); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); }
@@ -463,13 +487,14 @@ const ArcadeArt = (() => {
   };
   // エスカレーターの ふきぬけ（2F）: したの 階の うちゅうの じゅうたん・かげ・ゆかの あつみ（MallArt の ふきぬけと おなじ ずれ）
   const paintHoles = (g, r) => {
+    const BC = (r.below === "puri" ? MAT3 : r.below === "candy" ? MAT2 : MATS).carpet;
     for (const h of r.holes || []) {
       g.save(); MallArt.holePath(g, h); g.clip();
       const top = IsoVenue.p(h.x, h.y).y, gr = g.createLinearGradient(0, top - 200, 0, top + 300); gr.addColorStop(0, "#15122A"); gr.addColorStop(1, "#2B2447"); g.fillStyle = gr; g.fillRect(-4000, -4000, 8000, 8000);
       const shift = MallArt.VIEW[0]; g.translate(0, shift);
       for (let y = Math.floor(h.y) - 10; y < h.y + h.h + 2; y++) for (let x = Math.floor(h.x) - 10; x < h.x + h.w + 1; x++) {
         const a = IsoVenue.p(x, y), b = IsoVenue.p(x + 1, y), c = IsoVenue.p(x + 1, y + 1), d = IsoVenue.p(x, y + 1); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(c.x, c.y); g.lineTo(d.x, d.y); g.closePath();
-        g.fillStyle = MATS.carpet[(x + y) & 1]; g.fill(); if (U.hash(x, y, 7) > 0.86) { const q = IsoVenue.p(x + 0.5, y + 0.5); g.fillStyle = "#FFE07A"; g.beginPath(); g.ellipse(q.x, q.y, 3, 1.8, 0, 0, 7); g.fill(); }
+        g.fillStyle = BC[(x + y) & 1]; g.fill(); if (U.hash(x, y, 7) > 0.86) { const q = IsoVenue.p(x + 0.5, y + 0.5); g.fillStyle = "#FFE07A"; g.beginPath(); g.ellipse(q.x, q.y, 3, 1.8, 0, 0, 7); g.fill(); }
       }
       g.translate(0, -shift);
       const gr2 = g.createLinearGradient(0, top - 60, 0, top + 260); gr2.addColorStop(0, "rgba(20,16,40,.65)"); gr2.addColorStop(1, "rgba(20,16,40,0)"); g.fillStyle = gr2; g.fillRect(-4000, -4000, 8000, 8000);
@@ -479,17 +504,52 @@ const ArcadeArt = (() => {
       g.restore(); g.strokeStyle = INK; g.lineWidth = 1.8; MallArt.holePath(g, h); g.stroke();
     }
   };
+  // 4F の かべ: おくの 木の みきと しげみ（うすい）・木の こしいた・うえの はっぱの ガーランドと あかりの つぶ
+  const forestLeaves = (x, y, k = 1) => [[0, -28, "#7DBA4C"], [10, 18, "#9ED36A"], [3, 62, "#6FAE5A"]].map(([dx, a, c]) => `<ellipse cx="${f2(x + dx * k)}" cy="${f2(y + dx * 0.3)}" rx="10" ry="4.6" transform="rotate(${a * k} ${f2(x + dx * k)} ${f2(y + dx * 0.3)})" fill="${c}" stroke="${INK}" stroke-width="1.2"/>`).join("");
+  const forestWall = (L, H, V, side) => {
+    let s = "";
+    for (let x = 70, i = 0; x < L; x += 176, i++) {
+      const tw = 24 + (i % 3) * 5, top = H * 0.3;
+      s += `<path d="M${x - tw / 2} ${H} C${x - tw / 2 + 2} ${H * 0.6} ${x - tw / 3} ${top + 30} ${x - 4} ${top} L${x + 4} ${top} C${x + tw / 3} ${top + 30} ${x + tw / 2 - 2} ${H * 0.6} ${x + tw / 2} ${H} Z" fill="#284A32"/>`;
+      s += `<path d="M${x} ${H * 0.52} q${i % 2 ? 34 : -34} -26 ${i % 2 ? 66 : -66} -30" stroke="#284A32" stroke-width="9" fill="none" stroke-linecap="round"/>`;
+      for (const [dx, dy, rr] of [[-40, 6, 40], [0, -18, 48], [42, 4, 38], [-14, 24, 34], [24, 26, 32]]) s += `<circle cx="${x + dx}" cy="${top + dy}" r="${rr}" fill="#2C5536" opacity="0.95"/>`;
+    }
+    // 木の こしいた
+    s += `<rect y="${V(78)}" width="${L}" height="78" fill="#8A6142"/>`;
+    for (let x = 0; x < L; x += 26) s += `<path d="M${x} ${V(78)} V${H}" stroke="#74502F" stroke-width="2"/>`;
+    s += `<path d="M0 ${V(76)} H${L}" stroke="#B48A5C" stroke-width="6"/><path d="M0 ${V(79)} H${L}" stroke="${INK}" stroke-width="1.4"/>`;
+    // うえの はっぱの ガーランド と あかりの つぶ（たれさがる ひも）
+    const gy = V(H - 18);
+    for (let x0 = 0; x0 < L; x0 += 150) {
+      const x1 = x0 + 150; s += `<path d="M${x0} ${gy} Q${x0 + 75} ${gy + 30} ${x1} ${gy}" stroke="#5E4128" stroke-width="2" fill="none"/>`;
+      for (let t = 0.1; t < 0.95; t += 0.2) { const bx = x0 + 150 * t, by = gy + 60 * t * (1 - t); s += `<circle cx="${f2(bx)}" cy="${f2(by + 5)}" r="7" fill="#FFE9A0" filter="url(#awglow${side})" opacity="0.8"/><circle cx="${f2(bx)}" cy="${f2(by + 5)}" r="3.6" fill="#FFF6CF" stroke="${INK}" stroke-width="0.8"/>`; }
+    }
+    for (let x = -6, i = 0; x < L + 12; x += 22, i++) s += `<ellipse cx="${x}" cy="${gy - 6 + (i % 2) * 5}" rx="13" ry="6" transform="rotate(${i % 2 ? 24 : -24} ${x} ${gy - 6 + (i % 2) * 5})" fill="${["#6FAE5A", "#8CC63F", "#5E9A3E"][i % 3]}" stroke="${INK}" stroke-width="1.1"/>`;
+    return s;
+  };
   // かべの 絵（ネオン・ポスター・LED の すじ）。part: { kind: 'neon' | 'poster' | 'sign', from, to（マス）, z0, z1, text, col, prize }
   const wallSvg = (r, side) => {
-    const L = (side === "north" ? r.w : r.h) * IsoVenue.T, H = r.wallH || 280, parts = (r.walls && r.walls[side]) || [], V = (z) => H - z;
-    let s = `<defs><linearGradient id="awg${side}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#241F3F"/><stop offset="1" stop-color="#3A3263"/></linearGradient><filter id="awglow${side}" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="4"/></filter></defs>`;
+    const L = (side === "north" ? r.w : r.h) * IsoVenue.T, H = r.wallH || 280, parts = (r.walls && r.walls[side]) || [], V = (z) => H - z, forest = r.theme === "forest";
+    const sky = forest ? ["#1F3B2A", "#355E3C"] : ["#241F3F", "#3A3263"];
+    let s = `<defs><linearGradient id="awg${side}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient><filter id="awglow${side}" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="4"/></filter></defs>`;
     s += `<rect width="${L}" height="${H}" fill="url(#awg${side})"/>`;
-    for (let x = 24; x < L; x += 48) s += `<path d="M${x} 0 V${H}" stroke="#2E2850" stroke-width="2"/>`;
-    for (const [z, c] of [[H - 26, "#FF8FB8"], [44, "#9FD3F0"]]) s += `<path d="M0 ${V(z)} H${L}" stroke="${c}" stroke-width="7" filter="url(#awglow${side})" opacity="0.8"/><path d="M0 ${V(z)} H${L}" stroke="${c}" stroke-width="3"/>`;
+    if (forest) s += forestWall(L, H, V, side);
+    else {
+      for (let x = 24; x < L; x += 48) s += `<path d="M${x} 0 V${H}" stroke="#2E2850" stroke-width="2"/>`;
+      for (const [z, c] of [[H - 26, "#FF8FB8"], [44, "#9FD3F0"]]) s += `<path d="M0 ${V(z)} H${L}" stroke="${c}" stroke-width="7" filter="url(#awglow${side})" opacity="0.8"/><path d="M0 ${V(z)} H${L}" stroke="${c}" stroke-width="3"/>`;
+    }
     // 西の かべは 手前（みなみ）から おくへ 左→右（MallArt と おなじ）
     for (const p0 of parts) {
       const p = side === "west" ? { ...p0, from: r.h - p0.to, to: r.h - p0.from } : p0, u0 = p.from * IsoVenue.T, w = (p.to - p.from) * IsoVenue.T, cx = u0 + w / 2;
-      if (p.kind === "neon") {
+      if (p.kind === "neon" && forest) {
+        // もりの かんばん: 木の いた・ひもで つるす・はしに はっぱ（ネオンの かわり。もじは ほんのり ひかる）
+        const y = V(p.z || 206), size = p.size || 44, col = p.col || "#9ED36A", y0 = y - size * 0.9, bh = size * 1.3;
+        for (const x of [u0 + 30, u0 + w - 30]) s += `<path d="M${x} ${y0 - 26} L${x} ${y0 + 4}" stroke="#C9A27A" stroke-width="2.4"/>`;
+        s += `<rect x="${u0 + 8}" y="${y0}" width="${w - 16}" height="${bh}" rx="10" fill="#6B4A2E" stroke="${INK}" stroke-width="2"/><rect x="${u0 + 14}" y="${y0 + 6}" width="${w - 28}" height="${bh - 12}" rx="7" fill="none" stroke="#9A6E44" stroke-width="2"/>`;
+        for (let k = 1; k < 4; k++) s += `<path d="M${u0 + 18} ${y0 + (bh * k) / 4} H${u0 + w - 18}" stroke="#5E4128" stroke-width="1.4" opacity="0.6"/>`;
+        s += txt(cx, y + size * 0.1, size, p.text, "none", `stroke="${col}" stroke-width="7" filter="url(#awglow${side})" opacity="0.55"`) + txt(cx, y + size * 0.1, size, p.text, "#FFF6DA", `stroke="${col}" stroke-width="2"`);
+        for (const [x, k] of [[u0 + 12, 1], [u0 + w - 12, -1]]) s += forestLeaves(x, y0 + 4, k);
+      } else if (p.kind === "neon") {
         const y = V(p.z || 206), size = p.size || 44, col = p.col || "#FF8FB8";
         s += `<rect x="${u0 + 8}" y="${y - size * 0.9}" width="${w - 16}" height="${size * 1.3}" rx="16" fill="#1B1730" stroke="${INK}" stroke-width="2"/>`;
         s += txt(cx, y + size * 0.1, size, p.text, "none", `stroke="${col}" stroke-width="9" filter="url(#awglow${side})" opacity="0.9"`) + txt(cx, y + size * 0.1, size, p.text, "#FFFFFF", `stroke="${col}" stroke-width="2.4"`);
@@ -504,9 +564,10 @@ const ArcadeArt = (() => {
       } else if (p.kind === "sign") {
         const y = V(p.z || 230);
         s += `<rect x="${u0 + 6}" y="${y - 22}" width="${w - 12}" height="32" rx="10" fill="${p.col || "#FFE07A"}" stroke="${INK}" stroke-width="2"/>` + txt(cx, y, 17, p.text, INK);
+        if (forest) s += forestLeaves(u0 + 10, y - 20, 1);
       }
     }
-    s += `<rect y="${V(10)}" width="${L}" height="10" fill="#1B1730"/><path d="M0,${V(10)} H${L}" stroke="${INK}" stroke-width="1.5"/>`;
+    s += `<rect y="${V(10)}" width="${L}" height="10" fill="${forest ? "#4A3524" : "#1B1730"}"/><path d="M0,${V(10)} H${L}" stroke="${INK}" stroke-width="1.5"/>`;
     return { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${L} ${H}">${s}</svg>`, L, H };
   };
   const paintWalls = (g, r) => {
@@ -522,7 +583,7 @@ const ArcadeArt = (() => {
     const Fh = 150, steps = 12;
     for (const [x0, y0, x1, y1] of [[0, 0, r.w, 0], [0, 0, 0, r.h]]) for (let i = 0; i < steps; i++) {
       const t0 = i / steps, t1 = (i + 1) / steps, A0 = IsoVenue.p(x0, y0, H + Fh * t0), A1 = IsoVenue.p(x1, y1, H + Fh * t0), B1 = IsoVenue.p(x1, y1, H + Fh * t1), B0 = IsoVenue.p(x0, y0, H + Fh * t1);
-      g.beginPath(); g.moveTo(A0.x, A0.y); g.lineTo(A1.x, A1.y); g.lineTo(B1.x, B1.y); g.lineTo(B0.x, B0.y); g.closePath(); g.fillStyle = `rgba(36,31,63,${(0.85 * (1 - t1)).toFixed(3)})`; g.fill();
+      g.beginPath(); g.moveTo(A0.x, A0.y); g.lineTo(A1.x, A1.y); g.lineTo(B1.x, B1.y); g.lineTo(B0.x, B0.y); g.closePath(); g.fillStyle = `rgba(${r.theme === "forest" ? "22,44,30" : "36,31,63"},${(0.85 * (1 - t1)).toFixed(3)})`; g.fill();
     }
   };
 
@@ -542,13 +603,14 @@ const ArcadeArt = (() => {
     // 手前の ふち（ひくい かべの きりくち）
     over(ctx, sc, r, floor, off) {
       const P = (x, y, z) => sc.toScreen(IsoVenue.p(x, y, z), off), band = (a, b, c, d, fill) => { ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5 * sc.s * 2; ctx.stroke(); };
-      band(P(0, r.h, 0), P(r.w, r.h, 0), P(r.w, r.h, 16), P(0, r.h, 16), "#3A3263");
-      band(P(r.w, 0, 0), P(r.w, r.h, 0), P(r.w, r.h, 16), P(r.w, 0, 16), "#2E2850");
-      band(P(0, r.h - 0.12, 16), P(r.w - 0.12, r.h - 0.12, 16), P(r.w, r.h, 16), P(0, r.h, 16), "#FF8FB8");
-      band(P(r.w - 0.12, 0, 16), P(r.w, 0, 16), P(r.w, r.h, 16), P(r.w - 0.12, r.h - 0.12, 16), "#9FD3F0");
+      const fo = r.theme === "forest", C = fo ? ["#6B4A2E", "#5A4130", "#9ED36A", "#F7D774"] : ["#3A3263", "#2E2850", "#FF8FB8", "#9FD3F0"];
+      band(P(0, r.h, 0), P(r.w, r.h, 0), P(r.w, r.h, 16), P(0, r.h, 16), C[0]);
+      band(P(r.w, 0, 0), P(r.w, r.h, 0), P(r.w, r.h, 16), P(r.w, 0, 16), C[1]);
+      band(P(0, r.h - 0.12, 16), P(r.w - 0.12, r.h - 0.12, 16), P(r.w, r.h, 16), P(0, r.h, 16), C[2]);
+      band(P(r.w - 0.12, 0, 16), P(r.w, 0, 16), P(r.w, r.h, 16), P(r.w - 0.12, r.h - 0.12, 16), C[3]);
     },
     under() {},
-    backdrop() { return ["#15122A", "#2B2447"]; },
+    backdrop(r) { return r && r.theme === "forest" ? ["#12241A", "#24402C"] : ["#15122A", "#2B2447"]; },
     // しらべる（ぷりくら・カウンター・ガチャ・りょうがえ・でぐち）。クレーンは 台の まえに もどれる ように at を わたす
     async interact(sc, f) {
       if (f.action === "leave") { sc.leave(); return true; }

@@ -153,7 +153,14 @@ const GachaArt = (() => {
       + `<rect x="36" y="136" width="108" height="42" rx="6" fill="#FFFDF5" ${sk(2)}/>${cards}`
       + `<rect x="110" y="184" width="28" height="10" rx="3" fill="#2A2238" ${sk(1.6)}/><text x="124" y="204" font-size="7" font-weight="900" text-anchor="middle" fill="${K}" font-family="'M PLUS Rounded 1c',sans-serif">200</text>`
       + `<path d="M102,210 L148,210 L148,236 L102,236 Z" fill="#2A2238" ${sk(2)}/><path d="M106,212 L144,212" stroke="#5B5670" stroke-width="3"/>`
-      + `<rect x="22" y="238" width="136" height="8" rx="3" fill="${d}" ${sk(2)}/></svg>`;
+      + `<rect x="22" y="238" width="136" height="8" rx="3" fill="${d}" ${sk(2)}/>${S.forest ? leafy() : ""}</svg>`;
+  };
+  // 4F（ガチャガチャの もり）の 台の かざり: うえの ふちに はっぱ・りょうはしに どんぐり
+  const leafy = () => {
+    let s = "";
+    for (let k = 0; k < 7; k++) { const x = 38 + k * 17.3, a = k % 2 ? 24 : -24, c = ["#7DBA4C", "#9ED36A", "#5E9A3E"][k % 3]; s += `<ellipse cx="${f1(x)}" cy="${k % 2 ? 9 : 6}" rx="10" ry="5" transform="rotate(${a} ${f1(x)} ${k % 2 ? 9 : 6})" fill="${c}" ${sk(1.6)}/>`; }
+    for (const x of [30, 150]) s += `<ellipse cx="${x}" cy="17" rx="5.4" ry="6.4" fill="#C98E5C" ${sk(1.6)}/><path d="M${x - 6.4},14 q6.4 -8 12.8 0 z" fill="#7A5230" ${sk(1.6)}/>`;
+    return s;
   };
   // つまみ（まわす ところ）
   const knob = (c) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="#F4F0FA" ${sk(2.4)}/><circle cx="30" cy="30" r="19" fill="${shade(c, 0.25)}" ${sk(1.6)}/><rect x="10" y="25" width="40" height="10" rx="5" fill="#FFFFFF" ${sk(2.2)}/><circle cx="30" cy="30" r="3.4" fill="${K}"/></svg>`;
