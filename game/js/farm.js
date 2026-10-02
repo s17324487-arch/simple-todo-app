@@ -11,18 +11,19 @@
 const FARM_RULES = Object.freeze({ plots: 6, fert: 10, fertBonus: 2, luck: 0.2, tiers: [0, 3, 8], waterAt: [0, 2] });
 // id・なまえ・かたち（FarmArt.K）・min（ぜんぶで なんぷん）・seed（たねの コイン）・yield（とれる かず）・tier（0 はじめから・1 しゅうかく 3かい・2 8かい）
 // grid（がめんの はたけ 1まいに なんかぶ〔よこ, たて〕）・town（町の はたけ）・flower（はなが さく）・たべものの ねだん・おなか・きぶん・たいりょく・せつめい
+// やさいを そのまま たべると おなかは すこし（UI-35: まえの はんぶん）。りょうり（js/farm-cook.js）に すると おなかも ごきげんも もっと もどる。くだもの（いちご・スイカ・メロン）は そのまま
 const FARM_CROPS = [
-  { id: "radish", name: "はつかだいこん", kind: "root", min: 3, seed: 5, yield: 3, tier: 0, grid: [3, 2], town: [4, 2], price: 12, hunger: 8, mood: 4, hp: 10, desc: "ちいさくて まっかな だいこん。しゃきしゃき", col: { seed: "#EFE3C0", fruit: "#E2455A" } },
-  { id: "carrot", name: "にんじん", kind: "root", min: 6, seed: 8, yield: 3, tier: 0, grid: [3, 2], town: [4, 2], price: 15, hunger: 10, mood: 4, hp: 14, desc: "あまい にんじん。ぽりぽり かじろう", col: { seed: "#D9C08A", fruit: "#F08A2C" } },
-  { id: "potato", name: "じゃがいも", kind: "potato", min: 8, seed: 10, yield: 4, tier: 0, grid: [3, 1], town: [3, 1], flower: true, price: 18, hunger: 16, mood: 4, hp: 16, desc: "ほくほくの じゃがいも。ふかして たべよう", col: { seed: "#D2A76A", fruit: "#D2A76A" } },
-  { id: "tomato", name: "トマト", kind: "stake", min: 8, seed: 10, yield: 4, tier: 0, grid: [3, 1], town: [3, 1], flower: true, price: 18, hunger: 10, mood: 8, hp: 14, desc: "まっかで あまずっぱい トマト", col: { seed: "#EFE3C0", fruit: "#E8412F" } },
+  { id: "radish", name: "はつかだいこん", kind: "root", min: 3, seed: 5, yield: 3, tier: 0, grid: [3, 2], town: [4, 2], price: 12, hunger: 4, mood: 4, hp: 10, desc: "ちいさくて まっかな だいこん。しゃきしゃき", col: { seed: "#EFE3C0", fruit: "#E2455A" } },
+  { id: "carrot", name: "にんじん", kind: "root", min: 6, seed: 8, yield: 3, tier: 0, grid: [3, 2], town: [4, 2], price: 15, hunger: 5, mood: 4, hp: 14, desc: "あまい にんじん。ぽりぽり かじろう", col: { seed: "#D9C08A", fruit: "#F08A2C" } },
+  { id: "potato", name: "じゃがいも", kind: "potato", min: 8, seed: 10, yield: 4, tier: 0, grid: [3, 1], town: [3, 1], flower: true, price: 18, hunger: 8, mood: 4, hp: 16, desc: "ほくほくの じゃがいも。ふかして たべよう", col: { seed: "#D2A76A", fruit: "#D2A76A" } },
+  { id: "tomato", name: "トマト", kind: "stake", min: 8, seed: 10, yield: 4, tier: 0, grid: [3, 1], town: [3, 1], flower: true, price: 18, hunger: 5, mood: 8, hp: 14, desc: "まっかで あまずっぱい トマト", col: { seed: "#EFE3C0", fruit: "#E8412F" } },
   { id: "strawberry", name: "いちご", kind: "berry", min: 10, seed: 15, yield: 5, tier: 0, grid: [3, 2], town: [4, 2], flower: true, price: 30, hunger: 8, mood: 14, hp: 12, desc: "あまくて まっかな いちご", col: { seed: "#F2D36A", fruit: "#E53935" } },
   { id: "pepper", name: "ピーマン", kind: "stake", food: "pepper", min: 5, seed: 5, yield: 4, tier: 1, grid: [3, 1], town: [3, 1], flower: true, col: { seed: "#EFE3C0", fruit: "#48A843" } },
-  { id: "onion", name: "たまねぎ", kind: "bulb", min: 8, seed: 8, yield: 3, tier: 1, grid: [3, 2], town: [4, 2], price: 15, hunger: 8, mood: 2, hp: 12, desc: "やくと あまく なる たまねぎ", col: { seed: "#3A3A3A", fruit: "#D9A04E" } },
-  { id: "eggplant", name: "なす", kind: "stake", min: 10, seed: 10, yield: 3, tier: 1, grid: [3, 1], town: [3, 1], flower: true, price: 18, hunger: 10, mood: 3, hp: 14, desc: "つやつや むらさきの なす", col: { seed: "#EFE3C0", fruit: "#5B3A8E", stem: "#6D4E8C" } },
-  { id: "cabbage", name: "キャベツ", kind: "head", min: 12, seed: 12, yield: 2, tier: 1, grid: [2, 1], town: [2, 1], price: 25, hunger: 14, mood: 4, hp: 18, desc: "まるまる おおきな キャベツ", col: { seed: "#8A6A4A", fruit: "#CDEAA5" } },
+  { id: "onion", name: "たまねぎ", kind: "bulb", min: 8, seed: 8, yield: 3, tier: 1, grid: [3, 2], town: [4, 2], price: 15, hunger: 4, mood: 2, hp: 12, desc: "やくと あまく なる たまねぎ", col: { seed: "#3A3A3A", fruit: "#D9A04E" } },
+  { id: "eggplant", name: "なす", kind: "stake", min: 10, seed: 10, yield: 3, tier: 1, grid: [3, 1], town: [3, 1], flower: true, price: 18, hunger: 5, mood: 3, hp: 14, desc: "つやつや むらさきの なす", col: { seed: "#EFE3C0", fruit: "#5B3A8E", stem: "#6D4E8C" } },
+  { id: "cabbage", name: "キャベツ", kind: "head", min: 12, seed: 12, yield: 2, tier: 1, grid: [2, 1], town: [2, 1], price: 25, hunger: 7, mood: 4, hp: 18, desc: "まるまる おおきな キャベツ", col: { seed: "#8A6A4A", fruit: "#CDEAA5" } },
   { id: "corn", name: "とうもろこし", kind: "tall", food: "corn", min: 12, seed: 15, yield: 3, tier: 1, grid: [3, 1], town: [3, 1], flower: true, col: { seed: "#F7D24A", fruit: "#F7D24A" } },
-  { id: "pumpkin", name: "かぼちゃ", kind: "vine", min: 20, seed: 20, yield: 2, tier: 2, grid: [2, 1], town: [2, 1], flower: true, price: 40, hunger: 24, mood: 8, hp: 26, desc: "ほくほく あまい かぼちゃ", col: { seed: "#EFE3C0", fruit: "#F08A24" } },
+  { id: "pumpkin", name: "かぼちゃ", kind: "vine", min: 20, seed: 20, yield: 2, tier: 2, grid: [2, 1], town: [2, 1], flower: true, price: 40, hunger: 12, mood: 8, hp: 26, desc: "ほくほく あまい かぼちゃ", col: { seed: "#EFE3C0", fruit: "#F08A24" } },
   { id: "watermelon", name: "スイカ", kind: "vine", min: 25, seed: 30, yield: 2, tier: 2, grid: [2, 1], town: [2, 1], flower: true, price: 80, hunger: 20, mood: 24, hp: 30, desc: "しましまの おおきな スイカ。3にんで わけよう", col: { seed: "#3A3A3A", fruit: "#5DB24A" } },
   { id: "melon", name: "メロン", kind: "vine", min: 30, seed: 40, yield: 2, tier: 2, grid: [2, 1], town: [2, 1], flower: true, price: 120, hunger: 20, mood: 28, hp: 30, desc: "あみあみの メロン。とびきり あまい", col: { seed: "#EFE3C0", fruit: "#BBD68A" } },
 ];

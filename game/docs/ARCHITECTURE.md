@@ -172,6 +172,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `figure-stand.js`（aqua-gifts.js の あと・ike-aquarium.js の まえ） | `FigureStand` |
 | — | `museum-wear.js`（aqua-gifts.js の あと・item-dex-sources.js の まえ） | `MuseumWear`（きふの ごほうびの 服 8つ・UI-33） |
 | — | `burger-menu.js`（scene-store.js・shop.js・puri-pose.js の あと・figure-stand.js の まえ） | `BurgerMenu`（バーガーやさんの メニュー・にこにこ セットの おまけ・UI-34） |
+| — | `food-balance.js`（farm-cook.js の あと＝ぜんぶの たべものが そろった あと） | `FoodBalance`（たべものの バランス: そのままの やさい・りょうり・ねだんで ごきげん・「おなか+N ごきげん+M」・UI-35） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1060,6 +1061,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - かう: `ShopUI.detail` が かった あと（セーブの まえ）に `BUY_SHOPS.burger.bought(it, qty)` → にこにこ セット なら かずだけ `nextToy()`（まだ もって いない ものから・ぜんぶ あれば どれでも）を `Save.d.furn` に たし、かった あとに おまけの まど（`.bm-reveal`: はじめて！・おもちゃ あつめ N / 6・「やったー！」48px）。せつめいの さいごに `note(it)`（ぜんぶで 6しゅ・もってる なんしゅ）。
 - セーブは `bag`・`furn` だけ（SCHEMA は 2 の まま）。ずかんの ヒントは `BurgerMenu.source(id)`（`ItemDexSources.source`）。
 - PokaDebug: `burgerMenu()`。検査は `tools/check-burger-menu.mjs`、スモークは `tests/burger-menu-smoke.mjs`（`burger-menu-390/375`）。
+
+## たべものの バランス（UI-35・`js/food-balance.js`）
+
+オーナーの FB 2026-10-01「野菜単体のお腹の回復量を下げて。料理の回復量を少し上げて、ごきげんも回復するようにして。他のアイテムについても、価格が高いものはごきげんも少し回復するようにバランス調整して」。
+
+- そのままの やさい（`FoodBalance.RAW_VEG` の 10しゅ: はたけの やさい 8しゅ と とうもろこし・ピーマン）: おなかは まえの はんぶん。かずは `js/farm.js`（`FARM_CROPS`）と `js/data.js`（`FOODS`）に じかに かく。くだもの（いちご・スイカ・メロン）は そのまま。
+- りょうり（`FARM_RECIPES` の 10しゅ）: おなかは +17〜40%・ごきげんは +6〜+8。かずは `js/farm-cook.js` と `js/home-catalog.js`（おやさいスープ・あまくちカレー）。やさいの りょうりは ざいりょうを そのまま たべた ごうけい より おなかも ごきげんも おおい（くだものの デザは どの ざいりょう 1こ より おおい）。
+- ねだんで ごきげん: `FoodBalance.moodFloor(p)` = 50コイン いじょうは `round(6 × log2(p ÷ 20))`（50 → 8・100 → 14・300 → 23・690 → 31）。よみこみの さいご（`farm-cook.js` の あと）に 1かいだけ、やさい・りょうり いがいの たべもの（`BAG_INDEX` と `FOODS` の 両方）の `mood` を めやすまで あげる（`SlowLifePrices` と おなじ やりかた・もとから おおい ものは そのまま）。あげた ものは `FoodBalance.raised`。
+- がめん: `FoodBalance.gainHtml(f)`（`<span class="fb-gain">おなか+N</span> <span class="fb-gain">ごきげん+M</span>`・へる ときは `.down`）を おうちの「ごはん」の カード（`.food-gain`）と とれたて りょうりの まど（`FarmCook.gain(id)`・`.farm-gain`）に。おみせの せつめいは まえから「おなか +N ／ ごきげん +M」。
+- セーブは かわらない（SCHEMA は 2 の まま）。PokaDebug: `foodBalance()`（`rawVeg`・`dishes`〔`raw`: ざいりょうの ごうけい〕・`raised`・`floor`）。検査は `tools/check-food-balance.mjs`、スモークは `tests/food-balance-smoke.mjs`（`food-balance-390/375`）。
 
 ## すいぞくかんの おみやげ（UI-26・`js/aqua-gifts.js`）
 

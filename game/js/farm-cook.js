@@ -3,17 +3,19 @@
 // ざいりょうが そろって いれば「つくる」で もちものの ざいりょうが へって、りょうりが 1つ ふえる（しっぱい しない・コインは いらない）。
 // あたらしい りょうり 8しゅ（おみせには ならばない・絵は 64×64 の FOOD_ART）。おやさいスープ・あまくちカレーは まえからの 食べ物。
 // セーブは Save.d.farm.cooked（{ りょうり: つくった かず }）だけ ふえる。
+// りょうりは ざいりょうを そのまま たべるより おなかも ごきげんも もっと もどる（UI-35。オーナーの FB 2026-10-01「野菜単体のお腹の回復量を下げて。料理の回復量を少し上げて、ごきげんも回復するようにして」）。
+// やさいの りょうりは ざいりょうの おなか・ごきげんの ごうけい より おおきい（tools/check-food-balance.mjs が たしかめる）。
 const FARM_RECIPES = [
-  { id: "salad", name: "やさいサラダ", needs: { tomato: 1, cabbage: 1, radish: 1 }, price: 60, hunger: 22, mood: 12, hp: 26, desc: "しゃきしゃき とれたて やさいの サラダ" },
+  { id: "salad", name: "やさいサラダ", needs: { tomato: 1, cabbage: 1, radish: 1 }, price: 60, hunger: 28, mood: 18, hp: 26, desc: "しゃきしゃき とれたて やさいの サラダ" },
   { id: "soup", needs: { carrot: 1, onion: 1, cabbage: 1 } },
   { id: "mild_curry", needs: { potato: 1, carrot: 1, onion: 1, onigiri: 1 } },
-  { id: "potsalad", name: "ポテトサラダ", needs: { potato: 2, carrot: 1 }, price: 55, hunger: 20, mood: 10, hp: 22, desc: "ほくほく じゃがいもの ポテトサラダ" },
-  { id: "yakicorn", name: "やきとうもろこし", needs: { corn: 2 }, price: 60, hunger: 22, mood: 12, hp: 22, desc: "こんがり あまい やきとうもろこし" },
-  { id: "nikuzume", name: "ピーマンの にくづめ", needs: { pepper: 2, meat: 1 }, price: 100, hunger: 40, mood: 14, hp: 44, desc: "にがい ピーマンも これなら ぱくぱく" },
-  { id: "nasugratin", name: "なすの グラタン", needs: { eggplant: 1, tomato: 1, milk: 1 }, price: 90, hunger: 34, mood: 14, hp: 36, desc: "とろーり チーズと なすと トマト" },
-  { id: "pumpkinsoup", name: "かぼちゃの スープ", needs: { pumpkin: 1, milk: 1 }, price: 80, hunger: 26, mood: 16, hp: 28, desc: "あまくて とろとろ かぼちゃの スープ" },
-  { id: "deza_berrymilk", name: "デザ・いちごミルク", needs: { strawberry: 3, milk: 1 }, price: 80, hunger: 10, mood: 22, hp: 12, sp: 10, deza: true, desc: "つぶつぶ いちごの ミルク。げんき(SP)も もどる" },
-  { id: "deza_punch", name: "デザ・フルーツポンチ", needs: { watermelon: 1, melon: 1, strawberry: 2 }, price: 200, hunger: 18, mood: 32, hp: 22, deza: true, desc: "スイカと メロンと いちごの ごちそう デザ" },
+  { id: "potsalad", name: "ポテトサラダ", needs: { potato: 2, carrot: 1 }, price: 55, hunger: 26, mood: 16, hp: 22, desc: "ほくほく じゃがいもの ポテトサラダ" },
+  { id: "yakicorn", name: "やきとうもろこし", needs: { corn: 2 }, price: 60, hunger: 28, mood: 18, hp: 22, desc: "こんがり あまい やきとうもろこし" },
+  { id: "nikuzume", name: "ピーマンの にくづめ", needs: { pepper: 2, meat: 1 }, price: 100, hunger: 54, mood: 20, hp: 44, desc: "にがい ピーマンも これなら ぱくぱく" },
+  { id: "nasugratin", name: "なすの グラタン", needs: { eggplant: 1, tomato: 1, milk: 1 }, price: 90, hunger: 40, mood: 20, hp: 36, desc: "とろーり チーズと なすと トマト" },
+  { id: "pumpkinsoup", name: "かぼちゃの スープ", needs: { pumpkin: 1, milk: 1 }, price: 80, hunger: 32, mood: 22, hp: 28, desc: "あまくて とろとろ かぼちゃの スープ" },
+  { id: "deza_berrymilk", name: "デザ・いちごミルク", needs: { strawberry: 3, milk: 1 }, price: 80, hunger: 14, mood: 28, hp: 12, sp: 10, deza: true, desc: "つぶつぶ いちごの ミルク。げんき(SP)も もどる" },
+  { id: "deza_punch", name: "デザ・フルーツポンチ", needs: { watermelon: 1, melon: 1, strawberry: 2 }, price: 200, hunger: 24, mood: 40, hp: 22, deza: true, desc: "スイカと メロンと いちごの ごちそう デザ" },
 ];
 const FarmCook = (() => {
   const S = (w = 3) => IS(w);
@@ -52,6 +54,8 @@ const FarmCook = (() => {
     ART,
     recipe(id) { return FARM_RECIPES.find((r) => r.id === id) || null; },
     nameOf(id) { return BAG_INDEX[id]?.name || id; },
+    // おなか・ごきげんが どれだけ もどるか（おうちの ごはん・この まど）
+    gain(id) { const f = BAG_INDEX[id]; return f ? FoodBalance.gainHtml(f) : ""; },
     // たりない ざいりょう（{ id: たりない かず }・そろって いれば {}）
     missing(r) { const m = {}; for (const [id, n] of Object.entries(r.needs)) { const have = Save.d.bag[id] || 0; if (have < n) m[id] = n - have; } return m; },
     can(r) { return Object.keys(this.missing(r)).length === 0; },
@@ -75,7 +79,7 @@ const FarmCook = (() => {
           const ok = this.can(r), miss = this.missing(r), row = U.el("div", { class: "farm-recipe" + (ok ? " ok" : "") });
           const chips = Object.entries(r.needs).map(([id, n]) => `<span class="farm-chip${miss[id] ? " miss" : ""}" aria-label="${this.nameOf(id)} ${n}こ">${Art.iconSvg("bag", id)}<b>×${n}</b></span>`).join("");
           const done = last && last.id === r.id ? `<span class="farm-done" role="status">できた！ もちもの ${last.have}こ</span>` : "";
-          row.innerHTML = `<span class="farm-seed-ico">${Art.iconSvg("bag", r.id)}</span><span class="farm-recipe-txt"><b>${this.nameOf(r.id)}</b>${done}<span class="farm-chips">${chips}</span></span>`;
+          row.innerHTML = `<span class="farm-seed-ico">${Art.iconSvg("bag", r.id)}</span><span class="farm-recipe-txt"><b>${this.nameOf(r.id)}</b>${done}<span class="farm-gain">${this.gain(r.id)}</span><span class="farm-chips">${chips}</span></span>`;
           const b = UI.btn("つくる", () => {
             const res = this.cook(r.id);
             if (!res) { Sound.se("cancel"); return; }
@@ -89,7 +93,7 @@ const FarmCook = (() => {
         }
       };
       draw();
-      body.append(U.el("p", { class: "farm-lead", text: "はたけで とれた やさいで りょうりを つくろう。ざいりょうが そろうと つくれるよ。" }), list,
+      body.append(U.el("p", { class: "farm-lead", text: "はたけで とれた やさいで りょうりを つくろう。ざいりょうが そろうと つくれるよ。りょうりに すると、そのまま たべるより おなかも ごきげんも もっと もどるよ。" }), list,
         U.el("p", { class: "note", text: "ぎゅうにゅう・おにぎり・ほねつきにくは おみせで かえるよ。できた りょうりは もちものに はいるよ。" }));
       return UI.modal({ title: "とれたて りょうり", body, onClose: () => { if (after) after(); } });
     },
