@@ -183,6 +183,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `gowaga-wish.js`（くみこむ ものの あと・world-zoom.js の まえ） | `GowagaWish`（おうちで ごわがの おねがい・かなえて おれいと あまえる・UI-46） |
 | — | `home-toilet.js`（gowaga-wish.js の あと・world-zoom.js の まえ） | `HomeToilet`（おうちの おトイレ・3人の いきたさ・UI-47） |
 | — | `hand-items.js`（dressup.js の あと・slow-life-prices.js の まえ） | `HandItems`（もちもの: ふうせん・バッグ・`outfit.hand`・UI-48） |
+| — | `pet-walk.js`（home-toilet.js の あと・world-zoom.js の まえ） | `PetWalk`（いぬの さんぽ: おさんぽ リードと こいぬ 3びき・UI-49） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1259,6 +1260,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - おうち: `sc.wishFx` = { t, ask, busy, amae, beat }。`ask(sc, id)`・`thank(sc)`・`amaeTick(sc, h, dt)`（state "amae" で ぶらぶら しない・`sc.life.next` を のばす）。
 - すまほ: `Smaho.APPS` の `wish`（`phoneView(el, ph)`）と `Smaho.ICON.wish`。
 - PokaDebug: `wish()`・`wishAsk(id)`。検査は `tools/check-gowaga-wish.mjs`、スモークは `tests/gowaga-wish-smoke.mjs`（`gowaga-wish-390/375`）。
+
+## いぬの さんぽ（UI-49・`js/pet-walk.js`・`PetWalk`）
+
+オーナーの FB 2026-10-02「持ち物で…犬を連れたり…したい」。
+
+- `ITEM`（`hi_leash`）を `WEAR_ITEMS`・`ITEM_INDEX` に たす（`slot: "hand"`・ねだんは `SlowLifePrices.price`）。`WEAR.hi_leash` は 手の とって だけ。`PUPS`: 3人ごとの こいぬ（なまえ・いろ）。`holders()`。
+- 絵: `svg(id, dir, leg, tail)`（viewBox 120×100・よこむきは かがみ）・`canvas`（キー `pet:id:dir:leg:tail`）・`draw`（かえりは くびわの 画面の ばしょ）・`leash`（手 → くびわ）・`hand(id, dir, x, y, size)`（キャラの 絵の 手 → 画面）。
+- まち: `sc.pets`（シーンごと・セーブしない）。`worldUpdate`（`WorldScene.prototype.update` の あと・`SIDE` の よこへ `follow`）・`worldDrawables`（`scene-world.js` の 絵の ならびから）。
+- おうち: `houseUpdate`（`HouseScene.prototype.update` の あと・`HSIDE`。`pickSide` が `crowd`〔画面で 人・ほかの こいぬと かさなる りょう〕の すくない がわを えらぶ）・`houseDrawables`（`scene-house.js` の 絵の ならびから）・`houseTap`（`HouseScene.prototype.up` を つつむ。`houseHit` が 奥行きで まえに 見えて いる ほうを えらぶ）・`houseTapPoint`（見えて いる ところ。PokaDebug 用）。
+- PokaDebug: `pets()`・`petHold(id, on)`。検査は `tools/check-pet-walk.mjs`、スモークは `tests/pet-walk-smoke.mjs`（`pet-walk-390/375`）。
 
 ## もちもの（UI-48・`js/hand-items.js`・`HandItems`）
 

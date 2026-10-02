@@ -301,6 +301,24 @@ const PokaDebug = {
     return {items:HandItems.ITEMS.map(x=>x.id),shopTab:BUY_SHOPS.clothes.tabs.some(t=>t[0]===HandItems.SLOT),held,
       drawn:Object.fromEntries(Chara.IDS.map(id=>{const it=held[id]&&ITEM_INDEX[held[id]],c=Save.d.chars[id];return [id,!!it&&Chara.svg(id,{outfit:c.outfit,color:c.color}).includes(it.col[0])];}))};
   },
+  // いぬの さんぽ（UI-49）: リードを もった 子・いまの シーンの こいぬ（ばしょ・もった 子からの きょり・おうちでは どちらの よこか side と タップ できる 点 cx, cy〔見えて いなければ null〕）
+  pets() {
+    if(typeof PetWalk==='undefined')return null;
+    const sc=G.scene,name=G.sceneName,cv=G.canvas?G.canvas.getBoundingClientRect():{left:0,top:0},u=G.cssPerUnit||1,out={holders:PetWalk.holders(),scene:name,pets:[]};
+    if(sc&&sc.pets)for(const [id,p] of Object.entries(sc.pets)){
+      const base={id,name:PetWalk.PUPS[id].name,x:p.x,y:p.y,dir:p.dir,moving:!!p.moving,love:p.love||0};
+      if(name==='world'){const f=sc.party[Save.d.order.indexOf(id)].feet();out.pets.push({...base,dist:Math.hypot(p.x-f.x,p.y-f.y)});}
+      else if(name==='house'){const c=sc.chars.find(k=>k.id===id),t=PetWalk.houseTapPoint(sc,id);out.pets.push({...base,side:p.side,dist:Math.hypot(p.x-c.x,p.y-c.y),cx:t?cv.left+t.x*u:null,cy:t?cv.top+t.y*u:null});}
+    }
+    return out;
+  },
+  // リードを もたせる（on=false で はずす）。もって いなければ 1こ たす
+  petHold(who,on=true) {
+    if(typeof PetWalk==='undefined'||!Save.d.chars[who])return null;
+    if(on){if(!WearStock.can(PetWalk.ITEM,who))WearStock.add(PetWalk.ITEM,1);WearStock.put(who,HandItems.SLOT,PetWalk.ITEM);}
+    else if(Save.d.chars[who].outfit.hand===PetWalk.ITEM)WearStock.put(who,HandItems.SLOT,null);
+    Save.mark();return this.pets();
+  },
   // おトイレ（UI-47）: 3人の いきたさ・ドアの ばしょ（homeDoors と おなじ）・はいって いる 子・つかった かず・3人の ようす（face は ふだんの かお）
   toilet() {
     if(typeof HomeToilet==='undefined')return null;
