@@ -592,7 +592,65 @@ WEAR.fairywings = (ctx) => {
 };
 
 // ---- 本体の合成 ----
-const SLOT_ORDER = ["back", "body", "neck", "face", "head"];
+// head2 は あたまの 2つめ（UI-43。描く じゅんは HeadPair.list）
+const SLOT_ORDER = ["back", "body", "neck", "face", "head", "head2"];
+
+// あたまの アクセサリーは 2つ まで（UI-43。オーナーの FB 2026-10-02「頭につけるものとか2個くらい同時につけれるようにして欲しい！うさぎみみとリボンとか！」）。
+// outfit.head と outfit.head2（2つめを つけた ときに できる。Save.fresh() には ない ので、まえの セーブは そのまま）。しゅるいは WEAR の なまえで きめる: hat（かぶる ぼうし・フード。しらない もの も hat）・
+// band（みみ・カチューシャ・はちまき）・crown（かんむり・ティアラ・はなかんむり）・pin（リボン・ピン・ヘアゴム）。
+// いっしょに つけられる のは pin と なんでも（pin どうしは ちがう もの。2つめは あたまの はんたいがわ）・band と crown。
+// 描く じゅんは band → crown → hat → pin（ピンが いちばん まえ）。
+const HeadPair = {
+  KIND: {
+    ribbon: "pin", starclip: "pin", gacha_heartclip: "pin", gacha_barrette: "pin", gacha_berrytie: "pin", gacha_butterfly: "pin",
+    catears: "band", hachimaki: "band", gacha_bearears: "band", gacha_bunnyears: "band", gacha_unicorn: "band", gacha_boppers: "band", gacha_pearlband: "band", pc_band: "band",
+    crown: "crown", flowercrown: "crown", sakura_wreath: "crown", gacha_tiara: "crown", fs_star_tiara: "crown",
+  },
+  ORDER: { band: 0, crown: 1, hat: 2, pin: 3 },
+  NAME: { hat: "ぼうし", band: "カチューシャ", crown: "かんむり", pin: "ピン" },
+  kind(id) { const it = id && typeof ITEM_INDEX !== "undefined" ? ITEM_INDEX[id] : null; return (it && this.KIND[it.wear]) || "hat"; },
+  ok(a, b) {
+    if (!a || !b || a === b) return false;
+    const x = this.kind(a), y = this.kind(b);
+    return x === "pin" || y === "pin" || (x !== y && x !== "hat" && y !== "hat");
+  },
+  // 描く じゅんの [id, はんたいがわ]。あわない 2つめは 描かない（ほかの 画面で head だけ かえた とき など）
+  list(o) {
+    const a = o && o.head, b = o && o.head2;
+    if (!a) return b ? [[b, false]] : [];
+    if (!b || !this.ok(a, b)) return [[a, false]];
+    const L = [[a, false], [b, false]].sort((p, q) => this.ORDER[this.kind(p[0])] - this.ORDER[this.kind(q[0])]);
+    if (this.kind(a) === "pin" && this.kind(b) === "pin") L[1][1] = true;
+    return L;
+  },
+  // つける ときの きまり: { slot（つける ばしょ）, drop（さきに はずす ばしょ）, out（はずれる もの）, why: "" | "max"（2つ まで）| "clash"（いっしょに つけられない） }
+  plan(o, id) {
+    const a = o && o.head, b = o && o.head2;
+    if (!a) return { slot: "head", drop: b ? ["head2"] : [], out: b ? [b] : [], why: "" };
+    if (!b) return this.ok(a, id) ? { slot: "head2", drop: [], out: [], why: "" } : { slot: "head", drop: [], out: [a], why: "clash" };
+    if (this.ok(a, id)) return { slot: "head2", drop: [], out: [b], why: this.ok(b, id) ? "max" : "clash" };
+    if (this.ok(b, id)) return { slot: "head", drop: [], out: [a], why: "clash" };
+    return { slot: "head", drop: ["head2"], out: [a, b], why: "clash" };
+  },
+  // つけた ときの みため（おみせの ためしぎ）
+  preview(o, id) { const p = this.plan(o, id), n = { ...o }; for (const s of p.drop) n[s] = null; n[p.slot] = id; return n; },
+  // はずす（1つめを はずすと 2つめが 1つめに なる）
+  off(o, id) {
+    if (o.head2 === id) o.head2 = null;
+    else if (o.head === id) { o.head = o.head2 || null; o.head2 = null; }
+  },
+  // あわない 2つめを はずす・1つめが ない ときは 2つめを 1つめに（ほかの 画面で head を かえた あと）
+  fix(o) {
+    if (!o || !o.head2) return;
+    if (!o.head) { o.head = o.head2; o.head2 = null; } else if (!this.ok(o.head, o.head2)) o.head2 = null;
+  },
+  // とりかえた ときの ことば
+  say(p, id) {
+    if (!p.out.length || typeof ITEM_INDEX === "undefined") return "";
+    const n = (x) => `「${(ITEM_INDEX[x] && ITEM_INDEX[x].name) || x}」`, now = n(id);
+    return p.why === "max" ? `あたまは 2つ まで。${p.out.map(n).join("")}と ${now}を とりかえたよ。` : `${p.out.map(n).join("と ")}と ${now}は いっしょに つけられないよ。とりかえたよ。`;
+  },
+};
 
 // opts: { pose, dir: 'down'|'up'|'left'|'right', face, outfit:{slot:itemId}, color:'soft'|'dark' }
 function buildCharaSvg(id, opts = {}) {
@@ -614,14 +672,21 @@ function buildCharaSvg(id, opts = {}) {
   const outfit = opts.outfit || {};
   const wearLayers = (c) => {
     const L = { behind: "", sleeve: "", torso: "", top: "" };
-    for (const slot of SLOT_ORDER) {
-      const itemId = outfit[slot];
-      if (!itemId) continue;
+    const put = (itemId, mirror) => {
       const item = typeof ITEM_INDEX !== "undefined" ? ITEM_INDEX[itemId] : null;
-      if (!item || !WEAR[item.wear]) continue;
+      if (!item || !WEAR[item.wear]) return;
       c.col = item.col || [];
       const r = WEAR[item.wear](c);
-      for (const k in r) if (r[k]) L[k] += r[k];
+      if (!mirror) { for (const k in r) if (r[k]) L[k] += r[k]; return; }
+      // あたまの 2つめの ピンは はんたいがわ（よこむきは あたまの うしろ）
+      const m = (s) => `<g transform="translate(${f2(2 * c.a.hat.x)},0) scale(-1,1)">${s}</g>`;
+      if (view === "side") { L.behind += m((r.behind || "") + (r.top || "")); return; }
+      for (const k in r) if (r[k]) L[k] += m(r[k]);
+    };
+    for (const slot of SLOT_ORDER) {
+      if (slot === "head2") continue;
+      if (slot === "head") { for (const [hid, mirror] of HeadPair.list(outfit)) put(hid, mirror); continue; }
+      if (outfit[slot]) put(outfit[slot], false);
     }
     return L;
   };

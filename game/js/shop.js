@@ -87,7 +87,7 @@ const ShopUI = {
     const drawStage = () => {
       if (kind === "wear") {
         const c = Save.d.chars[who];
-        const outfit = { ...c.outfit, [it.slot]: it.id };
+        const outfit = it.slot === "head" ? HeadPair.preview(c.outfit, it.id) : { ...c.outfit, [it.slot]: it.id }; // あたまは 2つ まで（UI-43）
         stage.innerHTML = `<div class="floor"></div><div class="who">${Chara.svg(who, { outfit, color: c.color, face: "happy", dir: it.slot === "back" ? "up" : "down" })}</div>`;
       } else if (kind === "furn") {
         stage.innerHTML = `<div class="floor"></div><div class="who" style="width:${Math.min(220, it.w * 2 + 30, it.cityItem ? 155 * HomeDesign.model(it.id).w / HomeDesign.model(it.id).h : 220)}px;bottom:30px">${Art.furnSvg(it.id)}</div>`;
@@ -155,7 +155,10 @@ const ShopUI = {
       onBuy();
       if (kind === "wear") {
         if (await UI.confirm(`「${it.name}」を ${qty > 1 ? qty + "こ " : ""}かったよ！\n${Save.d.chars[who].name}が いま きる？`, "きる！", "あとで")) {
-          WearStock.put(who, it.slot, it.id);
+          // あたまは 2つ まで（UI-43）: いま つけて いる ものと あえば 2つめに。あわない ものは とりかえる
+          const o = Save.d.chars[who].outfit, p = it.slot === "head" ? HeadPair.plan(o, it.id) : null;
+          if (p) for (const s of p.drop) o[s] = null;
+          WearStock.put(who, p ? p.slot : it.slot, it.id);
           Save.care(who, { mood: 6, bond: 1 }); Save.write();
           Save.mark();
           UI.toast(`${Save.d.chars[who].name}「にあう？」`, "good");

@@ -908,6 +908,11 @@ const PokaDebug = {
   // 服の かず（js/wear-stock.js・UI-31）: もって いる かず・つかって いる 人（3人 → ぱぱ・まま）・あと なんこ もてるか
   wearStock(id) { if (!ITEM_INDEX[id]) throw new Error("unknown wear: " + id); return { id, count: WearStock.count(id), raw: Save.d.wardrobe[id] ?? null, wearers: WearStock.wearers(id), room: WearStock.room(id), cap: WearStock.CAP }; },
   wearSet(id, n) { if (!ITEM_INDEX[id]) throw new Error("unknown wear: " + id); WearStock.set(id, n); Save.mark(); return this.wearStock(id); },
+  // あたまの 2つ（js/chara.js の HeadPair・UI-43）: 1つめ・2つめ・しゅるい・描く じゅん（[id, はんたいがわ]）
+  headPair(who = Save.d.order[0]) {
+    const o = Save.d.chars[who].outfit;
+    return { who, head: o.head || null, head2: o.head2 || null, kinds: [o.head ? HeadPair.kind(o.head) : null, o.head2 ? HeadPair.kind(o.head2) : null], drawn: HeadPair.list(o) };
+  },
   give(id, n = 1) {
     if (!BAG_INDEX[id]) throw new Error("unknown item: " + id);
     Save.addBag(id, n);

@@ -55,6 +55,8 @@ const WEAR_ITEMS = [
 ];
 
 const SLOT_NAMES = { head: "あたま", face: "かお", neck: "くび", body: "ふく", back: "せなか" };
+// outfit の キー（きがえの タブは SLOT_NAMES）。head2 は あたまの 2つめ（UI-43・js/chara.js の HeadPair）
+const WEAR_SLOT_KEYS = ["head", "head2", "face", "neck", "body", "back"];
 const PERK_TEXT = {
   cook: "クレープ・パンやさんで チップ+20%",
   florist: "おはなやさんで チップ+20%",
