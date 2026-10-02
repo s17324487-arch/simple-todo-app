@@ -1,6 +1,7 @@
 // きせかえ画面
 const DressUp = {
   // opts（ほかの 画面から ひらく とき）: title・extra（もって いなくても きられる ふく。Meeときょれじゃ の こういしつの かしだし）・tag（extra の ふだ）・note（したの せつめい）
+  //   info(だれ)（ステージの したの 1ぎょう。ファッションショーの おしゃれ レベル）・mark(ふく)（ふくの カードの ふだ。ショーの テーマに あう ふく）
   open(startWho, opts = {}) {
     if(["papa","mama"].includes(startWho))return ParentWardrobe.open(startWho);
     const extra = (opts.extra || []).filter(Boolean), extraIds = new Set(extra.map((it) => it.id));
@@ -52,7 +53,7 @@ const DressUp = {
         const c = d.chars[who];
         const perks = Object.values(c.outfit).map((x) => x && ITEM_INDEX[x] && ITEM_INDEX[x].perk).filter(Boolean);
         stage.innerHTML = `<div class="floor"></div><div class="who">${Chara.svg(who, { outfit: c.outfit, color: c.color, dir: view, pose: frame ? "idle_02" : "idle_01", face: "happy" })}</div>
-          <div class="stats">${statLine(who)}</div>${perks.length ? `<div class="perk">${perks.map((p) => PERK_TEXT[p]).join("<br>")}</div>` : ""}`;
+          <div class="stats">${statLine(who)}</div>${perks.length ? `<div class="perk">${perks.map((p) => PERK_TEXT[p]).join("<br>")}</div>` : ""}${opts.info ? `<div class="dress-info">${opts.info(who)}</div>` : ""}`;
       };
       const drawTabs = () => {
         tabs.innerHTML = "";
@@ -81,11 +82,11 @@ const DressUp = {
         grid.append(none);
         const owned = [...extra.filter((w) => w.slot === slot && !d.wardrobe[w.id]), ...WEAR_ITEMS.filter((w) => w.slot === slot && d.wardrobe[w.id])];
         for (const it of owned) {
-          const lent = extraIds.has(it.id) && !d.wardrobe[it.id], on = c.outfit[slot] === it.id;
+          const lent = extraIds.has(it.id) && !d.wardrobe[it.id], on = c.outfit[slot] === it.id, mk = opts.mark ? opts.mark(it) : "";
           // 1こで 1人（js/wear-stock.js）: 2こ いじょう もって いれば かず、のこりが ない ときは つかって いる 人。かしだしは いくつでも
           const bd = lent ? null : WearStock.badge(it.id, who);
           const b = U.el("button", { class: "card" + (on ? " on" : "") + (lent ? " lent" : "") + (bd && bd.from ? " busy" : ""),
-            html: `${lent ? `<span class="dress-tag">${opts.tag || ""}</span>` : ""}${bd && bd.n > 1 ? `<span class="cnt">×${bd.n}</span>` : ""}${UI.icon("wear", it.id, 44)}<div>${it.name}</div>${bd && bd.from ? `<small class="dress-who">${bd.text}</small>` : ""}` });
+            html: `${lent ? `<span class="dress-tag">${opts.tag || ""}</span>` : ""}${mk ? `<span class="dress-mark">${mk}</span>` : ""}${bd && bd.n > 1 ? `<span class="cnt">×${bd.n}</span>` : ""}${UI.icon("wear", it.id, 44)}<div>${it.name}</div>${bd && bd.from ? `<small class="dress-who">${bd.text}</small>` : ""}` });
           b.addEventListener("click", async () => {
             if (on) c.outfit[slot] = null;
             else if (lent) c.outfit[slot] = it.id;

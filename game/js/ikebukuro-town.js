@@ -37,7 +37,8 @@ const IkebukuroTown = (() => {
   // 建物: id, x, y, w, h, door（左からの マス）, 絵, ほか
   const BUILDINGS = [
     // 駅の 列（線路の ひがし）
-    ["ike_annex1", 4, 1, 12, 12, 6, "bookstore", { label: "ほんの ギャラリー", act: { type: "visit", text: "おおきな 本やさん。えほんの コーナーも あるよ。\nおかいものは サンシャインいけぶへ！" } }],
+    // ほんの ギャラリーの なかは ファッションショーの 会場（js/fashion-hall.js。オーナーの FB 2026-10-01「実施できる場所は既存の建物(ほんのギャラリー)でよい」）
+    ["ike_annex1", 4, 1, 12, 12, 6, "bookstore", { label: "ほんの ギャラリー", act: { type: "venue", venue: "fashion" } }],
     ["city_clothes", 4, 16, 12, 13, 6, "officeblock", { label: "えきまえ ビル" }],
     ["city_station", 4, 32, 12, 12, 6, "station", {}],
     // 上の 列（なかどおりの 北がわ）
