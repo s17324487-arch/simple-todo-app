@@ -100,6 +100,7 @@ const PokaDebug = {
       "PokaDebug.furnLive('lamp')            さわれる 家具の ようす（つく・チャンネル・きょく・はと など）と タップする 点",
       "PokaDebug.furnArt('piano', false)     家具の 立体モデル（作りなおしたか・床の 大きさ・絵の 大きさ・うごいて いるか）。id なしで 作りなおした 一覧",
       "PokaDebug.furnTray()                  もようがえの 一覧（ひろさ s/m/l・しゅるい・ならび・さがす ことば・カードの かず と れつ・しゅるいの ボタン）",
+      "PokaDebug.furnDaily()                 かぐやさんの ひがわり（2にちごとに かわる ゆかの かぐ 2つ・かべかざり 2つ・あと なんにち）",
       "PokaDebug.furnTraySize('l')           もようがえの 一覧の ひろさを かえる（'s' ちいさい・'m' はんぶん・'l' ほぼ ぜんぶ）",
       "PokaDebug.battle([{ kind: 'purun', lv: 2 }], 'meadow')  バトル開始",
       "PokaDebug.battleState()                属性・HP・状態・技・曲を読む",
@@ -381,6 +382,8 @@ const PokaDebug = {
       stored:JSON.parse(JSON.stringify(Save.d.rooms)),furn:{...Save.d.furn},wall:Save.d.room.wall,floor:Save.d.room.floor};
   },
   furnTray() { return G.sceneName === "house" && G.scene.mode === "edit" ? FurnTray.view(G.scene) : null; },
+  // かぐやさんの ひがわり（js/furniture-collection.js）: きょうの 日・2にちの くぎり・あと なんにち・ならぶ かぐ と かべかざり（calendar() で 日を かえられる）
+  furnDaily() { return typeof FurnCollection !== "undefined" ? FurnCollection.state() : null; },
   furnTraySize(size) { if (G.sceneName !== "house" || G.scene.mode !== "edit" || !["s", "m", "l"].includes(size)) return false; FurnTray.setSize(G.scene, size); return FurnTray.state.size === size; },
   furnArt(id, flip = false) {
     if (id == null) return { ids: typeof FurnModels !== "undefined" ? [...FurnModels.ids] : [] };

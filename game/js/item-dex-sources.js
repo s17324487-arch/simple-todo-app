@@ -42,6 +42,7 @@ const ItemDexSources = {
       if (id === "player_boombox") return "おてつだいや たからばこで はじめて ディスクを もらうと てに はいるよ。";
       if (id === "player_gramophone") return "ディスクを 3まい あつめて たからばこを あけると、たまに もらえるよ。";
       if (id === "player_jukebox") return "ディスクを 8まい あつめると もらえるよ。";
+      if (typeof FurnCollection !== "undefined" && FurnCollection.source(id)) return FurnCollection.source(id);
     }
     if ((kind === "wear" && id === "crown") || (kind === "furn" && id === "trophy")) {
       const name = typeof ENEMIES !== "undefined" && ENEMIES.king ? ENEMIES.king.name : "どうくつの おうさま";
