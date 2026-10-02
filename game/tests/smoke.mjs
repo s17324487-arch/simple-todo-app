@@ -4391,6 +4391,7 @@ await (await import("./work-exp-smoke.mjs")).workExpSmoke({scenario,expect});
 await (await import("./home-talk-more-smoke.mjs")).homeTalkMoreSmoke({scenario,expect});
 await (await import("./gowaga-wish-smoke.mjs")).gowagaWishSmoke({scenario,expect});
 await (await import("./home-toilet-smoke.mjs")).homeToiletSmoke({scenario,expect});
+await (await import("./hand-items-smoke.mjs")).handItemsSmoke({scenario,expect});
 // すいぞくかん・はくぶつかんの きふの ごほうび（UI-33）: みだし・カード・はくぶつかんで 4つ・もちもの・おうち
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
 await (await import("./dino-museum-smoke.mjs")).dinoMuseumSmoke({scenario,expect});

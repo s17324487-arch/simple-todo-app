@@ -182,6 +182,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `furniture-collection.js`（slow-life-prices.js・quiz-prizes.js の あと） | `FurnCollection`（あき・ふゆの かぐ 4・ひがわり 20・クイズの だんろ・UI-40） |
 | — | `gowaga-wish.js`（くみこむ ものの あと・world-zoom.js の まえ） | `GowagaWish`（おうちで ごわがの おねがい・かなえて おれいと あまえる・UI-46） |
 | — | `home-toilet.js`（gowaga-wish.js の あと・world-zoom.js の まえ） | `HomeToilet`（おうちの おトイレ・3人の いきたさ・UI-47） |
+| — | `hand-items.js`（dressup.js の あと・slow-life-prices.js の まえ） | `HandItems`（もちもの: ふうせん・バッグ・`outfit.hand`・UI-48） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1258,6 +1259,15 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - おうち: `sc.wishFx` = { t, ask, busy, amae, beat }。`ask(sc, id)`・`thank(sc)`・`amaeTick(sc, h, dt)`（state "amae" で ぶらぶら しない・`sc.life.next` を のばす）。
 - すまほ: `Smaho.APPS` の `wish`（`phoneView(el, ph)`）と `Smaho.ICON.wish`。
 - PokaDebug: `wish()`・`wishAsk(id)`。検査は `tools/check-gowaga-wish.mjs`、スモークは `tests/gowaga-wish-smoke.mjs`（`gowaga-wish-390/375`）。
+
+## もちもの（UI-48・`js/hand-items.js`・`HandItems`）
+
+オーナーの FB 2026-10-02「持ち物で風船を持てたり…バックを持てたりしたい」。
+
+- `ITEMS`（7）を `WEAR_ITEMS`・`ITEM_INDEX` に たす（`slot: "hand"`）。`SLOT_ORDER` に `hand`（絵の いちばん うえ・キャッシュの キー。`WEAR_SLOT_KEYS` は かえない）。`BUY_SHOPS.clothes.tabs` に「もちもの」。
+- 絵: `WEAR.hi_balloon`（`col[1]` が かたち: round・heart・star・bear）・`WEAR.hi_tote`・`WEAR.hi_basket`・`WEAR.hi_pochette`。`hand(ctx)` は `charaArmEnds(ctx.p, k)` の 手（うしろむきは k=0）。
+- `SLOT_NAMES` には いれない（ぱぱ・ままの きがえ `ParentWardrobe` は かわらない）。きがえの タブは `dressup.js` が `HandItems.TAB` を たす。ずかんは `ItemDex.categories.wear` に「もちもの」。
+- PokaDebug: `handItems()`。検査は `tools/check-hand-items.mjs`、スモークは `tests/hand-items-smoke.mjs`（`hand-items-390/375`）。
 
 ## おうちの おトイレ（UI-47・`js/home-toilet.js`・`HomeToilet`）
 

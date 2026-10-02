@@ -57,7 +57,7 @@ const DressUp = {
       };
       const drawTabs = () => {
         tabs.innerHTML = "";
-        const T = Object.entries(SLOT_NAMES);
+        const T = [...Object.entries(SLOT_NAMES), ...(typeof HandItems !== "undefined" ? [[HandItems.SLOT, HandItems.TAB]] : [])]; tabs.classList.add("wear-tabs"); // もちもの（UI-48・js/hand-items.js）は 3人 だけ。タブは 2だんに おりかえす
         if (who === "goji") T.push(["color", "からだのいろ"]);
         if (slot === "color" && who !== "goji") slot = "head";
         for (const [k, label] of T) {

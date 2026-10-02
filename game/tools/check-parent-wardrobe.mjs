@@ -7,7 +7,9 @@ Save.d=Save.migrate(old);
 for(const id of ['papa','mama']){
  assert.equal(P.look(id).hairColor,'brown');
  assert(!W.equip(id,'head','not-owned'));
- for(const it of WEAR_ITEMS){Save.d.wardrobe[it.id]=true;assert(W.equip(id,it.slot,it.id));const svg=P.svg(id,P.look(id));assert(!/NaN|undefined/.test(svg),it.id);assert(W.equip(id,it.slot,null));}
+ // もちもの（UI-48・slot "hand"）は 3人 だけ: ぱぱ・ままは もてない
+ for(const it of WEAR_ITEMS.filter(it=>it.slot==='hand')){Save.d.wardrobe[it.id]=true;assert(!W.equip(id,it.slot,it.id),it.id);}
+ for(const it of WEAR_ITEMS.filter(it=>it.slot!=='hand')){Save.d.wardrobe[it.id]=true;assert(W.equip(id,it.slot,it.id));const svg=P.svg(id,P.look(id));assert(!/NaN|undefined/.test(svg),it.id);assert(W.equip(id,it.slot,null));}
  for(const key of ['face','hair','hairColor']){
   const shapes=new Set();for(const [v]of P.options[key]){Save.d.parents[id][key]=v;shapes.add(P.svg(id,P.look(id)).replace(/parent-wear-\d+/g,'parent-wear'));}
   assert.equal(shapes.size,P.options[key].length,key+' choices must differ');
