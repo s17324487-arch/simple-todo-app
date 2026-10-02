@@ -11,7 +11,9 @@ class VenueScene {
     await Chara.preload(Save.d.order.flatMap(id=>Object.keys(DIRS).flatMap(dir=>['idle_01','walk_01','walk_02'].map(pose=>[id,{dir,pose,outfit:Save.d.chars[id].outfit,color:Save.d.chars[id].color}]))),46);
     UI.showHud(true,this.def.name);Sound.bgm(this.def.bgm||'house');
     this.bar=U.el('div',{class:'venue-controls'});this.guide=U.el('span',{text:'スライド・タップで あるく・展示を しらべる'});
-    this.bar.append(this.guide,UI.btn('フロア案内',()=>this.guideMenu()),UI.btn('たてものを でる',()=>this.leave()));UI.root.append(this.bar);
+    this.bar.append(this.guide);UI.root.append(this.bar);
+    // フロア案内・たてものを でる は 上に 小さく（オーナーの FB 2026-10-01「ボタンサイズを小さくして、上側に持っていけ」）。おうちへ は みぎうえ の まま
+    this.top=U.el('div',{class:'venue-top'});this.top.append(UI.btn('フロア案内',()=>this.guideMenu(),'small'),UI.btn('たてものを でる',()=>this.leave(),'small'));UI.root.append(this.top);
     this.home=UI.btn('おうちへ',()=>{if(!this.busy&&!Game.inputLocked)Game.goto('house',{},'circle');},'store-home small');UI.root.append(this.home);
     if(this.def.arrive)this.def.arrive(this);
   }
@@ -19,7 +21,7 @@ class VenueScene {
     this.cancel();this.floor=floor;this.room=this.def.floors[floor];this.fixtures=this.room.fixtures.map(f=>({...f}));this.path=[];this.pending=null;
     const at=spawn||this.room.spawn||[Math.floor(this.room.w/2),this.room.h-3];this.party=Save.d.order.map((id,i)=>new Walker(at[0]-i,at[1],'up'));this.snap();
   }
-  exit(){this.cancel();this.closed=true;this.bar?.remove();this.home?.remove();UI.showHud(false);}
+  exit(){this.cancel();this.closed=true;this.bar?.remove();this.top?.remove();this.home?.remove();UI.showHud(false);}
   resize(){this.snap();}
   cameraTarget(){const p=this.party[0],r=this.room;return {x:U.clamp(p.x*32+16,G.W/2,r.w*32-G.W/2),y:U.clamp(p.y*32+16,G.H/2-50,Math.max(G.H/2-50,r.h*32-G.H/2+95))};}
   snap(){if(this.party)this.cam=this.cameraTarget();}

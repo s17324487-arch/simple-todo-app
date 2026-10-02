@@ -2907,8 +2907,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  // サンシャインいけぶ（斜め上から 見る モール・js/iso-venue.js・mall-art.js・ike-mall.js）: 1F〜3F・タップで あるく・台を タップして かう・フロアマップ・エレベーター・エスカレーター・ステージ
  await H.newGameFast();await H.dbg('coins',99850);await H.dbg('hour',12);
  await H.dbg('venue','mall');await H.idle();await H.until(()=>PokaDebug.venueIso()?.ready,20000);let v=await H.dbg('venueIso');expect(v.iso&&v.floor===1&&v.crowd>=4&&v.holes===0,'1Fが 斜めの 館で ない '+JSON.stringify(v));
- const ui=async()=>H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.venue-controls .btn,.store-home')];return {small:bs.filter(b=>r(b).height<44).length,out:bs.filter(b=>r(b).left<-0.5||r(b).right>innerWidth+0.5||r(b).bottom>innerHeight+0.5).length,wide:document.documentElement.scrollWidth>innerWidth};});
- let u=await ui();expect(!u.small&&!u.out&&!u.wide,'そうさの ボタン '+JSON.stringify(u));await H.shot('mall-1f');
+ // フロア案内・たてものを でる は ひだりうえに 小さく（オーナーの FB 2026-10-01）・おうちへ は みぎうえ・HUD と かさならない・したは ひとことだけ（ボタン なし・1ぎょう）
+ const ui=async()=>H.eval(()=>{const r=e=>e.getBoundingClientRect(),bs=[...document.querySelectorAll('.venue-top .btn,.store-home')],hud=[...document.querySelectorAll('.hud > *')].filter(e=>e.offsetParent).map(r),bar=document.querySelector('.venue-controls'),hit=(a,b)=>a.left<b.right-0.5&&b.left<a.right-0.5&&a.top<b.bottom-0.5&&b.top<a.bottom-0.5,rs=bs.map(r);
+  return {names:bs.map(b=>b.textContent),small:rs.filter(q=>q.height<44).length,big:rs.filter(q=>q.height>48||q.width>150).length,low:rs.filter(q=>q.bottom>150).length,overlap:rs.some((a,i)=>rs.some((b,j)=>i<j&&hit(a,b)))||rs.some(a=>hud.some(h=>hit(a,h))),out:rs.filter(q=>q.left<-0.5||q.right>innerWidth+0.5).length,wide:document.documentElement.scrollWidth>innerWidth,barBtns:bar.querySelectorAll('.btn').length,barH:r(bar).height};});
+ let u=await ui();expect(u.names.join()==='フロア案内,たてものを でる,おうちへ'&&!u.small&&!u.big&&!u.low&&!u.overlap&&!u.out&&!u.wide&&u.barBtns===0&&u.barH<=32,'そうさの ボタン '+JSON.stringify(u));await H.shot('mall-1f');
  // 店内 BGM は フロアの 名曲（1F ガヴォット）。服の 台は マネキン（わんこの ミニモデルを つかわない）
  const bgm=()=>H.eval(()=>Sound.cur?.name||Sound.want);expect(await bgm()==='mall_1f','1F の BGM '+await bgm());
  const mq=await H.eval(()=>{const k=[...SvgCache.map.keys()];return {mq:new Set(k.filter(x=>x.startsWith('mannequin:')).map(x=>x.split('@')[0])).size,wanko:k.filter(x=>x.startsWith('mallwear:')).length};});
