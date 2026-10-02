@@ -37,7 +37,7 @@ export async function museumWearSmoke({ scenario, expect }) {
     await H.page.locator('.modal-wrap:not(.out) .close').last().click(); await H.wait(300); await H.idle();
     // 3. はくぶつかん: ほね 63こ きふずみ → はなすと 4つの カード（つぎつぎ）
     await H.dbg('museumGive', 'bone', 'all');
-    await H.dbg('museumGo', 'museum'); await H.until(() => G.sceneName === 'world' && G.scene.mapId === 'museum' && PokaDebug.idle(), 10000); await H.wait(800);
+    await H.dbg('museumGo', 'museum', 'lab'); await H.until(() => { const s = PokaDebug.venueState(); return s?.id === 'museum' && s.floor === 2 && !s.changingFloor && PokaDebug.idle(); }, 20000); await H.wait(800);
     expect(await H.dbg('museumDonate'), 'はかせに 話しかけられない'); await H.dialogs();
     const names = [];
     for (let i = 0; i < 4; i++) { c = await card('はくぶつかん ' + (i + 1)); names.push(c.name); if (i === 3) await H.shot('card-ptera'); await thanks(); await H.dialogs(); }

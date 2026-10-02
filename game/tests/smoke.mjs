@@ -1699,38 +1699,33 @@ async function aquaVisit(H){
   await H.dbg('venueVisit','エレベーター');await H.page.getByRole('button',{name:'1F',exact:true}).click();await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===1&&!s.changingFloor;},20000);await H.idle();
   await H.dbg('venueVisit','たてものを でる');await H.until(()=>PokaDebug.state().map==='city'&&PokaDebug.idle(),20000);
 }
-// ⑤ 1番: すいぞくかん・はくぶつかんに 入って 出る（町の 入口 → 館の 入口と 案内 → へや → 出口 → 町の 入口の まえ）。3人いっしょ・敵なし・館の BGM
-async function museumVisit(H,{map,door,front,id,label,arrive,exit,room}){
-  await H.dbg('teleport',map,front[0],front[1],'up');await H.until(m=>G.sceneName==='world'&&G.scene.mapId===m&&PokaDebug.idle(),10000,map);
-  const b=await H.eval(i=>{const b=G.scene.map.def.buildings.find(b=>b.act?.map===i);return b&&{label:b.label,act:b.act,door:[b.x+b.door,b.y+b.h-1]};},id);
-  expect(b&&b.act.type==='indoor'&&b.label===label&&b.door.join()===door.join(),`${map}に ${label}が ない `+JSON.stringify(b));
-  await H.wait(600);await H.shot(id+'-outside');
-  expect(await H.dbg('walkTo',door[0],door[1]),label+'の 入口へ 歩けない');
-  await H.until(i=>G.sceneName==='world'&&G.scene.mapId===i&&PokaDebug.idle(),15000,id);await H.wait(1200);
-  const w=await H.dbg('world');
-  const inside=await H.eval(()=>{const r=document.querySelector('.museum-intro')?.getBoundingClientRect();return {bgm:Sound.cur?.name||Sound.want,enemies:G.scene.enemies.length,hud:document.querySelector('.hud').innerText,intro:document.querySelector('.museum-intro')?.innerText||'',introIn:!!r&&r.left>=0&&r.right<=innerWidth+1,
-    ex:G.scene.map.sprites.filter(s=>s.kind==='exhibit').length,ready:G.scene.map.sprites.filter(s=>s.kind==='exhibit'&&G.scene.spriteCanvas(s,false)).length,wide:document.documentElement.scrollWidth>innerWidth};});
-  expect(w.party.length===3&&w.party[0].x===arrive[0]&&w.party[0].y===arrive[1],label+'の 入口に 3人で 立たない '+JSON.stringify(w.party));
-  expect(inside.bgm===id&&inside.enemies===0&&inside.hud.includes(label)&&/いりぐち/.test(inside.intro)&&inside.introIn&&inside.ex>=10&&inside.ready===inside.ex&&!inside.wide,label+'の 中が 不正 '+JSON.stringify(inside));
-  await H.shot(id+'-entrance');
+// ⑤ 1番（UI-42）: はくぶつかんは 斜め上の 3かいだての 館（js/dino-museum.js。くわしくは tests/dino-museum-smoke.mjs）。池袋の 入口 → 3F いりぐちの 案内・BGM → 1F の ドーム → 3F の でぐち → 入口の まえ
+async function dinoVisit(H){
+  const mu=await H.eval(()=>{const b=MAP_DEFS.city.buildings.find(b=>b.id==='city_museum');return [b.x+b.door,b.y+b.h-1];}),ready=f=>H.until(q=>{const s=PokaDebug.venueState();return s?.id==='museum'&&s.floor===q&&!s.changingFloor&&PokaDebug.venueIso()?.ready&&PokaDebug.idle();},30000,f);
+  await H.dbg('teleport','city',mu[0],mu[1]+1,'up');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),10000);
+  await H.wait(600);await H.shot('museum-outside');
+  expect(await H.dbg('walkTo',mu[0],mu[1]),'はくぶつかんの 入口へ 歩けない');
+  await ready(3);await H.wait(1200);
+  const inside=await H.eval(()=>{const r=document.querySelector('.museum-intro')?.getBoundingClientRect();return {bgm:Sound.cur?.name||Sound.want,hud:document.querySelector('.hud').innerText,intro:document.querySelector('.museum-intro')?.innerText||'',introIn:!!r&&r.left>=0&&r.right<=innerWidth+1,leader:PokaDebug.venueIso().leader,party:PokaDebug.venueState().party.length,wide:document.documentElement.scrollWidth>innerWidth};});
+  expect(inside.bgm==='museum'&&/きょうりゅう はくぶつかん 3F/.test(inside.hud)&&/いりぐち/.test(inside.intro)&&inside.introIn&&inside.leader.join()==='23,19'&&inside.party===3&&!inside.wide,'はくぶつかんの 中が 不正 '+JSON.stringify(inside));
+  await H.shot('museum-entrance');
   // へや（案内は 1かいだけ）
-  await H.dbg('museumGo',id,room);await H.until(i=>G.sceneName==='world'&&G.scene.mapId===i&&PokaDebug.idle(),10000,id);await H.wait(1200);
-  expect((await H.dbg('museumState')).rooms.includes(id+'.'+room),label+'の へやの 案内が 出ない');
-  await H.shot(id+'-'+room);
-  // 出口から 出ると 町の 入口の まえ
-  await H.dbg('museumGo',id);await H.until(i=>G.sceneName==='world'&&G.scene.mapId===i&&PokaDebug.idle(),10000,id);await H.wait(400);
+  await H.dbg('museumGo','museum','hall');await ready(1);await H.wait(1200);
+  expect((await H.dbg('museumState')).rooms.includes('museum.mu1_hall'),'ドームの 案内が 出ない');
+  await H.shot('museum-hall');
+  // 3F の でぐちから 出ると 町の 入口の まえ
+  await H.dbg('museumGo','museum');await ready(3);await H.wait(400);
   expect(!(await H.dbg('museumState')).intro,'2かいめも 入口の 案内が 出る');
-  expect(await H.dbg('walkTo',exit[0],exit[1]),label+'の 出口へ 歩けない');
-  await H.until(m=>G.sceneName==='world'&&G.scene.mapId===m&&PokaDebug.idle(),15000,map);
-  const out=await H.dbg('world');expect(out.party[0].x===front[0]&&out.party[0].y===front[1],label+'から 出ると 入口の まえに もどらない '+JSON.stringify(out.party[0]));
+  expect(await H.dbg('venueVisit','たてものを でる'),'はくぶつかんの でぐちが ない');
+  await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),20000);
+  const out=await H.dbg('world');expect(out.party[0].x===mu[0]&&out.party[0].y===mu[1]+1,'はくぶつかんから 出ると 入口の まえに もどらない '+JSON.stringify(out.party[0]));
 }
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('museum-visit-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('hour',11);await H.dbg('weather','clear');
   await aquaVisit(H);
-  const mu=await H.eval(()=>{const b=MAP_DEFS.city.buildings.find(b=>b.id==='city_museum');return [b.x+b.door,b.y+b.h-1];});
-  await museumVisit(H,{map:'city',door:mu,front:[mu[0],mu[1]+1],id:'museum',label:'きょうりゅう はくぶつかん',arrive:[17,32],exit:[17,33],room:'hall'});
+  await dinoVisit(H);
   // セーブして よみこんでも 入った へやの きろくは のこる
-  const seen=(await H.dbg('museumState')).rooms;expect(['aquarium.ike12_lobby','aquarium.ike13_river','aquarium.ike13_sky','museum.entrance','museum.hall'].every(k=>seen.includes(k)),'入った へやの きろく '+seen);
+  const seen=(await H.dbg('museumState')).rooms;expect(['aquarium.ike12_lobby','aquarium.ike13_river','aquarium.ike13_sky','museum.mu3_lobby','museum.mu1_hall'].every(k=>seen.includes(k)),'入った へやの きろく '+seen);
   await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
   expect((await H.dbg('museumState')).rooms.join()===seen.join(),'入った へやの きろくが きえる');
 },{viewport,full:viewport.width===375,timeout:180000});
@@ -1757,9 +1752,9 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg('museumGo','aquarium','river');await H.until(()=>G.sceneName==='venue'&&PokaDebug.venueState()?.floor===13&&PokaDebug.idle(),20000);await H.wait(1400);
   const swim=await H.dbg('aquaTank','aq_flow');expect(swim&&swim.here&&swim.floor===13&&swim.fish.join()==='ayu','水そうに アユが いない '+JSON.stringify(swim));
   await H.shot('swim');
-  // はかせ: コンプソグナトゥスの あたまと からだ → かんせい
+  // はかせ（2F の けんきゅうしつ）: コンプソグナトゥスの あたまと からだ → かんせい
   await H.dbg('fossilGive','compso.head');await H.dbg('fossilGive','compso.body');
-  await H.dbg('museumGo','museum');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='museum'&&PokaDebug.idle(),10000);await H.wait(800);
+  await H.dbg('museumGo','museum','lab');await H.until(()=>{const s=PokaDebug.venueState();return s?.id==='museum'&&s.floor===2&&!s.changingFloor&&PokaDebug.idle();},20000);await H.wait(800);
   expect(await H.dbg('museumDonate'),'はかせに 話しかけられない');await H.dialogs();
   await H.page.locator('.dn-list').waitFor({timeout:8000});await H.wait(300);
   v=await H.eval(()=>{const r=e=>e.getBoundingClientRect(),rows=[...document.querySelectorAll('.dn-row')];return {rows:rows.map(x=>[x.dataset.key,x.innerText]),inside:rows.every(x=>r(x).left>=0&&r(x).right<=innerWidth+1&&r(x).height>=43.5)};});
@@ -1774,14 +1769,16 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.page.getByRole('button',{name:'ホールで みる',exact:true}).click();await H.wait(300);await H.dialogs();await H.idle();
   d=await H.dbg('saveData');expect(d.museum.done.compso&&d.museum.bones['compso.head']&&!d.fossil.bones['compso.head']&&!d.fossil.bones['compso.body'],'骨の 寄贈・かんせいが 不正');
   const st=await H.dbg('museumState');expect(st.fish===1&&st.bones===2&&st.done.join()==='compso','museumState が 不正 '+JSON.stringify(st));
-  // 寄贈しても ノートは そろった まま（寄贈した 骨も 数える）
+  // 1F の ドームの 骨格の 台に コンプソグナトゥス（ぜんぶ 骨の 色）
+  await H.dbg('museumGo','museum','jura');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===1&&!s.changingFloor&&PokaDebug.venueIso()?.ready&&PokaDebug.idle();},30000);await H.wait(1200);
+  const cs=(await H.dbg('dinoHall')).stands.find(x=>x.dino==='compso');expect(cs&&cs.have===2&&cs.total===2&&cs.drawn,'骨格の 台に 反映されない '+JSON.stringify(cs));
+  await H.shot('hall');
+  // 寄贈しても ノートは そろった まま（寄贈した 骨も 数える。すまほは 館の そとで ひらく）
+  const fr=await H.eval(()=>MUSEUM_DATA.buildings.museum.outside.front);await H.dbg('teleport','city',fr[0],fr[1],'down');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='city'&&PokaDebug.idle(),10000);
   await H.phone('ずかん');
   await H.page.locator('.dex-kinds .tab[data-k="fossil"]').click();await H.wait(400);
   expect((await H.eval(()=>document.querySelector('.fossil-cell[data-id="compso"] .cnt').textContent))==='そろった！','寄贈すると ノートから 骨が きえる');
   await H.page.keyboard.press('Escape');await H.wait(300);
-  // 骨格の 台に コンプソグナトゥス（ぜんぶ 骨の 色）
-  expect(await H.eval(()=>Museum.shown(G.scene,G.scene.map.sprites.find(x=>x.o?.dino==='compso').o))==='11','骨格の 台に 反映されない');
-  await H.dbg('teleport','museum',9,14,'left');await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);await H.wait(1200);await H.shot('hall');
   // セーブして よみこんでも 寄贈は のこる
   await H.dbg('save');await H.page.reload();await H.page.getByRole('button',{name:'つづきから',exact:true}).click();await H.idle();
   const after=await H.dbg('museumState');expect(after.fish===1&&after.bones===2&&after.done.join()==='compso','セーブで 寄贈が きえる');
@@ -1807,7 +1804,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(/かわの そこ/.test(await H.eval(()=>document.querySelector('.modal-wrap:not(.out) .panel-title').innerText)),'タップした 展示の 説明が 出ない');
   await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.idle();
   // はくぶつかん: 化石の かべ（説明）・ティラノサウルスの 台（寄贈した 骨 1 / 8）
-  await H.dbg('museumGo','museum');await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='museum'&&PokaDebug.idle(),10000);await H.wait(600);
+  await H.dbg('museumGo','museum');await H.until(()=>{const s=PokaDebug.venueState();return s?.id==='museum'&&s.floor===3&&!s.changingFloor&&PokaDebug.idle();},20000);await H.wait(600);
   expect(await H.dbg('museumShow','mu_f1'),'化石の かべを しらべられない');await H.page.locator('.ex-card.rock').waitFor({timeout:6000});await H.wait(300);
   v=await H.eval(()=>{const e=document.querySelector('.ex-card.rock'),b=e.getBoundingClientRect();return {title:document.querySelector('.modal-wrap:not(.out) .panel-title').innerText,say:e.querySelector('.say').innerText,inside:b.left>=0&&b.right<=innerWidth+1};});
   expect(v.say.length>10&&v.title.length>1&&v.inside,'化石の かべの 説明が 不正 '+JSON.stringify(v));
@@ -4388,6 +4385,7 @@ await (await import("./parent-wardrobe-smoke.mjs")).parentWardrobeSmoke({scenari
 await (await import("./wear-stock-smoke.mjs")).wearStockSmoke({scenario,expect});
 // すいぞくかん・はくぶつかんの きふの ごほうび（UI-33）: みだし・カード・はくぶつかんで 4つ・もちもの・おうち
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
+await (await import("./dino-museum-smoke.mjs")).dinoMuseumSmoke({scenario,expect});
 await (await import("./burger-menu-smoke.mjs")).burgerMenuSmoke({scenario,expect});
 await (await import("./food-balance-smoke.mjs")).foodBalanceSmoke({scenario,expect});
 await (await import("./fashion-show-smoke.mjs")).fashionShowSmoke({scenario,expect});
