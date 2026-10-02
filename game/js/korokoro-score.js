@@ -143,7 +143,7 @@ const KorokoroScore = {
         for (const id in btn) { btn[id].classList.toggle("yellow", id === k); btn[id].setAttribute("aria-selected", String(id === k)); }
         page.replaceChildren(k === "gift" ? this.prizesEl() : k === "collab" ? CollabGoods.section("korokoro") : this.recordsEl());
       };
-      // コラボ: ごわが × ころころ フルーツ の つみたてと 5しゅの グッズ（js/korokoro-collab.js）
+      // コラボ: ごわが × ころころ フルーツ の 5しゅの グッズ（1かいの スコアで もらう。js/korokoro-collab.js）
       const tabsList = [["rec", "きろく"], ["gift", "けいひん"], ...(typeof CollabGoods !== "undefined" && CollabGoods.LINES.korokoro ? [["collab", "コラボ"]] : [])];
       for (const [k, label] of tabsList) {
         const b = UI.btn(label, () => { if (tab === k) return; Sound.se("ok"); show(k); });
@@ -272,7 +272,7 @@ class KorokoroScoreScene {
     if (this.paid || this.closed) return;
     this.paid = true; this.phase = "result"; this.topBar?.remove();
     const score = this.board.points, st = this.st;
-    // ごわが × ころころ フルーツ の コラボ グッズ（つみたて。js/korokoro-collab.js）: はじめて よむ ときは この 1かいの まえの きろくから はじめる
+    // ごわが × ころころ フルーツ の コラボ グッズ（1かいの スコア。js/korokoro-collab.js）: はじめて よむ ときは この 1かいの まえの ハイスコアから
     const collabOn = typeof CollabGoods !== "undefined" && !!CollabGoods.LINES.korokoro;
     if (collabOn) CollabGoods.state("korokoro");
     const rec = KorokoroScore.record(score, U.today(), KorokoroScore.bigTier(this.board.made));

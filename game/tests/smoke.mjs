@@ -4090,12 +4090,13 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 },{viewport,timeout:200000});
 
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('korokoro-collab-'+viewport.width,async H=>{
- // ごわが × ころころ フルーツ の コラボ グッズ（UI-19。js/korokoro-collab.js・オーナーの FB 2026-09-30「5000〜15000てんの 景品を コロコロフルーツと ごわがの コラボグッズとして」）:
- // まえから あそんで いる 人（ランキング 3かいで 4500てん）→ スコア モード 600てん → つみたて 5100 → Tシャツ → きろくの まどの「コラボ」タブ → もういちど 10000てん → のこり 4しゅ →
+ // ごわが × ころころ フルーツ の コラボ グッズ（UI-19。js/korokoro-collab.js・オーナーの FB 2026-09-30「5000〜15000てんの 景品を コロコロフルーツと ごわがの コラボグッズとして」・
+ // 2026-10-01「積立になっているが、そうでなく、一度の達成ポイントにしてくれ」→ 1かいの スコアで 1000・1600・2000・2600・3000てん）:
+ // まえから あそんで いる 人（ハイスコア 1700てん）→ スコア モード 600てん → まえの ハイスコアで とどいて いた Tシャツと ボールプール（600は たさない）→ きろくの まどの「コラボ」タブ → もういちど 3000てん → のこり 3しゅ →
  // お店の モードえらびに「コラボ 5/5」→ おうち: 3にんが Tシャツと いちご ぼうし・ボールプール／ベッド／ぬいぐるみを さわる・よるの ベッドは ねむる・「ねる」で ベッドの ふかふか
  await H.newGameFast();
  const old={koro_cherry_lamp:1,koro_strawberry_sofa:1,koro_mikan_table:1,koro_apple_shelf:1,koro_pear_cushion:1};
- let d=await H.dbg('saveData');Object.assign(d.shops.korokoro,{hi:2000,games:6,tops:[{s:2000,d:'2026-9-20'},{s:1500,d:'2026-9-21'},{s:1000,d:'2026-9-22'}],gifts:Object.fromEntries(Object.keys(old).map(id=>[id,'2026-9-20']))});
+ let d=await H.dbg('saveData');Object.assign(d.shops.korokoro,{hi:1700,games:6,tops:[{s:1700,d:'2026-9-20'},{s:1500,d:'2026-9-21'},{s:1000,d:'2026-9-22'}],gifts:Object.fromEntries(Object.keys(old).map(id=>[id,'2026-9-20']))});
  Object.assign(d.furn,old);delete d.collab;await H.dbg('seedSave',d);
  const play=async(points,again=false)=>{
   if(again){await H.page.getByRole('button',{name:'もういちど',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='koroscore'&&!PokaDebug.state().transitioning&&PokaDebug.koro()?.phase==='intro',15000);}
@@ -4106,27 +4107,27 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   return H.eval(()=>{const b=document.querySelector('.modal-wrap .collab-result');b.scrollIntoView({block:'center'});const cs=[...b.querySelectorAll('.collab-card')],p=document.querySelector('.modal-wrap .panel').getBoundingClientRect(),f=[...document.querySelectorAll('.modal-wrap .koro-foot .btn')].map(x=>x.getBoundingClientRect());
    return {text:b.innerText,cards:cs.map(c=>c.dataset.collab),arts:cs.filter(c=>c.querySelector('.collab-art svg')).length,fit:p.left>=0&&p.right<=innerWidth&&f.every(r=>r.height>=44&&r.bottom<=innerHeight)&&cs.every(c=>{const r=c.getBoundingClientRect();return r.left>=p.left-0.5&&r.right<=p.right+0.5;})};});
  };
- // 1かいめ: 600てん → 4500 + 600 = 5100 → Tシャツ
+ // 1かいめ: 600てん（とどかない・たさない）→ まえの ハイスコア 1700てんで とどいて いた Tシャツ（1000）と ボールプール（1600）を もらう
  let res=await play(600);
- expect(res.cards.join()==='kc_tee'&&res.arts===1&&res.fit&&/\+600 → 5,100 てん/.test(res.text)&&/ボールプール」まで あと 2,900 てん/.test(res.text),'1かいめの けっか '+JSON.stringify(res));
+ expect(res.cards.join()==='kc_tee,kc_pool'&&res.arts===2&&res.fit&&/こんかい 600 てん（1かいの さいこう 1,700 てん）/.test(res.text)&&/いちご ぼうし」は 1かいで 2,000 てん（あと 1,400 てん）/.test(res.text)&&!/つみたて/.test(res.text),'1かいめの けっか '+JSON.stringify(res));
  await H.shot('result-1');
  let saved=await H.dbg('persistedSave');
- expect(saved.collab.korokoro.total===5100&&saved.collab.korokoro.got.kc_tee&&saved.wardrobe.kc_tee===true&&!saved.furn.kc_pool&&saved.shops.korokoro.tops[0].s===2000,'Tシャツが ほぞん されない '+JSON.stringify(saved.collab));
+ expect(saved.collab.korokoro.best===1700&&saved.collab.korokoro.mode==='best'&&saved.collab.korokoro.got.kc_tee&&saved.collab.korokoro.got.kc_pool&&!saved.collab.korokoro.got.kc_cap&&saved.wardrobe.kc_tee===true&&saved.furn.kc_pool===1&&saved.shops.korokoro.tops[0].s===1700,'Tシャツと ボールプールが ほぞん されない '+JSON.stringify(saved.collab));
  // きろくと けいひんの まどの「コラボ」タブ: メーター・5しゅ（もって いるのは 1つ）・つぎの めやす・はみ出さない
  await H.page.getByRole('button',{name:'きろくと けいひんを みる',exact:true}).click();
  await H.page.getByRole('tab',{name:'コラボ',exact:true}).click();await H.wait(400);
  const tab=await H.eval(()=>{const w=[...document.querySelectorAll('.modal-wrap:not(.out)')].pop(),b=w.querySelector('.collab-box'),p=w.querySelector('.panel').getBoundingClientRect(),body=w.querySelector('.panel-body'),cs=[...b.querySelectorAll('.collab-card')],tabs=[...w.querySelectorAll('.koro-tabs .btn')].map(t=>t.getBoundingClientRect());
   return {text:b.innerText,cards:cs.map(c=>c.dataset.collab),own:b.querySelectorAll('.collab-card.own').length,arts:cs.filter(c=>c.querySelector('.collab-art svg')).length,tabs:tabs.length,tabH:tabs.every(r=>r.height>=44&&r.right<=p.right+0.5),
    inside:cs.every(c=>{const r=c.getBoundingClientRect();return r.left>=p.left-0.5&&r.right<=p.right+0.5;}),wide:body.scrollWidth>body.clientWidth+1,edge:p.left>=0&&p.right<=innerWidth&&p.bottom<=innerHeight+0.5};});
- expect(tab.cards.join()==='kc_tee,kc_pool,kc_cap,kc_bed,kc_plush'&&tab.own===1&&tab.arts===5&&tab.tabs===3&&tab.tabH&&tab.inside&&!tab.wide&&tab.edge&&/つみたて 5,100 てん/.test(tab.text)&&/あと 2,900 てん/.test(tab.text)&&/スコア モードで あそんだ てん/.test(tab.text),'コラボの タブ '+JSON.stringify(tab));
+ expect(tab.cards.join()==='kc_tee,kc_pool,kc_cap,kc_bed,kc_plush'&&tab.own===2&&tab.arts===5&&tab.tabs===3&&tab.tabH&&tab.inside&&!tab.wide&&tab.edge&&/1かいの さいこう 1,700 てん/.test(tab.text)&&/いちご ぼうし」は 1かいで 2,000 てん/.test(tab.text)&&/1かいの スコアが めやすに とどくと/.test(tab.text)&&!/つみたて/.test(tab.text),'コラボの タブ '+JSON.stringify(tab));
  await H.shot('collab-tab');
  await H.page.getByRole('button',{name:'とじる',exact:true}).click();await H.wait(400);
- // 2かいめ: 10000てん → 15100 → のこり 4しゅ いっぺんに
- res=await play(10000,true);
- expect(res.cards.join()==='kc_pool,kc_cap,kc_bed,kc_plush'&&res.arts===4&&res.fit&&/15,100 てん/.test(res.text)&&/ぜんぶ そろったよ/.test(res.text),'2かいめの けっか '+JSON.stringify(res));
+ // 2かいめ: 1かいで 3000てん → のこり 3しゅ（いちご ぼうし 2000・ベッド 2600・ぬいぐるみ 3000）いっぺんに
+ res=await play(3000,true);
+ expect(res.cards.join()==='kc_cap,kc_bed,kc_plush'&&res.arts===3&&res.fit&&/こんかい 3,000 てん（1かいの さいこう 3,000 てん）/.test(res.text)&&/ぜんぶ そろったよ/.test(res.text),'2かいめの けっか '+JSON.stringify(res));
  await H.shot('result-2');
  saved=await H.dbg('persistedSave');
- expect(saved.collab.korokoro.total===15100&&['kc_pool','kc_bed','kc_plush'].every(id=>saved.furn[id]===1)&&saved.wardrobe.kc_cap===true&&!saved.collab.puzzle,'のこりの コラボ グッズ '+JSON.stringify(saved.collab));
+ expect(saved.collab.korokoro.best===3000&&['kc_pool','kc_bed','kc_plush'].every(id=>saved.furn[id]===1)&&saved.wardrobe.kc_cap===true&&!saved.collab.puzzle,'のこりの コラボ グッズ '+JSON.stringify(saved.collab));
  // お店の モードえらび: 「コラボ 5/5」（はみ出さない）
  await H.page.getByRole('button',{name:'てんないに もどる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),15000);
  await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();
