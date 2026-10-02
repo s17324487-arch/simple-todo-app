@@ -389,6 +389,19 @@ html, body {
 .result-rows { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 10px 14px; font-weight: 800; }
 .result-rows .r { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 2px dashed #eadcc0; }
 .result-rows .r:last-child { border-bottom: none; }
+/* おてつだいの けっかの けいけんち（js/work-exp.js・UI-44）: 3人の なまえ・レベル・ぼう（ふえた ぶんは きいろ）・+かず。れつは 3人で そろえる */
+.wexp-box { margin-top: 8px; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 8px 12px; }
+.wexp-ttl { font-size: 13px; font-weight: 800; margin-bottom: 4px; }
+.wexp { display: grid; grid-template-columns: auto auto minmax(40px, 1fr) auto; align-items: center; gap: 5px 8px; font-size: 13px; font-weight: 800; }
+.wexp-row { display: contents; }
+.wexp-name, .wexp-lv, .wexp-n { white-space: nowrap; }
+.wexp-n { text-align: right; }
+.wexp-row.up .wexp-lv { color: #d0457a; }
+.wexp-bar { display: flex; height: 12px; border: 2px solid var(--ink); border-radius: 8px; background: #f3ead8; overflow: hidden; }
+.wexp-bar i { background: var(--green); }
+.wexp-bar b { background: var(--yellow); }
+.wexp-lvup { grid-column: 1 / -1; background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 10px; padding: 4px 8px; font-size: 12px; font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; }
+.wexp-st { white-space: nowrap; }
 /* ころころ フルーツの スコア モード（js/korokoro-score.js）: ランキングと 2つの ボタン */
 .koro-rank { margin-top: 8px; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 6px 12px; font-weight: 800; }
 .koro-rank-title { text-align: center; font-size: 13px; color: #8a7d6a; margin-bottom: 2px; }

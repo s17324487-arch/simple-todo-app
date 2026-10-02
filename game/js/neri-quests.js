@@ -84,7 +84,7 @@ const NeriQuests = (() => {
   function report(id, scene) {
     const q = byId[id], a = activeOf(id); if (!q || !a || !progress(a).done) return 0;
     const s = st(); s.active = s.active.filter((x) => x !== a); s.done.push(id); s.total = (s.total || 0) + 1; s.earned = (s.earned || 0) + q.reward;
-    Save.addCoins(q.reward); Save.mark(); Save.write(); dropFollower(scene); return q.reward;
+    Save.addCoins(q.reward); WorkExp.give("quest", q.stars); Save.mark(); Save.write(); dropFollower(scene); return q.reward; // けいけんちは ★の かずで（UI-44）
   }
   const dropFollower = (scene) => { if (scene && scene.follower && typeof TownFolk !== "undefined" && !TownFolk.following()) scene.follower = null; };
   // ---- さがしもの: きらきら（TownFolk と おなじ えらびかた・絵・しらべかた）----
@@ -149,7 +149,7 @@ const NeriQuests = (() => {
         if (done) btns.append(U.el("span", { class: "nq-stamp", text: "おわった！" }));
         else if (!a) { const b = UI.btn("うける", () => { if (accept(id)) { Sound.se("ok"); render(); } }, "yellow small"); b.setAttribute("aria-label", `「${title(q)}」を うける`); b.disabled = s.active.length >= MAX; btns.append(b); }
         else {
-          if (p.done) { const b = UI.btn("ほうこくする", async () => { const got = report(id, scene); if (got) { Sound.se("coin"); Sound.se("fanfare"); UI.updateHud(); UI.toast(`ほうしゅう ${got} コイン！`, "good"); render(); } }, "pink small"); b.setAttribute("aria-label", `「${title(q)}」を ほうこくする`); btns.append(b); }
+          if (p.done) { const b = UI.btn("ほうこくする", async () => { const got = report(id, scene); if (got) { Sound.se("coin"); Sound.se("fanfare"); UI.updateHud(); UI.toast(`ほうしゅう ${got} コイン！`, "good"); WorkExp.toast(WorkExp.last.rows); render(); } }, "pink small"); b.setAttribute("aria-label", `「${title(q)}」を ほうこくする`); btns.append(b); }
           const c = UI.btn("やめる", async () => { if (await UI.confirm(`「${title(q)}」を やめる？\nまた うける ことも できるよ。`, "やめる", "つづける")) { cancel(id, scene); render(); } }, "small"); c.setAttribute("aria-label", `「${title(q)}」を やめる`); btns.append(c);
         }
         card.append(btns); body.append(card);

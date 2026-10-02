@@ -315,6 +315,7 @@ function helpers(page, name) {
       const st = await H.dbg("mg");
       await H.shot(`${shop}_result`);
       H.shopResult = await H.eval(() => document.querySelector(".modal-wrap")?.textContent || "");
+      if (H.atShopResult) await H.atShopResult(); // その まどを しらべる スモーク（work-exp）
       await page.click(".modal-wrap .panel-foot .btn");
       await H.until(scene => PokaDebug.state().scene === scene && PokaDebug.idle(), 10000, fromStore ? (typeof fromStore === "string" ? fromStore : "store") : "world");
       return st.ranks;
@@ -1235,6 +1236,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   const coins=(await H.dbg('state')).coins;await H.dbg('give','milk',1);
   expect(await H.dbg('folkTalk','sheep'),'メェに 話しかけられない');await H.wait(400);await H.shot('done');await H.dialogs();await H.idle();
   f=await H.dbg('folk');expect(f.done['ev-milk']&&f.bond.sheep===2&&!f.req.some(r=>r.id==='ev-milk'),'おねがいが おわらない');
+  {const w=await H.dbg('workExp');expect(w.kind==='folk'&&w.rows.length===3&&w.rows.every(r=>r.n>0),'おねがいで けいけんちが ふえない '+JSON.stringify(w));} // UI-44
   expect((await H.dbg('state')).coins===coins+80,'おねがいの コインが もらえない');
   expect(((await H.dbg('saveData')).bag.milk||0)===0,'わたした ぎゅうにゅうが へらない');
   // セーブして 再開しても のこる
@@ -4385,6 +4387,7 @@ await (await import("./parent-wardrobe-smoke.mjs")).parentWardrobeSmoke({scenari
 await (await import("./wear-stock-smoke.mjs")).wearStockSmoke({scenario,expect});
 // あたまの アクセサリーは 2つ まで（UI-43）
 await (await import("./head-pair-smoke.mjs")).headPairSmoke({scenario,expect});
+await (await import("./work-exp-smoke.mjs")).workExpSmoke({scenario,expect});
 // すいぞくかん・はくぶつかんの きふの ごほうび（UI-33）: みだし・カード・はくぶつかんで 4つ・もちもの・おうち
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
 await (await import("./dino-museum-smoke.mjs")).dinoMuseumSmoke({scenario,expect});

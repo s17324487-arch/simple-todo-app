@@ -222,6 +222,7 @@ const TownFolk = {
     const coins = got.find((g) => g.it.coins);
     UI.toast(`<span class="folk-reward">${TownFolkArt.item("note")}おねがい かなえた！${coins ? ` コイン +${coins.it.coins}` : ""}・なかよし +${Math.max(...Object.values(bond))}</span>`, "good");
     Sound.se("fanfare");
+    WorkExp.toast(WorkExp.give("folk")); // けいけんち（UI-44）
     // かぐ・ふく・もちものは どこで つかうかも つたえる（コインは トーストだけ）
     const more = got.filter((g) => !g.it.coins && g.msg).map((g) => ({ text: g.msg }));
     if (more.length) await UI.say(more);
