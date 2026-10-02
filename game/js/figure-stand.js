@@ -1,6 +1,6 @@
 // フィギュア台（オーナーの FB 2026-10-01「家具として、各種フィギュアを置ける、フィギュア台を作りなさい」）。
 // かぐやで かう 家具 2しゅ: ひなだんの フィギュア だい（3だん × 3）・ガラスの フィギュア ケース（3だん × 3・よるは あかり）。
-// タップすると「フィギュアを かざる」: ばしょを えらんで、もって いる フィギュア（ガチャガチャ・はしわたし・すいぞくかんの おみやげ）を おく。
+// タップすると「フィギュアを かざる」: ばしょを えらんで、もって いる フィギュア（ガチャガチャ・はしわたし・すいぞくかんの おみやげ・バーガーやさんの おまけ）を おく。
 // おいた フィギュアは へやの 家具と おなじに かぞえる（Room.placed・いごこち）。だいを しまうと フィギュアは もちものに もどる。
 // セーブ: だいの へやの アイテムに figs（ばしょの かず ぶんの フィギュアの id か null）を たす だけ（Save.SCHEMA は そのまま）。
 // プリセット（RoomPresets）も figs を おぼえる（よびだす ときは ほかの へやで つかって いる かずも かぞえる）。
@@ -20,12 +20,13 @@ const FigureStand = (() => {
   const COLS = ["ひだり", "まんなか", "みぎ"];
   const slotName = (S, i) => `${S.rows[Math.floor(i / 3)]}の ${COLS[i % 3]}`;
 
-  // ---- かざれる フィギュア（ガチャガチャの へやに かざる もの・はしわたしの フィギュア・すいぞくかんの フィギュア）----
+  // ---- かざれる フィギュア（ガチャガチャの へやに かざる もの・はしわたしの フィギュア・すいぞくかんの フィギュア・にこにこ セットの おもちゃ）----
   const isFigure = (id) => {
     if (!FURN_INDEX[id] || isStand(id)) return false;
     if (typeof Gacha !== "undefined" && Gacha.INDEX[id]) return Gacha.INDEX[id].kind === "furn";
     if (typeof BridgePrizes !== "undefined" && BridgePrizes.INDEX[id]) return BridgePrizes.INDEX[id].kind === "fig";
     if (typeof AquaGifts !== "undefined" && AquaGifts.INDEX[id]) return FURN_INDEX[id].aquaGift === "fig";
+    if (typeof BurgerMenu !== "undefined" && BurgerMenu.TOY_INDEX[id]) return true; // バーガーやさんの にこにこ セットの おまけ
     return false;
   };
   const figures = () => FURNITURE.filter((f) => isFigure(f.id)).map((f) => f.id);
