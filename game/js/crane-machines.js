@@ -1,4 +1,4 @@
-// クレーンゲームの 機械 19台（1F 12台・2F の おかし キャッチャー 5台・はしわたし 2台）の アーム・台・景品の おき方と 1かいの あそび（CraneRound）。絵と ボタンは crane-scene.js、景品は arcade-prizes.js・snack-art.js・bridge-prizes.js。
+// クレーンゲームの 機械 24台（1F 12台・2F の おかし キャッチャー 5台・はしわたし 2台・3F の おかしの 台 2台・4F の たこやき・バーバーカット・バウンドボール）の アーム・台・景品の おき方と 1かいの あそび（CraneRound）。絵と ボタンは crane-scene.js、景品は arcade-prizes.js・snack-art.js・bridge-prizes.js。
 // 日がわりの 台（1F の 7台・2F の 7台）: 台ごとの pool から その日の pick しゅ（lineup）。台の ようすは 日が かわると はじめから（セーブの 形は かわらない・board.day を たす だけ）。
 // keep の 台（トライポッド・はしわたし）は、まえの 日の けいひんが 台に のこって いれば とれるまで その日の ならびの まま（keepDay。すこしずつ すすめた ぶんが きえない）。
 // たんい: cm・びょう。x = 左→右・y = 下→上・z = 手前→おく。おとしぐちに 落ちた 景品が「とれた」。
@@ -8,8 +8,8 @@ const CraneMachines = (() => {
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const mix = (a, b, t) => a + (b - a) * t;
   const ease = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
-  // アームで あそぶ 台（3本・2本アーム・リングフック・はしわたし）
-  const clawy = (t) => t === "claw" || t === "ring" || t === "bridge";
+  // アームで あそぶ 台（3本・2本アーム・リングフック・はしわたし・4F の たこやき・バウンドボール）
+  const clawy = (t) => t === "claw" || t === "ring" || t === "bridge" || t === "tako" || t === "bound";
   // きまった たねの 乱数（mulberry32）
   const rng = (seed) => { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
   // ---- 日がわり（その日の けいひん）----
@@ -140,6 +140,12 @@ const CraneMachines = (() => {
     };
   }
   const towerPool = () => SnackArt.ITEMS.filter((it) => it.form === "box").map((it) => "tower_" + it.key);
+  // ---- 4F（ガチャガチャの もり・UI-54）: たこやきの ピンポンだま（1つぶ。かるくて すべりやすい。けいひんでは ない）と、
+  // バーバーカットの つりさげの はこ（はしわたしの はこを 0.56ばい。絵も おなじ。けいひんは はしわたしと おなじ 家具）----
+  SHAPES.pingpong = () => ({ parts: [{ x: 0, y: 0, z: 0, r: 2, m: 0.25 }], stiff: 1, fric: 0.3, look: "pingpong", size: [4, 4, 4], ball: true });
+  const CUT_K = 0.56;
+  for (const it of BridgePrizes.ITEMS) { const [w, h, d] = it.size.map((v) => v * CUT_K); SHAPES["cut_" + it.key] = () => ({ parts: lattice(w, h, d, [3, 2, 2]), stiff: 1, fric: 0.5, look: "hashi-" + it.key, box: [w, h, d], size: [w, h, d], prize: it.id }); }
+  const cutPool = () => BridgePrizes.ITEMS.map((it) => "cut_" + it.key);
 
   // ---- アーム（2本・3本。ツメの 先は ゴム）----
   class ClawRig {
@@ -326,6 +332,15 @@ const CraneMachines = (() => {
     load(s) { if (s && Number.isFinite(+s.p)) this.pos = clamp(+s.p, 0, this.o.n - 1); this.lane = -1; this.left = 0; for (const c of this.belts) c.belt[2] = 0; }
   }
 
+  // ---- バーバーカット（4F・UI-54）の ハサミ: x・z = はの ねもと（はの さきは +z）・open = ひらき（1 = ひらいて いる）・b1 b2 = ① ② を おして いるか・
+  // used1 used2 = もう おしたか（はなすと もどれない）・fray = ひもの ほつれ（はこの sid ごと）----
+  class BarberRig {
+    constructor(o) { Object.assign(this, { o, x: o.start[0], z: o.start[1], open: 1, b1: false, b2: false, used1: false, used2: false, fray: {} }); }
+    step() {}
+    save() { return { f: Object.entries(this.fray).filter(([, v]) => v > 0).map(([k, v]) => [+k, v]) }; }
+    load(s) { this.fray = {}; if (s && Array.isArray(s.f)) for (const e of s.f) if (Array.isArray(e) && Number.isInteger(e[0]) && e[1] > 0) this.fray[e[0]] = Math.min(2, e[1] | 0); }
+  }
+
   // ---- 台の かたち（ゆか・おとしぐち・ガード）----
   const floorWithChute = (W, M, ch) => {
     // ゆかは 厚い 板を あなの まわりに ならべる
@@ -341,6 +356,8 @@ const CraneMachines = (() => {
   const CLAW2 = { yaws: [0, 180], pivot: 4, drop: 3, segs: [{ len: 22, r: 1, fr: 0.5 }, { len: 6.5, bend: 50, r: 1.05, fr: 0.9, grip: 1.6 }], rest: 0, open: 48 * D2R, release: 64 * D2R, closed: 0, wOpen: 1.2, wClose: 0.75, force: 3.2, headR: 5.4, accel: 60, swingDamp: 1.2, cable: 9 };
   // フックづめ: よこむきの フック（7cm）が リングの あなに はいる。ねもとは 外がわ（リングの まえで とまる）
   const HOOK2 = { yaws: [90, 270], pivot: 5, drop: 2.5, segs: [{ len: 10, r: 0.6, fr: 0.5 }, { len: 7, bend: 80, r: 0.5, fr: 0.8, grip: 1.3 }, { len: 2.2, bend: 100, r: 0.45, fr: 0.8 }], rest: -3 * D2R, open: 38 * D2R, release: 60 * D2R, closed: -3 * D2R, wOpen: 1.5, wClose: 1.0, force: 1.4, headR: 3.8, accel: 70, swingDamp: 1.1, cable: 8, hookFree: true };
+  // たこやきの アーム（5本の ツメで かごの ように ピンポンだまを すくう。3本だと 1こ しか のらない）
+  const TAKO5 = { ...CLAW3, yaws: [90, 162, 234, 306, 18], pivot: 4.0, segs: [{ len: 12, r: 0.75, fr: 0.5 }, { len: 6.2, bend: 52, r: 0.85, fr: 0.9, grip: 1.6 }], open: 44 * D2R, closed: 0 };
   // 12台（番号は PrizeArcade.machines と 館の 什器 machine と おなじ）。id が かわった 台の ふるい セーブ（台の ようす）は つかわない。
   // legacy: まえの 8台の ときと おなじ 台（1・4・6）。ふるい セーブの 台の ようす・とちゅうの 1かいを そのまま つかう
   const CHUTE_CLAW3 = { x0: 0, x1: 17, z0: 0, z1: 17, guards: [{ c: [17.4, 3.5, 8.5], h: [0.4, 3.5, 8.5] }, { c: [8.7, 3.5, 17.4], h: [8.7, 3.5, 0.4] }] };
@@ -389,6 +406,36 @@ const CraneMachines = (() => {
       chute: { x0: 0, x1: 18, z0: 0, z1: 18, guards: [{ c: [9, 3, 18.4], h: [9, 3, 0.4] }] },
       tower: { ped, cx, cz, yaws, peraAt, h }, fill: { n: yaws.length, keep: yaws.length } };
   };
+  // ---- 4F（ガチャガチャの もり・UI-54）の あたらしい しゅるい 3台 ----
+  // たこやき（ほんものの「たこ焼き」台）: 5本づめの アーム（TAKO5）で ひだりの やまの ピンポンだまを すくい、みぎの てっぱん（くぼみ 4×4）の うえ（home）で はなす。
+  // だまは はねて ころがり、とうめいな かこいに あたって もどり、どこかの くぼみに はまる。あかい わの「あたり」（hits）に はまると、
+  // まえの つつ（tube）から その日の けいひん（ミニマスコット）が 1こ おちる。はまった だまは そのまま（つぎも うまった まま。うまる ほど あたりに はいりやすい）。
+  // あたりが でた つぎの 1かいの はじめと、てっぱんの だまが max より おおい ときは、おみせの 人が だまを やまへ もどす（staff "tako"）。
+  // アームは やまの うえ（moveLim）だけ うごく（はじめは start）。くぼみ: hr = あなの はんけい・dep = ふかさ。てっぱんは すべりやすく（fr）・すこし はねる（bounce）
+  const takoDef = (id, theme) => {
+    const P = { x0: 30, x1: 56, z0: 10, z1: 38, top: 12, hr: 2.45, dep: 1.45, fence: 10, fr: 0.12, bounce: 0.5, holes: [] };
+    for (const z of [15, 21, 27, 33]) for (const x of [34.5, 40.5, 46.5, 52.5]) P.holes.push([x, z]); // ばんごうは まえの れつの ひだりから
+    P.hits = [0, 7, 13];
+    return { id, type: "tako", theme, rig: TAKO5, box: { w: 60, d: 48, h: 64 }, chute: CHUTE_CLAW3, home: { x: 40, z: 21 }, start: { x: 24, z: 22 }, moveLim: [6, 27, 8, 42], top: 50, minY: 4, moveTime: 30, got: "win",
+      plate: P, balls: { n: 46, area: [5, 28, 20, 45], max: 22 }, tube: { x: 8.5, z: 8.5, y: 24 }, mini: true };
+  };
+  // バウンドボール（ほんものの「バウンドボール」台）: 3本アームで おくの ぬいぐるみを つかむと、アームは まえの ゴムボールの うえ（home）で はなす。
+  // ぬいぐるみは ボール（はねかえり bounce）で はねて、まえへ とべば とりだしぐち（まえの あな）。おくへ はねれば やまに もどる。
+  // つかむ ところで はねかたが かわる（ほんものの こつと おなじ）。ぬいぐるみの うしろの ほうを つかむと、ぬいぐるみは アームの まえに ぶらさがって
+  // ボールの まえの がわに おちる → まえに はねやすい（tools/check-crane-4f.mjs の ボット: まん中を つかむと とれる 2わり・うしろを つかむと 4わり）。
+  // おくの やまの まえに ひくい だん（step）: ならべる ときに ぬいぐるみが まえへ ころがって こない
+  const boundDef = (id, theme) => ({ id, type: "bound", theme, rig: CLAW3, box: { w: 60, d: 48, h: 64 }, home: { x: 30, z: 18.5 }, top: 50, minY: 14, moveTime: 30, got: "win",
+    chute: { x0: 14, x1: 46, z0: 0, z1: 11, guards: [{ c: [13.6, 2.5, 5.5], h: [0.4, 2.5, 5.5] }, { c: [46.4, 2.5, 5.5], h: [0.4, 2.5, 5.5] }] },
+    ball: { c: [30, 12, 20], r: 9, bounce: 0.82, fr: 0.85, stand: 3 }, step: { z: 28, h: 6 }, fill: { mix: [], n: 9, keep: 7, area: [10, 50, 32, 44], dropY: 16 } });
+  // バーバーカット（ほんものの「バーバーカット」台）: てんじょう（ceil）から ひもで つるした はこ（slots の 3つ）。さきに ハサミの ついた アームを
+  // ①を おしつづけて みぎへ・②を おしつづけて おくへ（はなすと もう もどれない）。②を はなすと ちょきん。ハサミの はの あいだ（よこ ±tol・ねもとの まえ back 〜 はの さき blade）に
+  // ひもが あれば きれて、はこが すべりだい（slope）を すべって とりだしぐちへ。ほんものは「確率機」だが、この ゲームでは つかわない（ねらいが あえば かならず きれる）。
+  // おしい（よこ near・まえ うしろ すこし）ときは ひもが ほつれて（fray。2まで）つぎから きれやすい。はずれが 4かい つづくと おみせの 人が よく きれる ハサミに かえる（assist）。
+  // けいひんは はしわたしの はこ（0.56ばい・日がわり 3しゅ）。きれた ひもには つぎの 1かいの はじめに おみせの 人が あたらしい はこを つるす（staff "restock"）
+  // （カメラは うえから: ハサミの たかさ と おなじ だと ハサミが よこから みた うすい せんに なる）
+  const barberDef = (id, theme) => ({ id, type: "barber", theme, box: { w: 60, d: 46, h: 76 }, cam: { eyeY: 1.15, dist: 1.05 }, moveTime: 30, got: "win",
+    cut: { y: 50, ceil: 68, speed: 8, blade: 4.2, back: 1, tol: [0.9, 1.5, 2.4], near: 2.6, start: [7, 4], lim: [7, 54, 4, 42] },
+    slots: [[16, 24], [30.5, 31], [45, 21]], hang: 38, slope: { x0: 3, x1: 57, z0: 10, z1: 46, y0: 2, y1: 16, fr: 0.3 }, chute: { x0: 3, x1: 57, z0: 0, z1: 10 } });
   // 日がわりの 台: pool（かたちの なまえ）から その日の pick しゅ（lineup）
   const daily = (d, pool, pick) => ({ ...d, pool, pick, ...(d.fill ? { fill: { ...d.fill, ...(d.fill.mix ? { mix: pool.slice(0, pick) } : {}) } } : {}) });
   const DEFS = [
@@ -419,6 +466,11 @@ const CraneMachines = (() => {
     // ---- 3F おかしの 台（UI-23。日がわり: はこの おかし 5しゅから）: おかし ロード（UI-29。ベルトの トレジャーロード）・おかし タワー（ペラわの はこは その日の めだま）----
     daily(road("snack-road", "snackroad"), towerPool(), 3),
     daily(towerDef("snack-tower", "snacktower"), towerPool(), 2),
+    // ---- 4F ガチャガチャの もり（UI-54。日がわり）: たこやき（ミニマスコット 10しゅから 3しゅ）・バーバーカット（はしわたしの はこ 14しゅから 3しゅ）・
+    // バウンドボール（3人の ちいさな ぬいぐるみ 24しゅから 4しゅ）----
+    daily(takoDef("tako", "takoyaki"), prizePool((it) => it.size === "mini"), 3),
+    daily(barberDef("barber", "barber"), cutPool(), 3),
+    daily(boundDef("bound", "bound"), prizePool((it) => it.size === "chibi"), 4),
   ];
 
   // ---- 1かいの あそび ----
@@ -438,8 +490,12 @@ const CraneMachines = (() => {
       this.got = []; this.gotShapes = []; this.events = []; this.acc = 0; this.frames = 0; this.presses = 0; this.msg = "";
       this.build(board);
       // おみせの 人: はしわたしの はこを もどす・おきなおす（bars）・タワーを つみなおす（tower）・ぼうで おす 台に はこを たす（restock）
-      const staff = o.cp ? null : this.def.bars ? (this.tidyBars() ? "back" : o.assist && this.assist() ? "assist" : null) : this.rebuilt ? "tower" : this.restocked ? "restock" : null;
+      // たこやき: アームは やまの うえ（moveLim）だけ。もちあげた あと（top）は てっぱんの うえまで（fullLim）。あたりが でた あとは だまを もどす
+      if (this.def.moveLim) { this.rig.fullLim = this.rig.o.lim; this.rig.o.lim = this.def.moveLim; if (!o.cp) { this.rig.load(this.def.start); this.takoReset = this.resetPlate(); } }
+      // 4F: たこやきの だまを やまへ もどす（tako）・バーバーカットの よく きれる ハサミ（sharp）
+      const staff = o.cp ? null : this.def.bars ? (this.tidyBars() ? "back" : o.assist && this.assist() ? "assist" : null) : this.rebuilt ? "tower" : this.takoReset ? "tako" : this.restocked ? "restock" : this.type === "barber" && o.assist ? "sharp" : null;
       if (clawy(this.type)) { this.time = this.def.moveTime; this.rig.power = this.strong || this.type !== "claw" ? 1 : 0.34; }
+      if (this.type === "barber") Object.assign(this, { phase: "right", time: this.def.moveTime, sharp: !!o.assist, cutSlots: [] });
       if (this.type === "tripod") { this.phase = "spin"; this.stops = 3; }
       if (this.type === "sweet") { this.phase = "swing"; this.scoops = 3; }
       if (this.type === "road") { Object.assign(this, { phase: "sweep", stops: this.def.stops, idle: 0 }); this.newLamps(); }
@@ -455,8 +511,24 @@ const CraneMachines = (() => {
         if (d.bars) for (const x of [d.bars.x0, d.bars.x1]) W.collider({ k: "cap", a: [x, d.bars.y, d.bars.z0], b: [x, d.bars.y, d.bars.z1], r: d.bars.r, fr: d.bars.fr });
         // おかし タワーの だい（すべりどめの ゴム）
         if (d.tower) { const P = d.tower.ped; W.collider({ k: "box", c: [(P.x0 + P.x1) / 2, P.top / 2, (P.z0 + P.z1) / 2], h: [(P.x1 - P.x0) / 2, P.top / 2, (P.z1 - P.z0) / 2], fr: 0.75 }); }
+        // たこやきの てっぱん（くぼみの ある うえの 面・ささえの だい・まわりの とうめいな かこい）
+        if (d.plate) {
+          const P = d.plate, cx = (P.x0 + P.x1) / 2, cz = (P.z0 + P.z1) / 2, hx = (P.x1 - P.x0) / 2, hz = (P.z1 - P.z0) / 2, sup = P.top - 3, fy = (P.top + P.fence) / 2;
+          this.bumpC = [W.collider({ k: "cups", x0: P.x0, x1: P.x1, z0: P.z0, z1: P.z1, top: P.top, holes: P.holes, hr: P.hr, dep: P.dep, th: 3, fr: P.fr, bounce: P.bounce })];
+          W.collider({ k: "box", c: [cx, sup / 2, cz], h: [hx, sup / 2, hz], fr: 0.4 });
+          for (const [x, z, ax, az] of [[P.x0 - 0.4, cz, 0.4, hz + 0.8], [P.x1 + 0.4, cz, 0.4, hz + 0.8], [cx, P.z0 - 0.4, hx, 0.4], [cx, P.z1 + 0.4, hx, 0.4]]) W.collider({ k: "box", c: [x, fy, z], h: [ax, fy, az], fr: 0.2, bounce: 0.4 });
+        }
+        // バウンドボール（ゴムボールと ささえの はしら）
+        if (d.ball) { const B = d.ball; this.bumpC = [W.collider({ k: "sphere", c: B.c.slice(), r: B.r, fr: B.fr, bounce: B.bounce })]; W.collider({ k: "cyl", cx: B.c[0], cz: B.c[2], rad: B.stand, y0: 0, y1: B.c[1] - B.r + 1, fr: 0.5 }); }
+        if (d.step) W.collider({ k: "box", c: [M.w / 2, d.step.h / 2, d.step.z], h: [M.w / 2, d.step.h / 2, 0.5], fr: 0.5 });
         this.rig = new ClawRig(W, { ...d.rig, home: d.home, top: d.top, lim: [6, M.w - 6, Math.min(d.home.z, 8), M.d - 6] });
         this.rig.load(null);
+      } else if (d.type === "barber") {
+        // ゆか（まえは とりだしぐちへの あな）・おくから まえへ さがる すべりだい
+        floorWithChute(W, M, d.chute);
+        const S = d.slope, len = Math.hypot(S.z1 - S.z0, S.y1 - S.y0), pitch = Math.atan2(S.y1 - S.y0, S.z1 - S.z0);
+        W.collider({ k: "box", c: [(S.x0 + S.x1) / 2, (S.y0 + S.y1) / 2 - Math.cos(pitch), (S.z0 + S.z1) / 2 + Math.sin(pitch)], h: [(S.x1 - S.x0) / 2, 1, len / 2], pitch: -pitch, fr: S.fr });
+        this.rig = new BarberRig(d.cut);
       } else if (d.type === "tripod") {
         W.collider({ k: "holefloor", y: 0, cx: M.w / 2, cz: M.d / 2 + 2, rad: 17.5, th: 3, fr: 0.6 });
         W.collider({ k: "cyl", cx: M.w / 2, cz: M.d / 2 + 2, rad: 17.5, y0: -40, y1: -0.5, inside: true, fr: 0.2 });
@@ -487,12 +559,16 @@ const CraneMachines = (() => {
         this.rig = new SweetRig(W, { cx: 32, cz: 44, rad: 16.5, top: 4, spin: 0.42, arc: [-62 * D2R, 62 * D2R], arcR: 10.5, swing2: [14, 50], swingPeriod: 3.6, idleY: 13, dumpZ: 19.5, dumpY: 47, stage: st, pdepth: 12, push: [23, 32], period: 2.3, scoop: { w: 12, d: 9, wall: 5.5 } });
       }
       W.pre = (h) => this.rig.step(h);
+      // てっぱん・ゴムボールに ぶつかった つよさ（画面の おと。1フレームの いちばん つよい ところ）
+      if (this.bumpC) W.post = () => { for (const c of this.bumpC) c.hit = Math.max(c.hit || 0, c.push); };
       // トライポッドは けいひんが とれた あと（台に けいひんが ない）なら、おみせの 人が アームを ぜんぶ もどして あたらしい けいひんを のせる
       const empty = !(board && Array.isArray(board.b) && board.b.length);
       if (board && board.s && !(d.type === "tripod" && empty)) this.rig.load(board.s);
       if (board && Array.isArray(board.b) && board.b.length) {
         this.restore(board);
         if (d.type === "road" || d.tower) { this.wakeAll(); this.settle(1.5); } // ささえの ない はこが のこって いても おちる
+        if (d.type === "barber") for (const b of this.list()) b.pin = true; // つりさげの はこは きれるまで うごかない
+        if (d.plate) this.scanHoles(false);
         if (d.type === "sweet") this.refillTable(); else if (d.type === "pusher") this.refillField(); else if (d.type !== "tripod") { if (this.refill(false)) this.settle(2.5); }
       }
       else this.fresh();
@@ -503,7 +579,7 @@ const CraneMachines = (() => {
       let mx = 0, my = 0, mz = 0, mm = 0; for (const a of S.parts) { mx += a.x * a.m; my += a.y * a.m; mz += a.z * a.m; mm += a.m; }
       const parts = S.parts.map((a) => ({ x: p[0] + R[0][0] * a.x + R[1][0] * a.y + R[2][0] * a.z, y: p[1] + R[0][1] * a.x + R[1][1] * a.y + R[2][1] * a.z, z: p[2] + R[0][2] * a.x + R[1][2] * a.y + R[2][2] * a.z, r: a.r, m: a.m }));
       // org: まん中（おもさの 中心）から 形の 原点への ずれ（ローカル）。絵を かさねる ときに つかう
-      const b = this.W.body({ parts, stiff: S.stiff, fric: S.fric, q, data: { sid: extra.sid || this.sid++, shape, look: S.look, box: S.box, ring: S.ring, slab: S.slab, art: S.art, size: S.size, org: [-mx / mm, -my / mm, -mz / mm], ...(S.pera ? { pera: true } : {}), ...extra } });
+      const b = this.W.body({ parts, stiff: S.stiff, fric: S.fric, q, data: { sid: extra.sid || this.sid++, shape, look: S.look, box: S.box, ring: S.ring, slab: S.slab, art: S.art, size: S.size, org: [-mx / mm, -my / mm, -mz / mm], ...(S.pera ? { pera: true } : {}), ...(S.ball ? { ball: true } : {}), ...extra } });
       // q で 回した ぶん rest は もとに もどって いる（world.body が 回転を とりのぞく）
       this.bodies.push(b); return b;
     }
@@ -516,7 +592,7 @@ const CraneMachines = (() => {
     }
     fresh() {
       const d = this.def, r = this.rand;
-      if (clawy(d.type) || d.type === "road") this.refill(true);
+      if (clawy(d.type) || d.type === "road" || d.type === "barber") this.refill(true);
       else if (d.type === "tripod") this.placeTripodPrize();
       else if (d.type === "pusher") {
         // フィールドに ならべる（1だんめ 4れつ×7・のこりは その うえ）
@@ -546,6 +622,8 @@ const CraneMachines = (() => {
     refill(first) {
       if (this.def.type === "road") return this.fillRoad(first);
       if (this.def.tower) return this.fillTower(first);
+      if (this.def.plate) return this.fillBalls(first);
+      if (this.def.type === "barber") return this.fillCut(first);
       const d = this.def, f = d.fill, r = this.rand, alive = this.bodies.filter((b) => b.alive).length;
       if (!first && alive >= f.keep) return 0;
       const want = first ? f.n : f.n - alive;
@@ -559,9 +637,20 @@ const CraneMachines = (() => {
         }
         // 上から 1こずつ おとして 山に する（かさなって おくと はじける）
         const [x0, x1, z0, z1] = f.area, x = mix(x0, x1, r()), z = mix(z0, z1, first ? r() : 0.55 + r() * 0.45);
-        this.add(this.mix ? this.pick(list) : f.shape || this.pick(f.mix), [x, 30 + r() * 4, z], this.randQ(false)); this.settle(0.5);
+        this.add(this.mix ? this.pick(list) : f.shape || this.pick(f.mix), [x, (f.dropY || 30) + r() * 4, z], this.randQ(false)); this.settle(0.5);
       }
+      if (d.step) this.tidyStep();
       return want;
+    }
+    // バウンドボール: ならべる ときに だんの まえへ ころがった ぬいぐるみは、おみせの 人が やまの うえへ もどす（あそんで いる ときに まえに きた ものは そのまま）
+    tidyStep() {
+      const d = this.def, [x0, x1, z0, z1] = d.fill.area;
+      for (let k = 0; k < 4; k++) {
+        const out = this.list().filter((b) => this.W.centroid(b)[2] < d.step.z + 0.5);
+        if (!out.length) return;
+        for (const b of out) { this.W.remove(b); this.add(b.data.shape, [mix(x0 + 4, x1 - 4, this.rand()), 12 + k * 3, mix(z0 + 4, z1, this.rand())], this.randQ(false), { sid: b.data.sid }); this.settle(0.6); }
+        this.bodies = this.bodies.filter((b) => b.alive);
+      }
     }
     // はしわたし: ぼうから おちて よこの ゆかに ある はこは、おみせの 人が はじめの ばしょに もどす（つぎの 1かいの はじめ）
     tidyBars() {
@@ -647,6 +736,87 @@ const CraneMachines = (() => {
       this.add(b.data.shape, [(B.x0 + B.x1) / 2 + 0.6, B.y + B.r + low + 0.6, z], CP.qnorm(CP.qmul(CP.qaxis(0, 0, 1, 12 * D2R), CP.qaxis(0, 1, 0, Math.PI / 2))), { sid }); this.settle(2);
       const n = this.list()[0]; if (!n) return false;
       const c = this.W.centroid(n); this.hint = [+(c[0] + this.def.assistAim).toFixed(2), +c[2].toFixed(2)]; return true;
+    }
+    // ---- たこやき（4F）: やまの ピンポンだま。first: はじめに n こ（2だん）。ほかの とき: たりない ぶん（とりだしぐちに おちた・かこいの そとに でた）を うえから たす ----
+    fillBalls(first) {
+      const B = this.def.balls, r = this.rand, [x0, x1, z0, z1] = B.area, want = B.n - (first ? 0 : this.list().filter((b) => b.data.ball).length);
+      if (want <= 0) return 0;
+      const cols = Math.floor((x1 - x0) / 4.3), rows = Math.floor((z1 - z0) / 4.3), per = cols * rows;
+      for (let k = 0; k < want; k++) {
+        const lv = Math.floor(k / per), i = k % cols, j = Math.floor((k % per) / cols), off = lv % 2 ? 2.1 : 0;
+        const x = first ? x0 + 2.2 + i * 4.3 + off + (r() - 0.5) * 0.6 : mix(x0 + 2, x1 - 2, r()), z = first ? z0 + 2.2 + j * 4.3 + off + (r() - 0.5) * 0.6 : mix(z0 + 2, z1 - 2, r());
+        this.add("pingpong", [Math.min(x, x1 - 2), first ? 2.05 + lv * 3.6 : 12 + (k % 4) * 4.2, Math.min(z, z1 - 2)], [1, 0, 0, 0]);
+      }
+      if (!first) this.settle(2);
+      return want;
+    }
+    onPlate(c) { const P = this.def.plate; return c[0] > P.x0 - 0.6 && c[0] < P.x1 + 0.6 && c[2] > P.z0 - 0.6 && c[2] < P.z1 + 0.6 && c[1] > P.top - 2.5; }
+    // てっぱんの くぼみに はまって ねた だまを「うまった」に する（それからは うごかない: pin）。live: あそびの とちゅう（あたりなら つつから けいひん）
+    scanHoles(live) {
+      const P = this.def.plate; if (!this.filled) this.filled = P.holes.map(() => 0);
+      for (const b of this.list()) {
+        if (!b.data.ball || !b.sleep || b.pin) continue;
+        const c = this.W.centroid(b); if (c[1] > P.top + 1.3) continue;
+        const k = P.holes.findIndex(([x, z]) => Math.hypot(c[0] - x, c[2] - z) < 0.9);
+        if (k < 0 || this.filled[k]) continue;
+        b.pin = true; b.data.hole = k; this.filled[k] = b.data.sid;
+        if (live) { const hit = P.hits.includes(k); this.events.push({ e: "hole", k, hit }); if (hit) this.dispense(); }
+      }
+    }
+    // あたり: まえの つつ（とりだしぐちの うえ）から その日の けいひんが 1こ おちる
+    dispense() { const T = this.def.tube; this.add(this.pick(this.mix || this.def.pool), [T.x, T.y, T.z], CP.qaxis(0, 1, 0, (this.rand() - 0.5) * 0.8), { gift: true }); this.events.push({ e: "dispense" }); }
+    // おみせの 人: あたりが でた あと・てっぱんの だまが max より おおい ときは てっぱんの だまを ぜんぶ やまへ。かこいの そとに でた だまも もどす
+    resetPlate() {
+      const P = this.def.plate, hit = P.hits.some((k) => this.filled && this.filled[k]), on = [], lost = [];
+      for (const b of this.list()) { if (!b.data.ball) continue; const c = this.W.centroid(b); if (this.onPlate(c)) on.push(b); else if (c[0] > this.def.moveLim[1] + 2.5) lost.push(b); }
+      const all = hit || on.length > this.def.balls.max;
+      for (const b of [...(all ? on : []), ...lost]) this.W.remove(b);
+      this.bodies = this.bodies.filter((b) => b.alive);
+      if (all) this.filled = P.holes.map(() => 0);
+      if (this.fillBalls(false) === 0 && !all) return 0;
+      return all ? on.length : 0;
+    }
+    // ---- バーバーカット（4F）: あいて いる ひもに その日の はこを つるす（きれるまで うごかない: pin）----
+    fillCut(first) {
+      const d = this.def, list = this.mix || d.pool, used = new Set(this.list().map((b) => this.slotOf(b)));
+      let n = 0;
+      d.slots.forEach(([x, z], k) => {
+        if (used.has(k)) return;
+        const shape = this.pick(list), b = this.add(shape, [x, d.hang - SHAPES[shape]().size[1] / 2, z], CP.qaxis(0, 1, 0, (this.rand() - 0.5) * 0.3));
+        this.W.nap(b, this.W.centroid(b)); b.pin = true; n++;
+      });
+      if (!first && n) this.restocked = n;
+      return n;
+    }
+    slotOf(b) { const c = this.W.centroid(b); let k = -1, best = 3; this.def.slots.forEach(([x, z], i) => { const dd = Math.hypot(c[0] - x, c[2] - z); if (dd < best) { best = dd; k = i; } }); return k; }
+    // ① ② の ボタン（a: ①・b: ②。おしつづける あいだ うごく）。tap: みじかく おした（1cm だけ）
+    hold(a, b) { if (this.type === "barber") { this.rig.b1 = !!a; this.rig.b2 = !!b; } }
+    tap(k) {
+      if (this.type !== "barber") return;
+      const R = this.rig, C = this.def.cut;
+      if (k === 1 && this.phase === "right") { R.used1 = true; R.x = Math.min(C.lim[1], R.x + 1); }
+      else if (k === 2 && (this.phase === "right" || this.phase === "back")) { if (this.phase === "right") this.go("back"); R.used2 = true; R.z = Math.min(C.lim[3], R.z + 1); }
+    }
+    snip() { if (this.phase !== "right" && this.phase !== "back") return; this.rig.used1 = this.rig.used2 = true; this.go("snip"); this.events.push({ e: "checkpoint" }); }
+    // ちょきん: はの あいだの ひもは きれる・おしい ひもは ほつれる
+    cutNow() {
+      const R = this.rig, C = this.def.cut, cut = [], near = [];
+      for (const b of this.list()) {
+        if (!b.pin) continue;
+        const c = this.W.centroid(b), dx = Math.abs(R.x - c[0]), dz = c[2] - R.z, f = R.fray[b.data.sid] || 0, tol = this.sharp ? C.tol[2] : C.tol[f];
+        if (dx <= tol && dz >= -C.back && dz <= C.blade) cut.push(b);
+        else if (dx <= C.near && dz >= -C.back - 1.5 && dz <= C.blade + 2.5) near.push(b);
+      }
+      for (const b of cut) { b.pin = false; this.W.wake(b); b.data.cut = true; delete R.fray[b.data.sid]; this.cutSlots.push(this.def.slots[this.slotOf(b)]); this.events.push({ e: "cut", sid: b.data.sid }); }
+      for (const b of near) { R.fray[b.data.sid] = Math.min(2, (R.fray[b.data.sid] || 0) + 1); this.events.push({ e: "fray", sid: b.data.sid, n: R.fray[b.data.sid] }); }
+      if (!cut.length) this.events.push({ e: near.length ? "near" : "snipmiss" });
+      this.lastCut = { cut: cut.length, near: near.length };
+      this.go(cut.length ? "fall" : "return");
+    }
+    // やめられる とき（なにも して いない とき）。なまえは idle に しない（プッシャー・おかし ロードの this.idle は まつ じかんの かず）
+    canLeave() {
+      const ph = this.phase;
+      return ph === "move" || ph === "spin" || ph === "swing" || ph === "sweep" || (ph === "play" && !this.list().some((b) => b.data.fresh)) || (ph === "right" && !this.rig.used1 && !this.rig.b1 && !this.rig.b2);
     }
     // まわる 台の おかしが へったら 上から たす（おみせの 人の ほじゅう）
     refillTable() {
@@ -749,6 +919,8 @@ const CraneMachines = (() => {
       if (clawy(this.type)) Object.assign(o, { time: +this.time.toFixed(2), x: +R.x.toFixed(2), z: +R.z.toFixed(2), drop: this.phase !== "move", ...(this.hint ? { hint: this.hint.slice() } : {}) });
       if (this.type === "tripod") o.stops = this.stops;
       if (this.type === "sweet") o.scoops = this.scoops;
+      // バーバーカット: ちょきんの あとは その ばしょから もういちど（おなじ けっか）
+      if (this.type === "barber") Object.assign(o, { time: +this.time.toFixed(2), x: +R.x.toFixed(2), z: +R.z.toFixed(2), snip: this.phase === "snip" || this.phase === "fall" || this.phase === "return" });
       // おかし ロード: のこりの かず・ランプ・ひかりの ばしょ・ベルトが うごいて いる とちゅう（れつと のこりの ながさ。つづきでは のこりを うごかす）
       if (this.type === "road") Object.assign(o, { stops: this.stops, lit: this.lit.slice(), p: +R.pos.toFixed(2), ...(this.phase === "run" && R.busy() ? { lane: R.lane, left: +R.left.toFixed(2) } : {}), mid: this.phase !== "sweep" });
       // プッシャー: まだ おちて いる とちゅうの メダルは のこりに もどす・スロットの あたりは まだ ふって いない ぶんも
@@ -762,6 +934,11 @@ const CraneMachines = (() => {
         this.time = clamp(+cp.time || 0, 0, this.def.moveTime); const R = this.rig; R.load({ x: +cp.x || R.x, z: +cp.z || R.z });
         if (this.def.bars && Array.isArray(cp.hint) && cp.hint.length === 2 && cp.hint.every(Number.isFinite)) this.hint = cp.hint.slice();
         if (cp.drop) { this.go("stop"); this.events.push({ e: "replay" }); } // おりる とちゅうだった → もういちど おろす
+      }
+      if (this.type === "barber") {
+        const C = this.def.cut, R = this.rig; this.time = clamp(+cp.time || 0, 0, this.def.moveTime);
+        R.x = clamp(Number.isFinite(+cp.x) ? +cp.x : C.start[0], C.lim[0], C.lim[1]); R.z = clamp(Number.isFinite(+cp.z) ? +cp.z : C.start[1], C.lim[2], C.lim[3]);
+        if (cp.snip) { R.used1 = R.used2 = true; this.go("snip"); this.events.push({ e: "replay" }); }
       }
       if (this.type === "tripod") this.stops = clamp(cp.stops | 0, 0, 3);
       if (this.type === "sweet") this.scoops = clamp(cp.scoops | 0, 0, 3);
@@ -786,14 +963,18 @@ const CraneMachines = (() => {
       else if (this.type === "tripod") this.tripodTick();
       else if (this.type === "pusher") this.pusherTick();
       else if (this.type === "road") this.roadTick();
+      else if (this.type === "barber") this.barberTick();
       else this.sweetTick();
       this.W.step(DT);
+      if (this.def.plate) this.scanHoles(true);
       // プッシャーの メダルは ふちを こえた ときに かぞえて いる（ここでは けすだけ）
       for (const ev of this.W.events.splice(0)) if (ev.e === "out") { if (ev.b.data.fell) this.bodies = this.bodies.filter((x) => x !== ev.b); else this.collect(ev.b); }
     }
     // おとしぐちに おちた（とれた）
     collect(b) {
       const d = this.def;
+      // たこやきの だまが とりだしぐちに おちた（けいひんでは ない。つぎの 1かいの はじめに おみせの 人が やまへ もどす）
+      if (b.data.ball) { this.bodies = this.bodies.filter((x) => x !== b); return; }
       this.got.push(b.data.sid); this.gotShapes.push(b.data.shape); this.events.push({ e: "got", sid: b.data.sid, look: b.data.look, shape: b.data.shape }); this.bodies = this.bodies.filter((x) => x !== b);
       if (d.got === "win" && this.type !== "tripod" && this.phase !== "done") this.won = true;
       if (this.type === "tripod") this.won = true;
@@ -828,7 +1009,8 @@ const CraneMachines = (() => {
       else if (ph === "open") { if (this.pt > 0.55) this.go("down"); }
       else if (ph === "down") {
         R.y -= 15 * DT;
-        const landed = this.pt > 0.3 && (R.push() > 1.2 || R.tipY() < 0.9);
+        // たこやき: かるい だまの やまには もぐって ゆかまで（だまを かかえこむ）
+        const landed = this.pt > 0.3 && ((!d.plate && R.push() > 1.2) || R.tipY() < 0.9);
         if (landed || R.y <= d.minY) { R.y = Math.max(R.y, d.minY); this.go("close"); }
       } else if (ph === "close") {
         R.mode = "close";
@@ -838,7 +1020,7 @@ const CraneMachines = (() => {
         R.y = Math.min(d.top, R.y + 12 * DT);
         // はしわたしの アームは もちあげると すぐ ゆるむ（はこの はしが すこし あがって、ずれて おちる）
         if (d.slip && R.mode === "close" && R.y > this.closeY + d.slip.after) { R.loose = d.slip.open * D2R; R.mode = "loose"; this.events.push({ e: "loose" }); }
-        if (R.y >= d.top) { if (!this.strong && this.type === "claw") { R.loose = 13 * D2R; R.mode = "loose"; this.events.push({ e: "loose" }); } this.go("top"); }
+        if (R.y >= d.top) { if (!this.strong && this.type === "claw") { R.loose = 13 * D2R; R.mode = "loose"; this.events.push({ e: "loose" }); } if (R.fullLim) R.o.lim = R.fullLim; this.go("top"); }
       } else if (ph === "top") { if (this.pt > 0.55) this.go("carry"); }
       else if (ph === "carry") {
         const dx = d.home.x - R.x, dz = d.home.z - R.z, dist = Math.hypot(dx, dz), sp = Math.min(15, dist * 3);
@@ -846,8 +1028,31 @@ const CraneMachines = (() => {
         if (dist < 0.15 && Math.abs(R.vx) + Math.abs(R.vz) < 0.2) { R.tvx = R.tvz = 0; this.go("release"); R.mode = "release"; }
       } else if (ph === "release") { if (this.pt > 1.3) { R.mode = "rest"; if (d.tower) this.wakeAll(); this.go("settle"); } }
       else if (ph === "settle") {
-        const calm = this.W.B.every((b) => !b.alive || b.sleep);
-        if ((calm && this.pt > 0.8) || this.pt > 3.5) this.finish();
+        // たこやき: だまが ぜんぶ とまって、おちて くる けいひんが とりだしぐちに はいるまで
+        const calm = this.W.B.every((b) => !b.alive || b.sleep), gift = this.list().some((b) => b.data.gift);
+        if ((calm && !gift && this.pt > 0.8) || this.pt > (d.plate ? 12 : 3.5)) this.finish();
+      }
+    }
+    // バーバーカット: right（①で みぎへ）→ back（②で おくへ）→ snip（ちょきん）→ fall（きれた はこが すべって とりだしぐちへ）→ return（ハサミが もどる）
+    barberTick() {
+      const R = this.rig, C = this.def.cut, ph = this.phase;
+      if (ph === "right" || ph === "back") { this.time = Math.max(0, this.time - DT); if (this.time <= 0) { this.events.push({ e: "timeup" }); this.snip(); return; } }
+      if (ph === "right") {
+        if (R.b1) { R.used1 = true; R.x = Math.min(C.lim[1], R.x + C.speed * DT); if (R.x >= C.lim[1]) this.go("back"); }
+        else if (R.used1 || R.b2) this.go("back");
+      } else if (ph === "back") {
+        if (R.b2) { R.used2 = true; R.z = Math.min(C.lim[3], R.z + C.speed * DT); if (R.z >= C.lim[3]) this.snip(); }
+        else if (R.used2) this.snip();
+      } else if (ph === "snip") { R.open = Math.max(0, 1 - this.pt / 0.25); if (this.pt >= 0.3) this.cutNow(); }
+      else if (ph === "fall") {
+        // すべりだいで とまった はこは おみせの 人が とりだしぐちへ（ひもは きれたので もらえる）
+        const left = this.list().filter((b) => b.data.cut);
+        if (!left.length && this.pt > 0.6) this.go("return");
+        else if (this.pt > 6) { for (const b of left) { this.W.remove(b); this.collect(b); } this.go("return"); }
+      } else if (ph === "return") {
+        if (!this.retFrom) this.retFrom = [R.x, R.z];
+        const k = ease(this.pt / 1.2); R.open = Math.min(1, this.pt / 0.5); R.x = mix(this.retFrom[0], C.start[0], k); R.z = mix(this.retFrom[1], C.start[1], k);
+        if (this.pt >= 1.3) { this.retFrom = null; this.finish(); }
       }
     }
     tripodTick() {

@@ -156,7 +156,8 @@ const GachaForest = (() => {
 
   // ---- 4F（ガチャガチャの もり）の 配置。28×22 マス（ほかの 階と おなじ）。南東の すみに 3F から のぼって くる エスカレーター（ふきぬけ）----
   // きたの かべに 9台（ばんごう 0〜8）・にしの かべに 9台（9〜17）。まんなかに おおきな もりの き・きのこの いす・おおきな カプセル・どうぶつの オブジェ。
-  // ・きたの ひがし（もりの ひろば・x 14〜27）は シールの ガチャ（きたの かべ 16〜18・js/sticker-book.js の patch4）と あとで ふえる クレーンゲームの ばしょ。
+  // ・きたの ひがしの かべ（x 14〜27）は シールの ガチャ（16〜18・js/sticker-book.js の patch4）と クレーンゲーム 3台（20〜25。たこやき・バーバーカット・バウンドボール。UI-54）。
+  //   その まえ（y 4〜10）の くさはらが もりの ひろば（きのこの いす・きりかぶの ベンチ）。
   // ・3F の エスカレーターは 南東の すみ（IkeArcade.ESC4）。1F→2F と おなじ ひがしの ばしょ だと 3F の おめかし コーナー・おかし タワーが 4F の ゆかの ふちに かくれる（tools/check-ikebukuro.mjs）。
   const ESC = IkeArcade.ESC4;
   const floor4 = () => {
@@ -171,10 +172,13 @@ const GachaForest = (() => {
     list.slice(0, 9).forEach((si, i) => fixtures.push({ kind: "gacha", x: 1 + i, y: 0, w: 1, h: 1, dir: "y", variant: si, series: si, height: 112, label: i === 0 ? "もりの ガチャ" : "", action: "gacha", spots: [[1 + i, 1]] }));
     list.slice(9, 18).forEach((si, i) => fixtures.push({ kind: "gacha", x: 0, y: 4 + i, w: 1, h: 1, dir: "x", variant: si, series: si, height: 112, label: i === 0 ? "もりの ガチャ" : "", action: "gacha", spots: [[1, 4 + i]] }));
     // もりの あんない（きたの かべ。いたの 絵は 4F に「いま ここ」）
-    fixtures.push({ kind: "directory", variant: "forest", here: "4F", x: 10, y: 0, w: 3, h: 1, dir: "y", height: 176, label: "もりの あんない", action: "info", text: "ガチャガチャの もり（4F）\nきたの かべ: まちぼうけ・スクイーズ・ポーチ・めじるし アクセサリー\nにしの かべ: ミニチュア・しょくひん サンプル・おしり・かぶりもの・がっき・ぶんぼうぐ・もりの なかま・きのこ\n1かい 200コイン。どれが でるかは カプセルを あけて からの おたのしみ！", spots: [[11, 1], [10, 1], [12, 1]] });
-    // もりの ひろば（きたの ひがし）: おおきな き 3ぼん・きりかぶの ベンチ・しげみ（あとで クレーンの ばしょ）
-    fixtures.push({ kind: "ftree", x: 14, y: 0, w: 2, h: 2, height: 300, variant: 0 }, { kind: "ftree", x: 20, y: 0, w: 2, h: 2, height: 280, variant: 1 }, { kind: "ftree", x: 25, y: 0, w: 2, h: 2, height: 300, variant: 3 });
-    fixtures.push({ kind: "fstump", x: 22, y: 1, w: 2, h: 1, height: 40, label: "きりかぶの ベンチ", action: "sit", text: "きりかぶの ベンチで ひとやすみ。もりの においが するね。", spots: [[22, 2], [23, 2]] }); // き の あいだの 16〜18 は シールの ガチャ
+    fixtures.push({ kind: "directory", variant: "forest", here: "4F", x: 10, y: 0, w: 3, h: 1, dir: "y", height: 176, label: "もりの あんない", action: "info", text: "ガチャガチャの もり（4F）\nきたの かべ: まちぼうけ・スクイーズ・ポーチ・めじるし アクセサリー\nにしの かべ: ミニチュア・しょくひん サンプル・おしり・かぶりもの・がっき・ぶんぼうぐ・もりの なかま・きのこ\nきたの ひがし: クレーンゲーム 3だい（たこやき・バーバーカット・バウンドボール。1かい 100コイン）\nガチャは 1かい 200コイン。どれが でるかは カプセルを あけて からの おたのしみ！", spots: [[11, 1], [10, 1], [12, 1]] });
+    // きたの ひがしの かべ: おおきな き（14）・シールの ガチャ（16〜18）・クレーンゲーム 3台（20〜25。台の ばんごうは CraneMachines.DEFS の id から）。
+    // クレーンは せが たかいので シールの ガチャ との あいだを 1マス あける（すぐ よこだと 18 の ガチャが かくれる）。みぎの すみ（26〜27）は ひくい しげみ
+    fixtures.push({ kind: "ftree", x: 14, y: 0, w: 2, h: 2, height: 300, variant: 0 });
+    ["tako", "barber", "bound"].forEach((id, k) => { const i = CraneMachines.DEFS.findIndex((d) => d.id === id); if (i >= 0) IkeArcade.crane(fixtures, i, 20 + k * 2, 0, "y"); });
+    for (const [x, y] of [[26, 0], [27, 1]]) fixtures.push({ kind: "fbush", x, y, w: 1, h: 1, height: 52 });
+    // もりの ひろば（くさはら）: きりかぶの ベンチ・しげみ
     fixtures.push({ kind: "fstump", x: 24, y: 6, w: 2, h: 1, height: 40, label: "きりかぶの ベンチ", action: "sit", text: "きりかぶの ベンチで ひとやすみ。とった カプセルを あけて みよう。", spots: [[24, 7], [25, 7], [24, 5], [25, 5]] });
     for (const [x, y] of [[24, 4], [27, 8], [23, 9]]) fixtures.push({ kind: "fbush", x, y, w: 1, h: 1, height: 52 });
     // まんなか: おおきな もりの き・きのこの いす・どうぶつの オブジェ
@@ -203,7 +207,8 @@ const GachaForest = (() => {
       zones: [
         { x: 1, y: 0, w: 9, h: 2, shop: "arcForestN", label: "もりの ガチャ（きた）", map: "ガチャ きた" }, { x: 0, y: 4, w: 2, h: 9, shop: "arcForestW", label: "もりの ガチャ（にし）", map: "ガチャ にし" },
         { x: 10, y: 0, w: 3, h: 2, shop: "arcForestInfo", label: "もりの あんない", map: "あんない" }, { x: 6, y: 6, w: 3, h: 3, shop: "arcForestTree", label: "もりの き", map: "もりの き" },
-        { x: 14, y: 0, w: 14, h: 3, shop: "arcForestRest", label: "もりの ひろば", map: "ひろば" }, { x: 15, y: 14, w: 4, h: 4, shop: "arcForestCap", label: "おおきな カプセル", map: "カプセル" },
+        { x: 20, y: 0, w: 6, h: 3, shop: "arcForestCrane", label: "クレーンゲーム", map: "クレーン" }, { x: 14, y: 4, w: 14, h: 7, shop: "arcForestRest", label: "もりの ひろば", map: "ひろば" },
+        { x: 15, y: 14, w: 4, h: 4, shop: "arcForestCap", label: "おおきな カプセル", map: "カプセル" },
       ],
       walls: {
         north: [{ kind: "neon", from: 0.5, to: 9.5, z: 300, size: 32, text: "ガチャガチャの もり", col: "#9ED36A" }, { kind: "sign", from: 10, to: 13, z: 236, text: "4F", col: "#F6E7C8" }, { kind: "neon", from: 13.6, to: 27.4, z: 300, size: 30, text: "もりの ひろば", col: "#F7D774" }],
@@ -226,6 +231,7 @@ const GachaForest = (() => {
     Object.assign(MallArt.SHOP, {
       arcForestN: { name: "もりの ガチャ", c: ["#DDEFC8", "#B9DCA0", "#86B86A"] }, arcForestW: { name: "もりの ガチャ", c: ["#E6F2D2", "#C3E0A8", "#8FC173"] },
       arcForestInfo: { name: "あんない", c: ["#FFF3C4", "#FFE07A", "#E0B640"] }, arcForestTree: { name: "もりの き", c: ["#D7E9C6", "#A9CF8C", "#6FA85A"] }, arcForestRest: { name: "ひろば", c: ["#F2E3CF", "#E1C7A6", "#C9A27A"] },
+      arcForestCrane: { name: "クレーン", c: ["#FFE2C4", "#F7B98A", "#E08A54"] },
       arcForestCap: { name: "カプセル", c: ["#FBD3E6", "#F7A9C8", "#E07AA6"] },
     });
   };

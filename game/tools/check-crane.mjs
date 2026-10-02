@@ -1,5 +1,5 @@
 // クレーンゲーム（crane-physics.js・crane-machines.js・crane-scene.js・snack-art.js・bridge-prizes.js）の 検査。ブラウザ なしで 物理を うごかす。
-// 21台（1F 12台・2F の おかし キャッチャー 5台・はしわたし 2台・3F の ぼうで おす 台と おかし タワー）が こわれない・日がわりの けいひん（1F 7台・2F 7台。まいにち かわる・ぜんぶ でる・台の ようすは その日だけ・keep の 台は とれるまで そのまま）・1F の けいひん 54しゅ（UI-16 で 36しゅ ふえた）・ちゃんと ねらえば とれる・よわい アームは たいてい はずれる・トライポッド／スウィートランド／リング／コイン プッシャー／はしわたしの しくみ・
+// 24台（1F 12台・2F の おかし キャッチャー 5台・はしわたし 2台・3F の おかし ロードと おかし タワー・4F の たこやき・バーバーカット・バウンドボール）が こわれない・日がわりの けいひん（1F 7台・2F 7台。まいにち かわる・ぜんぶ でる・台の ようすは その日だけ・keep の 台は とれるまで そのまま）・1F の けいひん 54しゅ（UI-16 で 36しゅ ふえた）・ちゃんと ねらえば とれる・よわい アームは たいてい はずれる・トライポッド／スウィートランド／リング／コイン プッシャー／はしわたしの しくみ・
 // セーブと つづきから（台の id・いれかわった 台の ふるい セーブ）・100コインと ごほうびは 1かいだけ・形ごとの 景品・コインの 景品と 1にちの 上限・
 // おなじ たねは おなじ けっか・画面の ことば・SvgCache の キー。
 import assert from "node:assert/strict";
@@ -20,11 +20,11 @@ const aimAndGrab = (r, k, dx = 0, dz = 0) => {
   return r;
 };
 
-// ---- 1. 21台（1F 12台・2F 7台・3F 2台）: 7しゅるい（コイン プッシャーは 1台）・こわれない・台の 中・おもすぎない ----
-ok(PA.machines.length === 21 && CM.DEFS.length === 21, "クレーンは 21台");
-for (const [t, min] of [["claw", 2], ["sweet", 1], ["tripod", 2], ["ring", 2], ["pusher", 1], ["bridge", 2], ["road", 1]]) ok(PA.machines.filter((m) => m.type === t).length >= min && CM.DEFS.filter((d) => d.type === t).length === PA.machines.filter((m) => m.type === t).length, `${t} は ${min}台 いじょう`);
+// ---- 1. 24台（1F 12台・2F 7台・3F 2台・4F 3台）: 10しゅるい（コイン プッシャーは 1台）・こわれない・台の 中・おもすぎない。4F の 3台の くわしい 検査は tools/check-crane-4f.mjs ----
+ok(PA.machines.length === 24 && CM.DEFS.length === 24, "クレーンは 24台");
+for (const [t, min] of [["claw", 2], ["sweet", 1], ["tripod", 2], ["ring", 2], ["pusher", 1], ["bridge", 2], ["road", 1], ["tako", 1], ["barber", 1], ["bound", 1]]) ok(PA.machines.filter((m) => m.type === t).length >= min && CM.DEFS.filter((d) => d.type === t).length === PA.machines.filter((m) => m.type === t).length, `${t} は ${min}台 いじょう`);
 ok(PA.machines.filter((m) => m.type === "pusher").length === 1 && PA.machines[3].type === "pusher" && CM.DEFS[3].id === "pusher", "コイン プッシャーは 台 3");
-ok(new Set(CM.DEFS.map((d) => d.id)).size === 21 && PA.machines.every((m, i) => m.id === CM.DEFS[i].id), "台の id が ない・かさなる・PrizeArcade と ちがう");
+ok(new Set(CM.DEFS.map((d) => d.id)).size === 24 && PA.machines.every((m, i) => m.id === CM.DEFS[i].id), "台の id が ない・かさなる・PrizeArcade と ちがう");
 ok([1, 4, 6].every((i) => CM.DEFS[i].legacy && PA.machines[i].legacy) && CM.DEFS.filter((d) => d.legacy).length === 3, "まえの 8台と おなじ 台は 1・4・6");
 PA.machines.forEach((m, i) => {
   ok(CM.DEFS[i].type === m.type, `台 ${i}: PrizeArcade と CraneMachines の しゅるいが ちがう`); ok(m.qty >= 1, `台 ${i}: qty`);
@@ -183,12 +183,12 @@ for (let i = 0; i < CM.DEFS.length; i++) {
   const g1 = new CM.CraneRound(1, null, { seed: 4 }).board(); delete g1.id; const g1b = new CM.CraneRound(1, g1, { seed: 4 }); ok(g1b.list().length === 1 && g1b.list()[0].data.shape === "goji", "まえと おなじ 台（ごじ）の ふるい ようすが つかえない");
 }
 
-// ---- 6b. 日がわりの 台（1F 7台・2F 7台）: けいひんは pool から pick しゅ・台の ようすは その日だけ（keep の 台は とれるまで そのまま）・とちゅうの 1かいは はじめた 日の まま ----
+// ---- 6b. 日がわりの 台（1F 7台・2F 7台・3F 2台・4F 3台）: けいひんは pool から pick しゅ・台の ようすは その日だけ（keep の 台は とれるまで そのまま）・とちゅうの 1かいは はじめた 日の まま ----
 {
   const days = Array.from({ length: 400 }, (_, n) => { const t = new Date(Date.UTC(2026, 8, 1) + n * 86400000); return `${t.getUTCFullYear()}-${t.getUTCMonth() + 1}-${t.getUTCDate()}`; });
   const daily = CM.DEFS.map((d, i) => [d, i]).filter(([d]) => d.pool);
   const F1 = [0, 2, 5, 8, 9, 10, 11];
-  ok(daily.length === 16 && daily.every(([d, i]) => (i >= 12 || F1.includes(i)) && PA.machines[i].daily) && PA.machines.filter((m) => m.daily).length === 16, "日がわりの 台は 1F の 7台・2F の 7台（おかし 5・はしわたし 2）・3F の 2台");
+  ok(daily.length === 19 && daily.every(([d, i]) => (i >= 12 || F1.includes(i)) && PA.machines[i].daily) && PA.machines.filter((m) => m.daily).length === 19, "日がわりの 台は 1F の 7台・2F の 7台（おかし 5・はしわたし 2）・3F の 2台・4F の 3台");
   ok([1, 3, 4, 6, 7].every((i) => !CM.DEFS[i].pool && !PA.machines[i].daily), "1F の legacy の 3台（ごじ・わんこ・がちゃん）と コインの 2台は 日がわりに しない");
   ok(JSON.stringify(F1.map((i) => [CM.DEFS[i].pool.length, CM.DEFS[i].pick])) === JSON.stringify([[8, 4], [10, 3], [6, 1], [8, 4], [8, 4], [9, 1], [5, 3]]), "1F の 日がわりの かず（3人 8→4・ミニ 10→3・どうぶつえん 6→1・ビッグ 9→1・みずべ 5→3）");
   ok(CM.DEFS.filter((d) => d.keep).map((d) => d.id).join() === "panda-big,hashi-fig,hashi-goods", "keep の 台は トライポッドの どうぶつえん と はしわたし 2台");
@@ -214,7 +214,8 @@ for (let i = 0; i < CM.DEFS.length; i++) {
       ok(won.day === next && JSON.stringify(won.mix) === JSON.stringify(want) && won.list().length >= 1 && won.list().every((b) => want.includes(b.data.shape)), `${d.id}: とれた つぎの 日も きのうの けいひん`);
       ok(new CM.CraneRound(i, { ...bd, b: [] }, { day: DAY }).list().length >= 1, `${d.id}: とれた あと あたらしい けいひんが のらない`);
     // （おかし タワーの ペラわの はこ pera_<おかし> は tower_<おかし> と おなじ けいひん）
-    } else ok(r2.day === next && JSON.stringify(r2.mix) === JSON.stringify(want) && r2.list().every((b) => want.includes(b.data.shape.replace(/^pera_/, "tower_"))), `${d.id}: つぎの 日に きのうの けいひんが のこる`);
+    // （たこやきの ピンポンだまは けいひんでは ない）
+    } else ok(r2.day === next && JSON.stringify(r2.mix) === JSON.stringify(want) && r2.list().filter((b) => !b.data.ball).every((b) => want.includes(b.data.shape.replace(/^pera_/, "tower_"))), `${d.id}: つぎの 日に きのうの けいひんが のこる`);
     const cp = JSON.parse(JSON.stringify(r.snap())), r3 = new CM.CraneRound(i, cp.board, { cp, day: next });
     ok(cp.day === DAY && r3.day === DAY && JSON.stringify(r3.mix) === JSON.stringify(CM.lineup(d, DAY)) && r3.list().length === r.list().length, `${d.id}: とちゅうの 1かいが つぎの 日に かわる`);
   }
@@ -504,6 +505,7 @@ for (let i = 0; i < CM.DEFS.length; i++) {
   const keys = Object.keys(CA.TEX); ok(keys.length > 20 && keys.every((k) => /^[a-z]+(-[a-z0-9]+)+$/.test(k)), "テクスチャの キーは きまった なまえ だけ");
   for (const k of keys) { const s = CA.TEX[k](); ok(typeof s === "string" && s.startsWith("<svg") && !/undefined|NaN/.test(s), `テクスチャ ${k} の SVG`); }
   for (const d of CM.DEFS) { const th = CA.THEME[d.theme]; ok(th && CA.TEX[th.wall] && CA.TEX[th.floor], `台の テーマ ${d.theme}`); }
-  for (const s of Object.keys(CM.SHAPES)) { const S = CM.SHAPES[s](); ok(Object.keys(CA.TEX).some((k) => k.startsWith(S.look + "-")), `景品 ${s} の 絵（${S.look}）が ない`); }
+  // （たこやきの ピンポンだまは けいひんでは ない。画面で まるく 描く）
+  for (const s of Object.keys(CM.SHAPES)) { const S = CM.SHAPES[s](); if (S.ball) continue; ok(Object.keys(CA.TEX).some((k) => k.startsWith(S.look + "-")), `景品 ${s} の 絵（${S.look}）が ない`); }
 }
-console.log(`Crane: 21 machines (claw/2-claw/sweet/tripod/ring/coin pusher/bridge/treasure road; 7 daily machines on 1F, 5 daily snack catchers and 2 daily bridges on 2F, a 7-lane belt treasure road and a ring-hook snack tower on 3F, keep rule), 54 plush prizes (36 added), tripod refill after a win, coin/snack/boxed prizes, bridge technique/staff assist/tidy, daily lineups, physics outcomes, pusher medals/chance/slot/payout, road light/lamps/belts/restock, save/resume and machine ids, fees, rewards and coin cap, determinism, text — ${n} checks OK`);
+console.log(`Crane: 24 machines (claw/2-claw/sweet/tripod/ring/coin pusher/bridge/treasure road/takoyaki/barber cut/bound ball; 7 daily machines on 1F, 5 daily snack catchers and 2 daily bridges on 2F, a 7-lane belt treasure road and a ring-hook snack tower on 3F, keep rule), 54 plush prizes (36 added), tripod refill after a win, coin/snack/boxed prizes, bridge technique/staff assist/tidy, daily lineups, physics outcomes, pusher medals/chance/slot/payout, road light/lamps/belts/restock, save/resume and machine ids, fees, rewards and coin cap, determinism, text — ${n} checks OK`);

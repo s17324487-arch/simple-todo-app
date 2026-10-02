@@ -92,17 +92,16 @@ const StickerBook = (() => {
   const patch4 = (r) => {
     if (!r || r.fixtures.some((f) => f.kind === "gacha" && isSticker(f.series))) return;
     IDX.forEach((si, i) => r.fixtures.push({ kind: "gacha", x: 16 + i, y: 0, w: 1, h: 1, dir: "y", variant: si, series: si, height: 112, label: i === 0 ? "シールの ガチャ" : "", action: "gacha", spots: [[16 + i, 1]] }));
-    const z = r.zones.findIndex((q) => q.shop === "arcForestRest");
-    if (z >= 0) r.zones.splice(z, 1, { x: 15, y: 0, w: 5, h: 3, shop: "arcForestSticker", label: "シールの ガチャ", map: "シール" }, { x: 20, y: 0, w: 8, h: 3, shop: "arcForestRest", label: "もりの ひろば", map: "ひろば" });
-    r.walls.north.push({ kind: "sign", from: 15.4, to: 19.6, z: 158, text: "シール 100コイン", col: "#FFD9E6" }); // き の はっぱ（z 180 より うえ）に かくれない ように 台の すぐ うえ
+    r.zones.push({ x: 15, y: 0, w: 4, h: 3, shop: "arcForestSticker", label: "シールの ガチャ", map: "シール" }); // みぎの 20〜25 は クレーン 3台（js/gacha-forest.js）
+    r.walls.north.push({ kind: "sign", from: 15.2, to: 18.8, z: 158, text: "シール 100コイン", col: "#FFD9E6" }); // き の はっぱ（z 180 より うえ）に かくれない ように 台の すぐ うえ
     const dir = r.fixtures.find((f) => f.kind === "directory");
-    if (dir && !/シール/.test(dir.text)) dir.text = dir.text.replace("\n1かい 200コイン。", "\nもりの ひろば: シールの ガチャ（1かい 100コイン・シールちょうに はれる）\nほかは 1かい 200コイン。");
+    if (dir && !/シール/.test(dir.text)) dir.text = dir.text.replace("\nガチャは 1かい 200コイン。", "\nシールの ガチャ（きたの かべ）: 1かい 100コイン・シールちょうに はれる\nほかの ガチャは 1かい 200コイン。");
   };
   const install = () => {
     const def = typeof VenueHalls !== "undefined" ? VenueHalls.defs.arcade : null;
     if (def && def.floors && def.floors[4]) patch4(def.floors[4]);
     if (typeof MallArt !== "undefined") MallArt.SHOP.arcForestSticker = { name: "シール", c: ["#FFE3EE", "#F7B7CF", "#E58CB0"] };
-    if (def && def.floors && def.floors[1]) { const d1 = def.floors[1].fixtures.find((f) => f.kind === "directory"); if (d1) d1.text = d1.text.replace("（ガチャ 18だい）", "（ガチャ 18だい・シールの ガチャ 3だい）"); }
+    if (def && def.floors && def.floors[1]) { const d1 = def.floors[1].fixtures.find((f) => f.kind === "directory"); if (d1) d1.text = d1.text.replace("（ガチャ 18だい", "（ガチャ 18だい・シールの ガチャ 3だい"); }
   };
   install();
 

@@ -1088,6 +1088,10 @@ html, body {
 .crane-acts{flex:1;display:flex;gap:8px;justify-content:center}
 .crane-go{min-width:96px;min-height:96px;width:96px;height:96px;border-radius:50%;border:3px solid #1F1D1B;background:radial-gradient(circle at 35% 30%,#B8F08A,#57B83C);font-size:18px;font-weight:900;color:#1F1D1B;box-shadow:0 5px 0 #1F1D1B;padding:0}
 .crane-go2{background:radial-gradient(circle at 35% 30%,#FFD7A0,#F29A3C)}
+/* バーバーカット（4F・UI-54）の ① ② の ボタン（おしつづける） */
+.crane-cut{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.05}
+.crane-cut b{font-size:30px;font-weight:900}.crane-cut span{font-size:14px;font-weight:900}
+.crane-cut.on{transform:translateY(3px);box-shadow:0 2px 0 #1F1D1B;filter:brightness(1.08);animation:none}
 .crane-go.ready{animation:crane-pulse 1.1s ease-in-out infinite}
 .crane-go:disabled{filter:grayscale(.8) brightness(1.05);opacity:.6;animation:none}
 .crane-go:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 #1F1D1B}

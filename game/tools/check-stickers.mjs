@@ -120,20 +120,20 @@ ok(S.d.stickers && typeof S.d.stickers.have === "object" && typeof S.d.stickers.
   ok(st.length === 3 && st.map((f) => [f.x, f.y, f.dir, f.series].join()).join(";") === "16,0,y,30;17,0,y,31;18,0,y,32" && st.every((f) => f.w === 1 && f.h === 1 && f.variant === f.series && f.action === "gacha" && f.spots.length === 1 && f.spots[0][0] === f.x && f.spots[0][1] === 1), "4F の きたの かべ（16〜18）に シールの 台 3つ");
   ok(st[0].label === "シールの ガチャ" && ![1, 2, 3].some((k) => fl[k].fixtures.some((f) => f.kind === "gacha" && SB.isSticker(f.series))), "シールの 台は 4F だけ");
   const bench = f4.fixtures.filter((f) => f.kind === "fstump"), solid = f4.fixtures.filter((f) => !f.over && !f.walk && f.kind !== "hangsign" && f.kind !== "escalator");
-  ok(bench.some((f) => f.x === 22 && f.y === 1) && !bench.some((f) => f.x === 17 && f.y === 1), "きりかぶの ベンチは ひがしへ（22,1）");
+  ok(!bench.some((f) => f.y <= 1 && f.x >= 15 && f.x <= 18), "シールの ガチャの まえに きりかぶの ベンチが ない（ベンチは もりの ひろば）");
   for (const a of st) for (const b of solid) if (a !== b) ok(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y, `シールの 台（${a.x},${a.y}）と ${b.kind}（${b.x},${b.y}）が かさなる`);
   const walk = (r, [x, y]) => x >= 0 && y >= 0 && x < r.w && y < r.h && !I.solidAt(r, x, y) && !r.fixtures.some((f) => !f.walk && !f.over && f.kind !== "hangsign" && x >= f.x && x < f.x + f.w && y >= f.y && y < f.y + f.h);
   const reach = (r, from) => { const seen = new Set([from.join()]), q = [from]; while (q.length) { const [x, y] = q.shift(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const p = [x + dx, y + dy], k = p.join(); if (!seen.has(k) && walk(r, p)) { seen.add(k); q.push(p); } } } return seen; };
   const R4 = reach(f4, f4.spawn);
   for (const f of f4.fixtures.filter((f) => f.action && f.action !== "floor")) ok(f.spots.some((p) => walk(f4, p) && R4.has(p.join())), `4F の ${f.label || f.kind}（${f.x},${f.y}）の まえに たてる`);
   const z = f4.zones.find((q) => q.shop === "arcForestSticker"), rest = f4.zones.find((q) => q.shop === "arcForestRest");
-  ok(z && z.label === "シールの ガチャ" && z.map === "シール" && st.every((f) => f.x >= z.x && f.x < z.x + z.w && f.y >= z.y && f.y < z.y + z.h) && rest && rest.x >= z.x + z.w && R.MallArt.SHOP.arcForestSticker, "フロアマップの へや「シールの ガチャ」");
+  ok(z && z.label === "シールの ガチャ" && z.map === "シール" && st.every((f) => f.x >= z.x && f.x < z.x + z.w && f.y >= z.y && f.y < z.y + z.h) && rest && R.MallArt.SHOP.arcForestSticker, "フロアマップの へや「シールの ガチャ」");
   for (let i = 0; i < f4.zones.length; i++) for (let j = i + 1; j < f4.zones.length; j++) { const a = f4.zones[i], b = f4.zones[j]; ok(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y, `4F の へや ${a.label} と ${b.label} が かさなる`); }
   const places = R.MallGuide.places(f4).map((p) => p.label);
   ok(places.includes("シールの ガチャ") && places.includes("もりの ひろば"), "フロアマップに「シールの ガチャ」と「もりの ひろば」 " + places.join("・"));
   ok(f4.walls.north.some((w) => w.kind === "sign" && w.text === "シール 100コイン" && w.from >= 15 && w.to <= 20), "かべに「シール 100コイン」");
   const dir = f4.fixtures.find((f) => f.kind === "directory"), d1 = fl[1].fixtures.find((f) => f.kind === "directory");
-  ok(/シールの ガチャ（1かい 100コイン/.test(dir.text) && /ほかは 1かい 200コイン/.test(dir.text) && /シールの ガチャ 3だい/.test(d1.text), "もりの あんない・1F の あんないに シールの ガチャ");
+  ok(/シールの ガチャ（きたの かべ）: 1かい 100コイン/.test(dir.text) && /ほかの ガチャは 1かい 200コイン/.test(dir.text) && /シールの ガチャ 3だい/.test(d1.text), "もりの あんない・1F の あんないに シールの ガチャ");
   SB.patch4(f4); ok(f4.fixtures.filter((f) => f.kind === "gacha" && SB.isSticker(f.series)).length === 3 && f4.zones.filter((q) => q.shop === "arcForestSticker").length === 1, "patch4 を 2かい よんでも ふえない");
   // 館の 台の 絵（ハートの シール）・モデルの キー
   for (const f of st) { const m = R.ArcadeArt.model(f); ok(m && svgAny(m.svg) && m.svg.includes("#FF8FB0") && m.vb.h >= 112, `4F の シールの 台（${f.x},${f.y}）の 絵`); }
@@ -167,4 +167,4 @@ for (const f of ["../js/sticker-book.js", "../js/sticker-art.js"]) {
   const code = src.split("\n").map((l) => l.replace(/^\s*\/\/.*$/, "").replace(/\s\/\/ [^"`]*$/, "")).join("\n");
   for (const m of code.matchAll(/"([^"\n]*)"|`([^`\n]*)`/g)) { const t = (m[1] ?? m[2]).replace(/\$\{[^}]*\}/g, ""); ok(!kanji.test(t), `${f} の ことばに 漢字: ${t.slice(0, 40)}`); }
 }
-console.log(`Stickers (4F): 18 stickers in 3 textures (puffy/fluffy/glossy, 3 rare), 3 machines x 4 sheets (30-32, 100 coins, 4 stickers per sheet, not furniture/clothes, not sold), spin gives stickers, sticker book (6 pages x 24, put/move/rotate/resize/front/peel/paper, 99 cap), broken saves repaired, 4F north wall (16-18) reachable with the bench moved, floor map/walls/directories, SVG (no duplicate attributes/ids), smaho app, PokaDebug — ${n} checks OK`);
+console.log(`Stickers (4F): 18 stickers in 3 textures (puffy/fluffy/glossy, 3 rare), 3 machines x 4 sheets (30-32, 100 coins, 4 stickers per sheet, not furniture/clothes, not sold), spin gives stickers, sticker book (6 pages x 24, put/move/rotate/resize/front/peel/paper, 99 cap), broken saves repaired, 4F north wall (16-18) reachable with no bench in front, floor map/walls/directories, SVG (no duplicate attributes/ids), smaho app, PokaDebug — ${n} checks OK`);
