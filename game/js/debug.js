@@ -681,6 +681,16 @@ const PokaDebug = {
       Game.goto("venue", { venue: "mall", floor: fl, at: best ? [best[0], best[1]] : null, back: { map: "city", x: b.x + b.door, y: b.y + b.h, dir: "down" } }, "none");
       return { floor: fl, x: best && best[0], y: best && best[1] };
     }
+    // UI-42: はくぶつかんは 斜め上の 3かいだての 館（js/dino-museum.js。room は あたらしい へや。むかしの へやの 名前も うけつける）
+    if (id === "museum" && typeof DinoMuseum !== "undefined" && VenueHalls.defs.museum) {
+      const old = { entrance: "lobby", esc: "atrium", street: "street", hall: "hall", lab: "lab", eggs: "eggs", shop: "cafe" }, zid = old[room] || room || "lobby";
+      const fl = [3, 1, 2].find((k) => DinoMuseum.ZONES[k].some((z) => z.id === zid)); if (!fl) throw new Error("unknown room: " + room);
+      const z = DinoMuseum.ZONES[fl].find((q) => q.id === zid), r = VenueHalls.defs.museum.floors[fl], sc = new SCENES.venue(); sc.room = r; sc.fixtures = r.fixtures; let best = null;
+      for (let y = z.y; y < z.y + z.h; y++) for (let x = z.x; x < z.x + z.w; x++) if (sc.walkable(x, y)) { const d = Math.abs(x - (z.x + z.w / 2)) + Math.abs(y - (z.y + z.h - 2)); if (!best || d < best[2]) best = [x, y, d]; }
+      const o = MUSEUM_DATA.buildings.museum.outside; Game.trans = null;
+      Game.goto("venue", { venue: "museum", floor: fl, at: best ? [best[0], best[1]] : null, back: { map: "city", x: o.front[0], y: o.front[1], dir: "down" } }, "none");
+      return { floor: fl, x: best && best[0], y: best && best[1] };
+    }
     const b = Museum.building(id); if (!b) throw new Error("unknown museum: " + id);
     let x = b.arrive.x, y = b.arrive.y;
     if (room) {
@@ -703,6 +713,7 @@ const PokaDebug = {
   // ⑤ 館の 人に 話しかけて 寄贈の 画面へ（会話は テストが すすめる）。museumPick(key) → museumConfirm()
   museumDonate() {
     if (G.sceneName === "venue" && G.scene.room && G.scene.room.aqua) { const sc = G.scene, f = sc.fixtures.find((f) => f.action === "curator"); if (!f || sc.busy) return false; IkeAquarium.interact(sc, f); return true; }
+    if (G.sceneName === "venue" && G.scene.room && G.scene.room.museum) { const sc = G.scene, f = sc.fixtures.find((f) => f.action === "curator"); if (!f || sc.busy) return false; DinoMuseum.interact(sc, f); return true; }
     const sc = G.sceneName === "world" ? G.scene : null, n = sc && sc.map.def.indoor && sc.npcs.find((x) => x.role === "donate");
     if (!n || sc.busy) return false;
     sc.interact({ type: "npc", npc: n });
@@ -714,6 +725,10 @@ const PokaDebug = {
   // ⑤ 展示の 説明を ひらく（objId は "aq_flow"・"mu_trex"・"mu_f1" など）
   museumShow(objId) {
     const o = Museum.object(objId); if (!o) throw new Error("unknown exhibit: " + objId);
+    if (o.map === "museum" && typeof DinoMuseum !== "undefined" && VenueHalls.defs.museum) {
+      const all = [1, 2, 3].flatMap((fl) => VenueHalls.defs.museum.floors[fl].fixtures.map((f) => ({ f, fl }))), q = all.find((q) => q.f.obj === objId || (o.dino && q.f.dino === o.dino) || (o.info && q.f.info === o.info));
+      return !!(q ? DinoMuseum.show(q.f, q.fl) : o.info && DinoMuseum.card(o.info, 1));
+    }
     if (o.map === "aquarium" && typeof IkeAquarium !== "undefined") { const f = [12, 13].flatMap((fl) => VenueHalls.defs.mall.floors[fl].fixtures).find((f) => f.obj === objId && f.action === "tank"); return !!(f && IkeAquarium.show(f)); }
     return !!Museum.show(G.sceneName === "world" ? G.scene : null, o);
   },
@@ -728,6 +743,8 @@ const PokaDebug = {
   museumWear() { return typeof MuseumWear === "undefined" ? null : MuseumWear.state(); },
   // バーガーやさんの メニュー（タブ・食べ物の id）と にこにこ セットの おまけの おもちゃ（もって いる かず。js/burger-menu.js）
   burgerMenu() { return typeof BurgerMenu === "undefined" ? null : BurgerMenu.state(); },
+  // UI-42: はくぶつかんの ようす（階・へや・ほねの 台の 寄贈の かず と 絵が できたか・ロボット）
+  dinoHall() { return typeof DinoMuseum === "undefined" || G.sceneName !== "venue" ? null : DinoMuseum.state(G.scene); },
   museumState() { const st = Save.d.museum; return { fish: Object.keys(st.fish).length, bones: Object.keys(st.bones).length, done: Object.keys(st.done), rooms: Object.keys(st.rooms), intro: document.querySelector(".museum-intro")?.innerText || null }; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
   // ⑥ 射撃場: ロビーを とばして あそびを はじめる（ロックは むし・もどり先は シティの 入口の まえ）

@@ -157,6 +157,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
 | — | `nerikasu-layout.js`（nerikasu-town.js の あと） | `NerikasuLayout` |
 | — | `neri-shops.js`（nerikasu-layout.js の あと） | `NeriShops` |
+| — | `dino-museum.js` / `dino-hall-art.js`（ike-aquarium.js の あと・neri-bikkupo.js の まえ） | `DinoMuseum` ／ `DinoHallArt`（きょうりゅう はくぶつかんの 3かいだての 館・UI-42。`dino-hall-art.js` の さいごで `DinoMuseum.install()`） |
 | — | `neri-bikkupo.js`（ike-aquarium.js の あと） | `Bikkupo` |
 | — | `neri-gas.js`（neri-bikkupo.js の あと） | `GAS_FUELS`, `GAS_AMOUNTS`, `GAS_CARS`, `GAS_COLORS`, `gasCarSvg`, `GasTask`, `GasStand` |
 | — | `neri-post.js`（neri-gas.js の あと） | `POST_DESTS`, `POST_ICONS`, `postIcon`, `PostTask`, `PostOffice` |
@@ -1066,6 +1067,19 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 13F へは エレベーターが いかない（`noElevator`）。フロアマップで 13F を えらぶと、12F の かいだんを のぼった ところ から あるく。
 - みなとの 建物 `harbor_aquarium` は `act: { type: "visit" }` の おしらせ（12かいに おひっこし）。`WorldScene.prototype.enter` を つつみ、`map: "aquarium"` の セーブは 池袋の サンシャインいけぶの まえ に かえる（`MAP_DEFS.aquarium` は のこす）。みなとの 町の人の ことば `tf0381`（すいぞくかんが できて みなとが にぎやかに）は `TOWNSFOLK_DATA` が 自動生成なので install で「12かいへ おひっこし」に かえる。
 - PokaDebug: `museumGo("aquarium", へや)`（あたらしい へやの id。むかしの へやの 名前も うけつける）・`museumDonate()`・`museumShow(objId)`・`aquaTank(objId)`（`{ here, floor, fish }`）。
+
+## きょうりゅう はくぶつかん（UI-42・`js/dino-museum.js`・`js/dino-hall-art.js`）
+
+オーナーの FB 2026-10-02「博物館のつくりを、水族館レベルにクオリティアップしてくれ。内部の構造も実際の博物館を参考に」。福井県立恐竜博物館（3かいの 入口 → ながい エスカレーター → ドームの 恐竜の世界 → 2かいの 生命の歴史・ガラスごしの 化石クリーニング室）と 国立科学博物館 日本館（ふきぬけに つった フタバスズキリュウ）を 参考に した（出典は ROADMAP の UI-42）。
+
+読み込み順は `ike-aquarium.js` → `dino-museum.js` → `dino-hall-art.js`。`dino-hall-art.js` の さいごで `DinoMuseum.install()` が `VenueHalls.defs.museum`（`iso: true`・`art: DinoHallArt`・`guide: MallGuide`・`bgm: "museum"`・`start: 3`・`floors` 3／1／2）を つくる。
+
+- 順路: 3F（いりぐち ホール → ふきぬけの ひろば → ながい エスカレーター）→ 1F（かせきの みち → きょうりゅうの せかいの ドーム〔ほねの 台 10・うごく ティラノ〕→ ジュラき・もり・にほん → エスカレーター）→ 2F（いのちの れきし → ちきゅうの かがく → けんきゅうしつ → たまご → キッズ → かいだん）→ 3F（カフェ・やすみどころ・でぐち）。どの 階からも ほかの 2つの 階へ いける（フロアマップは エスカレーター・かいだんで いって あるく）。
+- へやは `DinoMuseum.ZONES[階]`（`room.zones` の `shop: "mu_" + id`・いろは `MallArt.SHOP`）。はじめて 入った へやの 案内は `Museum.showIntro`（キー `museum.mu<階>_<へや>` を `Save.d.museum.rooms` に）。
+- ほねの 台（`kind: "dinostand"`・`action: "stand"`・`obj: "mu_<恐竜>"`）は `DinoHallArt` の live で 台の 面に `FossilArt.svg(d, { have })` を 描く（キー `dinoskel:<恐竜>:<寄贈の ビット>:<はば>`・はばは `standW`）。寄贈で ビットが かわると、あたらしい 絵が できるまで まえの 絵（`f._img`）を 描く。しらべると `Museum.showStand`。
+- 説明は `DinoMuseum.INFO`（あたらしい 28）と `MUSEUM_DATA.info`。`DinoMuseum.card(key, 階)` が `.ex-card.rock.mu-card`（絵は `DinoHallArt.iconSvg`）。はかせ（2F の まどぐち `action: "curator"`）は `Museum.talk(n, { mapId: "museum", map: null })`。ロボット・かせきほり・さわれる かせきは `DinoMuseum.interact`（3人の ごきげん）。
+- 町の 入口: `Museum.enter` を つつみ、`act.map === "museum"` は `VenueHalls.enter("museum", 入口の まえ)`。`WorldScene.prototype.enter` を つつみ、`map: "museum"`（まえの 館・まえの セーブ）は 池袋の 入口の まえ（`MUSEUM_DATA.buildings.museum.outside.front`）に かえる。`MAP_DEFS.museum` は のこす。
+- 検査は `tools/check-dino-museum.mjs`（階の かたち・はんい・かさならない・とどく・階の つながり・へや・ことば・絵の NaN と id・ほねの 台・入口）。PokaDebug: `museumGo("museum", へや)`（まえの へやの 名前も うけつける）・`museumDonate()`・`museumShow(objId)`・`dinoHall()`。スモークは `tests/dino-museum-smoke.mjs`。
 
 ## すいぞくかん・はくぶつかんの きふの ごほうび（UI-33・`js/museum-wear.js`）
 
