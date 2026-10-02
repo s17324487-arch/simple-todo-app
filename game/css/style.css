@@ -192,6 +192,8 @@ html, body {
 /* ---- タブ ---- */
 .tabs { display: flex; gap: 6px; margin: 0 0 10px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
+/* ふくの タブ（ようふくやさん・きがえ）は もちもの（UI-48）で 6〜7こ: 2だんに おりかえす（375 でも ぜんぶ 見える） */
+.shop-wear .tabs, .tabs.wear-tabs { flex-wrap: wrap; overflow-x: visible; row-gap: 8px; }
 .tab { flex: 0 0 auto; font: inherit; font-weight: 800; font-size: 14px; border: 3px solid var(--ink); background: var(--paper); border-radius: 12px; padding: 6px 12px; box-shadow: 0 3px 0 var(--ink); color: var(--ink); }
 .tab.on { background: var(--yellow); transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
 .menu-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

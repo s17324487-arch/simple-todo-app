@@ -100,8 +100,10 @@ for (const s of ["title", "world", "house", "battle", "shop"]) ok(typeof R.SCENE
 const uniq = (arr, what) => { const seen = new Set(); for (const x of arr) { ok(!seen.has(x), `${what} の id が重複: ${x}`); seen.add(x); } return seen; };
 const STAT_KEYS = new Set(["hp", "sp", "atk", "def", "spd"]);
 uniq(R.WEAR_ITEMS.map((w) => w.id), "WEAR_ITEMS");
+// もちもの（UI-48・js/hand-items.js）の slot "hand" は SLOT_NAMES に いれない（ぱぱ・ままの きがえに でない。3人の きがえの タブは dressup.js が たす）
+const HAND_SLOT = vm.runInContext('typeof HandItems === "undefined" ? null : HandItems.SLOT', ctx);
 for (const w of R.WEAR_ITEMS) {
-  ok(R.SLOT_NAMES[w.slot], `服 ${w.id}: slot "${w.slot}" が不明`);
+  ok(R.SLOT_NAMES[w.slot] || (HAND_SLOT && w.slot === HAND_SLOT), `服 ${w.id}: slot "${w.slot}" が不明`);
   ok(typeof R.WEAR[w.wear] === "function", `服 ${w.id}: 描画関数 WEAR.${w.wear} がない（js/chara.js）`);
   if (w.perk) ok(R.PERK_TEXT[w.perk], `服 ${w.id}: perk "${w.perk}" の説明が PERK_TEXT にない`);
   for (const k in w.st || {}) ok(STAT_KEYS.has(k), `服 ${w.id}: ステータス名 "${k}" が不明`);

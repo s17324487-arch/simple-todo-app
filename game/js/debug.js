@@ -294,6 +294,13 @@ const PokaDebug = {
   },
   // おうちで その おねがいを きく（まどが ひらく。こたえは テストの がわで おす）
   wishAsk(id) {if(G.sceneName!=='house'||typeof GowagaWish==='undefined'||!GowagaWish.INDEX[id])return false;GowagaWish.ask(G.scene,id);return true;},
+  // もちもの（UI-48）: 7しゅ・ようふくやさんの たな・3人が もって いる もの・絵に でて いるか
+  handItems() {
+    if(typeof HandItems==='undefined')return null;
+    const held=Object.fromEntries(Chara.IDS.map(id=>[id,HandItems.held(id)]));
+    return {items:HandItems.ITEMS.map(x=>x.id),shopTab:BUY_SHOPS.clothes.tabs.some(t=>t[0]===HandItems.SLOT),held,
+      drawn:Object.fromEntries(Chara.IDS.map(id=>{const it=held[id]&&ITEM_INDEX[held[id]],c=Save.d.chars[id];return [id,!!it&&Chara.svg(id,{outfit:c.outfit,color:c.color}).includes(it.col[0])];}))};
+  },
   // おトイレ（UI-47）: 3人の いきたさ・ドアの ばしょ（homeDoors と おなじ）・はいって いる 子・つかった かず・3人の ようす（face は ふだんの かお）
   toilet() {
     if(typeof HomeToilet==='undefined')return null;

@@ -4,7 +4,7 @@ const ItemDex = {
   REWARD: 100,
   categories: {
     furn: [["all", "すべての かぐ"], ["floor", "おく かぐ"], ["rug", "ラグ"], ["wall", "かべかざり"]],
-    wear: [["all", "すべての ふく"], ["head", "あたま"], ["face", "かお"], ["neck", "くび"], ["body", "からだ"], ["back", "せなか"]],
+    wear: [["all", "すべての ふく"], ["head", "あたま"], ["face", "かお"], ["neck", "くび"], ["body", "からだ"], ["back", "せなか"], ["hand", "もちもの"]],
   },
   catalog(kind) {
     const items = kind === "furn" ? FURNITURE : kind === "wear" ? WEAR_ITEMS : [];
