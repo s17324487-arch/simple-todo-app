@@ -285,6 +285,12 @@ const PokaDebug = {
   homeTalkLog() {return G.sceneName==='house'?G.scene.life.log.map(x=>({...x})):[];},
   // かけあいを 1つ 流す（HOME_TALK_DATA.talks の id）
   homeTalk(id) {if(G.sceneName!=='house')return false;return HomeLife.playTalk(G.scene,HomeLife.talkById(id));},
+  // かけあいの ふきだしの ぎょう数（HomeBubbles.wrap の おりかえし。max を こえると「…」で きれる）
+  homeTalkRows(id) {
+    const t=HomeLife.talkById(id);if(!t||typeof HomeBubbles==='undefined')return null;
+    const S=HomeBubbles.S,keep=S.maxLines,ctx=G.ctx;ctx.save();ctx.font=`700 ${S.font}px sans-serif`;
+    try{S.maxLines=99;return {max:keep,rows:t.turns.map(x=>HomeBubbles.wrap(ctx,x.text,S.maxW-S.padX*2).length)};}finally{S.maxLines=keep;ctx.restore();}
+  },
   // 会話データの 数。id を わたすと その セリフ／かけあい（テストで 条件を たしかめる）
   homeLines(id) {
     const D=HomeLife.data();if(!D)return null;

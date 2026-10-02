@@ -8821,6 +8821,503 @@
      "kind": "say"
     }
    ]
+  },
+  {
+   "id": "farm-carrot",
+   "when": {},
+   "turns": [
+    {
+     "who": "goji",
+     "text": "はたけの にんじん、ひとりで ぬけたよ！",
+     "kind": "shout"
+    },
+    {
+     "who": "wanko",
+     "text": "クンクン… つちの いい におい！",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "こんどは いちごも そだてたいな♪",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "fish-story",
+   "when": {},
+   "turns": [
+    {
+     "who": "wanko",
+     "text": "きのう こーんな おっきい さかなを つったんだ！",
+     "kind": "shout"
+    },
+    {
+     "who": "gachan",
+     "text": "えー、もっと ちいさかったよ？",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ぼくが つった さかなの ほうが おっきい",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "…じゃあ こんど、つり しょうぶ だ！",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "purikura-album",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "ぷりくらの しゃしん、みて みて♪",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "ぼく、きめがお してる！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ぼくの しっぽ、はみでてる ガウっ",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "また 3にんで とりに いこうね",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "runway-practice",
+   "when": {
+    "event": [
+     "dress"
+    ]
+   },
+   "turns": [
+    {
+     "who": "wanko",
+     "text": "ランウェイの れんしゅう！ くるっと… キメッ！",
+     "kind": "shout"
+    },
+    {
+     "who": "gachan",
+     "text": "がちゃんは にこにこ ポーズ♪",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "かいじゅう ポーズ！ ガォー！",
+     "kind": "shout"
+    },
+    {
+     "who": "mama",
+     "text": "ふふ、みんな モデルさん みたい",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "korokoro-ball",
+   "when": {},
+   "turns": [
+    {
+     "who": "goji",
+     "text": "ころころで いちばん おっきい たまは ぼく！",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "ぼくの たまは その つぎ だもん！",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "がちゃんの たまは まんなか。ちょうど いいの♪",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "crane-plush",
+   "when": {
+    "near": [
+     "teddy"
+    ]
+   },
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "クレーンの ぬいぐるみ、まいにち ぎゅって してるの",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "つぎは ぼくの ぬいぐるみも とって！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "アームの うごき、ひとりで おぼえた ガゥ",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "jellyfish",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "すいぞくかんの クラゲさん、ふわふわ だったね",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ぼくも ふわふわ うかんで みたい",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "おふろで やって みよう！ ぶくぶく〜",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "dino-family",
+   "when": {},
+   "turns": [
+    {
+     "who": "goji",
+     "text": "はくぶつかんの ティラノさん、ぼくの しんせき かな？",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "にてる！ でも ごじの ほうが かわいい！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ガウっ… てれる",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "ほねだけ だと、ちょっと こわかった…",
+     "kind": "cry"
+    }
+   ]
+  },
+  {
+   "id": "bus-button",
+   "when": {},
+   "turns": [
+    {
+     "who": "wanko",
+     "text": "バスの『とまります』ボタン、ぼくが おしたい！",
+     "kind": "shout"
+    },
+    {
+     "who": "goji",
+     "text": "まえは わんこ だった。こんどは ぼく",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "そのつぎは がちゃん ね。じゅんばんこ♪",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "train-tunnel",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "でんしゃの トンネル、まっくらで どきどき した…",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "こんどは ぼくが てを つないで あげる！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "えきの かず、ぜんぶ かぞえた ガウっ",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "burger-toy",
+   "when": {},
+   "turns": [
+    {
+     "who": "wanko",
+     "text": "にこにこ セットの おまけ、なに だった？",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "シェイクを もった ぼく！ ぼくが ぼくを もってる！",
+     "kind": "shout"
+    },
+    {
+     "who": "gachan",
+     "text": "がちゃんは ポテト くん♪ たからもの",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "フィギュアの だいに ならべよう！",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "riddle",
+   "when": {},
+   "turns": [
+    {
+     "who": "goji",
+     "text": "なぞなぞ だよ。パンは パンでも たべられない パンは？",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "うーん… クンクン… わからない！",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "フライパン！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ガウっ、せいかい！",
+     "kind": "shout"
+    }
+   ]
+  },
+  {
+   "id": "gacha-rare",
+   "when": {},
+   "turns": [
+    {
+     "who": "wanko",
+     "text": "ガチャガチャで レアが でたら、どう する？",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "おへやの いちばん みえる ところに かざる♪",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ぼくは まくらの よこに おいて ねる",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "star-gazing",
+   "when": {
+    "time": [
+     "night"
+    ]
+   },
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "おほしさま、3つ ならんでる…",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "あれは ぼくたちの ほし だ！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "いちばん おっきいのが ぼく ガウっ",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "lunch-menu",
+   "when": {
+    "time": [
+     "day"
+    ]
+   },
+   "turns": [
+    {
+     "who": "wanko",
+     "text": "おひるごはん、なに たべたい？",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "オムライス！ ケチャップで ハート かいてね♪",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ぼく、おにぎり 3こ にぎる",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "tooth-brush",
+   "when": {
+    "time": [
+     "night"
+    ]
+   },
+   "turns": [
+    {
+     "who": "mama",
+     "text": "ねる まえに はみがき しようね",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ぼくの は、いっぱい あるから たいへん",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "しゃかしゃか、ピカピカ！",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "がちゃんは くちばし だから すぐ おわり♪",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "parents-work",
+   "when": {
+    "time": [
+     "day"
+    ]
+   },
+   "turns": [
+    {
+     "who": "wanko",
+     "text": "ぱぱと まま、おしごと がんばってるかな",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "かえって きたら、おかえりの ぎゅー しようね",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "おるすばん、ひとりでも できる… でも 3にんが いい",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "secret-letter",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "ねえねえ、ままに ないしょで おてがみ かこう",
+     "kind": "whisper"
+    },
+    {
+     "who": "wanko",
+     "text": "いいね！ ぼく、えを かく！",
+     "kind": "whisper"
+    },
+    {
+     "who": "goji",
+     "text": "ぼく、ふうとう つくる",
+     "kind": "whisper"
+    },
+    {
+     "who": "gachan",
+     "text": "しーっ、ままが きた！",
+     "kind": "whisper"
+    }
+   ]
+  },
+  {
+   "id": "mittens",
+   "when": {
+    "season": [
+     "winter"
+    ]
+   },
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "てぶくろ、あったかい♪",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ぼくの つめ、てぶくろに はいらない…",
+     "kind": "cry"
+    },
+    {
+     "who": "wanko",
+     "text": "じゃあ ぼくの ポケットで あっためて あげる！",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "sofa-jump",
+   "when": {
+    "near": [
+     "sofa"
+    ]
+   },
+   "turns": [
+    {
+     "who": "wanko",
+     "text": "ソファで ジャンプ！ ぼよーん！",
+     "kind": "shout"
+    },
+    {
+     "who": "goji",
+     "text": "ぼくも！ ぼよよーん ガウっ！",
+     "kind": "shout"
+    },
+    {
+     "who": "mama",
+     "text": "こらー！ ソファは とびばこ じゃ ありません！",
+     "kind": "shout"
+    },
+    {
+     "who": "gachan",
+     "text": "…がちゃんは すわって まってる♪",
+     "kind": "say"
+    }
+   ]
   }
  ]
 }
