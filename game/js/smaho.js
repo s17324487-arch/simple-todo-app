@@ -1,4 +1,4 @@
-// すまほ（ぽかぽかフォン）: ちず・ようす・もちもの・ずかん・イベント・スタンプラリー・ひんと・うらない・ごほうび・おんがく・しゃしん を 1つに まとめる。
+// すまほ（ぽかぽかフォン）: ちず・ようす・もちもの・ずかん・イベント・スタンプラリー・ひんと・うらない・ごほうび・おんがく・しゃしん・シール を 1つに まとめる。
 // どうぶつの森の スマホの ように、ホーム画面の アプリを タップして ひらく（もどる で ホーム、✕ か Esc で とじる）。
 // 町・フィールドの「おまつり」ボタンの かわりに 左下の「すまほ」ボタン（おうち・おみせの 中でも 出る）。≡ は せってい だけ（Menu.open）。
 // Esc（cancel キー）は すまほを ひらく。いままでの まどを つかう アプリ（おまつり・スタンプ・ごほうび）は その まどの 中みを すまほの 画面に いれる。
@@ -17,6 +17,7 @@ const Smaho = {
     music: `<path d="M16,31 L16,11 L33,7 L33,27" fill="none" stroke="${INK}" stroke-width="2.8" stroke-linejoin="round"/><path d="M16,15 L33,11" stroke="${INK}" stroke-width="2.8"/><ellipse cx="12.4" cy="31" rx="5" ry="4" fill="#FFFFFF" stroke="${INK}" stroke-width="2.4"/><ellipse cx="29.4" cy="27" rx="5" ry="4" fill="#FFFFFF" stroke="${INK}" stroke-width="2.4"/>`,
     photos: `<rect x="6" y="12" width="32" height="24" rx="4" fill="#F8C8DA" stroke="${INK}" stroke-width="2.6"/><path d="M15,12 L18,7 L26,7 L29,12" fill="#F29BB8" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/><circle cx="22" cy="24" r="7" fill="#FFFFFF" stroke="${INK}" stroke-width="2.4"/><circle cx="22" cy="24" r="3.2" fill="#8FC9F0"/><path d="M${31.5},16.5 L32.6,18.8 L35,19 L33.2,20.6 L33.7,23 L31.5,21.7 L29.3,23 L29.8,20.6 L28,19 L30.4,18.8 Z" fill="#FFE066" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/>`,
     wish: `<path d="M22,37 C10,29 6,22.5 6,16.5 C6,11.4 9.8,7.6 14.6,7.6 C18,7.6 20.6,9.6 22,12.4 C23.4,9.6 26,7.6 29.4,7.6 C34.2,7.6 38,11.4 38,16.5 C38,22.5 34,29 22,37 Z" fill="#F48FB1" stroke="${INK}" stroke-width="2.6" stroke-linejoin="round"/><path d="M13,15.5 C13.4,13 15,11.8 17,11.8" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/><path d="M33,4 L34.2,7 L37.2,8.2 L34.2,9.4 L33,12.4 L31.8,9.4 L28.8,8.2 L31.8,7 Z" fill="#FFE066" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`,
+    stickers: `<rect x="8" y="6" width="28" height="32" rx="4" fill="#FFF0F5" stroke="${INK}" stroke-width="2.6"/><path d="M8,12 h-3 M8,22 h-3 M8,32 h-3" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/><path d="M22,30 C14,25 12,21 12,18 C12,15.4 14,13.6 16.4,13.6 C18.2,13.6 19.6,14.6 20.2,16 C20.8,14.6 22.2,13.6 24,13.6 C26.4,13.6 28.4,15.4 28.4,18 C28.4,21 26,25 22,30 Z" fill="#FF8FB0" stroke="#FFFFFF" stroke-width="3.4" stroke-linejoin="round" transform="translate(-1 -2)"/><path d="M22,30 C14,25 12,21 12,18 C12,15.4 14,13.6 16.4,13.6 C18.2,13.6 19.6,14.6 20.2,16 C20.8,14.6 22.2,13.6 24,13.6 C26.4,13.6 28.4,15.4 28.4,18 C28.4,21 26,25 22,30 Z" fill="#FF8FB0" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round" transform="translate(-1 -2)"/><circle cx="29" cy="31" r="5.6" fill="#9FD3F0" stroke="#FFFFFF" stroke-width="2.6"/><circle cx="29" cy="31" r="5.6" fill="none" stroke="${INK}" stroke-width="1.6"/><path d="M15,14 q1 -2.4 3.4 -3" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>`,
     phone: `<rect x="11" y="3" width="22" height="38" rx="5" fill="#FFF6DD" stroke="${INK}" stroke-width="2.8"/><rect x="14" y="8" width="16" height="25" rx="2" fill="#9ED9B1" stroke="${INK}" stroke-width="2"/><path d="M19,37 L25,37" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/><circle cx="18.5" cy="14" r="2" fill="#F7D56A"/><circle cx="25.5" cy="14" r="2" fill="#F48FB1"/><circle cx="18.5" cy="21" r="2" fill="#8FC9F0"/><circle cx="25.5" cy="21" r="2" fill="#C9B6E0"/>`,
   },
   // name は ボタンの なまえ（ひらがな）。render(el, ph) は アプリの 中みを el に 入れる
@@ -36,6 +37,7 @@ const Smaho = {
     { id: "quests", name: "いらい", color: "#F7D56A", when: () => typeof NeriQuests !== "undefined", render(el) { NeriQuests.phoneView(el); } },
     { id: "music", name: "おんがく", color: "#8EC5E0", when: () => typeof MusicDiscs !== "undefined", render(el) { Smaho.musicList(el); } },
     { id: "photos", name: "しゃしん", color: "#F8C8DA", when: () => typeof Purikura !== "undefined", render(el, ph) { Purikura.phoneView(el, ph); } },
+    { id: "stickers", name: "シール", color: "#FFC9DE", when: () => typeof StickerBook !== "undefined", render(el, ph) { StickerBook.phoneView(el, ph); } },
     { id: "wish", name: "おねがい", color: "#F9C3D2", when: () => typeof GowagaWish !== "undefined", render(el, ph) { GowagaWish.phoneView(el, ph); } },
   ],
   view: null, // ひらいて いる すまほ（{ wrap, screen, app }）

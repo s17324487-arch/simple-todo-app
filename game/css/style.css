@@ -136,6 +136,28 @@ html, body {
 .smaho-disc small { color:#7A746A; font-size:11px; font-weight:700; }
 .smaho-disc.lock svg { filter:grayscale(1) opacity(.45); }
 .help-row { background:#FFFFFF; border:2.5px solid var(--ink); border-radius:14px; padding:8px 12px; margin-bottom:8px; }
+/* シールちょう（すまほの「シール」・js/sticker-book.js・UI-53）: ページは 300×360 の わりあい（js が あいて いる ところに あわせる）・シールは ページに たいする わりあいで おく */
+.smaho-body.app-stickers { display:flex; flex-direction:column; overflow:hidden; padding:8px 8px 10px; }
+.stk-book { flex:1; min-height:0; display:flex; flex-direction:column; gap:6px; }
+.stk-top { flex:none; display:flex; align-items:center; gap:6px; }
+.stk-top .btn { min-height:44px; }
+.stk-nav { min-width:48px; font-size:22px; padding:0 8px; }
+.stk-no { flex:1; text-align:center; font-weight:900; font-size:15px; }
+.stk-paper { font-size:13px; padding:4px 10px; }
+.stk-stage { flex:1; min-height:120px; display:flex; align-items:center; justify-content:center; }
+.stk-page { position:relative; flex:none; background-size:100% 100%; background-color:#FFFDF6; border:3px solid var(--ink); border-radius:14px; box-shadow:0 3px 0 var(--ink); overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; }
+.stk-on { position:absolute; display:block; height:auto; max-width:none; touch-action:none; -webkit-user-drag:none; -webkit-touch-callout:none; cursor:grab; }
+.stk-on.sel { outline:3px dashed #E05A8A; outline-offset:1px; border-radius:16px; }
+.stk-tools { flex:none; min-height:44px; display:flex; align-items:center; justify-content:center; gap:5px; }
+.stk-tool { min-width:46px; min-height:44px; font-size:18px; padding:0 6px; }
+.stk-tool.pink { font-size:14px; background:#FFD9E6; }
+.stk-hint { font-size:13px; font-weight:800; line-height:1.4; text-align:center; color:#5C564C; padding:0 4px; }
+.stk-tray { flex:none; display:flex; gap:6px; overflow-x:auto; overscroll-behavior:contain; padding:4px 2px 6px; -webkit-overflow-scrolling:touch; }
+.stk-slot { flex:none; position:relative; width:62px; height:66px; background:#FFFFFF; border:2.5px solid var(--ink); border-radius:12px; padding:2px; cursor:pointer; }
+.stk-slot img { width:52px; height:52px; display:block; margin:0 auto; pointer-events:none; }
+.stk-slot.none img { filter:brightness(0) opacity(.16); }
+.stk-slot.out img { opacity:.4; }
+.stk-n { position:absolute; right:3px; bottom:1px; font-size:12px; font-weight:900; }
 .help-row b { font-size:15px; } .help-row p { margin:2px 0 0; font-size:14px; line-height:1.5; }
 
 /* ---- トースト ---- */

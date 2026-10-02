@@ -3,6 +3,7 @@
 // まわす → カプセルが でてくる → タップで あける（あける まで どれが でたか わからない。カプセルの いろは けいひんと かんけい ない・UI-51）。けいひんは へやに かざる フィギュア（家具・ほしは ださない）か 服・アクセサリー（acc）。
 // 服は 1こで 1人（js/wear-stock.js）なので、ダブった 服も 5こ までは もう 1こ もらえる（それより おおいと 50コイン もどる）。フィギュアは いくつでも かざれる。4しゅ そろうと コンプリート。絵は js/gacha-art.js（ふえた 6シリーズは js/gacha-art-more.js）。
 // セーブ: Save.d.gacha（plays まわした かず・got { けいひん: でた かず }・done { シリーズ: そろった 日 }）。もちものは Save.d.furn／Save.d.wardrobe。
+// シールの シート（kind: "sticker"・js/sticker-book.js）は 家具・服に いれない。でた とき Gacha.GIVE.sticker が シールちょうに いれる。シリーズごとの ねだんは S.price（ない ときは 200）。
 const Gacha = (() => {
   const PRICE = 200, DUP = 50, RATE = [0.3, 0.3, 0.3, 0.1], RARE = 3;
   // [なまえ, せつめい] … 家具 ／ [なまえ, せつめい, slot, wear, col] … 服
@@ -100,20 +101,25 @@ const Gacha = (() => {
     speed: 1, // PokaDebug.gachaFast（えんしゅつの はやさ）
     seriesOf(id) { const it = INDEX[id]; return it ? SERIES[it.series] : null; },
     byId(id) { return SERIES.find((S) => S.id === id) || null; },
+    // 1かいの ねだん（シールの 台は 100）
+    priceOf(si) { const S = SERIES[si]; return S && S.price > 0 ? S.price : PRICE; },
+    // 家具・服 いがいの けいひんを もちものに いれる（kind → (けいひん) => ことば。シールは js/sticker-book.js）
+    GIVE: {},
     // シリーズを あとから たす（4F の ガチャガチャの もり・js/gacha-forest.js）。ばんごうは つづき・けいひんは 家具／服に いれる
     add(list) { const items = []; for (const S of list) { SERIES.push(S); build(S); items.push(...S.list); } register(items); return list.map((S) => S.index); },
-    // 1かい まわす（200コイン）。でた けいひんを もちものに いれて けっかを かえす。コインが たりなければ null
+    // 1かい まわす（200コイン・シールは 100コイン）。でた けいひんを もちものに いれて けっかを かえす。コインが たりなければ null
     spin(si, r = Math.random()) {
-      const S = SERIES[si]; if (!S || Save.d.coins < PRICE) return null;
+      const S = SERIES[si], price = this.priceOf(si); if (!S || Save.d.coins < price) return null;
       const k = this.next != null && this.next >= 0 && this.next < 4 ? this.next : roll(r); this.next = null;
       const it = S.list[k], g = st(), first = !got(it.id), was = complete(si);
-      Save.d.coins -= PRICE; g.plays++; g.got[it.id] = got(it.id) + 1;
-      let refund = 0;
+      Save.d.coins -= price; g.plays++; g.got[it.id] = got(it.id) + 1;
+      let refund = 0, note = "";
       if (it.kind === "wear") { if (!WearStock.add(it.id, 1)) { refund = DUP; Save.d.coins += DUP; } }
-      else Save.d.furn[it.id] = (Save.d.furn[it.id] || 0) + 1;
+      else if (it.kind === "furn") Save.d.furn[it.id] = (Save.d.furn[it.id] || 0) + 1;
+      else if (this.GIVE[it.kind]) note = this.GIVE[it.kind](it) || "";
       const done = !was && complete(si); if (done) g.done[S.id] = U.today();
       Save.write(); if (typeof UI !== "undefined" && UI.updateHud) UI.updateHud();
-      return { item: it, k, rare: k === RARE, first, refund, complete: done, copies: it.kind === "wear" ? WearStock.count(it.id) : 0 };
+      return { item: it, k, rare: k === RARE, first, refund, note, price, complete: done, copies: it.kind === "wear" ? WearStock.count(it.id) : 0 };
     },
     // 絵（ラインナップの カード・けっか）
     pic(it) { return it.kind === "wear" ? Art.iconSvg("wear", it.id) : GachaArt.figure(it.id); },
@@ -125,7 +131,7 @@ const Gacha = (() => {
       if (it.kind === "wear") {
         const w = { id: it.id, name: it.name, slot: it.slot, wear: it.wear, col: it.col, price: it.rare ? 800 : 300, rare: it.rare, exclusive: "gacha", gachaPrize: true, st: { sp: it.rare ? 2 : 1 }, desc: it.desc };
         WEAR_ITEMS.push(w); ITEM_INDEX[it.id] = w;
-      } else {
+      } else if (it.kind === "furn") {
         const [w, h, depth] = SIZE(it);
         const f = { id: it.id, name: it.name, price: 0, kind: "floor", w, h, depth, comfort: it.rare ? 6 : 4, rare: it.rare, interactive: true, exclusive: "gacha", gachaPrize: true, cityItem: { type: "gachafig", variant: it.id }, desc: it.desc };
         FURNITURE.push(f); FURN_INDEX[it.id] = f;
@@ -156,6 +162,7 @@ Gacha.REACT = {
 Gacha.wait = (ms) => new Promise((r) => setTimeout(r, ms / Math.max(1, Gacha.speed)));
 Gacha.open = function (si) {
   const S = this.SERIES[si]; if (!S) return Promise.resolve();
+  const price = this.priceOf(si), sticker = S.kind === "sticker";
   return new Promise((resolve) => {
     const body = U.el("div", { class: "gacha" });
     // shown: まわして から カプセルを あける まで の ラインナップ（まわす まえの ようす。でた けいひんの カードに「もってる」の わくが つかない ように・UI-51）
@@ -179,21 +186,22 @@ Gacha.open = function (si) {
       const own = shown ? shown.own : counts(), done = shown ? shown.done : this.complete(si);
       sideInfo.replaceChildren(
         U.el("div", { class: "gacha-label", text: "ガチャガチャ" }),
-        U.el("div", { class: "gacha-price", text: `1かい ${this.PRICE}コイン` }),
+        U.el("div", { class: "gacha-price", text: `1かい ${price}コイン` }),
         U.el("div", { class: "gacha-coins", text: `もって いる コイン ${U.fmt(Save.d.coins)}` }),
         U.el("div", { class: "gacha-rate", text: "ふつう 3しゅ 30%ずつ・レア 10%" }),
-        U.el("div", { class: "gacha-kind", text: S.kind === "wear" ? (S.hand ? `でるのは もちもの（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : S.acc ? `でるのは アクセサリー（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : `でるのは ふく（1こで ひとり・おなじ ふくは ${WearStock.CAP}こ まで）`) : "でるのは へやに かざる フィギュア" }),
+        U.el("div", { class: "gacha-kind", text: sticker ? "でるのは シールが 4まい はいった シート（すまほの「シール」で はれる）" : S.kind === "wear" ? (S.hand ? `でるのは もちもの（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : S.acc ? `でるのは アクセサリー（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : `でるのは ふく（1こで ひとり・おなじ ふくは ${WearStock.CAP}こ まで）`) : "でるのは へやに かざる フィギュア" }),
         ...(done ? [U.el("div", { class: "gacha-done", text: "コンプリート！" })] : []),
       );
       line.replaceChildren(...S.list.map((it) => {
         const n = own[it.id], c = U.el("div", { class: "gacha-card" + (it.rare ? " rare" : "") + (n ? " own" : "") });
-        c.append(U.el("img", { src: U.svgUrl(this.pic(it)), alt: "" }), U.el("div", { class: "gacha-name", text: it.name }), U.el("div", { class: "gacha-own", text: it.rare ? (n ? `レア・もってる ×${n}` : "レア・まだ") : n ? `もってる ×${n}` : "まだ" }));
+        const has = sticker ? "でた" : "もってる"; // シートは はると なくなる ので「でた かず」
+        c.append(U.el("img", { src: U.svgUrl(this.pic(it)), alt: "" }), U.el("div", { class: "gacha-name", text: it.name }), U.el("div", { class: "gacha-own", text: it.rare ? (n ? `レア・${has} ×${n}` : "レア・まだ") : n ? `${has} ×${n}` : "まだ" }));
         return c;
       }));
     };
     const buttons = () => {
-      const can = Save.d.coins >= this.PRICE;
-      const go = UI.btn(`${this.PRICE}コインで まわす`, () => spin(), "yellow gacha-go"); go.disabled = !can || busy;
+      const can = Save.d.coins >= price;
+      const go = UI.btn(`${price}コインで まわす`, () => spin(), "yellow gacha-go"); go.disabled = !can || busy;
       acts.replaceChildren(go);
       if (!can && !busy) acts.append(U.el("div", { class: "gacha-need", text: "コインが たりないよ" }));
     };
@@ -229,6 +237,7 @@ Gacha.open = function (si) {
       card.append(U.el("img", { src: U.svgUrl(this.pic(r.item)), alt: r.item.name }));
       const txt = U.el("div", { class: "gacha-prize-text" });
       txt.append(U.el("div", { class: "gacha-badges", text: [r.rare ? "レア！" : "", r.first ? "NEW" : ""].filter(Boolean).join(" ") }), U.el("b", { text: r.item.name }), U.el("div", { class: "gacha-desc", text: r.item.desc }));
+      if (r.note) txt.append(U.el("div", { class: "gacha-dup", text: r.note }));
       if (r.refund) txt.append(U.el("div", { class: "gacha-dup", text: `もう ${WearStock.CAP}こ もって いる ので ${r.refund}コイン もどったよ` }));
       else if (r.copies > 1) txt.append(U.el("div", { class: "gacha-dup", text: `${r.copies}こめ！ ${r.copies}にんで つかえるよ` }));
       txt.append(U.el("div", { class: "gacha-say", text: `${Save.d.chars[who].name}「${line1}」` }));
@@ -236,7 +245,7 @@ Gacha.open = function (si) {
       result.replaceChildren(card);
       if (r.complete) result.append(U.el("div", { class: "gacha-done big", text: `「${S.name}」 コンプリート！ 4しゅ ぜんぶ そろったよ` }));
       this.view.phase = "done"; busy = false; shown = null; info(); buttons();
-      const go = acts.querySelector(".gacha-go"); if (go) go.textContent = `もう1かい まわす（${this.PRICE}コイン）`;
+      const go = acts.querySelector(".gacha-go"); if (go) go.textContent = `もう1かい まわす（${price}コイン）`;
     };
     info(); buttons();
   });

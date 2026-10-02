@@ -12,14 +12,14 @@ const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
 
 // ---- 1. シリーズと けいひん ----
-// 2F の 12シリーズ（4F の ガチャガチャの もり の 18シリーズは tools/check-gacha-forest.mjs）
-const BASE = GA.SERIES.filter((s) => !s.forest), BI = BASE.flatMap((s) => s.list);
-ok(BASE.length === 12 && BI.length === 48 && GA.SERIES.length === 30 && GA.ITEMS.length === 120 && BASE.every((s, i) => s.index === i), "2F は 12シリーズ・48しゅ（UI-28 で 2ばい）・4F と あわせて 30シリーズ");
+// 2F の 12シリーズ（4F の ガチャガチャの もり の 18シリーズは tools/check-gacha-forest.mjs・シールの 3シリーズは tools/check-stickers.mjs）
+const BASE = GA.SERIES.filter((s) => !s.forest && !s.sticker), BI = BASE.flatMap((s) => s.list);
+ok(BASE.length === 12 && BI.length === 48 && GA.SERIES.length === 33 && GA.ITEMS.length === 132 && BASE.every((s, i) => s.index === i), "2F は 12シリーズ・48しゅ（UI-28 で 2ばい）・4F（もり 18・シール 3）と あわせて 33シリーズ");
 ok(BASE.filter((s) => s.kind === "furn").length === 7 && BASE.filter((s) => s.kind === "wear").length === 5, "へやに かざる もの 7シリーズ・服 5シリーズ");
 ok(BASE.filter((s) => s.acc).map((s) => s.id).join() === "sparkle,hair,neck,party" && GA.SERIES.filter((s) => s.acc).every((s) => s.kind === "wear"), "アクセサリーの シリーズ 4つ（キラキラ アクセ・ヘアアクセ・ネックレス・パーティー）");
 ok(GA.SERIES.slice(0, 6).map((s) => s.id).join() === "friends,sleepy,sweets,ride,ears,sparkle", "まえの 6シリーズの じゅんばんは そのまま（台の ばんごう・セーブの id）");
-ok(new Set(GA.ITEMS.map((it) => it.id)).size === 120 && new Set(GA.SERIES.map((s) => s.id)).size === 30, "id が かさなる");
-ok(new Set(GA.SERIES.map((s) => s.color.toUpperCase())).size === 30, "台の いろが ぜんぶ ちがう");
+ok(new Set(GA.ITEMS.map((it) => it.id)).size === 132 && new Set(GA.SERIES.map((s) => s.id)).size === 33, "id が かさなる");
+ok(new Set(GA.SERIES.map((s) => s.color.toUpperCase())).size === 33, "台の いろが ぜんぶ ちがう");
 {
   const wears = BI.filter((it) => it.kind === "wear");
   ok(new Set(wears.map((it) => it.wear)).size === wears.length && wears.filter((it) => !it.wear.startsWith("gacha_")).map((it) => it.wear).join() === "catears", "アクセサリー・服の かたちが ぜんぶ ちがう（しろねこ だけ まえからの ねこみみ）");
@@ -42,8 +42,8 @@ ok(Math.abs(GA.RATE.reduce((a, b) => a + b, 0) - 1) < 1e-9 && GA.RATE.slice(0, 3
   ok(cnt.join() === "3000,3000,3000,1000", "くじの わりあい " + cnt.join());
   ok(GA.roll(0) === 0 && GA.roll(0.2999) === 0 && GA.roll(0.3) === 1 && GA.roll(0.8999) === 2 && GA.roll(0.9) === 3 && GA.roll(0.99999) === 3 && GA.roll(1) === 3, "くじの さかいめ");
 }
-// ---- 3. 家具・服に はいって いる ----
-for (const it of GA.ITEMS) {
+// ---- 3. 家具・服に はいって いる（シールの シートは 家具・服に いれない・tools/check-stickers.mjs）----
+for (const it of GA.ITEMS.filter((x) => x.kind !== "sticker")) {
   if (it.kind === "furn") {
     const f = R.FURN_INDEX[it.id];
     ok(f && R.FURNITURE.includes(f) && f.exclusive === "gacha" && f.gachaPrize && !("sparkle" in f) && f.kind === "floor" && f.w > 0 && f.h > 0 && f.depth > 0, `家具 ${it.id}`);

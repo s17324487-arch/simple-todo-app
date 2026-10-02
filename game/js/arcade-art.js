@@ -204,6 +204,12 @@ const ArcadeArt = (() => {
         for (const [dx, a, c2] of [[-7, -32, "#7DBA4C"], [7, 32, "#9ED36A"]]) s += `<ellipse cx="${f2(t.x + dx)}" cy="${f2(t.y - 4)}" rx="9" ry="4.6" transform="rotate(${a} ${f2(t.x + dx)} ${f2(t.y - 4)})" fill="${c2}" stroke="${INK}" stroke-width="1.2"/>`;
         s += `<ellipse cx="${f2(t.x)}" cy="${f2(t.y + 1)}" rx="4.2" ry="5" fill="#C98E5C" stroke="${INK}" stroke-width="1.2"/><path d="M${f2(t.x - 5)} ${f2(t.y - 1)} q5 -6 10 0 z" fill="#7A5230" stroke="${INK}" stroke-width="1.2"/>`;
       }
+      // 4F の シールの 台（js/sticker-book.js）: まるい まどの うえに ハートの シール（しろい ふち）
+      if (GS0 && GS0.sticker && typeof StickerArt !== "undefined") {
+        const t = S.P(...F.Q(W / 2, D / 2, 118)); S.grow(t.x - 15, t.y - 15, t.x + 15, t.y + 9);
+        const d = StickerArt.heartD(t.x, t.y - 3, 0.36);
+        s += `<path d="${d}" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="4.4" stroke-linejoin="round"/><path d="${d}" fill="#FF8FB0" stroke="${INK}" stroke-width="1.2"/><path d="M${f2(t.x - 7)} ${f2(t.y - 5)} q1 -3 4 -4" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>`;
+      }
       return s;
     },
     // ぷりくら（しゃしんの ブース。まえに カーテン・よこに ポスター）。variant = ブース（0 ゆめかわ・1 がっこう・2 おでかけ）で いろ・かんばん・ポスターが ちがう

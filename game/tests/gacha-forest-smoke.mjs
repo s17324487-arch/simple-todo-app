@@ -20,7 +20,7 @@ export async function gachaForestSmoke({ scenario, expect }) {
     expect(await H.dbg('venueVisit', '4Fへ のぼる'), '3F に 4F への エスカレーターが ない'); await arrive(H, 4); await H.wait(900);
     let s = await H.dbg('venueState');
     const hud = await H.eval(() => document.querySelector('.hud').textContent);
-    const g4 = s.fixtures.filter((f) => f.kind === 'gacha' && f.action === 'gacha');
+    const g4 = s.fixtures.filter((f) => f.kind === 'gacha' && f.action === 'gacha' && gf.machines.includes(f.series)); // シールの 台（UI-53）は sticker-book-smoke
     expect(s.floor === 4 && /Meeときょれじゃ 4F/.test(hud) && g4.length === 18 && g4.map((f) => f.series).join() === gf.machines.join() && s.routeCount.every((r) => r.reachable), '4F（ガチャ 18だい・いける） ' + JSON.stringify({ hud, n: g4.length, bad: s.routeCount.filter((r) => !r.reachable) }));
     await H.shot('arrive');
     // フロアマップ: 1F〜4F・4F の へや
