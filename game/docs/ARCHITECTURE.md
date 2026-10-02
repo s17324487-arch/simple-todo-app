@@ -180,6 +180,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび 44この 立体と さわる うごき・UI-38） |
 | — | `rug-lamp.js`（shop-reward-art.js の あと・slow-life-prices.js の まえ） | `RugLamp`（かぐやの ラグ 8 と ランプ 8・UI-39） |
 | — | `furniture-collection.js`（slow-life-prices.js・quiz-prizes.js の あと） | `FurnCollection`（あき・ふゆの かぐ 4・ひがわり 20・クイズの だんろ・UI-40） |
+| — | `gowaga-wish.js`（くみこむ ものの あと・world-zoom.js の まえ） | `GowagaWish`（おうちで ごわがの おねがい・かなえて おれいと あまえる・UI-46） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1245,6 +1246,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ふつうの ビルと 大きな はくぶつかん（TOWN-IKE-03）: えきまえ館・マルシェ館・インテリア館（`city_clothes`・`city_market`・`city_furniture`）は「えきまえ ビル」「れんが ビル」「あおぞら ビル」（絵 `ikebukuro.officeblock`・`slim_brick`・`slim_glass`。`NOT_MALL` の ひとことも ふつうの ビルの ことばに）。おくじょう ていえん（`ike_annex3`）は けして `IkebukuroTown.REMOVED` に（`town-check.mjs` は これだけ「なくなった」を ゆるす）、きょうりゅう はくぶつかんを その ばしょまで 8 → 17マス（`city_museum` x 33・入口 8）に。中の 館は かえない（入口と 出口は 上の しくみで あう）。
 - 町の はしの そとは `def.edgeColor`（scene-world.js の 背景。ほかの 町は いままでの 草の 色）。
 - 検査: `tools/check-ikebukuro.mjs`（配置イメージの ならび・駅から すべての 入口へ・絵の 登録）・`tools/town-check.mjs`（入口 2つの 建物は `doors` の それぞれを しらべる）・`node tools/build-ikebukuro-town.mjs --check`。
+
+## ごわがの おねがい（UI-46・`js/gowaga-wish.js`・`GowagaWish`）
+
+オーナーの FB 2026-10-02「お家で、ごわがからのお願いというイベントを追加して。…お願いを実現できたら、たくさん感謝して甘えて。」。
+
+- `WISHES`（20）: { id, kind: go|eat|do, who, short, ask, hint, thanks, at | foods | act }。`INDEX`。
+- `st()`（`Save.d.wish` を つくる）・`pick()`（さいきん 8つ と まえと おなじ しゅるいを さける）・`start(id)`・`cancel()`・`signal(kind, what)`・`arrive(place)`・`place()`。
+- くみこみ（ファイルの さいご）: `Care.feed`・`Purikura.finish`・`FashionShow.finish`・`Fishing.record`・`Gacha.spin`・`Farm.harvest` の あとに `signal`。`VenueScene.prototype.loadFloor`・`WorldScene.prototype.enter` の あとに `arrive`。`SCENES.house.prototype.update` の あとに `house(sc, dt)`（きく じかん・おれい・あまえる）。タイマーは つかわない（検査の VM が おわらなく なる ため）。
+- おうち: `sc.wishFx` = { t, ask, busy, amae, beat }。`ask(sc, id)`・`thank(sc)`・`amaeTick(sc, h, dt)`（state "amae" で ぶらぶら しない・`sc.life.next` を のばす）。
+- すまほ: `Smaho.APPS` の `wish`（`phoneView(el, ph)`）と `Smaho.ICON.wish`。
+- PokaDebug: `wish()`・`wishAsk(id)`。検査は `tools/check-gowaga-wish.mjs`、スモークは `tests/gowaga-wish-smoke.mjs`（`gowaga-wish-390/375`）。
 
 ## 町の ズーム（UI-08）
 

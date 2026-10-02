@@ -163,6 +163,7 @@
 | `js/scene-title.js` / `scene-world.js` / `scene-house.js` / `scene-battle.js` | タイトル／町・フィールド／おうち／バトル |
 | `js/world-zoom.js` | 町・フィールドの ズーム（`WorldZoom`: ピンチ・ひだりの ＋ −・ホイール、0.5〜1.5 倍。ひろく みる ときは 絵を その 大きさで 描きなおす。debug.js の まえ） |
 | `js/minigames.js` | お店のおてつだいミニゲーム（`ShopScene`、`TaskBase` と4つのお店） |
+| `js/gowaga-wish.js` | ごわがの おねがい（`GowagaWish`。おうちで 3人の だれかが つれてって・たべたい・あそびたい の 20しゅ → かなえて かえると おれいと あまえる・すまほの「おねがい」・`Save.d.wish`） |
 | `js/debug.js` | テスト・開発用の `PokaDebug`（ゲーム本編からは使わない） |
 | `tools/check.mjs` | 静的チェック（約2400項目: 登録漏れ・名前の重複・データの参照・マップの到達性・SVG・ミニゲームの採点など） |
 | `tools/serve.mjs` | 依存なしのローカルサーバー |

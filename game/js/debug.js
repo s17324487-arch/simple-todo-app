@@ -285,6 +285,14 @@ const PokaDebug = {
   homeTalkLog() {return G.sceneName==='house'?G.scene.life.log.map(x=>({...x})):[];},
   // かけあいを 1つ 流す（HOME_TALK_DATA.talks の id）
   homeTalk(id) {if(G.sceneName!=='house')return false;return HomeLife.playTalk(G.scene,HomeLife.talkById(id));},
+  // ごわがの おねがい（js/gowaga-wish.js・UI-46）: いまの おねがい・かなえた かず・きろく・きいて いる か・あまえる のこり・いる ばしょ
+  wish() {
+    if(typeof GowagaWish==='undefined')return null;
+    const w=GowagaWish.st(),x=w.cur&&GowagaWish.INDEX[w.cur.id],h=G.sceneName==='house'&&G.scene?G.scene.wishFx:null;
+    return {cur:w.cur?{...w.cur,kind:x.kind,who:x.who}:null,n:w.n||0,log:w.log.map(l=>l.id),how:w.log.map(l=>l.how),asking:GowagaWish.asking,busy:!!(h&&h.busy),amae:h?Math.max(0,Math.round(h.amae*10)/10):0,ids:GowagaWish.WISHES.map(x=>x.id),place:GowagaWish.place()};
+  },
+  // おうちで その おねがいを きく（まどが ひらく。こたえは テストの がわで おす）
+  wishAsk(id) {if(G.sceneName!=='house'||typeof GowagaWish==='undefined'||!GowagaWish.INDEX[id])return false;GowagaWish.ask(G.scene,id);return true;},
   // かけあいの ふきだしの ぎょう数（HomeBubbles.wrap の おりかえし。max を こえると「…」で きれる）
   homeTalkRows(id) {
     const t=HomeLife.talkById(id);if(!t||typeof HomeBubbles==='undefined')return null;
