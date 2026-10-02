@@ -39,6 +39,7 @@ const HomeDesign = {
       // 木枠のドアと真鍮の金具。左はおでかけ、右はおへや選択。
       const u=side==="left"?62:W-92;
       s+=`<g transform="translate(${u-32} ${H-145})"><path d="M0,145 V22 Q0,0 32,0 Q64,0 64,22 V145 Z" fill="#75543D" stroke="${INK}" stroke-width="3"/><path d="M7,145 V24 Q7,8 32,8 Q57,8 57,24 V145" fill="#A68252" stroke="#CFB681" stroke-width="2"/>${[18,32,46].map(x=>`<path d="M${x},19 V143" stroke="#775731" stroke-width="1.5"/>`).join("")}<path d="M8,38 H56 M8,108 H56" stroke="#645044" stroke-width="5"/><circle cx="48" cy="79" r="4" fill="#E0BD66" stroke="#5E4937" stroke-width="1.5"/><rect x="22" y="17" width="20" height="13" rx="3" fill="#D4B980"/><text x="32" y="27" text-anchor="middle" fill="#5F4B31" font-size="9">${side==="left"?"I":"II"}</text></g>`;
+      if(side==="right"&&typeof HomeToilet!=="undefined")s+=HomeToilet.doorSvg(H); // おトイレの ドア（js/home-toilet.js・UI-47）
       s+=`</g></g>`;
     }
     s+=`<g transform="matrix(${this.A} ${this.B} ${-this.A} ${this.B} 0 0)">${this.texture(fl,W,D)}<rect width="${W}" height="${D}" fill="none" stroke="#D9BC8A" stroke-width="6"/><rect x="8" y="8" width="${W-16}" height="${D-16}" fill="none" stroke="#65492F" stroke-opacity=".35" stroke-width="1.3"/></g>`;

@@ -87,6 +87,7 @@ const PokaDebug = {
       "PokaDebug.house()                     おうちへ",
       "PokaDebug.worldZoom(0.5)              町の ズーム（0.5〜1.5・なしで ようす・第2引数 true で ゆっくり）。worldPoint(x, y) で マスの 画面の 位置",
       "PokaDebug.homeDoors()                 おうちの ドア（おでかけ・おへや・おにわの うらぐち）の 画面の ばしょと いける へや",
+      "PokaDebug.toilet()                    おトイレ（3人の いきたさ・ドアの ばしょ・はいって いる 子）。toiletNeed('goji', 80) で いきたさを きめる",
       "PokaDebug.homeFloor()                 おうちの 2かい（かいだん・1かいと 2かいの 画面の ばしょ・かたち polys・のぼって いるか）",
       "PokaDebug.fishSpawn('magoi', 60)      3人の ちかくに 魚の かげ（cm で ながさが きまる）。fishAuto(false, true) で かってに 出さない",
       "PokaDebug.fishAim()                   かげの あたまの まえ（ながおしする 画面の ばしょ）。fishState() で うき・かげ・じまんの ようす",
@@ -293,6 +294,20 @@ const PokaDebug = {
   },
   // おうちで その おねがいを きく（まどが ひらく。こたえは テストの がわで おす）
   wishAsk(id) {if(G.sceneName!=='house'||typeof GowagaWish==='undefined'||!GowagaWish.INDEX[id])return false;GowagaWish.ask(G.scene,id);return true;},
+  // おトイレ（UI-47）: 3人の いきたさ・ドアの ばしょ（homeDoors と おなじ）・はいって いる 子・つかった かず・3人の ようす（face は ふだんの かお）
+  toilet() {
+    if(typeof HomeToilet==='undefined')return null;
+    const t=HomeToilet.st(),sc=G.sceneName==='house'?G.scene:null,W=sc&&sc.wc;
+    return {need:Object.fromEntries(HomeToilet.IDS.map(id=>[id,HomeToilet.need(id)])),n:t.n,who:W?W.who:null,inside:!!(W&&W.inside),door:sc?HomeDoors.state(sc).doors.find(d=>d.id==='toilet')||null:null,
+      kids:sc?sc.chars.map(c=>({id:c.id,state:c.state,hidden:!!c.hidden,wc:c.wc?c.wc.phase:null,face:sc.baseFace(c)})):[],hold:W?{...W.hold}:{}};
+  },
+  // いきたさを きめる（0〜100）。o.hold: 100 で がまんした びょう・o.nag: つぎの もじもじ までの びょう（おうちに いる とき）
+  toiletNeed(id,v,o={}) {
+    if(typeof HomeToilet==='undefined')return null;
+    HomeToilet.set(id,v);const sc=G.sceneName==='house'?G.scene:null;
+    if(sc&&HomeToilet.IDS.includes(id)){const W=HomeToilet.scene(sc);if(o.hold!=null)W.hold[id]=Number(o.hold);if(o.nag!=null)W.nag[id]=Number(o.nag);}
+    return HomeToilet.need(id);
+  },
   // かけあいの ふきだしの ぎょう数（HomeBubbles.wrap の おりかえし。max を こえると「…」で きれる）
   homeTalkRows(id) {
     const t=HomeLife.talkById(id);if(!t||typeof HomeBubbles==='undefined')return null;
