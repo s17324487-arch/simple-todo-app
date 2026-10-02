@@ -99,6 +99,8 @@ const PokaDebug = {
       "PokaDebug.parentWork('talk')          ぱぱ・ままの おしごと（9〜18じ）の ようす。'alone' / 'talk' で おるすばん、'arrive' / 'leave' で ただいま／いってきます",
       "PokaDebug.furnLive('lamp')            さわれる 家具の ようす（つく・チャンネル・きょく・はと など）と タップする 点",
       "PokaDebug.furnArt('piano', false)     家具の 立体モデル（作りなおしたか・床の 大きさ・絵の 大きさ・うごいて いるか）。id なしで 作りなおした 一覧",
+      "PokaDebug.furnTray()                  もようがえの 一覧（ひろさ s/m/l・しゅるい・ならび・さがす ことば・カードの かず と れつ・しゅるいの ボタン）",
+      "PokaDebug.furnTraySize('l')           もようがえの 一覧の ひろさを かえる（'s' ちいさい・'m' はんぶん・'l' ほぼ ぜんぶ）",
       "PokaDebug.battle([{ kind: 'purun', lv: 2 }], 'meadow')  バトル開始",
       "PokaDebug.battleState()                属性・HP・状態・技・曲を読む",
       "PokaDebug.battleFixture({ hp: 1, condition: 'fire' })  コマンド待ち中に戦闘の状態を再現",
@@ -378,6 +380,8 @@ const PokaDebug = {
       hide:sc.hide?{...sc.hide,spots:sc.chars.filter(c=>c.hidden).map(c=>({id:c.id,rect:rect(c.spot.door?sc.doorRect():sc.itemRect(c.spot.it))}))}:null,
       stored:JSON.parse(JSON.stringify(Save.d.rooms)),furn:{...Save.d.furn},wall:Save.d.room.wall,floor:Save.d.room.floor};
   },
+  furnTray() { return G.sceneName === "house" && G.scene.mode === "edit" ? FurnTray.view(G.scene) : null; },
+  furnTraySize(size) { if (G.sceneName !== "house" || G.scene.mode !== "edit" || !["s", "m", "l"].includes(size)) return false; FurnTray.setSize(G.scene, size); return FurnTray.state.size === size; },
   furnArt(id, flip = false) {
     if (id == null) return { ids: typeof FurnModels !== "undefined" ? [...FurnModels.ids] : [] };
     const f = FURN_INDEX[id];

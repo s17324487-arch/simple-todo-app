@@ -4222,6 +4222,8 @@ await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect
 await (await import("./burger-menu-smoke.mjs")).burgerMenuSmoke({scenario,expect});
 await (await import("./food-balance-smoke.mjs")).foodBalanceSmoke({scenario,expect});
 await (await import("./fashion-show-smoke.mjs")).fashionShowSmoke({scenario,expect});
+// もようがえの 一覧を ひろげる・さがす（UI-37・js/furn-tray.js）
+await (await import("./furn-tray-smoke.mjs")).furnTraySmoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 

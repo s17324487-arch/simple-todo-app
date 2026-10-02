@@ -330,6 +330,28 @@ html, body {
 .edit-bar .tray { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: none; }
 .edit-bar .tray::-webkit-scrollbar { display: none; }
 .edit-bar .card { flex: 0 0 84px; }
+/* もようがえの 一覧を ひろげる・さがす（js/furn-tray.js・UI-37）: うえの つまみ・タブの よこを たてに スライド。ひろげると 4れつ いじょうの ならび */
+.edit-bar.ft { display: flex; flex-direction: column; padding-top: 15px; touch-action: none; }
+.edit-bar.ft > .row { flex: none; }
+.edit-bar.ft > .row .tab, .edit-bar.ft > .row .btn { min-height: 42px; } /* ゆびで おしやすく（まえは 32〜36px） */
+.edit-bar .ft-pill { position: absolute; top: 5px; left: 50%; width: 48px; height: 5px; margin-left: -24px; border-radius: 3px; background: #c9b79a; pointer-events: none; }
+.edit-bar .ft-size { flex: none; min-width: 44px; min-height: 40px; padding: 4px 8px; font-size: 16px; line-height: 1; }
+.edit-bar .tray { touch-action: pan-x; }
+.edit-bar .card .nm { word-break: keep-all; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.edit-bar.tall .tray { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); align-content: start; overflow-x: hidden; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; }
+.edit-bar.tall .card { min-width: 0; padding: 6px 2px; }
+.edit-bar.tall .card .nm { font-size: 11px; }
+.edit-bar.tall .tray > .note { grid-column: 1 / -1; }
+.ft-tools { flex: none; display: flex; gap: 6px; margin: 4px 0 6px; }
+.ft-q { flex: 1; min-width: 0; min-height: 44px; font: inherit; font-weight: 700; font-size: 15px; border: 3px solid var(--ink); border-radius: 12px; padding: 4px 10px; background: var(--paper); color: var(--ink); }
+.ft-sort { flex: 0 1 auto; min-width: 0; max-width: 46%; min-height: 44px; font: inherit; font-weight: 800; font-size: 13px; border: 3px solid var(--ink); border-radius: 12px; background: var(--paper); color: var(--ink); padding: 0 4px; }
+.ft-chips { flex: none; display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: none; touch-action: pan-x; }
+.ft-chips::-webkit-scrollbar { display: none; }
+.ft-chip { flex: 0 0 auto; min-height: 42px; font: inherit; font-weight: 800; font-size: 13px; border: 3px solid var(--ink); border-radius: 999px; background: var(--paper); padding: 4px 11px; box-shadow: 0 2px 0 var(--ink); color: var(--ink); display: inline-flex; align-items: center; gap: 5px; }
+.ft-chip b { font-size: 11px; background: #efe3cc; border-radius: 999px; padding: 0 6px; }
+.ft-chip.on { background: var(--yellow); transform: translateY(1px); box-shadow: 0 1px 0 var(--ink); }
+.ft-chip.on b { background: #fff8d8; }
+.ft-none { padding: 18px 8px; text-align: center; }
 .edit-tools { position: absolute; display: flex; width: max-content; max-width: calc(100% - 16px); gap: 6px; transform: translate(-50%, -100%); z-index: 5; }
 .edit-tools .btn { padding: 4px 9px; font-size: 12px; border-radius: 10px; }
 
