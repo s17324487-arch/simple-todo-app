@@ -3,7 +3,8 @@ const Save = {
   // KEY は変えない（変えると プレイヤーのセーブが消えたように見える）
   KEY: "pokapoka-town-save-v1",
   // セーブ形式の番号。形式を変えたら +1 して migrate() に変換を足す
-  SCHEMA: 1,
+  // 2: 服は 1こで 1人（wardrobe の あたいは もって いる かず。true は 1こ。js/wear-stock.js・UI-31）
+  SCHEMA: 2,
   d: null,
   dirty: false,
 
@@ -17,7 +18,7 @@ const Save = {
       color: "soft", lastPet: 0, wantsDeza: false,
     });
     return {
-      v: 1,
+      v: 2,
       gameVersion: GAME_VERSION,
       created: Date.now(),
       last: Date.now(),
@@ -128,6 +129,7 @@ const Save = {
     // 1) 形式の変換（SCHEMA を上げたときだけ、ここに1段ずつ足す）
     //    例: if (d.v < 2) { d.newThing = convert(d.oldThing); delete d.oldThing; d.v = 2; }
     if (!d.v) d.v = 1;
+    if (d.v < 2) { this.repairWear(d); d.v = 2; }
     // 2) 足りないキーを fresh() から補う（新しい項目を足すだけなら 変換は不要）
     const f = this.fresh();
     const fill = (dst, src) => {
@@ -144,6 +146,20 @@ const Save = {
     }
     d.v = Math.max(d.v, this.SCHEMA);
     return d;
+  },
+  // SCHEMA 2: まえは 1この 服を みんなで きられた。1こを 2人 いじょうが つかって いたら、つかって いる 人の かずまで ふやす
+  // （3人の outfit と ぱぱ・ままの equipment・5こ まで。もって いない 服〔かしだし〕は そのまま）。いまの みためは かわらない
+  repairWear(d) {
+    const w = d && d.wardrobe && typeof d.wardrobe === "object" ? d.wardrobe : null, n = {};
+    if (!w) return 0;
+    for (const c of Object.values(d.chars || {})) for (const id of Object.values((c && c.outfit) || {})) if (id) n[id] = (n[id] || 0) + 1;
+    for (const p of ["papa", "mama"]) for (const id of Object.values((d.parents && d.parents[p] && d.parents[p].equipment) || {})) if (id) n[id] = (n[id] || 0) + 1;
+    let fixed = 0;
+    for (const [id, k] of Object.entries(n)) {
+      const v = w[id], have = v === true ? 1 : Number.isFinite(v) && v > 0 ? Math.floor(v) : 0;
+      if (have >= 1 && k > have) { w[id] = Math.min(5, k); fixed++; }
+    }
+    return fixed;
   },
   write() {
     if (!this.d) return;

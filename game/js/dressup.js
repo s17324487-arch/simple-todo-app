@@ -81,10 +81,15 @@ const DressUp = {
         grid.append(none);
         const owned = [...extra.filter((w) => w.slot === slot && !d.wardrobe[w.id]), ...WEAR_ITEMS.filter((w) => w.slot === slot && d.wardrobe[w.id])];
         for (const it of owned) {
-          const lent = extraIds.has(it.id) && !d.wardrobe[it.id];
-          const b = U.el("button", { class: "card" + (c.outfit[slot] === it.id ? " on" : "") + (lent ? " lent" : ""), html: `${lent ? `<span class="dress-tag">${opts.tag || ""}</span>` : ""}${UI.icon("wear", it.id, 44)}<div>${it.name}</div>` });
-          b.addEventListener("click", () => {
-            c.outfit[slot] = c.outfit[slot] === it.id ? null : it.id;
+          const lent = extraIds.has(it.id) && !d.wardrobe[it.id], on = c.outfit[slot] === it.id;
+          // 1こで 1人（js/wear-stock.js）: 2こ いじょう もって いれば かず、のこりが ない ときは つかって いる 人。かしだしは いくつでも
+          const bd = lent ? null : WearStock.badge(it.id, who);
+          const b = U.el("button", { class: "card" + (on ? " on" : "") + (lent ? " lent" : "") + (bd && bd.from ? " busy" : ""),
+            html: `${lent ? `<span class="dress-tag">${opts.tag || ""}</span>` : ""}${bd && bd.n > 1 ? `<span class="cnt">×${bd.n}</span>` : ""}${UI.icon("wear", it.id, 44)}<div>${it.name}</div>${bd && bd.from ? `<small class="dress-who">${bd.text}</small>` : ""}` });
+          b.addEventListener("click", async () => {
+            if (on) c.outfit[slot] = null;
+            else if (lent) c.outfit[slot] = it.id;
+            else if (!(await WearStock.ask(who, slot, it))) return;
             Sound.se("pop");
             Save.mark();
             drawAll();
@@ -97,9 +102,21 @@ const DressUp = {
         tools.innerHTML = "";
         tools.append(UI.btn("↻ まわる", () => { view = { down: "left", left: "up", up: "right", right: "down" }[view]; Sound.se("tap"); drawStage(); }, "small"));
         tools.append(UI.btn("みんな おそろい", () => {
-          const src = d.chars[who].outfit;
-          for (const id of Chara.IDS) d.chars[id].outfit = { ...src };
-          Sound.se("sparkle"); Save.mark(); UI.toast("3にん おそろいに したよ！", "good"); drawAll();
+          // 1こで 1人（js/wear-stock.js）: たりない 服は その 人の いまの ふくの まま（ほかの 人から とらない）。かしだしの いしょうは いくつでも
+          const src = { ...d.chars[who].outfit }, short = [];
+          for (const id of Chara.IDS) {
+            if (id === who) continue;
+            const o = d.chars[id].outfit;
+            for (const [s, item] of Object.entries(src)) {
+              if (!item || (extraIds.has(item) && !d.wardrobe[item])) { o[s] = item || null; continue; }
+              if (o[s] === item) continue;
+              if (WearStock.can(item, id)) WearStock.put(id, s, item); else if (!short.includes(item)) short.push(item);
+            }
+          }
+          Sound.se(short.length ? "pop" : "sparkle"); Save.mark();
+          if (short.length) UI.toast(`「${ITEM_INDEX[short[0]].name}」${short.length > 1 ? "など" : ""}が たりないよ。\n1こで ひとり。おみせで かうと おそろいに できるよ`);
+          else UI.toast("3にん おそろいに したよ！", "good");
+          drawAll();
         }, "small pink"));
         tools.append(UI.btn("ぜんぶ ぬぐ", () => { d.chars[who].outfit = { head: null, face: null, neck: null, body: null, back: null }; Sound.se("tap"); Save.mark(); drawAll(); }, "small"));
       };

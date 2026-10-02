@@ -60,6 +60,6 @@ assert.equal(art.size,10);
 
 // Original v1 fixture preserves balances/possessions and receives only additive defaults.
 const old=JSON.parse(readFileSync(new URL('../tests/fixtures/save-v1.json',import.meta.url),'utf8'));
-const preserved=copy(old);const migrated=Save.migrate(copy(old));for(const k of ['coins','bag','wardrobe','furn'])assert.deepEqual(copy(migrated[k]),preserved[k]);assert(migrated.conversations&&migrated.townQuiz);assert.equal(Save.KEY,'pokapoka-town-save-v1');assert.equal(Save.SCHEMA,1);
+const preserved=copy(old);const migrated=Save.migrate(copy(old));for(const k of ['coins','bag','wardrobe','furn'])assert.deepEqual(copy(migrated[k]),preserved[k]);assert(migrated.conversations&&migrated.townQuiz);assert.equal(Save.KEY,'pokapoka-town-save-v1');assert.equal(Save.SCHEMA,2);
 for(const id of ['deza_jelly','deza_ice','deza_tart'])assert(BAG_INDEX[id]);
 console.log(`✓ dialogue: ${D.exchanges.length} exchanges / ${D.stories.length} stories / ${routeCount} routes; quiz: ${Q.length} sourced questions / 5 prizes; save v1 preserved`);

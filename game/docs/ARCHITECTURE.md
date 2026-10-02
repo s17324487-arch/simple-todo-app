@@ -139,6 +139,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 7 | `tiles.js` | `TS`, `GROUND`, `SOLID_CH`, `OBJ_CH`, `Tiles`, `OS`, `WorldArt`, `SIGN_ICON` |
 | 8 | `maps.js` | `MAP_DEFS`, `FieldGen`, `genMeadow`, `genForest`, `genCave`, `WorldMap` |
 | 9 | `save.js` | `Save`, `Stats`, `Care` |
+| 9b | `wear-stock.js` | `WearStock`（服の かず。1こで ひとり・UI-31） |
 | 10 | `sound.js` | `Sound`, `DR`, `SONGS` |
 | 11 | `ui.js` | `UI` |
 | 12 | `main.js` | `G`, `Game`, `SCENES` |
@@ -383,20 +384,22 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
   1. `Save.SCHEMA` を上げたときの形式の変換（`if (d.v < N) { ... }` を1段ずつ足す）
   2. `Save.fresh()` にあって古いセーブに無いキーを補う（**新しい項目は fresh() に足すだけでよい**）
   3. 名前の HTML 記号を取りのぞく
+- **SCHEMA 2（UI-31）**: 服は 1こで ひとり。`wardrobe[id]` は もって いる かず（`true` は まえからの 1こ・2こ いじょうは かず・5こ まで）。
+  `if (d.v < 2) { Save.repairWear(d); d.v = 2; }` が、1この 服を 2人 いじょう（3人の `outfit` と ぱぱ・ままの `equipment`）が つかって いたら つかって いる 人の かずまで ふやす（いまの みためは かわらない・かしだしの いしょうは かず に いれない）。
 - ゲームを閉じていた時間の分だけ、おなか・ごきげんが減る（最大12時間分。`Save.applyElapsed()`）。
 
-`Save.fresh()` の形（ver1、SCHEMA 1）:
+`Save.fresh()` の形（ver1 の 形に あとから 足した もの。いまは SCHEMA 2）:
 
 ```js
 {
-  v: 1, gameVersion: "1.0.0", created, last,        // last = 最後に保存した時刻（ms）
+  v: 2, gameVersion, created, last,                 // v = SCHEMA（2: 服の かず）・last = 最後に保存した時刻（ms）
   coins: 150,
   chars: { wanko: キャラ, gachan: キャラ, goji: キャラ },
   //   キャラ = { name, lv, exp, hp, sp, hunger(0-100), mood(0-100), bond(なかよし 0-100),
   //              outfit: { head, face, neck, body, back }, boost: { hp, sp, atk, def, spd }, color: "soft"|"dark", lastPet }
   order: ["wanko", "gachan", "goji"],              // ならび順（先頭が町でいちばん前を歩く）
   bag: { 食べ物・どうぐのid: 個数 },
-  wardrobe: { 服のid: true },                       // 持っている服
+  wardrobe: { 服のid: true | かず },                 // 持っている服（SCHEMA 2: true = 1こ・2〜5 = かず。1こで ひとり）
   furn: { 家具のid: 持っている数 },
   room: { wall, floor, items: [{ uid, id, x, y, flip }], wallpapers: { id: true }, floors: { id: true }, nextUid },
   shops: { crepe: { lv, rep, best, plays }, dentist: {...}, bakery: {...}, florist: {...} },
@@ -411,6 +414,17 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
 
 よく使う関数: `Save.addCoins(n)` `Save.addBag(id, n)` `Save.care(id, { hunger, mood, bond })` `Save.careAll(...)` `Save.healAll()` `Save.avg(key)`、
 `Stats.max(id, "atk")`（レベル＋服＋とっくん）`Stats.gainExp(id, n)` `Stats.skills(id)` `Stats.perk(名前)`、`Care.feed(id, itemId)`。
+
+### 服の かず（`js/wear-stock.js`・`WearStock`・UI-31）
+
+オーナーの FB 2026-10-01「服などについて、ひとつ買うとみんな着れる仕様になっているが、1アイテム1人までにしてほしい」。
+
+- 1こで ひとり。つかう 人は 3人の `outfit` と ぱぱ・ままの `equipment`（`ParentWardrobe`）を あわせて かぞえる。もてるのは `WearStock.CAP`（5）こ まで。
+- `count(id)`・`set(id, n)`（1こは `true` の まま）・`add(id, n)`（ふえた かず）・`room(id)`・`wearers(id)`・`free(id, who)`・`can(id, who)`・`holder(id, who)`・`put(who, slot, id)`（のこりが なければ ほかの 人から わたす）・`ask(who, slot, it)`（「わたす？」と きいて つける）・`badge(id, who)`（カードの ×かず と「〇〇が つかってる」）。
+- おみせ（`ShopUI`）: 服は −／＋ で のこりの かず まで かえる（5こで「もってる」）。きがえ（`DressUp`）・ぱぱ・ままの きがえ: のこりが ない 服は うすく して つかって いる 人の なまえ、おすと わたすか きく。「みんな おそろい」は たりない 服を ほかの 人から とらない（「たりないよ」の トースト）。
+- ガチャ・もらいもの（`Loot`）・おまつり（`Seasonal`・`AnnualFestivals`）・コラボ（`CollabGoods.give`）は 1こ ずつ（5こ より おおい ぶんは まえと おなじ コイン）。こうもりの はねは 5こ まで おちる。
+- Meeときょれじゃ の かしだしの いしょう（もって いない もの）は いくつでも・かず に いれない。こういしつを でる とき（`MeeFitting.giveBack`）は、まえの ふくを ほかの 人が つかって いて のこりが なければ もどさない。
+- PokaDebug: `wearStock(id)`・`wearSet(id, n)`・`unlockAll()` は 5こずつ。検査は `tools/check-wear-stock.mjs`、スモークは `tests/wear-stock-smoke.mjs`（`wear-stock-390/375`）。
 
 ---
 
@@ -669,11 +683,12 @@ class NewTask extends TaskBase {
 ### セーブの形を変える（例: shops を配列に変える、など）
 
 ```js
-// save.js
-SCHEMA: 2,
+// save.js（いまは SCHEMA 2〔服の かず・UI-31〕。つぎに 形を かえる ときは 3）
+SCHEMA: 3,
 migrate(d) {
   if (!d.v) d.v = 1;
-  if (d.v < 2) { /* d の古い形 → 新しい形に変換 */ d.v = 2; }
+  if (d.v < 2) { this.repairWear(d); d.v = 2; }
+  if (d.v < 3) { /* d の古い形 → 新しい形に変換 */ d.v = 3; }
   // …（以下は既存のまま）
 }
 ```

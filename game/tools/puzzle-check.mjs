@@ -51,7 +51,7 @@ for(let i=1;i<=50;i++){
 // Additive migration must not reinterpret the old customer's percentage record as a puzzle score.
 Save.reset();const old=copy(Save.d);delete old.puzzle;old.coins=987654;old.shops.link={lv:5,rep:99,best:100,plays:46};
 const original=copy(old);Save.d=Save.migrate(old);
-ok(Save.KEY==='pokapoka-town-save-v1'&&Save.SCHEMA===1,'Save identity changed');
+ok(Save.KEY==='pokapoka-town-save-v1'&&Save.SCHEMA===2,'Save identity changed');
 for(const k of ['coins','shops','furn','wardrobe','room','rooms','stats'])ok(JSON.stringify(Save.d[k])===JSON.stringify(original[k]),'Legacy data changed: '+k);
 ok(Save.d.puzzle.best===0,'Old percentage became score');
 const back={map:'city',x:1,y:1,dir:'down'};

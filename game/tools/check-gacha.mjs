@@ -1,5 +1,5 @@
 // ガチャガチャ（js/gacha.js・js/gacha-art.js）の 検査。ブラウザ なしで シリーズ・かくりつ・もちもの・コイン・セーブ・絵を たしかめる。
-// 12シリーズ × 4しゅ（レアは 1つ・10%。UI-28 で 6 → 12・アクセサリー 4シリーズ）・くじの わりあい・家具／服に はいる・200コイン・ダブりの ふくは 50コイン もどる・コンプリート・ふるい セーブ・おみせに ならばない・ずかんの ヒント・SVG。
+// 12シリーズ × 4しゅ（レアは 1つ・10%。UI-28 で 6 → 12・アクセサリー 4シリーズ）・くじの わりあい・家具／服に はいる・200コイン・ダブりの ふくは 5こ まで もう 1こ（1こで 1人。UI-31）・6こめから 50コイン もどる・コンプリート・ふるい セーブ・おみせに ならばない・ずかんの ヒント・SVG。
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
@@ -86,10 +86,13 @@ ok(S.d.gacha && S.d.gacha.plays === 0 && typeof S.d.gacha.got === "object" && ty
   S.d.coins = 1000; const r = GA.spin(0, 0.95);
   ok(r && r.k === 3 && r.rare && r.first && !r.refund && r.item.id === "gacha_friends_3" && S.d.coins === 800 && S.d.furn.gacha_friends_3 === 1 && GA.got("gacha_friends_3") === 1 && GA.st().plays === 1, "レアが でない／200コイン へらない／家具が ふえない");
   const r2 = GA.spin(0, 0.95); ok(r2 && !r2.first && !r2.refund && S.d.furn.gacha_friends_3 === 2 && S.d.coins === 600, "フィギュアの ダブりは ふたつ めも かざれる");
-  // 服: はじめては ふくに・ダブりは 50コイン もどる
+  // 服: はじめては ふくに・ダブりは 1こで 1人（UI-31）なので 5こ まで もう 1こ・それより おおいと 50コイン もどる
   S.d.coins = 1000; const w1 = GA.spin(4, 0.1);
-  ok(w1 && w1.item.id === "gacha_ears_0" && S.d.wardrobe.gacha_ears_0 === true && S.d.coins === 800 && !w1.refund, "服が ふくに はいらない");
-  const w2 = GA.spin(4, 0.1); ok(w2 && w2.refund === GA.DUP && S.d.coins === 650 && GA.got("gacha_ears_0") === 2, "ダブった 服で 50コイン もどらない");
+  ok(w1 && w1.item.id === "gacha_ears_0" && S.d.wardrobe.gacha_ears_0 === true && S.d.coins === 800 && !w1.refund && w1.copies === 1, "服が ふくに はいらない");
+  const w2 = GA.spin(4, 0.1); ok(w2 && !w2.refund && w2.copies === 2 && S.d.wardrobe.gacha_ears_0 === 2 && S.d.coins === 600 && GA.got("gacha_ears_0") === 2, "ダブった 服が 2こめに ならない");
+  R.WearStock.set("gacha_ears_0", 5); S.d.coins = 1000;
+  const w2b = GA.spin(4, 0.1); ok(w2b && w2b.refund === GA.DUP && S.d.coins === 850 && S.d.wardrobe.gacha_ears_0 === 5 && GA.got("gacha_ears_0") === 3, "5こ もって いる 服で 50コイン もどらない");
+  S.d.coins = 600;
   // つぎに でる もの（PokaDebug.gachaNext）は 1かい だけ
   GA.next = 2; const w3 = GA.spin(4, 0.1); ok(w3.k === 2 && GA.next === null && S.d.wardrobe.gacha_ears_2, "gachaNext が きかない");
   ok(!GA.complete(4) && !GA.st().done.ears, "3しゅで コンプリート に なる");
@@ -110,4 +113,4 @@ for (const f of ["../js/gacha.js", "../js/gacha-art.js"]) {
   const texts = [...src.matchAll(/text: `?"?([^"`]*)["`]/g)].map((m) => m[1]).concat(Object.values(GA.REACT).flat());
   for (const t of texts) ok(!kanji.test(t.replace(/\$\{[^}]*\}/g, "")), `ガチャの ことばに 漢字: ${t}`);
 }
-console.log(`Gacha: 12 series x 4 (1 rare each, 30/30/30/10), roll split, furniture/clothes registration and room models, not sold in shops, dex hints, figure/clothes/capsule/machine SVG, 200-coin spin, duplicate clothes refund, complete once, old and broken saves — ${n} checks OK`);
+console.log(`Gacha: 12 series x 4 (1 rare each, 30/30/30/10), roll split, furniture/clothes registration and room models, not sold in shops, dex hints, figure/clothes/capsule/machine SVG, 200-coin spin, duplicate clothes become copies up to 5 then refund, complete once, old and broken saves — ${n} checks OK`);

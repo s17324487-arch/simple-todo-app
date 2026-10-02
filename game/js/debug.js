@@ -118,7 +118,9 @@ const PokaDebug = {
       "PokaDebug.storeWalkTo(5, 3)           店内のマスまで実際に歩く",
       "PokaDebug.coins(1000)                 コインを足す",
       "PokaDebug.level(16)                   3人のレベルを設定して全回復",
-      "PokaDebug.unlockAll()                 服・家具・壁紙・床を ぜんぶ持つ",
+      "PokaDebug.unlockAll()                 服（5こずつ）・家具・壁紙・床を ぜんぶ持つ",
+      "PokaDebug.wearStock('ribbon_pink')     服の かず（1こで 1人）・つかって いる 人・あと なんこ",
+      "PokaDebug.wearSet('ribbon_pink', 3)    服の かずを きめる（0〜5。0 は もって いない）",
       "PokaDebug.itemDex('furn')             家具／服の図鑑の記録（'furn' / 'wear'）",
       "PokaDebug.itemDexClaim('wear', 10)    10種類ごとの図鑑のごほうびを受け取る",
       "PokaDebug.give('cake', 3)             もちものを足す",
@@ -838,12 +840,15 @@ const PokaDebug = {
   },
   unlockAll() {
     const d = Save.d;
-    for (const w of WEAR_ITEMS) d.wardrobe[w.id] = true;
+    for (const w of WEAR_ITEMS) WearStock.set(w.id, WearStock.CAP); // 服は 1こで 1人なので 5こずつ（3人と ぱぱ・ままで おそろいに できる）
     for (const f of FURNITURE) d.furn[f.id] = Math.max(d.furn[f.id] || 0, 1);
     for (const w of WALLPAPERS) d.room.wallpapers[w.id] = true;
     for (const f of FLOORS) d.room.floors[f.id] = true;
     Save.mark();
   },
+  // 服の かず（js/wear-stock.js・UI-31）: もって いる かず・つかって いる 人（3人 → ぱぱ・まま）・あと なんこ もてるか
+  wearStock(id) { if (!ITEM_INDEX[id]) throw new Error("unknown wear: " + id); return { id, count: WearStock.count(id), raw: Save.d.wardrobe[id] ?? null, wearers: WearStock.wearers(id), room: WearStock.room(id), cap: WearStock.CAP }; },
+  wearSet(id, n) { if (!ITEM_INDEX[id]) throw new Error("unknown wear: " + id); WearStock.set(id, n); Save.mark(); return this.wearStock(id); },
   give(id, n = 1) {
     if (!BAG_INDEX[id]) throw new Error("unknown item: " + id);
     Save.addBag(id, n);

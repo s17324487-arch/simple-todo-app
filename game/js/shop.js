@@ -61,7 +61,7 @@ const ShopUI = {
   },
   owned(kind, it) {
     const d = Save.d;
-    if (kind === "wear") return !!d.wardrobe[it.id];
+    if (kind === "wear") return WearStock.count(it.id); // 服は かず（1こで 1人。js/wear-stock.js）
     if (kind === "wall") return !!d.room.wallpapers[it.id];
     if (kind === "floor") return !!d.room.floors[it.id];
     if (kind === "furn") return d.furn[it.id] || 0;
@@ -70,17 +70,18 @@ const ShopUI = {
   card(shopId, tab, it, onBuy) {
     const kind = this.kindOf(shopId, tab);
     const own = this.owned(kind, it);
-    const single = kind === "wear" || kind === "wall" || kind === "floor";
-    const card = U.el("button", { class: "card" + (single && own ? " on" : "") });
+    // かべがみ・ゆかは 1つで おしまい。服は 1こで 1人なので WearStock.CAP こ まで かえる
+    const single = kind === "wall" || kind === "floor", full = (single && own) || (kind === "wear" && own >= WearStock.CAP);
+    const card = U.el("button", { class: "card" + (full ? " on" : "") });
     const icoSize = kind === "furn" ? 58 : 48;
     card.innerHTML = `${own && !single ? `<span class="cnt">×${own}</span>` : ""}${UI.icon(kind, it.id, icoSize)}<div>${it.name}</div>` +
-      (single && own ? `<div class="price">もってる</div>` : `<div class="price"><i class="coin-ico"></i>${it.price}</div>`);
+      (full ? `<div class="price">もってる</div>` : `<div class="price"><i class="coin-ico"></i>${it.price}</div>`);
     card.addEventListener("click", () => { Sound.se("tap"); this.detail(shopId, kind, it, onBuy); });
     return card;
   },
   detail(shopId, kind, it, onBuy) {
     const body = U.el("div");
-    const single = kind === "wear" || kind === "wall" || kind === "floor";
+    const single = kind === "wall" || kind === "floor";
     let who = Save.d.order[0];
     const stage = U.el("div", { class: "dress-stage" });
     const drawStage = () => {
@@ -111,6 +112,7 @@ const ShopUI = {
     if (it.desc) info.push(it.desc);
     if (it.st) info.push(Object.entries(it.st).map(([k, v]) => `${{ atk: "こうげき", def: "ぼうぎょ", spd: "すばやさ", hp: "HP", sp: "SP" }[k]} ${v > 0 ? "+" : ""}${v}`).join(" ／ "));
     if (it.perk) info.push("とくせい: " + PERK_TEXT[it.perk]);
+    if (kind === "wear") info.push(`1こで ひとり きられるよ（もってる: ${WearStock.count(it.id)}こ）`);
     if (it.comfort) info.push(`いごこち +${it.comfort}`);
     if (it.hunger) info.push(`おなか +${it.hunger}` + (it.mood ? ` ／ ごきげん ${it.mood > 0 ? "+" : ""}${it.mood}` : ""));
     if (info.length) body.append(U.el("div", { class: "note", html: info.join("<br>") }));
@@ -120,14 +122,16 @@ const ShopUI = {
     const setPrice = () => (price.innerHTML = `<i class="coin-ico"></i>${it.price * qty}`);
     setPrice();
     foot.append(price);
-    if (!single) {
+    // 服は あと なんこ もてるか まで（3人に きせるなら 3こ）
+    const max = kind === "wear" ? WearStock.room(it.id) : 20;
+    if (!single && max > 0) {
       const minus = UI.btn("−", () => { qty = Math.max(1, qty - 1); setPrice(); q.textContent = "×" + qty; }, "small");
       const q = U.el("b", { text: "×1" });
-      const plus = UI.btn("＋", () => { qty = Math.min(20, qty + 1); setPrice(); q.textContent = "×" + qty; }, "small");
+      const plus = UI.btn("＋", () => { qty = Math.min(max, qty + 1); setPrice(); q.textContent = "×" + qty; }, "small");
       foot.append(minus, q, plus);
     }
     foot.append(U.el("div", { class: "spacer" }));
-    const owned = single && this.owned(kind, it);
+    const owned = single ? this.owned(kind, it) : max <= 0;
     const buy = UI.btn(owned ? "もってるよ" : "かう", async () => {
       if (buy.disabled) return;
       const cost = it.price * qty;
@@ -135,7 +139,7 @@ const ShopUI = {
       buy.disabled = true;
       Save.addCoins(-cost);
       Sound.se("buy");
-      if (kind === "wear") Save.d.wardrobe[it.id] = true;
+      if (kind === "wear") WearStock.add(it.id, qty);
       else if (kind === "wall") Save.d.room.wallpapers[it.id] = true;
       else if (kind === "floor") Save.d.room.floors[it.id] = true;
       else if (kind === "furn") Save.d.furn[it.id] = (Save.d.furn[it.id] || 0) + qty;
@@ -145,8 +149,8 @@ const ShopUI = {
       m.close();
       onBuy();
       if (kind === "wear") {
-        if (await UI.confirm(`「${it.name}」を かったよ！\n${Save.d.chars[who].name}が いま きる？`, "きる！", "あとで")) {
-          Save.d.chars[who].outfit[it.slot] = it.id;
+        if (await UI.confirm(`「${it.name}」を ${qty > 1 ? qty + "こ " : ""}かったよ！\n${Save.d.chars[who].name}が いま きる？`, "きる！", "あとで")) {
+          WearStock.put(who, it.slot, it.id);
           Save.care(who, { mood: 6, bond: 1 }); Save.write();
           Save.mark();
           UI.toast(`${Save.d.chars[who].name}「にあう？」`, "good");
