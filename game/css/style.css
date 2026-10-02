@@ -696,7 +696,7 @@ html, body {
 .item-dex-results { margin:9px 0 6px; font-size:11px; color:#556e78; }
 .item-dex-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
 .item-dex-card { min-width:0; min-height:144px; display:flex; flex-direction:column; align-items:center; gap:5px; border:2px solid #a9bec3; border-radius:13px; background:#fffef9; padding:8px 6px; font:inherit; color:#293f4d; box-shadow:0 2px 0 #d7e3e3; }
-.item-dex-card.rare { border-color:#caa759; background:linear-gradient(145deg,#fffdf3,#fff1cf); }
+.item-dex-card.rare { border-color:#caa759; }
 .item-dex-card.unknown { background:#f0f1ed; border-style:dashed; }
 .item-dex-card:active { transform:translateY(2px); box-shadow:none; }
 .item-dex-art { display:block; width:100%; height:77px; }
@@ -1166,7 +1166,6 @@ html, body {
 .gacha-cap{position:absolute;left:58.5%;top:82%;width:18%;aspect-ratio:60/64;pointer-events:none}
 .gacha-cap svg{display:block;width:100%;height:100%}
 .gacha-cap.drop{animation:gacha-drop .5s cubic-bezier(.3,1.5,.5,1)}
-.gacha-cap.gold,.gacha-bigcap.gold{filter:drop-shadow(0 0 6px #FFE066) drop-shadow(0 0 2px #FFFFFF)}
 .gacha-bigcap{display:block;margin:0 auto;width:84px;height:90px;padding:0;border:none;background:none;cursor:pointer;animation:gacha-pop .4s cubic-bezier(.3,1.5,.5,1)}
 .gacha-bigcap svg{display:block;width:100%;height:100%}
 .gacha-bigcap:disabled{cursor:default}
@@ -1185,7 +1184,6 @@ html, body {
 .gacha-result{display:flex;flex-direction:column;gap:4px}
 .gacha-tap{text-align:center;font-weight:900;font-size:15px;color:#E0668F;padding:6px 0}
 .gacha-prize{display:flex;gap:10px;align-items:center;border:3px solid var(--ink);border-radius:16px;padding:8px;background:#FFFDF5;animation:gacha-pop .45s cubic-bezier(.3,1.5,.5,1)}
-.gacha-prize.rare{background:linear-gradient(135deg,#FFE3EF,#FFF6C8 50%,#DFF3FF);box-shadow:inset 0 0 0 3px #F7C948}
 .gacha-prize img{width:84px;height:84px;object-fit:contain;flex:none}
 .gacha-prize-text{min-width:0;display:flex;flex-direction:column;gap:2px}
 .gacha-prize-text b{font-size:16px}
@@ -1197,7 +1195,6 @@ html, body {
 .gacha-line{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .gacha-card{position:relative;border:2.5px solid var(--ink);border-radius:12px;background:#FFFDF5;padding:4px 3px 5px;text-align:center;min-width:0}
 .gacha-card img{display:block;width:100%;aspect-ratio:100/110;object-fit:contain}
-.gacha-card.rare{background:linear-gradient(#FFF6C8,#FFE3EF)}
 .gacha-card.own{box-shadow:inset 0 0 0 2px #7CCB6B}
 .gacha-name{font-size:11px;font-weight:800;line-height:1.3}
 .gacha-own{font-size:10px;font-weight:800;color:#8a7d6a;margin-top:2px}

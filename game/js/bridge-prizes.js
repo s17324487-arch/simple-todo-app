@@ -249,7 +249,7 @@ const BridgePrizes = (() => {
   const install = () => {
     for (const it of ITEMS) {
       const [w, h, depth] = it.kind === "fig" ? [96, 104, 56] : [90, 98, 56];
-      const f = { id: it.id, name: it.name, price: 0, kind: "floor", w, h, depth, comfort: 6, rare: true, interactive: true, exclusive: "ikebukuro", arcadePrize: true, sparkle: false, cityItem: { type: "hashiprize", variant: it.id }, desc: it.desc };
+      const f = { id: it.id, name: it.name, price: 0, kind: "floor", w, h, depth, comfort: 6, rare: true, interactive: true, exclusive: "ikebukuro", arcadePrize: true, cityItem: { type: "hashiprize", variant: it.id }, desc: it.desc };
       FURNITURE.push(f); FURN_INDEX[it.id] = f;
       FURN_ART[it.id] = () => itemSvg(it.id).replace("<svg ", `<svg x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="xMidYMax meet" `);
     }

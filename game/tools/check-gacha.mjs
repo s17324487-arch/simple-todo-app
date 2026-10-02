@@ -44,7 +44,7 @@ ok(Math.abs(GA.RATE.reduce((a, b) => a + b, 0) - 1) < 1e-9 && GA.RATE.slice(0, 3
 for (const it of GA.ITEMS) {
   if (it.kind === "furn") {
     const f = R.FURN_INDEX[it.id];
-    ok(f && R.FURNITURE.includes(f) && f.exclusive === "gacha" && f.gachaPrize && f.sparkle === false && f.kind === "floor" && f.w > 0 && f.h > 0 && f.depth > 0, `家具 ${it.id}`);
+    ok(f && R.FURNITURE.includes(f) && f.exclusive === "gacha" && f.gachaPrize && !("sparkle" in f) && f.kind === "floor" && f.w > 0 && f.h > 0 && f.depth > 0, `家具 ${it.id}`);
     const art = R.FURN_ART[it.id]();
     ok(typeof art === "string" && art.startsWith("<svg ") && art.includes(`width="${f.w}" height="${f.h}"`), `家具の 絵 ${it.id}`);
     const m = R.IkebukuroItemArt.model(it.id);
@@ -112,5 +112,13 @@ for (const f of ["../js/gacha.js", "../js/gacha-art.js"]) {
   const src = readFileSync(new URL("../js/gacha.js", import.meta.url), "utf8");
   const texts = [...src.matchAll(/text: `?"?([^"`]*)["`]/g)].map((m) => m[1]).concat(Object.values(GA.REACT).flat());
   for (const t of texts) ok(!kanji.test(t.replace(/\$\{[^}]*\}/g, "")), `ガチャの ことばに 漢字: ${t}`);
+}
+// ---- レアの キラキラは ない（UI-50。オーナーの FB「レアアイテムのキラキラした演出は全て削除して」）----
+{
+  const read = (f) => readFileSync(new URL("../" + f, import.meta.url), "utf8"), house = read("js/scene-house.js"), css = read("css/style.css"), src = read("js/gacha.js");
+  ok(!/f\.rare\s*&&/.test(house) && !/sparkle/.test(house), "おうち: レアの けいひんの まわりに ほしを ださない");
+  ok(!R.FURNITURE.some((f) => "sparkle" in f), "家具に sparkle の しるしは ない");
+  ok(!/gacha-cap\.gold|gacha-bigcap\.gold|gacha-prize\.rare|gacha-card\.rare\{background/.test(css) && !/item-dex-card\.rare[^}]*gradient/.test(css), "CSS: レアの カプセル・カードを ひからせない");
+  ok(!/classList\.add\("gold"\)|" gold"|"gacha-prize" \+ \(r\.rare/.test(src), "ガチャ: 金の カプセル・レアの カードの クラスは つかわない");
 }
 console.log(`Gacha: 12 series x 4 (1 rare each, 30/30/30/10), roll split, furniture/clothes registration and room models, not sold in shops, dex hints, figure/clothes/capsule/machine SVG, 200-coin spin, duplicate clothes become copies up to 5 then refund, complete once, old and broken saves — ${n} checks OK`);
