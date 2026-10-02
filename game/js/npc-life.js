@@ -48,7 +48,20 @@ const NpcLife = {
     if(sc.party.some(occupies)||sc.follower&&occupies(sc.follower.w))return false;
     if(sc.npcs.some(o=>o!==n&&occupies(o.w))||sc.enemies.some(e=>occupies(e.w)))return false;
     if(sc.path?.some(p=>p[0]===x&&p[1]===y))return false;
-    return true;
+    return this.keepsWay(sc,x,y);
+  },
+  // (x, y) を ふさいでも まわりの あるける マスが つながって いるときだけ あるく。
+  // 入口の まえの 2マスの くぼみや 2れつの ほそみちを、うごいて いる あいだ（もとの マスと さきの マス）に ふさがない。
+  keepsWay(sc,x,y) {
+    const m=sc.map,R=5,W=m.w,D=Object.values(DIRS),occ=new Set();
+    for(const o of sc.npcs){occ.add(o.w.ty*W+o.w.tx);if(o.w.moving)occ.add(o.w.fy*W+o.w.fx);}
+    const open=(tx,ty)=>Math.abs(tx-x)<=R&&Math.abs(ty-y)<=R&&!(tx===x&&ty===y)&&!m.isSolid(tx,ty)&&!m.doorAt(tx,ty)&&!sc.rockAt(tx,ty)&&!occ.has(ty*W+tx);
+    const around=D.map(([dx,dy])=>[x+dx,y+dy]).filter(([tx,ty])=>open(tx,ty));
+    if(around.length<2)return true;
+    const want=new Set(around.map(([tx,ty])=>ty*W+tx)),start=around[0][1]*W+around[0][0],seen=new Set([start]),q=[around[0]];
+    want.delete(start);
+    while(q.length){const [cx,cy]=q.pop();for(const [dx,dy] of D){const nx=cx+dx,ny=cy+dy,k=ny*W+nx;if(seen.has(k)||!open(nx,ny))continue;if(want.delete(k)&&!want.size)return true;seen.add(k);q.push([nx,ny]);}}
+    return false;
   },
   update(sc, dt) {
     for(const n of sc.npcs){
