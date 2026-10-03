@@ -4,7 +4,7 @@
 // 記念写真ももらえるようにして。…受付と着替えスペースがあって、過去のショーの写真も飾ってある。参加費500円もとる。実施できる場所は既存の建物(ほんのギャラリー)でよい」
 // ・きまり（js/fashion-show.js）: テーマ 8しゅ・おしゃれ レベル・はんていの はば（むずかしめ）・てんすう・ランク・コイン・けいひん・しゃしん・セーブ
 // ・絵（js/fashion-art.js）: かお・ポーズ・けいひんの 服と トロフィー・しゃしん
-// ・会場（js/fashion-hall.js）: ほんの ギャラリーの なか・うけつけ・きがえ・しゃしんの かべ・とどく ところ・SVG・キャッシュの キー
+// ・会場（js/fashion-hall.js）: ファッションかん（まえの ほんの ギャラリー）の なか・うけつけ・きがえ・しゃしんの かべ・とどく ところ・SVG・キャッシュの キー
 // ・ランウェイ（js/fashion-scene.js）: 3人の かお・ひとこと・PokaDebug・ことば（ひらがな）
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -95,9 +95,9 @@ ok(F.rankOf(90).id === "grand" && F.rankOf(89).id === "gold" && F.rankOf(0).id =
 for (const w of F.WEARS) { const it = ITEM_INDEX[w.id]; ok(it && it.price === 0 && it.exclusive === "fashion" && WEAR[it.wear], `${w.id}: 服の 絵が ある・かえない`); ok(ItemDexSources.source("wear", it).includes("ファッションショー"), `${w.id}: ずかんの ヒント`); }
 for (const f of F.FURN) { const it = FURN_INDEX[f.id]; ok(it && it.price === 0 && it.exclusive === "fashion" && typeof FURN_ART[f.id] === "function", `${f.id}: トロフィーの 絵`); ok(ItemDexSources.source("furn", it).includes("ファッションショー"), `${f.id}: ずかんの ヒント`); ok(A.TROPHY[f.id], `${f.id}: トロフィーの いろ`); }
 
-// ---- 6. 会場（ほんの ギャラリー）----
+// ---- 6. 会場（ファッションかん）----
 const bld = MAP_DEFS.city.buildings.find((b) => b.id === "ike_annex1");
-ok(bld && bld.act.type === "venue" && bld.act.venue === "fashion" && bld.label === "ほんの ギャラリー", "池袋の ほんの ギャラリーの なかが 会場");
+ok(bld && bld.act.type === "venue" && bld.act.venue === "fashion" && bld.label === "ファッションかん" && VenueHalls.defs.fashion.name === "ファッションかん", "池袋の ファッションかんの なかが 会場");
 const def = VenueHalls.defs.fashion, room = def && def.floors[1];
 ok(def && def.iso && def.art === Hl.art && def.bgm === "fashion_hall" && room && room.fashionHall, "VenueHalls.defs.fashion");
 ok(SONGS.fashion_hall && SONGS.fashion_show && SONGS.fashion_hall.modern && SONGS.fashion_show.modern, "会場と ランウェイの BGM（この ゲームの ために つくった 曲）");
