@@ -70,7 +70,7 @@ const PokaDebug = {
   arcadeLight(cell=0){const r=G.sceneName==='prize'&&G.scene.round;if(!r||r.type!=='tripod')return false;r.rig.light=cell+0.3;return true;},
   arcadeCam(mode){if(G.sceneName!=='prize')return false;if(G.scene.camMode!==mode)G.scene.toggleCam();return G.scene.camMode;},
   mamaWork(){return MamaSchedule.working();},
-  venue(id='school',floor){const b=MAP_DEFS.town.buildings.find(b=>b.act.venue===id)||MAP_DEFS.city.buildings.find(b=>b.act.venue===id);if(!b)return false;Game.goto('venue',{venue:id,floor,back:{map:MAP_DEFS.town.buildings.includes(b)?'town':'city',x:b.x+b.door,y:b.y+b.h,dir:'down'}},'none');return true;},
+  venue(id='school',floor){const has=b=>b.act.venue===id||(b.act.type==='indoor'&&b.act.map===id&&!!VenueHalls.defs[id]);const b=MAP_DEFS.town.buildings.find(has)||MAP_DEFS.city.buildings.find(has);if(!b)return false;Game.goto('venue',{venue:id,floor,back:{map:MAP_DEFS.town.buildings.includes(b)?'town':'city',x:b.x+b.door,y:b.y+b.h,dir:'down'}},'none');return true;},
   venueState(){if(G.sceneName!=='venue'||!G.scene?.room)return null;const sc=G.scene;return {id:sc.id,floor:sc.floor,name:sc.def.name,changingFloor:sc.lift>0,party:sc.party.map(p=>({x:p.x,y:p.y})),fixtures:sc.fixtures.map(f=>({...f,screen:sc.screen(f.x+f.w/2-.5,f.y+f.h-1)})),coins:Save.d.coins,walkable:sc.room.w*sc.room.h,routeCount:sc.fixtures.filter(f=>f.action).map(f=>({label:f.label,reachable:Array.from({length:f.h+2},(_,j)=>Array.from({length:f.w+2},(_,i)=>sc.route(f.x-1+i,f.y-1+j)!==null)).flat().some(Boolean)}))};},
   indoorState(){
     if(!['store','venue'].includes(G.sceneName)||!G.scene?.party)return null;

@@ -289,8 +289,8 @@ SCENES.xxx = XxxScene;
 
 ### すまほ（smaho.js・UI-01）
 
-- `Smaho` … ひだり したの「すまほ」ボタン（`.smaho-btn`。町・フィールド・おみせ・おうちの 下の ボタンの 上）と スマホの 画面（`.modal-wrap.smaho-wrap` の 中の `.smaho`）。`Game.openMenu`（Esc・cancel キー）は `Smaho.toggle()`。≡（`UI.hudMenu`）は `Menu.open()` で、タブは せってい・あそびかた（`Menu.help`）だけ。
-- `APPS` … `{ id, name, color, when?, render(el, ph) }`。ちず（`WorldAtlas.render`〔タブ: この エリア＝`AreaMap`・せかい ちず〕＋町・おみせでは「おうちへ かえる」）・ようす（`Menu.status`）・もちもの（`Menu.bag`）・ずかん（`Menu.dex`）・イベント（`AnnualFestivals.open`）・スタンプラリー（`Seasonal.open` と `DailyPlay.open` の タブ）・ひんと（`hints()`）・うらない（`fortune(day)`）・ごほうび（`ShopRewards.open`）・おんがく（`MusicDiscs` が ある とき）。
+- `Smaho` … ひだり したの「すまほ」ボタン（`.smaho-btn`。町・フィールド・たてものの 中〔`SCENES.venue`・UI-59〕・おみせ・おうちの 下の ボタンの 上）と スマホの 画面（`.modal-wrap.smaho-wrap` の 中の `.smaho`）。`Game.openMenu`（Esc・cancel キー）は `Smaho.toggle()`。≡（`UI.hudMenu`）は `Menu.open()` で、タブは せってい・あそびかた（`Menu.help`）だけ。
+- `APPS` … `{ id, name, color, when?, render(el, ph) }`。ちず（`WorldAtlas.render`〔タブ: この エリア＝`AreaMap`・せかい ちず〕＋町・おみせ・たてものの 中では「おうちへ かえる」。たてものの 中は `Smaho.inside`〔いまの かい と「この たてものの フロアマップ」〕）・ようす（`Menu.status`）・もちもの（`Menu.bag`）・ずかん（`Menu.dex`）・イベント（`AnnualFestivals.open`）・スタンプラリー（`Seasonal.open` と `DailyPlay.open` の タブ）・ひんと（`hints()`）・うらない（`fortune(day)`）・ごほうび（`ShopRewards.open`）・おんがく（`MusicDiscs` が ある とき）。
 - `ph.embed(fn)` … `UI.modal` を 1かいだけ かりて、`fn()` が つくる まどの `body`・`footer` を アプリの 画面に 入れる。かえす `close()` は すまほを とじる（「さんか」「ちずを みる」の あとは あそびに もどる）。
 - `fortune(day)` … 日づけの 文字（`U.today()` の 形）から きめる うらない（Math.random・Date を つかわない）。ラッキーの おみせは `DailyPlay.featured(day)`。その おみせの コインは ほんとうに `DailyPlay.mul(day)` ばい（日づけの 文字の ハッシュで きまる 1.2〜2 の 0.1 きざみ 9とおり・どれも おなじ 確率・おなじ 日は おなじ。`DailyPlay.boost(shop, day)` が おてつだいと スコア モードの コインに かける。ことばは `DailyPlay.label(mul)`「1.5ばい」）。ひいた 日は `Save.d.flags.fortuneDay`（あたらしい セーブ項目は ない）。
 - `Seasonal.mount` は すまほの ボタンだけ つける（町の「おまつり」ボタン `.world-festival` は もう 出さない）。PokaDebug は `smaho(app)`・`smahoState()`・`fortune(day)`。
