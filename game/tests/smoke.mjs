@@ -4407,6 +4407,7 @@ await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});
 await (await import("./kaden-smoke.mjs")).kadenSmoke({scenario,expect});
 // ネリカス でんき 1F の シール うりば（UI-57）: たな・うりばの がめん・かう・シールちょうの まとまり・ふにっ・シャカシャカ・タイルを きる
 await (await import("./kaden-stickers-smoke.mjs")).kadenStickersSmoke({scenario,expect});
+await (await import("./keiba-smoke.mjs")).keibaSmoke({scenario,expect});
 // すいぞくかん・はくぶつかんの きふの ごほうび（UI-33）: みだし・カード・はくぶつかんで 4つ・もちもの・おうち
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
 await (await import("./dino-museum-smoke.mjs")).dinoMuseumSmoke({scenario,expect});

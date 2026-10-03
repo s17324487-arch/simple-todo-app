@@ -3,7 +3,7 @@
 // 1. 1F（いりぐち・スマホ・カメラ）: 斜め上の 館・店内 BGM・そうさの ボタン（ひだりうえに 小さく）・スマホの だいを ゆびで タップして かう・ためしの だい
 // 2. エスカレーターで 2F（くらしの かでん）: ドラム せんたくき・かべかけ エアコンを かう → 3F へ
 // 3. 3F（テレビ・パソコン）: ゲームの ためしあそび・きわくの テレビを かう
-// 4. エレベーターで 10F（あかり・シアター）: ためせる マッサージチェア・シアター
+// 4. エレベーターで 10F（あかり・シアター・けいば ちゅうけい〔UI-58〕）: ためせる マッサージチェア・シアター
 // 5. フロアマップ（1F・2F・3F・10F）から 1F の うりばへ（エレベーターで いって あるく）
 // 6. おうちで 家電を さわる（せんたくき・テレビ・ロボット そうじき・せんぷうき・エアコン。js/kaden-live.js）・さいかい しても かった ものが のこる
 export async function kadenSmoke({ scenario, expect }) {
@@ -49,7 +49,7 @@ export async function kadenSmoke({ scenario, expect }) {
     expect((await H.dbg('saveData')).furn.ike_tv_0 === 1, 'テレビが かえない');
     // 4. エレベーターで 10F
     await visit('エレベーター'); const ten = H.page.getByRole('button', { name: /^10F/ }); await ten.waitFor(); await ten.click(); await ready(10); k = await H.dbg('kaden');
-    expect(k.title === '10F あかり・シアター' && k.stands.length === 4 && k.zones.includes('シアター') && k.zones.includes('マッサージチェア'), '10F ' + JSON.stringify(k));
+    expect(k.title === '10F あかり・シアター・けいば' && k.stands.length === 4 && k.zones.includes('シアター') && k.zones.includes('マッサージチェア') && k.zones.includes('けいば ちゅうけい'), '10F ' + JSON.stringify(k));
     await H.wait(500); await H.shot('kaden-10f');
     await visit('ためせる マッサージチェア'); await H.until(() => /もみ|ぽかぽか|ねむく/.test(document.querySelector('.dlg-text')?.textContent || ''), 10000); await H.shot('kaden-massage'); await H.dialogs(); await H.idle();
     await talk('シアターの ソファ');

@@ -171,8 +171,9 @@ const PokaDebug = {
       "PokaDebug.stickers()                 シールの ガチャ（4F・30〜32）と シールちょう（てもと・ページ）。stickerGive('stk_wanko', 3) で シールを もらう・stickerUi() で ひらいて いる ページ",
       "PokaDebug.kuji('lawson')             ネリカスタウンの コンビニの いちばんくじ（ロット・のこり・はりつけ ひょう・はんけん・クーポン）。kujiOpen で ボード・kujiNext('A') で つぎの 賞・kujiLeft(s, n) で のこり n まい・kujiDays(s, 1) で つぎの 日・kujiDc(true)・kujiUi()",
       "PokaDebug.areaMap()                  すまほ の ちず「この エリア」の ようす（めじるし・なまえ・えらんだ もの）。areaMapLayout('town', 4.46) で ならびだけ",
-      "PokaDebug.venue('electronics', 2)    ネリカス でんき（池袋の 家電の 館。1F スマホ・カメラ／2F くらしの かでん／3F テレビ・パソコン／10F あかり・シアター）。kaden() で 階・うりば・だいの しなもの・ためしの だい",
+      "PokaDebug.venue('electronics', 2)    ネリカス でんき（池袋の 家電の 館。1F スマホ・カメラ／2F くらしの かでん／3F テレビ・パソコン／10F あかり・シアター・けいば ちゅうけい）。kaden() で 階・うりば・だいの しなもの・ためしの だい",
       "PokaDebug.kadenStickers()           ネリカス でんき 1F の シール うりば（ひらいて いる タブ・しなもの・かった かず）。シールちょうは stickers()・stickerUi()",
+      "PokaDebug.keiba()                    ネリカス でんき 10F の けいば ちゅうけい（つぎの レース・しめきった レース・ばけん・あたり）。keibaCard(no)・keibaBuy(no, 'tan', [5], 1, 'one')・keibaResult(no)・keibaWatch(no)・keibaSpeed(8)・keibaScene()・keibaUi()・keibaDays(1)",
     ];
     console.log(lines.join("\n"));
     return lines.length;
@@ -841,6 +842,17 @@ const PokaDebug = {
   // UI-56: ネリカス でんき（池袋の 家電の 館）の ようす（階・うりば・だいの しなもの・ためしの だい・エスカレーター・絵が できたか）
   kaden() { return typeof KadenHall === "undefined" || G.sceneName !== "venue" ? null : KadenHall.state(G.scene); },
   // UI-57: ネリカス でんきの シール うりば（ひらいて いる か・タブ・でて いる しなもの・かった かず）
+  // UI-58: けいば ちゅうけい（10F）。keibaCard は しゅつばひょうの データ・keibaBuy は かう（コインが へる）・keibaResult は けっかと はらいもどし（テスト用。がめんでは はしる まで みせない）・
+  // keibaWatch は ちゅうけいへ（館の 中から）・keibaSpeed は ちゅうけいの はやさ・keibaDays(n) は n にち たった ことに（ばんぐみが かわる・まえの 日の ばけんは しめきる）
+  keiba() { return typeof KeibaCorner === "undefined" ? null : KeibaCorner.state(); },
+  keibaCard(no) { if (typeof KeibaRace === "undefined") return null; const day = KeibaCorner.today(), rc = KeibaRace.race(day, no || KeibaCorner.next() || 1), b = KeibaRace.board(rc, KeibaCorner.open()); return { no: rc.no, title: KeibaRace.title(rc), dist: rc.dist, surf: rc.surf, n: rc.n, going: rc.going, horses: rc.horses.map((h) => ({ no: h.no, waku: h.waku, name: h.name, odds: b[h.no - 1].odds, pop: b[h.no - 1].pop })) }; },
+  keibaBuy(no, t = "tan", sel = [1], u = 1, m = "one") { if (typeof KeibaCorner === "undefined") return null; const r = KeibaCorner.buy(no, t, sel, m, u); if (r.ticket && typeof UI.updateHud === "function") UI.updateHud(); return r.err ? { err: r.err } : { id: r.ticket.id, keys: r.ticket.keys.length, cost: r.ticket.cost }; },
+  keibaResult(no) { if (typeof KeibaRace === "undefined") return null; const day = KeibaCorner.today(), rc = KeibaRace.race(day, no), res = KeibaRace.result(rc), pays = KeibaRace.payouts(rc, KeibaCorner.ticketsOf(day, no)); return { order: res.order, margins: res.margins, time: KeibaRace.fmtTime(res.time[0]), pays: Object.fromEntries(Object.entries(pays).map(([t, p]) => [t, p.sold ? p.wins.map((w) => [w.key, w.per]) : null])) }; },
+  keibaWatch(no) { if (typeof KeibaCorner === "undefined" || G.sceneName !== "venue") return false; KeibaCorner.watch(G.scene, no || KeibaCorner.next()); return true; },
+  keibaSpeed(x = 1) { if (typeof KeibaScene === "undefined") return null; KeibaScene.speed = x; return x; },
+  keibaScene() { return G.sceneName === "keiba" && G.scene && G.scene.state ? G.scene.state() : null; },
+  keibaUi() { return typeof KeibaUI === "undefined" ? null : KeibaUI.state(); },
+  keibaDays(n = 1) { if (typeof KeibaRace === "undefined") return null; KeibaRace.clock.shift += n; return KeibaCorner.state(); },
   kadenStickers() { return typeof KadenStickers === "undefined" ? null : { ...KadenStickers.state(), products: KadenStickers.PRODUCTS.map((p) => ({ id: p.id, kind: p.kind, price: p.price, n: KadenStickers.count(p) })) }; },
   museumState() { const st = Save.d.museum; return { fish: Object.keys(st.fish).length, bones: Object.keys(st.bones).length, done: Object.keys(st.done), rooms: Object.keys(st.rooms), intro: document.querySelector(".museum-intro")?.innerText || null }; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
