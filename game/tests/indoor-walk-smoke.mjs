@@ -8,7 +8,7 @@ export async function indoorWalkSmoke({scenario,expect}) {
     };
     for(const [id,floor] of [['clothes'],['school'],['nursery'],['electronics'],['arcade'],['office'],['mall',1],['mall',12],['mall',13]]){
       if(id==='clothes')await H.dbg('store',id);else await H.dbg('venue',id,floor);
-      await H.until(()=>!PokaDebug.state().transitioning);await H.dialogs();await H.idle();if(id==='mall')await H.until(()=>PokaDebug.venueIso()?.ready);await H.wait(200);
+      await H.until(()=>!PokaDebug.state().transitioning);await H.dialogs();await H.idle();if(id==='mall'||id==='electronics')await H.until(()=>PokaDebug.venueIso()?.ready);await H.wait(200);
       const before=await H.dbg('indoorState'),d=before.directions.filter(d=>d.free>=2).sort((a,b)=>b.free-a.free)[0];
       expect(d,id+' 歩ける通路がない');await begin(d);
       await H.until(b=>{const s=PokaDebug.indoorState();return s.joy&&Math.abs(s.party[0].x-b.x)+Math.abs(s.party[0].y-b.y)>=2;},10000,before.party[0]);

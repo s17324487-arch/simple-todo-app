@@ -3011,11 +3011,13 @@ await (await import("./town-dialogue-smoke.mjs")).townDialogueSmoke({scenario,ex
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('ikebukuro-retail-'+viewport.width,async H=>{
  await H.newGameFast();await H.dbg('coins',199850);await H.dbg('hour',12);const before=await H.dbg('saveData');
  await H.dbg('teleport','city',68,30,'up');await H.idle();await H.wait(300);await H.shot('sunshine-street');
- await H.dbg('venue','electronics');await H.idle();let s=await H.dbg('venueState');expect(s.floor===2&&s.party.length===3,'家電2F');
- await H.dbg('venueVisit','ドラム洗濯機');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor();await H.shot('washer-display');await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.idle();
+ // ネリカス でんき（UI-56 で 斜め上の 4かいだての 館に。1F スマホ・2F くらしの かでん・10F あかり・シアター）
+ await H.dbg('venue','electronics');await H.idle();await H.until(()=>PokaDebug.venueIso()?.ready,20000);let s=await H.dbg('venueState');expect(s.floor===1&&s.party.length===3,'家電1F');
+ await H.dbg('venueVisit','ほしあかり スマホ');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor();await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.page.getByRole('button',{name:'きる！',exact:true}).click();await H.idle();expect((await H.dbg('saveData')).wardrobe.ike_phone_0,'スマホ購入');
+ await H.dbg('venueVisit','2Fへ のぼる');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===2&&!s.changingFloor;},20000);
+ await H.dbg('venueVisit','ドラム せんたくき');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor();await H.shot('washer-display');await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.idle();
  expect((await H.dbg('saveData')).furn.ike_washer_0===1,'展示から洗濯機を購入');
- await H.dbg('venueVisit','エレベーター 2F／10F');await H.page.getByRole('button',{name:'10F',exact:true}).click();await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===10&&!s.changingFloor;},20000);await H.shot('electronics-10f');
- await H.dbg('venueVisit','星あかりスマホ');await H.page.getByRole('button',{name:'かう',exact:true}).waitFor();await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.page.getByRole('button',{name:'きる！',exact:true}).click();await H.idle();expect((await H.dbg('saveData')).wardrobe.ike_phone_0,'スマホ購入');
+ await H.dbg('venueVisit','エレベーター');await H.page.getByRole('button',{name:/^10F/}).click();await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===10&&!s.changingFloor;},20000);await H.shot('electronics-10f');
  await H.dbg('venue','mall');await H.idle();await H.dbg('venueVisit','ふんすい ひろば');await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();await H.shot('mall-atrium');
  await H.dbg('venueVisit','2Fへ のぼる');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===2&&!s.changingFloor;},20000);await H.shot('mall-2f');
  await H.dbg('venueVisit','すばーたっくすの テーブル');await H.page.getByRole('button',{name:/ふわラテ/}).click();await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();
@@ -4401,6 +4403,8 @@ await (await import("./gacha-forest-smoke.mjs")).gachaForestSmoke({scenario,expe
 await (await import("./sticker-book-smoke.mjs")).stickerBookSmoke({scenario,expect});
 await (await import("./crane-4f-smoke.mjs")).crane4fSmoke({scenario,expect});
 await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});
+// ネリカス でんき（池袋の 家電の 館・UI-56）: 1F〜3F・10F・だいで かう・ためしの だい・マッサージ・シアター・フロアマップ・おうちで 家電を さわる
+await (await import("./kaden-smoke.mjs")).kadenSmoke({scenario,expect});
 // すいぞくかん・はくぶつかんの きふの ごほうび（UI-33）: みだし・カード・はくぶつかんで 4つ・もちもの・おうち
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
 await (await import("./dino-museum-smoke.mjs")).dinoMuseumSmoke({scenario,expect});
