@@ -147,7 +147,7 @@ class ShopScene {
   async flow() {
     const face = Art.npcSvg({ ...this.owner, emo: "happy" });
     const first = !this.st.plays;
-    const how = typeof HOWTO[this.shopId] === "function" ? HOWTO[this.shopId](this) : HOWTO[this.shopId]; // あたまの たいそうは えらんだ ゲームの せつめい（js/mg-brain.js）
+    const how = typeof HOWTO[this.shopId] === "function" ? HOWTO[this.shopId](this) : HOWTO[this.shopId]; // あたまの たいそう・パズル こうぼうは えらんだ ゲームの せつめい（js/mg-brain.js・js/mg-kobo.js）
     const lines = this.variant==='mac' ? [...MacShop.howto] : first ? [...how] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
     if(this.dailyBoost>1)lines.push('きょうの おすすめ！ コインが '+DailyPlay.label(this.dailyBoost)+'だよ。');
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));

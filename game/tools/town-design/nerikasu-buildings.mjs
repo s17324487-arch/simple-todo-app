@@ -178,6 +178,39 @@ function brain(w,h,d,n){
   s+=door(d,h-2,n)+drain(w,h)+lamp(d-24,68,n)+planter(12,h-12,Math.min(26,bw-4));
   return s;
 }
+// パズル こうぼう（パズルの おてつだい・UI-65）: のこぎり屋根の こうぼう（あかり とりの まど）・棟の ジグソーの 丸看板・
+// ひだりの まどに スライド パズル（1まい あき）と かたち はめ・みぎの まどに おえかき ロジックの ハート・いりぐちの よこに いろの キューブ
+function jigsawPiece(x,y,s,col){return Pth(`M${x-s},${y-s} H${x-s*.28} A${s*.32},${s*.32} 0 1 1 ${x+s*.28},${y-s} H${x+s} V${y-s*.28} A${s*.32},${s*.32} 0 1 1 ${x+s},${y+s*.28} V${y+s} H${x-s} Z`,col,{sw:Math.max(.6,s*.1)});}
+function kobo(w,h,d,n){
+  const col='#B9772F',roofc='#D9934A';let s=wall(w,h,'#F6EBD9');
+  // のこぎり屋根 3つ（たての がわに あかり とりの まど）
+  const tw=(w+6)/3;
+  for(let i=0;i<3;i++){const x0=-3+i*tw,x1=x0+tw;s+=Pth(`M${x0},33 V-4 L${x1},26 V33Z`,roofc,{sw:1.2})+R(x0+2,-1,9,26,n?'#F7D589':'#BFE0EA',{sw:.7})+L(x0+6.5,-1,x0+6.5,25,cream,.7);for(let j=1;j<5;j++){const t=j/5;s+=L(x0+11+t*(tw-14),-4+t*30+2,x0+11+t*(tw-14),33,shade(roofc,-.18),.5);}}
+  s+=R(-3,31,w+6,4,shade(roofc,-.3),{sw:.8});
+  // 棟の ジグソーの 丸看板
+  s+=C(w/2,-22,17,'#FFF4DE',{sw:1})+C(w/2,-22,14,'none',{sw:.6,stroke:'#EBCB93'})+jigsawPiece(w/2,-22,8.5,'#F2C14E')+C(w/2-3,-21,1.3,'#31594E',{sw:0})+C(w/2+3,-21,1.3,'#31594E',{sw:0})+Pth(`M${w/2-2.6},-17.6 q2.6,2.2 5.2,0`,'none',{sw:.8});
+  // かんばん・しまの 日よけ
+  s+=sign(10,35,w-20,'パズル こうぼう','PUZZLE WORKSHOP',col)+awning(9,61,w-18,'#E9B872');
+  // ひだりの まど: スライド パズル（3×3・1まい あき）と かたち はめの いた
+  const bx=16,by=80,bw=d-30-bx,bh=h-26-by,TILE=['#F2C14E','#E57373','#64B5F6','#81C784','#BA68C8','#FFB74D','#4DB6AC','#F48FB1'];
+  s+=R(bx-3,by-4,bw+6,bh+7,'#B98457',{sw:.9})+R(bx,by,bw,bh,n?'#F6DDA2':'#FFF6E3',{sw:.7});
+  const fs=Math.min(bh-8,bw*.52),fx=bx+5,fy=by+(bh-fs)/2,ts=(fs-4)/3;
+  s+=R(fx,fy,fs,fs,'#8C6848',{sw:.8});
+  for(let i=0;i<8;i++)s+=R(fx+2+(i%3)*ts+.4,fy+2+Math.floor(i/3)*ts+.4,ts-.8,ts-.8,TILE[i],{sw:.5})+T(fx+2+(i%3)*ts+ts/2,fy+2+Math.floor(i/3)*ts+ts*.68,String(i+1),{size:ts*.5,fill:'#FFFFFF'});
+  const sx0=fx+fs+5,sw0=bx+bw-sx0-4;
+  s+=R(sx0,by+bh*.18,sw0,bh*.64,'#E8C38E',{sw:.7})+C(sx0+sw0*.3,by+bh*.36,3.4,'#6D5D4B',{sw:.4})+R(sx0+sw0*.58,by+bh*.3,6.4,6.4,'#6D5D4B',{sw:.4})+Pth(`M${sx0+sw0*.32},${by+bh*.56} l4,6.8 h-8Z`,'#6D5D4B',{sw:.4})+C(sx0+sw0*.72,by+bh*.66,3.2,'#EF5350',{sw:.5});
+  s+=R(bx-5,by+bh+2,bw+10,3,'#CCC2AA',{sw:.6});
+  // みぎの まど: おえかき ロジック（5×5 の ハート と すうじ）
+  const rx=d+26,rw=w-rx-14;s+=pane(rx,74,rw,34,n)+R(rx-2,108,rw+4,4,wood,{sw:.6});
+  const heart=['.#.#.','#####','#####','.###.','..#..'],gs=Math.min(5.4,(rw-26)/5),gx=rx+rw/2-gs*2.5+5,gy=h-50;
+  s+=R(gx-12,gy-9,gs*5+15,gs*5+12,'#FFFDF6',{sw:.7});
+  heart.forEach((row,y)=>[...row].forEach((v,x)=>{s+=R(gx+x*gs,gy+y*gs,gs,gs,v==='#'?'#EF5350':'#FFFFFF',{sw:.35,stroke:'#C9C2B6'});}));
+  s+=T(gx-6,gy+gs*1.7,'5',{size:4.6,fill:'#31594E'})+T(gx+gs*1.5,gy-3,'2',{size:4.6,fill:'#31594E'})+T(gx+gs*3.5,gy-3,'4',{size:4.6,fill:'#31594E'});
+  // いりぐちの よこの いろの キューブ（つみかさね）
+  for(const [x,y,c] of [[d-34,h-14,'#EF5350'],[d-24,h-14,'#64B5F6'],[d-29,h-23,'#F2C14E']])s+=R(x-4.5,y-4.5,9,9,c,{sw:.7})+L(x-4.5,y-1.5,x+4.5,y-1.5,shade(c,-.25),.4)+L(x-1.5,y-4.5,x-1.5,y+4.5,shade(c,-.25),.4);
+  s+=door(d,h-2,n)+drain(w,h)+lamp(d+24,68,n)+planter(w-44,h-12,28);
+  return s;
+}
 // ---- 2026-09-29 配置イメージの 新しい 建物（コンビニ 2つ・ファミレス・ガソリンスタンド・アパート・郵便局・お届けセンター・サロン・中華料理屋・家 3つ） ----
 // ガラスの 店さき: たなの しなもの（夜は 店内が あかるい）
 function glassFront(x0,x1,y0,y1,n,goods=['#E27A6E','#F2C45E','#8FC39A','#7FA8D8','#F3F0E4']){
@@ -381,7 +414,7 @@ const specs=[
  ['nerikasu_gatehouse','川辺のあずまや',2,4,1,'gazebo','柱と方杖・木のベンチ・板のデッキ'],
  ['nerikasu_home0','駅東の中庭の家',6,5,3,'courtyard','金属屋根・縁側・雨どい・花箱'],
  ['nerikasu_home1','双子切妻の長屋',9,5,4,'row','二つのドーマー・窓のよろい戸'],
- ['nerikasu_home2','太陽光のある家',9,5,4,'modern','段状の屋上・パネル・室外機'],
+ ['nerikasu_home2','パズル こうぼう（パズルの おてつだい）',9,5,4,'kobo','のこぎり屋根と あかり とりの まど・ジグソーの 丸看板・スライド パズルと かたち はめの まど・おえかき ロジックの ハート・いろの キューブ'],
  ['nerikasu_home3','瓦屋根の家',7,5,3,'tile','瓦の重なり・木枠の窓・植木'],
  ['nerikasu_home4','テラスの家',7,5,3,'terrace','時計切妻と異なる高窓・縁側の格子'],
  ['nerikasu_home5','ころころフルーツ（パズルの おてつだい）',6,5,3,'korokoro','りんごの 丸看板・棟に すわる 3人の かお・玉が つみかさなる ガラスの 箱・しまの 日よけ・くだものの 木箱'],
@@ -400,4 +433,4 @@ const specs=[
  ['neri_house_b','しろい モダンな 家',7,5,3,'house_b','陸屋根・木の たて格子・大きな まど・ガラスの バルコニー'],
  ['neri_house_c','かわら屋根の 和の 家',7,5,3,'house_c','かわらの 屋根・しっくいと 木の はしら・えんがわと しょうじ・こうしの 引き戸']
 ];
-export const NERIKASU_BUILDINGS=specs.map(([buildingId,name,w,h,d,kind,detail])=>({id:'nerikasu.bld_'+buildingId,buildingId,name,category:'住宅・お店・学校',w,h,door:d,bbox:[-10,-49,w*32+15,h*32+12],details:detail.split('・'),states:['day','night'],draw:o=>{const args=[w*32,h*32,(d+.5)*32,!!o?.night];return ['lawson','sevenbun'].includes(kind)?conbini(kind,...args):kind==='bikkupo'?bikkupo(...args):kind==='gas'?gasStation(...args):kind==='apartment'?apartment(...args):kind==='post'?postOffice(...args):kind==='delivery'?deliveryCenter(...args):kind==='salon'?salon(...args):kind==='chuka'?chuka(...args):kind.startsWith('house_')?newHouse(kind,...args):kind==='korokoro'?korokoro(...args):kind==='brain'?brain(...args):kind==='school'?school(...args):kind==='nursery'?nursery(...args):kind==='gazebo'?gazebo(...args):['home','row','modern','tile','terrace','courtyard','studio'].includes(kind)?home(kind,...args):shop(kind,...args);}}));
+export const NERIKASU_BUILDINGS=specs.map(([buildingId,name,w,h,d,kind,detail])=>({id:'nerikasu.bld_'+buildingId,buildingId,name,category:'住宅・お店・学校',w,h,door:d,bbox:[-10,-49,w*32+15,h*32+12],details:detail.split('・'),states:['day','night'],draw:o=>{const args=[w*32,h*32,(d+.5)*32,!!o?.night];return ['lawson','sevenbun'].includes(kind)?conbini(kind,...args):kind==='bikkupo'?bikkupo(...args):kind==='gas'?gasStation(...args):kind==='apartment'?apartment(...args):kind==='post'?postOffice(...args):kind==='delivery'?deliveryCenter(...args):kind==='salon'?salon(...args):kind==='chuka'?chuka(...args):kind.startsWith('house_')?newHouse(kind,...args):kind==='korokoro'?korokoro(...args):kind==='brain'?brain(...args):kind==='kobo'?kobo(...args):kind==='school'?school(...args):kind==='nursery'?nursery(...args):kind==='gazebo'?gazebo(...args):['home','row','modern','tile','terrace','courtyard','studio'].includes(kind)?home(kind,...args):shop(kind,...args);}}));

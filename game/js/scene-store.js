@@ -95,8 +95,9 @@ class StoreScene {
           // ころころ フルーツは ちゅうもん モード と スコア モード（js/korokoro-score.js）を えらべる
           const mode=typeof KorokoroScore!=="undefined"?await KorokoroScore.choose(this):"order";
           if(this.closed||!mode)return;
-          // あたまの たいそうは 3しゅの ゲームから えらぶ（js/mg-brain.js。ほかの おみせは ""）
-          const game=mode==="order"&&typeof BrainGames!=="undefined"?await BrainGames.choose(this):"";
+          // あたまの たいそう・パズル こうぼうは 3しゅの ゲームから えらぶ（SHOP_GAMES。js/mg-brain.js・js/mg-kobo.js。ほかの おみせは ""）
+          const menu=mode==="order"&&typeof SHOP_GAMES!=="undefined"?SHOP_GAMES[this.shopId]:null;
+          const game=menu?await menu.choose(this):"";
           if(this.closed||game===null)return;
           if(mode==="score")KorokoroScore.start(this.back);
           else Game.goto("shop",{shop:this.shopId,back:this.back,returnStore:true,variant:game||(this.shopId==="burger"&&this.back.map==="heiwadai"?"mac":null)});

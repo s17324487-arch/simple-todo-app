@@ -78,7 +78,7 @@ const MusicDiscs = (() => {
     { id: "disc_twinkle", song: "disc_twinkle", color: "#F7D56A", from: { starter: true } },
     shopDisc("crepe", "#F8A5C2"), shopDisc("bakery", "#F2C27B"), shopDisc("florist", "#B5E08A"), shopDisc("dentist", "#8FD3F4"),
     shopDisc("cake", "#EDBAC6"), shopDisc("groom", "#BFDED7"), shopDisc("burger", "#E5C69F"), shopDisc("relay", "#AEBFDF"), shopDisc("korokoro", "#F2C48D"),
-    shopDisc("gasstand", "#F2A65A"), shopDisc("postoffice", "#E8766A"), shopDisc("brain", "#9DB8E8"),
+    shopDisc("gasstand", "#F2A65A"), shopDisc("postoffice", "#E8766A"), shopDisc("brain", "#9DB8E8"), shopDisc("kobo", "#E9B872"),
     { id: "disc_meadow", song: "meadow", color: "#A9D6A0", from: { map: "meadow" } },
     { id: "disc_forest", song: "forest", color: "#7FAE6C", from: { map: "forest" } },
     { id: "disc_cave", song: "cave", color: "#9C8FB8", from: { map: "cave" } },

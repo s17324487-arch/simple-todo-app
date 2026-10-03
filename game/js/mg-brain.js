@@ -5,7 +5,10 @@
 //  ・くだもの けいさん（BrainMathTask）: くだものの かずの たしざん・ひきざん（Lv で 5 → 20 まで）。こたえを 4つから えらぶ
 // 店主は ふくろうの ホーせんせい。絵は js/brain-art.js（BrainArt）。店内・かんばん・BGM・町の お店（BrainTown）も ここで 登録する。
 const BRAIN_FONT = "'M PLUS Rounded 1c', sans-serif";
+// パズル こうぼう（js/mg-kobo.js の KoboGames）も この しくみを つかう（shop・ASK・GAMES・HELLO だけ かえる）
 const BrainGames = {
+  shop: "brain",
+  ASK: "きょうは どの もんだいに する？",
   GAMES: [
     { id: "spot", name: "まちがい さがし", desc: "えの ちがう ところ",
       howto: ["まちがい さがしは、ひだりと みぎの\n2まいの えを くらべるよ。", "ちがう ところを みつけたら、\nどちらかの えを タップ！ まるが つくよ。", "こまったら「ヒント」。\nでも てんすうが すこし へるよ。"] },
@@ -20,13 +23,13 @@ const BrainGames = {
   howto(variant) { return [this.HELLO, ...this.game(variant).howto]; },
   // おみせの「おてつだいする」: どの ゲーム？（ほかの おみせは "" を かえす・やめたら null）
   async choose(store) {
-    if (store.shopId !== "brain") return "";
-    const st = Save.d.shops.brain, face = Art.npcSvg({ ...SHOP_OWNERS.brain, emo: "happy" });
-    const text = `${store.owner.name}\nきょうは どの もんだいに する？\n${this.GAMES.map((g) => `・${g.name}：${g.desc}`).join("\n")}`;
+    if (store.shopId !== this.shop) return "";
+    const st = Save.d.shops[this.shop], face = Art.npcSvg({ ...SHOP_OWNERS[this.shop], emo: "happy" });
+    const text = `${store.owner.name}\n${this.ASK}\n${this.GAMES.map((g) => `・${g.name}：${g.desc}`).join("\n")}`;
     const i = await UI.ask(text, [...this.GAMES.map((g) => g.name + (st.games[g.id] ? "" : "（はじめて）")), "やめる"]);
     if (i < 0 || i >= this.GAMES.length) return null;
     const g = this.GAMES[i];
-    // はじめての ゲームは せつめいを きく（いちばん さいしょの おてつだいは おみせの なかで HOWTO.brain が でる）
+    // はじめての ゲームは せつめいを きく（いちばん さいしょの おてつだいは おみせの なかで HOWTO[おみせ] が でる）
     if (st.plays && !st.games[g.id]) await UI.say(g.howto.map((t) => ({ name: store.owner.name, face, text: t })));
     st.games[g.id] = (st.games[g.id] || 0) + 1; st.last = g.id;
     Save.write();
@@ -404,6 +407,9 @@ class BrainMathTask extends TaskBase {
 
 // ShopScene は MG_TASKS[おみせ] を new する。のうトレは えらんだ ゲーム（sc.variant）の クラスを かえす
 const BRAIN_TASKS = { spot: BrainSpotTask, pair: BrainPairTask, math: BrainMathTask };
+BrainGames.tasks = BRAIN_TASKS;
+// ゲームを えらぶ おみせ（js/scene-store.js の「おてつだいする」・PokaDebug.shop の variant）。パズル こうぼうは js/mg-kobo.js が たす
+const SHOP_GAMES = { brain: BrainGames };
 function BrainTask(sc, lv) { return new (BRAIN_TASKS[sc && sc.variant] || BrainSpotTask)(sc, lv); }
 // おみせの おく（たなに ちきゅうぎ・ほん・パズル）
 BrainTask.backdrop = (ctx, sc, W) => {

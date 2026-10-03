@@ -168,7 +168,8 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `korokoro-physics.js` / `korokoro-art.js` / `mg-korokoro.js` / `korokoro-town.js` | `KOROKORO_TIERS`, `KOROKORO_RULES`, `KorokoroWorld` ／ `KorokoroArt` ／ `KOROKORO_ORDERS`, `KOROKORO_BONUS`, `KorokoroSound`, `KOROKORO_FACE`, `KorokoroBoard`, `KorokoroTask` ／ `KorokoroTown` |
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
 | — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
-| — | `brain-art.js` / `mg-brain.js`（korokoro-town.js の あと・nerikasu-town.js の まえ） | `BrainArt` ／ `BRAIN_FONT`, `BrainGames`, `BRAIN_SPOT_SCENES`, `BrainSpotTask`, `BrainPairTask`, `BrainMathTask`, `BRAIN_TASKS`, `BrainTask`, `BrainTown` |
+| — | `brain-art.js` / `mg-brain.js`（korokoro-town.js の あと・nerikasu-town.js の まえ） | `BrainArt` ／ `BRAIN_FONT`, `BrainGames`, `BRAIN_SPOT_SCENES`, `BrainSpotTask`, `BrainPairTask`, `BrainMathTask`, `BRAIN_TASKS`, `SHOP_GAMES`, `BrainTask`, `BrainTown` |
+| — | `kobo-art.js` / `mg-kobo.js`（mg-brain.js の あと・nerikasu-town.js の まえ） | `KoboArt` ／ `KOBO_FONT`, `KoboGames`, `KoboSlideTask`, `KOBO_SIMILAR`, `KOBO_EASY`, `KoboShapeTask`, `KoboLogicTask`, `KOBO_TASKS`, `KoboTask`, `KoboTown` |
 | — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
 | — | `gacha-art.js` / `gacha-art-more.js` / `gacha.js`（purikura.js の あと） | `GachaArt` ／ `GachaArtMore` ／ `Gacha` |
 | — | `gacha-forest-art.js` / `gacha-forest.js`（gacha.js の すぐ あと） | `GachaForestArt` ／ `GachaForest` |
@@ -1115,7 +1116,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 ## あたまの たいそう（ネリカスタウンの のうトレの おてつだい・UI-64・`js/brain-art.js`・`js/mg-brain.js`）
 
-- おみせ `brain`（`SHOPS`・4にん）。店内で「おてつだいする」→ `BrainGames.choose(store)`（`js/scene-store.js` が よぶ。ほかの おみせは `""`・やめたら `null`）で 3しゅから えらぶ → `Game.goto("shop", { …, variant })`。えらんだ かずは `Save.d.shops.brain.games`（`spot`・`pair`・`math`）・`last`。
+- おみせ `brain`（`SHOPS`・4にん）。店内で「おてつだいする」→ `SHOP_GAMES[おみせ].choose(store)`（`js/scene-store.js` が よぶ。あたまの たいそうは `BrainGames`・パズル こうぼうは それを うけつぐ `KoboGames`。ゲームの ない おみせは よばない・やめたら `null`）で 3しゅから えらぶ → `Game.goto("shop", { …, variant })`。`BrainGames` の `shop`・`ASK`・`GAMES`・`HELLO` を かえると ほかの おみせでも つかえる。えらんだ かずは `Save.d.shops.brain.games`（`spot`・`pair`・`math`）・`last`。
 - `MG_TASKS.brain` は `BrainTask`（ふつうの 関数）: `new BrainTask(sc, lv)` が `sc.variant` の クラス（`BRAIN_TASKS`）を かえす（ない ときは まちがい さがし）。たなの しなものは `BrainTask.backdrop`。
 - せつめい: `HOWTO.brain` は 関数（`(sc) => BrainGames.howto(sc.variant)`）。`ShopScene.flow` は `HOWTO[shop]` が 関数なら sc を わたして よぶ（ほかの おみせは 配列の まま）。いちばん さいしょの おてつだいは おみせの なかで、2かいめ いこうに はじめて えらんだ ゲームは 店内で（`BrainGames.choose`）その ゲームの せつめい。
 - まちがい さがし `BrainSpotTask`: 3×4 マスの 2まいの え（`left`・`right`。マスの なかで すこし ずれて まわる）。ちがいは `diffs`（Lv で 3〜5つ。`gone` ない・`extra` ふえた・`color` いろ・`kind` ちがう もの・Lv.3〜 `size` ちいさい・Lv.4〜 `flip` むき〔よこむきの ちがいが わかる こもの だけ〕）。さいしょは ちがう しゅるいを 1つずつ。どちらの えを タップしても よい。採点: みつけた かず × 100 − はずれ 6 − ヒント 10 − 時間。
@@ -1127,6 +1128,18 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ごほうび（`js/shop-rewards.js`・`js/shop-reward-art.js`）: ふくろうの スツール・ちきゅうぎの ランプ（さわると ひかる）・こくばんの つくえ・ほしの てんもんだい。
 - PokaDebug: `shop('brain', lv, 'spot' | 'pair' | 'math')`・`mg().order`（`game` と ゲームごとの ようす: まちがい さがしは `diffs`〔ひだり・みぎの CSS 座標〕と `same`〔ちがいで ない こもの〕・おなじ え さがしは `cards`〔`key`・CSS 座標〕と `peek`・くだもの けいさんは `cur`〔`ans`・`choices`〕）。
 - 検査: `tools/check-brain.mjs`（とうろく・ふるい セーブ・3しゅの きまりと 採点・Lv ごとの かず・2つの がめんで 44px・ことば）・`tools/check.mjs`（3しゅとも 正しく あそぶと 100点）。スモーク `brain-spot`・`brain-pair`・`brain-math`（各 390/375。`tests/brain-smoke.mjs`）。
+
+## パズル こうぼう（ネリカスタウンの パズルの おてつだい・UI-65・`js/kobo-art.js`・`js/mg-kobo.js`）
+
+- おみせ `kobo`（`SHOPS`・4にん）。えらびかた・せつめい・セーブ（`Save.d.shops.kobo.games`〔`slide`・`shape`・`logic`〕・`last`）は あたまの たいそうと おなじ（`KoboGames` は `Object.create(BrainGames)` に `shop`・`ASK`・`GAMES`・`HELLO` を かさねた もの。`SHOP_GAMES.kobo`）。`MG_TASKS.kobo` は `KoboTask`（`sc.variant` の クラス `KOBO_TASKS`・ない ときは スライド パズル）。`HOWTO.kobo` も 関数。
+- スライド パズル `KoboSlideTask`: いた `tiles`（ばしょ → いたの ばんごう。`n*n - 1` が あき）。かんせいから あきを でたらめに うごかして、いちばん すくない てかず `par`（`KoboSlideTask.solve`: IDA*・マンハッタン きょり）が Lv の はんい（3〜4・5〜7・8〜10・11〜13・4×4 の 10〜12）の ものを えらぶ（かならず とける）。あきと おなじ ぎょう・れつの いたを タップすると あきまでの いたが まとめて ずれる（てかずは うごいた いたの かず）。めやす `allow` = ⌈par × 1.5⌉ + 4 を こえた 1てごとに 2.5てん・ヒント（つぎに うごかす いた。とおすぎる ときは ちかづく いた）10てん。え は `KoboArt.PICTURES` の 3まい（おきゃくさんごとに じゅんばん。キーは「kobo:pic:え」と 大きさ だけ）。
+- かたち はめ `KoboShapeTask`: あな `holes` と ピース `pieces`（`hole` で おなじ ばんごう）。Lv で あな 3〜6・まわす ピース 0〜4（Lv.3 から。タップで 90° `turn`）・にた かたちの くみ（`KOBO_SIMILAR`。Lv.4 から 1くみ）・おおきさ ちがいの ふたご（Lv.5。0.68ばい）。ドラッグして あなの ちかくで はなす: おなじ かたち・おおきさ・むき（`turnsTo` = 0）なら はまる。むきだけ ちがうと もどる（減点 なし `wrongTurn`）。かたちか おおきさが ちがうと もどって 6てん。
+- おえかき ロジック `KoboLogicTask`: `KoboArt.LOGIC` の やさしい 5×5（Lv.1・2）・ふつう 5×5（Lv.3）・6×6（Lv.4・5）。さいしょに ぬって ある ます 3・1・0・2・0。ちがう ますは ばつ（6てん・なぞるのを とめる）。ぬりおわった ぎょう・れつの すうじは うすく、のこりは うすい ばつ（`lines`）。なぞると さいしょに うごいた ほう（よこ か たて）の 1れつ だけ ぬる（とばした ますも）。ますは 2つの がめんで 44px いじょう（のこりの かずは ひだり うえの すみ）。
+- 店主 `SHOP_OWNERS.kobo`（はりねずみの チクタさん）・店内 `STORE_INTERIORS.kobo`（スライド パズルの がく・ジグソーの かべ・さぎょうだい・かたち はめの つくえ・いろの キューブ・おえかき ロジックの ボード）・BGM `SONGS.shop_kobo`（「からくり こうぼう」。この ゲームの ために つくった きょく `original: true`）・ディスク `disc_shop_kobo`・ちずの めじるし `jigsaw`・かんばんの しるし `SIGN_ICON.kobo`。
+- 町: `KoboTown` が `NerikasuTown.install` の まえに nerikasu_home2（まちの おうち・9×5・入口 4）を お店に する（`js/nerikasu-layout.js` の `house` を はずした）。建物の 絵は `tools/town-design/nerikasu-buildings.mjs` の `kobo()`（のこぎり屋根・ジグソーの 丸看板・スライド パズルと かたち はめの まど・ロジックの ハート）。
+- ごほうび: ジグソーの スツール（4まいの マットが かみあう）・キューブの ランプ（さわると ひかる）・パズルの テーブル（てんばんが スライド パズル）・からくり ビーだま コース。
+- PokaDebug: `shop('kobo', lv, 'slide' | 'shape' | 'logic')`・`mg().order`（スライドは `path`〔いちばん すくない てじゅんの CSS 座標〕・`next`・`far`〔うごかない いた〕、かたち はめは `holes`・`pieces`〔`turns`・`hole`〕・`tip`、ロジックは `todo`・`empty`・`cellCss`）。
+- 検査: `tools/check-kobo.mjs`（とうろく・ふるい セーブ・3×3 の ぜんぶの ならびの いちばん すくない てかず〔はばの ひろい たんさく 181440〕と くらべる・ヒントで とける・かたちの rots・ロジック 24もんを ならびの ヒントだけで とく・2つの がめんで 44px・ことば）・`tools/check.mjs`（3しゅとも 正しく あそぶと 100点）。スモーク `kobo-slide`・`kobo-shape`・`kobo-logic`（各 390/375。`tests/kobo-smoke.mjs`）。
 
 ## サンシャインいけぶ（斜めの 館・UI-04）
 

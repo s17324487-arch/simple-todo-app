@@ -138,6 +138,7 @@ const PokaDebug = {
       "PokaDebug.arcadeMusic()     Meeときょれじゃ の J-POP（いまの 曲・再生リスト）。'skip' で つぎの 曲",
       "PokaDebug.shop('crepe', 3)            お店ミニゲームを Lv3 で開始",
       "PokaDebug.shop('brain', 2, 'pair')    あたまの たいそうを ゲーム（spot・pair・math）を きめて 開始",
+      "PokaDebug.shop('kobo', 3, 'logic')    パズル こうぼうを ゲーム（slide・shape・logic）を きめて 開始",
       "PokaDebug.koroSetup({bodies:[[3,40,100],[3,60,100]]}) ころころ フルーツの 箱に 玉を おく（seed・held・next も。スコア モードでも）",
       "PokaDebug.koroScore({ seed: 1 })     ころころ フルーツの スコア モードを はじめる（お店の まえに もどる）",
       "PokaDebug.koro()                      スコア モードの ようす（スコア・ハイスコア・さいきんの きろく・もらった とくべつな かぐ・きろくの まどで とまって いるか・箱の CSS 座標・玉・つぎ・おしまい）",
@@ -952,11 +953,11 @@ const PokaDebug = {
     // 終わったら いまの場所（セーブの world）に戻る
     Game.goto("battle", { foes, area, boss, back: { map: w.map, x: w.x, y: w.y, dir: w.dir }, spawnIdx: -99 }, "none");
   },
-  // variant: あたまの たいそうの ゲーム（"spot"・"pair"・"math"。js/mg-brain.js）
+  // variant: あたまの たいそう（"spot"・"pair"・"math"。js/mg-brain.js）・パズル こうぼう（"slide"・"shape"・"logic"。js/mg-kobo.js）の ゲーム
   shop(id = "crepe", lv, variant = null) {
     if (!SHOPS[id]) throw new Error("unknown shop: " + id);
     if (id === "link") return this.store("link", "city");
-    if (variant && !(id === "brain" && BRAIN_TASKS[variant])) throw new Error("unknown variant: " + variant);
+    if (variant && !(SHOP_GAMES[id] && SHOP_GAMES[id].tasks[variant])) throw new Error("unknown variant: " + variant);
     if (lv) Save.d.shops[id].lv = U.clamp(lv, 1, 30);
     Game.trans = null;
     Game.goto("shop", { shop: id, back: { map: "town", x: 12, y: 21, dir: "down" }, variant }, "none");
