@@ -151,11 +151,11 @@ const GachaArt = (() => {
       + `<path d="M34,22 L146,22 L146,122 L34,122 Z" fill="#E9F6FB" fill-opacity="0.8" ${sk(2.6)}/>${caps}<path d="M44,30 L44,70" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.7"/>`
       + `<path d="M26,122 L154,122 L154,240 L26,240 Z" fill="${c}" ${sk(2.6)}/><path d="M26,130 L154,130" stroke="${l}" stroke-width="4"/>`
       + `<rect x="36" y="136" width="108" height="42" rx="6" fill="#FFFDF5" ${sk(2)}/>${cards}`
-      + `<rect x="110" y="184" width="28" height="10" rx="3" fill="#2A2238" ${sk(1.6)}/><text x="124" y="204" font-size="7" font-weight="900" text-anchor="middle" fill="${K}" font-family="'M PLUS Rounded 1c',sans-serif">200</text>`
+      + `<rect x="110" y="184" width="28" height="10" rx="3" fill="#2A2238" ${sk(1.6)}/><text x="124" y="204" font-size="7" font-weight="900" text-anchor="middle" fill="${K}" font-family="'M PLUS Rounded 1c',sans-serif">${S.price || 200}</text>`
       + `<path d="M102,210 L148,210 L148,236 L102,236 Z" fill="#2A2238" ${sk(2)}/><path d="M106,212 L144,212" stroke="#5B5670" stroke-width="3"/>`
-      + `<rect x="22" y="238" width="136" height="8" rx="3" fill="${d}" ${sk(2)}/>${S.forest ? leafy() : ""}</svg>`;
+      + `<rect x="22" y="238" width="136" height="8" rx="3" fill="${d}" ${sk(2)}/>${S.forest ? leafy() : S.sticker && typeof StickerArt !== "undefined" ? StickerArt.topper() : ""}</svg>`;
   };
-  // 4F（ガチャガチャの もり）の 台の かざり: うえの ふちに はっぱ・りょうはしに どんぐり
+  // 4F（ガチャガチャの もり）の 台の かざり: うえの ふちに はっぱ・りょうはしに どんぐり（シールの 台は ハートの シール・js/sticker-art.js）
   const leafy = () => {
     let s = "";
     for (let k = 0; k < 7; k++) { const x = 38 + k * 17.3, a = k % 2 ? 24 : -24, c = ["#7DBA4C", "#9ED36A", "#5E9A3E"][k % 3]; s += `<ellipse cx="${f1(x)}" cy="${k % 2 ? 9 : 6}" rx="10" ry="5" transform="rotate(${a} ${f1(x)} ${k % 2 ? 9 : 6})" fill="${c}" ${sk(1.6)}/>`; }

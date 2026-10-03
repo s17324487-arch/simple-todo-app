@@ -156,7 +156,7 @@ const GachaForest = (() => {
 
   // ---- 4F（ガチャガチャの もり）の 配置。28×22 マス（ほかの 階と おなじ）。南東の すみに 3F から のぼって くる エスカレーター（ふきぬけ）----
   // きたの かべに 9台（ばんごう 0〜8）・にしの かべに 9台（9〜17）。まんなかに おおきな もりの き・きのこの いす・おおきな カプセル・どうぶつの オブジェ。
-  // ・きたの ひがし（x 14〜27）と まんなか（x 15〜17・y 8）は あとで ふえる クレーンゲームと シールの ガチャの ばしょ（いまは もりの かざり）。
+  // ・きたの ひがし（もりの ひろば・x 14〜27）は シールの ガチャ（きたの かべ 16〜18・js/sticker-book.js の patch4）と あとで ふえる クレーンゲームの ばしょ。
   // ・3F の エスカレーターは 南東の すみ（IkeArcade.ESC4）。1F→2F と おなじ ひがしの ばしょ だと 3F の おめかし コーナー・おかし タワーが 4F の ゆかの ふちに かくれる（tools/check-ikebukuro.mjs）。
   const ESC = IkeArcade.ESC4;
   const floor4 = () => {
@@ -174,10 +174,10 @@ const GachaForest = (() => {
     fixtures.push({ kind: "directory", variant: "forest", here: "4F", x: 10, y: 0, w: 3, h: 1, dir: "y", height: 176, label: "もりの あんない", action: "info", text: "ガチャガチャの もり（4F）\nきたの かべ: まちぼうけ・スクイーズ・ポーチ・めじるし アクセサリー\nにしの かべ: ミニチュア・しょくひん サンプル・おしり・かぶりもの・がっき・ぶんぼうぐ・もりの なかま・きのこ\n1かい 200コイン。どれが でるかは カプセルを あけて からの おたのしみ！", spots: [[11, 1], [10, 1], [12, 1]] });
     // もりの ひろば（きたの ひがし）: おおきな き 3ぼん・きりかぶの ベンチ・しげみ（あとで クレーンの ばしょ）
     fixtures.push({ kind: "ftree", x: 14, y: 0, w: 2, h: 2, height: 300, variant: 0 }, { kind: "ftree", x: 20, y: 0, w: 2, h: 2, height: 280, variant: 1 }, { kind: "ftree", x: 25, y: 0, w: 2, h: 2, height: 300, variant: 3 });
-    fixtures.push({ kind: "fstump", x: 17, y: 1, w: 2, h: 1, height: 40, label: "きりかぶの ベンチ", action: "sit", text: "きりかぶの ベンチで ひとやすみ。もりの においが するね。", spots: [[17, 2], [18, 2]] });
+    fixtures.push({ kind: "fstump", x: 22, y: 1, w: 2, h: 1, height: 40, label: "きりかぶの ベンチ", action: "sit", text: "きりかぶの ベンチで ひとやすみ。もりの においが するね。", spots: [[22, 2], [23, 2]] }); // き の あいだの 16〜18 は シールの ガチャ
     fixtures.push({ kind: "fstump", x: 24, y: 6, w: 2, h: 1, height: 40, label: "きりかぶの ベンチ", action: "sit", text: "きりかぶの ベンチで ひとやすみ。とった カプセルを あけて みよう。", spots: [[24, 7], [25, 7], [24, 5], [25, 5]] });
     for (const [x, y] of [[24, 4], [27, 8], [23, 9]]) fixtures.push({ kind: "fbush", x, y, w: 1, h: 1, height: 52 });
-    // まんなか: おおきな もりの き・きのこの いす（あとで シールの ガチャ）・どうぶつの オブジェ
+    // まんなか: おおきな もりの き・きのこの いす・どうぶつの オブジェ
     fixtures.push({ kind: "ftree", x: 6, y: 6, w: 3, h: 3, height: 330, variant: 2, big: true, label: "もりの き", action: "info", text: "ガチャガチャの もりの まんなかの おおきな き。えだに ちょうちんが さがって いるよ。", spots: [[7, 9], [9, 7], [5, 7], [7, 5]] });
     for (const [x, y, v] of [[15, 8, 0], [16, 8, 1], [17, 8, 2]]) fixtures.push({ kind: "fmush", x, y, w: 1, h: 1, height: 56, variant: v, label: "きのこの いす", action: "sit", text: "ふかふかの きのこの いす。すわって カプセルを あけよう。", spots: [[x, y + 1]] });
     fixtures.push({ kind: "fhedge", x: 15, y: 7, w: 3, h: 1, height: 40 });

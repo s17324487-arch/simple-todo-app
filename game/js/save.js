@@ -94,6 +94,9 @@ const Save = {
       purikura: { plays: 0, active: null, taken: 0 },
       // ガチャガチャ（js/gacha.js）: plays まわした かず・got { けいひん: でた かず }・done { シリーズ: 4しゅ そろった 日 }。けいひんは furn／wardrobe に はいる
       gacha: { plays: 0, got: {}, done: {} },
+      // シールちょう（js/sticker-book.js・UI-53）: have { シール: てもとの まい数 }・got { シール: これまでに もらった まい数 }・
+      // pages [{ bg: かみ, s: [[シール, x, y, まわす, おおきさ], …] }]（6まい。はじめて つかう ときに つくる）。シートは ガチャの けいひん（Save.d.gacha.got）
+      stickers: { have: {}, got: {}, pages: [] },
       puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },
       // コラボ グッズ（js/collab-goods.js）: ライン → { total: つみたての スコア, got: { id: もらった 日 } }。ラインは はじめて よむ ときに つくる
       collab: {},

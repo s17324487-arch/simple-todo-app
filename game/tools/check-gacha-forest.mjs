@@ -17,11 +17,11 @@ const svgOk = (s) => typeof s === "string" && s.startsWith("<svg") && s.trim().e
 
 // ---- 1. シリーズ（2F の 12 の あとに 18）----
 const F = GA.SERIES.filter((s) => s.forest);
-ok(GA.SERIES.length === 30 && F.length === 18 && GF.SERIES.length === 18 && GF.first === 12 && F.every((S, i) => S.index === 12 + i && GA.SERIES[12 + i] === S && GF.index[S.id] === S.index), "4F の 18シリーズは 12〜29 ばん");
+ok(GA.SERIES.length >= 30 && F.length === 18 && GF.SERIES.length === 18 && GF.first === 12 && F.every((S, i) => S.index === 12 + i && GA.SERIES[12 + i] === S && GF.index[S.id] === S.index), "4F の 18シリーズは 12〜29 ばん");
 ok(GA.SERIES.slice(0, 12).every((s) => !s.forest), "2F の 12シリーズは そのまま");
 ok(F.map((s) => s.id).join() === "machi3,machizoo,squishbread,squishmochi,squishsweet,pouchzoo,pouchsnack,mejitrio,mejiforest,minikaden,foodsample,townmini,oshiri,kaburi,minigakki,minibungu,forestpal,kinoko", "シリーズの じゅんばん（台の ばんごう）");
-ok(new Set(GA.SERIES.map((s) => s.id)).size === 30 && new Set(GA.ITEMS.map((it) => it.id)).size === 120 && GA.ITEMS.length === 120, "id が かさなる");
-ok(new Set(GA.SERIES.map((s) => s.color.toUpperCase())).size === 30, "台の いろが ぜんぶ ちがう（30だい）");
+ok(new Set(GA.SERIES.map((s) => s.id)).size === GA.SERIES.length && new Set(GA.ITEMS.map((it) => it.id)).size === GA.ITEMS.length && GA.ITEMS.length === GA.SERIES.length * 4, "id が かさなる");
+ok(new Set(GA.SERIES.map((s) => s.color.toUpperCase())).size === GA.SERIES.length, "台の いろが ぜんぶ ちがう（ぜんぶの 台）");
 ok(F.filter((s) => s.kind === "furn").length === 13 && F.filter((s) => s.kind === "wear").length === 5, "家具 13シリーズ・もちもの／かぶりもの 5シリーズ");
 ok(F.filter((s) => s.hand).map((s) => s.id).join() === "pouchzoo,pouchsnack,mejitrio,mejiforest" && F.filter((s) => s.acc).map((s) => s.id).join() === "kaburi", "ポーチ・めじるしは もちもの、かぶりものは アクセサリー");
 ok(F.filter((s) => s.squish).map((s) => s.id).join() === "squishbread,squishmochi,squishsweet", "スクイーズ 3シリーズ");
@@ -87,7 +87,7 @@ ok(Object.keys(fl).join() === "1,2,3,4" && f4 && f4.id === "arcade4" && f4.iso &
 ok(f4.short === "ガチャガチャの もり" && f4.title === "Meeときょれじゃ 4F" && f4.carpet === "forest" && f4.theme === "forest" && f4.below === "puri", "4F の なまえ・もりの ゆかと かべ");
 const walk = (r, [x, y]) => x >= 0 && y >= 0 && x < r.w && y < r.h && !I.solidAt(r, x, y) && !r.fixtures.some((f) => !f.walk && !f.over && f.kind !== "hangsign" && x >= f.x && x < f.x + f.w && y >= f.y && y < f.y + f.h);
 const reach = (r, from) => { const seen = new Set([from.join()]), q = [from]; while (q.length) { const [x, y] = q.shift(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const p = [x + dx, y + dy], k = p.join(); if (!seen.has(k) && walk(r, p)) { seen.add(k); q.push(p); } } } return seen; };
-const g4 = f4.fixtures.filter((f) => f.kind === "gacha");
+const g4 = f4.fixtures.filter((f) => f.kind === "gacha" && GA.SERIES[f.series] && GA.SERIES[f.series].forest); // シールの 台（30〜32）は tools/check-stickers.mjs
 ok(g4.length === 18 && g4.map((f) => f.series).join() === F.map((s) => s.index).join() && g4.every((f) => f.variant === f.series && f.action === "gacha" && f.w === 1 && f.h === 1), "4F に ガチャ 18だい（1シリーズ 1だい）");
 ok(g4.filter((f) => f.y === 0 && f.dir === "y").length === 9 && g4.filter((f) => f.x === 0 && f.dir === "x").length === 9, "きたの かべに 9だい・にしの かべに 9だい");
 ok(![1, 2, 3].some((k) => fl[k].fixtures.some((f) => f.kind === "gacha" && f.series >= 12)), "4F の シリーズは ほかの 階に ない");

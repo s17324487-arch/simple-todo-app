@@ -170,6 +170,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
 | — | `gacha-art.js` / `gacha-art-more.js` / `gacha.js`（purikura.js の あと） | `GachaArt` ／ `GachaArtMore` ／ `Gacha` |
 | — | `gacha-forest-art.js` / `gacha-forest.js`（gacha.js の すぐ あと） | `GachaForestArt` ／ `GachaForest` |
+| — | `sticker-art.js` / `sticker-book.js`（gacha-forest.js の すぐ あと） | `StickerArt` ／ `StickerBook` |
 | — | `collab-goods.js` / `puzzle-collab.js` / `korokoro-collab.js`（gacha.js・korokoro-score.js の あと・item-dex-sources.js の まえ） | `CollabGoods` ／ `PuzzleCollab` ／ `KorokoroCollab` |
 | — | `aqua-gifts.js`（aqua-art.js の あと・ike-aquarium.js の まえ） | `AquaGifts` |
 | — | `figure-stand.js`（aqua-gifts.js の あと・ike-aquarium.js の まえ） | `FigureStand` |
@@ -1041,6 +1042,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ゆか・かべ（`js/arcade-art.js`）: `r.carpet === "forest"`（`MAT4`）・`r.theme === "forest"`（`forestWall`・木の かんばん・てまえの ふちの いろ・`backdrop(r)`・天じょうの くらがり）・`r.below`（ふきぬけの したの じゅうたん。4F は `"puri"`）。フロア あんない（`directory`）は `f.rows`・`f.here`・`variant: "forest"`（木の いた。`modelKey` に はいる）。1F の あんないは 4F も のせる。
 - フロアマップ（`MallGuide.places`）: ガチャの 台（`action: "gacha"`）の ある へやも でる。
 - PokaDebug: `gachaForest()`（シリーズの ばんごう・4F の 台・スクイーズ）・`venue('arcade', 4)`・`gachaOpen(12〜29)`・`furnLive('gacha_squishbread_0')`。検査は `tools/check-gacha-forest.mjs`（2F の 12シリーズの かずは `tools/check-gacha.mjs`）、スモーク「gacha-forest-390 / 375」。
+
+## シールの ガチャ と シールちょう（Meeときょれじゃ 4F・UI-53）
+
+- 読み込みは `js/sticker-art.js` → `js/sticker-book.js`（gacha-forest.js の すぐ あと）。トップレベル名は `StickerArt`・`StickerBook`。
+- シール: `StickerBook.DESIGNS`（18。`{ id: "stk_…", name, series, rare }`）・`INDEX`。絵は `StickerArt.piece(id)`（100×100。キャラの 絵は よぶ たびに Chara.svg の あたらしい uid）。
+- 台: `StickerBook.SERIES`（3。`kind: "sticker"`・`sticker: true`・`price: 100`・`paper`〔シートの だいしの いろ〕・items は [なまえ, せつめい, [[シール, まい数], …]]）。`Gacha.add` で 30〜32 ばん（`StickerBook.first`・`IDX`）。シートの 絵は `GachaArt.FIG[シートの id]` → `StickerArt.sheet(it, paper, rare)`。
+- `js/gacha.js` の しくみ: `Gacha.priceOf(si)`（`S.price` か 200）・`Gacha.GIVE[kind]`（家具・服 いがいの けいひんを いれる。かえした ことばは けっかの `note`）。`register` は kind "furn" と "wear" だけ。`GachaArt.machine` の ねだんは `S.price`、`S.sticker` の 台は `StickerArt.topper()`（ハート）。館の 台（`ArcadeArt.M.gacha`）も `S.sticker` で ハートの シール。
+- シールちょう: `Save.d.stickers`（`have`・`got`・`pages[6]` = `{ bg, s: [[id, x, y, r, z]] }`。x 0〜300・y 0〜360・r −180〜180〔15ど〕・z 0〜4〔`SIZES`〕）。`st()` が はじめて よむ とき `clean` で なおす。`put`・`move`・`rotate`・`resize`・`front`・`peel`・`paperNext`・`add`・`give`。1ページ 24まい（`PER`）・てもとは 99まい（`CAP`）。
+- 画面: `StickerBook.phoneView(el)`（すまほの APPS `stickers`）。DOM の img（`url(id)` は シール 1しゅ 1つ・かみは 6つ。SvgCache は つかわない）。ページの おおきさは `fit()`（300×360 の わりあい）・シールの ばしょと おおきさは ページに たいする %。ゆびで うごかすのは pointer イベント（`.stk-page` は `touch-action: none`）。館の なかでは すまほの ボタンが でない ので、おうちや 町で ひらく。
+- 4F: `StickerBook.patch4(floor4)`（きたの かべ 16〜18 に 3だい・きりかぶの ベンチを 22,1 へ・へや `arcForestSticker`・かべの「シール 100コイン」〔z 158。き の はっぱに かくれない〕・あんないの ことば。2かい よんでも ふえない）。`PokaDebug.gachaForest().machines` は もりの 18だい だけ。
+- PokaDebug: `stickers()`・`stickerGive(id, n)`・`stickerUi()`・`gachaOpen(30〜32)`。検査は `tools/check-stickers.mjs`、スモーク「sticker-book-390 / 375」。
 
 ## エリアの ちず（すまほ の「ちず」→「この エリア」・UI-13）
 
