@@ -62,9 +62,9 @@ let hiddenChecks=0;
   // 3F の ぷりくら・おめかし コーナー・こういしつ・かしだしの ラック・おかし コーナーの 台（UI-21〜23）も、てまえの 高い もの（はしら・ラック など）に かくれない
   const puri=fl[3].fixtures.filter(f=>['photobooth','vanity','fitting','costumerack','crane'].includes(f.kind));
   for(const f of puri)for(const o of fl[3].fixtures){if(o===f||(o.height??40)<=150||o.over||depth(o)<=depth(f))continue;const a=ccw(I.hull(f)),c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/area(a):0;hiddenChecks++;assert(k<=0.12,'3F の '+(f.label||f.kind)+'（'+f.x+','+f.y+'）が '+(o.label||o.kind)+'（'+o.x+','+o.y+'）に かくれる '+Math.round(k*100)+'%');}}
-// 3F（ぷりくらの フロア・UI-21）: 2F の 南西の すみの エスカレーターで 2F ⇄ 3F（3F は ふきぬけ）・1F は ぷりくらの かわりに フロア あんない
+// 3F（ぷりくらの フロア・UI-21）: 2F の 南西の すみの エスカレーターで 2F ⇄ 3F（3F は ふきぬけ）・1F は ぷりくらの かわりに フロア あんない。4F（ガチャガチャの もり・UI-52）は tools/check-gacha-forest.mjs
 {const fl=R.VenueHalls.defs.arcade.floors,up=fl[2].fixtures.find(f=>f.kind==='escalator'&&f.to===3),down=fl[3]&&fl[3].fixtures.find(f=>f.kind==='escalator'&&f.to===2);
-  assert(Object.keys(fl).join()==='1,2,3'&&up&&down&&up.x===down.x&&up.y===down.y&&fl[3].holes.length===1&&fl[3].holes[0].x===down.x,'2F と 3F の エスカレーター');
+  assert(Object.keys(fl).join()==='1,2,3,4'&&up&&down&&up.x===down.x&&up.y===down.y&&fl[3].holes.length===1&&fl[3].holes[0].x===down.x,'2F と 3F の エスカレーター');
   assert(r2walk(fl[3],up.spawn)&&r2walk(fl[2],down.spawn),'エスカレーターの おりばに たてる');
   assert(fl[1].fixtures.some(f=>f.kind==='directory'&&f.action==='info'&&/3F ぷりくら/.test(f.text)&&/おかし タワー/.test(f.text))&&fl[3].fixtures.filter(f=>f.kind==='photobooth').length===3,'1F の フロア あんない・3F の ぷりくら 3台');
   // 3F の おかし コーナー（UI-23）: ぼうで おす 台（19）と おかし タワー（20）。まえに たてる・フロアマップの コーナー・ほかの 階に ない

@@ -7,7 +7,7 @@ const Gacha = (() => {
   const PRICE = 200, DUP = 50, RATE = [0.3, 0.3, 0.3, 0.1], RARE = 3;
   // [なまえ, せつめい] … 家具 ／ [なまえ, せつめい, slot, wear, col] … 服
   const SERIES = [
-    { id: "friends", name: "なかよし フィギュア", kind: "furn", color: "#F29BB2", caps: ["#F7A9C8", "#FFE07A", "#FFFFFF"], items: [
+    { id: "friends", name: "なかよし フィギュア", kind: "furn", wide: [3], color: "#F29BB2", caps: ["#F7A9C8", "#FFE07A", "#FFFFFF"], items: [
       ["ばんざい わんこ", "ジャンプして よろこぶ わんこの フィギュア。あたまに おほしさまの ピン。"],
       ["おすわり がちゃん", "ちょこんと すわった がちゃんの フィギュア。あおい ちょうネクタイ つき。"],
       ["はなかんむり ごじ", "はなかんむりの ごじ。ハートの めで にっこり。"],
@@ -82,10 +82,11 @@ const Gacha = (() => {
     ] },
   ];
   // けいひん（id: gacha_<シリーズ>_<0〜3>。3 が レア）
-  const ITEMS = [];
-  SERIES.forEach((S, si) => { S.index = si; S.list = S.items.map((x, k) => { const it = { id: `gacha_${S.id}_${k}`, name: x[0], desc: x[1], kind: S.kind, series: si, k, rare: k === RARE }; if (S.kind === "wear") Object.assign(it, { slot: x[2], wear: x[3], col: x[4] }); ITEMS.push(it); return it; }); });
-  const INDEX = Object.fromEntries(ITEMS.map((it) => [it.id, it]));
-  const SIZE = (it) => (it.id === "gacha_friends_3" ? [90, 55, 34] : [50, 55, 30]); // へやでの w h depth（3にん なかよし は ひろい）
+  // wide: よこに ながい けいひん（3にん なかよし など）の ばんごう。あとから たす シリーズ（js/gacha-forest.js）も Gacha.add で おなじ ように つくる
+  const ITEMS = [], INDEX = {};
+  const build = (S) => { const si = SERIES.indexOf(S); S.index = si; S.list = S.items.map((x, k) => { const it = { id: `gacha_${S.id}_${k}`, name: x[0], desc: x[1], kind: S.kind, series: si, k, rare: k === RARE, wide: (S.wide || []).includes(k) }; if (S.kind === "wear") Object.assign(it, { slot: x[2], wear: x[3], col: x[4] }); ITEMS.push(it); INDEX[it.id] = it; return it; }); };
+  SERIES.forEach(build);
+  const SIZE = (it) => (it.wide ? [90, 55, 34] : [50, 55, 30]); // へやでの w h depth（3にん なかよし は ひろい）
 
   // ---- くじ ----
   // r（0〜1）→ 0〜3。ふつう 3しゅ 30%ずつ・レア 10%
@@ -98,6 +99,9 @@ const Gacha = (() => {
     next: null, // PokaDebug.gachaNext（つぎに でる 0〜3）
     speed: 1, // PokaDebug.gachaFast（えんしゅつの はやさ）
     seriesOf(id) { const it = INDEX[id]; return it ? SERIES[it.series] : null; },
+    byId(id) { return SERIES.find((S) => S.id === id) || null; },
+    // シリーズを あとから たす（4F の ガチャガチャの もり・js/gacha-forest.js）。ばんごうは つづき・けいひんは 家具／服に いれる
+    add(list) { const items = []; for (const S of list) { SERIES.push(S); build(S); items.push(...S.list); } register(items); return list.map((S) => S.index); },
     // 1かい まわす（200コイン）。でた けいひんを もちものに いれて けっかを かえす。コインが たりなければ null
     spin(si, r = Math.random()) {
       const S = SERIES[si]; if (!S || Save.d.coins < PRICE) return null;
@@ -116,8 +120,8 @@ const Gacha = (() => {
   };
 
   // ---- 家具・服を ゲームに いれる ----
-  const install = () => {
-    for (const it of ITEMS) {
+  const register = (items) => {
+    for (const it of items) {
       if (it.kind === "wear") {
         const w = { id: it.id, name: it.name, slot: it.slot, wear: it.wear, col: it.col, price: it.rare ? 800 : 300, rare: it.rare, exclusive: "gacha", gachaPrize: true, st: { sp: it.rare ? 2 : 1 }, desc: it.desc };
         WEAR_ITEMS.push(w); ITEM_INDEX[it.id] = w;
@@ -128,6 +132,9 @@ const Gacha = (() => {
         FURN_ART[it.id] = () => GachaArt.figure(it.id).replace("<svg ", `<svg x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="xMidYMax meet" `);
       }
     }
+  };
+  const install = () => {
+    register(ITEMS.slice());
     // おうちの 立体: たって いる 絵・足もとに かげ（ArcadePrizes.model と おなじ かたち）
     const model0 = IkebukuroItemArt.model;
     IkebukuroItemArt.model = function (id, opts = {}) {
@@ -175,7 +182,7 @@ Gacha.open = function (si) {
         U.el("div", { class: "gacha-price", text: `1かい ${this.PRICE}コイン` }),
         U.el("div", { class: "gacha-coins", text: `もって いる コイン ${U.fmt(Save.d.coins)}` }),
         U.el("div", { class: "gacha-rate", text: "ふつう 3しゅ 30%ずつ・レア 10%" }),
-        U.el("div", { class: "gacha-kind", text: S.kind === "wear" ? (S.acc ? `でるのは アクセサリー（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : `でるのは ふく（1こで ひとり・おなじ ふくは ${WearStock.CAP}こ まで）`) : "でるのは へやに かざる フィギュア" }),
+        U.el("div", { class: "gacha-kind", text: S.kind === "wear" ? (S.hand ? `でるのは もちもの（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : S.acc ? `でるのは アクセサリー（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : `でるのは ふく（1こで ひとり・おなじ ふくは ${WearStock.CAP}こ まで）`) : "でるのは へやに かざる フィギュア" }),
         ...(done ? [U.el("div", { class: "gacha-done", text: "コンプリート！" })] : []),
       );
       line.replaceChildren(...S.list.map((it) => {

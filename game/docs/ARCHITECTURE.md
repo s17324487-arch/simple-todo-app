@@ -169,6 +169,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
 | — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
 | — | `gacha-art.js` / `gacha-art-more.js` / `gacha.js`（purikura.js の あと） | `GachaArt` ／ `GachaArtMore` ／ `Gacha` |
+| — | `gacha-forest-art.js` / `gacha-forest.js`（gacha.js の すぐ あと） | `GachaForestArt` ／ `GachaForest` |
 | — | `collab-goods.js` / `puzzle-collab.js` / `korokoro-collab.js`（gacha.js・korokoro-score.js の あと・item-dex-sources.js の まえ） | `CollabGoods` ／ `PuzzleCollab` ／ `KorokoroCollab` |
 | — | `aqua-gifts.js`（aqua-art.js の あと・ike-aquarium.js の まえ） | `AquaGifts` |
 | — | `figure-stand.js`（aqua-gifts.js の あと・ike-aquarium.js の まえ） | `FigureStand` |
@@ -1029,6 +1030,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - セーブ: `Save.d.gacha`（`plays`・`got { けいひん: でた かず }`・`done { シリーズ: そろった 日 }`）。`Gacha.st()` が こわれた ところを なおす。
 - 館の 台: 2F の まんなかの「ガチャ コーナー」（`js/ike-arcade.js` の `floor2`・UI-20。UI-28 で 2れつ 12だい・ゆか x 8〜17・y 5〜10）。おくの れつ（y 6・シリーズ 0〜5）と てまえの れつ（y 9・6〜11。`label` は 0 が「カプセルトイ」・9 が「アクセサリー」）。台の いろは シリーズの `color`（arcade-art.js の `gacha`）。おくの れつの うしろの かんばん `gachaboard`（もじは `variant`）・てまえの れつの うしろは ひくい しきり `divider`（おくの 台を かくさない）・カプセルの かいしゅう ばこ `capbin`・ゆかは `rows` の `g`（arcade-art.js の `gacha` の ゆか）。どの 階でも しらべる ものが エスカレーターの うえの ゆかや つりさげの かんばんに かくれない ことは `tools/check-ikebukuro.mjs` が しらべる（投影した 箱の かさなり）。
 - PokaDebug: `gachaOpen(シリーズ)`・`gachaNext(0〜3)`・`gachaFast(ばい)`・`gachaState()`。検査は `tools/check-gacha.mjs`（12シリーズ・アクセサリー 16・台の いろ・服の かたちが ぜんぶ ちがう など）と `tools/check-ikebukuro.mjs`（2F に 12だい）、スモーク「gacha-390 / 375」「gacha-more-390 / 375」。
+
+## ガチャガチャの もり（Meeときょれじゃ 4F・UI-52）
+
+- 読み込みは `js/gacha-forest-art.js` → `js/gacha-forest.js`（gacha.js の すぐ あと。ike-arcade.js・arcade-art.js・furniture-live.js・furniture-models.js より あと）。トップレベル名は `GachaForestArt`・`GachaForest`。
+- シリーズ: `GachaForest.SERIES`（18。`forest: true`・`squish`〔スクイーズ〕・`hand`〔もちもの。よこの らんが「でるのは もちもの」〕・`acc`〔かぶりもの〕）。`Gacha.add(list)` で `Gacha.SERIES` の 12〜29 ばんに たす（`build` で けいひん・`register` で 家具／服。`wide` の けいひんは よこに ながい 90×55）。`GachaForest.index[id]`・`GachaForest.first`（12）。2F の 0〜11 ばんは そのまま（台の ばんごう・セーブの id）。
+- 絵 `GachaForestArt`: フィギュア 52（`FIG` → `GachaArt.FIG`。100×110・まちぼうけ 3にんは 180×110）・ポーチ `WEAR.gacha_pouch`（`col: [いろ, ひも, かたち]`。かたちは cat・rabbit・bear・unicorn・melonpan・onigiri・donut・cake）・めじるし `WEAR.gacha_mejirushi`（`col: [すいとう, マスコット]`。wanko・gachan・goji・trio・squirrel・owl・mushroom・deer）・かぶりもの `WEAR.gacha_ebifry`・`gacha_sushihat`・`gacha_kinokohat`・`gacha_cakehat`（`HeadPair` では ぼうし）・館の かざり（`ArcadeArt.M` に `ftree`・`fmush`・`fstump`・`fhedge`・`fbush`・`fstatue`・`fcapsule`。`S.at` の かわりの `atR` で スプライトの はんいを ひろげる〔ひろげないと うえが きれる〕）。
+- スクイーズ: `GachaForest.SQUISH`（12）。`FurnModels.register`（かげ ＋ たった 絵。live の ときは 絵を ぬく）と `FurnLive.register(id, { tap, draw }, true)`（`squash(t)` = exp(−4.2t)·cos(15t)。たてに つぶれて よこに ひろがる。`SvgCache` の キーは 家具 × 8px きざみの 大きさ）。
+- 4F: `GachaForest.floor4()`（`VenueHalls.defs.arcade.floors[4]`）。`IkeArcade.ESC4`（23,13・4×7）の くだり エスカレーターと ふきぬけ・きたの かべ（y 0）と にしの かべ（x 0）に 9だいずつ・ゾーン `arcForestN`／`arcForestW`／`arcForestInfo`／`arcForestTree`／`arcForestRest`／`arcForestCap`。3F は `patch3`（のぼり エスカレーター・`slab`・つりさげ「4F ガチャの もり」・ひがしの はしらを とる・エスカレーターまでの とおりみち）。
+- ゆか・かべ（`js/arcade-art.js`）: `r.carpet === "forest"`（`MAT4`）・`r.theme === "forest"`（`forestWall`・木の かんばん・てまえの ふちの いろ・`backdrop(r)`・天じょうの くらがり）・`r.below`（ふきぬけの したの じゅうたん。4F は `"puri"`）。フロア あんない（`directory`）は `f.rows`・`f.here`・`variant: "forest"`（木の いた。`modelKey` に はいる）。1F の あんないは 4F も のせる。
+- フロアマップ（`MallGuide.places`）: ガチャの 台（`action: "gacha"`）の ある へやも でる。
+- PokaDebug: `gachaForest()`（シリーズの ばんごう・4F の 台・スクイーズ）・`venue('arcade', 4)`・`gachaOpen(12〜29)`・`furnLive('gacha_squishbread_0')`。検査は `tools/check-gacha-forest.mjs`（2F の 12シリーズの かずは `tools/check-gacha.mjs`）、スモーク「gacha-forest-390 / 375」。
 
 ## エリアの ちず（すまほ の「ちず」→「この エリア」・UI-13）
 

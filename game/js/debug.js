@@ -23,6 +23,8 @@ const PokaDebug = {
   gachaNext(k){if(!(k>=0&&k<4))return false;Gacha.next=k;return true;},
   gachaFast(k=1){Gacha.speed=Math.max(1,Math.min(20,k));return true;},
   gachaState(){const v=Gacha.view,g=Gacha.st();return{open:!!document.querySelector('.modal-wrap:not(.out) .gacha'),phase:v?v.phase:null,series:v?v.S.id:null,last:v&&v.last?{id:v.last.item.id,k:v.last.k,rare:v.last.rare,first:v.last.first,refund:v.last.refund,complete:v.last.complete}:null,plays:g.plays,got:{...g.got},done:{...g.done},coins:Save.d.coins};},
+  // ガチャガチャの もり（gacha-forest.js・UI-52）: 4F の 18シリーズ（ばんごう・しゅるい）・4F の 台の ならび・スクイーズの 家具
+  gachaForest(){if(typeof GachaForest==='undefined')return null;const f4=VenueHalls.defs.arcade.floors[4];return{first:GachaForest.first,series:GachaForest.SERIES.map(S=>({id:S.id,index:S.index,name:S.name,kind:S.kind,hand:!!S.hand,squish:!!S.squish,rare:S.list[Gacha.RARE].id})),machines:f4?f4.fixtures.filter(f=>f.kind==='gacha').map(f=>f.series):[],squish:[...GachaForest.SQUISH]};},
   // すいぞくかんの おみやげ（aqua-gifts.js）: しなもの（ねだん・もって いる かず）・12F の 台と レジ・ずかんの ヒント
   aquaGifts(){if(typeof AquaGifts==='undefined')return null;const own=(id)=>AquaGifts.INDEX[id].slot?!!Save.d.wardrobe[id]:(Save.d.furn[id]||0),fx=VenueHalls.defs.mall.floors[12].fixtures.filter(f=>f.shopId===AquaGifts.SHOP);return{shop:AquaGifts.SHOP,figs:AquaGifts.FIGS.map(f=>({id:f.id,name:f.name,price:f.price,own:own(f.id)})),goods:AquaGifts.GOODS.map(g=>({id:g.id,name:g.name,price:g.price,kind:g.kind,slot:g.slot||null,own:own(g.id)})),stands:fx.filter(f=>f.action==='buy').map(f=>f.item),register:fx.some(f=>f.kind==='register'&&f.action==='shop'),source:ItemDexSources.source('furn',FURN_INDEX.aqfig_penguin)};},
   // フィギュア台（figure-stand.js）: いまの へやの だい（figs）・かざれる フィギュア・もって いて おいて いない かず・いごこち・画面
@@ -146,6 +148,7 @@ const PokaDebug = {
       "PokaDebug.fps(2000)                   指定ミリ秒のあいだの平均FPSを返す（Promise）",
       "PokaDebug.venue('arcade', 2)         Meeときょれじゃ の 2F（おかし キャッチャー・はしわたし）。arcadeLineup(12) で 日がわりの けいひん・arcadeStart(12〜18) で 2F の 台・arcadeMiss(17, 4) で はしわたしの たすけ・arcadeHint() で しるしへ",
       "PokaDebug.venue('arcade', 3)         Meeときょれじゃ の 3F（ぷりくら・こういしつ・おかしの 台）。arcadeStart(19) で おかし ロード（arcadeRoadAt(2, 15) で ひかりを れつ 2 に まつ・ランプ 15）・arcadeStart(20) で おかし タワー（arcadeAimRing() で わっかの うえ）",
+      "PokaDebug.venue('arcade', 4)         Meeときょれじゃ の 4F（ガチャガチャの もり・ガチャ 18だい）。gachaForest() で シリーズの ばんごう（12〜29）・gachaOpen(12) で まちぼうけ ぽかぽか の 台",
       "PokaDebug.areaMap()                  すまほ の ちず「この エリア」の ようす（めじるし・なまえ・えらんだ もの）。areaMapLayout('town', 4.46) で ならびだけ",
     ];
     console.log(lines.join("\n"));
