@@ -31,7 +31,7 @@ export async function stickerBookSmoke({ scenario, expect }) {
     expect(g.length === 3 && s.routeCount.every((r) => r.reachable), '4F の シールの 台 3つ・どこでも いける ' + JSON.stringify({ n: g.length, bad: s.routeCount.filter((r) => !r.reachable) }));
     await H.page.getByRole('button', { name: 'フロア案内', exact: true }).click(); await H.page.locator('.mall-guide svg').waitFor(); await H.wait(300);
     const gd = await H.eval(() => [...document.querySelectorAll('.mall-guide .mg-spot')].map((b) => b.dataset.label));
-    expect(gd.includes('シールの ガチャ') && gd.includes('もりの ひろば') && gd.includes('もりの ガチャ（きた）'), '4F の フロアマップに シールの ガチャ ' + gd.join('・'));
+    expect(gd.includes('シールの ガチャ') && gd.includes('もりの ひろば') && gd.includes('ガチャの しま（にし）'), '4F の フロアマップに シールの ガチャ ' + gd.join('・'));
     await H.page.locator('.modal-wrap .close').last().click(); await H.idle();
     // 2. ぷっくり シール の 台（あるいて いって ひらく）
     expect(await H.dbg('venueVisit', 'シールの ガチャ'), 'シールの ガチャ が ない');

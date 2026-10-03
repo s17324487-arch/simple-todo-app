@@ -88,8 +88,23 @@ ok(f4.short === "ガチャガチャの もり" && f4.title === "Meeときょれ�
 const walk = (r, [x, y]) => x >= 0 && y >= 0 && x < r.w && y < r.h && !I.solidAt(r, x, y) && !r.fixtures.some((f) => !f.walk && !f.over && f.kind !== "hangsign" && x >= f.x && x < f.x + f.w && y >= f.y && y < f.y + f.h);
 const reach = (r, from) => { const seen = new Set([from.join()]), q = [from]; while (q.length) { const [x, y] = q.shift(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const p = [x + dx, y + dy], k = p.join(); if (!seen.has(k) && walk(r, p)) { seen.add(k); q.push(p); } } } return seen; };
 const g4 = f4.fixtures.filter((f) => f.kind === "gacha" && GA.SERIES[f.series] && GA.SERIES[f.series].forest); // シールの 台（30〜32）は tools/check-stickers.mjs
-ok(g4.length === 18 && g4.map((f) => f.series).join() === F.map((s) => s.index).join() && g4.every((f) => f.variant === f.series && f.action === "gacha" && f.w === 1 && f.h === 1), "4F に ガチャ 18だい（1シリーズ 1だい）");
-ok(g4.filter((f) => f.y === 0 && f.dir === "y").length === 9 && g4.filter((f) => f.x === 0 && f.dir === "x").length === 9, "きたの かべに 9だい・にしの かべに 9だい");
+ok(g4.length === 18 && [...g4.map((f) => f.series)].sort((a, b) => a - b).join() === F.map((s) => s.index).join() && g4.every((f) => f.variant === f.series && f.action === "gacha" && f.w === 1 && f.h === 1), "4F に ガチャ 18だい（1シリーズ 1だい）");
+// まんなかの ガチャの しま（オーナーの FB 2026-10-03「真ん中の木は消して、ガチャをメインにもってこい」）: 3だいずつ 6くみ・カプセルもようの ゆか・おくの れつに テーマの かんばん・てまえに しきり
+{
+  const isles = GF.ISLES, at = (f) => f4.rows[f.y][f.x];
+  ok(isles.length === 6 && isles.every((I) => I.ids.length === 3 && I.ids.every((id) => GF.index[id] >= GF.first)) && new Set(isles.flatMap((I) => I.ids)).size === 18, "ガチャの しまは 3だい × 6くみ（18しゅ）");
+  ok(g4.every((f) => f.dir === "y" && at(f) === "g" && f.x >= 3 && f.x <= 22 && f.y >= 4 && f.y <= 10), "18だい ぜんぶ まんなかの ガチャの しま（カプセルもようの ゆか）");
+  ok(!g4.some((f) => f.y === 0 || f.x === 0), "かべぎわに 4F の ガチャが のこって いない");
+  for (const I of isles) {
+    const ms = I.ids.map((id) => g4.find((f) => f.series === GF.index[id]));
+    ok(ms.every((f, k) => f && f.x === I.x + k && f.y === (I.back ? 5 : 8) && f.spots.join() === [f.x, f.y + 1].join()) && ms[0].label === I.name && !kanji.test(I.name), `しま「${I.name}」の 3だい`);
+    ok(f4.fixtures.some((f) => (I.back ? f.kind === "gachaboard" && f.variant === I.board && f.y === 4 : f.kind === "divider" && f.y === 7) && f.x === I.x && f.w === 3), `しま「${I.name}」の うしろの ${I.back ? "かんばん" : "しきり"}`);
+    if (I.back) { const b = f4.fixtures.find((f) => f.kind === "gachaboard" && f.variant === I.board), m = R.ArcadeArt.model(b); ok(m && m.svg.includes(I.name), `しま「${I.name}」の かんばんの もじ`); }
+  }
+  ok(!f4.fixtures.some((f) => f.kind === "ftree" && (f.big || (f.x > 2 && f.y > 2))) && !f4.zones.some((z) => /もりの き/.test(z.label)), "まんなかの おおきな もりの き は ない（フロアマップにも）");
+  const places = R.MallGuide.places(f4).map((p) => p.label);
+  ok(["ガチャの しま（にし）", "ガチャの しま（ひがし）"].every((l) => places.includes(l)), "フロアマップに ガチャの しま " + places.join("・"));
+}
 ok(![1, 2, 3].some((k) => fl[k].fixtures.some((f) => f.kind === "gacha" && f.series >= 12)), "4F の シリーズは ほかの 階に ない");
 const down = f4.fixtures.find((f) => f.kind === "escalator" && f.to === 3), up = f3.fixtures.find((f) => f.kind === "escalator" && f.to === 4);
 ok(down && up && down.dir === "down" && up.x === E.x && up.y === E.y && down.x === E.x && down.y === E.y && up.w === E.w && up.h === E.h, "3F ⇄ 4F の エスカレーター（南東の すみ・IkeArcade.ESC4）");
@@ -145,4 +160,4 @@ for (const f of ["../js/gacha-forest.js", "../js/gacha-forest-art.js"]) {
   const src = readFileSync(new URL("../js/gacha-forest.js", import.meta.url), "utf8").split("\n").map((l) => l.replace(/\/\/.*$/, "")).join("\n");
   for (const m of src.matchAll(/"([^"\n]*[ぁ-んァ-ヶ][^"\n]*)"/g)) ok(!kanji.test(m[1]), `ことばに 漢字: ${m[1]}`);
 }
-console.log(`Gacha forest (4F): 18 new series x 4 (12-29, unique colours, kana names), furniture/hand items/head gear registered and not sold, 12 squishies (FurnLive + FurnModels, finite keys), leafy machines, 28x22 floor with 18 machines on the north and west walls, 3F<->4F escalator, everything reachable and not overlapping, forest floor/walls, directory and floor map — ${n} checks OK`);
+console.log(`Gacha forest (4F): 18 new series x 4 (12-29, unique colours, kana names), furniture/hand items/head gear registered and not sold, 12 squishies (FurnLive + FurnModels, finite keys), leafy machines, 28x22 floor with 18 machines on six central gacha islands (no centre tree), 3F<->4F escalator, everything reachable and not overlapping, forest floor/walls, directory and floor map — ${n} checks OK`);

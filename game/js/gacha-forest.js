@@ -155,48 +155,65 @@ const GachaForest = (() => {
   }
 
   // ---- 4F（ガチャガチャの もり）の 配置。28×22 マス（ほかの 階と おなじ）。南東の すみに 3F から のぼって くる エスカレーター（ふきぬけ）----
-  // きたの かべに 9台（ばんごう 0〜8）・にしの かべに 9台（9〜17）。まんなかに おおきな もりの き・きのこの いす・おおきな カプセル・どうぶつの オブジェ。
+  // まんなかが「ガチャの しま」（オーナーの FB 2026-10-03「4階の配置が悪い。真ん中の木は消して、ガチャをメインにもってこい」）。
+  // ・カプセルもようの ゆか（'g'。2F の ガチャ コーナーと おなじ）に 3だいずつの くみ 6つ（18だい。テーマごと）。おくの れつの うしろに テーマの かんばん、
+  //   てまえの れつの うしろに ひくい しきり。まんなかに あった おおきな もりの き は けした（かべぎわの しげみと き・どうぶつの オブジェで もりの ふんいき）。
+  //   にしの しま（x 3〜11 × y 4〜10）: おく まちぼうけ・スクイーズ／てまえ ミニチュア・ミニ グッズ。ひがしの しま（x 14〜22 × y 4〜6）: ポーチ・ぼうし／めじるし・もり。
   // ・きたの ひがしの かべ（x 14〜27）は シールの ガチャ（16〜18・js/sticker-book.js の patch4）と クレーンゲーム 3台（20〜25。たこやき・バーバーカット・バウンドボール。UI-54）。
-  //   その まえ（y 4〜10）の くさはらが もりの ひろば（きのこの いす・きりかぶの ベンチ）。
+  //   ひがしの しまの まえ（y 7〜10）と ひがしの すみは もりの ひろば（きのこの いす・きりかぶの ベンチ）。
   // ・3F の エスカレーターは 南東の すみ（IkeArcade.ESC4）。1F→2F と おなじ ひがしの ばしょ だと 3F の おめかし コーナー・おかし タワーが 4F の ゆかの ふちに かくれる（tools/check-ikebukuro.mjs）。
   const ESC = IkeArcade.ESC4;
+  // ガチャの しまの くみ（シリーズの id 3つ・かんばんの ばんごう〔ArcadeArt.gachaboard の variant〕・おく〔back〕か てまえか・しまの なかの x）
+  const ISLES = [
+    { name: "まちぼうけ", ids: ["machi3", "machizoo", "oshiri"], board: 2, x: 4, back: true }, { name: "スクイーズ", ids: ["squishbread", "squishmochi", "squishsweet"], board: 3, x: 8, back: true },
+    { name: "ポーチ・ぼうし", ids: ["pouchzoo", "pouchsnack", "kaburi"], board: 4, x: 15, back: true }, { name: "めじるし・もり", ids: ["mejitrio", "mejiforest", "forestpal"], board: 5, x: 19, back: true },
+    { name: "ミニチュア", ids: ["minikaden", "foodsample", "townmini"], board: 6, x: 4, back: false }, { name: "ミニ グッズ", ids: ["minigakki", "minibungu", "kinoko"], board: 7, x: 8, back: false },
+  ];
   const floor4 = () => {
     const W = IkeArcade.W, H = IkeArcade.H, rows = Array.from({ length: H }, () => Array(W).fill(".")), e = ESC;
     const paint = (ch, x0, y0, x1, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) rows[y][x] = ch; };
     // 木の とおりみち（'w'）: きたの かべの まえ・にしの かべの まえ・まんなかの じゅうじ・みなみ・ひがしの ひろばと エスカレーターの まわり
     paint("w", 1, 1, 27, 3); paint("w", 1, 1, 3, 20); paint("w", 1, 11, 27, 12); paint("w", 12, 1, 13, 20); paint("w", 1, 18, e.x - 1, 19);
     paint("w", e.x - 1, 3, e.x - 1, 20); paint("w", e.x + e.w, 11, e.x + e.w, 20); paint("w", e.x - 1, e.y + e.h, e.x + e.w, e.y + e.h);
+    // ガチャの しまの ゆか（カプセルもよう）
+    paint("g", 3, 4, 11, 10); paint("g", 14, 4, 22, 6);
     for (let y = e.y + 1; y < e.y + e.h; y++) for (let x = e.x; x < e.x + e.w; x++) rows[y][x] = "o";
-    const fixtures = [], list = SERIES.map((S) => S.index);
-    // きたの かべ（まえが +y）・にしの かべ（まえが +x）の ガチャ
-    list.slice(0, 9).forEach((si, i) => fixtures.push({ kind: "gacha", x: 1 + i, y: 0, w: 1, h: 1, dir: "y", variant: si, series: si, height: 112, label: i === 0 ? "もりの ガチャ" : "", action: "gacha", spots: [[1 + i, 1]] }));
-    list.slice(9, 18).forEach((si, i) => fixtures.push({ kind: "gacha", x: 0, y: 4 + i, w: 1, h: 1, dir: "x", variant: si, series: si, height: 112, label: i === 0 ? "もりの ガチャ" : "", action: "gacha", spots: [[1, 4 + i]] }));
+    const fixtures = [];
+    // ガチャの しま: おくの れつ（y 5・うしろ y 4 に かんばん）・てまえの れつ（y 8・うしろ y 7 に ひくい しきり）。台の まえ（+y）に たって まわす
+    for (const I of ISLES) {
+      const y = I.back ? 5 : 8;
+      I.ids.forEach((id, k) => { const si = index[id], x = I.x + k; fixtures.push({ kind: "gacha", x, y, w: 1, h: 1, dir: "y", variant: si, series: si, height: 112, label: k === 0 ? I.name : "", action: "gacha", spots: [[x, y + 1]] }); });
+      if (I.back) fixtures.push({ kind: "gachaboard", x: I.x, y: 4, w: 3, h: 1, dir: "y", height: 170, variant: I.board });
+      else fixtures.push({ kind: "divider", x: I.x, y: 7, w: 3, h: 1, height: 45 });
+    }
+    fixtures.push({ kind: "capbin", x: 11, y: 8, w: 1, h: 1, dir: "y", height: 78, label: "カプセル かいしゅう", action: "info", text: "あけた カプセルは ここに いれてね。きれいに して また つかうよ。", spots: [[11, 9]] });
     // もりの あんない（きたの かべ。いたの 絵は 4F に「いま ここ」）
-    fixtures.push({ kind: "directory", variant: "forest", here: "4F", x: 10, y: 0, w: 3, h: 1, dir: "y", height: 176, label: "もりの あんない", action: "info", text: "ガチャガチャの もり（4F）\nきたの かべ: まちぼうけ・スクイーズ・ポーチ・めじるし アクセサリー\nにしの かべ: ミニチュア・しょくひん サンプル・おしり・かぶりもの・がっき・ぶんぼうぐ・もりの なかま・きのこ\nきたの ひがし: クレーンゲーム 3だい（たこやき・バーバーカット・バウンドボール。1かい 100コイン）\nガチャは 1かい 200コイン。どれが でるかは カプセルを あけて からの おたのしみ！", spots: [[11, 1], [10, 1], [12, 1]] });
+    fixtures.push({ kind: "directory", variant: "forest", here: "4F", x: 10, y: 0, w: 3, h: 1, dir: "y", height: 176, label: "もりの あんない", action: "info", text: "ガチャガチャの もり（4F）\nまんなかの ガチャの しま: まちぼうけ・スクイーズ・ミニチュア・ミニ グッズ（にし）、ポーチ・ぼうし・めじるし（ひがし）。ぜんぶで 18だい\nきたの ひがし: クレーンゲーム 3だい（たこやき・バーバーカット・バウンドボール。1かい 100コイン）\nガチャは 1かい 200コイン。どれが でるかは カプセルを あけて からの おたのしみ！", spots: [[11, 1]] });
+    // かべぎわの もりの かざり（きたの にし・にしの かべ。ひくい しげみ と かべの き）
+    for (const x of [1, 3, 5, 7, 9]) fixtures.push({ kind: "fbush", x, y: 0, w: 1, h: 1, height: 52 });
+    for (const y of [4, 6, 8, 10, 12]) fixtures.push({ kind: "fbush", x: 0, y, w: 1, h: 1, height: 52 });
+    fixtures.push({ kind: "ftree", x: 0, y: 14, w: 2, h: 2, height: 300, variant: 0 });
     // きたの ひがしの かべ: おおきな き（14）・シールの ガチャ（16〜18）・クレーンゲーム 3台（20〜25。台の ばんごうは CraneMachines.DEFS の id から）。
     // クレーンは せが たかいので シールの ガチャ との あいだを 1マス あける（すぐ よこだと 18 の ガチャが かくれる）。みぎの すみ（26〜27）は ひくい しげみ
     fixtures.push({ kind: "ftree", x: 14, y: 0, w: 2, h: 2, height: 300, variant: 0 });
     ["tako", "barber", "bound"].forEach((id, k) => { const i = CraneMachines.DEFS.findIndex((d) => d.id === id); if (i >= 0) IkeArcade.crane(fixtures, i, 20 + k * 2, 0, "y"); });
     for (const [x, y] of [[26, 0], [27, 1]]) fixtures.push({ kind: "fbush", x, y, w: 1, h: 1, height: 52 });
-    // もりの ひろば（くさはら）: きりかぶの ベンチ・しげみ
+    // もりの ひろば（くさはら）: きのこの いす（ひがしの しまの まえ）・きりかぶの ベンチ・しげみ
+    for (const [x, y, v] of [[15, 8, 0], [16, 8, 1], [17, 8, 2]]) fixtures.push({ kind: "fmush", x, y, w: 1, h: 1, height: 56, variant: v, label: "きのこの いす", action: "sit", text: "ふかふかの きのこの いす。すわって カプセルを あけよう。", spots: [[x, y + 1]] });
+    fixtures.push({ kind: "fhedge", x: 19, y: 8, w: 3, h: 1, height: 40 });
     fixtures.push({ kind: "fstump", x: 24, y: 6, w: 2, h: 1, height: 40, label: "きりかぶの ベンチ", action: "sit", text: "きりかぶの ベンチで ひとやすみ。とった カプセルを あけて みよう。", spots: [[24, 7], [25, 7], [24, 5], [25, 5]] });
     for (const [x, y] of [[24, 4], [27, 8], [23, 9]]) fixtures.push({ kind: "fbush", x, y, w: 1, h: 1, height: 52 });
-    // まんなか: おおきな もりの き・きのこの いす・どうぶつの オブジェ
-    fixtures.push({ kind: "ftree", x: 6, y: 6, w: 3, h: 3, height: 330, variant: 2, big: true, label: "もりの き", action: "info", text: "ガチャガチャの もりの まんなかの おおきな き。えだに ちょうちんが さがって いるよ。", spots: [[7, 9], [9, 7], [5, 7], [7, 5]] });
-    for (const [x, y, v] of [[15, 8, 0], [16, 8, 1], [17, 8, 2]]) fixtures.push({ kind: "fmush", x, y, w: 1, h: 1, height: 56, variant: v, label: "きのこの いす", action: "sit", text: "ふかふかの きのこの いす。すわって カプセルを あけよう。", spots: [[x, y + 1]] });
-    fixtures.push({ kind: "fhedge", x: 15, y: 7, w: 3, h: 1, height: 40 });
+    // みなみ: どうぶつの オブジェ・おおきな カプセル（もりの しるし。なかに まちぼうけの 3にん）
     fixtures.push({ kind: "fstatue", x: 9, y: 14, w: 1, h: 1, height: 170, variant: "deer", label: "しかの オブジェ", action: "info", text: "もりの いりぐちで まって いる しかの オブジェ。いっしょに しゃしんを とろう！", spots: [[10, 14]] });
     fixtures.push({ kind: "fstatue", x: 19, y: 14, w: 1, h: 1, height: 170, variant: "owl", label: "ふくろうの オブジェ", action: "info", text: "きりかぶに とまった ふくろう。よるに なると めが ぱっちり ひらくんだって。", spots: [[19, 15]] });
     fixtures.push({ kind: "fstatue", x: 5, y: 15, w: 1, h: 1, height: 170, variant: "bear", label: "くまの オブジェ", action: "info", text: "はちみつの つぼを もった くまの オブジェ。", spots: [[6, 15]] });
-    // おおきな カプセルの オブジェ（もりの しるし。なかに まちぼうけの 3にん）
     fixtures.push({ kind: "fcapsule", x: 16, y: 15, w: 2, h: 2, height: 136, variant: 0, fig: "gacha_machi3_3", label: "おおきな カプセル", action: "info", text: "ガチャガチャの もりの しるしの おおきな カプセル。なかで まちぼうけの 3にんが すわって いるよ。", spots: [[16, 17], [17, 17]] });
     // やすむ ところ（みなみ）: きりかぶの ベンチ・しげみ
     for (const [x, y] of [[6, 20], [16, 20]]) fixtures.push({ kind: "fstump", x, y, w: 2, h: 1, height: 40, label: "きりかぶの ベンチ", action: "sit", text: "きりかぶの ベンチで ひとやすみ。", spots: [[x, y - 1], [x + 1, y - 1]] });
     for (const [x, y] of [[4, 20], [9, 20], [14, 20], [19, 20], [21, 14]]) fixtures.push({ kind: "fbush", x, y, w: 1, h: 1, height: 52 });
-    fixtures.push({ kind: "capbin", x: 3, y: 3, w: 1, h: 1, dir: "y", height: 78, label: "カプセル かいしゅう", action: "info", text: "あけた カプセルは ここに いれてね。きれいに して また つかうよ。", spots: [[3, 4]] });
-    // 町の人（ガチャを まわしに きた おきゃくさん）
-    fixtures.push({ kind: "npc", sp: "squirrel", ci: 0, x: 5, y: 2, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "まちぼうけの フィギュア、ひざを かかえて すわって いて かわいいの！ ぜんぶ あつめたいな。", spots: [[6, 2]] });
-    fixtures.push({ kind: "npc", sp: "rabbit", ci: 1, x: 2, y: 9, w: 1, h: 1, dir: "left", emo: "happy", label: "おきゃくさん", action: "info", text: "スクイーズは へやに かざって さわると むにっと するんだって！", spots: [[2, 10]] });
+    // 町の人（ガチャを まわしに きた おきゃくさん。しまの はしに たつ・台の まえは あける）
+    fixtures.push({ kind: "npc", sp: "squirrel", ci: 0, x: 3, y: 9, w: 1, h: 1, dir: "up", emo: "happy", label: "おきゃくさん", action: "info", text: "まちぼうけの フィギュア、ひざを かかえて すわって いて かわいいの！ ぜんぶ あつめたいな。", spots: [[2, 9]] });
+    fixtures.push({ kind: "npc", sp: "rabbit", ci: 1, x: 22, y: 6, w: 1, h: 1, dir: "left", emo: "happy", label: "おきゃくさん", action: "info", text: "スクイーズは へやに かざって さわると むにっと するんだって！", spots: [[22, 7]] });
     fixtures.push({ kind: "npc", sp: "fox", ci: 2, x: 13, y: 15, w: 1, h: 1, dir: "up", emo: "normal", label: "おきゃくさん", action: "info", text: "めじるし アクセサリーは すいとうに つける マスコット。じぶんの すいとうが すぐ わかるよ。", spots: [[12, 15]] });
     // エスカレーター（3F へ くだる）と つりさげの あんない
     fixtures.push({ kind: "escalator", pair: true, dir: "down", x: e.x, y: e.y, w: e.w, h: e.h, rise: 210, height: 40, label: "3Fへ おりる", action: "floor", to: 3, spawn: [e.x + 3, e.y + e.h] });
@@ -205,14 +222,13 @@ const GachaForest = (() => {
       id: "arcade4", iso: true, w: W, h: H, rows: rows.map((r) => r.join("")), wallH: 330, scale: 0.5, spawn: [e.x + 1, e.y - 1], elevatorSpawn: [e.x + 1, e.y - 1], crowd: 3, carpet: "forest", theme: "forest", below: "puri", bgm: "arcade_hall", short: "ガチャガチャの もり",
       title: "Meeときょれじゃ 4F", fixtures, holes: [{ kind: "rect", x: e.x, y: e.y + 1, w: e.w, h: e.h - 1 }],
       zones: [
-        { x: 1, y: 0, w: 9, h: 2, shop: "arcForestN", label: "もりの ガチャ（きた）", map: "ガチャ きた" }, { x: 0, y: 4, w: 2, h: 9, shop: "arcForestW", label: "もりの ガチャ（にし）", map: "ガチャ にし" },
-        { x: 10, y: 0, w: 3, h: 2, shop: "arcForestInfo", label: "もりの あんない", map: "あんない" }, { x: 6, y: 6, w: 3, h: 3, shop: "arcForestTree", label: "もりの き", map: "もりの き" },
-        { x: 20, y: 0, w: 6, h: 3, shop: "arcForestCrane", label: "クレーンゲーム", map: "クレーン" }, { x: 14, y: 4, w: 14, h: 7, shop: "arcForestRest", label: "もりの ひろば", map: "ひろば" },
-        { x: 15, y: 14, w: 4, h: 4, shop: "arcForestCap", label: "おおきな カプセル", map: "カプセル" },
+        { x: 3, y: 4, w: 9, h: 7, shop: "arcForestIsle", label: "ガチャの しま（にし）", map: "ガチャの しま" }, { x: 14, y: 4, w: 9, h: 3, shop: "arcForestIsle2", label: "ガチャの しま（ひがし）", map: "ガチャ" },
+        { x: 10, y: 0, w: 3, h: 2, shop: "arcForestInfo", label: "もりの あんない", map: "あんない" }, { x: 20, y: 0, w: 6, h: 3, shop: "arcForestCrane", label: "クレーンゲーム", map: "クレーン" },
+        { x: 14, y: 7, w: 14, h: 4, shop: "arcForestRest", label: "もりの ひろば", map: "ひろば" }, { x: 15, y: 14, w: 4, h: 4, shop: "arcForestCap", label: "おおきな カプセル", map: "カプセル" },
       ],
       walls: {
         north: [{ kind: "neon", from: 0.5, to: 9.5, z: 300, size: 32, text: "ガチャガチャの もり", col: "#9ED36A" }, { kind: "sign", from: 10, to: 13, z: 236, text: "4F", col: "#F6E7C8" }, { kind: "neon", from: 13.6, to: 27.4, z: 300, size: 30, text: "もりの ひろば", col: "#F7D774" }],
-        west: [{ kind: "neon", from: 8, to: 17.8, z: 300, size: 28, text: "まちぼうけ・ミニチュア", col: "#F7A9C8" }, { kind: "sign", from: 4, to: 7.6, z: 236, text: "200コイン", col: "#F6E7C8" }],
+        west: [{ kind: "neon", from: 8, to: 17.8, z: 300, size: 28, text: "まんなかは ガチャの しま", col: "#F7A9C8" }, { kind: "sign", from: 4, to: 7.6, z: 236, text: "200コイン", col: "#F6E7C8" }],
       },
     };
   };
@@ -229,13 +245,13 @@ const GachaForest = (() => {
     const def = VenueHalls.defs.arcade; if (!def || !def.floors || !def.floors[3]) return;
     patch3(def.floors[3]); def.floors[4] = floor4();
     Object.assign(MallArt.SHOP, {
-      arcForestN: { name: "もりの ガチャ", c: ["#DDEFC8", "#B9DCA0", "#86B86A"] }, arcForestW: { name: "もりの ガチャ", c: ["#E6F2D2", "#C3E0A8", "#8FC173"] },
-      arcForestInfo: { name: "あんない", c: ["#FFF3C4", "#FFE07A", "#E0B640"] }, arcForestTree: { name: "もりの き", c: ["#D7E9C6", "#A9CF8C", "#6FA85A"] }, arcForestRest: { name: "ひろば", c: ["#F2E3CF", "#E1C7A6", "#C9A27A"] },
+      arcForestIsle: { name: "ガチャの しま", c: ["#CFE9E4", "#9FD1C8", "#5FA99C"] }, arcForestIsle2: { name: "ガチャの しま", c: ["#D9EEE9", "#AEDAD1", "#6FB5A8"] },
+      arcForestInfo: { name: "あんない", c: ["#FFF3C4", "#FFE07A", "#E0B640"] }, arcForestRest: { name: "ひろば", c: ["#F2E3CF", "#E1C7A6", "#C9A27A"] },
       arcForestCrane: { name: "クレーン", c: ["#FFE2C4", "#F7B98A", "#E08A54"] },
       arcForestCap: { name: "カプセル", c: ["#FBD3E6", "#F7A9C8", "#E07AA6"] },
     });
   };
   install();
 
-  return { SERIES, SQUISH, first, index, squash, floor4, patch3 };
+  return { SERIES, SQUISH, first, index, squash, floor4, patch3, ISLES };
 })();
