@@ -251,7 +251,7 @@ for (let i = 0; i < CM.DEFS.length; i++) {
     ok(!kanji.test(it.name + it.desc + it.series + it.word) && it.name.length <= 19 && it.word.length <= 7, `${it.id}: なまえ「${it.name}」`);
     const S = CM.SHAPES[it.shape](); ok(S.prize === it.id && S.look === it.look && S.art.length === 4 && S.art.every(Number.isFinite) && S.art[2] > 0 && S.art[3] > 0, `${it.id}: 形`);
     for (const f of ["front", "back"]) ok(CA.TEX[it.look + "-" + f] && CA.SIZE[it.look + "-" + f].every((v) => v >= 32 && v <= 256), `${it.id}: テクスチャ ${f}`);
-    ok(R.FURN_INDEX[it.id].sparkle === (it.size !== "mini") && R.FURN_INDEX[it.id].exclusive === "ikebukuro", `${it.id}: 家具（ミニマスコットは ほしを ださない）`);
+    ok(!("sparkle" in R.FURN_INDEX[it.id]) && R.FURN_INDEX[it.id].exclusive === "ikebukuro", `${it.id}: 家具（レアでも へやで ほしは ださない・UI-50）`);
   }
   // 絵の id は ほかの けいひんと かさならない（おなじ 画面に ならべても 絵が かけない）
   { const owner = new Map(); let clash = 0; for (const it of items) for (const m of A.svg(it.id).matchAll(/ id="([^"]+)"/g)) { if (owner.has(m[1]) && owner.get(m[1]) !== it.id) clash++; owner.set(m[1], it.id); } ok(clash === 0, `けいひんの 絵の id が かさなる（${clash}）`); }

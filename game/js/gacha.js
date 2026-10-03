@@ -123,7 +123,7 @@ const Gacha = (() => {
         WEAR_ITEMS.push(w); ITEM_INDEX[it.id] = w;
       } else {
         const [w, h, depth] = SIZE(it);
-        const f = { id: it.id, name: it.name, price: 0, kind: "floor", w, h, depth, comfort: it.rare ? 6 : 4, rare: it.rare, interactive: true, exclusive: "gacha", gachaPrize: true, sparkle: false, cityItem: { type: "gachafig", variant: it.id }, desc: it.desc };
+        const f = { id: it.id, name: it.name, price: 0, kind: "floor", w, h, depth, comfort: it.rare ? 6 : 4, rare: it.rare, interactive: true, exclusive: "gacha", gachaPrize: true, cityItem: { type: "gachafig", variant: it.id }, desc: it.desc };
         FURNITURE.push(f); FURN_INDEX[it.id] = f;
         FURN_ART[it.id] = () => GachaArt.figure(it.id).replace("<svg ", `<svg x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="xMidYMax meet" `);
       }
@@ -197,12 +197,12 @@ Gacha.open = function (si) {
       if (closed) return;
       // カプセルが でてくる
       const col = r.rare ? "#F7C948" : S.caps[r.k % S.caps.length];
-      cap.innerHTML = GachaArt.capsule(col, 0, "g" + si); cap.classList.remove("hidden", "open", "drop"); void cap.offsetWidth; cap.classList.add("drop"); if (r.rare) cap.classList.add("gold"); else cap.classList.remove("gold");
+      cap.innerHTML = GachaArt.capsule(col, 0, "g" + si); cap.classList.remove("hidden", "open", "drop"); void cap.offsetWidth; cap.classList.add("drop")
       Sound.se("gacha_drop"); await this.wait(520);
       if (closed) return;
       // でてきた カプセルを おおきく（タップで あける）
       this.view.phase = "capsule";
-      const big = U.el("button", { class: "gacha-bigcap" + (r.rare ? " gold" : ""), "aria-label": "カプセルを あける", html: GachaArt.capsule(col, 0, "b" + si) });
+      const big = U.el("button", { class: "gacha-bigcap", "aria-label": "カプセルを あける", html: GachaArt.capsule(col, 0, "b" + si) });
       big.addEventListener("click", () => open(r, col, big));
       result.classList.remove("hidden"); result.replaceChildren(big, U.el("div", { class: "gacha-tap", text: "カプセルを タップして あけよう！" }));
       cap.classList.add("hidden");
@@ -214,7 +214,7 @@ Gacha.open = function (si) {
       await this.wait(260); if (closed) return;
       if (r.rare) Sound.se("gacha_rare"); else Sound.se("sparkle");
       const who = Save.d.order[(Save.d.gacha.plays - 1) % 3], line1 = this.REACT[who][(Save.d.gacha.plays - 1) % this.REACT[who].length];
-      const card = U.el("div", { class: "gacha-prize" + (r.rare ? " rare" : "") });
+      const card = U.el("div", { class: "gacha-prize" });
       card.append(U.el("img", { src: U.svgUrl(this.pic(r.item)), alt: r.item.name }));
       const txt = U.el("div", { class: "gacha-prize-text" });
       txt.append(U.el("div", { class: "gacha-badges", text: [r.rare ? "レア！" : "", r.first ? "NEW" : ""].filter(Boolean).join(" ") }), U.el("b", { text: r.item.name }), U.el("div", { class: "gacha-desc", text: r.item.desc }));
