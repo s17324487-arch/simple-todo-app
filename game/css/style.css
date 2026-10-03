@@ -110,6 +110,9 @@ html, body {
 .smaho-body { flex:1; min-height:0; overflow-y:auto; padding:10px 10px 14px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
 .smaho-body .btn.wide { margin-bottom:8px; }
 .smaho-body.app-map { padding:6px 3px 14px; } /* ちずの 地点は 44px いじょう（よこはばを ぜんぶ つかう） */
+.smaho-inside { margin:0 3px 8px; padding:8px 10px 2px; background:#FFFFFF; border:2.5px solid var(--ink); border-radius:14px; } /* たてものの 中: いまの かいと フロアマップへ */
+.smaho-inside-at { margin:0 0 6px; font-size:14px; font-weight:800; line-height:1.35; }
+.smaho-home-go, .smaho-floor-go { min-height:44px; }
 .smaho-foot { display:flex; gap:8px; margin-top:10px; }
 .smaho-homebar { flex:none; height:28px; background:none; border:0; display:grid; place-items:center; cursor:pointer; }
 .smaho-homebar::after { content:""; width:120px; height:6px; border-radius:3px; background:var(--ink); }

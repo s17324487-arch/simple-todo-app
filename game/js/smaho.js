@@ -1,6 +1,6 @@
 // すまほ（ぽかぽかフォン）: ちず・ようす・もちもの・ずかん・イベント・スタンプラリー・ひんと・うらない・ごほうび・おんがく・しゃしん・シール を 1つに まとめる。
 // どうぶつの森の スマホの ように、ホーム画面の アプリを タップして ひらく（もどる で ホーム、✕ か Esc で とじる）。
-// 町・フィールドの「おまつり」ボタンの かわりに 左下の「すまほ」ボタン（おうち・おみせの 中でも 出る）。≡ は せってい だけ（Menu.open）。
+// 町・フィールドの「おまつり」ボタンの かわりに 左下の「すまほ」ボタン（おうち・おみせ・たてものの 中〔Meeときょれじゃ・サンシャインいけぶ など〕でも 出る）。≡ は せってい だけ（Menu.open）。
 // Esc（cancel キー）は すまほを ひらく。いままでの まどを つかう アプリ（おまつり・スタンプ・ごほうび）は その まどの 中みを すまほの 画面に いれる。
 const Smaho = {
   ICON: {
@@ -23,7 +23,8 @@ const Smaho = {
   // name は ボタンの なまえ（ひらがな）。render(el, ph) は アプリの 中みを el に 入れる
   APPS: [
     { id: "map", name: "ちず", color: "#9ED9B1", render(el, ph) {
-      if (G.sceneName === "world" || G.sceneName === "store") el.append(UI.btn("おうちへ かえる", async () => { if (await UI.confirm("3にんで おうちに かえる？")) { ph.close(); Game.goto("house", {}, "circle"); } }, "wide yellow smaho-home-go"));
+      if (G.sceneName === "world" || G.sceneName === "store" || G.sceneName === "venue") el.append(UI.btn("おうちへ かえる", async () => { if (await UI.confirm("3にんで おうちに かえる？")) { ph.close(); Game.goto("house", {}, "circle"); } }, "wide yellow smaho-home-go"));
+      Smaho.inside(el, ph);
       WorldAtlas.render(el);
     } },
     { id: "status", name: "ようす", color: "#F7B7CB", render(el) { Menu.status(el); } },
@@ -258,6 +259,19 @@ const Smaho = {
     }
     el.append(grid);
   },
+  // ---- たてものの 中の「ちず」: いまの かいと フロアマップへ（ちずの まちは たてものの いりぐちが「いま ここ」） ----
+  inside(el, ph) {
+    const sc = G.scene;
+    if (G.sceneName !== "venue" || !sc || !sc.def) return;
+    const box = U.el("div", { class: "smaho-inside" });
+    box.append(U.el("p", { class: "smaho-inside-at", text: `いまは「${sc.def.name}」の ${sc.floor}F に いるよ。` }));
+    box.append(UI.btn("この たてものの フロアマップ", () => {
+      ph.close();
+      // すまほが とじてから（おなじ たてものの まま なら）フロア案内を ひらく
+      setTimeout(() => { if (G.scene === sc && !sc.closed && sc.guideMenu) sc.guideMenu(); }, 220);
+    }, "wide smaho-floor-go"));
+    el.append(box);
+  },
   // ---- 左下の「すまほ」ボタン ----
   badge(id) {
     if (id === "fortune") return Save.d?.flags?.fortuneDay !== U.today();
@@ -275,12 +289,12 @@ const Smaho = {
     setInterval(() => this.place(), 250);
     return b;
   },
-  // どの 画面で どこに 出すか（町・フィールド: おまつりボタンの ばしょ。おうち・おみせ: 下の ボタンの 上）
+  // どの 画面で どこに 出すか（町・フィールド・たてものの 中: おまつりボタンの ばしょ〔たてものの したの「スライド・タップで あるく」の ふだより うえ〕。おうち・おみせ: 下の ボタンの 上）
   place() {
     const b = this.button; if (!b) return;
     const sc = G.scene, name = G.sceneName;
     const hud = UI.hud && !UI.hud.classList.contains("hidden");
-    const ok = hud && (name === "world" || name === "store" || (name === "house" && !sc?.mode && !sc?.watching)) && !Game.trans;
+    const ok = hud && (name === "world" || name === "store" || (name === "venue" && !sc?.closed) || (name === "house" && !sc?.mode && !sc?.watching)) && !Game.trans;
     b.classList.toggle("hidden", !ok);
     if (!ok) return;
     const bar = name === "house" ? sc.bar : name === "store" ? sc.bar : null;

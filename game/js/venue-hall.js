@@ -70,7 +70,8 @@ class VenueScene {
     try{const i=await UI.ask(this.def.name+' '+this.floor+'F\nいきたい ばしょまで あるくよ。',[...places.map(f=>f.label),'やめておく']);this.busy=false;if(i>=0&&i<places.length)this.request(places[i]);}finally{this.busy=false;}
   }
   leave(){if(this.busy||Game.inputLocked)return;Save.write();Game.goto('world',this.back,'circle');}
-  key(k,down){if(down&&k==='ok'){const l=this.party[0],[dx,dy]=DIRS[l.dir];const f=this.fixtures.find(f=>l.tx+dx>=f.x&&l.tx+dx<f.x+f.w&&l.ty+dy>=f.y&&l.ty+dy<f.y+f.h);if(f)this.request(f);}}
+  // Esc（cancel）は 町・おうちと おなじ すまほ
+  key(k,down){if(down&&k==='cancel'){Game.openMenu();return;}if(down&&k==='ok'){const l=this.party[0],[dx,dy]=DIRS[l.dir];const f=this.fixtures.find(f=>l.tx+dx>=f.x&&l.tx+dx<f.x+f.w&&l.ty+dy>=f.y&&l.ty+dy<f.y+f.h);if(f)this.request(f);}}
   down(p) { IndoorWalk.down(this,p); }
   move(p) { IndoorWalk.move(this,p); }
   cancel() { IndoorWalk.cancel(this); }
