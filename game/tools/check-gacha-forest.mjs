@@ -1,11 +1,12 @@
-// ガチャガチャの もり（Meeときょれじゃ 4F・js/gacha-forest.js・js/gacha-forest-art.js・UI-52）の 検査。ブラウザ なしで
-// 18シリーズ × 4しゅ・家具／もちもの／かぶりもの・スクイーズ（さわると むにっ）・4F の 配置（エスカレーター・台・まえに たてる・あんない・フロアマップ）・3F の のぼり エスカレーター・絵を たしかめる。
+// ガチャガチャの もり（Meeときょれじゃ 4F・js/gacha-forest.js・js/gacha-forest-art.js・UI-52。js/gacha-forest-more.js の 6シリーズ・UI-62）の 検査。ブラウザ なしで
+// 24シリーズ × 4しゅ・家具／もちもの／かぶりもの・スクイーズ（さわると むにっ）・4F の 配置（エスカレーター・台・まえに たてる・あんない・フロアマップ）・3F の のぼり エスカレーター・絵を たしかめる。
+// しゅうがわり（どの 台に どの シリーズか）は tools/check-mee-rotation.mjs。
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
-const { Gacha: GA, GachaForest: GF, GachaForestArt: FA } = R;
+const { Gacha: GA, GachaForest: GF, GachaForestArt: FA, GachaForestMore: GM, MeeRotation: MR } = R;
 R.UI.updateHud = () => {}; R.UI.toast = () => {};
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
@@ -15,16 +16,20 @@ const ids = (s) => [...s.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
 const dupAttr = (s) => { for (const m of s.matchAll(/<[a-zA-Z][^<>]*>/g)) { const names = [...m[0].matchAll(/\s([a-zA-Z_:][-a-zA-Z0-9_:.]*)="/g)].map((x) => x[1]); if (new Set(names).size !== names.length) return m[0].slice(0, 90); } return ""; };
 const svgOk = (s) => typeof s === "string" && s.startsWith("<svg") && s.trim().endsWith("</svg>") && !/NaN|undefined/.test(s) && !dupAttr(s);
 
-// ---- 1. シリーズ（2F の 12 の あとに 18）----
-const F = GA.SERIES.filter((s) => s.forest);
-ok(GA.SERIES.length >= 30 && F.length === 18 && GF.SERIES.length === 18 && GF.first === 12 && F.every((S, i) => S.index === 12 + i && GA.SERIES[12 + i] === S && GF.index[S.id] === S.index), "4F の 18シリーズは 12〜29 ばん");
+// ---- 1. シリーズ（2F の 12 の あとに 18・シールの 3 の あとに 6〔UI-62〕）----
+const F = GA.SERIES.filter((s) => s.forest), F0 = F.filter((s) => !s.more), FM = F.filter((s) => s.more);
+ok(GA.SERIES.length >= 39 && F0.length === 18 && GF.SERIES.length === 18 && GF.first === 12 && F0.every((S, i) => S.index === 12 + i && GA.SERIES[12 + i] === S && GF.index[S.id] === S.index), "4F の 18シリーズは 12〜29 ばん");
+ok(FM.length === 6 && GM.SERIES.length === 6 && GM.first === 33 && FM.every((S, i) => S.index === 33 + i && GA.SERIES[33 + i] === S && GM.index[S.id] === S.index && GM.SERIES[i] === S), "4F の あたらしい 6シリーズは 33〜38 ばん（シールの あと）");
 ok(GA.SERIES.slice(0, 12).every((s) => !s.forest), "2F の 12シリーズは そのまま");
-ok(F.map((s) => s.id).join() === "machi3,machizoo,squishbread,squishmochi,squishsweet,pouchzoo,pouchsnack,mejitrio,mejiforest,minikaden,foodsample,townmini,oshiri,kaburi,minigakki,minibungu,forestpal,kinoko", "シリーズの じゅんばん（台の ばんごう）");
+ok(F0.map((s) => s.id).join() === "machi3,machizoo,squishbread,squishmochi,squishsweet,pouchzoo,pouchsnack,mejitrio,mejiforest,minikaden,foodsample,townmini,oshiri,kaburi,minigakki,minibungu,forestpal,kinoko", "シリーズの じゅんばん（台の ばんごう）");
+ok(FM.map((s) => s.id).join() === "machisea,squishfruit,pouchsea,mejiyasai,minimatsuri,minisports", "あたらしい シリーズの じゅんばん");
 ok(new Set(GA.SERIES.map((s) => s.id)).size === GA.SERIES.length && new Set(GA.ITEMS.map((it) => it.id)).size === GA.ITEMS.length && GA.ITEMS.length === GA.SERIES.length * 4, "id が かさなる");
 ok(new Set(GA.SERIES.map((s) => s.color.toUpperCase())).size === GA.SERIES.length, "台の いろが ぜんぶ ちがう（ぜんぶの 台）");
-ok(F.filter((s) => s.kind === "furn").length === 13 && F.filter((s) => s.kind === "wear").length === 5, "家具 13シリーズ・もちもの／かぶりもの 5シリーズ");
-ok(F.filter((s) => s.hand).map((s) => s.id).join() === "pouchzoo,pouchsnack,mejitrio,mejiforest" && F.filter((s) => s.acc).map((s) => s.id).join() === "kaburi", "ポーチ・めじるしは もちもの、かぶりものは アクセサリー");
-ok(F.filter((s) => s.squish).map((s) => s.id).join() === "squishbread,squishmochi,squishsweet", "スクイーズ 3シリーズ");
+ok(F0.filter((s) => s.kind === "furn").length === 13 && F0.filter((s) => s.kind === "wear").length === 5 && FM.filter((s) => s.kind === "furn").length === 4 && FM.filter((s) => s.kind === "wear").length === 2, "家具 13＋4シリーズ・もちもの／かぶりもの 5＋2シリーズ");
+ok(F.filter((s) => s.hand).map((s) => s.id).join() === "pouchzoo,pouchsnack,mejitrio,mejiforest,pouchsea,mejiyasai" && F.filter((s) => s.acc).map((s) => s.id).join() === "kaburi", "ポーチ・めじるしは もちもの、かぶりものは アクセサリー");
+ok(F.filter((s) => s.squish).map((s) => s.id).join() === "squishbread,squishmochi,squishsweet,squishfruit", "スクイーズ 4シリーズ");
+// あたらしい シリーズは しま 1つに 1つずつ（しゅうがわりで まわる。ISLES の add・rest）
+ok(GF.ISLES.every((I) => Array.isArray(I.add) && I.add.length === 1 && GM.index[I.add[0]] >= 33 && Number.isInteger(I.rest) && I.rest >= 0 && I.rest < 3 && I.id) && new Set(GF.ISLES.flatMap((I) => I.add)).size === 6 && FM.every((S) => GF.ISLES.some((I) => I.id === S.isle && I.add[0] === S.id)), "あたらしい 6シリーズは しまに 1つずつ");
 for (const S of F) {
   ok(S.list.length === 4 && S.list.filter((it) => it.rare).length === 1 && S.list[GA.RARE].rare && S.list.every((it) => it.series === S.index && GA.seriesOf(it.id) === S), `${S.name}: 4しゅで レアは 1つ`);
   ok(S.name && !kanji.test(S.name) && S.name.length <= 10 && /^#[0-9A-F]{6}$/i.test(S.color) && S.caps.length >= 2 && GA.byId(S.id) === S, `${S.name}: なまえ（10もじ まで）・いろ`);
@@ -49,7 +54,7 @@ for (const it of F.flatMap((S) => S.list).filter((x) => x.kind === "furn")) {
   const m = R.HomeDesign.model(it.id, { id: it.id, x: 300, y: 300 });
   ok(m && svgOk(m.svg || m.full || "<svg></svg>"), `へやの 立体 ${it.id}`);
 }
-ok(GF.SQUISH.size === 12 && [...GF.SQUISH].every((id) => /^gacha_squish(bread|mochi|sweet)_\d$/.test(id) && R.FurnLive.LIVE.has(id) && R.FURN_INDEX[id].interactive && R.FurnModels.has(id)), "スクイーズ 12しゅは さわれる（FurnLive）・たった 絵（FurnModels）");
+ok(GF.SQUISH.size === 16 && [...GF.SQUISH].every((id) => /^gacha_squish(bread|mochi|sweet|fruit)_\d$/.test(id) && R.FurnLive.LIVE.has(id) && R.FURN_INDEX[id].interactive && R.FurnModels.has(id)), "スクイーズ 16しゅは さわれる（FurnLive）・たった 絵（FurnModels）");
 ok(Math.abs(GF.squash(0) - 1) < 1e-9 && GF.squash(-0.1) === 0 && GF.squash(1.2) === 0 && Math.abs(GF.squash(0.6)) < 0.1 && Math.abs(GF.squash(1.05)) < 0.02, "むにっ（つぶれて ゆれて もどる）");
 {
   const src = readFileSync(new URL("../js/gacha-forest.js", import.meta.url), "utf8");
@@ -88,16 +93,18 @@ ok(f4.short === "ガチャガチャの もり" && f4.title === "Meeときょれ�
 const walk = (r, [x, y]) => x >= 0 && y >= 0 && x < r.w && y < r.h && !I.solidAt(r, x, y) && !r.fixtures.some((f) => !f.walk && !f.over && f.kind !== "hangsign" && x >= f.x && x < f.x + f.w && y >= f.y && y < f.y + f.h);
 const reach = (r, from) => { const seen = new Set([from.join()]), q = [from]; while (q.length) { const [x, y] = q.shift(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const p = [x + dx, y + dy], k = p.join(); if (!seen.has(k) && walk(r, p)) { seen.add(k); q.push(p); } } } return seen; };
 const g4 = f4.fixtures.filter((f) => f.kind === "gacha" && GA.SERIES[f.series] && GA.SERIES[f.series].forest); // シールの 台（30〜32）は tools/check-stickers.mjs
-ok(g4.length === 18 && [...g4.map((f) => f.series)].sort((a, b) => a - b).join() === F.map((s) => s.index).join() && g4.every((f) => f.variant === f.series && f.action === "gacha" && f.w === 1 && f.h === 1), "4F に ガチャ 18だい（1シリーズ 1だい）");
+// 台に はいって いるのは その しゅうの 18シリーズ（js/mee-rotation.js。24シリーズの うち 6つは おやすみ）
+const now = MR.info().rings.filter((r) => r.floor === 4).flatMap((r) => r.slots.map((x) => x.si)).sort((a, b) => a - b).join();
+ok(g4.length === 18 && new Set(g4.map((f) => f.series)).size === 18 && [...g4.map((f) => f.series)].sort((a, b) => a - b).join() === now && g4.every((f) => f.variant === f.series && f.action === "gacha" && f.w === 1 && f.h === 1), "4F に ガチャ 18だい（1シリーズ 1だい・いまの しゅうの ならび）");
 // まんなかの ガチャの しま（オーナーの FB 2026-10-03「真ん中の木は消して、ガチャをメインにもってこい」）: 3だいずつ 6くみ・カプセルもようの ゆか・おくの れつに テーマの かんばん・てまえに しきり
 {
   const isles = GF.ISLES, at = (f) => f4.rows[f.y][f.x];
-  ok(isles.length === 6 && isles.every((I) => I.ids.length === 3 && I.ids.every((id) => GF.index[id] >= GF.first)) && new Set(isles.flatMap((I) => I.ids)).size === 18, "ガチャの しまは 3だい × 6くみ（18しゅ）");
+  ok(isles.length === 6 && isles.every((I) => I.ids.length === 3 && I.ids.every((id) => GF.index[id] >= GF.first)) && new Set(isles.flatMap((I) => I.ids)).size === 18, "ガチャの しまは 3だい × 6くみ（さいしょは 18しゅ）");
   ok(g4.every((f) => f.dir === "y" && at(f) === "g" && f.x >= 3 && f.x <= 22 && f.y >= 4 && f.y <= 10), "18だい ぜんぶ まんなかの ガチャの しま（カプセルもようの ゆか）");
   ok(!g4.some((f) => f.y === 0 || f.x === 0), "かべぎわに 4F の ガチャが のこって いない");
   for (const I of isles) {
-    const ms = I.ids.map((id) => g4.find((f) => f.series === GF.index[id]));
-    ok(ms.every((f, k) => f && f.x === I.x + k && f.y === (I.back ? 5 : 8) && f.spots.join() === [f.x, f.y + 1].join()) && ms[0].label === I.name && !kanji.test(I.name), `しま「${I.name}」の 3だい`);
+    const ms = [0, 1, 2].map((k) => g4.find((f) => f.ring === "4f-" + I.id && f.slot === k)), pool = [...I.ids, ...I.add].map((id) => GA.byId(id).index);
+    ok(ms.every((f, k) => f && f.x === I.x + k && f.y === (I.back ? 5 : 8) && f.spots.join() === [f.x, f.y + 1].join() && pool.includes(f.series)) && ms[0].label === I.name && !kanji.test(I.name), `しま「${I.name}」の 3だい（しまの シリーズ）`);
     ok(f4.fixtures.some((f) => (I.back ? f.kind === "gachaboard" && f.variant === I.board && f.y === 4 : f.kind === "divider" && f.y === 7) && f.x === I.x && f.w === 3), `しま「${I.name}」の うしろの ${I.back ? "かんばん" : "しきり"}`);
     if (I.back) { const b = f4.fixtures.find((f) => f.kind === "gachaboard" && f.variant === I.board), m = R.ArcadeArt.model(b); ok(m && m.svg.includes(I.name), `しま「${I.name}」の かんばんの もじ`); }
   }
@@ -151,13 +158,13 @@ for (const side of ["north", "west"]) ok(!R.ArcadeArt.wallSvg(f3, side).svg.incl
 ok(R.ArcadeArt.backdrop(f4).join() === "#12241A,#24402C" && R.ArcadeArt.backdrop(f3).join() === "#15122A,#2B2447", "そとの いろ（4F は もり）");
 
 // ---- 6. そとへの つうしん なし・ことば ----
-for (const f of ["../js/gacha-forest.js", "../js/gacha-forest-art.js"]) {
+for (const f of ["../js/gacha-forest.js", "../js/gacha-forest-art.js", "../js/gacha-forest-more.js", "../js/mee-rotation.js"]) {
   const src = readFileSync(new URL(f, import.meta.url), "utf8");
   ok(!/fetch\(|XMLHttpRequest|WebSocket|sendBeacon|localStorage/.test(src) && (src.match(/https?:\/\/[^"'`\s]+/g) || []).every((u) => u === "http://www.w3.org/2000/svg"), `${f}: そとへ つうしん する`);
 }
-{
+for (const f of ["../js/gacha-forest.js", "../js/gacha-forest-more.js", "../js/mee-rotation.js"]) {
   // コメント（// の あと）を のぞいた 1ぎょうの なかの もじれつ
-  const src = readFileSync(new URL("../js/gacha-forest.js", import.meta.url), "utf8").split("\n").map((l) => l.replace(/\/\/.*$/, "")).join("\n");
-  for (const m of src.matchAll(/"([^"\n]*[ぁ-んァ-ヶ][^"\n]*)"/g)) ok(!kanji.test(m[1]), `ことばに 漢字: ${m[1]}`);
+  const src = readFileSync(new URL(f, import.meta.url), "utf8").split("\n").map((l) => l.replace(/\/\/.*$/, "")).join("\n");
+  for (const m of src.matchAll(/"([^"\n]*[ぁ-んァ-ヶ][^"\n]*)"/g)) ok(!kanji.test(m[1]), `${f}: ことばに 漢字: ${m[1]}`);
 }
-console.log(`Gacha forest (4F): 18 new series x 4 (12-29, unique colours, kana names), furniture/hand items/head gear registered and not sold, 12 squishies (FurnLive + FurnModels, finite keys), leafy machines, 28x22 floor with 18 machines on six central gacha islands (no centre tree), 3F<->4F escalator, everything reachable and not overlapping, forest floor/walls, directory and floor map — ${n} checks OK`);
+console.log(`Gacha forest (4F): 18 + 6 series x 4 (12-29 and 33-38, unique colours, kana names), furniture/hand items/head gear registered and not sold, 16 squishies (FurnLive + FurnModels, finite keys), leafy machines, 28x22 floor with this week's 18 machines on six central gacha islands (no centre tree), 3F<->4F escalator, everything reachable and not overlapping, forest floor/walls, directory and floor map — ${n} checks OK`);

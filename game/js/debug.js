@@ -39,7 +39,12 @@ const PokaDebug = {
   kujiDc(win=true){if(typeof IchibanKuji==='undefined')return false;IchibanKuji.dcNext=!!win;return true;},
   kujiFast(k=1){if(typeof KujiUI==='undefined')return false;KujiUI.ui.speed=Math.max(1,Math.min(20,k));return true;},
   kujiUi(){if(typeof KujiUI==='undefined')return null;const v=KujiUI.view;return{open:!!(v.open&&document.querySelector('.modal-wrap:not(.out) .kuji')),store:v.store,phase:v.phase,tickets:v.tickets.map(t=>({g:t.g,id:t.id,pick:t.pick,last:t.last,open:t.open})),results:v.results.slice(),dc:v.dc?{...v.dc}:null};},
-  gachaForest(){if(typeof GachaForest==='undefined')return null;const f4=VenueHalls.defs.arcade.floors[4];return{first:GachaForest.first,series:GachaForest.SERIES.map(S=>({id:S.id,index:S.index,name:S.name,kind:S.kind,hand:!!S.hand,squish:!!S.squish,rare:S.list[Gacha.RARE].id})),machines:f4?f4.fixtures.filter(f=>f.kind==='gacha'&&Gacha.SERIES[f.series]&&Gacha.SERIES[f.series].forest).map(f=>f.series):[],squish:[...GachaForest.SQUISH]};},
+  // ガチャガチャの もり（4F）: series は もりの ぜんぶの シリーズ（12〜29 と UI-62 の 33〜38・more）・machines は いまの しゅうに 台に はいって いる 18
+  gachaForest(){if(typeof GachaForest==='undefined')return null;if(typeof MeeRotation!=='undefined')MeeRotation.apply();const f4=VenueHalls.defs.arcade.floors[4],all=[...GachaForest.SERIES,...(typeof GachaForestMore!=='undefined'?GachaForestMore.SERIES:[])];return{first:GachaForest.first,series:all.map(S=>({id:S.id,index:S.index,name:S.name,kind:S.kind,hand:!!S.hand,squish:!!S.squish,more:!!S.more,rare:S.list[Gacha.RARE].id})),machines:f4?f4.fixtures.filter(f=>f.kind==='gacha'&&Gacha.SERIES[f.series]&&Gacha.SERIES[f.series].forest).map(f=>f.series):[],squish:[...GachaForest.SQUISH]};},
+  // ガチャの しゅうがわり（js/mee-rotation.js・UI-62）: day の しゅうの わごとの 台（slot・シリーズ・fresh・leaving）と やすみ（day なしで きょう。calendar() で かわる）
+  meeRotation(day){return typeof MeeRotation==='undefined'?null:MeeRotation.info(day||undefined);},
+  // いまの かいの その シリーズの ガチャの 台まで あるいて まわす（id: "machi3" など。台に いなければ false）
+  gachaVisit(id){if(G.sceneName!=='venue'||typeof Gacha==='undefined')return false;const S=Gacha.byId(id);if(!S)return false;const f=G.scene.fixtures.find(f=>f.kind==='gacha'&&f.series===S.index);return !!f&&G.scene.request(f);},
   // すいぞくかんの おみやげ（aqua-gifts.js）: しなもの（ねだん・もって いる かず）・12F の 台と レジ・ずかんの ヒント
   aquaGifts(){if(typeof AquaGifts==='undefined')return null;const own=(id)=>AquaGifts.INDEX[id].slot?!!Save.d.wardrobe[id]:(Save.d.furn[id]||0),fx=VenueHalls.defs.mall.floors[12].fixtures.filter(f=>f.shopId===AquaGifts.SHOP);return{shop:AquaGifts.SHOP,figs:AquaGifts.FIGS.map(f=>({id:f.id,name:f.name,price:f.price,own:own(f.id)})),goods:AquaGifts.GOODS.map(g=>({id:g.id,name:g.name,price:g.price,kind:g.kind,slot:g.slot||null,own:own(g.id)})),stands:fx.filter(f=>f.action==='buy').map(f=>f.item),register:fx.some(f=>f.kind==='register'&&f.action==='shop'),source:ItemDexSources.source('furn',FURN_INDEX.aqfig_penguin)};},
   // フィギュア台（figure-stand.js）: いまの へやの だい（figs）・かざれる フィギュア・もって いて おいて いない かず・いごこち・画面
@@ -167,6 +172,7 @@ const PokaDebug = {
       "PokaDebug.venue('arcade', 2)         Meeときょれじゃ の 2F（おかし キャッチャー・はしわたし）。arcadeLineup(12) で 日がわりの けいひん・arcadeStart(12〜18) で 2F の 台・arcadeMiss(17, 4) で はしわたしの たすけ・arcadeHint() で しるしへ",
       "PokaDebug.venue('arcade', 3)         Meeときょれじゃ の 3F（ぷりくら・こういしつ・おかしの 台）。arcadeStart(19) で おかし ロード（arcadeRoadAt(2, 15) で ひかりを れつ 2 に まつ・ランプ 15）・arcadeStart(20) で おかし タワー（arcadeAimRing() で わっかの うえ）",
       "PokaDebug.venue('arcade', 4)         Meeときょれじゃ の 4F（ガチャガチャの もり・ガチャ 18だい・シールの ガチャ・クレーン 3台）。gachaForest() で シリーズの ばんごう（12〜29）・gachaOpen(12) で まちぼうけ ぽかぽか の 台",
+      "PokaDebug.meeRotation('2026-10-5')   ガチャの しゅうがわり（まいしゅう げつようびに しまごとに 1だい いれかわる・NEW の はた）。gachaVisit('machisea') で その シリーズの 台へ",
       "PokaDebug.arcadeStart(21〜23)       4F の たこやき（arcadeTako(0) で あたりの あなに だま）・バーバーカット（arcadeBarber(1, 0, -2) で まん中の ひもの てまえ）・バウンドボール",
       "PokaDebug.stickers()                 シールの ガチャ（4F・30〜32）と シールちょう（てもと・ページ）。stickerGive('stk_wanko', 3) で シールを もらう・stickerUi() で ひらいて いる ページ",
       "PokaDebug.kuji('lawson')             ネリカスタウンの コンビニの いちばんくじ（ロット・のこり・はりつけ ひょう・はんけん・クーポン）。kujiOpen で ボード・kujiNext('A') で つぎの 賞・kujiLeft(s, n) で のこり n まい・kujiDays(s, 1) で つぎの 日・kujiDc(true)・kujiUi()",

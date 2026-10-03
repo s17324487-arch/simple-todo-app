@@ -105,6 +105,8 @@ const Gacha = (() => {
     priceOf(si) { const S = SERIES[si]; return S && S.price > 0 ? S.price : PRICE; },
     // 家具・服 いがいの けいひんを もちものに いれる（kind → (けいひん) => ことば。シールは js/sticker-book.js）
     GIVE: {},
+    // 台の ふだ（シリーズの ばんごう → ことば。しゅうがわりの「NEW！」「らいしゅうは おやすみ」は js/mee-rotation.js）
+    tagOf: null,
     // シリーズを あとから たす（4F の ガチャガチャの もり・js/gacha-forest.js）。ばんごうは つづき・けいひんは 家具／服に いれる
     add(list) { const items = []; for (const S of list) { SERIES.push(S); build(S); items.push(...S.list); } register(items); return list.map((S) => S.index); },
     // 1かい まわす（200コイン・シールは 100コイン）。でた けいひんを もちものに いれて けっかを かえす。コインが たりなければ null
@@ -189,6 +191,7 @@ Gacha.open = function (si) {
         U.el("div", { class: "gacha-price", text: `1かい ${price}コイン` }),
         U.el("div", { class: "gacha-coins", text: `もって いる コイン ${U.fmt(Save.d.coins)}` }),
         U.el("div", { class: "gacha-rate", text: "ふつう 3しゅ 30%ずつ・レア 10%" }),
+        ...[this.tagOf ? this.tagOf(si) : ""].filter(Boolean).map((t) => U.el("div", { class: "gacha-week" + (/NEW/.test(t) ? " new" : ""), text: t })),
         U.el("div", { class: "gacha-kind", text: sticker ? "でるのは シールが 4まい はいった シート（すまほの「シール」で はれる）" : S.kind === "wear" ? (S.hand ? `でるのは もちもの（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : S.acc ? `でるのは アクセサリー（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : `でるのは ふく（1こで ひとり・おなじ ふくは ${WearStock.CAP}こ まで）`) : "でるのは へやに かざる フィギュア" }),
         ...(done ? [U.el("div", { class: "gacha-done", text: "コンプリート！" })] : []),
       );

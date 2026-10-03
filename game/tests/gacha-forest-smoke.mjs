@@ -14,7 +14,8 @@ export async function gachaForestSmoke({ scenario, expect }) {
   for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario('gacha-forest-' + viewport.width, async (H) => {
     await H.newGameFast(); const c0 = await H.dbg('coins', 3000); await H.dbg('calendar', '2026-10-05'); await H.dbg('hour', 11); await H.dbg('weather', 'clear');
     const gf = await H.dbg('gachaForest'), idx = Object.fromEntries(gf.series.map((S) => [S.id, S.index]));
-    expect(gf.series.length === 18 && gf.first === 12 && gf.machines.length === 18 && gf.squish.length === 12, '4F の シリーズ ' + JSON.stringify(gf).slice(0, 300));
+    // シリーズは 18 ＋ しゅうがわりの 6（UI-62）。台に でて いるのは その しゅうの 18（2026-10-05 は 2しゅうめ: まちぼうけ ぽかぽか は でて いる）
+    expect(gf.series.length === 24 && gf.series.filter((S) => S.more).length === 6 && gf.first === 12 && gf.machines.length === 18 && gf.machines.includes(idx.machi3) && gf.squish.length === 16, '4F の シリーズ ' + JSON.stringify(gf).slice(0, 300));
     // 1. 3F → 4F（南東の すみの エスカレーター）
     await H.dbg('venue', 'arcade', 3); await H.idle(); await arrive(H, 3);
     expect(await H.dbg('venueVisit', '4Fへ のぼる'), '3F に 4F への エスカレーターが ない'); await arrive(H, 4); await H.wait(900);
@@ -30,7 +31,7 @@ export async function gachaForestSmoke({ scenario, expect }) {
     await H.shot('guide');
     await H.page.locator('.modal-wrap .close').last().click(); await H.idle();
     // 2. まちぼうけ ぽかぽか（まんなかの ガチャの しまの「まちぼうけ」の くみの はし）: はっぱの 台 → レアの 3にん
-    expect(await H.dbg('venueVisit', 'まちぼうけ'), 'ガチャの しまの まちぼうけ が ない');
+    expect(await H.dbg('gachaVisit', 'machi3'), 'ガチャの しまの まちぼうけ ぽかぽか が ない');
     await H.page.locator('.modal-wrap:not(.out) .gacha').waitFor({ timeout: 25000 }); await H.wait(400);
     let L = await fits(H, 'まちぼうけ');
     const leaf = await H.eval(() => document.querySelector('.modal-wrap:not(.out) .gacha-machine').innerHTML.includes('#7DBA4C'));
