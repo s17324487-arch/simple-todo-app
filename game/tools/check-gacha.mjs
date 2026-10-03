@@ -121,4 +121,10 @@ for (const f of ["../js/gacha.js", "../js/gacha-art.js"]) {
   ok(!/gacha-cap\.gold|gacha-bigcap\.gold|gacha-prize\.rare|gacha-card\.rare\{background/.test(css) && !/item-dex-card\.rare[^}]*gradient/.test(css), "CSS: レアの カプセル・カードを ひからせない");
   ok(!/classList\.add\("gold"\)|" gold"|"gacha-prize" \+ \(r\.rare/.test(src), "ガチャ: 金の カプセル・レアの カードの クラスは つかわない");
 }
+// ---- あける まで どれが でたか わからない（UI-51。オーナーの FB「回したらどの景品が出るかが、景品に枠がつくのですぐわかってしまう。カプセルを開けた時にわかるようにして」）----
+{
+  const src = readFileSync(new URL("../js/gacha.js", import.meta.url), "utf8");
+  ok(!/S\.caps\[r\.k|r\.rare \? "#F7C948"/.test(src) && /S\.caps\[Math\.floor\(Math\.random\(\) \* S\.caps\.length\)/.test(src), "カプセルの いろは けいひん・レアと かんけい ない");
+  ok(/const before = \{ own: counts\(\), done: this\.complete\(si\) \};/.test(src) && /shown = before;/.test(src) && /shown = null; info\(\);/.test(src), "まわして から あける まで ラインナップと コンプリートは まえの まま");
+}
 console.log(`Gacha: 12 series x 4 (1 rare each, 30/30/30/10), roll split, furniture/clothes registration and room models, not sold in shops, dex hints, figure/clothes/capsule/machine SVG, 200-coin spin, duplicate clothes become copies up to 5 then refund, complete once, old and broken saves — ${n} checks OK`);

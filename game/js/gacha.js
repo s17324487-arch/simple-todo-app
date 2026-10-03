@@ -1,6 +1,6 @@
 // ガチャガチャ（Meeときょれじゃ の カプセルトイ・UI-12）: 館の 12だいの 台が 12の シリーズ（UI-28 で 6 → 12。2F の ガチャ コーナーは 2れつ）。
 // 1かい 200コインで シリーズの 4しゅの どれかが でる（ふつう 3しゅは 30%ずつ・レア 1しゅは 10%）。ほんものの カプセルトイと おなじく、
-// まわす → カプセルが でてくる → タップで あける。けいひんは へやに かざる フィギュア（家具・ほしは ださない）か 服・アクセサリー（acc）。
+// まわす → カプセルが でてくる → タップで あける（あける まで どれが でたか わからない。カプセルの いろは けいひんと かんけい ない・UI-51）。けいひんは へやに かざる フィギュア（家具・ほしは ださない）か 服・アクセサリー（acc）。
 // 服は 1こで 1人（js/wear-stock.js）なので、ダブった 服も 5こ までは もう 1こ もらえる（それより おおいと 50コイン もどる）。フィギュアは いくつでも かざれる。4しゅ そろうと コンプリート。絵は js/gacha-art.js（ふえた 6シリーズは js/gacha-art-more.js）。
 // セーブ: Save.d.gacha（plays まわした かず・got { けいひん: でた かず }・done { シリーズ: そろった 日 }）。もちものは Save.d.furn／Save.d.wardrobe。
 const Gacha = (() => {
@@ -151,7 +151,8 @@ Gacha.open = function (si) {
   const S = this.SERIES[si]; if (!S) return Promise.resolve();
   return new Promise((resolve) => {
     const body = U.el("div", { class: "gacha" });
-    let closed = false, busy = false;
+    // shown: まわして から カプセルを あける まで の ラインナップ（まわす まえの ようす。でた けいひんの カードに「もってる」の わくが つかない ように・UI-51）
+    let closed = false, busy = false, shown = null;
     const modal = UI.modal({ title: `「${S.name}」`, body, cls: "full gacha-panel", onClose: () => { closed = true; resolve(); } });
     this.view = { S, body, modal, phase: "ready", last: null };
     const cardsSvg = () => S.list.map((it, k) => this.pic(it).replace(/^<svg /, `<svg x="${40 + k * 26}" y="140" width="24" height="26" `)).join("") + `<text x="90" y="174" font-size="7" font-weight="900" text-anchor="middle" fill="${INK}" font-family="'M PLUS Rounded 1c',sans-serif">ぜんぶで 4しゅ</text>`;
@@ -165,18 +166,20 @@ Gacha.open = function (si) {
     const line = U.el("div", { class: "gacha-line" });
     const result = U.el("div", { class: "gacha-result hidden", role: "status" });
     body.append(stage, result, line);
+    // 服は もって いる かず（1こで 1人・5こ まで）、フィギュアは でた かず
+    const counts = () => Object.fromEntries(S.list.map((it) => [it.id, it.kind === "wear" ? WearStock.count(it.id) : this.got(it.id)]));
     const info = () => {
+      const own = shown ? shown.own : counts(), done = shown ? shown.done : this.complete(si);
       sideInfo.replaceChildren(
         U.el("div", { class: "gacha-label", text: "ガチャガチャ" }),
         U.el("div", { class: "gacha-price", text: `1かい ${this.PRICE}コイン` }),
         U.el("div", { class: "gacha-coins", text: `もって いる コイン ${U.fmt(Save.d.coins)}` }),
         U.el("div", { class: "gacha-rate", text: "ふつう 3しゅ 30%ずつ・レア 10%" }),
         U.el("div", { class: "gacha-kind", text: S.kind === "wear" ? (S.acc ? `でるのは アクセサリー（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : `でるのは ふく（1こで ひとり・おなじ ふくは ${WearStock.CAP}こ まで）`) : "でるのは へやに かざる フィギュア" }),
-        ...(this.complete(si) ? [U.el("div", { class: "gacha-done", text: "コンプリート！" })] : []),
+        ...(done ? [U.el("div", { class: "gacha-done", text: "コンプリート！" })] : []),
       );
       line.replaceChildren(...S.list.map((it) => {
-        // 服は もって いる かず（1こで 1人・5こ まで）、フィギュアは でた かず
-        const n = it.kind === "wear" ? WearStock.count(it.id) : this.got(it.id), c = U.el("div", { class: "gacha-card" + (it.rare ? " rare" : "") + (n ? " own" : "") });
+        const n = own[it.id], c = U.el("div", { class: "gacha-card" + (it.rare ? " rare" : "") + (n ? " own" : "") });
         c.append(U.el("img", { src: U.svgUrl(this.pic(it)), alt: "" }), U.el("div", { class: "gacha-name", text: it.name }), U.el("div", { class: "gacha-own", text: it.rare ? (n ? `レア・もってる ×${n}` : "レア・まだ") : n ? `もってる ×${n}` : "まだ" }));
         return c;
       }));
@@ -189,14 +192,15 @@ Gacha.open = function (si) {
     };
     const spin = async () => {
       if (busy || closed) return;
+      const before = { own: counts(), done: this.complete(si) };
       const r = this.spin(si); if (!r) { UI.toast("コインが たりないよ"); buttons(); return; }
-      busy = true; this.view.phase = "turn"; this.view.last = r; buttons(); result.classList.add("hidden");
+      shown = before; busy = true; this.view.phase = "turn"; this.view.last = r; buttons(); result.classList.add("hidden");
       info();
       Sound.se("ok"); knob.classList.remove("turn"); void knob.offsetWidth; knob.classList.add("turn");
       for (let i = 0; i < 3; i++) { Sound.se("gacha_turn"); await this.wait(280); }
       if (closed) return;
-      // カプセルが でてくる
-      const col = r.rare ? "#F7C948" : S.caps[r.k % S.caps.length];
+      // カプセルが でてくる（いろは シリーズの いろから でたらめに。けいひんや レアとは かんけい ない）
+      const col = S.caps[Math.floor(Math.random() * S.caps.length) % S.caps.length];
       cap.innerHTML = GachaArt.capsule(col, 0, "g" + si); cap.classList.remove("hidden", "open", "drop"); void cap.offsetWidth; cap.classList.add("drop")
       Sound.se("gacha_drop"); await this.wait(520);
       if (closed) return;
@@ -224,7 +228,7 @@ Gacha.open = function (si) {
       card.append(txt);
       result.replaceChildren(card);
       if (r.complete) result.append(U.el("div", { class: "gacha-done big", text: `「${S.name}」 コンプリート！ 4しゅ ぜんぶ そろったよ` }));
-      this.view.phase = "done"; busy = false; info(); buttons();
+      this.view.phase = "done"; busy = false; shown = null; info(); buttons();
       const go = acts.querySelector(".gacha-go"); if (go) go.textContent = `もう1かい まわす（${this.PRICE}コイン）`;
     };
     info(); buttons();
