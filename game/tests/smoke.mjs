@@ -3272,7 +3272,9 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  // しらべる: まとめた よびかた・まいにち かわる・どうぶつえんは とれるまで そのまま
  const ask=async(label)=>{await H.dbg('venueVisit',label);await H.page.locator('.dlg-shade.ask .dialog').waitFor();await H.wait(200);return H.eval(()=>document.querySelector('.dlg-shade.ask .dialog').textContent);};
  const fits=()=>H.eval(()=>{const d=document.querySelector('.dlg-shade.ask .dialog').getBoundingClientRect();return d.left>=-0.5&&d.right<=innerWidth+0.5&&d.top>=-0.5&&d.bottom<=innerHeight+0.5;});
- let t=await ask('わんこ ぬいぐるみ');expect(t.includes(L[0].text)&&/まいにち かわる/.test(t)&&await fits(),'わんこの 台の せつめい '+t);await H.shot('ask-wanko');
+ // 3人の 台の めだまは きせつの ぬいぐるみ（UI-63。10がつは ハロウィン）・せつめいに「いまの きせつ だけの …」
+ expect([L[0],L[8],L[9]].every(l=>l.season&&l.prizes[0]===l.season&&l.note.includes(l.names[0]))&&L[0].names[0]==='ハロウィン わんこの ぬいぐるみ'&&!L[2].season&&!L[2].note,'きせつの ぬいぐるみ '+JSON.stringify([L[0],L[8],L[9]].map(l=>[l.season,l.note])));
+ let t=await ask('わんこ ぬいぐるみ');expect(t.includes(L[0].text)&&/まいにち かわる/.test(t)&&t.includes('いまの きせつ だけの「ハロウィン わんこの ぬいぐるみ」も いるよ（9〜11がつ）')&&await fits(),'わんこの 台の せつめい '+t);await H.shot('ask-wanko');
  await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();
  t=await ask('みずべの なかま');expect(t.includes('リングフック・みずべの なかま')&&t.includes(L[11].text)&&await fits(),'みずべの せつめい '+t);await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();
  t=await ask('ビッグ ぬいぐるみ');expect(t.includes(L[10].names[0])&&await fits(),'ビッグの せつめい '+t);await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();
@@ -3822,6 +3824,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  // ガチャガチャ（gacha.js・UI-12。オーナーの FB 2026-09-30「ガチャガチャも 実際の 機能として」「景品は ミニマスコットみたいに 部屋に 置けたり、服だったり」「シリーズで 4種類・一つは レアで 確率を 下げて」）:
  // 館の 台 → ラインナップ → 200コインで まわす → カプセル → あける（レア）→ ふくの 台で ダブりは 2こめ（服は 1こで ひとり・UI-31）・5こ もって いれば 50コイン もどる・4しゅで コンプリート → さいかい → きがえで きる・もようがえで かざる → コインが たりないと まわせない
  await H.newGameFast();const c0=await H.dbg('coins',1850);
+ // 2F の 台は まいしゅう げつようびに くみごとに 1だい いれかわる（UI-63）ので、日づけを 1しゅうめ（2026-10-01）に きめる。いちばん ひだりの 台は なかよし フィギュア のまま（さいかい すると もとの 日づけ）
+ await H.dbg('calendar','2026-10-01');
  // ガチャは 2F の まんなかの ガチャ コーナー（UI-20。1F では エスカレーターの うえの ゆかに かくれて いた）
  await H.dbg('venue','arcade',2);await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
  const s0=await H.dbg('venueState');expect(s0.floor===2&&s0.fixtures.filter((f)=>f.kind==='gacha'&&f.action==='gacha').length===12,'2F に ガチャの 台が 12だい ない');
@@ -3888,7 +3892,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('gacha-more-'+viewport.width,async H=>{
  // ガチャを 2ばいに（UI-28。オーナーの FB 2026-10-01「meeときょれじゃのガチャガチャを2倍の規模にしなさい。ガチャガチャの景品にはアクセサリーを追加しなさい」）:
  // 2F の ガチャ コーナーは 2れつ 12だい → てまえの とおりみちから 12だい ぜんぶ みえる → アクセサリーの 台（ゆめかわ ヘアアクセ）で レアの ちょうちょ → きょうりゅうの 台 → きがえで つける・もようがえで かざる
- await H.newGameFast();const c0=await H.dbg('coins',1850);
+ // 日づけは 1しゅうめ（2026-10-01。UI-63 の しゅうがわりで てまえ みぎの はじは ゆめかわ ヘアアクセ の まま）
+ await H.newGameFast();const c0=await H.dbg('coins',1850);await H.dbg('calendar','2026-10-01');
  await H.dbg('venue','arcade',2);await H.idle();await H.until(()=>{try{return PokaDebug.venueIso()&&PokaDebug.venueIso().ready;}catch(e){return false;}},20000);
  let s=await H.dbg('venueState');const g=s.fixtures.filter(f=>f.kind==='gacha'&&f.action==='gacha');
  expect(g.length===12&&new Set(g.map(f=>f.series)).size===12&&g.filter(f=>f.y===9).length===6&&g.filter(f=>f.y===6).length===6&&s.routeCount.every(r=>r.reachable),'2れつ 12だい '+JSON.stringify(g.map(f=>[f.x,f.y,f.series])));

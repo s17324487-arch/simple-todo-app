@@ -12,18 +12,34 @@ const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
 
 // ---- 1. シリーズと けいひん ----
-// 2F の 12シリーズ（4F の ガチャガチャの もり の 18シリーズは tools/check-gacha-forest.mjs・シールの 3シリーズは tools/check-stickers.mjs）
-const BASE = GA.SERIES.filter((s) => !s.forest && !s.sticker), BI = BASE.flatMap((s) => s.list);
-ok(BASE.length === 12 && BI.length === 48 && GA.SERIES.length === 39 && GA.ITEMS.length === 156 && BASE.every((s, i) => s.index === i), "2F は 12シリーズ・48しゅ（UI-28 で 2ばい）・4F（もり 18・シール 3・UI-62 の 6）と あわせて 39シリーズ");
+// 2F の 12シリーズ（4F の ガチャガチャの もり の 18シリーズは tools/check-gacha-forest.mjs・シールの 3シリーズは tools/check-stickers.mjs・2F に UI-63 で たした 4シリーズは この したの 1b）
+const BASE = GA.SERIES.filter((s) => !s.forest && !s.sticker && !s.corner), BI = BASE.flatMap((s) => s.list);
+ok(BASE.length === 12 && BI.length === 48 && GA.SERIES.length === 43 && GA.ITEMS.length === 172 && BASE.every((s, i) => s.index === i), "2F は 12シリーズ・48しゅ（UI-28 で 2ばい）・4F（もり 18・シール 3・UI-62 の 6）・2F の UI-63 の 4 と あわせて 43シリーズ");
 ok(BASE.filter((s) => s.kind === "furn").length === 7 && BASE.filter((s) => s.kind === "wear").length === 5, "へやに かざる もの 7シリーズ・服 5シリーズ");
 ok(BASE.filter((s) => s.acc).map((s) => s.id).join() === "sparkle,hair,neck,party" && GA.SERIES.filter((s) => s.acc).every((s) => s.kind === "wear"), "アクセサリーの シリーズ 4つ（キラキラ アクセ・ヘアアクセ・ネックレス・パーティー）");
 ok(GA.SERIES.slice(0, 6).map((s) => s.id).join() === "friends,sleepy,sweets,ride,ears,sparkle", "まえの 6シリーズの じゅんばんは そのまま（台の ばんごう・セーブの id）");
-ok(new Set(GA.ITEMS.map((it) => it.id)).size === 156 && new Set(GA.SERIES.map((s) => s.id)).size === 39, "id が かさなる");
-ok(new Set(GA.SERIES.map((s) => s.color.toUpperCase())).size === 39, "台の いろが ぜんぶ ちがう");
+ok(new Set(GA.ITEMS.map((it) => it.id)).size === 172 && new Set(GA.SERIES.map((s) => s.id)).size === 43, "id が かさなる");
+ok(new Set(GA.SERIES.map((s) => s.color.toUpperCase())).size === 43, "台の いろが ぜんぶ ちがう");
 {
   const wears = BI.filter((it) => it.kind === "wear");
   ok(new Set(wears.map((it) => it.wear)).size === wears.length && wears.filter((it) => !it.wear.startsWith("gacha_")).map((it) => it.wear).join() === "catears", "アクセサリー・服の かたちが ぜんぶ ちがう（しろねこ だけ まえからの ねこみみ）");
   ok(BI.filter((it) => it.kind === "wear" && GA.SERIES[it.series].acc).length === 16, "アクセサリー 16しゅ（2F）");
+}
+// ---- 1b. 2F の あたらしい 4シリーズ（UI-63・js/gacha-corner-more.js。しゅうがわりは tools/check-mee-rotation.mjs）----
+{
+  const CM = R.GachaCornerMore, NEW = GA.SERIES.filter((s) => s.corner);
+  ok(NEW.length === 4 && NEW.map((s) => s.id).join() === "okashihouse,workcar,mushi,funglasses" && NEW.every((s, i) => s.index === CM.first + i && s.more && !s.forest && !s.sticker) && CM.first === 39, "2F の あたらしい 4シリーズは 39〜42 ばん");
+  ok(NEW.filter((s) => s.kind === "furn").length === 3 && NEW.filter((s) => s.kind === "wear" && s.acc).length === 1 && NEW.every((s) => s.list.every((it) => it.kind === s.kind)), "へやに かざる もの 3シリーズ・アクセサリー 1シリーズ");
+  ok(CM.RINGS.length === 4 && NEW.every((s) => CM.RINGS.filter((r) => r.add.includes(s.id)).length === 1 && CM.RINGS.find((r) => r.add.includes(s.id)).id === s.ring), "どの シリーズも 2F の くみ 1つに はいる");
+  ok(CM.RINGS.flatMap((r) => r.ids).join() === BASE.map((s) => s.id).join(), "くみの さいしょの ならびは 2F の 12シリーズの じゅん（おく ひだり → おく みぎ → てまえ ひだり → てまえ みぎ）");
+  const glasses = NEW.find((s) => s.kind === "wear").list, others = R.WEAR_ITEMS.filter((w) => !glasses.some((g) => g.id === w.id));
+  ok(glasses.every((it) => it.slot === "face" && it.wear.startsWith("gacha_") && typeof R.WEAR[it.wear] === "function" && !others.some((w) => w.wear === it.wear)) && new Set(glasses.map((it) => it.wear)).size === 4, "めがね 4つは あたらしい かたち（ほかの 服と かさならない）");
+  for (const it of glasses) for (const who of R.Chara.IDS) {
+    const norm = (x) => x.replace(/u\d+/g, "u"), bare = (dir) => norm(R.Chara.svg(who, { pose: "idle_01", face: "happy", dir, outfit: {}, color: "soft" })), on = (dir) => norm(R.Chara.svg(who, { pose: "idle_01", face: "happy", dir, outfit: { face: it.id }, color: "soft" })); // id の ばんごう（u12 など）は まいかい ちがう
+    ok(["down", "left", "right"].every((dir) => on(dir) !== bare(dir)) && on("up") === bare("up"), `${it.name}（${who}）: まえ・よこで かける・うしろ すがたは かかない`);
+  }
+  const names = new Set([...R.FURNITURE, ...R.WEAR_ITEMS].filter((x) => !GA.INDEX[x.id] || !NEW.includes(GA.seriesOf(x.id))).map((x) => x.name));
+  for (const it of NEW.flatMap((s) => s.list)) ok(!names.has(it.name), `「${it.name}」は ほかの 家具・服と おなじ なまえ では ない`);
 }
 for (const S0 of GA.SERIES) {
   ok(S0.list.length === 4 && S0.list.filter((it) => it.rare).length === 1 && S0.list[GA.RARE].rare, `${S0.name}: 4しゅで レアは 1つ`);
@@ -129,4 +145,4 @@ for (const f of ["../js/gacha.js", "../js/gacha-art.js"]) {
   ok(!/S\.caps\[r\.k|r\.rare \? "#F7C948"/.test(src) && /S\.caps\[Math\.floor\(Math\.random\(\) \* S\.caps\.length\)/.test(src), "カプセルの いろは けいひん・レアと かんけい ない");
   ok(/const before = \{ own: counts\(\), done: this\.complete\(si\) \};/.test(src) && /shown = before;/.test(src) && /shown = null; info\(\);/.test(src), "まわして から あける まで ラインナップと コンプリートは まえの まま");
 }
-console.log(`Gacha: 12 series x 4 (1 rare each, 30/30/30/10), roll split, furniture/clothes registration and room models, not sold in shops, dex hints, figure/clothes/capsule/machine SVG, 200-coin spin, duplicate clothes become copies up to 5 then refund, complete once, old and broken saves — ${n} checks OK`);
+console.log(`Gacha: 12 series x 4 (+4 more on 2F, UI-63) (1 rare each, 30/30/30/10), roll split, furniture/clothes registration and room models, not sold in shops, dex hints, figure/clothes/capsule/machine SVG, 200-coin spin, duplicate clothes become copies up to 5 then refund, complete once, old and broken saves — ${n} checks OK`);

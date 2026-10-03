@@ -97,9 +97,11 @@ const IkeArcade = {
     // ガチャ コーナー（まんなか。js/gacha.js の 12シリーズ。variant = シリーズの ばんごう）: まんなかの とおりみちの りょうがわに 3だいずつ × 2れつ（UI-28 で 2ばい）。
     // おくの れつ（0〜5）の うしろに しきりと かんばん（つりさげの かんばんは おくの 台に かさなるので、台の うしろに たてる）。
     // てまえの れつ（6〜11: どうぶつえん・パン・きょうりゅう・ヘアアクセ・ネックレス・パーティー）の うしろは ひくい しきり（おくの 台を かくさない）
-    [9, 10, 11, 14, 15, 16].forEach((x, v) => fixtures.push({ kind: "gacha", x, y: 6, w: 1, h: 1, dir: "y", variant: v, series: v, height: 112, label: v === 0 ? "カプセルトイ" : "", action: "gacha", spots: [[x, 7]] }));
-    [9, 10, 11, 14, 15, 16].forEach((x, i) => fixtures.push({ kind: "gacha", x, y: 9, w: 1, h: 1, dir: "y", variant: 6 + i, series: 6 + i, height: 112, label: i === 3 ? "アクセサリー" : "", action: "gacha", spots: [[x, 10]] }));
-    fixtures.push({ kind: "gachaboard", x: 9, y: 5, w: 3, h: 1, dir: "y", height: 170, variant: 0 }, { kind: "gachaboard", x: 14, y: 5, w: 3, h: 1, dir: "y", height: 170, variant: 1 });
+    // 3だいずつ 4くみ（ring・slot）で まいしゅう げつようびに 1だいずつ いれかわる（UI-63。くみの シリーズは js/gacha-corner-more.js・しくみは js/mee-rotation.js。ここの variant は さいしょの しゅうの ならび）
+    [9, 10, 11, 14, 15, 16].forEach((x, v) => fixtures.push({ kind: "gacha", x, y: 6, w: 1, h: 1, dir: "y", variant: v, series: v, ring: v < 3 ? "2f-a" : "2f-b", slot: v % 3, height: 112, label: v === 0 ? "カプセルトイ" : "", action: "gacha", spots: [[x, 7]] }));
+    [9, 10, 11, 14, 15, 16].forEach((x, i) => fixtures.push({ kind: "gacha", x, y: 9, w: 1, h: 1, dir: "y", variant: 6 + i, series: 6 + i, ring: i < 3 ? "2f-c" : "2f-d", slot: i % 3, height: 112, label: i === 3 ? "アクセサリー" : "", action: "gacha", spots: [[x, 10]] }));
+    // かんばん（ひだりの 1まいは さわると こんしゅうの いれかえの おしらせ。text は js/mee-rotation.js が その しゅうの ないように する）
+    fixtures.push({ kind: "gachaboard", x: 9, y: 5, w: 3, h: 1, dir: "y", height: 170, variant: 0, label: "ガチャ コーナー", action: "info", rotInfo: 2, text: "ガチャの なかみは まいしゅう げつようびに いれかわるよ。" }, { kind: "gachaboard", x: 14, y: 5, w: 3, h: 1, dir: "y", height: 170, variant: 1 });
     fixtures.push({ kind: "divider", x: 9, y: 8, w: 3, h: 1, height: 45 }, { kind: "divider", x: 14, y: 8, w: 3, h: 1, height: 45 });
     fixtures.push({ kind: "capbin", x: 17, y: 6, w: 1, h: 1, dir: "y", height: 78, label: "カプセル かいしゅう", action: "info", text: "あけた カプセルは ここに いれてね。きれいに して また つかうよ。", spots: [[17, 7]] });
     // エスカレーター（1F へ くだる）
