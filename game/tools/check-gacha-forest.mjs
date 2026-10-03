@@ -112,7 +112,7 @@ ok(g4.length === 18 && new Set(g4.map((f) => f.series)).size === 18 && [...g4.ma
   const places = R.MallGuide.places(f4).map((p) => p.label);
   ok(["ガチャの しま（にし）", "ガチャの しま（ひがし）"].every((l) => places.includes(l)), "フロアマップに ガチャの しま " + places.join("・"));
 }
-ok(![1, 2, 3].some((k) => fl[k].fixtures.some((f) => f.kind === "gacha" && f.series >= 12)), "4F の シリーズは ほかの 階に ない");
+ok(![1, 2, 3].some((k) => fl[k].fixtures.some((f) => f.kind === "gacha" && GA.SERIES[f.series].forest)), "4F の シリーズは ほかの 階に ない");
 const down = f4.fixtures.find((f) => f.kind === "escalator" && f.to === 3), up = f3.fixtures.find((f) => f.kind === "escalator" && f.to === 4);
 ok(down && up && down.dir === "down" && up.x === E.x && up.y === E.y && down.x === E.x && down.y === E.y && up.w === E.w && up.h === E.h, "3F ⇄ 4F の エスカレーター（南東の すみ・IkeArcade.ESC4）");
 ok(f4.holes.length === 1 && f4.holes[0].x === E.x && f4.holes[0].y === E.y + 1 && f4.holes[0].h === E.h - 1, "4F の ふきぬけ");

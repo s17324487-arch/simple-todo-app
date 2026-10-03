@@ -89,6 +89,11 @@ const PrizeArcade = {
   item(id) { return FURN_INDEX[id] || BAG_INDEX[id] || ITEM_INDEX[id] || { name: id }; },
   // その日の けいひんの よびかた（おなじ なかまは「わんこの ぬいぐるみ 4しゅ（にっこり・…）」・ほかは なまえを ならべる）
   todayText(machine, day) { const ids = this.prizeList(machine, day); return ArcadePrizes.group(ids) || ids.map((id) => this.item(id).name).join("・"); },
+  // わんこ・がちゃん・ごじ の 台の きせつの ぬいぐるみ（ArcadePrizes.seasonal・UI-63）の ひとこと。その日の ならびに いなければ ""
+  seasonNote(machine, day) {
+    const d = CraneMachines.DEFS[machine], it = d && d.season ? ArcadePrizes.seasonal(d.season, day || this.dayOf(machine)) : null;
+    return it && this.prizeList(machine, day).includes(it.id) ? `いまの きせつ だけの「${it.name}」も いるよ（${it.season[0]}〜${it.season[2]}がつ）。` : "";
+  },
   // とれた 景品の 絵（はじめの 1つ。コインは "coin"）と その SVG（とりだしぐち・けっかの まど）
   picture(machine, round) { const p = this.prizesOf(machine, round)[0]; return !p ? this.machines[machine].prize || "coin" : p.coins ? "coin" : p.id; },
   pictureSvg(id) { return id === "coin" ? CraneArt.coinSvg() : FURN_INDEX[id] ? Art.furnSvg(id) : Art.iconSvg("bag", id); },
@@ -100,7 +105,7 @@ const PrizeArcade = {
     if (a.active) { const yes = await UI.confirm("とちゅうの クレーンが あるよ。おかねを はらわずに つづける？", "つづける", "やめる"); if (yes) Game.goto("prize", { run: a.active }); return; }
     if (a.refunded) { UI.toast("台が あたらしく なったので、とちゅうだった 1かいの " + this.PRICE + "コインを かえしたよ"); a.refunded = 0; Save.write(); }
     if (!this.coinOpen(machine)) { await UI.say([{ name: "Meeときょれじゃ", text: "きょうの コインの けいひんは おしまい。\nまた あした あそびに きてね！" }]); return; }
-    const each = m.type === "sweet" ? "（おちた ぶんだけ）" : "", prize = m.type === "pusher" ? `てまえに おちた メダル 1まい ${m.coins}コイン` : m.coins ? `コイン ${m.coins} ${each}` : m.daily ? `きょうは ${this.todayText(machine)}${each}\n（けいひんは まいにち かわるよ${CraneMachines.DEFS[machine].keep ? "。とちゅうの けいひんは とれるまで そのまま" : ""}）` : m.mix ? `${this.item(m.prize).name.replace(/^\S+ /, "")}（${m.mix}しゅるい）${each}` : this.item(m.prize).name + " " + (each || "×" + m.qty);
+    const each = m.type === "sweet" ? "（おちた ぶんだけ）" : "", prize = m.type === "pusher" ? `てまえに おちた メダル 1まい ${m.coins}コイン` : m.coins ? `コイン ${m.coins} ${each}` : m.daily ? `きょうは ${this.todayText(machine)}${each}\n（けいひんは まいにち かわるよ${CraneMachines.DEFS[machine].keep ? "。とちゅうの けいひんは とれるまで そのまま" : ""}）${this.seasonNote(machine) ? "\n" + this.seasonNote(machine) : ""}` : m.mix ? `${this.item(m.prize).name.replace(/^\S+ /, "")}（${m.mix}しゅるい）${each}` : this.item(m.prize).name + " " + (each || "×" + m.qty);
     const cap = m.coins ? `\nコインの けいひんは 1にち ${ArcadePrizes.COIN_DAY_MAX}コイン まで（きょう のこり ${ArcadePrizes.coinLeft()}）。` : "";
     const fee = m.type === "pusher" ? `\n1かい ${this.PRICE}コインで メダル ${m.medals}まい。` : "\n1かい " + this.PRICE + "コイン。とれない ことも あるよ。";
     if (!(await UI.confirm(m.name + "\n" + this.rules[m.rule || m.type] + "\nけいひん：" + prize + cap + fee, this.PRICE + "コインで あそぶ", "やめる"))) return;

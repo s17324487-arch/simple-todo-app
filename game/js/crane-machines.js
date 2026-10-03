@@ -24,8 +24,10 @@ const CraneMachines = (() => {
     if (!d || !d.pool) return null;
     const L = d.pool.length, k = Math.min(d.pick || 1, L), r = rng(hashStr(d.id)), order = d.pool.slice();
     for (let i = L - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-    const n = dayNum(day), at = (((n * stepOf(L, k)) % L) + L) % L;
-    return Array.from({ length: k }, (_, j) => order[(at + j) % L]);
+    const n = dayNum(day), at = (((n * stepOf(L, k)) % L) + L) % L, out = Array.from({ length: k }, (_, j) => order[(at + j) % L]);
+    // きせつの ぬいぐるみ（UI-63・js/arcade-prizes.js の SEASON_HERO）: 3人の ぬいぐるみの 台（d.season）は その きせつの 1しゅが めだま（さいしょ）。のこりは いつもの 日がわり
+    const se = d.season && typeof ArcadePrizes !== "undefined" ? ArcadePrizes.seasonal(d.season, day) : null;
+    return se ? [se.shape, ...out.slice(0, k - 1)] : out;
   };
   // keep の 台: セーブの 台に まえの 日の けいひんが のこって いれば その日（とれたら つぎから きょうの ならび）
   const keepDay = (d, board, day = today()) => (d && d.keep && d.pool && board && board.id === d.id && board.day && board.day !== day && Array.isArray(board.b) && board.b.length ? board.day : day);
@@ -109,7 +111,8 @@ const CraneMachines = (() => {
     return { ...S, look: it.look, art: [(x + w / 2 - (rx + rw / 2)) * u, A.y(S) - (y + h / 2 - (ry + rh / 2)) * u, w * u, h * u], prize: it.id };
   };
   const prizePool = (ok) => ArcadePrizes.ITEMS.filter(ok).map((it) => it.shape);
-  const heroPool = (who) => prizePool((it) => it.size === "chibi" && it.spec.who === who);
+  // きせつの ぬいぐるみ（it.season）は いつもの 日がわりの なかまに いれない（その きせつだけ lineup が めだまに する）
+  const heroPool = (who) => prizePool((it) => it.size === "chibi" && it.spec.who === who && !it.season);
   // コイン メダル（まるい うすい えんばん: まん中＋まわり 6つ。おもて・うらは まるい 絵）と コインの たからばこ（クッキーの はこと おなじ 形＋リング）
   SHAPES.medal = () => ({ parts: [{ x: 0, y: 0, z: 0, r: 0.95, m: 1 }, ...Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * Math.PI * 2; return { x: Math.cos(a) * 2.05, y: Math.sin(a) * 2.05, z: 0, r: 0.95, m: 1 }; })], stiff: 1, fric: 0.42, look: "medal", slab: [6, 6, 1.9], size: [6, 6, 1.9] });
   SHAPES.chest = () => ({ ...SHAPES.cookie(), look: "chest" });
@@ -441,7 +444,7 @@ const CraneMachines = (() => {
   const DEFS = [
     // ---- 1F（日がわり 7台: 3人の ぬいぐるみ 8しゅから 4しゅ・ミニマスコット 10しゅから 3しゅ・どうぶつえん 6しゅから 1しゅ・ビッグ ぬいぐるみ 9しゅから 1しゅ・
     // みずべの なかま 5しゅから 3しゅ。legacy の 3台と コインの 2台は いつも おなじ）----
-    daily(claw3("chibi-wanko", "paw", "wanko"), heroPool("wanko"), 4),
+    { ...daily(claw3("chibi-wanko", "paw", "wanko"), heroPool("wanko"), 4), season: "wanko" },
     claw2("goji-big", "goji", "goji", { legacy: true }),
     daily(sweet("mini", "candy", ["mini_wanko", "mini_gachan", "mini_goji"]), prizePool((it) => it.size === "mini"), 3),
     pusher("pusher", "gold"),
@@ -449,8 +452,8 @@ const CraneMachines = (() => {
     daily(tripod("panda-big", "bamboo", "pandaBig", { keep: true }), prizePool((it) => it.group === "zoo"), 1),
     ring("gachan-ring", "chick", { shape: "gachan", n: 3, keep: 3, upright: true, gap: 15, at: [[30, 22, 0.25], [45, 29, -0.3], [29, 38, 0.1], [44, 40, 0.2]] }, 39, { legacy: true }),
     ring("coin-chest", "treasure", { shape: "chest", n: 4, keep: 4, upright: true, gap: 13, at: [[30, 20, 0.1], [48, 22, -0.15], [30, 35, -0.1], [47, 37, 0.12]] }, 26.7),
-    daily(claw3("chibi-gachan", "sunny", "gachan"), heroPool("gachan"), 4),
-    daily(claw3("chibi-goji", "jungle", "goji"), heroPool("goji"), 4),
+    { ...daily(claw3("chibi-gachan", "sunny", "gachan"), heroPool("gachan"), 4), season: "gachan" },
+    { ...daily(claw3("chibi-goji", "jungle", "goji"), heroPool("goji"), 4), season: "goji" },
     daily(claw2("bear-big", "forest", "bearBig"), prizePool((it) => it.group === "big"), 1),
     daily(ring("penguin-ring", "snow", { shape: "penguinRing", n: 3, keep: 3, upright: true, gap: 15, at: [[30, 22, 0.25], [45, 29, -0.3], [29, 38, 0.1], [44, 40, 0.2]] }, 39), prizePool((it) => it.group === "water"), 3),
     // ---- 2F おかし キャッチャー（日がわり: pool から pick しゅ）----
@@ -470,7 +473,7 @@ const CraneMachines = (() => {
     // バウンドボール（3人の ちいさな ぬいぐるみ 24しゅから 4しゅ）----
     daily(takoDef("tako", "takoyaki"), prizePool((it) => it.size === "mini"), 3),
     daily(barberDef("barber", "barber"), cutPool(), 3),
-    daily(boundDef("bound", "bound"), prizePool((it) => it.size === "chibi"), 4),
+    daily(boundDef("bound", "bound"), prizePool((it) => it.size === "chibi" && !it.season), 4),
   ];
 
   // ---- 1かいの あそび ----

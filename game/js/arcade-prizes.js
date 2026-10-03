@@ -44,6 +44,52 @@ const ArcadePrizes = (() => {
       ["てんし", "love", "jump_01", { back: "wings" }, [-10, -12, 225, 206], 187],
     ],
   };
+  // きせつの ぬいぐるみ（UI-63。オーナーの FB 2026-10-03「ときょれじゃの景品やガチャガチャの中身は、定期的に変わるようにしろ」）。
+  // HERO の 8〜11 ばん（[ことば, 表情, ポーズ, こもの, はんい, 足もと, つき]）。その きせつの あいだ 3人の ぬいぐるみの 台の めだまに なる（js/crane-machines.js の lineup）。
+  // 日がわりの ふつうの ならび（heroPool）には はいらない。
+  // ぬいぐるみ だけの ぼうし（サンタ・まじょ。ITEM_INDEX だけ・おみせ・きがえには でない）。かたちは chara.js と おなじ hatWrap（つばの まんなかが 0,0・あたまの はば 100）
+  WEAR.season_santahat = (ctx) => ({
+    top: hatWrap(ctx, (s) => {
+      const c = ctx.col[0] || "#E8434F", b = ctx.col[1] || "#FFFFFF";
+      return `<path d="M-48,0 C-46,-40 -12,-64 22,-58 C42,-54 58,-40 64,-22 C54,-28 42,-30 34,-24 C30,-14 32,-6 36,0 Z" fill="${c}" ${stroke(s)}/>`
+        + `<path d="M-22,-42 q10 -8 24 -10" fill="none" stroke="#FFFFFF" stroke-width="${f2(s * 1.2)}" stroke-linecap="round" opacity="0.45"/>`
+        + `<rect x="-54" y="-12" width="108" height="20" rx="10" fill="${b}" ${stroke(s)}/><circle cx="66" cy="-18" r="12" fill="${b}" ${stroke(s)}/>`;
+    }),
+  });
+  WEAR.season_witchhat = (ctx) => ({
+    top: hatWrap(ctx, (s) => {
+      const c = ctx.col[0] || "#6B4FA0", band = ctx.col[1] || "#F7A84E";
+      return `<ellipse cx="0" cy="0" rx="74" ry="13" fill="${c}" ${stroke(s)}/>`
+        + `<path d="M-36,-2 C-30,-30 -14,-58 4,-84 C10,-92 22,-96 30,-90 C20,-86 16,-76 18,-62 C22,-40 30,-20 36,-2 Z" fill="${c}" ${stroke(s)}/>`
+        + `<path d="M-35,-11 C-12,-7 14,-7 35,-11 L36,-2 C14,2 -14,2 -36,-2 Z" fill="${band}" ${stroke(s)}/>`
+        + `<path d="M0,-40 l3.6,7.2 8,1.2 -5.8,5.6 1.4,8 -7.2,-3.8 -7.2,3.8 1.4,-8 -5.8,-5.6 8,-1.2 Z" fill="#FFE07A" ${stroke(s * 0.6)}/>`;
+    }),
+  });
+  for (const [id, name, wear, col] of [["season_santahat", "サンタの ぼうし", "season_santahat", ["#E8434F", "#FFFFFF"]], ["season_witchhat", "まじょの ぼうし", "season_witchhat", ["#6B4FA0", "#F7A84E"]]])
+    if (!ITEM_INDEX[id]) ITEM_INDEX[id] = { id, name, slot: "head", wear, col, price: 0, plushOnly: true };
+  const SEASONS = [["はる", [3, 4, 5]], ["なつ", [6, 7, 8]], ["あき", [9, 10, 11]], ["ふゆ", [12, 1, 2]]];
+  const SEASON_HERO = {
+    wanko: [
+      ["おはなみ", "smile", "idle_01", { head: "sakura_wreath" }, [5, 12, 190, 202], 207],
+      ["ゆかた", "smile", "walk_01", { body: "mee_yukata" }, [-7, 17, 189, 197], 207],
+      ["ハロウィン", "smile", "idle_01", { head: "season_witchhat", back: "cape" }, [5, -48, 190, 262], 207],
+      ["サンタ", "smile", "idle_01", { head: "season_santahat", neck: "muffler" }, [5, -17, 190, 231], 207],
+    ],
+    gachan: [
+      ["さくら", "sparkle", "jump_01", { head: "sakura_wreath" }, [41, 2, 118, 188], 183],
+      ["ゆかた", "smile", "walk_02", { body: "mee_yukata" }, [48, 37, 123, 177], 207],
+      ["こうもり", "sparkle", "jump_01", { back: "batwings" }, [9, 8, 182, 182], 183],
+      ["ゆきあかり", "smile", "idle_02", { head: "snow_knit", neck: "muffler" }, [37, 13, 126, 201], 207],
+    ],
+    goji: [
+      ["はるかぜ", "love", "idle_01", { head: "sakura_wreath", neck: "scarf_green" }, [2, 14, 199, 204], 211],
+      ["なつまつり", "shout", "idle_02", { head: "hachimaki", body: "star_happi" }, [-1, 2, 205, 216], 212],
+      ["もみじ", "calm", "idle_01", { neck: "maple_scarf" }, [2, 21, 199, 197], 211],
+      ["サンタ", "love", "jump_01", { head: "season_santahat", neck: "scarf_red" }, [6, -42, 190, 236], 187],
+    ],
+  };
+  for (const who of Object.keys(HERO)) SEASON_HERO[who].forEach((e, i) => HERO[who].push([...e, SEASONS[i][1]]));
+  const seasonOf = (months) => SEASONS.find(([, m]) => m.join() === months.join()) || null;
   // ミニマスコット（スウィートランドの ちいさな 景品。あたまに キーホルダーの わ）。3人と 町の ちいさな どうぶつ 7しゅ（UI-16）
   const MINI = { wanko: [5, 1, 190, 212], gachan: [39, 21, 122, 192], goji: [1, 8, 200, 209] };
   const MINI_SP = [["hamster", [34, 26, 133, 189]], ["frog", [32, 26, 137, 189]], ["pig", [39, 22, 123, 193]], ["mouse", [20, 16, 161, 199]], ["squirrel", [40, 7, 132, 208]], ["hedgehog", [19, 11, 163, 204]], ["bird", [40, 11, 122, 204]]];
@@ -65,11 +111,12 @@ const ArcadePrizes = (() => {
   // 景品の 一覧（家具）。spec: 絵の つくりかた・crop: viewBox・size: 'chibi' | 'mini' | 'big'
   // look: クレーンの テクスチャの なまえ・shape: クレーンの 形の なまえ・series と word: 台の せつめいで まとめて よぶ（「わんこの ぬいぐるみ 4しゅ（にっこり・…）」）
   const ITEMS = [];
-  for (const [who, list] of Object.entries(HERO)) list.forEach(([word, face, pose, outfit, crop, feet], v) => ITEMS.push({
+  for (const [who, list] of Object.entries(HERO)) list.forEach(([word, face, pose, outfit, crop, feet, months], v) => { const se = months && seasonOf(months); ITEMS.push({
     id: `ike_chibi_${who}_${v}`, name: `${word} ${NAME[who]}の ぬいぐるみ`, spec: { who, face, pose, outfit }, crop, feet, size: "chibi", w: 76, h: 76, depth: 40,
     look: `chibi-${who}-${v}`, shape: `chibi_${who}_${v}`, series: `${NAME[who]}の ぬいぐるみ`, word,
-    desc: `${word} かおの ${NAME[who]}の ぬいぐるみ。Meeときょれじゃ の クレーンの けいひん。`,
-  }));
+    ...(se ? { season: months, seasonName: se[0] } : {}),
+    desc: se ? `${se[0]}（${months[0]}〜${months[2]}がつ）だけの ${word}の ${NAME[who]}の ぬいぐるみ。Meeときょれじゃ の クレーンの けいひん。` : `${word} かおの ${NAME[who]}の ぬいぐるみ。Meeときょれじゃ の クレーンの けいひん。`,
+  }); });
   const mini = (key, name, spec, crop) => ITEMS.push({
     id: `ike_mini_${key}`, name: `${name}の ミニマスコット`, spec: { ...spec, mini: true }, crop, size: "mini", w: 48, h: 52, depth: 28,
     look: `mini-${key}`, shape: `mini_${key}`, series: "ミニマスコット", word: name,
@@ -133,6 +180,8 @@ const ArcadePrizes = (() => {
     const model0 = IkebukuroItemArt.model;
     IkebukuroItemArt.model = function (id, opts = {}) { return INDEX[id] ? model(id) : model0.call(this, id, opts); };
   };
-  return { NAME, HERO, MINI, MINI_SP, GROUP, FOLK, ITEMS, INDEX, svg, nest, model, install, COIN_DAY_MAX, coinState, coinLeft, group };
+  // その日の きせつの ぬいぐるみ（day は "2026-10-3" の かたち・who は 3人）
+  const seasonal = (who, day) => { const m = Number(String(day).split("-")[1]); return ITEMS.find((it) => it.season && it.spec.who === who && it.season.includes(m)) || null; };
+  return { NAME, HERO, SEASONS, SEASON_HERO, MINI, MINI_SP, GROUP, FOLK, ITEMS, INDEX, svg, nest, model, install, COIN_DAY_MAX, coinState, coinLeft, group, seasonal };
 })();
 ArcadePrizes.install();

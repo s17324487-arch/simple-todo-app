@@ -53,7 +53,12 @@ let hiddenChecks=0;
   for(const [n,r] of Object.entries(fl)){const tops=r.fixtures.filter(f=>f.over),items=r.fixtures.filter(f=>f.action&&f.action!=='floor'&&!f.over);
     for(const f of items){const a=ccw(I.hull(f)),A=area(a);for(const o of tops){const c=clip(a,ccw(I.hull(o))),k=c.length>2?area(c)/A:0;hiddenChecks++;assert(k<=0.12,n+'F の '+(f.label||f.kind)+'（'+f.x+','+f.y+'）が '+(o.text||o.kind)+' に かくれる '+Math.round(k*100)+'%');}}}
   const g1=fl[1].fixtures.filter(f=>f.kind==='gacha'),g2=fl[2].fixtures.filter(f=>f.kind==='gacha'),cx=g2.reduce((s,f)=>s+f.x+f.w/2,0)/g2.length;
-  assert(g1.length===0&&g2.length===12&&g2.map(f=>f.series).sort((a,b)=>a-b).join()==='0,1,2,3,4,5,6,7,8,9,10,11'&&g2.every(f=>f.variant===f.series),'ガチャは 2F に 12だい（12シリーズ・UI-28）');
+  // 2F の 12だいは 3だいずつ 4くみで まいしゅう いれかわる（UI-63・js/mee-rotation.js）。さいしょの しゅう（2026-09-21〜）は 12シリーズ（UI-28）・どの しゅうも 12だいに ちがう シリーズ
+  {const MR=R.MeeRotation,inPool=f=>{const rg=MR.RINGS.find(r=>r.id===f.ring);return !!rg&&rg.floor===2&&MR.pool(rg).some(id=>R.Gacha.byId(id).index===f.series);};
+    assert(g1.length===0&&g2.length===12&&g2.every(f=>f.variant===f.series&&inPool(f))&&new Set(g2.map(f=>f.series)).size===12,'ガチャは 2F に 12だい（くみの シリーズ）');
+    MR.apply('2026-9-24');assert(g2.map(f=>f.series).sort((a,b)=>a-b).join()==='0,1,2,3,4,5,6,7,8,9,10,11'&&g2.every(f=>f.variant===f.series&&!f.fresh),'さいしょの しゅうの 2F は 12シリーズ（UI-28）');
+    for(const day of ['2026-10-1','2026-10-8','2026-11-19','2027-2-3']){MR.apply(day);assert(new Set(g2.map(f=>f.series)).size===12&&g2.every(f=>f.variant===f.series&&inPool(f))&&g2.filter(f=>f.fresh).length===4,day+': 2F の 12だい（NEW は くみごとに 1だい）');}
+    MR.apply();}
   assert(Math.abs(cx-fl[2].w/2)<=2&&fl[2].zones.some(z=>z.shop==='arcGacha'&&z.label==='ガチャ コーナー')&&!fl[1].zones.some(z=>z.shop==='arcGacha'),'ガチャ コーナーは 2F の まんなか '+cx);
   assert(g2.every(f=>r2walk(fl[2],f.spots[0])),'ガチャの まえに たてる');
   // ガチャ コーナーの 台は、てまえの 高い もの（はしら など）にも かくれない

@@ -2,10 +2,10 @@
 // ・ほんものの カプセルトイ専門店と おなじく、まいしゅう げつようびに ガチャの なかみが いれかわる（クレーンの けいひんは まいにち かわる。js/crane-machines.js の lineup）。
 // ・わ（ring）: ならんだ 台（slot）と、そこを まわる シリーズ（pool。台の かず より おおい）。1しゅうに 1シリーズずつ いれかわる:
 //   いちばん ながく でて いた シリーズが やすみ、その 台に やすんで いた シリーズが はいる（ほかの 台は おなじ シリーズの まま・ばしょも かわらない）。
-//   pool が L・台が M なら、どの シリーズも L しゅうの うち M しゅう でて、L−M しゅう やすむ。4F は しま 6つ（3だい・4シリーズ）。
+//   pool が L・台が M なら、どの シリーズも L しゅうの うち M しゅう でて、L−M しゅう やすむ。4F は しま 6つ・2F は ガチャ コーナーの 4くみ（どれも 3だい・4シリーズ。2F は UI-63・js/gacha-corner-more.js）。
 // ・しゅうの ばんごう: 2026-09-21（げつ）から かぞえる（0 = まえの ならび・1 = 2026-09-28〜 さいしょの いれかえ）。日づけは CraneMachines.today（PokaDebug.calendar で かえられる）。
 // ・はいった ばかりの 台には「NEW」の はた（ArcadeArt の gacha・f.fresh）。ガチャの がめんに「NEW！ あたらしい ガチャ」「NEW！ また きた ガチャ」「らいしゅうは おやすみ」（Gacha.tagOf）。
-// ・4F に はいった とき、まえに きた しゅうと ちがえば「ガチャの なかみが いれかわったよ」。
+// ・2F・4F に はいった とき、まえに きた しゅうと ちがえば「ガチャの なかみが いれかわったよ」。2F の かんばん（rotInfo: 2）・1F／4F の あんない（rotInfo: 1／4）に こんしゅうの ないようと つぎの いれかえの 日（apply が かく）。
 // ・セーブ: Save.d.gacha.week（さいごに いれかえの ある 階を みた しゅう）だけ。ならびは 日づけで きまる（セーブに のこらない）。
 const MeeRotation = (() => {
   const EPOCH = "2026-9-21";
@@ -38,7 +38,24 @@ const MeeRotation = (() => {
         if (f) Object.assign(f, { variant: it.si, series: it.si, fresh: it.fresh, leaving: it.leaving });
       }
     }
+    // あんない・かんばんの ことば（さいしょの ことばの あとに こんしゅうの ないよう）
+    for (const r of Object.values(def.floors)) for (const f of r.fixtures) if (f.rotInfo) { if (f.baseText == null) f.baseText = f.text || ""; f.text = f.baseText + infoText(f.rotInfo, day, w); }
     return w;
+  };
+  // "2026-10-12" → "10がつ 12にち"
+  const md = (day) => { const [, m, d] = String(day).split("-"); return `${+m}がつ ${+d}にち`; };
+  // あんないに たす ことば（kind 2: 2F の かんばん・1: 1F の あんない〔クレーンの きせつの ぬいぐるみ も〕・4: 4F の あんない）
+  const infoText = (kind, day, w) => {
+    const next = `つぎの いれかえは ${md(monday(w + 1))}（げつようび）。`;
+    if (kind === 2) {
+      const L = RINGS.filter((R) => R.floor === 2).flatMap((R) => lineup(R, w)), nm = (x) => `「${Gacha.SERIES[x.si].name}」`, fresh = L.filter((x) => x.fresh).map(nm), out = L.filter((x) => x.leaving).map(nm);
+      return (fresh.length ? `\nこんしゅうの NEW: ${fresh.join("")}` : "") + `\nらいしゅう おやすみ: ${out.join("")}\n${next}`;
+    }
+    if (kind === 1) {
+      const se = typeof ArcadePrizes !== "undefined" && ArcadePrizes.seasonal ? ["wanko", "gachan", "goji"].map((who) => ArcadePrizes.seasonal(who, day)).filter(Boolean) : [];
+      return `\nクレーンの けいひんは まいにち、ガチャは まいしゅう げつようびに かわるよ。つぎの いれかえは ${md(monday(w + 1))}。` + (se.length ? `\nいまの きせつの ぬいぐるみ: ${se.map((it) => it.name.replace(/の ぬいぐるみ$/, "")).join("・")}（1F の 3にんの クレーン）` : "");
+    }
+    return "\n" + next;
   };
   // いまの しゅうの シリーズの ようす（ガチャの がめん・PokaDebug）
   const stateOf = (si, w = week()) => { for (const R of RINGS) { const it = lineup(R, w).find((x) => x.si === si); if (it) return { ring: R.id, ...it }; } return null; };
@@ -46,7 +63,7 @@ const MeeRotation = (() => {
     const w = week(day);
     return { day, week: w, monday: monday(w), next: monday(w + 1), rings: RINGS.map((R) => ({ id: R.id, floor: R.floor, name: R.name, pool: pool(R), slots: lineup(R, w).map((x) => ({ ...x, name: Gacha.SERIES[x.si].name })), resting: resting(R, w) })) };
   };
-  // 4F に きた とき: まえに きた しゅうと ちがえば おしらせ（はじめて の ときは きろく だけ）
+  // 2F・4F（わの ある 階）に きた とき: まえに きた しゅうと ちがえば おしらせ（はじめて の ときは きろく だけ）
   const notice = (sc) => {
     if (!RINGS.some((R) => R.floor === sc.floor)) return;
     const g = Gacha.st(), w = week(), was = g.week, fl = sc.floor;
@@ -58,6 +75,8 @@ const MeeRotation = (() => {
   const install = () => {
     // 4F の ガチャの しま 6つ（js/gacha-forest.js の ISLES。add・rest は js/gacha-forest-more.js）
     for (const I of GachaForest.ISLES) RINGS.push({ id: "4f-" + I.id, floor: 4, name: I.name, ids: I.ids.slice(), add: (I.add || []).slice(), rest: I.rest || 0, from: 1 });
+    // 2F の ガチャ コーナーの 4くみ（js/gacha-corner-more.js の RINGS・台は js/ike-arcade.js の ring／slot・UI-63）
+    if (typeof GachaCornerMore !== "undefined") for (const C of GachaCornerMore.RINGS) RINGS.push({ id: C.id, floor: 2, name: C.name, ids: C.ids.slice(), add: C.add.slice(), rest: C.rest || 0, from: 1 });
     // ガチャの がめんの ふだ（js/gacha.js の Gacha.tagOf）
     Gacha.tagOf = (si) => { const s = stateOf(si); return !s ? "" : s.debut ? "NEW！ あたらしい ガチャ" : s.fresh ? "NEW！ また きた ガチャ" : s.leaving ? "らいしゅうは おやすみ" : ""; };
     // 館に はいる・かいを うつる たびに その しゅうの ならびに する（gowaga-wish.js も loadFloor を つつむ・どちらが さきでも よい）
@@ -72,9 +91,13 @@ const MeeRotation = (() => {
     // もりの あんない（4F）に いれかえの こと
     const def = VenueHalls.defs.arcade, dir = def && def.floors && def.floors[4] && def.floors[4].fixtures.find((f) => f.kind === "directory");
     if (dir && !/いれかわる/.test(dir.text)) dir.text += "\nガチャの なかみは まいしゅう げつようびに しまごとに 1だいずつ いれかわるよ（NEW の はたが あたらしい ガチャ）";
+    if (dir) dir.rotInfo = 4;
+    // 1F の フロア あんない: クレーンの 日がわり・ガチャの しゅうがわり・きせつの ぬいぐるみ
+    const dir1 = def && def.floors && def.floors[1] && def.floors[1].fixtures.find((f) => f.kind === "directory");
+    if (dir1) dir1.rotInfo = 1;
     apply();
   };
   install();
 
-  return { EPOCH, RINGS, week, monday, pool, lineup, resting, apply, stateOf, info, notice };
+  return { EPOCH, RINGS, week, monday, pool, lineup, resting, apply, stateOf, info, notice, infoText, md };
 })();
