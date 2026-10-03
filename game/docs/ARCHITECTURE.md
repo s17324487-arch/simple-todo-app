@@ -179,6 +179,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `burger-menu.js`（scene-store.js・shop.js・puri-pose.js の あと・figure-stand.js の まえ） | `BurgerMenu`（バーガーやさんの メニュー・にこにこ セットの おまけ・UI-34） |
 | — | `food-balance.js`（farm-cook.js の あと＝ぜんぶの たべものが そろった あと） | `FoodBalance`（たべものの バランス: そのままの やさい・りょうり・ねだんで ごきげん・「おなか+N ごきげん+M」・UI-35） |
 | — | `fashion-show.js` → `fashion-art.js` → `fashion-hall.js` → `fashion-scene.js`（food-balance.js の あと・item-dex-sources.js の まえ） | `FashionShow`（ファッションショーの きまり・セーブ）／ `FashionArt`（かお・ポーズ・けいひん・しゃしん）／ `FashionHall`（会場・ほんの ギャラリー）／ `FashionScene`（ランウェイ・`SCENES.fashion`）・UI-36 |
+| — | `kaden-items.js` → `kaden-live.js` → `kaden-hall-art.js` → `kaden-hall.js`（fashion-scene.js の あと・item-dex-sources.js の まえ。mall-art.js・ike-mall.js・shop-reward-art.js・ikebukuro-district.js より あと） | `KadenItems`（家電の 立体・なまえ）／ `KadenLive`（おうちで さわる うごき）／ `KadenHallArt`（内装の 絵）／ `KadenHall`（ネリカス でんきの 4かいの 館・UI-56。さいごで `KadenHall.install()`） |
 | — | `furn-tray.js`（home-floors.js の あと） | `FurnTray`（もようがえの 一覧を ひろげる・さがす・ならびかえ・しゅるい・UI-37） |
 | — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび 44この 立体と さわる うごき・UI-38） |
 | — | `rug-lamp.js`（shop-reward-art.js の あと・slow-life-prices.js の まえ） | `RugLamp`（かぐやの ラグ 8 と ランプ 8・UI-39） |
@@ -1259,6 +1260,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - すすみぐあい（`progress`）: hunt は うけた ときの `Save.d.dex[enemy].won` からの ふえた かず。errand は `Talk.run` を つつみ、たのんだ 町の人（`to`）に しなものが あれば わたす（なければ ヒントを いってから ふだんの `Talk.run` へ。はじめての あいさつ・ペンの つりざお・おねがい を とめない）。find は `TownFolk.spotsOn`・`investigate`・`following` を つつみ、`TownFolk.pickSpots` で えらんだ きらきら（`req: "neriq:<id>"`）を しらべる。`follow` の ある いらい（ねこ・インコ）は `WorldScene.startFollower` の あとに 見た目を かえる。
 - ほうこく（`report`）で `Save.addCoins(reward)`・`done`・`total`・`earned`。ついて くる どうぶつは いなく なる。すまほの `quests` アプリは `phoneView`。
 - テスト: `tools/check-nerikasu-town.mjs`（けいじばんの 場所・データ・★と ほうしゅう・1日の 6まい・3つまで・たいじ・ほうこく・つぎの 日・セーブ）。スモーク「neri-quests-390 / 375」（`tests/nerikasu-quests-smoke.mjs`。smoke.mjs の `folkTalk`・`folkTapSpot` を つかう。けいじばんは 日づけで かわるので `PokaDebug.today` で きまった 日（2026-10-5）に する。ほかの 日は `NERI_QUEST_DAY=2026-1-4` などで ためせる）・「smaho」。
+
+## ネリカス でんき（池袋の 家電の 館・UI-56・`js/kaden-items.js`・`js/kaden-live.js`・`js/kaden-hall-art.js`・`js/kaden-hall.js`）
+
+- 読み込みは `kaden-items.js` → `kaden-live.js` → `kaden-hall-art.js` → `kaden-hall.js`（fashion-scene.js の あと・item-dex-sources.js の まえ）。トップレベル名は `KadenItems`・`KadenLive`・`KadenHallArt`・`KadenHall`。
+- `KadenItems`: `OLD`（まえの 24しなの なまえ・せつめいを ひらがなに。id・ねだんは そのまま）・`NEW`（あたらしい 9しゅ。`IkebukuroCatalog.furniture` で `FURNITURE`・`BUY_SHOPS.ike_electronics`・`IkebukuroCatalog.groups.electronics` に はいる）・立体 29しゅ（`FurnModels.register`。`k.L()` の ぶぶんは live の とき 絵から ぬく）・`FURN_ART.ike_kaden_aircon`（かべの 2D）・`CH`（テレビの ばんぐみ 5）・`tvShow(ctx, ch, t, w, h)`・`tvNoise`・`trio`（3人の ちいさな え）など。館の テレビの かべも `tvShow` を つかう。
+- `KadenLive`: `FurnLive.register(id, { tap, draw, isOn }, live)`。`ShopRewardArt.liveKit` の `mapper`・`say`・`tone` を つかう。state は `FurnLive` の はじめの あたい（`t0` −99・`ch` 0・`on` null・`n` 0）から。テレビの `ch` は タップの かず（はじめの ばんぐみは テレビごとに ちがう `first` から）。
+- `KadenHallArt`（`Object.create(MallArt)`）: 什器の SVG `M`（`modelKey` は kind・大きさ・variant・shop・item・dir・col・z だけ → 有限）・うごく ところ `L`・`wallPart`・`wallText`・`under`・`SHOPS`（うりばの いろと なまえ）・`backdrop`・`tick`・`interact`（`KadenHall.interact` → `MallArt.interact`）。
+- `KadenHall`: `W` 38・`H` 28・`ESC`（1: 1F⇔2F・2: 2F⇔3F）・`floor1`〜`floor10`（room・zones・fixtures・walls）・`stand`（家電の だい。`action: "buy"`）・`DEMO`・`interact`（`demo`・`massage`・`theater`・`watch`）・`state`（PokaDebug の `kaden()`）・`install`（`VenueHalls.defs.electronics` を おきかえる・`BUY_SHOPS.ike_electronics.name` を「ネリカス でんき」に）。BGM は `SONGS.shop_kaden`。
+- `MallGuide.places`: うりばの まえに でる しらべる ものに `demo`・`massage`・`theater`・`watch` を たした。
+- セーブは かわらない。検査は `tools/check-kaden-hall.mjs`。スモークは `tests/kaden-smoke.mjs`（`kaden-hall-390 / 375`）。
 
 ## いちばんくじ（ネリカスタウンの コンビニ・UI-55・`js/ichiban-kuji.js`・`js/kuji-art.js`・`js/kuji-ui.js`）
 

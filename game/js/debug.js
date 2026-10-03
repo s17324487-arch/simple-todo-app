@@ -171,6 +171,7 @@ const PokaDebug = {
       "PokaDebug.stickers()                 シールの ガチャ（4F・30〜32）と シールちょう（てもと・ページ）。stickerGive('stk_wanko', 3) で シールを もらう・stickerUi() で ひらいて いる ページ",
       "PokaDebug.kuji('lawson')             ネリカスタウンの コンビニの いちばんくじ（ロット・のこり・はりつけ ひょう・はんけん・クーポン）。kujiOpen で ボード・kujiNext('A') で つぎの 賞・kujiLeft(s, n) で のこり n まい・kujiDays(s, 1) で つぎの 日・kujiDc(true)・kujiUi()",
       "PokaDebug.areaMap()                  すまほ の ちず「この エリア」の ようす（めじるし・なまえ・えらんだ もの）。areaMapLayout('town', 4.46) で ならびだけ",
+      "PokaDebug.venue('electronics', 2)    ネリカス でんき（池袋の 家電の 館。1F スマホ・カメラ／2F くらしの かでん／3F テレビ・パソコン／10F あかり・シアター）。kaden() で 階・うりば・だいの しなもの・ためしの だい",
     ];
     console.log(lines.join("\n"));
     return lines.length;
@@ -836,6 +837,8 @@ const PokaDebug = {
   burgerMenu() { return typeof BurgerMenu === "undefined" ? null : BurgerMenu.state(); },
   // UI-42: はくぶつかんの ようす（階・へや・ほねの 台の 寄贈の かず と 絵が できたか・ロボット）
   dinoHall() { return typeof DinoMuseum === "undefined" || G.sceneName !== "venue" ? null : DinoMuseum.state(G.scene); },
+  // UI-56: ネリカス でんき（池袋の 家電の 館）の ようす（階・うりば・だいの しなもの・ためしの だい・エスカレーター・絵が できたか）
+  kaden() { return typeof KadenHall === "undefined" || G.sceneName !== "venue" ? null : KadenHall.state(G.scene); },
   museumState() { const st = Save.d.museum; return { fish: Object.keys(st.fish).length, bones: Object.keys(st.bones).length, done: Object.keys(st.done), rooms: Object.keys(st.rooms), intro: document.querySelector(".museum-intro")?.innerText || null }; },
   // ③ さおを もたせる（0 なし／1 つりざお／2 りっぱな つりざお）
   // ⑥ 射撃場: ロビーを とばして あそびを はじめる（ロックは むし・もどり先は シティの 入口の まえ）
