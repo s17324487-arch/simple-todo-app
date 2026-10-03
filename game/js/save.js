@@ -80,6 +80,8 @@ const Save = {
         // ネリカスタウンの ガソリンスタンド・ゆうびんきょく（2026-09-29）
         gasstand: { lv: 1, rep: 0, best: 0, plays: 0 },
         postoffice: { lv: 1, rep: 0, best: 0, plays: 0 },
+        // あたまの たいそう（js/mg-brain.js・2026-10-03）: games は ゲームごとに えらんだ かず・last は さいごに えらんだ ゲーム
+        brain: { lv: 1, rep: 0, best: 0, plays: 0, games: { spot: 0, pair: 0, math: 0 }, last: "" },
       },
       daily: {last:'',stamps:0,total:0,cycles:0},
       // ネリカスタウンの いらいの けいじばん（js/neri-quests.js）: きょうの 6まい・うけて いる いらい（3つまで）・きょう おわった もの・これまでの かず と ほうしゅう

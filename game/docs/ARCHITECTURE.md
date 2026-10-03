@@ -168,6 +168,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `korokoro-physics.js` / `korokoro-art.js` / `mg-korokoro.js` / `korokoro-town.js` | `KOROKORO_TIERS`, `KOROKORO_RULES`, `KorokoroWorld` ／ `KorokoroArt` ／ `KOROKORO_ORDERS`, `KOROKORO_BONUS`, `KorokoroSound`, `KOROKORO_FACE`, `KorokoroBoard`, `KorokoroTask` ／ `KorokoroTown` |
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
 | — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
+| — | `brain-art.js` / `mg-brain.js`（korokoro-town.js の あと・nerikasu-town.js の まえ） | `BrainArt` ／ `BRAIN_FONT`, `BrainGames`, `BRAIN_SPOT_SCENES`, `BrainSpotTask`, `BrainPairTask`, `BrainMathTask`, `BRAIN_TASKS`, `BrainTask`, `BrainTown` |
 | — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
 | — | `gacha-art.js` / `gacha-art-more.js` / `gacha.js`（purikura.js の あと） | `GachaArt` ／ `GachaArtMore` ／ `Gacha` |
 | — | `gacha-forest-art.js` / `gacha-forest.js`（gacha.js の すぐ あと） | `GachaForestArt` ／ `GachaForest` |
@@ -1111,6 +1112,21 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ハイスコアの ごほうび: `js/korokoro-prizes.js`。`KOROKORO_PRIZES`（6つ・めやす 200〜2500てん）を 家具（`rare`・`price: 0`・`koroPrize`・`interactive`）として `FURNITURE` に たし、`FurnModels.register` で 立体モデル・`FurnLive.register` で タップの うごき（`live` の ときは うごく ぶぶん〔さくらんぼ・みかん・タワーの 玉と ガラスの つや〕を 絵から ぬいて canvas に 描く）。スコア モードの けっかで `KorokoroPrizes.claim(score)` が `max(score, hi)` までの まだの ものを わたす（`shops.korokoro.gifts` に 日づけ・`Save.d.furn` に 1つ）。けっかの まどに カード（`KorokoroScore.giftEl`・絵は img で id が かさならない）と つぎの めやす、店の モードえらびに「とくべつな かぐ N/6」、はじめの ことばに つぎの ごほうび。ずかんの てに いれかたは `ItemDexSources`。タワーの なかの 22この 玉は `KorokoroWorld`（がったい なし）で じっさいに おとして とまった ならび。
 - PokaDebug: `shop('korokoro', lv)`・`mg().order`（はこの CSS 座標 `box.x0`/`y0`/`unit`・`bodies`・`held`/`next`・`canDrop`・`want`・`spills`・`points`・`made`）・`koroSetup({ bodies: [[だん, x, y], …], held, next, seed, points })`（スコア モードでも。points は スコア）・`koroScore({ seed })`（スコア モードを はじめる）・`koro()`（スコア モードの ようす: `phase`〔intro / play / over / result〕・`score`・`hi`・`tops`・`recent`・`gifts`・`paused`〔きろくの まどで とまって いる〕・`t`〔物理の 時計〕・`box`・`row`・`panel`・`nextBox`・`sign`・`team`〔`face` は いま 描いて いる かお〕・`bodies`〔`emo` は 玉の 表情〕）。
 - 検査: `tools/check-korokoro.mjs`（だんと 点・おちる 確率・物理・がったい・あふれ・ちゅうもん・こどもの はやさの ボットの バランス・スコア モード〔おしまい・点・ランキング・コイン・画面・ボット〕・絵・お店・町・セーブ・BGM）・スモーク `nerikasu-korokoro-390` / `-375`（ちゅうもん モード）・`nerikasu-korokoro-score-390` / `-375`（スコア モード）。
+
+## あたまの たいそう（ネリカスタウンの のうトレの おてつだい・UI-64・`js/brain-art.js`・`js/mg-brain.js`）
+
+- おみせ `brain`（`SHOPS`・4にん）。店内で「おてつだいする」→ `BrainGames.choose(store)`（`js/scene-store.js` が よぶ。ほかの おみせは `""`・やめたら `null`）で 3しゅから えらぶ → `Game.goto("shop", { …, variant })`。えらんだ かずは `Save.d.shops.brain.games`（`spot`・`pair`・`math`）・`last`。
+- `MG_TASKS.brain` は `BrainTask`（ふつうの 関数）: `new BrainTask(sc, lv)` が `sc.variant` の クラス（`BRAIN_TASKS`）を かえす（ない ときは まちがい さがし）。たなの しなものは `BrainTask.backdrop`。
+- せつめい: `HOWTO.brain` は 関数（`(sc) => BrainGames.howto(sc.variant)`）。`ShopScene.flow` は `HOWTO[shop]` が 関数なら sc を わたして よぶ（ほかの おみせは 配列の まま）。いちばん さいしょの おてつだいは おみせの なかで、2かいめ いこうに はじめて えらんだ ゲームは 店内で（`BrainGames.choose`）その ゲームの せつめい。
+- まちがい さがし `BrainSpotTask`: 3×4 マスの 2まいの え（`left`・`right`。マスの なかで すこし ずれて まわる）。ちがいは `diffs`（Lv で 3〜5つ。`gone` ない・`extra` ふえた・`color` いろ・`kind` ちがう もの・Lv.3〜 `size` ちいさい・Lv.4〜 `flip` むき〔よこむきの ちがいが わかる こもの だけ〕）。さいしょは ちがう しゅるいを 1つずつ。どちらの えを タップしても よい。採点: みつけた かず × 100 − はずれ 6 − ヒント 10 − 時間。
+- おなじ え さがし `BrainPairTask`: カード 6〜10くみ（Lv.4 から いろだけ ちがう くみ 2〜3）。さいしょに `peek` びょう みせる（その あいだは めくれない）。ちがうと 0.8びょう で もどる。採点: そろった くみ × 100 − （みのがし − `free`）× 5 − 時間（`free` = くみの 0.8ばい。ぜんぶ おぼえて いても さいしょは めくって みないと わからない ため。ほんものの 神経衰弱を かんぺきに おぼえて やると だいたい くみの 1.61ばいの 手かずに なる〔Velleman・Warrington〕）。
+- くだもの けいさん `BrainMathTask`: `BrainMathTask.make(lv)` の もんだい 3〜5もん（Lv.1 たしざん 5まで・Lv.2 10まで・Lv.3 ひきざんも・Lv.4 15まで・Lv.5 20まで と「なんこ ふえたら」）。くだものを 5こずつ ならべる（ひきざんは たべた ぶんに ばつ）。こたえは 4つの ボタン（`choices`）。まちがえると その ボタンが きえて もういちど。採点: 1かいめ 1・2かいめ 0.5・3かいめ 0.25 の あわせ ÷ もんだいの かず × 100 − 時間。
+- 絵 `BrainArt`: こもの 12しゅ × いろ 2つ（`PIECES`・`piece(kind, v)`）・くだもの 4しゅ（`FRUITS`）・カードの うら・むしめがね。canvas へは `BrainArt.draw`（`mgIcon` の キー `mg:brain:しゅるい:いろ`・むきは ctx の はんてん・まわすのも ctx）。キャッシュの キーは 有限。
+- 店主 `SHOP_OWNERS.brain`（ふくろうの ホーせんせい）・店内 `STORE_INTERIORS.brain`（こくばん・ほんだな・つくえ・まちがい さがしの え・ちきゅうぎ・パズルの たな）・BGM `SONGS.shop_brain`（モーツァルト「きらきらぼし」の ディスクの 写しを ピアノと マレットで）・ディスク `disc_shop_brain`・ちずの めじるし `owl`・かんばんの しるし `SIGN_ICON.brain`。
+- 町: `BrainTown`（`js/mg-brain.js`）が `NerikasuTown.install` の まえに nerikasu_home6（まちの おうち）を お店に する（`js/nerikasu-layout.js` の `house` を はずした。足もと・入口・大きさは そのまま）。建物の 絵は `tools/town-design/nerikasu-buildings.mjs` の `brain()`。
+- ごほうび（`js/shop-rewards.js`・`js/shop-reward-art.js`）: ふくろうの スツール・ちきゅうぎの ランプ（さわると ひかる）・こくばんの つくえ・ほしの てんもんだい。
+- PokaDebug: `shop('brain', lv, 'spot' | 'pair' | 'math')`・`mg().order`（`game` と ゲームごとの ようす: まちがい さがしは `diffs`〔ひだり・みぎの CSS 座標〕と `same`〔ちがいで ない こもの〕・おなじ え さがしは `cards`〔`key`・CSS 座標〕と `peek`・くだもの けいさんは `cur`〔`ans`・`choices`〕）。
+- 検査: `tools/check-brain.mjs`（とうろく・ふるい セーブ・3しゅの きまりと 採点・Lv ごとの かず・2つの がめんで 44px・ことば）・`tools/check.mjs`（3しゅとも 正しく あそぶと 100点）。スモーク `brain-spot`・`brain-pair`・`brain-math`（各 390/375。`tests/brain-smoke.mjs`）。
 
 ## サンシャインいけぶ（斜めの 館・UI-04）
 

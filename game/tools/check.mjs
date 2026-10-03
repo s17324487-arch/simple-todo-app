@@ -495,6 +495,20 @@ for (const [shop, Task] of Object.entries(R.MG_TASKS)) for (let lv = 1; lv <= 5;
       for (const b of t.btns) ok(b.w >= 44 && b.h >= 44, "postoffice: ボタンの 大きさ");
       perfect = t.score();
     }
+    if (shop === "brain") {
+      // あたまの たいそう（3しゅ。くわしくは tools/check-brain.mjs）: まちがい さがし（さいしょの t）・おなじ え さがし・くだもの けいさん
+      for (const d of t.diffs) t.downArea(t.center(t.pics[1], d.cell));
+      perfect = t.found === t.k ? t.score() : -1;
+      const p = new Task({ ...fakeScene(), variant: "pair" }, lv); p.layout(RECT); p.tick(p.peek + 0.01);
+      const keys = {}; for (const c of p.cards) (keys[c.key] = keys[c.key] || []).push(c);
+      for (const two of Object.values(keys)) for (const c of two) p.downArea({ x: c.x, y: c.y });
+      ok(p.done === p.pairs && p.score() === 100, `brain pair Lv${lv}: そろえても 100点に ならない（${p.score()}）`);
+      const m = new Task({ ...fakeScene(), variant: "math" }, lv); m.layout(RECT);
+      for (const b of m.btns) ok(b.x >= RECT.x - 1 && b.x + b.w <= RECT.x + RECT.w + 1 && b.y + b.h <= RECT.y + RECT.h + 4 && b.w >= 44 && b.h >= 44, `brain math Lv${lv}: こたえの ボタン`);
+      for (let i = 0; i < m.nq; i++) { m.btns.find((b) => b.label === String(m.cur.ans)).cb(); m.tick(1); }
+      ok(!m.cur && m.score() === 100, `brain math Lv${lv}: ぜんぶ あてても 100点に ならない（${m.score()}）`);
+      for (const v of ["pair", "math"]) { const q = new Task({ ...fakeScene(), variant: v }, lv); q.layout(RECT); ok(q.timeout() < 45 && q.timeLimit > 5 && typeof q.title === "string", `brain ${v} Lv${lv}: 時間切れ・timeLimit・title`); }
+    }
     ok(perfect === 100, `ミニゲーム ${shop} Lv${lv}: 正しい操作で 100点に ならない（${perfect}）`);
     const t2 = new Task(fakeScene(), lv); t2.layout(RECT);
     ok(t2.timeout() < 45, `ミニゲーム ${shop} Lv${lv}: 何もしないで 時間切れでも 点が高すぎる（${t2.timeout()}）`);
@@ -1165,7 +1179,7 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
     Save.d=prior;return {valid,boundaries,once,preserved,ledger,cap,unique:new Set(ids).size,count:ids.length};
   })()`,ctx);
   for(const k of ["valid","boundaries","once","preserved","cap"])ok(rewards[k],"お店のレベル報酬: "+k);
-  ok(rewards.count===44&&rewards.unique===44&&rewards.ledger===44,"お店11種×4段階の非売品が一度ずつ");
+  ok(rewards.count===48&&rewards.unique===48&&rewards.ledger===48,"お店12種×4段階の非売品が一度ずつ");
 }
 
 // ---------- 水の 絵（川・海・湖。js/water-art.js）----------

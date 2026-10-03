@@ -975,6 +975,101 @@ const ShopRewardArt = (() => {
       k.lineOn(k.SD(30.2), [[cy, clockZ], [cy + Math.sin(a1) * 6.4, clockZ + Math.cos(a1) * 6.4]], INK, 1.8) + k.lineOn(k.SD(30.2), [[cy, clockZ], [cy + Math.sin(a2) * 9.4, clockZ + Math.cos(a2) * 9.4]], INK, 1.2);
   }
 
+  // ================= あたまの たいそう（UI-64）=================
+  // まるい からだの ななめ まえ（見る 人の ほう）に はる 面: s は がめんの みぎ・t は たかさ
+  const facing = (k, cx, cy, r, ang = Math.PI / 4) => k.tilt([cx + Math.cos(ang) * r, cy + Math.sin(ang) * r, 0], [Math.sin(ang), -Math.cos(ang), 0], [0, 0, 1]);
+  M.shop_brain_5 = (k) => {
+    // ふくろうの スツール: ちゃいろの まるい からだ（はねの もよう）・まえに おおきな めと くちばし・みみの はね・あしの つめ・うえは すわる ざぶとん
+    const { egg, cyl, dome, shape, lineOn, at, shadow, rg } = k, cy = -22;
+    let s = shadow(0.13, 4, 18);
+    // みみの はね（うしろ）
+    for (const [x, y] of [[-6, cy - 12], [12, cy + 6]]) s += at(x, y, 36, `<path d="M-3.6,0 L${x < 0 ? -1.6 : 1.6},-13 L3.6,0 Z" fill="#9C744E" ${S(1.2)}/>`, 5, 14);
+    s += egg(0, cy, 22, 20, 20, 22, rg([[0, "#D9B48C"], [0.6, "#B98B5E"], [1, "#8C6440"]], 0.35, 0.3, 0.85), 1.5);
+    // おなかの まるい もよう（うろこの はね）・め・くちばし（ななめ まえの 面）
+    const F = (d) => facing(k, 0, cy, 20 - d);
+    s += shape(F(3.4), ov(0, 14, 10.5, 10, 24), "#F3E3C6", 1.1);
+    for (const [x, z] of [[-5, 18], [0, 18], [5, 18], [-2.5, 13], [2.5, 13], [0, 8]]) s += lineOn(F(3.2), [[x - 2.2, z + 1.2], [x, z - 0.8], [x + 2.2, z + 1.2]], "#C9A27A", 1);
+    for (const x of [-7, 7]) s += shape(F(4.6), ov(x, 30.5, 6.4, 6.4, 24), "#FFFFFF", 1.3) + shape(F(4.4), ov(x * 0.96, 30.2, 2.9, 3.1, 16), INK, 0) + shape(F(4.3), ov(x * 0.96 - 1, 31.4, 0.9, 0.9, 8), "#FFFFFF", 0);
+    s += shape(F(2.4), [[-2.8, 25.8], [2.8, 25.8], [0, 20.6]], "#F2A93B", 1.1);
+    // あし
+    for (const x of [-6.5, 6.5]) { const q = F(0)(x, 0); s += at(q[0], q[1], 1, `<path d="M-5,0 Q-4,-4 0,-4 Q4,-4 5,0 M-2.4,-3.6 V0 M2.4,-3.6 V0" fill="#F2A93B" ${S(1.1)}/>`, 6, 5); }
+    // ざぶとん
+    s += cyl(0, cy, 40, 15, 2.6, "#8C6440", "#A9845E", 1.3) + dome(0, cy, 42.6, 15, 15, 4.4, "#E8C9A0", 1.3);
+    return s;
+  };
+  // ちきゅうぎの まんなか（live の ひかり）
+  const GLOBE = { x: 0, y: -21, z: 64, r: 22 };
+  M.shop_brain_10 = (k) => {
+    // ちきゅうぎの ランプ: きの まるい だい・きんの じく と はんえんの わく（うしろ）・うみと りくの ちきゅう（よるは なかから ひかる）
+    const { cyl, frustum, ball, rod, line, at, shadow, rg } = k, { x, y, z, r } = GLOBE;
+    let s = shadow(0.12, 6, 18) + cyl(x, y, 0, 15, 5, "#8C6848", "#A9845E", 1.4) + frustum(x, y, 5, 10, 14, 5, "#A9845E", "#C9A26E", 1.3);
+    s += rod([[x, y, 14], [x, y, z - r - 2]], GOLDD, 2.4);
+    // はんえんの わく（うしろ がわ）
+    const RING = r + 9, arc = Array.from({ length: 25 }, (_, i) => { const a = -0.2 * Math.PI + (i / 24) * 1.4 * Math.PI; return [x - Math.sin(a) * RING * 0.92, y - 4, z - Math.cos(a) * RING]; });
+    s += line(arc, INK, 4.6) + line(arc, GOLD, 2.6);
+    s += ball(x, y, z, r, rg([[0, "#BFE3F7"], [0.55, "#7CBFE6"], [1, "#4C8FC4"]], 0.36, 0.32, 0.8), 1.5, 0.35);
+    // りく（まるの なかに おさめる）
+    const R = r * 1.23;
+    s += at(x, y, z, `<g transform="scale(${(R / 30).toFixed(3)})"><path d="M-18,-14 C-12,-22 -2,-20 0,-14 C2,-8 -6,-6 -8,0 C-10,6 -16,4 -19,-2 C-22,-8 -21,-10 -18,-14 Z" fill="#9ED38C" ${S(1.1)}/><path d="M4,-6 C10,-10 18,-8 20,-2 C22,6 16,10 12,16 C8,20 2,18 4,12 C6,6 0,0 4,-6 Z" fill="#9ED38C" ${S(1.1)}/><path d="M-10,12 C-6,10 -2,14 -4,18 C-6,21 -11,19 -10,12 Z" fill="#9ED38C" ${S(1)}/><path d="M-27,2 C-14,6 14,6 27,2" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-opacity=".7" stroke-dasharray="2 2"/></g>`, R, R, false);
+    s += ball(x, y - 4, z + RING, 2.4, GOLD, 1, 0.4) + ball(x, y - 4, z - RING, 2.4, GOLD, 1, 0.4);
+    return s;
+  };
+  M.shop_brain_15 = (k) => {
+    // こくばんの つくえ: うしろに きの わくの こくばん（チョークの しき・まる・ほし）・チョークの うけ・きの つくえ・ほんの やま・りんご・えんぴつ たて
+    const { box, prism, shape, FR, TP, cyl, ball, rod, onP, shadow } = k;
+    const WOOD = ["#C9A26E", "#A88457", "#DDBD8A"];
+    let s = shadow(0.12, 2, 8);
+    // こくばん（つくえの うしろの いた）
+    s += box(-52, -56, 4, 6, 0, 110, WOOD) + box(48, -56, 4, 6, 0, 110, WOOD);
+    s += box(-50, -54, 100, 4, 50, 58, ["#355C4B", "#2A4A3C", "#4A7461"]) + shape(FR(-49.9), rect(-46, 54, 92, 50), "#3E6B57", 1.2);
+    const chalk = `<text x="22" y="20" text-anchor="middle" font-size="14" font-family="sans-serif" font-weight="bold" fill="#FFFFFF" fill-opacity=".92">1+2=3</text><circle cx="62" cy="14" r="7" fill="none" stroke="#FFE48A" stroke-width="1.6"/><path d="M73,7 l2.2,4.6 5,.6 -3.7,3.4 1,5 -4.5,-2.5 -4.5,2.5 1,-5 -3.7,-3.4 5,-.6 Z" fill="none" stroke="#F7B9C9" stroke-width="1.3"/><path d="M8,34 Q22,26 36,34 T64,34" fill="none" stroke="#BFE3EE" stroke-width="1.6" stroke-linecap="round"/><path d="M70,30 h10 M75,25 v10" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>`;
+    s += onP(FR(-49.8), -44, 102, 88, 46, k.flip ? `<g transform="translate(88 0) scale(-1 1)">${chalk}</g>` : chalk); // はんてんでも もじは よめる むき
+    s += box(-52, -58, 104, 4, 108, 4, WOOD) + box(-52, -50, 104, 6, 48, 3, WOOD);
+    for (const [x, c] of [[-30, "#FFFFFF"], [-22, "#F7D56A"], [-15, "#F7B9C9"]]) s += box(x, -48, 6, 2, 51, 1.6, [c, shade(c, -0.15), c], 0.7);
+    // つくえ
+    for (const [x, y] of [[-46, -40], [40, -40], [-46, -10], [40, -10]]) s += box(x, y, 6, 6, 0, 44, WOOD);
+    s += prism(TP(50), rr(-50, -44, 100, 40, 3), [0, 0, -6], "#DDBD8A", "#A88457") + box(-40, -36, 80, 26, 30, 12, WOOD) + shape(FR(-9.9), rr(-10, 34, 20, 5, 1.6), "#B99060", 1) + ball(0, -9.6, 36.5, 1.1, GOLD, 0.8, 0);
+    // ほんの やま・りんご・えんぴつ たて
+    for (const [i, c] of [[0, "#E57373"], [1, "#64B5F6"], [2, "#FFD54F"]]) s += box(-40 + i, -34 + i, 26 - i * 2, 18 - i, 50 + i * 5, 5, [c, shade(c, -0.18), shade(c, 0.12)], 1.1);
+    s += ball(14, -26, 56, 5, "#EF5350", 1.2, 0.5) + rod([[14, -26, 61], [15, -26, 64]], "#7A5634", 1) + k.at(17, -26, 63, `<path d="M0,0 C3,-3 6,-2 7,0 C4,2 2,2 0,0 Z" fill="#7CB342" ${S(0.8)}/>`, 7, 4);
+    s += cyl(34, -24, 50, 5, 10, "#8EC5F4", "#BFE3F7", 1.2);
+    for (const [dx, c] of [[-2, "#F7D56A"], [1, "#E57373"], [3, "#81C784"]]) s += rod([[34 + dx, -24, 58], [34 + dx * 1.6, -24 + dx * 0.4, 72]], c, 1.6);
+    return s;
+  };
+  // てんもんだいの ぼうえんきょう・ほし（live では ない。タップの こうかは ほしの うえ）
+  const DOME = { cy: -52, r: 44, z: 72 };
+  M.shop_brain_30 = (k) => {
+    // ほしの てんもんだい: いしの まるい たてもの（いしの め・アーチの ドア・まるい まど）・まわりの てすりの ある バルコニー・しろい ドーム（ひらいた すきまから ぼうえんきょう）・てっぺんの ほしの かざみどり
+    const { cyl, dome, shape, lineOn, ball, rod, line, at, shadow, lg, rg } = k, { cy, r, z } = DOME;
+    const STONE = lg([[0, "#D9D2C4"], [1, "#B5AD9E"]], 0, 0, 1, 0);
+    const ring = (rad, zz, a0 = -Math.PI / 4, a1 = (3 * Math.PI) / 4, n = 24) => Array.from({ length: n + 1 }, (_, i) => { const a = a0 + ((a1 - a0) * i) / n; return [Math.cos(a) * rad, cy + Math.sin(a) * rad, zz]; });
+    let s = shadow(0.12, 2, 44);
+    s += cyl(0, cy, 0, r + 6, 6, "#A9A193", "#C9C2B4", 1.4);
+    s += cyl(0, cy, 6, r, z - 6, STONE, "#DDD7CB", 1.6);
+    for (const zz of [22, 40, 58]) s += line(ring(r + 0.3, zz), "#A9A193", 1);
+    // アーチの ドア（ななめ まえ）と まるい まど（みぎ）
+    const D = facing(k, 0, cy, r + 0.4);
+    s += shape(D, arch(-11, 11, 6, 40, 50), "#5C6BC0", 1.4) + lineOn(D, [[0, 8], [0, 48]], "#3F4A99", 1.2) + shape(D, [[-14, 54], [14, 54], [14, 57.4], [-14, 57.4]], "#8C8678", 1);
+    { const q = D(6, 26); s += ball(q[0], q[1], q[2], 1.3, GOLD, 0.8, 0); }
+    const W = facing(k, 0, cy, r + 0.4, 0.15);
+    s += shape(W, ov(0, 40, 7.2, 7.2, 24), "#FFE9A8", 1.4) + lineOn(W, [[-7, 40], [7, 40]], "#8C8678", 1.2) + lineOn(W, [[0, 33], [0, 47]], "#8C8678", 1.2);
+    // バルコニー（てすりの うしろ はんぶん → ドーム → まえ はんぶん）
+    const posts = (a0, a1) => { let q = ""; for (let a = a0; a <= a1 + 1e-6; a += Math.PI / 8) q += rod([[Math.cos(a) * (r + 7), cy + Math.sin(a) * (r + 7), z + 3], [Math.cos(a) * (r + 7), cy + Math.sin(a) * (r + 7), z + 12]], "#7A7468", 1); return q + rod(ring(r + 7, z + 12, a0, a1), "#8C8678", 1.4); };
+    s += cyl(0, cy, z, r + 8, 3, "#8C8678", "#A9A193", 1.3) + posts((3 * Math.PI) / 4, (7 * Math.PI) / 4);
+    // ドーム（すきまから ぼうえんきょう）
+    s += dome(0, cy, z + 3, r - 2, r - 2, 40, rg([[0, "#FFFFFF"], [0.6, "#E3E8EE"], [1, "#B9C3CE"]], 0.35, 0.25, 0.9), 1.6);
+    for (const zz of [z + 16, z + 30]) { const q = Math.sqrt(Math.max(0, 1 - ((zz - z - 3) / 40) ** 2)) * (r - 2); s += line(ring(q + 0.2, zz), "#C9D1DA", 1); }
+    const SA = 0.95, band = Array.from({ length: 10 }, (_, i) => { const t = (i / 9) * (Math.PI / 2) * 0.96, q = (r - 2) * Math.cos(t); return [Math.cos(SA) * q, cy + Math.sin(SA) * q, z + 3 + 40 * Math.sin(t)]; });
+    s += line(band, INK, 11) + line(band, "#2E3550", 8.4);
+    const tq = (q, zz) => [Math.cos(SA) * q, cy + Math.sin(SA) * q, zz];
+    s += rod([tq(r - 18, z + 24), tq(r + 8, z + 50)], "#8EA3C9", 5.6) + ball(...tq(r + 8, z + 50), 3.6, "#5C6BC0", 1.2, 0.3);
+    for (const [a, zz] of [[0.2, z + 14], [1.75, z + 18], [1.3, z + 32]]) s += at(Math.cos(a) * (r - 7), cy + Math.sin(a) * (r - 7), zz, `<path d="${starPath(0, 0, 4.4, 1.9)}" fill="#F7D56A" ${S(0.8)}/>`, 5, 5);
+    s += posts(-Math.PI / 4, (3 * Math.PI) / 4);
+    // てっぺん: ほしの かざみどり
+    s += rod([[0, cy, z + 43], [0, cy, z + 60]], "#7A7468", 1.6) + at(0, cy, z + 64, `<path d="${starPath(0, 0, 8, 3.4)}" fill="#F7D56A" ${S(1.2)}/>`, 9, 9);
+    s += ball(0, cy, z + 44, 2.4, GOLD, 1, 0.3);
+    return s;
+  };
   for (const [id, fn] of Object.entries(M)) if (FURN_INDEX[id]) FurnModels.register(id, fn);
 
   // ================= さわる（FurnLive）=================
@@ -1315,6 +1410,12 @@ const ShopRewardArt = (() => {
     // よるは とけいの もじばんが ひかる
     light(ctx, sc, it, r) { const P = mapper(sc, it, r), { cx, cy, clockZ } = TOWER; for (const c of [P(cx, -16.6, clockZ), P(30.25, cy, clockZ)]) glow(ctx, c.x, c.y, 20 * P.s, "255,240,190", 0.5); },
   }, true);
+
+  // ---- あたまの たいそう ----
+  simple("shop_brain_5", ["ホーホー！ よく みてるよ", "ふくろうの せんせいと いっしょ", "かんがえごとに ぴったり"], "note", [0, -22, 58], [392, 330, 392]);
+  lamp("shop_brain_10", { pts: [[GLOBE.x, GLOBE.y, GLOBE.z, 30]], rgb: "170,215,255", lines: ["ちきゅうぎが ぴかっ！", "ちきゅうぎ おやすみ"] });
+  simple("shop_brain_15", ["1たす2は 3！", "きょうの もんだい なにかな", "チョークで おえかき"], "spark", [0, -48, 96], [659, 784, 880]);
+  simple("shop_brain_30", ["ほしが みえた！", "あれは なにぼし かな？", "おつきさまも みえるよ"], "spark", [24, DOME.cy + 34, DOME.z + 56], [784, 988, 1175, 1568]);
   return {
     ids: Object.keys(M),
     model(id, opts = {}) { return FurnModels.build(id, opts); },

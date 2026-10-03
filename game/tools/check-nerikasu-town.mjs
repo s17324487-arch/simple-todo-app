@@ -29,7 +29,8 @@ for(let i=1;i<row.length;i++)assert(row[i].x>=row[i-1].x+row[i-1].w&&Math.abs(ro
 for(const [id,word] of [['neri_lawson','ローリソン'],['neri_sevenbun','せぶんぶん'],['neri_bikkupo','びっくぽ'],['neri_apartment','アパート'],['neri_gas','ガソリンスタンド'],['nerikasu_home1','おとどけ'],['neri_post','ゆうびんきょく'],['neri_chuka','中華']])assert(B(id).label.includes(word),id+' label');
 assert(d.buildings.filter(b=>b.x>=68&&b.label==='まちの おうち').length>=7,'houses east of the right road');
 // 他の家は なるべく 使いまわさない（ぜんぶ ちがう 絵）
-const houses=d.buildings.filter(b=>b.label==='まちの おうち');assert(houses.length>=10);assert.equal(new Set(houses.map(b=>b.asset)).size,houses.length,'reused house art');
+// まちの おうち 9けん（nerikasu_home6 は あたまの たいそう〔のうトレの おてつだい・UI-64〕に なった）
+const houses=d.buildings.filter(b=>b.label==='まちの おうち');assert(houses.length>=9,'houses '+houses.length);assert.equal(new Set(houses.map(b=>b.asset)).size,houses.length,'reused house art');
 // 前の 町の 建物の ID と はたらき（お店・おてつだい・会場・おうち）は のこす。消したのは オーナーが「なくても よい」と した もの だけ
 const prev=L.previous;assert.equal(prev.rows.length,68);
 for(const old of prev.buildings){
@@ -40,7 +41,7 @@ for(const old of prev.buildings){
   if(old.act.type!=='visit')assert(inVenue||d.buildings.some(b=>JSON.stringify(b.act)===JSON.stringify(old.act)),'lost '+JSON.stringify(old.act));
 }
 const acts=d.buildings.filter(b=>b.act.type!=='visit').map(b=>JSON.stringify(b.act));assert.equal(new Set(acts).size,acts.length,'duplicate shop');
-assert.equal(B('neri_bikkupo').act.venue,'bikkupo');assert.equal(B('nerikasu_home5').act.shop,'korokoro');
+assert.equal(B('neri_bikkupo').act.venue,'bikkupo');assert.equal(B('nerikasu_home5').act.shop,'korokoro');assert.equal(B('nerikasu_home6').act.shop,'brain');assert.equal(B('nerikasu_home6').label,'あたまの たいそう');
 for(const id of ['home','clothes','furniture','crepe','dentist','florist','cake','bakery','market','nerikasu_school','nerikasu_nursery'])assert(B(id));
 // 2つの コンビニ（ちがう 商品・歩いて 入る 店）と ファミレス びっくぽ（斜め上の 館）
 for(const id of ['lawson','sevenbun']){
