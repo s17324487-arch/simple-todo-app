@@ -180,6 +180,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `food-balance.js`（farm-cook.js の あと＝ぜんぶの たべものが そろった あと） | `FoodBalance`（たべものの バランス: そのままの やさい・りょうり・ねだんで ごきげん・「おなか+N ごきげん+M」・UI-35） |
 | — | `fashion-show.js` → `fashion-art.js` → `fashion-hall.js` → `fashion-scene.js`（food-balance.js の あと・item-dex-sources.js の まえ） | `FashionShow`（ファッションショーの きまり・セーブ）／ `FashionArt`（かお・ポーズ・けいひん・しゃしん）／ `FashionHall`（会場・ほんの ギャラリー）／ `FashionScene`（ランウェイ・`SCENES.fashion`）・UI-36 |
 | — | `kaden-sticker-art.js`（kaden-live.js の あと・kaden-hall-art.js の まえ）・`kaden-stickers.js`（kaden-hall.js の あと） | `KadenStickerArt`（シール 46しゅと パックの 絵）／ `KadenStickers`（1F の シール うりば・しなもの 12・UI-57。さいごで `install()`） |
+| — | `keiba-rules.js` → `keiba-race.js` → `keiba-art.js` → `keiba-ui.js` → `keiba-scene.js` → `keiba-corner.js`（kaden-stickers.js の あと） | `KeibaRules`（ばけんの きまり）／ `KeibaRace`（ばんぐみ・うま・けっか・はしりかた）／ `KeibaArt`（うま・ちゅうけいの 絵）／ `KeibaUI`（まど）／ `KeibaScene`（`SCENES.keiba`・`SONGS.keiba_fanfare`）／ `KeibaCorner`（セーブ・10F の コーナー・UI-58。さいごで `install()`） |
 | — | `kaden-items.js` → `kaden-live.js` → `kaden-hall-art.js` → `kaden-hall.js`（fashion-scene.js の あと・item-dex-sources.js の まえ。mall-art.js・ike-mall.js・shop-reward-art.js・ikebukuro-district.js より あと） | `KadenItems`（家電の 立体・なまえ）／ `KadenLive`（おうちで さわる うごき）／ `KadenHallArt`（内装の 絵）／ `KadenHall`（ネリカス でんきの 4かいの 館・UI-56。さいごで `KadenHall.install()`） |
 | — | `furn-tray.js`（home-floors.js の あと） | `FurnTray`（もようがえの 一覧を ひろげる・さがす・ならびかえ・しゅるい・UI-37） |
 | — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび 44この 立体と さわる うごき・UI-38） |
@@ -1272,6 +1273,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - `KadenHall`: `W` 38・`H` 28・`ESC`（1: 1F⇔2F・2: 2F⇔3F）・`floor1`〜`floor10`（room・zones・fixtures・walls）・`stand`（家電の だい。`action: "buy"`）・`DEMO`・`interact`（`demo`・`massage`・`theater`・`watch`）・`state`（PokaDebug の `kaden()`）・`install`（`VenueHalls.defs.electronics` を おきかえる・`BUY_SHOPS.ike_electronics.name` を「ネリカス でんき」に）。BGM は `SONGS.shop_kaden`。
 - `MallGuide.places`: うりばの まえに でる しらべる ものに `demo`・`massage`・`theater`・`watch` を たした。
 - セーブは かわらない。検査は `tools/check-kaden-hall.mjs`。スモークは `tests/kaden-smoke.mjs`（`kaden-hall-390 / 375`）。
+
+## ネリカス でんき 10F の けいば ちゅうけい（UI-58・`js/keiba-*.js`）
+
+- `KeibaRules`（ブラウザ なしでも うごく）: `TYPES`（8しゅ。`id`・`name`・`n` えらぶ かず・`ord` じゅんばん・`rate` せんぶんりつ・`multi` あたりが いくつも・`byWaku`）・`WAKU`（ぼうしの いろ）・`wakuCounts(n)`／`wakuOf(n)`・`places(n)`・`sold(t, n)`（うらない わけ）・`key(t, sel)`（"5"・"3-7"・"7>3"・"1-4-9"・"4>1>9"）・`winners(t, order, n, w)`・`combos(t, n, w)`・`expand(t, sel, "one"|"box", n)`・`boxCount`・`settle(t, votes, wins)`（100コイン あたり。`idiv` で きりすて・`plus10`・`toku`）・`odds`・`range`（ふくしょう・ワイドの はば）・`popularity`・`probs(t, q, n, w)`（ハービル）・`marginText`。
+- `KeibaRace`: `clock.shift`（PokaDebug で ひづけを ずらす）・`dayKey()`・`dayInfo(day)`（てんき・ばば・すくない レース・メインの グレード）・`dayNames(day)`（12レースぶんの なまえを 1R から じゅんに）・`head(day, no)`・`card(day)`・`race(day, no)`（うま: `r` つよさ・`p` ほんとうの たしかさ・`q` みんなの よそう・`marks` しんぶんの しるし・`sales` うりあげ）・`crowd(rc, t)`（みんなの まいすう。`q` から ハービル × ぶれ）・`votes(rc, t, mine)`・`board`・`result(rc)`（`order`・`cum` ちゃくさ〔ばしん〕・`time`・`margins`・`early`・`lateLane`…）・`payouts(rc, mine)`・`pos(rc, t)`（1ちゃくの うまの ペース `vc (t − τ + τe^{−t/τ})` と 「まえ・うしろ」の ずれ。のこり 5% から さきは ちゃくさ どおり）・`finishAt`。らんすうは `hash(ひづけ:レース:ようと)` から（`Math.random` なし）。`cache` に いれる。
+- `KeibaArt`: `horseSvg(コマ, けいろ, しょうぶふく, わく)`（viewBox 140×106・あしは 2せつの ぼう・`POSES` 4コマ）・`horseKey`（4 × 5 × 16 × 8 = 2560 の なかから）・`horseImg`・`preload`・`chip`・`drawView(ctx, V)`（そら・まち・き・うちの しばふ・コース・しばの しま・ハロンぼう・ゴール・さく・ゲート・うま〔うちがわから〕・あめ）・`drawGate`（しょうめんの ゲート）・`drawMap`（ひだりまわりの ちず）。
+- `KeibaUI`: `card(no, { view })`・`result(rc, set)`・`refund()`・`help()`・`news()`・`lastResult()`・`ticketEl`・`payTable`・`state()`（PokaDebug の `keibaUi()`）。
+- `KeibaScene`（`SCENES.keiba`）: `enter({ day, no, back })` で `KeibaCorner.start` → しめきり。`phase`: intro → gate → open → race → （photo）→ board → result。`speed` = `KeibaScene.speed`（テスト）× ほんものの じかんの 1.6〜3.4ばい × はやおくり。`state()`（PokaDebug の `keibaScene()`）。こうかおん `keiba_gate`・`keiba_cheer`・`keiba_goal`・`keiba_kakutei`（`Sound.se` を つつむ）。
+- `KeibaCorner`: `CAP` 30・`MAXU` 10・`fresh()`・`st()`（こわれた セーブを なおす）・`sync()`（ひづけが かわったら まえの 日の ばけんを しめきる）・`next()`・`check`・`buy(no, t, sel, m, u)`・`settle(day, no)`・`start(day, no)`・`claim()`・`patch10(r)`（ゾーン `kd_keiba`・ゆか `e` = `kkeiba`・什器 16〔`action: "keiba"`・`keiba`: watch／buy／odds／refund／help／news／board／staff〕）・`M`／`L`（`KadenHallArt` に たす 什器の 絵と がめん）・`interact`・`watch`・`state()`（PokaDebug の `keiba()`）。`MallGuide.places` に `keiba` を たした。
+- セーブ `Save.d.keiba`（`Save.fresh()` に たした だけ・`Save.SCHEMA` は 2 の まま）: `day`・`run`・`tickets`（さいだい 80・うけとった／はずれから すてる）・`hist`（12）・`bets`・`spent`・`won`・`hits`・`best`・`races`・`seq`。
+- 検査は `tools/check-keiba.mjs`（1528 けん）。スモークは `tests/keiba-smoke.mjs`（`keiba-390 / 375`）。
 
 ## ネリカス でんきの シール うりば（UI-57・`js/kaden-sticker-art.js`・`js/kaden-stickers.js`）
 
