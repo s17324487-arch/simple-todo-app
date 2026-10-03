@@ -1,4 +1,4 @@
-// おてつだいの ごほうび 44こ の 立体と さわった ときの うごき（UI-38・js/shop-rewards.js の 家具）。
+// おてつだいの ごほうび 44こ（UI-64・65 で 8こ たして 52こ）の 立体と さわった ときの うごき（UI-38・js/shop-rewards.js の 家具）。
 // どれも FurnModels の くみたて（INK の 線・パステル・まるい つなぎめ）。id・大きさ・ねだん（0）・セーブは shop-rewards.js の まま。
 // うごく ぶぶん（ネオン・サインポールの しま・プロペラ・ブランコ・ほのお など）は live の とき 絵から ぬいて FurnLive が canvas に 描く。
 // SvgCache は つかわない（キーが ふえない）。音は WebAudio で その場で つくる。
@@ -1070,6 +1070,111 @@ const ShopRewardArt = (() => {
     s += ball(0, cy, z + 44, 2.4, GOLD, 1, 0.3);
     return s;
   };
+  // ================= パズル こうぼう（UI-65）=================
+  // ジグソーの きりくち: a → b の まっすぐな 線の まんなかに、n（たんい ベクトル）の がわへ でっぱる まるい こぶ（はんけい r）。b も ふくむ
+  const jigCut = (a, b, n, r = 4.4) => {
+    const [ax, ay] = a, L = Math.hypot(b[0] - ax, b[1] - ay), ux = (b[0] - ax) / L, uy = (b[1] - ay) / L, m = L / 2, q = (t, o) => [ax + ux * t + n[0] * o, ay + uy * t + n[1] * o];
+    const pts = [[ax, ay], q(m - r * 0.68, 0)];
+    for (let i = 0; i <= 12; i++) { const th = Math.PI + 0.848 - (i / 12) * (Math.PI + 1.696); pts.push(q(m + Math.cos(th) * r, r * 1.25 + Math.sin(th) * r)); }
+    return pts.concat([q(m + r * 0.68, 0), b]);
+  };
+  const revP = (a) => a.slice().reverse();
+  const KOBO_COLS = ["#F2C14E", "#64B5F6", "#F48FB1", "#81C784"], WOOD = ["#C9A26E", "#A88457", "#DDBD8A"], DARK = ["#8C6848", "#6F5238", "#A7825C"];
+  M.shop_kobo_5 = (k) => {
+    // ジグソーの スツール: きの あし 4ほん と よこぎ・きの いた・その うえに 4まいの ジグソーの マット（いろちがい。きりくちの こぶが かみあう）
+    const { box, prism, shape, TP, rod, shadow } = k, cy = -23, X = 18, y0 = cy - 18, y1 = cy + 18;
+    let s = shadow(0.13, 3, 8);
+    for (const [x, y] of [[-17, -39], [13, -39], [-17, -9], [13, -9]]) s += box(x, y, 4, 4, 0, 34, WOOD);
+    s += rod([[-15, -7, 12], [15, -7, 12]], "#B99060", 1.6) + rod([[15, -37, 12], [15, -7, 12]], "#B99060", 1.6);
+    s += box(-20, -43, 40, 40, 33, 4, WOOD);
+    s += prism(TP(42.5), rr(-X, y0, X * 2, 36, 3), [0, 0, -5.5], "#F7E3B5", "#E2C58F", 1.4);
+    // 4まいの マット（きりくちを おなじ 点で つくる ので すきまなく かみあう）
+    const Vt = jigCut([0, y0], [0, cy], [1, 0]), Vb = jigCut([0, cy], [0, y1], [-1, 0]), Hl = jigCut([-X, cy], [0, cy], [0, -1]), Hr = jigCut([0, cy], [X, cy], [0, 1]);
+    const quads = [[[-X, y0], ...Vt, ...revP(Hl)], [[0, y0], [X, y0], [X, cy], ...revP(Hr), ...revP(Vt)], [[-X, cy], ...Hl, ...Vb, [-X, y1]], [[0, cy], ...Hr, [X, y1], ...revP(Vb)]];
+    quads.forEach((q, i) => (s += shape(TP(42.6), q, KOBO_COLS[i], 1.2)));
+    // マットの つぶつぶ（すべりどめ）
+    for (const [x, y] of [[-11, cy - 11], [11, cy - 11], [-11, cy + 11], [11, cy + 11]]) s += shape(TP(42.7), ov(x, y, 1.6, 1.6, 10), "#FFFFFF", 0, 'fill-opacity=".55"');
+    return s;
+  };
+  // キューブの まんなか（ランプの ひかり）
+  const CUBE = { x: 0, y: -22, z: 61, h: 15 };
+  M.shop_kobo_10 = (k) => {
+    // キューブの ランプ: きの まるい だい・ほそい じく・うけざら・3×3 の いろの キューブ（なかから ひかる）
+    const { cyl, frustum, rod, box, shape, FR, SD, TP, shadow } = k, { x, y, z, h } = CUBE;
+    let s = shadow(0.12, 5, 18) + cyl(x, y, 0, 15, 5, "#8C6848", "#A9845E", 1.4) + frustum(x, y, 5, 11, 12, 6, "#A9845E", "#C9A26E", 1.3);
+    s += rod([[x, y, 12], [x, y, z - h - 4]], "#B9974A", 2.2) + cyl(x, y, z - h - 5, 9, 2, "#B9974A", "#E3C06B", 1.2);
+    s += box(x - h, y - h, h * 2, h * 2, z - h, h * 2, ["#3E3A36", "#2C2926", "#4A4540"], 1.6);
+    // シール（3×3。まえ・みぎ・うえ）。いろの ならびは まぜた キューブ
+    const C = ["#EF5350", "#FFA726", "#FFEE58", "#66BB6A", "#42A5F5", "#FAFAFA"], pat = [0, 3, 4, 2, 0, 5, 1, 4, 2, 5, 1, 0, 3, 3, 2, 4, 0, 1, 2, 5, 3, 1, 4, 0, 5, 2, 3];
+    const cell = (h * 2 - 2.4) / 3, sticker = (m, s0, t0, i) => shape(m, rr(s0, t0, cell - 1.6, cell - 1.6, 1.4), C[pat[i]], 1);
+    for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) {
+      s += sticker(FR(y + h + 0.1), x - h + 2 + i * cell, z - h + 2 + j * cell, j * 3 + i);
+      s += sticker(SD(x + h + 0.1), y - h + 2 + i * cell, z - h + 2 + j * cell, 9 + j * 3 + i);
+      s += sticker(TP(z + h + 0.1), x - h + 2 + i * cell, y - h + 2 + j * cell, 18 + j * 3 + i);
+    }
+    return s;
+  };
+  M.shop_kobo_15 = (k) => {
+    // パズルの テーブル: きの つくえ（4ほんの あし・したの たなに パズルの はこ）・てんばんに 4×4 の スライド パズル（ひるの おかの え・1まい すべりかけ）・ジグソーの ピース
+    const { box, shape, TP, shadow } = k, top = 62;
+    let s = shadow(0.12, 2, 8);
+    for (const [x, y] of [[-46, -56], [40, -56]]) s += box(x, y, 6, 6, 0, top - 6, WOOD);
+    s += box(-44, -54, 88, 50, 14, 4, WOOD);
+    for (const [i, c] of [[0, "#E57373"], [1, "#64B5F6"], [2, "#FFD54F"]]) s += box(-36 + i * 22, -48, 18, 14, 18, 9 - i * 2, [c, shade(c, -0.18), shade(c, 0.14)], 1.1) + shape(TP(27.1 - i * 2), rr(-35 + i * 22, -47, 16, 12, 1.5), shade(c, 0.25), 0.8);
+    for (const [x, y] of [[-46, -10], [40, -10]]) s += box(x, y, 6, 6, 0, top - 6, WOOD);
+    s += box(-50, -60, 100, 58, top - 6, 6, ["#C9A26E", "#A88457", "#E2C497"]);
+    // スライド パズル（わく → いた）
+    s += shape(TP(top + 0.1), rr(-22, -52, 44, 44, 3), "#8C6848", 1.4) + shape(TP(top + 0.15), rr(-20, -50, 40, 40, 1.5), "#5E4632", 0.8);
+    const PIC = ["#BFE3F7", "#BFE3F7", "#FFE48A", "#BFE3F7", "#BFE3F7", "#A9D88A", "#BFE3F7", "#A9D88A", "#8CCB6B", "#8CCB6B", "#A9D88A", "#8CCB6B", "#C9A26E", "#C9A26E", "#C9A26E", null];
+    PIC.forEach((c, i) => {
+      if (!c) return;
+      const cx = i % 4, cr = (i / 4) | 0, slide = i === 14 ? 4.5 : 0; // 15ばんめ（した みぎの となり）は すべりかけ
+      s += shape(TP(top + 0.6), rr(-19.4 + cx * 10 + slide, -49.4 + cr * 10, 8.8, 8.8, 1.6), c, 1);
+      s += shape(TP(top + 0.7), rr(-18.4 + cx * 10 + slide, -48.4 + cr * 10, 6.8, 1.6, 0.8), "#FFFFFF", 0, 'fill-opacity=".45"');
+    });
+    // ジグソーの ピース 2まい（ひだり・みぎ）
+    for (const [x0, y0, c] of [[-44, -30, "#F48FB1"], [30, -46, "#81C784"]]) s += shape(TP(top + 0.4), [...jigCut([x0, y0], [x0 + 10, y0], [0, -1], 2), ...jigCut([x0 + 10, y0], [x0 + 10, y0 + 10], [1, 0], 2).slice(1), [x0, y0 + 10]], c, 1.1);
+    return s;
+  };
+  // ビーだま コースの さか（ひだり → みぎ・みぎ → ひだり）と ビーだま
+  const RUN = { y0: -52, y1: -40, ramps: [[-44, 126, 40, 110], [44, 104, -40, 88], [-44, 82, 40, 66], [44, 60, -40, 44]] };
+  M.shop_kobo_30 = (k) => {
+    // からくり ビーだま コース: きの だい・うしろの あなあき ボード・じょうご → 4だんの さか（ジグザグ）→ かね・はぐるまと ハンドル・はた・5この ビーだま・まえの ビーだま いれ
+    const { box, poly, shape, FR, TP, frustum, ball, rod, line, at, shadow, rg } = k, { y0, y1, ramps } = RUN;
+    let s = shadow(0.12, 2, 10) + box(-58, -62, 116, 58, 0, 8, DARK);
+    // うしろの ボード（あな）
+    s += box(-54, -58, 108, 6, 8, 132, ["#E8C38E", "#C9A26E", "#F2D7AE"]);
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 9; c++) s += shape(FR(-51.9), ov(-46 + c * 11.5, 16 + r * 16, 1.3, 1.3, 8), "#A88457", 0);
+    // はた（ボードの うえ）
+    s += rod([[0, -55, 140], [0, -55, 150]], "#8C6848", 1.4) + shape(FR(-54.9), [[0.6, 149], [12, 146], [0.6, 143]], "#EF5350", 1.1);
+    // じょうご
+    s += frustum(-44, (y0 + y1) / 2, 128, 4, 140, 11, "#B0BEC5", "#ECEFF1", 1.3);
+    const H = (x0, z0, x1, z1, x) => z0 + ((z1 - z0) * (x - x0)) / (x1 - x0);
+    ramps.forEach(([xa, za, xb, zb], i) => {
+      // ささえの くい（ボードから）
+      for (const x of [xa + (xb - xa) * 0.15, xa + (xb - xa) * 0.85]) s += rod([[x, -52, H(xa, za, xb, zb, x) - 3], [x, (y0 + y1) / 2, H(xa, za, xb, zb, x) - 3]], "#8C6848", 1.2);
+      // さかの みぞ（うえの 面・まえの ふち）
+      s += poly([[xa, y0, za], [xb, y0, zb], [xb, y1, zb], [xa, y1, za]], ["#FFE0B2", "#C8E6C9", "#BBDEFB", "#F8BBD0"][i], 1.3);
+      s += poly([[xa, y1, za], [xb, y1, zb], [xb, y1, zb + 3.2], [xa, y1, za + 3.2]], ["#F2C14E", "#81C784", "#64B5F6", "#F48FB1"][i], 1.2);
+      s += poly([[xa, y1, za - 2.6], [xb, y1, zb - 2.6], [xb, y1, zb], [xa, y1, za]], shade(["#F2C14E", "#81C784", "#64B5F6", "#F48FB1"][i], -0.2), 1.1);
+    });
+    // ビーだま
+    for (const [i, x, c] of [[0, -18, "#EF5350"], [1, 14, "#42A5F5"], [2, -30, "#FFCA28"], [2, 22, "#66BB6A"], [3, -6, "#AB47BC"]]) {
+      const [xa, za, xb, zb] = ramps[i];
+      s += ball(x, (y0 + y1) / 2, H(xa, za, xb, zb, x) + 3.4, 3.2, rg([[0, "#FFFFFF"], [0.35, c], [1, shade(c, -0.3)]], 0.35, 0.3, 0.8), 1.1, 0.6);
+    }
+    // さいごは かね（ひだり した）
+    s += box(-52, y0 - 2, 16, 16, 8, 6, WOOD) + frustum(-44, (y0 + y1) / 2, 14, 7, 24, 4, "#E3C06B", "#F2D891", 1.3) + ball(-44, (y0 + y1) / 2, 25, 1.8, "#B9974A", 1, 0) + line([[-40, (y0 + y1) / 2, 44], [-44, (y0 + y1) / 2, 30]], INK, 1, 'stroke-dasharray="1.6 2.2"');
+    // からくりの はぐるまと ハンドル（みぎ うえ）
+    const G = [];
+    for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU, r = i % 2 ? 9 : 11; G.push([46 + Math.cos(a) * r, 122 + Math.sin(a) * r]); }
+    s += shape(FR(-51.5), G, GOLD, 1.3) + shape(FR(-51.4), ov(46, 122, 3, 3, 12), GOLDD, 1) + rod([[46, -51, 122], [46, -42, 122]], "#7A6A5A", 1.4) + rod([[46, -42, 122], [52, -42, 130]], "#7A6A5A", 1.6) + ball(52, -42, 130, 2.2, "#EF5350", 1, 0.4);
+    s += at(-8, (y0 + y1) / 2, 132, `<path d="M-6,-2 q3,-5 6,0 t6,0" fill="none" stroke="#5C6BC0" stroke-width="1.4" stroke-linecap="round"/>`, 7, 5);
+    // まえの ビーだま いれ（きの はこに 4こ）
+    s += box(14, -30, 34, 20, 8, 7, WOOD) + shape(TP(15.1), rr(16, -28, 30, 16, 2), "#7A5638", 0.9);
+    for (const [x, y, c] of [[22, -22, "#EF5350"], [30, -19, "#FFCA28"], [38, -23, "#42A5F5"], [27, -26, "#66BB6A"]]) s += ball(x, y, 17.4, 2.8, rg([[0, "#FFFFFF"], [0.35, c], [1, shade(c, -0.3)]], 0.35, 0.3, 0.8), 1, 0.6);
+    return s;
+  };
   for (const [id, fn] of Object.entries(M)) if (FURN_INDEX[id]) FurnModels.register(id, fn);
 
   // ================= さわる（FurnLive）=================
@@ -1416,6 +1521,11 @@ const ShopRewardArt = (() => {
   lamp("shop_brain_10", { pts: [[GLOBE.x, GLOBE.y, GLOBE.z, 30]], rgb: "170,215,255", lines: ["ちきゅうぎが ぴかっ！", "ちきゅうぎ おやすみ"] });
   simple("shop_brain_15", ["1たす2は 3！", "きょうの もんだい なにかな", "チョークで おえかき"], "spark", [0, -48, 96], [659, 784, 880]);
   simple("shop_brain_30", ["ほしが みえた！", "あれは なにぼし かな？", "おつきさまも みえるよ"], "spark", [24, DOME.cy + 34, DOME.z + 56], [784, 988, 1175, 1568]);
+  // ---- パズル こうぼう ----
+  simple("shop_kobo_5", ["ピースが ぴったり！", "4まいで ひとつの いす", "すわると すっきり"], "note", [0, -23, 50], [523, 659, 784]);
+  lamp("shop_kobo_10", { pts: [[CUBE.x, CUBE.y, CUBE.z, 34]], rgb: "255,232,160", lines: ["キューブが ぴかっ！", "キューブ おやすみ"] });
+  simple("shop_kobo_15", ["いたを すすっと", "あと すこしで できる！", "パズルで ひとやすみ"], "spark", [0, -30, 70], [659, 784, 988]);
+  simple("shop_kobo_30", ["ころころ… ちーん！", "ビーだまが はしる！", "からくり だいせいこう"], "spark", [-44, RUN.y1, 30], [784, 659, 523, 1047]);
   return {
     ids: Object.keys(M),
     model(id, opts = {}) { return FurnModels.build(id, opts); },

@@ -509,6 +509,18 @@ for (const [shop, Task] of Object.entries(R.MG_TASKS)) for (let lv = 1; lv <= 5;
       ok(!m.cur && m.score() === 100, `brain math Lv${lv}: ぜんぶ あてても 100点に ならない（${m.score()}）`);
       for (const v of ["pair", "math"]) { const q = new Task({ ...fakeScene(), variant: v }, lv); q.layout(RECT); ok(q.timeout() < 45 && q.timeLimit > 5 && typeof q.title === "string", `brain ${v} Lv${lv}: 時間切れ・timeLimit・title`); }
     }
+    if (shop === "kobo") {
+      // パズル こうぼう（3しゅ。くわしくは tools/check-kobo.mjs）: スライド パズル（さいしょの t。いちばん すくない てかずで とく）・かたち はめ・おえかき ロジック
+      for (let i = 0; i < 40 && !t.done; i++) t.downArea(t.center(t.nextMove()));
+      perfect = t.done && t.moves === t.par ? t.score() : -1;
+      const sh = new Task({ ...fakeScene(), variant: "shape" }, lv); sh.layout(RECT);
+      for (const p of sh.pieces) { while (sh.turnsTo(p, sh.holes[p.hole])) { sh.downArea({ x: p.x, y: p.y }); sh.up({ x: p.x, y: p.y }); } const h = sh.holes[p.hole]; sh.downArea({ x: p.x, y: p.y }); sh.move({ x: h.x, y: h.y }); sh.up({ x: h.x, y: h.y }); }
+      ok(sh.placed === sh.k && sh.score() === 100, `kobo shape Lv${lv}: ぜんぶ はめても 100点に ならない（${sh.score()}）`);
+      const lg = new Task({ ...fakeScene(), variant: "logic" }, lv); lg.layout(RECT);
+      lg.sol.forEach((r, y) => r.forEach((v, x) => { if (v && lg.cell[y][x] !== 1) { lg.downArea(lg.at(x, y)); lg.up(); } }));
+      ok(lg.done && lg.score() === 100, `kobo logic Lv${lv}: ぜんぶ ぬっても 100点に ならない（${lg.score()}）`);
+      for (const v of ["shape", "logic"]) { const q = new Task({ ...fakeScene(), variant: v }, lv); q.layout(RECT); ok(q.timeout() < 45 && q.timeLimit > 5 && typeof q.title === "string", `kobo ${v} Lv${lv}: 時間切れ・timeLimit・title`); }
+    }
     ok(perfect === 100, `ミニゲーム ${shop} Lv${lv}: 正しい操作で 100点に ならない（${perfect}）`);
     const t2 = new Task(fakeScene(), lv); t2.layout(RECT);
     ok(t2.timeout() < 45, `ミニゲーム ${shop} Lv${lv}: 何もしないで 時間切れでも 点が高すぎる（${t2.timeout()}）`);
@@ -1179,7 +1191,7 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
     Save.d=prior;return {valid,boundaries,once,preserved,ledger,cap,unique:new Set(ids).size,count:ids.length};
   })()`,ctx);
   for(const k of ["valid","boundaries","once","preserved","cap"])ok(rewards[k],"お店のレベル報酬: "+k);
-  ok(rewards.count===48&&rewards.unique===48&&rewards.ledger===48,"お店12種×4段階の非売品が一度ずつ");
+  ok(rewards.count===52&&rewards.unique===52&&rewards.ledger===52,"お店13種×4段階の非売品が一度ずつ");
 }
 
 // ---------- 水の 絵（川・海・湖。js/water-art.js）----------
