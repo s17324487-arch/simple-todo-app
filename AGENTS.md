@@ -169,7 +169,8 @@
 | `js/menu.js` / `js/shop.js` / `js/dressup.js` | メニュー（≡ は せってい・あそびかた。ようす・もちもの・ずかん・ちず の 中みは すまほの アプリが よぶ）、買い物のお店、着せ替え画面 |
 | `js/scene-title.js` / `scene-world.js` / `scene-house.js` / `scene-battle.js` | タイトル／町・フィールド／おうち／バトル |
 | `js/world-zoom.js` | 町・フィールドの ズーム（`WorldZoom`: ピンチ・ひだりの ＋ −・ホイール、0.5〜1.5 倍。ひろく みる ときは 絵を その 大きさで 描きなおす。debug.js の まえ） |
-| `js/minigames.js` | お店のおてつだいミニゲーム（`ShopScene`、`TaskBase` と4つのお店） |
+| `js/minigames.js` | お店のおてつだいミニゲーム（`ShopScene`、`TaskBase` と4つのお店）。けっかの「もういちど」で おなじ おみせ（おなじ ゲーム）を すぐ もう いちど |
+| `js/shop-day-cap.js` | おてつだいの コインは 1つの おみせで 1にち 20000 まで（`ShopDayCap`・`Save.d.shopDay`。ヘイワダイの マックさん・びっくぽの キッチンは べつの おみせ・ころころ フルーツの スコア モードも おなじ おみせ。UI-67） |
 | `js/gowaga-wish.js` | ごわがの おねがい（`GowagaWish`。おうちで 3人の だれかが つれてって・たべたい・あそびたい の 20しゅ → かなえて かえると おれいと あまえる・すまほの「おねがい」・`Save.d.wish`） |
 | `js/pet-walk.js` | いぬの さんぽ（`PetWalk`。もちもの「おさんぽ リード」を もった 子の よこを こいぬ〔コロ・モコ・チョコ〕が あるく・まち と おうち・リードの ひも・タップで「わん！」） |
 | `js/hand-items.js` | もちもの（`HandItems`。きがえの あたらしい しゅるい `outfit.hand`・ふうせん 4しゅ と バッグ 3しゅ・ようふくやさんの「もちもの」・3人だけ） |

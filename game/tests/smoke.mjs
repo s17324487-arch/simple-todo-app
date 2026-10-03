@@ -316,7 +316,7 @@ function helpers(page, name) {
       await H.shot(`${shop}_result`);
       H.shopResult = await H.eval(() => document.querySelector(".modal-wrap")?.textContent || "");
       if (H.atShopResult) await H.atShopResult(); // その まどを しらべる スモーク（work-exp）
-      await page.click(".modal-wrap .panel-foot .btn");
+      await page.click(".modal-wrap .panel-foot .btn:last-child"); // 「もういちど」（UI-67）の となりの「まちに もどる」「てんないに もどる」
       await H.until(scene => PokaDebug.state().scene === scene && PokaDebug.idle(), 10000, fromStore ? (typeof fromStore === "string" ? fromStore : "store") : "world");
       return st.ranks;
     },
@@ -4380,6 +4380,7 @@ await (await import("./nerikasu-work-smoke.mjs")).nerikasuWorkSmoke({scenario,ex
 // あたまの たいそう（のうトレの おてつだい・UI-64）: ネリカスタウンの お店 → 3しゅから えらぶ → まちがい さがし・おなじ え さがし・くだもの けいさん
 await (await import("./brain-smoke.mjs")).brainSmoke({scenario,expect});
 await (await import("./kobo-smoke.mjs")).koboSmoke({scenario,expect});
+await (await import("./shop-again-smoke.mjs")).shopAgainSmoke({scenario,expect});
 await (await import("./nerikasu-quests-smoke.mjs")).nerikasuQuestsSmoke({scenario,expect,folkTalk,folkTapSpot});
 await (await import("./farm-smoke.mjs")).farmSmoke({scenario,expect});
 

@@ -91,6 +91,8 @@ class StoreScene {
       else if(pro&&picked===pro){await Fishing.buyPro(this.owner);Save.write();}
       else if(work&&picked==="おてつだいする"){
         if(Chara.IDS.some(id=>Save.d.chars[id].hunger<8))await UI.say([{who:"wanko",emo:"sad",text:"おなかが ぺこぺこだよ〜。\nごはんを たべてから おてつだい しよう。"}]);
+        // 1つの おみせで 1にち 20000コイン まで（UI-67・js/shop-day-cap.js）。きょうの ぶんが いっぱいなら はじめない（ころころ フルーツの スコア モードも おなじ おみせ）
+        else if(ShopDayCap.full(ShopDayCap.key(this.shopId,this.shopId==="burger"&&this.back.map==="heiwadai"?"mac":null)))await UI.say([{name:this.owner.name,face:Art.npcSvg({...this.owner,emo:"happy"}),text:ShopDayCap.fullText}]);
         else {
           // ころころ フルーツは ちゅうもん モード と スコア モード（js/korokoro-score.js）を えらべる
           const mode=typeof KorokoroScore!=="undefined"?await KorokoroScore.choose(this):"order";

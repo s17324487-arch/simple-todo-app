@@ -120,6 +120,8 @@ const Save = {
       dex: {},
       itemDex: { furn: {}, wear: {}, claimed: { furn: {}, wear: {} } },
       stats: { battles: 0, wins: 0, coinsEarned: 0, shifts: 0, perfects: 0, fed: 0 },
+      // おてつだいの コインの 1にちの じょうげん（UI-67・js/shop-day-cap.js）: きょうの 日づけと おみせごとの もらった コイン
+      shopDay: { day: "", earn: {} },
       settings: { bgm: true, se: true, difficulty: "normal", worldZoom: 1 },
     };
   },

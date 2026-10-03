@@ -169,6 +169,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
 | — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
 | — | `brain-art.js` / `mg-brain.js`（korokoro-town.js の あと・nerikasu-town.js の まえ） | `BrainArt` ／ `BRAIN_FONT`, `BrainGames`, `BRAIN_SPOT_SCENES`, `BrainSpotTask`, `BrainPairTask`, `BrainMathTask`, `BRAIN_TASKS`, `SHOP_GAMES`, `BrainTask`, `BrainTown` |
+| — | `shop-day-cap.js`（economy.js の あと・minigames.js・scene-store.js・korokoro-score.js の まえ） | `ShopDayCap`（おてつだいの コインは 1つの おみせで 1にち 20000 まで。UI-67） |
 | — | `kobo-art.js` / `mg-kobo.js`（mg-brain.js の あと・nerikasu-town.js の まえ） | `KoboArt` ／ `KOBO_FONT`, `KoboGames`, `KoboSlideTask`, `KOBO_SIMILAR`, `KOBO_EASY`, `KoboShapeTask`, `KoboLogicTask`, `KOBO_TASKS`, `KoboTask`, `KoboTown` |
 | — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
 | — | `gacha-art.js` / `gacha-art-more.js` / `gacha.js`（purikura.js の あと） | `GachaArt` ／ `GachaArtMore` ／ `Gacha` |
@@ -773,6 +774,8 @@ SeasonPaletteは四季4通りの草と木の色。季節が変わるとTilesの�
 PokaDebug.calendar('YYYY-MM-DD')で日付を固定し、annual()で現在のイベント・目的地・選択肢・取得数を読む。390pxで全12種類、375pxで七夕とハロウィンを実際のタップで完了し、保存・再開・翌年の持ち越しを確認する。
 
 ## ver2: 新ミニゲーム・難易度
+おてつだいの コインの 1にちの じょうげん（UI-67・`js/shop-day-cap.js`）: `ShopDayCap.MAX` = 20000。きょう もらった ぶんは `Save.d.shopDay`（`{ day: U.today(), earn: { キー: コイン } }`・日づけが かわると 0 から）。キーは `ShopDayCap.key(shop, variant, venue)`（ふつうは shopId・マックさんは `burger_mac`・びっくぽの キッチンは `bikkupo_burger`。あたまの たいそう・パズル こうぼうの 3しゅは おなじ おみせ）。`ShopScene.judge` が `DailyPlay.payout` の あとで のこり（きょうの ぶん − この シフトの うりあげと チップ）に `ShopDayCap.clip`（うりあげ から さきに）し、いっぱいに なったら その おきゃくさんで おしまい（`capHit`・`ShopDayCap.stopText`）。`results` で `ShopDayCap.add`。いっぱいの 日は `ShopScene.flow` の はじめと お店の「おてつだいする」で `ShopDayCap.fullText` を いって はじめない。ころころ フルーツの スコア モード（`KorokoroScoreScene.results`）も `korokoro` で かぞえる。けっかの まどの「もういちど」は `Game.goto("shop", { shop, back, returnStore, returnVenue, variant })`（いっぱいの とき・おなかが ぺこぺこの ときは できない）。PokaDebug: `shopCap(key, earn, day)`・`mgFinish(score)`・`mg()` の `capKey`・`capLeft`・`capHit`・`variant`。
+
 economy.js の GameEconomy が報酬と難易度の値を管理する（[比較表](BALANCE.md)）。設定を開始時に保存するため途中変更は次回から反映。セーブには settings.difficulty と shops.link/relay を追加し、旧データは migrate が補完する。
 
 arcade.js は world-expansion.js の後。SkyRelayTask は既存の TaskBase を継承する。なかよしパズルは専用の PuzzleScene（お客さんのラウンドなし）へ変更。配達は3列の移動・担当3人の交代・岩回避と6秒間隔の防御。左右キーで移動、上で交代、決定で防御も可能。
