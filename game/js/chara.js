@@ -101,6 +101,10 @@ function faceOf(id, emo) {
 // うで = { rot: かたを まん中に まわす 角度（とけいまわり +）, front: かおの まえに 描く, deco(A): 手の さきの 絵（まわす まえの 座標。A = { hand, dir, side, fill }）}。
 // under / over: からだの 座標の 絵（まえの うでの した / うえ）
 const CHARA_GESTURES = {};
+// ほかの ファイルが たす からだの ポーズ（すわる など。js/dine-seats.js）: CHARA_POSE_EXTRA[なまえ] = (だれ, view) => [ひだりの あし, みぎの あし, からだ] の transform
+// （はいれつに feetOver: true を つけると あしを からだの まえに 描く）。
+// view は "front"・"side"（ひだりむきの 絵。みぎむきは まるごと はんてん）・"back"。キーは ポーズの なまえ（Chara.key）
+const CHARA_POSE_EXTRA = {};
 // うでの かたと 手の さき（まわす まえ）。だ円の うでは うえが かた・したが 手、ごじの うでは からだの ふち → そと
 function charaArmEnds(P, k) {
   const ar = P.arms[k];
@@ -658,7 +662,7 @@ function buildCharaSvg(id, opts = {}) {
   const pose = opts.pose || "idle_01";
   const dir = opts.dir || "down";
   const view = dir === "up" ? "back" : dir === "down" ? "front" : "side";
-  const tr = D.poses[pose] || D.poses.idle_01;
+  const xp = !D.poses[pose] && CHARA_POSE_EXTRA[pose] ? CHARA_POSE_EXTRA[pose](id, view) : null, tr = D.poses[pose] || xp || D.poses.idle_01;
   const faceName = faceOf(id, opts.face);
 
   const dx = view === "side" ? -P.faceShift : 0;
@@ -746,7 +750,8 @@ function buildCharaSvg(id, opts = {}) {
   els.push(layers.top);
 
   let feet = `<g transform="${tr[0]}">${D.feet[0].join("")}</g><g transform="${tr[1]}">${D.feet[1].join("")}</g>`;
-  let inner = `<g transform="${tr[2]}">${layers.behind}</g>${feet}<g transform="${tr[2]}">${els.join("")}</g>`;
+  // feetOver（すわる など）: あしを からだの まえに 描く
+  let inner = xp && xp.feetOver ? `<g transform="${tr[2]}">${layers.behind}</g><g transform="${tr[2]}">${els.join("")}</g>${feet}` : `<g transform="${tr[2]}">${layers.behind}</g>${feet}<g transform="${tr[2]}">${els.join("")}</g>`;
   if (dir === "right") inner = `<g transform="matrix(-1,0,0,1,200,0)">${inner}</g>`;
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${VB.x} ${VB.y} ${VB.w} ${VB.h}"${opts.w ? ` width="${opts.w}" height="${Math.round((opts.w * VB.h) / VB.w)}"` : ""}>` +

@@ -42,6 +42,9 @@ const MallArt = {
     const st = (w = 1.6) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
     const o = {
       b, P, st,
+      // そう（O7・js/dine-seats.js）: layer が きまって いる ときは その そうの 絵だけ のこす（かたちの はんいは ぜんぶの そうで おなじ）
+      layer: null,
+      only(k, str) { return this.layer == null || this.layer === k ? str : ""; },
       poly(list, fill, w = 1.6, extra = "") { return `<polygon points="${pts(list.map((v) => P(...v)))}" fill="${fill}" ${w ? st(w) : ""} ${extra}/>`; },
       line(list, col = INK, w = 1.6, extra = "") { return `<polyline points="${pts(list.map((v) => P(...v)))}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" ${extra}/>`; },
       // 箱: 上・南（+y）・東（+x）の 3まい
@@ -66,12 +69,13 @@ const MallArt = {
   },
   shade(hex, k) { const n = parseInt(hex.slice(1), 16), c = (s) => Math.max(0, Math.min(255, Math.round(((n >> s) & 255) * (1 + k)))); return "#" + ((1 << 24) | (c(16) << 16) | (c(8) << 8) | c(0)).toString(16).slice(1); },
   // ---- 什器の モデル（{ svg, vb }）。キーに 入れる ものは f.kind・f.w・f.h・f.variant・f.shop・f.item・f.dir・f.col・f.z だけ（いろの ちがう かんばんが まざらない）----
-  modelKey(f) { return "mall:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.variant || "") + ":" + (f.shop || "") + ":" + (f.item || "") + ":" + (f.dir || "") + ":" + (f.col || "") + ":" + (f.z || ""); },
+  modelKey(f) { return "mall:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.variant || "") + ":" + (f.shop || "") + ":" + (f.item || "") + ":" + (f.dir || "") + ":" + (f.col || "") + ":" + (f.z || "") + (f._layer != null ? ":L" + f._layer : ""); },
   models: new Map(),
   model(f) {
     const key = this.modelKey(f); if (this.models.has(key)) return this.models.get(key);
     const fn = this.M[f.kind]; if (!fn) { this.models.set(key, null); return null; }
-    const S = this.svgBuilder(), body = fn.call(this, S, f), m = S.wrap(body);
+    const S = this.svgBuilder(); S.layer = f._layer ?? null;
+    const body = fn.call(this, S, f), m = S.wrap(body);
     this.models.set(key, m); return m;
   },
   // 画面に おく 大きさ（端末の ピクセル）で ラスタライズ
@@ -542,16 +546,17 @@ const MallArt = {
       s += S.box(w - 0.9, 0.3, 0.46, 0.36, 64, 16, ["#6E7480", "#5B616C", "#4B505A"]) + S.poly([[w - 0.86, 0.33, 80], [w - 0.48, 0.33, 80], [w - 0.48, 0.33, 94], [w - 0.86, 0.33, 94]], "#9FD1D9", 1.1);
       return s;
     },
-    // まるい テーブル と いす
+    // まるい テーブル と いす 4つ（せもたれは テーブルと はんたいがわ）。
+    // そう（O7・js/dine-seats.js）: 0 おくの いす（にし・きた）／1 テーブル／2 てまえの いすの ざめん（ひがし・みなみ）／3 てまえの せもたれ／9 テーブルの うえの かざり（すわって いる ときは 3人の おさら）
     table(S, f) {
-      const cx = f.w / 2, cy = f.h / 2, wood = f.shop === "cafe" ? ["#D9B686", "#C39E6E"] : ["#FFFBF3", "#E6DCCB"];
-      let s = S.ellipse(cx, cy, 0, 0.9, "#00000012", 0);
-      const chairs = [[cx - 0.72, cy], [cx + 0.72, cy], [cx, cy - 0.72], [cx, cy + 0.72]];
-      const chair = ([x, y]) => S.box(x - 0.2, y - 0.2, 0.4, 0.4, 0, 28, ["#E8D3B0", "#D2B991", "#BCA277"]) + S.box(x - 0.2, y - 0.2, x < cx - 0.1 || y < cy - 0.1 ? 0.4 : 0.4, 0.08, 28, 26, ["#E8D3B0", "#D2B991", "#BCA277"]);
-      for (const c of chairs.filter(([x, y]) => x + y < cx + cy)) s += chair(c);
-      s += S.cyl(cx, cy, 0.08, 0, 44, ["#8C8890", "#77737B"]) + S.cyl(cx, cy, 0.5, 44, 6, wood);
-      s += S.at(cx - 0.12, cy, 52, `<ellipse rx="7" ry="4" fill="#FFFFFF" ${S.st(1)}/><ellipse cy="-3" rx="4" ry="3" fill="${["#F4A4A9", "#C79A76", "#B8D8A0"][(f.x + f.y) % 3]}" ${S.st(1)}/>`);
-      for (const c of chairs.filter(([x, y]) => x + y >= cx + cy)) s += chair(c);
+      const cx = f.w / 2, cy = f.h / 2, wood = f.shop === "cafe" ? ["#D9B686", "#C39E6E"] : ["#FFFBF3", "#E6DCCB"], L = (k, str) => S.only(k, str), C3 = ["#E8D3B0", "#D2B991", "#BCA277"];
+      const seat = (x, y) => S.box(x - 0.2, y - 0.2, 0.4, 0.4, 0, 28, C3);
+      const back = (x, y, side) => side === "w" ? S.box(x - 0.2, y - 0.2, 0.08, 0.4, 28, 28, C3) : side === "n" ? S.box(x - 0.2, y - 0.2, 0.4, 0.08, 28, 28, C3) : side === "e" ? S.box(x + 0.12, y - 0.2, 0.08, 0.4, 28, 28, C3) : S.box(x - 0.2, y + 0.12, 0.4, 0.08, 28, 28, C3);
+      let s = L(0, S.ellipse(cx, cy, 0, 0.9, "#00000012", 0));
+      s += L(0, back(cx - 0.72, cy, "w") + seat(cx - 0.72, cy) + back(cx, cy - 0.72, "n") + seat(cx, cy - 0.72));
+      s += L(1, S.cyl(cx, cy, 0.08, 0, 44, ["#8C8890", "#77737B"]) + S.cyl(cx, cy, 0.5, 44, 6, wood));
+      s += L(9, S.at(cx - 0.12, cy, 52, `<ellipse rx="7" ry="4" fill="#FFFFFF" ${S.st(1)}/><ellipse cy="-3" rx="4" ry="3" fill="${["#F4A4A9", "#C79A76", "#B8D8A0"][(f.x + f.y) % 3]}" ${S.st(1)}/>`));
+      s += L(2, seat(cx + 0.72, cy) + seat(cx, cy + 0.72)) + L(3, back(cx + 0.72, cy, "e") + back(cx, cy + 0.72, "s"));
       return s;
     },
     // かざりの たな（本・はこ）

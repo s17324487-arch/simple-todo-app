@@ -4410,6 +4410,7 @@ await (await import("./shop-again-smoke.mjs")).shopAgainSmoke({scenario,expect})
 await (await import("./fossil-sell-smoke.mjs")).fossilSellSmoke({scenario,expect});
 await (await import("./wish-gifts-smoke.mjs")).wishGiftsSmoke({scenario,expect});
 await (await import("./play-records-smoke.mjs")).playRecordsSmoke({scenario,expect});
+await (await import("./dine-seats-smoke.mjs")).dineSeatsSmoke({scenario,expect});
 await (await import("./nerikasu-quests-smoke.mjs")).nerikasuQuestsSmoke({scenario,expect,folkTalk,folkTapSpot});
 await (await import("./farm-smoke.mjs")).farmSmoke({scenario,expect});
 

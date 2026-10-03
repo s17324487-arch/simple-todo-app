@@ -86,6 +86,8 @@ const PokaDebug = {
       party:sc.party.map(p=>({x:p.tx,y:p.ty,moving:p.moving})),
       directions:Object.entries(DIRS).map(([key,[dx,dy]])=>{let free=0;while(free<80&&sc.walkable(l.tx+dx*(free+1),l.ty+dy*(free+1)))free++;const q=screen(l.tx+dx,l.ty+dy);return{key,dx,dy,free,screen:q,vector:{x:q.x-at.x,y:q.y-at.y}};})};
   },
+  // ごはんの せき（O7・UI-72）: 3人が すわって いる テーブル・すわる ところ・おさら（すわって いない ときは null）
+  dine(){return G.sceneName==='venue'&&typeof DineSeats!=='undefined'?DineSeats.state(G.scene):null;},
   venueVisit(label){if(G.sceneName!=='venue')return false;const f=G.scene.fixtures.find(f=>f.label===label);return !!f&&G.scene.request(f);},
   // 斜めの 館（サンシャインいけぶ）: 床の マス (x, y) の まんなか、または 什器の 見えて いる ところの 画面の 位置（CSS の px）。タップの テストに
   venuePoint(x,y,label){if(G.sceneName!=='venue'||!G.scene.iso)return null;const sc=G.scene,rc=G.canvas.getBoundingClientRect(),u=G.cssPerUnit;let q;if(label){const f=sc.fixtures.find(f=>f.label===label);if(!f)return null;const r=IsoVenue.rectOf(IsoVenue.hull(f));q=sc.toScreen({x:r.x+r.w/2,y:r.y+r.h*0.55});}else q=sc.screen(x,y);return {x:rc.left+q.x*u,y:rc.top+q.y*u};},
