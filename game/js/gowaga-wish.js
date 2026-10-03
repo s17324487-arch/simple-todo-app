@@ -120,10 +120,12 @@ const GowagaWish = {
       HomeLife.say(sc, x.who, "ねえねえ… おねがいが あるの", false, "say", { wish: x.id });
       await U.wait(900);
       if (G.scene !== sc) return false;
+      if (typeof PlayRecords !== "undefined") PlayRecords.add(x.who, "ask"); // きろく（UI-71）
       const i = await UI.ask(x.ask, ["いいよ！", "また こんどね"], { cancel: false, who: x.who, name: `${this.who(x)}の おねがい` });
       if (G.scene !== sc) return false;
       if (i === 0) {
         this.start(x.id);
+        if (typeof PlayRecords !== "undefined") PlayRecords.add(x.who, "yes");
         for (const k of sc.chars) if (!k.hidden) sc.react(k, "love", "heart");
         HomeLife.say(sc, x.who, "やったー！ やくそく だよ！", false, "shout", { wish: x.id });
         UI.toast(`<span class="wish-toast">${this.icon("note")}すまほの「おねがい」に かいたよ</span>`);
@@ -162,6 +164,7 @@ const GowagaWish = {
       Sound.se("fanfare");
       for (const id of Save.d.order) Save.care(id, { mood: 20, bond: id === x.who ? 6 : 4 });
       w.n = (w.n || 0) + 1; w.log.push({ id: x.id, t: Date.now(), how: hug ? "hug" : "pat" }); while (w.log.length > 40) w.log.shift();
+      if (typeof PlayRecords !== "undefined") { PlayRecords.add(x.who, "done"); for (const k of kids) PlayRecords.add(k.id, hug ? "hug" : "pat"); } // きろく（UI-71）
       w.cur = null; w.last = Date.now();
       Save.mark(); Save.write();
       if (sc.updateCare) sc.updateCare();

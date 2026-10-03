@@ -153,6 +153,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 19 | `scene-house.js` | `ROOM`, `HOUSE_SIZE`, `Room`, `HOUSE_ICONS`, `HouseScene` |
 | 20 | `scene-battle.js` | `ALLY_SIZE`, `FOE_SIZE`, `BOSS_SIZE`, `BattleScene` |
 | 21 | `minigames.js` | `MG_ART`, `CREPE_TOPS`, `BREADS`, `BREAD_TOPS`, `FLOWER_KINDS`, `RIBBONS`, `SHOP_OWNERS`, `HOWTO`, `CUST_*`, `ShopScene`, `TaskBase`, `CrepeTask`, `DentistTask`, `BakeryTask`, `FloristTask`, `MG_TASKS`, 補助関数 `breadSvg` `flowerIconSvg` `mgCanvas` `mgIcon` `topIcon` `mgBtn` `inBtn` `gridBtns` |
+| — | `play-records.js`（pet-walk.js の あと・world-zoom.js の まえ＝Care・HomeToilet・SCENES.house・Fishing・BattleScene・Menu・GowagaWish の あと） | `PlayRecords`（きろく: 3人の きろく 15しゅ・たべものごとの かず・ずかんの「たべもの」・ようすの「きろく」・UI-71） |
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
@@ -1422,6 +1423,18 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - フォント: `index.html` の Google Fonts に `Hachi Maru Pop`（てがみ だけ。`font-family` の さいごは いつもの もじ なので よめない ときも だいじょうぶ）。
 - セーブ: `Save.d.wish.gift = { miss, got: { id: かず }, log: [{ id, who, t }], used: { wg_coupon } }`（`WishGifts.st()` が つくって こわれた 形を なおす。`Save.fresh()` には いれない・SCHEMA は そのまま）。
 - PokaDebug: `wishGift(mode)`・`wishGifts()`・`wishGiftGive(id)`・`wishLetter(id)`。検査は `tools/check-wish-gifts.mjs`、スモークは `tests/wish-gifts-smoke.mjs`（`wish-gifts-390/375`）。
+
+## きろく（UI-71・`js/play-records.js`・`PlayRecords`）
+
+オーナーの FB 2026-10-03「実績をもっと細かくしてほしい。例えば図鑑のところで、食べた回数をみれたり、ステータスでトイレの回数、なでなでの回数、おねだりの回数とおねだりを聞いてもらえた回数、釣りの回数、先頭の回数など。」
+
+- `ROWS`（[みだし, [[なまえ, キー, たんい]]]）: たべる（ate・fav・deza・dezaYes）／おねがい（ask・yes・done）／おうち（toilet・pat・hug）／おでかけ（fish・lead・leadBattle・ko・skill）。`KEYS` は その 15こ。
+- `st()`（`Save.d.records` を なおす・`since` を はじめて つかった 日に）・`kid(id)`・`add(id, key, n)`（しらない 子・キーは 0）・`get`・`ate(id, food)`（`food[たべもの][子]`・ate・fav）・`foodCount(food, id)`・`team()`（みんなの きろく。`Save.d.stats`・`Fishing.st()`・`Save.d.wish`・`WishGifts.count()`・`Save.d.toilet`）。
+- くみこみ（ファイルの さいご）: `Care.feed`（たべた・だいすき・デザの おねだり〔`wantsDeza` が false → true〕・もらえた〔`wantsDeza` の とき デザ〕）・`HomeToilet.done`・`SCENES.house.prototype.pet`・`Fishing.record`（せんとうの 子）・`BattleScene.prototype` の `enter`（leadBattle）／`hit`（とどめで ko）／`useSkill`／`endFlee`（fled）／`defeat`（lost）。`js/gowaga-wish.js` の `ask`（まどの まえ ask・いいよ yes）と `thank`（done・3人に hug／pat）、`js/menu.js` の「せんとうに する」（lead）。
+- ようす: `Menu.status` を つつんで `view(el, base)`（`.rec-tabs`「ようす」「きろく」・`.rec-box`〔dataset.recBox〕。「せんとうに する」「なまえ」の あとの かきなおしは なかの はこ だけ）→ `table(el)`（`.rec-table`・`.rec-row[data-key]`・`.rec-v.top`・`.rec-team`）。
+- ずかん: `Menu.dex` の kinds に `["food", "たべもの"]`（6つ なら 3れつ）→ `foodDex(el)`（`.rec-sort`・`.rec-food[data-id]`・`.lock`）→ `foodCard(f)`（`.rec-food-panel`）。
+- セーブ: `Save.fresh().records = { since: "", kids: {}, food: {}, battle: { fled: 0, lost: 0 } }`（SCHEMA は そのまま）。
+- PokaDebug: `records()`・`recordsAdd(id, key, n)`。検査は `tools/check-play-records.mjs`、スモークは `tests/play-records-smoke.mjs`（`play-records-390/375`）。
 
 ## いぬの さんぽ（UI-49・`js/pet-walk.js`・`PetWalk`）
 
