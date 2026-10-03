@@ -770,6 +770,15 @@ const PokaDebug = {
   digTap(x, y) { return Fossils.digging ? Fossils.digging.tap(x, y) : null; },
   digState() { const g = Fossils.digging && Fossils.digging.dig; return g ? { hp: [...g.hp], area: { ...g.area }, taps: g.taps, done: g.done, cols: g.cols, rows: g.rows } : null; },
   fossilState() { return JSON.parse(JSON.stringify({ pick: Save.d.fossil.pick, bones: Save.d.fossil.bones, dug: Save.d.fossil.dug })); },
+  // ほねを うる・そんちょうさんの ひょうしょう（js/fossil-sell.js・UI-69）の ようす
+  fossilSell() {
+    if (typeof FossilSell === "undefined") return null;
+    const held = FossilSell.held().map((key) => ({ key, n: Save.d.fossil.bones[key], price: FossilSell.price(key), needed: FossilSell.needed(key), spare: FossilSell.spare(key) }));
+    return { held, spareCoins: held.reduce((a, h) => a + h.price * h.spare, 0), awards: { ...DinoAward.st() }, pending: DinoAward.pending(), count: DinoAward.count(), coins: Save.d.coins,
+      rows: [...document.querySelectorAll(".fossil-sell-row")].map((r) => ({ key: r.dataset.key, text: r.innerText })) };
+  },
+  // その きょうりゅうの ほねを ぜんぶ きふした ことに する（かんせい・ひょうしょうは まだ。まえの セーブの かわり）
+  museumDino(id = "raptor") { const d = Fossils.dino(id); if (!d) throw new Error("unknown dino: " + id); for (const p of d.art.parts) this.museumGive("bone", d.id + "." + p.id); return this.fossilSell(); },
   // ④ きょうの いわ（[[x, y], ...]）と、いわの となりの 立てる マス（{ x, y, dir, rock }）
   fossilRocks(map = "cave") { return Fossils.rocksOn(map); },
   fossilSpot(map = "cave") {

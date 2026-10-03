@@ -6,6 +6,7 @@ const ItemDexSources = {
     if (typeof CollabGoods !== "undefined" && CollabGoods.find(id)) return CollabGoods.source(id);
     if (typeof AquaGifts !== "undefined" && AquaGifts.INDEX[id]) return AquaGifts.source(id);
     if (typeof MuseumWear !== "undefined" && MuseumWear.INDEX[id]) return MuseumWear.source(id);
+    if (typeof DinoAward !== "undefined" && DinoAward.source(id)) return DinoAward.source(id);
     if (typeof BurgerMenu !== "undefined" && BurgerMenu.TOY_INDEX[id]) return BurgerMenu.source(id);
     if (typeof FashionShow !== "undefined" && FashionShow.PRIZE_IDS.has(id)) return FashionShow.source(id);
     if (typeof IchibanKuji !== "undefined" && IchibanKuji.INDEX[id]) return IchibanKuji.source(id);

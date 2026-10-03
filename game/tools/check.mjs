@@ -1048,7 +1048,7 @@ if (ok(!!MU, "MUSEUM_DATA が ない（js/museum-data.js）")) {
         intro:b.rooms.every(r=>r.intro&&r.name)&&b.route.every(r=>b.rooms.some(q=>q.id===r)),
         walk:b.objects.every(x=>d.objects.find(y=>y.id===x.id)?.solid===!x.walk)};}
     return {out,fish:FI.size===FISHING_DATA.fish.length&&!dupF.length,dinos:DI.size===FOSSIL_DATA.dinos.length&&!dupD.length,songs:!!(SONGS.aquarium?.modern&&SONGS.museum?.modern),
-      save:JSON.stringify(Save.fresh().museum)===JSON.stringify({fish:{},bones:{},done:{},rooms:{},all:{},wear:{}})};})()`, ctx);
+      save:JSON.stringify(Save.fresh().museum)===JSON.stringify({fish:{},bones:{},done:{},rooms:{},all:{},wear:{},awards:{}})};})()`, ctx);
   ok(mu.fish && mu.dinos, "水族館の 魚 50しゅ・博物館の 恐竜 10しゅが ちょうど 1かいずつで ない");
   ok(mu.songs && mu.save, "館の BGM（modern）か Save.fresh().museum が 不正");
   for (const [id, r] of Object.entries(mu.out)) ok(Object.values(r).every(Boolean), `館 ${id} が 不正 ${JSON.stringify(r)}`);

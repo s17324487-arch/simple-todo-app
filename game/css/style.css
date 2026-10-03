@@ -807,6 +807,28 @@ html, body {
 .fish-sell-row.aq small { color: #C0506A; }
 .fish-sell-row .btn { flex: none; min-height: 44px; font-size: 13px; padding: 4px 10px; }
 .fish-sell-foot { margin-top: 10px; }
+/* ほねを うる（UI-69・js/fossil-sell.js）と そんちょうさんの ひょうしょうじょう */
+.fossil-sell .note { font-size: 13px; font-weight: 700; margin: 0 0 8px; word-break: keep-all; overflow-wrap: anywhere; }
+.fossil-sell-list { display: grid; gap: 6px; }
+.fossil-sell-row { display: flex; align-items: center; gap: 8px; background: #F7EEDC; border: 2.5px solid var(--ink); border-radius: 12px; padding: 4px 8px; }
+.fossil-sell-row .ic { flex: none; width: 46px; height: 40px; display: flex; align-items: center; justify-content: center; }
+.fossil-sell-row .ic svg { width: 46px; height: 40px; }
+.fossil-sell-row .t { flex: 1; min-width: 0; }
+.fossil-sell-row b { display: block; font-size: 14px; word-break: keep-all; overflow-wrap: anywhere; }
+.fossil-sell-row small { display: block; font-size: 11px; font-weight: 700; color: #7A746A; }
+.fossil-sell-row.need small { color: #C0506A; }
+.fossil-sell-row .btn { flex: none; min-height: 44px; font-size: 13px; padding: 4px 10px; }
+.fossil-sell-foot { margin-top: 10px; }
+.fossil-sell-foot .btn { min-height: 48px; white-space: normal; }
+.award-card { display: grid; gap: 8px; }
+.award-paper { position: relative; background: #FFF8E6; border: 6px solid #B98552; outline: 2px solid var(--ink); border-radius: 6px; padding: 12px 14px 14px; text-align: center; box-shadow: inset 0 0 0 2px #D9B45A; }
+.award-ttl { font-size: 22px; font-weight: 900; color: #C2453A; letter-spacing: 2px; }
+.award-to { margin-top: 4px; font-size: 15px; font-weight: 800; word-break: keep-all; overflow-wrap: anywhere; }
+.award-art svg { width: 70%; max-height: 120px; }
+.award-txt { font-size: 13px; font-weight: 700; line-height: 1.6; text-align: left; word-break: keep-all; overflow-wrap: anywhere; }
+.award-from { margin-top: 8px; display: flex; justify-content: flex-end; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; }
+.award-seal { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: #E25B4E; color: #FFF3EE; font-style: normal; font-size: 12px; font-weight: 900; border: 2px solid var(--ink); }
+.award-coin { font-size: 18px; font-weight: 900; text-align: center; }
 /* だいじな もの */
 .toast .fish-got, .toast .fossil-got { display: inline-flex; align-items: center; gap: 6px; }
 .toast .fish-got svg, .toast .fossil-got svg { width: 26px; height: 26px; }

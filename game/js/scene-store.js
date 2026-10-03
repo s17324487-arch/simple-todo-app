@@ -79,9 +79,11 @@ class StoreScene {
       const pro=typeof Fishing!=="undefined"&&Fishing.proChoice(this);
       // ③ スーパーでは いけすの さかなを うれる（つった ときには うらない）
       const sell=typeof Fishing!=="undefined"&&Fishing.sellChoice(this);
+      // スーパーでは ほった ほねも うれる（js/fossil-sell.js・UI-69）
+      const bones=typeof FossilSell!=="undefined"&&FossilSell.choice(this);
       // ネリカスタウンの コンビニでは いちばんくじも ひける（js/ichiban-kuji.js）
       const kuji=typeof IchibanKuji!=="undefined"&&IchibanKuji.talkChoice(this);
-      const choices=[...(retail?["かいものを する"]:[]),...(kuji?[kuji.label]:[]),...(sell?[sell]:[]),...(pro?[pro]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
+      const choices=[...(retail?["かいものを する"]:[]),...(kuji?[kuji.label]:[]),...(sell?[sell]:[]),...(bones?[bones]:[]),...(pro?[pro]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
       const fav=work&&typeof WorkExp!=="undefined"?WorkExp.favOf(this.shopId):null; // とくいな おてつだい（UI-68）
       const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${ShopRewards.level(Save.d.shops[this.shopId])}${fav?`\n★ ${Save.d.chars[fav].name}の とくいな おてつだい`:""}`;
       const answer=await UI.ask(`${this.owner.name}\n${text}`,choices),picked=choices[answer];
@@ -89,6 +91,7 @@ class StoreScene {
       if(retail&&picked==="かいものを する"){await ShopUI.open(this.shopId);Save.write();}
       else if(kuji&&picked===kuji.label){await kuji.run();Save.write();}
       else if(sell&&picked===sell){await Fishing.sell();Save.write();}
+      else if(bones&&picked===bones){await FossilSell.open();Save.write();}
       else if(pro&&picked===pro){await Fishing.buyPro(this.owner);Save.write();}
       else if(work&&picked==="おてつだいする"){
         if(Chara.IDS.some(id=>Save.d.chars[id].hunger<8))await UI.say([{who:"wanko",emo:"sad",text:"おなかが ぺこぺこだよ〜。\nごはんを たべてから おてつだい しよう。"}]);
