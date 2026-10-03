@@ -132,8 +132,10 @@ const GachaForest = (() => {
     const Pm = (x, y, z = 0) => { const q = it.flip ? HomeDesign.project(y + dm.d / 2, x - dm.w / 2, z) : HomeDesign.project(x, y, z); return { x: ox + q.x * s, y: oy + q.y * s }; };
     Pm.s = s; Pm.d = dm.d; return Pm;
   };
-  for (const id of SQUISH) {
-    const f = FURN_INDEX[id];
+  // squishable: スクイーズの けいひんを さわれる ように する（あとから たす シリーズ〔js/gacha-forest-more.js〕も よぶ）
+  const squishable = (id) => {
+    const f = FURN_INDEX[id]; if (!f) return;
+    SQUISH.add(id);
     FurnModels.register(id, (k) => k.shadow(0.12, 4, 14) + k.L(k.at(0, -k.d / 2, 0, fig(id, f.w, f.h), f.w / 2 + 2, f.h + 2)));
     FurnLive.register(id, {
       tap(sc, it, st) {
@@ -152,7 +154,8 @@ const GachaForest = (() => {
         ctx.drawImage(img, -w / 2, -h, w, h); ctx.restore();
       },
     }, true);
-  }
+  };
+  for (const id of [...SQUISH]) squishable(id);
 
   // ---- 4F（ガチャガチャの もり）の 配置。28×22 マス（ほかの 階と おなじ）。南東の すみに 3F から のぼって くる エスカレーター（ふきぬけ）----
   // まんなかが「ガチャの しま」（オーナーの FB 2026-10-03「4階の配置が悪い。真ん中の木は消して、ガチャをメインにもってこい」）。
@@ -163,11 +166,12 @@ const GachaForest = (() => {
   //   ひがしの しまの まえ（y 7〜10）と ひがしの すみは もりの ひろば（きのこの いす・きりかぶの ベンチ）。
   // ・3F の エスカレーターは 南東の すみ（IkeArcade.ESC4）。1F→2F と おなじ ひがしの ばしょ だと 3F の おめかし コーナー・おかし タワーが 4F の ゆかの ふちに かくれる（tools/check-ikebukuro.mjs）。
   const ESC = IkeArcade.ESC4;
-  // ガチャの しまの くみ（シリーズの id 3つ・かんばんの ばんごう〔ArcadeArt.gachaboard の variant〕・おく〔back〕か てまえか・しまの なかの x）
+  // ガチャの しまの くみ（id・シリーズの id 3つ・かんばんの ばんごう〔ArcadeArt.gachaboard の variant〕・おく〔back〕か てまえか・しまの なかの x）。
+  // ids は さいしょの ならび（台の x = x + 0〜2）。しゅうがわりで まわる シリーズ（add・rest）は js/gacha-forest-more.js、いれかえは js/mee-rotation.js（台の ring・slot）
   const ISLES = [
-    { name: "まちぼうけ", ids: ["machi3", "machizoo", "oshiri"], board: 2, x: 4, back: true }, { name: "スクイーズ", ids: ["squishbread", "squishmochi", "squishsweet"], board: 3, x: 8, back: true },
-    { name: "ポーチ・ぼうし", ids: ["pouchzoo", "pouchsnack", "kaburi"], board: 4, x: 15, back: true }, { name: "めじるし・もり", ids: ["mejitrio", "mejiforest", "forestpal"], board: 5, x: 19, back: true },
-    { name: "ミニチュア", ids: ["minikaden", "foodsample", "townmini"], board: 6, x: 4, back: false }, { name: "ミニ グッズ", ids: ["minigakki", "minibungu", "kinoko"], board: 7, x: 8, back: false },
+    { id: "machi", name: "まちぼうけ", ids: ["machi3", "machizoo", "oshiri"], board: 2, x: 4, back: true }, { id: "squish", name: "スクイーズ", ids: ["squishbread", "squishmochi", "squishsweet"], board: 3, x: 8, back: true },
+    { id: "pouch", name: "ポーチ・ぼうし", ids: ["pouchzoo", "pouchsnack", "kaburi"], board: 4, x: 15, back: true }, { id: "meji", name: "めじるし・もり", ids: ["mejitrio", "mejiforest", "forestpal"], board: 5, x: 19, back: true },
+    { id: "mini", name: "ミニチュア", ids: ["minikaden", "foodsample", "townmini"], board: 6, x: 4, back: false }, { id: "goods", name: "ミニ グッズ", ids: ["minigakki", "minibungu", "kinoko"], board: 7, x: 8, back: false },
   ];
   const floor4 = () => {
     const W = IkeArcade.W, H = IkeArcade.H, rows = Array.from({ length: H }, () => Array(W).fill(".")), e = ESC;
@@ -182,7 +186,7 @@ const GachaForest = (() => {
     // ガチャの しま: おくの れつ（y 5・うしろ y 4 に かんばん）・てまえの れつ（y 8・うしろ y 7 に ひくい しきり）。台の まえ（+y）に たって まわす
     for (const I of ISLES) {
       const y = I.back ? 5 : 8;
-      I.ids.forEach((id, k) => { const si = index[id], x = I.x + k; fixtures.push({ kind: "gacha", x, y, w: 1, h: 1, dir: "y", variant: si, series: si, height: 112, label: k === 0 ? I.name : "", action: "gacha", spots: [[x, y + 1]] }); });
+      I.ids.forEach((id, k) => { const si = index[id], x = I.x + k; fixtures.push({ kind: "gacha", x, y, w: 1, h: 1, dir: "y", variant: si, series: si, ring: "4f-" + I.id, slot: k, height: 112, label: k === 0 ? I.name : "", action: "gacha", spots: [[x, y + 1]] }); });
       if (I.back) fixtures.push({ kind: "gachaboard", x: I.x, y: 4, w: 3, h: 1, dir: "y", height: 170, variant: I.board });
       else fixtures.push({ kind: "divider", x: I.x, y: 7, w: 3, h: 1, height: 45 });
     }
@@ -253,5 +257,5 @@ const GachaForest = (() => {
   };
   install();
 
-  return { SERIES, SQUISH, first, index, squash, floor4, patch3, ISLES };
+  return { SERIES, SQUISH, first, index, squash, squishable, floor4, patch3, ISLES };
 })();
