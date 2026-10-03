@@ -179,6 +179,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `burger-menu.js`（scene-store.js・shop.js・puri-pose.js の あと・figure-stand.js の まえ） | `BurgerMenu`（バーガーやさんの メニュー・にこにこ セットの おまけ・UI-34） |
 | — | `food-balance.js`（farm-cook.js の あと＝ぜんぶの たべものが そろった あと） | `FoodBalance`（たべものの バランス: そのままの やさい・りょうり・ねだんで ごきげん・「おなか+N ごきげん+M」・UI-35） |
 | — | `fashion-show.js` → `fashion-art.js` → `fashion-hall.js` → `fashion-scene.js`（food-balance.js の あと・item-dex-sources.js の まえ） | `FashionShow`（ファッションショーの きまり・セーブ）／ `FashionArt`（かお・ポーズ・けいひん・しゃしん）／ `FashionHall`（会場・ほんの ギャラリー）／ `FashionScene`（ランウェイ・`SCENES.fashion`）・UI-36 |
+| — | `kaden-sticker-art.js`（kaden-live.js の あと・kaden-hall-art.js の まえ）・`kaden-stickers.js`（kaden-hall.js の あと） | `KadenStickerArt`（シール 46しゅと パックの 絵）／ `KadenStickers`（1F の シール うりば・しなもの 12・UI-57。さいごで `install()`） |
 | — | `kaden-items.js` → `kaden-live.js` → `kaden-hall-art.js` → `kaden-hall.js`（fashion-scene.js の あと・item-dex-sources.js の まえ。mall-art.js・ike-mall.js・shop-reward-art.js・ikebukuro-district.js より あと） | `KadenItems`（家電の 立体・なまえ）／ `KadenLive`（おうちで さわる うごき）／ `KadenHallArt`（内装の 絵）／ `KadenHall`（ネリカス でんきの 4かいの 館・UI-56。さいごで `KadenHall.install()`） |
 | — | `furn-tray.js`（home-floors.js の あと） | `FurnTray`（もようがえの 一覧を ひろげる・さがす・ならびかえ・しゅるい・UI-37） |
 | — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび 44この 立体と さわる うごき・UI-38） |
@@ -1055,6 +1056,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 画面: `StickerBook.phoneView(el)`（すまほの APPS `stickers`）。DOM の img（`url(id)` は シール 1しゅ 1つ・かみは 6つ。SvgCache は つかわない）。ページの おおきさは `fit()`（300×360 の わりあい）・シールの ばしょと おおきさは ページに たいする %。ゆびで うごかすのは pointer イベント（`.stk-page` は `touch-action: none`）。館の なかでは すまほの ボタンが でない ので、おうちや 町で ひらく。
 - 4F: `StickerBook.patch4(floor4)`（きたの かべ 16〜18 に 3だい・へや `arcForestSticker`〔15〜18。みぎの 20〜25 は クレーン 3だい・UI-54〕・かべの「シール 100コイン」〔z 158。き の はっぱに かくれない〕・あんないの ことば。2かい よんでも ふえない）。`PokaDebug.gachaForest().machines` は もりの 18だい だけ。
 - PokaDebug: `stickers()`・`stickerGive(id, n)`・`stickerUi()`・`gachaOpen(30〜32)`。検査は `tools/check-stickers.mjs`、スモーク「sticker-book-390 / 375」。
+- UI-57 で ふえた こと（ネリカス でんきの シール うりば・`js/kaden-stickers.js`）: `addDesigns` の シールは しゅるい `kind`（`puku`・`drop`・`shaka`・`flake`・`tile`・`mat`）・うごき `fx`（`squish` タップで ふにっ／`jelly` ぷるん／`shaka`／`tile`）・はる ときの おおきさ `size`（SIZES の ばんごう）・`cut`（`{ into: [9まい], cols, size }`）・`layers`（シャカシャカの 4まい base・rest・up・top を かえす 関数）・`tip`（はじめて はった ときの ひとこと）を もてる。ページでは シャカシャカは `div.stk-shaka` に img 4まい（`layerUrl(id, k)` は シール 1しゅに 4つ まで）・ゆびで うごかすと `.shake`（うかんだ なかみが みえて、とまると 0.28びょうで しずむ）。ふにっ・ぷるんは CSS の `scale` の アニメーション。`cutTile(p, i)` は タイルの シートを シートの ならびの まま 9まいに（`got` が ふえる・ページが いっぱいなら -3）。したの ならびは `grouped()`（ガチャ・くじ・ぷくぷく・ドロップ・シャカシャカ・フレーク・タイル・そざい の たての ふだ）。セーブの かたちは おなじ。
 
 ## 4F の クレーン 3だい（たこやき・バーバーカット・バウンドボール。Meeときょれじゃ 4F・UI-54）
 
@@ -1270,6 +1272,13 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - `KadenHall`: `W` 38・`H` 28・`ESC`（1: 1F⇔2F・2: 2F⇔3F）・`floor1`〜`floor10`（room・zones・fixtures・walls）・`stand`（家電の だい。`action: "buy"`）・`DEMO`・`interact`（`demo`・`massage`・`theater`・`watch`）・`state`（PokaDebug の `kaden()`）・`install`（`VenueHalls.defs.electronics` を おきかえる・`BUY_SHOPS.ike_electronics.name` を「ネリカス でんき」に）。BGM は `SONGS.shop_kaden`。
 - `MallGuide.places`: うりばの まえに でる しらべる ものに `demo`・`massage`・`theater`・`watch` を たした。
 - セーブは かわらない。検査は `tools/check-kaden-hall.mjs`。スモークは `tests/kaden-smoke.mjs`（`kaden-hall-390 / 375`）。
+
+## ネリカス でんきの シール うりば（UI-57・`js/kaden-sticker-art.js`・`js/kaden-stickers.js`）
+
+- `KadenStickerArt`: シール 46しゅの 絵 `FIG`（100×100・`StickerArt.cut` の しろい ふち・グラデーション なし。ミラーの しまと ホロの おびは clipPath で かたちの なかだけ〔id は よぶ たびに あたらしい kst + かず〕・とうめいと タイルは ふち なし）。マシュマロは くらい いろの うえに すこし ちいさく ずらした からだ（したに かげ）・あわの つぶ。ドロップは いんさつの かげ（にじゅう いんさつ）・すける ドーム・ふちの くらい わ・つよい ひかり。シャカシャカ 4しゅ `SHAKA` は `shaka(o)` で base・rest（したに たまる・`rnd(seed)` で きまった ばしょ）・up（ぜんたいに うかぶ）・top（ドームの ひかり）。`layers(id)`・`windowOf(id)`・`inWin(w, x, y, m)`。タイルは `TILE`（9しゅの もよう）・`TILE_ORDER`・`tile()`（あつみ・つやの おび）。パックの 絵 `pack(p)`（100×120）。
+- `KadenStickers`: `LIST`（46しゅ。`StickerBook.addDesigns` に series `"kaden"`・kind・fx・size・tip・cut・layers）・`PRODUCTS`（12。`{ id: "kst_…", kind, name, price, color, stickers, desc }`）・`buy(pid)`（コインが たりなければ null。`StickerBook.add` → ことば）・`open(scene, tab)`（`UI.modal` の `full kst-panel`・タブ 6・カード・`packUrl`）・`patch1(r)`（1F の うりば `kd_sticker`〔x 8〜14・y 19〜26・ゆか `s` = `ksticker`〕・什器 6〔`action: "stickers"`・`tab`〕・てんいんさん・つりさげの ふだ・うえきばちを どける・サービス カウンターの ことば。2かい よんでも ふえない）・`install()`（`KadenHall.interact` を つつんで `stickers` を ひらく・`stickerHook`）・`state()`（PokaDebug の `kadenStickers()`）。
+- 館の 絵（`js/kaden-hall-art.js`）: `stkshelf`（あなあき ボードに つりさげた パック・variant 1 は タイルと レトロ）・`stkspin`（くるくる ラック・variant 0 ドロップ／1 シャカシャカ）・`stktable`（シートと ひらいた シールちょう）・`stkcase`（そざいの みほん）。パックは `miniPack(k)`（シールの 絵は いれない・かるい）。
+- 検査は `tools/check-kaden-stickers.mjs`（1218 けん）。スモークは `tests/kaden-stickers-smoke.mjs`（`kaden-stickers-390 / 375`）。
 
 ## いちばんくじ（ネリカスタウンの コンビニ・UI-55・`js/ichiban-kuji.js`・`js/kuji-art.js`・`js/kuji-ui.js`）
 

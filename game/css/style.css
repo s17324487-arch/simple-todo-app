@@ -150,7 +150,10 @@ html, body {
 .stk-on.sel { outline:3px dashed #E05A8A; outline-offset:1px; border-radius:16px; }
 .stk-tools { flex:none; min-height:44px; display:flex; align-items:center; justify-content:center; gap:5px; }
 .stk-tool { min-width:46px; min-height:44px; font-size:18px; padding:0 6px; }
-.stk-tool.pink { font-size:14px; background:#FFD9E6; }
+.stk-tool.pink { font-size:14px; background:#FFD9E6; white-space:nowrap; }
+.stk-tools:has(.stk-tool:nth-child(6)) { gap:4px; }
+.stk-tools:has(.stk-tool:nth-child(6)) .stk-tool { min-width:44px; padding:0 4px; }
+.stk-tools:has(.stk-tool:nth-child(6)) .stk-tool.pink { font-size:13px; }
 .stk-hint { font-size:13px; font-weight:800; line-height:1.4; text-align:center; color:#5C564C; padding:0 4px; }
 .stk-tray { flex:none; display:flex; gap:6px; overflow-x:auto; overscroll-behavior:contain; padding:4px 2px 6px; -webkit-overflow-scrolling:touch; }
 .stk-slot { flex:none; position:relative; width:62px; height:66px; background:#FFFFFF; border:2.5px solid var(--ink); border-radius:12px; padding:2px; cursor:pointer; }
@@ -158,6 +161,39 @@ html, body {
 .stk-slot.none img { filter:brightness(0) opacity(.16); }
 .stk-slot.out img { opacity:.4; }
 .stk-n { position:absolute; right:3px; bottom:1px; font-size:12px; font-weight:900; }
+/* UI-57: ネリカス でんきの シール（js/kaden-stickers.js）。シャカシャカは 4まいを かさねる（うごかすと なかみが うかぶ・とまると しずむ） */
+.stk-on.stk-shaka { aspect-ratio:1 / 1; }
+.stk-shaka > img { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; -webkit-user-drag:none; }
+.stk-shaka > .stk-shk-up { opacity:0; transform:translate(0, 0) rotate(0deg); transition:opacity .9s ease-in .05s, transform .9s cubic-bezier(.3, 1.6, .5, 1); }
+.stk-shaka > .stk-shk-rest { opacity:1; transition:opacity .8s ease-in .3s; }
+.stk-shaka.shake > .stk-shk-up { opacity:1; transform:translate(var(--sx, 0%), var(--sy, 0%)) rotate(var(--sr, 0deg)); transition:opacity .12s, transform .14s ease-out; }
+.stk-shaka.shake > .stk-shk-rest { opacity:0; transition:opacity .1s; }
+.stk-on.squish { animation:stk-squish .45s ease-out; }
+.stk-on.jelly { animation:stk-jelly .6s ease-out; }
+@keyframes stk-squish { 0% { scale:1; } 30% { scale:1.1 .82; } 60% { scale:.94 1.07; } 100% { scale:1; } }
+@keyframes stk-jelly { 0% { scale:1; } 25% { scale:.88 1.12; } 50% { scale:1.1 .9; } 75% { scale:.97 1.03; } 100% { scale:1; } }
+@media (prefers-reduced-motion: reduce) { .stk-on.squish, .stk-on.jelly { animation:none; } }
+/* したの ならびの まとまりの ふだ（たて がき） */
+.stk-grp { flex:none; width:26px; height:66px; display:flex; align-items:center; justify-content:center; writing-mode:vertical-rl; white-space:nowrap; font-size:12px; line-height:1; font-weight:900; letter-spacing:1px; color:#6E5F78; background:#F3ECF7; border-radius:10px; }
+.stk-grp.long { font-size:10px; letter-spacing:0; }
+/* シール うりばの がめん */
+.kst-panel .panel-body { word-break:keep-all; overflow-wrap:anywhere; }
+.kst-lead { font-size:13px; font-weight:800; line-height:1.45; color:#5C564C; margin:0 0 8px; }
+.kst-tabs { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; margin-bottom:6px; }
+.kst-tabs .btn { min-height:44px; font-size:13px; padding:4px 2px; white-space:nowrap; }
+.kst-coins { font-size:13px; font-weight:900; text-align:right; margin:2px 2px 8px; }
+.kst-list { display:flex; flex-direction:column; gap:10px; }
+.kst-card { display:grid; grid-template-columns:84px 1fr; gap:8px; align-items:start; background:#FFFDF6; border:2.5px solid var(--ink); border-radius:14px; padding:8px; }
+.kst-pack { width:84px; height:101px; display:block; }
+.kst-info { min-width:0; }
+.kst-name { font-weight:900; font-size:15px; line-height:1.35; }
+.kst-desc { font-size:12.5px; line-height:1.45; color:#5C564C; margin:3px 0 4px; }
+.kst-have { display:flex; flex-wrap:wrap; gap:4px; margin:2px 0 6px; }
+.kst-st { display:inline-flex; align-items:center; gap:1px; font-size:11px; font-weight:900; background:#FFFFFF; border:1.5px solid #E2D9CB; border-radius:8px; padding:1px 3px 1px 1px; }
+.kst-st.new { border-color:#F7B7CF; }
+.kst-st img { width:26px; height:26px; display:block; }
+.kst-buy { min-height:44px; width:100%; font-size:14px; }
+.kst-buy.off { opacity:.55; }
 .help-row b { font-size:15px; } .help-row p { margin:2px 0 0; font-size:14px; line-height:1.5; }
 
 /* ---- トースト ---- */
