@@ -46,7 +46,8 @@ for(const id of ['home','clothes','furniture','crepe','dentist','florist','cake'
 for(const id of ['lawson','sevenbun']){
   assert.equal(d.buildings.filter(b=>b.act.type==='buy'&&b.act.shop===id).length,1,id+' building');
   const shop=R.BUY_SHOPS[id],items=shop.items(),design=R.STORE_INTERIORS[id];assert(items.length===6&&items.every(i=>i&&R.BAG_INDEX[i.id]),id+' goods');
-  assert(design&&design.fixtures.length===6,id+' interior');for(const [kind] of design.fixtures)assert(R.StoreArt.prop(kind).length>400,id+' fixture art '+kind);
+  // おみせの 6こ ＋ いちばんくじの たな（js/ichiban-kuji.js・UI-55）
+  assert(design&&design.fixtures.length===7&&design.fixtures.filter(([kind])=>kind==='kuji_'+id).length===1,id+' interior');for(const [kind] of design.fixtures)assert(R.StoreArt.prop(kind).length>400,id+' fixture art '+kind);
 }
 const goods=(id)=>R.BUY_SHOPS[id].items().map(i=>i.id);assert(!goods('lawson').some(g=>goods('sevenbun').includes(g)),'the two convenience stores sell the same goods');
 for(const id of ['karaage','rollcake','oden','cocoa','hamburg','omurice','doria','kidsplate','pancake','parfait']){const f=R.BAG_INDEX[id];assert(f&&f.exclusive==='nerikasu'&&f.price>0,'food '+id);assert(R.Art.iconSvg('bag',id).length>600,'food art '+id);}

@@ -27,8 +27,11 @@ const FigureStand = (() => {
     if (typeof BridgePrizes !== "undefined" && BridgePrizes.INDEX[id]) return BridgePrizes.INDEX[id].kind === "fig";
     if (typeof AquaGifts !== "undefined" && AquaGifts.INDEX[id]) return FURN_INDEX[id].aquaGift === "fig";
     if (typeof BurgerMenu !== "undefined" && BurgerMenu.TOY_INDEX[id]) return true; // バーガーやさんの にこにこ セットの おまけ
-    return false;
+    return EXTRA.has(id); // あとから たした フィギュア（いちばんくじの マグ・アクリル スタンド・ちび ぬいぐるみ。js/ichiban-kuji.js）
   };
+  // ほかの ファイルの フィギュアを たす（この ファイルより あとで よむ ファイル から）
+  const EXTRA = new Set();
+  const addFigures = (list) => { for (const id of list) if (FURN_INDEX[id] && !isStand(id)) { EXTRA.add(id); FURN_INDEX[id].figure = true; } };
   const figures = () => FURNITURE.filter((f) => isFigure(f.id)).map((f) => f.id);
   // だいの figs を ばしょの かず に そろえる（しらない id・フィギュアで ない ものは からっぽ）
   const figsOf = (it) => { const S = STANDS[it && it.id]; if (!S) return []; const a = Array.isArray(it.figs) ? it.figs : []; return S.slots.map((_, i) => (typeof a[i] === "string" && isFigure(a[i]) ? a[i] : null)); };
@@ -216,5 +219,5 @@ const FigureStand = (() => {
       ...(id === "figstand_case" ? { light(ctx, sc, it, r, st) { if (!caseOn(st)) return; const P = mapper(sc, it, r), p = P(0, -23, 80); glow(ctx, p.x, p.y, 100 * P.s, "255,214,140", 0.22); } } : {}),
     }, id === "figstand_case");
   }
-  return { STANDS, isStand, isFigure, figures, figsOf, onStands, slotName, scaleOf, foot, open, get view() { return view; } };
+  return { STANDS, isStand, isFigure, addFigures, figures, figsOf, onStands, slotName, scaleOf, foot, open, get view() { return view; } };
 })();
