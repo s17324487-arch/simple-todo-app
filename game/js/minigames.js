@@ -160,6 +160,10 @@ class ShopScene {
     if (ShopDayCap.left(this.capKey) <= 5000) lines.push(ShopDayCap.leftText(this.capKey));
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
     if (this.closed) return;
+    // とくいな おてつだい（UI-68）: その 子が ひとこと（その おみせで きょう はじめての とき だけ）
+    const fav = WorkExp.favOf(this.shopId);
+    if (fav && WorkExp.hello(this.shopId)) await UI.say([{ who: fav, emo: "happy", text: WorkExp.FAV_SAY[fav] }]);
+    if (this.closed) return;
     for (this.n = 0; this.n < this.total; this.n++) {
       this.cust = this.makeCustomer();
       this.phase = "enter";
@@ -249,7 +253,7 @@ class ShopScene {
     const fraction = interrupted ? this.ranks.length / this.total : 1;
     if (fraction) Save.careAll({ hunger: -6 * fraction, mood: (good >= 0.6 ? 4 : -2) * fraction, bond: interrupted ? 0 : 1 });
     // けいけんち（UI-44）: ○◎ が おおいほど・はたらいた ぶんだけ。3人 みんな
-    const xp = WorkExp.give("shift", [this.ranks, fraction]);
+    const xp = WorkExp.give("shift", [this.ranks, fraction], this.shopId); // とくいな 子は 1.5ばい（UI-68）
     const previousLevel = st.lv;
     st.lv = ShopRewards.level(st);
     const lvUp = st.lv > previousLevel;

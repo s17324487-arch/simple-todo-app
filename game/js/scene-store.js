@@ -82,7 +82,8 @@ class StoreScene {
       // ネリカスタウンの コンビニでは いちばんくじも ひける（js/ichiban-kuji.js）
       const kuji=typeof IchibanKuji!=="undefined"&&IchibanKuji.talkChoice(this);
       const choices=[...(retail?["かいものを する"]:[]),...(kuji?[kuji.label]:[]),...(sell?[sell]:[]),...(pro?[pro]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
-      const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${ShopRewards.level(Save.d.shops[this.shopId])}`;
+      const fav=work&&typeof WorkExp!=="undefined"?WorkExp.favOf(this.shopId):null; // とくいな おてつだい（UI-68）
+      const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${ShopRewards.level(Save.d.shops[this.shopId])}${fav?`\n★ ${Save.d.chars[fav].name}の とくいな おてつだい`:""}`;
       const answer=await UI.ask(`${this.owner.name}\n${text}`,choices),picked=choices[answer];
       if(this.closed)return;
       if(retail&&picked==="かいものを する"){await ShopUI.open(this.shopId);Save.write();}

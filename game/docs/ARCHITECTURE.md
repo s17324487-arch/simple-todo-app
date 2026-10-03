@@ -459,6 +459,7 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
 - がめん: `html(rows)`（おてつだいの「きょうの けっか」の ぼう）・`text(rows)`／`toast(rows)`（いらい・おねがい）・`cheer(rows, delay)`（レベルが あがった ときの `jingle_lv`）。
 - よぶ ところ: `ShopScene.results`（`js/minigames.js`）・`NeriQuests.report`（`js/neri-quests.js`）・`TownFolk.finish`（`js/townsfolk.js`）。
 - PokaDebug: `workExp()`・`nearLevelUp(id, left)`。検査は `tools/check-work-exp.mjs`、スモークは `tests/work-exp-smoke.mjs`（`work-exp-390/375`）。
+- とくいな おてつだい（UI-68）: `WorkExp.FAV`（わんこ: バーガー・そらの はいたつ・ガソリンスタンド・びようしつ／がちゃん: クレープ・はいしゃ・パン・おはな・あたまの たいそう／ごじ: ケーキ・ゆうびんきょく・ころころ フルーツ・パズル こうぼう。おてつだいの ある おみせは どれも だれか 1人）。`give("shift", v, shop)` は `favOf(shop)` の 子だけ `FAV_MUL`（1.5）ばい・ほかの 2人より かならず 1 おおい（行に `fav`・`last.fav`・`last.shop`）。いらい・おねがいは みんな おなじ。`html` は なまえの よこに「とくい」の ふだ（`.wexp-fav`）と したに ひとこと（`.wexp-favline`）。おてつだいの はじめに その 子の ひとこと（`FAV_SAY`・`hello(shop)` で その おみせ その 日 1かい・セーブしない）・お店の「おてつだいする」の ことばに「★ ○○の とくいな おてつだい」・すまほの「ようす」に `favShops(id)`。
 
 ---
 

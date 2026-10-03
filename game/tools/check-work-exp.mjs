@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
-const { WorkExp: X, Save: S, Stats, ENEMIES, PokaDebug } = R;
+const { WorkExp: X, Save: S, Stats, ENEMIES, PokaDebug, MG_TASKS, SHOPS } = R;
 R.UI.updateHud = () => {};
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
@@ -56,6 +56,33 @@ ok(X.rate("folk") === 0.05 && X.rate("nope") === 0, "おねがい 5%・しらな
   ok(X.amount("wanko", X.rate("shift", [[3, 3, 3], 1])) <= weak * 2, "おてつだい 1かいは よわい てき 2ひき いか");
 }
 
+// ---- 2b. とくいな おてつだい（UI-68）: どの おみせも だれか 1人・その 子だけ 1.5ばい ----
+{
+  const all = Object.values(X.FAV).flat(), tasks = Object.keys(MG_TASKS);
+  ok(all.length === new Set(all).size && tasks.every((t) => all.includes(t)) && all.every((s) => SHOPS[s] && MG_TASKS[s]), "とくい: おてつだいの ある おみせは ぜんぶ だれか 1人（かさならない）: " + tasks.filter((t) => !all.includes(t)));
+  ok(["wanko", "gachan", "goji"].every((id) => X.favShops(id).length >= 4 && X.FAV_WHY[id] && X.FAV_SAY[id] && !kanji.test(X.FAV_WHY[id] + X.FAV_SAY[id])), "3人とも 4つ いじょう・りゆうと ひとことは ひらがな");
+  ok(X.favOf("crepe") === "gachan" && X.favOf("burger") === "wanko" && X.favOf("kobo") === "goji" && X.favOf("link") === null && X.favOf(null) === null, "favOf");
+  ok(X.FAV_MUL === 1.5, "1.5ばい");
+  const d = fresh();
+  for (const id of d.order) { d.chars[id].lv = 10; d.chars[id].exp = 0; }
+  const need = Stats.expNeed(10), rows = X.give("shift", [[3, 3, 3, 3, 3], 1], "crepe");
+  const by = Object.fromEntries(rows.map((r) => [r.id, r]));
+  ok(by.gachan.fav && by.gachan.n === Math.max(Math.round(need * 0.08) + 1, Math.round(need * 0.08 * 1.5)) && by.wanko.n === Math.round(need * 0.08) && by.goji.n === Math.round(need * 0.08) && !by.wanko.fav && !by.goji.fav, "クレープやさんは がちゃんだけ 1.5ばい " + JSON.stringify(rows.map((r) => [r.id, r.n])) + " need " + need);
+  { const e = fresh(); for (const id of e.order) { e.chars[id].lv = 1; e.chars[id].exp = 0; }
+    const low = Object.fromEntries(X.give("shift", [[3, 3, 3, 3], 1], "crepe").map((r) => [r.id, r.n]));
+    ok(low.wanko === 1 && low.goji === 1 && low.gachan === 2, "Lv1 でも とくいな 子は 1 おおい " + JSON.stringify(low)); }
+  ok(X.last.fav === "gachan" && X.last.shop === "crepe", "last に とくいな 子");
+  const h = X.html(rows);
+  ok((h.match(/wexp-fav"/g) || []).length === 1 && h.includes("がちゃんの とくいな おてつだい！ けいけんち 1.5ばい") && /wexp-row fav/.test(h), "まど: がちゃんの なまえに「とくい」・したに ひとこと");
+  const q = X.give("quest", 3);
+  ok(q.every((r) => !r.fav) && X.last.fav === null && !X.html(q).includes("wexp-fav"), "いらい・おねがいは みんな おなじ");
+  const nofav = X.give("shift", [[3], 1], "link");
+  ok(nofav.every((r) => !r.fav), "とくいの ない おみせは みんな おなじ");
+  X.greeted = {};
+  ok(X.hello("crepe") === true && X.hello("crepe") === false && X.hello("burger") === true && X.hello("link") === false, "はじめの ひとことは おみせごとに 1にち 1かい");
+  X.greeted = {};
+}
+
 // ---- 3. がめんの ことば ----
 {
   const d = fresh();
@@ -74,7 +101,9 @@ ok(X.rate("folk") === 0.05 && X.rate("nope") === 0, "おねがい 5%・しらな
 
 // ---- 4. くみこみ ----
 const mg = src("minigames.js"), nq = src("neri-quests.js"), tf = src("townsfolk.js"), idx = readFileSync(new URL("../index.html", import.meta.url), "utf8"), sw = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
-ok(/WorkExp\.give\("shift", \[this\.ranks, fraction\]\)/.test(mg) && /WorkExp\.html\(xp\)/.test(mg) && /WorkExp\.cheer\(xp, \d+\)/.test(mg), "おてつだいの けっかで けいけんち");
+ok(/WorkExp\.give\("shift", \[this\.ranks, fraction\], this\.shopId\)/.test(mg) && /WorkExp\.html\(xp\)/.test(mg) && /WorkExp\.cheer\(xp, \d+\)/.test(mg), "おてつだいの けっかで けいけんち（とくいな 子は おみせで きまる）");
+ok(/WorkExp\.favOf\(this\.shopId\)[\s\S]{0,80}WorkExp\.hello\(this\.shopId\)[\s\S]{0,80}WorkExp\.FAV_SAY\[fav\]/.test(mg), "おてつだいの はじめに とくいな 子の ひとこと");
+ok(/WorkExp\.favOf\(this\.shopId\)/.test(src("scene-store.js")) && /の とくいな おてつだい/.test(src("scene-store.js")) && /WorkExp\.favShops\(id\)/.test(src("menu.js")), "お店の ことばと ようすに とくいな おてつだい");
 ok(/WorkExp\.give\("quest", q\.stars\)/.test(nq) && /WorkExp\.toast\(/.test(nq), "いらいの ほうこくで けいけんち");
 ok(/WorkExp\.give\("folk"\)/.test(tf) && /WorkExp\.toast\(/.test(tf), "町の人の おねがいで けいけんち");
 ok(idx.indexOf("js/work-exp.js") > idx.indexOf("js/save.js") && idx.indexOf("js/work-exp.js") < idx.indexOf("js/minigames.js") && sw.includes('"./js/work-exp.js"'), "index.html と sw.js に とうろく（save.js の あと）");
