@@ -28,6 +28,7 @@ const KadenHallArt = (() => {
     kd_health: { name: "マッサージチェア", c: ["#E8DDF2", "#D3C2E6", "#A891C9"] },
     kd_theater: { name: "シアター", c: ["#EAD3D8", "#D9B3BB", "#B07A86"] },
     kd_view: { name: "まちの ながめ", c: ["#DDEEF7", "#C3E0EF", "#8FBCD6"] },
+    kd_sticker: { name: "シール", c: ["#FCE3EE", "#F7C3DA", "#E58CB0"] },
     kd_service: { name: "サービス カウンター", c: ["#E6E1D6", "#D3CBBD", "#A99D88"] },
     kd_register: { name: "おかいけい", c: ["#FAD2CE", "#F2ADA6", "#D97A70"] },
   };
@@ -36,6 +37,19 @@ const KadenHallArt = (() => {
   // 投影した 点に 絵を おく（S.at の 5ばんめは ばいりつ。絵の はみだし hw・hh を はんいに いれる）
   const at = (S, x, y, z, inner, hw = 12, hh = 12) => { const q = S.P(x, y, z); S.grow(q.x - hw, q.y - hh, q.x + hw, q.y + hh); return S.at(x, y, z, inner); };
 
+  // シールの パックの ちいさな 絵（たな・ラック用。12×16 くらい・つりさげの あな・いろの おび・なかの シールは かんたんな かたち）
+  const miniPack = (k) => {
+    const band = { flake: "#FFD9A8", flake2: "#C9E8B8", tile: "#FFE48A", y2k: "#F7B3DC", drop: "#FF9EBF", shaka: "#9FD3F0", puku: "#FFD3E4", mat: "#C9D0DA" }[k] || "#F7C3DA";
+    let s = `<rect x="-6" y="-9" width="12" height="17" rx="1.6" fill="#FFFFFF" ${st(1)}/><rect x="-6" y="-9" width="12" height="4.4" rx="1.4" fill="${band}" ${st(0.9)}/><ellipse cx="0" cy="-7.2" rx="2" ry="0.9" fill="#FFFFFF"/>`;
+    if (k === "flake" || k === "flake2") s += [[-3, -1, "#FF8FB0"], [2.5, -1.5, "#FFE14D"], [-1, 3, "#9FD3F0"], [3, 3.5, "#B8E6A6"], [-3.6, 5.4, "#C9A8FF"]].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="1.4" fill="${c}"/>`).join("");
+    else if (k === "tile") for (let i = 0; i < 9; i++) s += `<rect x="${-4.2 + (i % 3) * 3}" y="${-3.4 + Math.floor(i / 3) * 3}" width="2.4" height="2.4" rx="0.5" fill="${["#FFB3CC", "#FFE48A", "#C9F2A8", "#BFE6F7", "#FFD3D3", "#E2D3FA"][i % 6]}" stroke="${INK}" stroke-width="0.4"/>`;
+    else if (k === "y2k") s += `<rect x="-3" y="-3.4" width="4" height="8" rx="1" fill="#F7A3C8" stroke="${INK}" stroke-width="0.5"/><path d="M1.6,1 h1.4 v1.4 h1.4 v1.4 h-1.4 v1.4 h-1.4 Z" fill="#FF5C8A"/>`;
+    else if (k === "drop") s += [[-2.4, 0, "#FF6F9C"], [2.4, 0.4, "#FFCF3D"], [0, 4, "#6FD3EA"]].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="2.2" fill="${c}" stroke="${INK}" stroke-width="0.5"/><circle cx="${x - 0.7}" cy="${y - 0.7}" r="0.6" fill="#FFFFFF"/>`).join("");
+    else if (k === "shaka") s += `<circle cx="0" cy="1.6" r="4.4" fill="#BFE8F7" stroke="${INK}" stroke-width="0.6"/>` + [[-1.8, 3.2], [0.6, 4], [2, 2.6], [-0.4, 2.2]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="0.6" fill="#FFE14D"/>`).join("");
+    else if (k === "puku") s += `<ellipse cx="0" cy="1.6" rx="4.2" ry="3.6" fill="#FFE3EC" stroke="${INK}" stroke-width="0.6"/><circle cx="-1.4" cy="1.2" r="0.5" fill="${INK}"/><circle cx="1.4" cy="1.2" r="0.5" fill="${INK}"/>`;
+    else s += `<rect x="-4" y="-2.6" width="3.6" height="5" fill="#C9D0DA" stroke="#9AA4B2" stroke-width="0.4"/><rect x="0.6" y="-2.6" width="3.6" height="5" fill="#E8C15A" stroke="#B8902E" stroke-width="0.4"/><path d="M-3.4,2 L-1,-2" stroke="#FFFFFF" stroke-width="0.8"/>`;
+    return s + `<path d="M-4.6,-4 L-3,-4 L-4.2,7 L-5,7 Z" fill="#FFFFFF" opacity=".5"/>`;
+  };
   // ---- 什器の 絵（S は MallArt.svgBuilder・原点は 什器の かど・x y は マス・z は おうちの 単位）----
   const M = {
     // 家電の だい: しろい つやの だい・うえは 売り場の いろ・まえの おび・みぎ まえの ねふだ（文字は L.kstand）
@@ -197,6 +211,62 @@ const KadenHallArt = (() => {
       s += S.line([[0.08, 0.08, 40], [0.08, h - 0.08, 40]], "#6F7782", 2.2) + S.line([[0.08, 0.08, 40], [w - 0.08, 0.08, 40]], "#6F7782", 2.2);
       // あかい ポップ（うしろの まんなかの ぼう）
       s += S.line([[w / 2, 0.2, 40], [w / 2, 0.2, 96]], "#8D8A92", 2) + S.poly([[w / 2 - 0.5, 0.22, 88], [w / 2 + 0.5, 0.22, 88], [w / 2 + 0.5, 0.22, 116], [w / 2 - 0.5, 0.22, 116]], RED, 1.4);
+      return s;
+    },
+    // ---- シール うりば（UI-57・js/kaden-stickers.js）。パックは ちいさな 絵（シールの 絵は いれない・かるく）----
+    // シールの たな: したの だん・うしろの あなあき ボード・フックに つりさげた パック（variant 1 は タイルと レトロ）
+    stkshelf(S, f) {
+      const w = f.w, board = f.variant ? "#F6E3F4" : "#FDEEDD";
+      let s = S.ellipse(w / 2, 0.5, 0, w * 0.45, "#00000010", 0) + S.box(0.05, 0.15, w - 0.1, 0.7, 0, 34, WHITE);
+      s += S.box(0.05, 0.12, 0.1, 0.2, 34, 120, "#C9C3CC", 1) + S.box(w - 0.15, 0.12, 0.1, 0.2, 34, 120, "#C9C3CC", 1);
+      s += S.poly([[0.1, 0.3, 34], [w - 0.1, 0.3, 34], [w - 0.1, 0.3, 152], [0.1, 0.3, 152]], board, 1.5);
+      for (let z = 46; z < 148; z += 14) for (let x = 0.3; x < w - 0.2; x += 0.35) s += S.ellipse(x, 0.31, z, 0.025, "#00000022", 0);
+      s += S.poly([[0.1, 0.3, 140], [w - 0.1, 0.3, 140], [w - 0.1, 0.3, 152], [0.1, 0.3, 152]], f.variant ? "#C9A8E8" : "#F7B7CF", 1.2);
+      const kinds = f.variant ? ["tile", "y2k", "tile", "y2k"] : ["flake", "flake2", "flake", "flake2"], n = Math.max(2, Math.round(w * 1.3));
+      for (let r = 0; r < 2; r++) for (let i = 0; i < n; i++) { const x = 0.45 + (i * (w - 0.9)) / (n - 1), z = 126 - r * 46; s += S.line([[x, 0.33, z + 6], [x, 0.42, z + 6]], "#8D8A92", 1.2) + at(S, x, 0.44, z, miniPack(kinds[(i + r) % 4]), 9, 12); }
+      for (let i = 0; i < Math.floor(w * 2); i++) { const x = 0.3 + i * 0.5; if (x > w - 0.3) break; s += S.box(x - 0.18, 0.4, 0.36, 0.36, 34, 10 + (i % 2) * 4, ["#FFE3EE", "#E2D8EF", "#FFF3C4"][i % 3], 1); }
+      return s;
+    },
+    // くるくる ラック: まるい だい・ぼう・3だんの パック（まわりに）・うえの ポップ（variant 0 ドロップ・1 シャカシャカ）
+    stkspin(S, f) {
+      const k = f.variant ? "shaka" : "drop", top = f.variant ? "#9FD3F0" : "#FF8FB0";
+      let s = S.ellipse(0.5, 0.5, 0, 0.5, "#00000014", 0) + S.cyl(0.5, 0.5, 0.36, 0, 6, ["#E9E4EC", "#C9C3CC"], 1.2) + S.box(0.46, 0.46, 0.08, 0.08, 6, 132, "#9C98A2", 1);
+      for (let t = 0; t < 3; t++) {
+        const z = 40 + t * 34;
+        s += S.cyl(0.5, 0.5, 0.3, z - 2, 2, ["#D9D4DD", "#B9B3BE"], 1);
+        for (const [dx, dy] of [[-0.24, 0.16], [0.24, 0.16], [0, 0.3]]) s += at(S, 0.5 + dx, 0.5 + dy, z + 12, miniPack(t === 1 ? (k === "drop" ? "puku" : "mat") : k), 9, 12);
+      }
+      s += at(S, 0.5, 0.5, 150, f.variant ? `<path d="M0,-14 C6,-6 10,-1 10,4 C10,10 5,14 0,14 C-5,14 -10,10 -10,4 C-10,-1 -6,-6 0,-14 Z" fill="${top}" ${st(1.6)}/><circle cx="-3" cy="2" r="2.4" fill="#FFFFFF" opacity=".85"/><circle cx="3" cy="6" r="1.2" fill="#FFFFFF"/>` : `<path d="M0,12 C-14,4 -12,-8 -5,-9 C-2,-10 0,-7 0,-5 C0,-7 2,-10 5,-9 C12,-8 14,4 0,12 Z" fill="${top}" ${st(1.6)}/><path d="M-5,-4 q2 -3 5 -2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>`, 12, 16);
+      return s;
+    },
+    // ぷくぷく シールの テーブル: ひくい しろい テーブル・うえに シートと ひらいた シールちょう・ためしの ポップ
+    stktable(S, f) {
+      const w = f.w, h = f.h, Z = 70;
+      let s = S.ellipse(w / 2, h / 2, 0, w * 0.5, "#00000012", 0);
+      for (const [x, y] of [[0.2, 0.2], [w - 0.3, 0.2], [0.2, h - 0.3], [w - 0.3, h - 0.3]]) s += S.box(x, y, 0.1, 0.1, 0, Z - 6, "#C9C3CC", 1);
+      s += S.box(0.05, 0.05, w - 0.1, h - 0.1, Z - 6, 6, ["#FFFFFF", "#E8E2EA", "#F4EFF5"], 1.4) + S.poly([[0.15, 0.15, Z + 0.2], [w - 0.15, 0.15, Z + 0.2], [w - 0.15, h - 0.15, Z + 0.2], [0.15, h - 0.15, Z + 0.2]], "#FCE3EE", 1);
+      // シートが ならぶ（いろの だいしに まるい シール）
+      for (let i = 0; i < 4; i++) {
+        const x = 0.3 + (i % 2) * 0.62, y = 0.3 + Math.floor(i / 2) * 0.72, c = ["#E6F5FC", "#FFF6CF", "#EFE8FA", "#FFE3EC"][i];
+        s += S.poly([[x, y, Z + 0.5], [x + 0.52, y, Z + 0.5], [x + 0.52, y + 0.6, Z + 0.5], [x, y + 0.6, Z + 0.5]], c, 1.1);
+        for (const [dx, dy, r, cc] of [[0.15, 0.18, 0.1, "#FFB3CC"], [0.36, 0.2, 0.08, "#9FD3F0"], [0.2, 0.42, 0.08, "#FFE48A"], [0.38, 0.42, 0.09, "#C9F2A8"]]) s += S.ellipse(x + dx, y + dy, Z + 0.7, r, cc, 1) + S.ellipse(x + dx - r * 0.3, y + dy - r * 0.3, Z + 0.8, r * 0.3, "#FFFFFF", 0);
+      }
+      // ひらいた シールちょう（ためし）
+      const bx = w - 1.2, by = 0.35;
+      s += S.poly([[bx, by, Z + 0.6], [bx + 0.5, by + 0.08, Z + 3], [bx + 0.5, by + 1.18, Z + 3], [bx, by + 1.1, Z + 0.6]], "#FFFDF6", 1.2) + S.poly([[bx + 0.5, by + 0.08, Z + 3], [bx + 1, by, Z + 0.6], [bx + 1, by + 1.1, Z + 0.6], [bx + 0.5, by + 1.18, Z + 3]], "#FFF6FA", 1.2);
+      for (const [dx, dy, c] of [[0.2, 0.3, "#FF8FB0"], [0.28, 0.72, "#9FD3F0"], [0.72, 0.38, "#FFE14D"], [0.78, 0.8, "#C9A8FF"]]) s += S.ellipse(bx + dx, by + dy, Z + 2, 0.09, c, 1);
+      // ポップ
+      s += S.box(0.3, h - 0.32, 0.06, 0.06, Z, 28, "#C9C3CC", 1) + at(S, 0.33, h - 0.3, Z + 34, `<rect x="-12" y="-8" width="24" height="16" rx="4" fill="#FFFFFF" ${st(1.4)}/><path d="M-8,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 M2,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" fill="#FFC2D9" ${st(1)}/>`, 14, 10);
+      return s;
+    },
+    // そざいの ショーケース: しろい だい・ガラス・なかに ミラー（ぎん）・はくおし（きん）・わし・とうめいの みほん
+    stkcase(S, f) {
+      const w = f.w, h = f.h;
+      let s = S.box(0.05, 0.05, w - 0.1, h - 0.1, 0, 46, WHITE) + S.box(0.05, 0.05, w - 0.1, h - 0.1, 46, 2, ["#EEF1F4", "#D6DCE2", "#FFFFFF"], 1);
+      const SAMPLE = [["#E3E8EE", "#FFFFFF", "#9AA4B2"], ["#22305A", "#E8C15A", "#E8C15A"], ["#F4EEDC", "#FFFFFF", "#8FB8E0"], ["#DDF3FA", "#FFFFFF", "#9FD3F0"]];
+      SAMPLE.forEach(([bg, a, b], i) => { const x = 0.22 + i * ((w - 0.44) / 4); s += at(S, x + 0.18, 0.55, 58, `<rect x="-7" y="-9" width="14" height="18" rx="2" fill="${bg}" ${st(1.1)}/><path d="M-5,6 L4,-7 L7,-7 L-2,6 Z" fill="${a}" opacity=".85"/><circle cx="0" cy="0" r="3" fill="none" stroke="${b}" stroke-width="1.4"/>`, 9, 11); });
+      s += S.box(0.05, 0.05, w - 0.1, h - 0.1, 48, 34, ["#CFE7EC55", "#CFE7EC44", "#E8F4F866"], 1.2);
+      s += S.line([[0.3, h - 0.05, 78], [0.8, h - 0.05, 56]], "#FFFFFF", 2.4, 'opacity=".7"');
       return s;
     },
     // かいものかごの やま
@@ -399,6 +469,7 @@ const KadenHallArt = (() => {
       klav: { c: ["#ECE6F4", "#E4DCEF"], line: "#D2C7E3", pat: "carpet" }, kmint: { c: ["#E2F2EA", "#D8EDE2"], line: "#C1DECF", pat: "tile" }, klemon: { c: ["#FFF6D8", "#FBF0C8"], line: "#EDDFA8", pat: "tile" },
       korange: { c: ["#FCEBDD", "#F8E2CF"], line: "#EBCBB0", pat: "tile" }, kblue: { c: ["#E3EEF7", "#DAE8F3"], line: "#C3D6E6", pat: "tile" }, kwood: { c: ["#E3C9A3", "#DABF97"], line: "#C2A47A", pat: "plank" },
       kdark: { c: ["#D9DCE3", "#D1D5DD"], line: "#BCC1CC", pat: "carpet" }, kred: { c: ["#FBE0DC", "#F7D6D1"], line: "#EBBFB8", pat: "carpet" }, ktheater: { c: ["#8E6E78", "#86666F"], line: "#76585F", pat: "carpet" },
+      ksticker: { c: ["#FDEEF4", "#F9E6EE"], line: "#EFCFDC", pat: "carpet" },
     },
     models: new Map(),
     modelKey(f) { return "kaden:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.variant ?? "") + ":" + (f.shop || "") + ":" + (f.item || "") + ":" + (f.dir || "") + ":" + (f.col || "") + ":" + (f.z || ""); },

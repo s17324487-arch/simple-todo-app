@@ -10,7 +10,7 @@ const KadenHall = {
   W: 38, H: 28,
   // エスカレーター（ESC1: 1F ⇔ 2F・ESC2: 2F ⇔ 3F。まんなかに ならぶ）
   ESC: { 1: { x: 18, y: 12, w: 4, h: 7 }, 2: { x: 23, y: 12, w: 4, h: 7 } },
-  mats: { ".": "kwhite", p: "kpink", c: "kgray", a: "klav", g: "kmint", y: "klemon", k: "korange", b: "kblue", w: "kwood", d: "kdark", m: "mat", r: "kred", t: "ktheater" },
+  mats: { ".": "kwhite", p: "kpink", c: "kgray", a: "klav", g: "kmint", y: "klemon", k: "korange", b: "kblue", w: "kwood", d: "kdark", m: "mat", r: "kred", t: "ktheater", s: "ksticker" },
   room(floor, title, extra = {}) {
     const W = this.W, H = this.H;
     return { id: "kaden" + floor, iso: true, w: W, h: H, wallH: 340, scale: 0.48, title, bgm: "shop_kaden", crowd: 6, rows: Array.from({ length: H }, () => ".".repeat(W)), mats: this.mats, walls: { north: [], west: [] }, fixtures: [], decals: [], zones: [], ...extra };

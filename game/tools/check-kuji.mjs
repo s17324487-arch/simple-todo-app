@@ -66,7 +66,7 @@ for (const X of K.SERIES) {
   for (const id of X.ids.I) { const it = K.INDEX[id]; ok(it.stickers.reduce((a, [, k]) => a + k, 0) === 4 && it.stickers.every(([sid]) => X.stickers.some(([x]) => x === sid)), `${id}: シールが 4まい（その みせの シール）`); }
   ok(X.stickers.every(([sid]) => X.ids.I.some((id) => K.INDEX[id].stickers.some(([x]) => x === sid))), `${X.shop}: 6しゅ ぜんぶが どれかの シートに ある`);
 }
-ok(SB.DESIGNS.length === 30 && SB.DESIGNS.slice(18).every((d) => /^stk_kj(law|sev)_[a-z]+$/.test(d.id)), "シールちょうは 18しゅ ＋ いちばんくじの 12しゅ");
+ok(SB.DESIGNS.filter((d) => /^stk_kj/.test(d.id)).length === 12 && SB.DESIGNS.slice(18, 30).every((d) => /^stk_kj(law|sev)_[a-z]+$/.test(d.id)), "シールちょうは 18しゅ ＋ いちばんくじの 12しゅ（ネリカス でんきの シールは その あと）");
 
 // ---- 3. ひく（1000コイン・もどさない・はりつけ ひょう・はんけん）----
 fresh(0);

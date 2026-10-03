@@ -5,6 +5,9 @@
 // ・すまほの「シール」アプリが シールちょう（ページ 6まい・はがせる かみ 6しゅ）。したの シールを タップで はる → ゆびで うごかす・まわす・おおきさ・はがす（てもとに もどる）。
 // ・4F の きたの かべ（もりの ひろばの き の あいだ・x 16〜18。きりかぶの ベンチは その ひがし）に 3台。絵は js/sticker-art.js。
 // ・セーブ: Save.d.stickers（have { シール: てもとの まい数 }・got { シール: これまでに もらった まい数 }・pages [{ bg: かみ, s: [[シール, x, y, まわす, おおきさ], …] }]）。シートの でた かずは Save.d.gacha.got。
+// ・UI-57: ネリカス でんきの シール うりば（js/kaden-stickers.js）の シールは しゅるい kind（ぷくぷく・ドロップ・シャカシャカ・フレーク・タイル・そざい）と うごき fx を もつ:
+//   squish（マシュマロ: タップで ふにっ）・jelly（ドロップ: ぷるん）・shaka（なかみの 4まいを かさねて、ゆびで うごかすと ラメが まう）・tile（えらんで「きる」で 9まいに）。
+//   したの ならびは しゅるいごとに まとめる（たての ふだ）。セーブの かたちは おなじ（タイルを きると ページの 1まいが 9まいに なる）。
 const StickerBook = (() => {
   const PRICE = 100, PAGES = 6, PER = 24, PW = 300, PH = 360, BASE = 64, CAP = 99, TURN = 15;
   const SIZES = [0.6, 0.8, 1, 1.25, 1.5], MID = 2;
@@ -20,7 +23,7 @@ const StickerBook = (() => {
   const addDesigns = (list) => {
     for (const d of list) {
       if (!d || !d.id || INDEX[d.id]) continue;
-      const x = { id: d.id, name: d.name, series: d.series, rare: !!d.rare, hint: d.hint || "" };
+      const x = { id: d.id, name: d.name, series: d.series, rare: !!d.rare, hint: d.hint || "", kind: d.kind || null, fx: d.fx || null, size: Number.isInteger(d.size) ? d.size : null, cut: d.cut || null, layers: typeof d.layers === "function" ? d.layers : null, tip: d.tip || "" };
       DESIGNS.push(x); INDEX[d.id] = x; if (typeof d.art === "function") StickerArt.FIG[d.id] = d.art;
     }
   };
@@ -87,7 +90,7 @@ const StickerBook = (() => {
     if (have(id) <= 0) return -2;
     if (pg.s.length >= PER) return -3;
     st().have[id]--; if (!st().have[id]) delete st().have[id];
-    pg.s.push([id, int(x, 0, PW), int(y, 0, PH), 0, MID]); return pg.s.length - 1;
+    const z = INDEX[id].size; pg.s.push([id, int(x, 0, PW), int(y, 0, PH), 0, z === null || z === undefined ? MID : Math.max(0, Math.min(SIZES.length - 1, z))]); return pg.s.length - 1;
   };
   const move = (p, i, x, y) => { const it = page(p).s[i]; if (!it) return false; it[1] = int(x, 0, PW); it[2] = int(y, 0, PH); return true; };
   const rotate = (p, i, d) => { const it = page(p).s[i]; if (!it) return false; it[3] = turn(it[3] + d * TURN); return true; };
@@ -95,6 +98,25 @@ const StickerBook = (() => {
   const front = (p, i) => { const s = page(p).s; if (!s[i]) return -1; s.push(s.splice(i, 1)[0]); return s.length - 1; };
   const peel = (p, i) => { const s = page(p).s, it = s[i]; if (!it) return false; s.splice(i, 1); const h = st().have; h[it[0]] = Math.min(CAP, (h[it[0]] || 0) + 1); return true; };
   const paperNext = (p) => { const pg = page(p); pg.bg = (pg.bg + 1) % StickerArt.PAPERS.length; return pg.bg; };
+  // タイルの シートを はさみで きる: ページの その 1まいを、シートの ならびの まま 9まい（cut.into）に わける。きった タイルは もらった ことに なる
+  const cutTile = (p, i) => {
+    const pg = page(p), it = pg.s[i], d = it && INDEX[it[0]];
+    if (!d || !d.cut || !Array.isArray(d.cut.into)) return -1;
+    const into = d.cut.into.filter((id) => INDEX[id]), cols = d.cut.cols || 3, rows = Math.ceil(into.length / cols);
+    if (pg.s.length - 1 + into.length > PER) return -3;
+    const step = (BASE * SIZES[it[4]] * 0.36), a = (it[3] * Math.PI) / 180, z = Number.isInteger(d.cut.size) ? d.cut.size : 0;
+    pg.s.splice(i, 1);
+    into.forEach((id, k) => {
+      const gx = (k % cols) - (cols - 1) / 2, gy = Math.floor(k / cols) - (rows - 1) / 2;
+      pg.s.push([id, int(it[1] + (gx * Math.cos(a) - gy * Math.sin(a)) * step, 0, PW), int(it[2] + (gx * Math.sin(a) + gy * Math.cos(a)) * step, 0, PH), it[3], z]);
+      st().got[id] = Math.min(999, got(id) + 1);
+    });
+    return pg.s.length - into.length;
+  };
+  // したの ならびの まとまり（ガチャ・くじ・ネリカス でんきの しゅるい）
+  const GROUPS = [["gacha", "ガチャ"], ["kuji", "くじ"], ["puku", "ぷくぷく"], ["drop", "ドロップ"], ["shaka", "シャカシャカ"], ["flake", "フレーク"], ["tile", "タイル"], ["mat", "そざい"]];
+  const groupOf = (d) => (typeof d.series === "number" ? "gacha" : d.kind || "kuji");
+  const grouped = () => GROUPS.map(([k, name]) => ({ k, name, list: DESIGNS.filter((d) => groupOf(d) === k) })).filter((g) => g.list.length);
 
   // ---- 4F（ガチャガチャの もり）の きたの かべに 3台 ----
   const IDX = SERIES.map((S) => S.index);
@@ -119,7 +141,10 @@ const StickerBook = (() => {
   const url = (id) => URLS[id] || (URLS[id] = U.svgUrl(StickerArt.piece(id)));
   const PAPER_URLS = {};
   const paperUrl = (n) => PAPER_URLS[n] || (PAPER_URLS[n] = U.svgUrl(StickerArt.paper(n)));
-  const ui = { page: 0, sel: -1, fit: null }; // ひらいて いる ページ・えらんで いる シール（PokaDebug.stickerUi）・がめんの おおきさが かわった ときの しらせ
+  // シャカシャカの 4まい（base・rest・up・top）。シール 1しゅに 4つ まで
+  const LAYER_URLS = {};
+  const layerUrl = (id, k) => { const key = id + ":" + k; if (!LAYER_URLS[key]) { const L = INDEX[id] && INDEX[id].layers ? INDEX[id].layers() : null; LAYER_URLS[key] = L && L[k] ? U.svgUrl(L[k]) : url(id); } return LAYER_URLS[key]; };
+  const ui = { page: 0, sel: -1, fit: null, shake: 0, tips: {} }; // ひらいて いる ページ・えらんで いる シール（PokaDebug.stickerUi）・がめんの おおきさが かわった ときの しらせ・シャカシャカした かず・いちど だした ひとこと
   const phoneView = (el) => {
     const s = st(); ui.sel = -1;
     const book = U.el("div", { class: "stk-book" });
@@ -140,7 +165,14 @@ const StickerBook = (() => {
     const drawPage = () => {
       const P = cur(), k = P.bg % StickerArt.PAPERS.length;
       pg.style.backgroundImage = `url("${paperUrl(k)}")`; pg.dataset.page = ui.page; pg.setAttribute("aria-label", `シールちょう ${ui.page + 1}ページ（${StickerArt.PAPERS[k].name}の かみ）`);
-      pg.replaceChildren(...P.s.map((it, i) => { const im = U.el("img", { class: "stk-on" + (i === ui.sel ? " sel" : ""), src: url(it[0]), alt: INDEX[it[0]].name, draggable: "false" }); im.dataset.i = i; im.dataset.id = it[0]; style(im, it); return im; }));
+      pg.replaceChildren(...P.s.map((it, i) => {
+        const d = INDEX[it[0]], cls = "stk-on" + (i === ui.sel ? " sel" : "") + (d.fx ? " fx-" + d.fx : "");
+        let im;
+        // シャカシャカ: わく・みず（base）→ したに たまった なかみ（rest）→ うかんだ なかみ（up・ふだんは みえない）→ ドームの ひかり（top）
+        if (d.fx === "shaka" && d.layers) { im = U.el("div", { class: cls + " stk-shaka", role: "img", "aria-label": d.name }); for (const k of ["base", "rest", "up", "top"]) im.append(U.el("img", { class: "stk-shk-" + k, src: layerUrl(d.id, k), alt: "", draggable: "false" })); }
+        else im = U.el("img", { class: cls, src: url(it[0]), alt: d.name, draggable: "false" });
+        im.dataset.i = i; im.dataset.id = it[0]; style(im, it); return im;
+      }));
       no.textContent = `${ui.page + 1} / ${PAGES}`; prev.disabled = ui.page <= 0; next.disabled = ui.page >= PAGES - 1;
     };
     const tool = (label, aria, fn) => { const b = UI.btn(label, () => { if (ui.sel < 0) return; if (fn() !== false) { Sound.se("tap"); Save.write(); draw(); } }, "small stk-tool"); b.setAttribute("aria-label", aria); return b; };
@@ -149,25 +181,33 @@ const StickerBook = (() => {
       if (ui.sel >= 0 && cur().s[ui.sel]) {
         const peelB = UI.btn("はがす", () => { const id = cur().s[ui.sel][0]; peel(ui.page, ui.sel); ui.sel = -1; Sound.se("sticker_peel"); Save.write(); draw(); UI.toast(`${INDEX[id].name}の シールを はがしたよ`); }, "small stk-tool pink");
         peelB.setAttribute("aria-label", "はがす");
-        tools.replaceChildren(tool("↺", "ひだりに まわす", () => rotate(ui.page, ui.sel, -1)), tool("↻", "みぎに まわす", () => rotate(ui.page, ui.sel, 1)), tool("－", "ちいさく", () => resize(ui.page, ui.sel, -1)), tool("＋", "おおきく", () => resize(ui.page, ui.sel, 1)), peelB);
-      } else tools.replaceChildren(U.el("div", { class: "stk-hint", text: total ? "したの シールを タップして はろう。はった シールは ゆびで うごかせるよ" : "シールが まだ ないよ。Meeときょれじゃ 4F の シールの ガチャや コンビニの いちばんくじで あつめよう！" }));
+        const extra = [], d = INDEX[cur().s[ui.sel][0]];
+        // タイルの シート: はさみで 9まいに きる
+        if (d.cut) { const cutB = UI.btn("きる", () => { const r = cutTile(ui.page, ui.sel); if (r === -3) { UI.toast("この ページは いっぱい。すこし はがしてから きろう"); return; } if (r < 0) return; ui.sel = -1; Sound.se("sticker_snip"); Save.write(); draw(); UI.toast("チョキチョキ！ タイルが " + d.cut.into.length + "まいに なったよ"); }, "small stk-tool pink"); cutB.setAttribute("aria-label", "はさみで きる"); extra.push(cutB); }
+        tools.replaceChildren(tool("↺", "ひだりに まわす", () => rotate(ui.page, ui.sel, -1)), tool("↻", "みぎに まわす", () => rotate(ui.page, ui.sel, 1)), tool("－", "ちいさく", () => resize(ui.page, ui.sel, -1)), tool("＋", "おおきく", () => resize(ui.page, ui.sel, 1)), ...extra, peelB);
+      } else tools.replaceChildren(U.el("div", { class: "stk-hint", text: total ? "したの シールを タップして はろう。はった シールは ゆびで うごかせるよ" : "シールが まだ ないよ。Meeときょれじゃ 4F の シールの ガチャ・コンビニの いちばんくじ・ネリカス でんきの シール うりばで あつめよう！" }));
     };
     const drawTray = () => {
-      const keep = tray.scrollLeft;
-      tray.replaceChildren(...DESIGNS.map((d) => {
-        const n = have(d.id), g = got(d.id), b = U.el("button", { class: "stk-slot" + (n ? "" : g ? " out" : " none"), "aria-label": g ? `${d.name} ${n}まい` : "まだ ない シール" });
-        b.dataset.id = d.id;
-        b.append(U.el("img", { src: url(d.id), alt: "", draggable: "false" }), U.el("span", { class: "stk-n", text: g ? `×${n}` : "？" }));
-        b.addEventListener("click", () => {
-          if (!g) { UI.toast(d.hint || "まだ でて いない シールだよ。4F の シールの ガチャで でるよ"); return; }
-          const i = put(ui.page, d.id, PW / 2 + ((cur().s.length * 23) % 90) - 45, PH / 2 + ((cur().s.length * 37) % 110) - 55);
-          if (i === -2) { UI.toast(`${d.name}の シールは ぜんぶ はって あるよ`); return; }
-          if (i === -3) { UI.toast("この ページは いっぱい。つぎの ページに はろう"); return; }
-          ui.sel = i; Sound.se("sticker_put"); Save.write(); draw();
-        });
-        return b;
-      }));
+      const keep = tray.scrollLeft, kids = [];
+      // しゅるいごとに まとめる（たての ふだ「ガチャ」「くじ」「ぷくぷく」…）
+      for (const g of grouped()) { const h = U.el("div", { class: "stk-grp" + (g.name.length >= 5 ? " long" : ""), text: g.name }); h.setAttribute("aria-hidden", "true"); kids.push(h, ...g.list.map(slot)); }
+      tray.replaceChildren(...kids);
       tray.scrollLeft = keep;
+    };
+    const slot = (d) => {
+      const n = have(d.id), g = got(d.id), b = U.el("button", { class: "stk-slot" + (n ? "" : g ? " out" : " none"), "aria-label": g ? `${d.name} ${n}まい` : "まだ ない シール" });
+      b.dataset.id = d.id;
+      b.append(U.el("img", { src: url(d.id), alt: "", draggable: "false" }), U.el("span", { class: "stk-n", text: g ? `×${n}` : "？" }));
+      b.addEventListener("click", () => {
+        if (!g) { UI.toast(d.hint || "まだ でて いない シールだよ。4F の シールの ガチャで でるよ"); return; }
+        const i = put(ui.page, d.id, PW / 2 + ((cur().s.length * 23) % 90) - 45, PH / 2 + ((cur().s.length * 37) % 110) - 55);
+        if (i === -2) { UI.toast(`${d.name}の シールは ぜんぶ はって あるよ`); return; }
+        if (i === -3) { UI.toast("この ページは いっぱい。つぎの ページに はろう"); return; }
+        ui.sel = i; Sound.se("sticker_put"); Save.write(); draw();
+        // とくべつな シールは はじめて はった ときに ひとこと
+        const tk = d.fx || (d.kind === "mat" ? d.id : null); if (d.tip && tk && !ui.tips[tk]) { ui.tips[tk] = 1; UI.toast(d.tip); }
+      });
+      return b;
     };
     const draw = () => { drawPage(); drawTools(); drawTray(); };
     // ゆびで うごかす（さわった シールは いちばん うえに）
@@ -179,14 +219,29 @@ const StickerBook = (() => {
       e.preventDefault();
       const i = front(ui.page, +t.dataset.i), it = cur().s[i], [px, py] = at(e);
       ui.sel = i; drawPage(); drawTools();
-      drag = { id: e.pointerId, dx: it[1] - px, dy: it[2] - py, x0: e.clientX, y0: e.clientY, moved: false, im: pg.querySelector(`.stk-on[data-i="${i}"]`) };
+      drag = { id: e.pointerId, dx: it[1] - px, dy: it[2] - py, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, im: pg.querySelector(`.stk-on[data-i="${i}"]`) };
       try { pg.setPointerCapture(e.pointerId); } catch (err) {}
+      const fx = INDEX[it[0]].fx;
+      if (fx === "squish" || fx === "jelly") poke(drag.im, fx);
+      else if (fx === "shaka") shake(drag.im, 0, 8);
     });
+    // マシュマロは ふにっ・ドロップは ぷるん（CSS の scale の アニメーション）
+    const poke = (el, fx) => { if (!el) return; const c = fx === "squish" ? "squish" : "jelly"; el.classList.remove(c); void el.offsetWidth; el.classList.add(c); Sound.se(fx === "squish" ? "sticker_puni" : "sticker_pururu"); };
+    // シャカシャカ: うごかした むきの はんたいへ なかみが ゆれて うかぶ。とまると したへ しずむ（CSS の transition）
+    let shakeT = 0, shakeSnd = -1e9;
+    const shake = (el, vx, vy) => {
+      if (!el || !el.classList.contains("stk-shaka")) return;
+      const k = 0.5, sx = Math.max(-5, Math.min(5, -vx * k)), sy = Math.max(-5, Math.min(5, -vy * k));
+      el.style.setProperty("--sx", sx.toFixed(1) + "%"); el.style.setProperty("--sy", sy.toFixed(1) + "%"); el.style.setProperty("--sr", Math.round(sx * 3) + "deg");
+      el.classList.add("shake"); ui.shake++;
+      clearTimeout(shakeT); shakeT = setTimeout(() => el.classList.remove("shake"), 280);
+      const now = performance.now(); if (now - shakeSnd > 240) { shakeSnd = now; Sound.se("sticker_shaka"); }
+    };
     pg.addEventListener("pointermove", (e) => {
       if (!drag || e.pointerId !== drag.id) return;
       if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 4) return;
-      drag.moved = true; const [px, py] = at(e), it = cur().s[ui.sel];
-      if (it) { move(ui.page, ui.sel, px + drag.dx, py + drag.dy); style(drag.im, it); }
+      drag.moved = true; const [px, py] = at(e), it = cur().s[ui.sel], vx = e.clientX - drag.lx, vy = e.clientY - drag.ly; drag.lx = e.clientX; drag.ly = e.clientY;
+      if (it) { move(ui.page, ui.sel, px + drag.dx, py + drag.dy); style(drag.im, it); if (INDEX[it[0]].fx === "shaka") shake(drag.im, vx, vy); }
     });
     const end = (e) => { if (!drag || e.pointerId !== drag.id) return; const m = drag.moved; drag = null; if (m) { Sound.se("sticker_put"); Save.write(); } };
     pg.addEventListener("pointerup", end); pg.addEventListener("pointercancel", end);
@@ -201,11 +256,16 @@ const StickerBook = (() => {
     draw(); fit(); requestAnimationFrame(fit);
   };
 
-  return { PRICE, PAGES, PER, PW, PH, BASE, CAP, TURN, SIZES, DESIGNS, INDEX, SERIES, first, IDX, isSticker, addDesigns, clean, st, have, got, placed, add, give, page, put, move, rotate, resize, front, peel, paperNext, patch4, ui, phoneView, url };
+  return { PRICE, PAGES, PER, PW, PH, BASE, CAP, TURN, SIZES, DESIGNS, INDEX, SERIES, first, IDX, isSticker, addDesigns, clean, st, have, got, placed, add, give, page, put, move, rotate, resize, front, peel, paperNext, cutTile, GROUPS, groupOf, grouped, patch4, ui, phoneView, url, layerUrl };
 })();
 
 // ---- こうかおん（ぺたっ・ぺりっ）----
 Object.assign(CraneSE, {
   sticker_put: (S, T, N) => { N({ dur: 0.03, vol: 0.12, freq: 1800, q: 1.4 }); T({ f: 520, f2: 760, dur: 0.07, type: "sine", vol: 0.12 }); },
   sticker_peel: (S, T, N) => { N({ dur: 0.12, vol: 0.14, freq: 3200, q: 0.8 }); T({ f: 900, f2: 420, dur: 0.1, type: "triangle", vol: 0.06 }); },
+  // UI-57: マシュマロ（ふにっ）・ドロップ（ぷるん）・シャカシャカ（ラメの おと）・タイルを きる（チョキン）
+  sticker_puni: (S, T) => { T({ f: 320, f2: 180, dur: 0.12, type: "sine", vol: 0.13 }); T({ f: 260, f2: 340, dur: 0.1, type: "sine", vol: 0.07 }); },
+  sticker_pururu: (S, T) => { T({ f: 660, f2: 520, dur: 0.08, type: "sine", vol: 0.08 }); T({ f: 560, f2: 700, dur: 0.12, type: "sine", vol: 0.06 }); },
+  sticker_shaka: (S, T, N) => { N({ dur: 0.06, vol: 0.09, freq: 6200, q: 1.2 }); N({ dur: 0.05, vol: 0.06, freq: 4800, q: 1.4 }); },
+  sticker_snip: (S, T, N) => { N({ dur: 0.04, vol: 0.14, freq: 2600, q: 2 }); T({ f: 1400, f2: 900, dur: 0.05, type: "square", vol: 0.04 }); },
 });

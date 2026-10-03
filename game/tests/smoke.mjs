@@ -4405,6 +4405,8 @@ await (await import("./crane-4f-smoke.mjs")).crane4fSmoke({scenario,expect});
 await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});
 // ネリカス でんき（池袋の 家電の 館・UI-56）: 1F〜3F・10F・だいで かう・ためしの だい・マッサージ・シアター・フロアマップ・おうちで 家電を さわる
 await (await import("./kaden-smoke.mjs")).kadenSmoke({scenario,expect});
+// ネリカス でんき 1F の シール うりば（UI-57）: たな・うりばの がめん・かう・シールちょうの まとまり・ふにっ・シャカシャカ・タイルを きる
+await (await import("./kaden-stickers-smoke.mjs")).kadenStickersSmoke({scenario,expect});
 // すいぞくかん・はくぶつかんの きふの ごほうび（UI-33）: みだし・カード・はくぶつかんで 4つ・もちもの・おうち
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
 await (await import("./dino-museum-smoke.mjs")).dinoMuseumSmoke({scenario,expect});
