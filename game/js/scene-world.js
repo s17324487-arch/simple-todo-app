@@ -692,6 +692,7 @@ class WorldScene {
     if (typeof TownFolk !== "undefined") for (const s of TownFolk.spotsOn(this.mapId)) list.push({ z: (s.y + 1) * TS - 3, draw: () => this.drawFolkProp(ctx, s, ox, oy) });
     for (const [rx, ry] of this.rocks) list.push({ z: (ry + 1) * TS - 4, draw: () => this.drawRock(ctx, rx, ry, ox, oy) });
     if (this.follower) list.push({ z: this.follower.w.feet().y - 0.5, draw: () => this.drawFollower(ctx, ox, oy) });
+    if (typeof PetWalk !== "undefined") PetWalk.worldDrawables(this, list, ctx, ox, oy); // いぬの さんぽ（UI-49・js/pet-walk.js）
     for (const e of this.enemies) {
       const f = e.w.feet();
       list.push({ z: f.y + (e.boss ? 20 : 0), draw: () => this.drawEnemy(ctx, e, ox, oy) });
