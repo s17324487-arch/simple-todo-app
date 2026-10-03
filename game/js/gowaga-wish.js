@@ -166,6 +166,7 @@ const GowagaWish = {
       Save.mark(); Save.write();
       if (sc.updateCare) sc.updateCare();
       h.amae = this.AMAE; h.beat = ids.length * 1.3 + 1.5;
+      if (typeof WishGifts !== "undefined") await WishGifts.after(sc, x); // ときどき おれいの しな（js/wish-gifts.js・UI-70）
       return true;
     } finally { h.busy = false; }
   },
@@ -205,7 +206,7 @@ const GowagaWish = {
     const log = w.log.slice(-8).reverse().map((it) => this.INDEX[it.id] && [this.INDEX[it.id], it]).filter(Boolean);
     if (log.length) {
       const list = U.el("div", { class: "wish-log" });
-      for (const [y, it] of log) list.append(U.el("div", { class: "wish-log-row", html: `<span class="wish-kind k-${y.kind}">${this.KIND[y.kind].name}</span><span class="wish-log-text">${this.who(y)}: ${y.short}${it.how === "pat" ? "（なでなで）" : "（ぎゅー）"}</span>` }));
+      for (const [y, it] of log) list.append(U.el("div", { class: "wish-log-row", html: `<span class="wish-kind k-${y.kind}">${this.KIND[y.kind].name}</span><span class="wish-log-text">${this.who(y)}: ${y.short}${it.how === "pat" ? "（なでなで）" : "（ぎゅー）"}</span>${it.gift && typeof WishGifts !== "undefined" ? `<span class="wish-gift" aria-label="おれいを もらった">${WishGifts.icon()}</span>` : ""}` }));
       box.append(list);
     }
     el.append(box);
