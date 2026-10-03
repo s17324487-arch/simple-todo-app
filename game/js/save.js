@@ -97,6 +97,9 @@ const Save = {
       // シールちょう（js/sticker-book.js・UI-53）: have { シール: てもとの まい数 }・got { シール: これまでに もらった まい数 }・
       // pages [{ bg: かみ, s: [[シール, x, y, まわす, おおきさ], …] }]（6まい。はじめて つかう ときに つくる）。シートは ガチャの けいひん（Save.d.gacha.got）
       stickers: { have: {}, got: {}, pages: [] },
+      // いちばんくじ（js/ichiban-kuji.js・UI-55・ネリカスタウンの コンビニ 2つ）: lots { みせ: ロット（のこり・はりつけ ひょう・ほかの おきゃくさん）}・got { けいひん: もらった かず }・
+      // draws ひいた まい数・spent つかった コイン・coupons { クーポン: まい数 }・used・stubs { みせ: はんけん }・dc／dcLast ダブルチャンス・done コンプリート・pending まだ えらんで いない D〜Fしょう
+      kuji: { lots: {}, got: {}, draws: 0, spent: 0, coupons: {}, used: 0, stubs: {}, dc: {}, dcLast: {}, done: {}, pending: [] },
       puzzle: { best: 0, plays: 0, claimed: {}, active: null, last: null },
       // コラボ グッズ（js/collab-goods.js）: ライン → { total: つみたての スコア, got: { id: もらった 日 } }。ラインは はじめて よむ ときに つくる
       collab: {},

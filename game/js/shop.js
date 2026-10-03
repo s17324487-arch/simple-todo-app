@@ -119,6 +119,12 @@ const ShopUI = {
     const shopNote = BUY_SHOPS[shopId] && BUY_SHOPS[shopId].note ? BUY_SHOPS[shopId].note(it) : "";
     if (shopNote) info.push(shopNote);
     if (info.length) body.append(U.el("div", { class: "note", html: info.join("<br>") }));
+    // クーポン（いちばんくじの けいひん・js/ichiban-kuji.js）: この しなものに つかえる ものが あれば 1こ むりょうで もらえる
+    const coupon = BUY_SHOPS[shopId] && BUY_SHOPS[shopId].coupon ? BUY_SHOPS[shopId].coupon(it) : null;
+    if (coupon) body.append(UI.btn(coupon.label, () => {
+      if (!coupon.use()) { Sound.se("bad"); return; }
+      Sound.se("buy"); Save.mark(); m.close(); onBuy(); UI.toast(`クーポンで ${it.name}を もらったよ！`, "good");
+    }, "pink coupon-use"));
     let qty = 1;
     const foot = U.el("div", { class: "row", style: "width:100%" });
     const price = U.el("div", { class: "pill", style: "box-shadow:none" });

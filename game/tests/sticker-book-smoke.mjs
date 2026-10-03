@@ -23,7 +23,7 @@ export async function stickerBookSmoke({ scenario, expect }) {
   for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario('sticker-book-' + viewport.width, async (H) => {
     await H.newGameFast(); const c0 = await H.dbg('coins', 3000); await H.dbg('calendar', '2026-10-05'); await H.dbg('hour', 11); await H.dbg('weather', 'clear');
     const st0 = await H.dbg('stickers');
-    expect(st0 && st0.series.map((S) => S.index).join() === '30,31,32' && st0.series.every((S) => S.price === 100) && st0.machines.length === 3 && st0.designs.length === 18 && !Object.keys(st0.have).length, 'シールの シリーズ ' + JSON.stringify(st0).slice(0, 300));
+    expect(st0 && st0.series.map((S) => S.index).join() === '30,31,32' && st0.series.every((S) => S.price === 100) && st0.machines.length === 3 && st0.designs.length === 30 && !Object.keys(st0.have).length, 'シールの シリーズ ' + JSON.stringify(st0).slice(0, 300));
     // 1. 4F の シールの 台（きたの かべ・もりの ひろば）
     await H.dbg('venue', 'arcade', 4); await H.idle(); await arrive(H, 4); await H.wait(700);
     let s = await H.dbg('venueState');
@@ -58,7 +58,7 @@ export async function stickerBookSmoke({ scenario, expect }) {
     await H.dbg('house'); await H.until(() => G.sceneName === 'house' && PokaDebug.idle(), 15000); await H.wait(300);
     await H.phone('シール'); await H.page.locator('.stk-page').waitFor({ timeout: 8000 }); await H.wait(500);
     let B = await book(H);
-    expect(B.no === '1 / 6' && B.slots === 18 && B.on === 0 && /したの シールを タップして はろう/.test(B.hint) && !B.small.length && !B.wide && !B.tall && !B.page && B.phone && B.pg.in && Math.abs(B.ratio - 300 / 360) < 0.02 && B.pg.h >= 250, 'シールちょうの がめん ' + JSON.stringify(B));
+    expect(B.no === '1 / 6' && B.slots === 30 && B.on === 0 && /したの シールを タップして はろう/.test(B.hint) && !B.small.length && !B.wide && !B.tall && !B.page && B.phone && B.pg.in && Math.abs(B.ratio - 300 / 360) < 0.02 && B.pg.h >= 250, 'シールちょうの がめん ' + JSON.stringify(B));
     await H.page.locator('.stk-slot[data-id="stk_wanko"]').click(); await H.wait(250);
     st = await H.dbg('stickers'); let u = await H.dbg('stickerUi');
     expect(st.pages[0].list.length === 1 && st.pages[0].list[0][0] === 'stk_wanko' && st.have.stk_wanko === 2 && u.sel === 0, 'シールを タップで はれない ' + JSON.stringify({ p: st.pages[0], have: st.have, u }));

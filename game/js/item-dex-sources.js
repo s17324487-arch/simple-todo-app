@@ -8,6 +8,7 @@ const ItemDexSources = {
     if (typeof MuseumWear !== "undefined" && MuseumWear.INDEX[id]) return MuseumWear.source(id);
     if (typeof BurgerMenu !== "undefined" && BurgerMenu.TOY_INDEX[id]) return BurgerMenu.source(id);
     if (typeof FashionShow !== "undefined" && FashionShow.PRIZE_IDS.has(id)) return FashionShow.source(id);
+    if (typeof IchibanKuji !== "undefined" && IchibanKuji.INDEX[id]) return IchibanKuji.source(id);
     if (typeof Gacha !== "undefined" && Gacha.INDEX[id]) { const S = Gacha.seriesOf(id); return `Meeときょれじゃ の ガチャガチャ「${S.name}」で でるよ${Gacha.INDEX[id].rare ? "（レア）" : ""}。`; }
     if (typeof ANNUAL_EVENTS !== "undefined") {
       const event = ANNUAL_EVENTS.find(e => e.items[kind] === id);

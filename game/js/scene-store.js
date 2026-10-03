@@ -79,11 +79,14 @@ class StoreScene {
       const pro=typeof Fishing!=="undefined"&&Fishing.proChoice(this);
       // ③ スーパーでは いけすの さかなを うれる（つった ときには うらない）
       const sell=typeof Fishing!=="undefined"&&Fishing.sellChoice(this);
-      const choices=[...(retail?["かいものを する"]:[]),...(sell?[sell]:[]),...(pro?[pro]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
+      // ネリカスタウンの コンビニでは いちばんくじも ひける（js/ichiban-kuji.js）
+      const kuji=typeof IchibanKuji!=="undefined"&&IchibanKuji.talkChoice(this);
+      const choices=[...(retail?["かいものを する"]:[]),...(kuji?[kuji.label]:[]),...(sell?[sell]:[]),...(pro?[pro]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
       const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${ShopRewards.level(Save.d.shops[this.shopId])}`;
       const answer=await UI.ask(`${this.owner.name}\n${text}`,choices),picked=choices[answer];
       if(this.closed)return;
       if(retail&&picked==="かいものを する"){await ShopUI.open(this.shopId);Save.write();}
+      else if(kuji&&picked===kuji.label){await kuji.run();Save.write();}
       else if(sell&&picked===sell){await Fishing.sell();Save.write();}
       else if(pro&&picked===pro){await Fishing.buyPro(this.owner);Save.write();}
       else if(work&&picked==="おてつだいする"){
@@ -113,6 +116,8 @@ class StoreScene {
     if(tx===5&&ty===11){this.request("exit");return;}
     if(this.walkTo(tx,ty))return;
     const f=this.fixtures.find(f=>tx>=f.x&&tx<f.x+f.w&&ty>=f.y&&ty<f.y+f.d);
+    // いちばんくじの たな: まえまで あるいて くじの ボード（js/ichiban-kuji.js）
+    if(f&&typeof IchibanKuji!=="undefined"&&IchibanKuji.tapFixture(this,f)){this.highlight={f,until:G.t+1.5};return;}
     if(f){Sound.se("tap");UI.toast(f.label+"。ゆっくり みていってね");this.highlight={f,until:G.t+1.5};}
   }
   update(dt) {
@@ -126,7 +131,7 @@ class StoreScene {
       const [x,y]=this.path.shift();
       for(let i=this.party.length-1;i>0;i--)this.party[i].moveTo(this.party[i-1].tx,this.party[i-1].ty,WALK_DUR);
       l.moveTo(x,y,WALK_DUR);
-    } else if(this.pending){const action=this.pending;this.pending=null;if(action==="talk")this.talk();else this.leave();}
+    } else if(this.pending){const action=this.pending;this.pending=null;if(typeof action==="function")action();else if(action==="talk")this.talk();else this.leave();}
     else if(l.tx===5&&l.ty===11)this.leave();
   }
   render(ctx) {

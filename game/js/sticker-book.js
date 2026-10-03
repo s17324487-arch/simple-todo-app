@@ -15,6 +15,15 @@ const StickerBook = (() => {
     ["stk_strawberry", "いちご", 2], ["stk_icecream", "アイス", 2], ["stk_candy", "キャンディ", 2], ["stk_donut", "ドーナツ", 2], ["stk_macaron", "マカロン", 2], ["stk_parfait", "にじいろ パフェ", 2, 1],
   ].map(([id, name, series, rare]) => ({ id, name, series, rare: !!rare }));
   const INDEX = Object.fromEntries(DESIGNS.map((d) => [d.id, d]));
+  // ほかの ところで でる シールを たす（ネリカスタウンの コンビニの いちばんくじ・js/ichiban-kuji.js）: [{ id, name, series, hint, art }]。
+  // series は みせの id（ガチャの 3シリーズは 0〜2 の かず）・hint は まだ でて いない シールを タップした ときの ことば・art は 100×100 の 絵
+  const addDesigns = (list) => {
+    for (const d of list) {
+      if (!d || !d.id || INDEX[d.id]) continue;
+      const x = { id: d.id, name: d.name, series: d.series, rare: !!d.rare, hint: d.hint || "" };
+      DESIGNS.push(x); INDEX[d.id] = x; if (typeof d.art === "function") StickerArt.FIG[d.id] = d.art;
+    }
+  };
   // シリーズ（ガチャの 台）。items: [なまえ, せつめい, [[シール, まい数], …]]（4まい・3 が レア）。paper: シートの だいしの いろ
   const SERIES = [
     { id: "stkpuku", name: "ぷっくり シール", kind: "sticker", sticker: true, price: PRICE, color: "#F7A9C8", caps: ["#FBD3E6", "#FFFFFF", "#BFE6F7"], paper: ["#EAF6FC", "#FFF8DC", "#F1ECFA", "#FFE9F1"], items: [
@@ -141,7 +150,7 @@ const StickerBook = (() => {
         const peelB = UI.btn("はがす", () => { const id = cur().s[ui.sel][0]; peel(ui.page, ui.sel); ui.sel = -1; Sound.se("sticker_peel"); Save.write(); draw(); UI.toast(`${INDEX[id].name}の シールを はがしたよ`); }, "small stk-tool pink");
         peelB.setAttribute("aria-label", "はがす");
         tools.replaceChildren(tool("↺", "ひだりに まわす", () => rotate(ui.page, ui.sel, -1)), tool("↻", "みぎに まわす", () => rotate(ui.page, ui.sel, 1)), tool("－", "ちいさく", () => resize(ui.page, ui.sel, -1)), tool("＋", "おおきく", () => resize(ui.page, ui.sel, 1)), peelB);
-      } else tools.replaceChildren(U.el("div", { class: "stk-hint", text: total ? "したの シールを タップして はろう。はった シールは ゆびで うごかせるよ" : "シールが まだ ないよ。Meeときょれじゃ 4F の シールの ガチャで あつめよう！" }));
+      } else tools.replaceChildren(U.el("div", { class: "stk-hint", text: total ? "したの シールを タップして はろう。はった シールは ゆびで うごかせるよ" : "シールが まだ ないよ。Meeときょれじゃ 4F の シールの ガチャや コンビニの いちばんくじで あつめよう！" }));
     };
     const drawTray = () => {
       const keep = tray.scrollLeft;
@@ -150,7 +159,7 @@ const StickerBook = (() => {
         b.dataset.id = d.id;
         b.append(U.el("img", { src: url(d.id), alt: "", draggable: "false" }), U.el("span", { class: "stk-n", text: g ? `×${n}` : "？" }));
         b.addEventListener("click", () => {
-          if (!g) { UI.toast("まだ でて いない シールだよ。4F の シールの ガチャで でるよ"); return; }
+          if (!g) { UI.toast(d.hint || "まだ でて いない シールだよ。4F の シールの ガチャで でるよ"); return; }
           const i = put(ui.page, d.id, PW / 2 + ((cur().s.length * 23) % 90) - 45, PH / 2 + ((cur().s.length * 37) % 110) - 55);
           if (i === -2) { UI.toast(`${d.name}の シールは ぜんぶ はって あるよ`); return; }
           if (i === -3) { UI.toast("この ページは いっぱい。つぎの ページに はろう"); return; }
@@ -192,7 +201,7 @@ const StickerBook = (() => {
     draw(); fit(); requestAnimationFrame(fit);
   };
 
-  return { PRICE, PAGES, PER, PW, PH, BASE, CAP, TURN, SIZES, DESIGNS, INDEX, SERIES, first, IDX, isSticker, clean, st, have, got, placed, add, give, page, put, move, rotate, resize, front, peel, paperNext, patch4, ui, phoneView, url };
+  return { PRICE, PAGES, PER, PW, PH, BASE, CAP, TURN, SIZES, DESIGNS, INDEX, SERIES, first, IDX, isSticker, addDesigns, clean, st, have, got, placed, add, give, page, put, move, rotate, resize, front, peel, paperNext, patch4, ui, phoneView, url };
 })();
 
 // ---- こうかおん（ぺたっ・ぺりっ）----
