@@ -1,4 +1,4 @@
-// おてつだいの ごほうび 44こ（js/shop-rewards.js・js/shop-reward-art.js・UI-38）の 検査。ブラウザ なしで たしかめる。
+// おてつだいの ごほうび 48こ（js/shop-rewards.js・js/shop-reward-art.js・UI-38。あたまの たいそうの 4こは UI-64）の 検査。ブラウザ なしで たしかめる。
 // id は まえの まま（セーブの うけとりの きろく）・なまえと せつめいは ひらがな・おみせごとに ちがう 立体（はんてん・live）・
 // さわる うごき（FurnLive）・live で ぬく ぶぶんが ある ものだけ live・いごこちは レベルで ふえる・ベッド・もようがえの しゅるい・ずかんの ヒント。
 import assert from "node:assert/strict";
@@ -13,12 +13,12 @@ const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
 const ids = (svg) => [...svg.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
 const norm = (svg) => svg.replace(/\bid="[^"]+"|url\(#[^)]+\)|href="#[^"]+"/g, "");
-const SHOP_IDS = ["burger", "groom", "cake", "crepe", "dentist", "bakery", "florist", "relay", "korokoro", "gasstand", "postoffice"];
+const SHOP_IDS = ["burger", "groom", "cake", "crepe", "dentist", "bakery", "florist", "relay", "korokoro", "gasstand", "postoffice", "brain"];
 
 // ---- 1. id・かず（まえの セーブの うけとりの きろくが そのまま つかえる）----
-ok(Object.keys(SR.themes).join() === SHOP_IDS.join() && Object.keys(SR.ITEMS).join() === SHOP_IDS.join(), "おみせ 11");
+ok(Object.keys(SR.themes).join() === SHOP_IDS.join() && Object.keys(SR.ITEMS).join() === SHOP_IDS.join(), "おみせ 12");
 const want = SHOP_IDS.flatMap((s) => [5, 10, 15, 30].map((lv) => `shop_${s}_${lv}`));
-ok(SR.prizes.map((p) => p.id).join() === want.join(), "id は shop_<おみせ>_<レベル> の 44こ（まえの まま）");
+ok(SR.prizes.map((p) => p.id).join() === want.join(), "id は shop_<おみせ>_<レベル> の 48こ（まえの 44こは まえの まま）");
 ok(SR.levels.join() === "5,10,15,30" && SR.COMFORT.join() === "5,7,9,12", "レベル と いごこち");
 const names = new Set();
 for (const p of SR.prizes) {
@@ -45,11 +45,11 @@ ok(SR.prizes.filter((p) => FURN_INDEX[p.id].sleep).length === 2, "ベッドは 2
 // もようがえの しゅるい: あかりは 6・すわる／ねる も ある
 const cats = {};
 for (const p of SR.prizes) for (const c of [].concat(FURN_INDEX[p.id].cat)) cats[c] = (cats[c] || 0) + 1;
-ok(cats.light === 5 && cats.sit === 15 && cats.table === 10 && cats.toy === 4 && cats.plant === 2 && cats.misc === 8, "しゅるい " + JSON.stringify(cats));
+ok(cats.light === 6 && cats.sit === 16 && cats.table === 11 && cats.toy === 5 && cats.plant === 2 && cats.misc === 8, "しゅるい " + JSON.stringify(cats));
 if (R.FurnTray) for (const p of SR.prizes) { const c = R.FurnTray.cats(FURN_INDEX[p.id]); ok(c.has("special") && [].concat(FURN_INDEX[p.id].cat).every((k) => c.has(k)), `${p.id}: もようがえの 一覧で しゅるい と とくべつ`); }
 
 // ---- 2. 立体（FurnModels）: おみせごとに ちがう・はんてん・live・id ----
-ok(ShopRewardArt && ShopRewardArt.ids.join() === want.join(), "ShopRewardArt の 立体 44");
+ok(ShopRewardArt && ShopRewardArt.ids.join() === want.join(), "ShopRewardArt の 立体 48");
 const seen = new Map();
 for (const p of SR.prizes) {
   const id = p.id;
@@ -85,7 +85,7 @@ for (const p of SR.prizes) {
   ok(after.t >= 0 && after.t < 1 && (after.on !== before.on || after.n === before.n + 1), `${p.id}: タップで ようすが かわる`);
   if (after.on !== before.on) tapped.on++; else tapped.n++;
 }
-ok(tapped.on === 8 && tapped.n === 36, `あかりが つく・きえる 8（ポテト・ネオン・かがみの ライト・カップケーキ・ショーケース・ききゅう・ぶどう・きゅうゆき）: ${JSON.stringify(tapped)}`);
+ok(tapped.on === 9 && tapped.n === 39, `あかりが つく・きえる 9（ポテト・ネオン・かがみの ライト・カップケーキ・ショーケース・ききゅう・ぶどう・きゅうゆき・ちきゅうぎ）: ${JSON.stringify(tapped)}`);
 
 // ---- 4. がめんの ことば（ひらがな）----
 const src = readFileSync(new URL("../js/shop-reward-art.js", import.meta.url), "utf8").replace(/\/\/.*$/gm, "");
@@ -110,7 +110,7 @@ ok(pv.indexOf("js/shop-reward-art.js") > Math.max(pv.indexOf("js/shop-rewards.js
   for (const f of pv) vm.runInContext(readFileSync(new URL("../" + f, import.meta.url), "utf8"), P, { filename: f });
   const bad = vm.runInContext("FURNITURE.filter((f) => { try { return !/<svg/.test(Art.furnSvg(f.id)); } catch { return true; } }).map((f) => f.id)", P);
   ok(!bad.length, "プレビューで 描けない かぐ: " + bad.join(" "));
-  ok(vm.runInContext("ShopRewards.prizes.every((p) => /<svg/.test(ShopRewardArt.model(p.id).full))", P), "プレビュー（?shop-rewards）で 44こ とも 描ける");
+  ok(vm.runInContext("ShopRewards.prizes.every((p) => /<svg/.test(ShopRewardArt.model(p.id).full))", P), "プレビュー（?shop-rewards）で 48こ とも 描ける");
 }
 
-console.log(`✓ shop rewards: ${n} checks（11 おみせ × 4・live ${LIVE.length}・あかり ${tapped.on}・ことば ${lines.length}）`);
+console.log(`✓ shop rewards: ${n} checks（12 おみせ × 4・live ${LIVE.length}・あかり ${tapped.on}・ことば ${lines.length}）`);

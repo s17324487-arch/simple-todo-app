@@ -46,7 +46,7 @@ const NerikasuLayout = (() => {
     // よこの 道（中）の 北
     ["nerikasu_home5", 28, 44, 6, 5, 3, "nerikasu.bld_nerikasu_home5", {}],
     ["cake", 37, 45, 6, 4, 3, "nerikasu.bld_cake", {}],
-    ["nerikasu_home6", 44, 44, 7, 5, 3, "nerikasu.bld_nerikasu_home6", { house: true }],
+    ["nerikasu_home6", 44, 44, 7, 5, 3, "nerikasu.bld_nerikasu_home6", {}], // あたまの たいそう（のうトレの おてつだい。js/mg-brain.js の BrainTown が お店に する）
     // よこの 道（中）の 南（入口は よこの 道（下）へ）
     ["home", 18, 56, 6, 4, 3, "nerikasu.bld_home", {}],
     // はたけの こや（js/farm-art.js の 絵 farm.hut・オーナーの FB 2026-09-30 の はたけ。やおやの かわり）

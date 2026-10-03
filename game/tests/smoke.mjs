@@ -4377,6 +4377,8 @@ await (await import("./nerikasu-town-smoke.mjs")).nerikasuTownSmoke({scenario,ex
 
 await (await import("./nerikasu-shops-smoke.mjs")).nerikasuShopsSmoke({scenario,expect});
 await (await import("./nerikasu-work-smoke.mjs")).nerikasuWorkSmoke({scenario,expect});
+// あたまの たいそう（のうトレの おてつだい・UI-64）: ネリカスタウンの お店 → 3しゅから えらぶ → まちがい さがし・おなじ え さがし・くだもの けいさん
+await (await import("./brain-smoke.mjs")).brainSmoke({scenario,expect});
 await (await import("./nerikasu-quests-smoke.mjs")).nerikasuQuestsSmoke({scenario,expect,folkTalk,folkTapSpot});
 await (await import("./farm-smoke.mjs")).farmSmoke({scenario,expect});
 

@@ -147,7 +147,8 @@ class ShopScene {
   async flow() {
     const face = Art.npcSvg({ ...this.owner, emo: "happy" });
     const first = !this.st.plays;
-    const lines = this.variant==='mac' ? [...MacShop.howto] : first ? [...HOWTO[this.shopId]] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
+    const how = typeof HOWTO[this.shopId] === "function" ? HOWTO[this.shopId](this) : HOWTO[this.shopId]; // あたまの たいそうは えらんだ ゲームの せつめい（js/mg-brain.js）
+    const lines = this.variant==='mac' ? [...MacShop.howto] : first ? [...how] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
     if(this.dailyBoost>1)lines.push('きょうの おすすめ！ コインが '+DailyPlay.label(this.dailyBoost)+'だよ。');
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
     if (this.closed) return;
@@ -465,10 +466,12 @@ function mgBtn(ctx, b) {
   U.rr(ctx, b.x, b.y + press, b.w, b.h, b.r || 14);
   ctx.fillStyle = b.disabled ? "#E6DCCB" : b.on ? "#FFE27A" : b.color || "#FFFDF6"; ctx.fill();
   ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.stroke();
-  if (b.icon) b.icon(ctx, b.x + b.w / 2, b.y + press + (b.label ? b.h * 0.42 : b.h / 2), Math.min(b.w, b.h) * (b.label ? 0.6 : 0.72));
+  // inline: しるしを ひだり・もじを みぎに ならべる（ひくい ボタン。あたまの たいそうの「ヒント」）
+  const inline = !!(b.inline && b.icon && b.label), ix = b.x + b.h * 0.56;
+  if (b.icon) b.icon(ctx, inline ? ix : b.x + b.w / 2, b.y + press + (b.label && !inline ? b.h * 0.42 : b.h / 2), Math.min(b.w, b.h) * (inline ? 0.62 : b.label ? 0.6 : 0.72));
   if (b.label) {
     ctx.fillStyle = INK; ctx.font = `800 ${b.fs || 12}px 'M PLUS Rounded 1c', sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(b.label, b.x + b.w / 2, b.y + press + (b.icon ? b.h * 0.84 : b.h / 2));
+    ctx.fillText(b.label, inline ? (ix + b.h * 0.3 + b.x + b.w) / 2 : b.x + b.w / 2, b.y + press + (b.icon && !inline ? b.h * 0.84 : b.h / 2));
   }
   if (b.badge) { ctx.fillStyle = "#F06292"; ctx.beginPath(); ctx.arc(b.x + b.w - 6, b.y + 6, 10, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#FFF"; ctx.font = "900 11px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(b.badge, b.x + b.w - 6, b.y + 6.5); }
   ctx.restore();

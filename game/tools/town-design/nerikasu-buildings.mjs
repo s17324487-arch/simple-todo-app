@@ -151,6 +151,33 @@ function korokoro(w,h,d,n){
   s+=door(d,h-2,n)+drain(w,h)+lamp(d-24,68,n)+planter(12,h-12,Math.min(26,bw-4));
   return s;
 }
+// あたまの たいそう（のうトレの おてつだい・UI-64）: あおい マンサード屋根・棟の ふくろうの 丸看板・ひらめきの でんきゅう と ほし・
+// ひだりの まどに こくばん（1+2=3）・みぎの まどに まちがい さがしの 2まいの え・しまの 日よけ
+function owlFace(x,y,r){return E(x,y+r*.08,r,r*.92,'#C7A27A',{sw:Math.max(.6,r*.09)})+Pth(`M${x-r*.82},${y-r*.38} L${x-r*.7},${y-r*1.08} L${x-r*.3},${y-r*.62}Z M${x+r*.82},${y-r*.38} L${x+r*.7},${y-r*1.08} L${x+r*.3},${y-r*.62}Z`,'#C7A27A',{sw:Math.max(.5,r*.08)})+C(x-r*.4,y-r*.05,r*.36,'#FFFFFF',{sw:Math.max(.5,r*.07)})+C(x+r*.4,y-r*.05,r*.36,'#FFFFFF',{sw:Math.max(.5,r*.07)})+C(x-r*.4,y,r*.15,ink,{sw:0})+C(x+r*.4,y,r*.15,ink,{sw:0})+Pth(`M${x-r*.14},${y+r*.3} h${r*.28} l-${r*.14},${r*.24}Z`,'#F2A93B',{sw:Math.max(.4,r*.05)})+E(x,y+r*.66,r*.42,r*.2,'#F3E3C6',{sw:0});}
+function brain(w,h,d,n){
+  const col='#4E73B8',roofc='#7E9CD8';let s=wall(w,h,'#EEF2F8');
+  s+=Pth(`M-3,33 L15,-6 H${w-15} L${w+3},33Z`,roofc,{sw:1.2})+R(13,-11,w-26,6,shade(roofc,.25),{sw:.8});
+  for(let i=1;i<Math.ceil(w/12);i++){const t=i/Math.ceil(w/12);s+=L(15+t*(w-30),-5,-3+t*(w+6),32,shade(roofc,-.22),.6)+L(16+t*(w-30),-5,-2+t*(w+6),32,shade(roofc,.25),.45);}
+  s+=R(-3,33,w+6,4,shade(roofc,-.28),{sw:.8});
+  // 棟の ふくろうの 丸看板・ひらめきの でんきゅう・ほし
+  s+=C(w/2,-22,17,'#FFF4DE',{sw:1})+C(w/2,-22,14,'none',{sw:.6,stroke:'#C9D6EE'})+owlFace(w/2,-22,10.5);
+  const bx0=40,by0=-15;s+=C(bx0,by0-3,6.5,n?'#FFE48A':'#FFF3B0',{sw:.9})+R(bx0-3,by0+3,6,4,'#A9B4C6',{sw:.6})+L(bx0-2,by0+5,bx0+2,by0+5,'#7E8899',.5)+L(bx0-2.5,by0-4,bx0,by0-1,'#E2B53E',.7)+L(bx0,by0-1,bx0+2.5,by0-4,'#E2B53E',.7);
+  for(const a of [0,1,2,3,4,5,6,7]){const u=a/8*Math.PI*2;s+=L(bx0+Math.cos(u)*8.5,by0-3+Math.sin(u)*8.5,bx0+Math.cos(u)*10.5,by0-3+Math.sin(u)*10.5,'#F2C14E',.7);}
+  const sx=w-40,sy=-17;let star='';for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?3:7;star+=`${i?'L':'M'}${(sx+Math.cos(a)*r).toFixed(1)},${(sy+Math.sin(a)*r).toFixed(1)} `;}s+=Pth(star+'Z','#F7D56A',{sw:.8});
+  // かんばん・しまの 日よけ
+  s+=sign(10,35,w-20,'あたまの たいそう','BRAIN GYM',col)+awning(9,61,w-18,'#8FB3E8');
+  // ひだりの まど: きの わくの こくばん
+  const bx=16,by=80,bw=d-30-bx,bh=h-26-by;
+  s+=R(bx-3,by-4,bw+6,bh+7,'#B98457',{sw:.9})+R(bx,by,bw,bh,n?'#4C7A64':'#3E6B57',{sw:.7});
+  s+=T(bx+bw*.38,by+bh*.36,'1+2=3',{size:8.5,fill:'#FFFFFF'})+C(bx+bw*.8,by+bh*.28,4,'none',{sw:.8,stroke:'#FFE48A'})+Pth(`M${bx+6},${by+bh*.68} q${bw*.2},-6 ${bw*.4},0 t${bw*.4},0`,'none',{sw:.8,stroke:'#BFE3EE'})+L(bx+bw*.78,by+bh*.62,bx+bw*.9,by+bh*.62,'#F7B9C9',.8)+L(bx+bw*.84,by+bh*.55,bx+bw*.84,by+bh*.69,'#F7B9C9',.8);
+  s+=R(bx-5,by+bh+2,bw+10,3,'#CCC2AA',{sw:.6})+Rn(bx+4,by+bh-1,6,2,'#FFFFFF')+Rn(bx+13,by+bh-1,5,2,'#F7D56A');
+  // みぎの まど: まちがい さがしの 2まいの え（ちがう ところに あかい まる）
+  const rx=d+26,rw=w-rx-14;s+=pane(rx,74,rw,34,n)+R(rx-2,108,rw+4,4,wood,{sw:.6});
+  const fw=(rw-10)/2;for(let i=0;i<2;i++){const fx=rx+3+i*(fw+4);s+=R(fx,h-44,fw,20,'#FFFDF6',{sw:.7})+Rn(fx+1,h-34,fw-2,9,'#C5E6A6')+C(fx+fw*.32,h-36,2.6,'#EF5350',{sw:.5})+C(fx+fw*.72,h-31,2.2,i?'#64B5F6':'#FFD54F',{sw:.5});}
+  s+=C(rx+3+fw+4+fw*.72,h-31,4.4,'none',{sw:.9,stroke:'#E53935'});
+  s+=door(d,h-2,n)+drain(w,h)+lamp(d-24,68,n)+planter(12,h-12,Math.min(26,bw-4));
+  return s;
+}
 // ---- 2026-09-29 配置イメージの 新しい 建物（コンビニ 2つ・ファミレス・ガソリンスタンド・アパート・郵便局・お届けセンター・サロン・中華料理屋・家 3つ） ----
 // ガラスの 店さき: たなの しなもの（夜は 店内が あかるい）
 function glassFront(x0,x1,y0,y1,n,goods=['#E27A6E','#F2C45E','#8FC39A','#7FA8D8','#F3F0E4']){
@@ -358,7 +385,7 @@ const specs=[
  ['nerikasu_home3','瓦屋根の家',7,5,3,'tile','瓦の重なり・木枠の窓・植木'],
  ['nerikasu_home4','テラスの家',7,5,3,'terrace','時計切妻と異なる高窓・縁側の格子'],
  ['nerikasu_home5','ころころフルーツ（パズルの おてつだい）',6,5,3,'korokoro','りんごの 丸看板・棟に すわる 3人の かお・玉が つみかさなる ガラスの 箱・しまの 日よけ・くだものの 木箱'],
- ['nerikasu_home6','通学路の長屋',7,5,3,'row','二つの切妻・花のプランター'],
+ ['nerikasu_home6','あたまの たいそう（のうトレの おてつだい）',7,5,3,'brain','ふくろうの 丸看板・ひらめきの でんきゅうと ほし・こくばんの まど・まちがい さがしの え・しまの 日よけ'],
  ['nerikasu_home7','画家の家',8,5,4,'studio','大きな仕事窓・片側の屋上・窓辺の花'],
  ['neri_lawson','コンビニ ローリソン',8,4,4,'lawson','あおい 看板の 帯・ミルクの びんの マーク・ガラスの 店さき・たなの しなもの・自動ドア・屋上の 室外機'],
  ['neri_sevenbun','コンビニ せぶんぶん',7,4,3,'sevenbun','だいだい・みどり・あかの 3本の 帯・しろい 看板・ガラスの 店さき・自動ドア'],
@@ -373,4 +400,4 @@ const specs=[
  ['neri_house_b','しろい モダンな 家',7,5,3,'house_b','陸屋根・木の たて格子・大きな まど・ガラスの バルコニー'],
  ['neri_house_c','かわら屋根の 和の 家',7,5,3,'house_c','かわらの 屋根・しっくいと 木の はしら・えんがわと しょうじ・こうしの 引き戸']
 ];
-export const NERIKASU_BUILDINGS=specs.map(([buildingId,name,w,h,d,kind,detail])=>({id:'nerikasu.bld_'+buildingId,buildingId,name,category:'住宅・お店・学校',w,h,door:d,bbox:[-10,-49,w*32+15,h*32+12],details:detail.split('・'),states:['day','night'],draw:o=>{const args=[w*32,h*32,(d+.5)*32,!!o?.night];return ['lawson','sevenbun'].includes(kind)?conbini(kind,...args):kind==='bikkupo'?bikkupo(...args):kind==='gas'?gasStation(...args):kind==='apartment'?apartment(...args):kind==='post'?postOffice(...args):kind==='delivery'?deliveryCenter(...args):kind==='salon'?salon(...args):kind==='chuka'?chuka(...args):kind.startsWith('house_')?newHouse(kind,...args):kind==='korokoro'?korokoro(...args):kind==='school'?school(...args):kind==='nursery'?nursery(...args):kind==='gazebo'?gazebo(...args):['home','row','modern','tile','terrace','courtyard','studio'].includes(kind)?home(kind,...args):shop(kind,...args);}}));
+export const NERIKASU_BUILDINGS=specs.map(([buildingId,name,w,h,d,kind,detail])=>({id:'nerikasu.bld_'+buildingId,buildingId,name,category:'住宅・お店・学校',w,h,door:d,bbox:[-10,-49,w*32+15,h*32+12],details:detail.split('・'),states:['day','night'],draw:o=>{const args=[w*32,h*32,(d+.5)*32,!!o?.night];return ['lawson','sevenbun'].includes(kind)?conbini(kind,...args):kind==='bikkupo'?bikkupo(...args):kind==='gas'?gasStation(...args):kind==='apartment'?apartment(...args):kind==='post'?postOffice(...args):kind==='delivery'?deliveryCenter(...args):kind==='salon'?salon(...args):kind==='chuka'?chuka(...args):kind.startsWith('house_')?newHouse(kind,...args):kind==='korokoro'?korokoro(...args):kind==='brain'?brain(...args):kind==='school'?school(...args):kind==='nursery'?nursery(...args):kind==='gazebo'?gazebo(...args):['home','row','modern','tile','terrace','courtyard','studio'].includes(kind)?home(kind,...args):shop(kind,...args);}}));
