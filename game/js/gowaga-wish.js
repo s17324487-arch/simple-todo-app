@@ -26,7 +26,7 @@ const GowagaWish = {
     { id: "eat_crepe", kind: "eat", who: "gachan", short: "クレープ", ask: "クレープ たべたいな〜♪ いちごの やつ！", hint: "サンシャインいけぶの クレープやさんで かえるよ", thanks: "クレープ、ふわふわ♪ ありがとう！", foods: ["ike_crepes_0", "ike_crepes_1", "ike_crepes_2"] },
     { id: "eat_pancake", kind: "eat", who: "wanko", short: "パンケーキ", ask: "ふわふわの パンケーキ たべたい！", hint: "びっくぽで かって、たべさせて あげよう", thanks: "パンケーキ、ふわっふわ！ ありがとう！", foods: ["pancake"] },
     { id: "do_purikura", kind: "do", who: "gachan", short: "ぷりくら", ask: "3にんで ぷりくら とりたい！ ハートの ポーズ しよ♪", hint: "Meeときょれじゃ 3かいの ぷりくら（300 コイン）", thanks: "ぷりくら、たからもの！ いっしょに とって くれて ありがとう♪", act: "purikura" },
-    { id: "do_fashion", kind: "do", who: "wanko", short: "ファッションショー", ask: "ファッションショーに でたい！ ランウェイを あるいて みたい！", hint: "いけぶくろえきの ほんの ギャラリー（500 コイン）", thanks: "ランウェイ、どきどき したけど たのしかった！ ありがとう！", act: "fashion" },
+    { id: "do_fashion", kind: "do", who: "wanko", short: "ファッションショー", ask: "ファッションショーに でたい！ ランウェイを あるいて みたい！", hint: "いけぶくろえきの ファッションかん（500 コイン）", thanks: "ランウェイ、どきどき したけど たのしかった！ ありがとう！", act: "fashion" },
     { id: "do_fishing", kind: "do", who: "goji", short: "つり", ask: "いっしょに つりが したい！ おっきい さかな つる ガウっ", hint: "つりざおを もって、いけや うみの ちかくで", thanks: "さかな、つれた！ いっしょに つって くれて ありがとう ガウっ", act: "fishing" },
     { id: "do_gacha", kind: "do", who: "wanko", short: "ガチャガチャ", ask: "ガチャガチャ まわして みたい！ なにが でるかな？", hint: "Meeときょれじゃ 2かいの ガチャ コーナー（200 コイン）", thanks: "ガチャガチャ、どきどき した！ ありがとう！", act: "gacha" },
     { id: "do_harvest", kind: "do", who: "goji", short: "やさいの しゅうかく", ask: "はたけで やさい ぬきたい！ うんとこしょ ガウっ", hint: "おうちの よこの はたけで、そだった やさいを とろう", thanks: "やさい、とれた！ いっしょに して くれて ありがとう ガウっ", act: "harvest" },

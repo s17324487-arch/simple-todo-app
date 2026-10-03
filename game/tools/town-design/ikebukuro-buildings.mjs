@@ -111,41 +111,67 @@ function station(o={}){
   return s;
 }
 
-// 本だなの ならぶ まど（色とりどりの 背表紙）
-function shelfWindow(x,y,w,h,n,seed=0,arch=true){
-  let s=arch?Pth(`M${x},${y+h} V${y+w/2} A${w/2},${w/2} 0 0 1 ${x+w},${y+w/2} V${y+h}Z`,n?'#F6D99A':'#F6EEDC',{sw:1}):R(x,y,w,h,n?'#F6D99A':'#F6EEDC',{sw:1});
-  const top=arch?y+w/2:y+2;for(let r=0;r<3;r++){const yy=top+r*(h-(top-y))/3;s+=L(x+1,yy+(h-(top-y))/3-1,x+w-1,yy+(h-(top-y))/3-1,'#9B7152',1.4);
-    for(let bx=x+2;bx<x+w-4;bx+=4.2){const hh=((h-(top-y))/3-4)*(.65+hash(bx,yy,seed)*.35);s+=Rn(bx,yy+(h-(top-y))/3-1.8-hh,3.4,hh,['#C4696A','#6E97B8','#E0B75A','#7FA66F','#A987B8','#E08E5E'][Math.floor(hash(bx,yy,seed+1)*6)]);}}
-  if(!n)s+=Pth(`M${x+3},${y+h-3} L${x+w*.6},${top} h${w*.2} L${x+w*.25},${y+h-3}Z`,'#FFFFFF',{sw:0,op:.28});
+// ===== ファッションかん（ファッションショーの かいじょう。オーナーの FB 2026-10-03「ほんのギャリーは、名前をファッション館に改めよう」。まえは ほんの ギャラリー） =====
+// カーテンの まど（ガラスの むこうに ハンガーの ふく・りょうがわに カーテン・うえに たれかざり）
+function drapeWindow(x,y,w,h,n,seed=0){
+  let s=R(x-2,y-2,w+4,h+4,'#E8C46A',{sw:.9,rx:2})+pane(x,y,w,h,n,seed,{litRate:.85,tint:'#CFE3EA'});
+  // ハンガーかけと ふく 3まい
+  const bar=y+h*.3;s+=L(x+4,bar,x+w-4,bar,'#8C7A6A',1);
+  for(let i=0;i<3;i++){const cx=x+w*(.25+i*.25),c=['#F2A7B8','#9EC9E8','#F4D27A','#B9A3DD','#A9D6A0'][Math.floor(hash(seed,i,5)*5)];
+    s+=Pth(`M${cx},${bar} l-3,3 h6Z`,'none',{sw:.6,stroke:'#6E5E52'})+Pth(`M${cx-4},${bar+3} h8 l2,${h*.42} h-12Z`,c,{sw:.6});}
+  // カーテン（ローズ）と たれかざり
+  s+=Pth(`M${x},${y} H${x+w*.28} Q${x+w*.12},${y+h*.5} ${x+w*.2},${y+h} H${x}Z`,'#D77A93',{sw:.8})+Pth(`M${x+w},${y} H${x+w*.72} Q${x+w*.88},${y+h*.5} ${x+w*.8},${y+h} H${x+w}Z`,'#D77A93',{sw:.8});
+  s+=L(x+w*.08,y+h*.55,x+w*.2,y+h*.6,'#B45B76',.7)+L(x+w*.92,y+h*.55,x+w*.8,y+h*.6,'#B45B76',.7);
+  let v=`M${x},${y}`;for(let i=0;i<4;i++)v+=` q${w/8},6 ${w/4},0`;s+=Pth(v+'Z','#B45B76',{sw:.7});
+  if(n)s+=Rn(x+w*.25,y+2,w*.5,h-4,'#FFE3A0',{op:.18});
   return s;
 }
-// ===== ほんの ギャラリー（おおきな 本やさん） =====
-function bookstore(o={}){
-  const n=!!o.night,W=384,H=384,cx=208,brick='#B97A5E';let s=dropShadow(W,H,16);
-  // 屋上: ちいさな 庭と「BOOKS」の 文字
-  s+=roofDeck(4,4,W-8,56,'#C8C3B6');
-  for(const [x,r]of [[40,10],[62,13],[88,9],[300,11],[326,14]])s+=E(x,40,r,r*.8,'#7FA563',{sw:.9})+E(x-r*.3,36,r*.45,r*.35,'#A3C27E',{sw:0});
-  s+=R(120,24,150,10,'#9C8A70',{sw:.8});for(const [i,ch]of [...'BOOKS'].entries())s+=R(128+i*28,-10,22,32,n?'#FFE7A8':'#FFF6DE',{sw:1.1,rx:3})+T(139+i*28,15,ch,{size:20,fill:'#2F5D50'});
-  // 正面: れんがの かべ・石の 柱・アーチの 本だな まど 4かい
-  s+=R(6,58,W-12,H-58,brick,{sw:1.3})+sideFace(W-6,58,H-58,10,brick);
-  for(let y=62;y<H-100;y+=9)s+=L(8,y,W-8,y,shade(brick,.18),.5);
-  for(const x of [8,72,136,248,312,370])s+=R(x,58,8,H-150,'#E9DCC6',{sw:.8});
-  for(let f=0;f<4;f++){const y=66+f*52;for(const x of (f<2?[22,86,262,326]:[22,86,156,204,262,326]))s+=shelfWindow(x,y,38,44,n,f*7+x,true)+R(x-3,y+44,44,4,'#E9DCC6',{sw:.7});}
-  // まんなかの たてかんばん（ひらいた 本）
-  s+=R(150,66,98,96,'#2F5D50',{sw:1.2,rx:3})+Pth('M174,112 q25,-12 25,4 q0,-16 25,-4 V140 q-25,-10 -25,6 q0,-16 -25,-6Z','#FFF6DE',{sw:1})+L(199,116,199,146,INK,1);
-  for(const y of [120,127,134])s+=L(179,y,195,y-4,'#9B7152',.8)+L(203,y-4,219,y,'#9B7152',.8);
-  s+=T(199,90,'ほんの',{size:14,fill:'#F4D98C'})+T(199,104,'BOOK GALLERY',{size:6,fill:'#BFD8CC',ls:1.2});
-  // 横の かんばん
-  s+=R(40,272,304,26,'#2F5D50',{sw:1.2,rx:2})+T(192,290,'ほんの ギャラリー',{size:16,fill:'#F4D98C'})+owlMark(64,285,.7,'#C99A6A')+owlMark(320,285,.7,'#C99A6A');
-  // 1かい: 本の かざり まど・木の 入口・えほんの ポスター
-  s+=R(8,300,W-16,H-302,'#8A5E45',{sw:1});
-  for(const x of [18,262]){s+=R(x,308,104,H-318,'#F3E6CC',{sw:1});for(let i=0;i<5;i++){const bx=x+8+i*19;for(let k=0;k<4;k++)s+=R(bx,H-22-k*6,16,5,['#C4696A','#6E97B8','#E0B75A','#7FA66F','#A987B8'][(i+k)%5],{sw:.5});}
-    s+=R(x+30,314,44,34,'#FFFDF4',{sw:.8})+C(x+52,328,8,'#D9A36E',{sw:.7})+C(x+46,322,3,'#D9A36E',{sw:.6})+C(x+58,322,3,'#D9A36E',{sw:.6})+C(x+49,327,1,INK,{sw:0})+C(x+55,327,1,INK,{sw:0})+T(x+52,345,x<200?'えほん フェア':'あたらしい ほん',{size:5.4,fill:INK});
-    if(!n)s+=Pth(`M${x+4},${H-12} L${x+40},${310} h14 L${x+18},${H-12}Z`,'#FFFFFF',{sw:0,op:.25});else s+=Rn(x+1,309,102,H-320,'#FFE3A0',{op:.25});}
-  s+=Pth(`M150,318 H266 L272,328 H144Z`,'#2F5D50',{sw:1})+autoDoor(cx,H-3,70,40,n,{frame:'#6B4A36',mat:'#B08A62'});
-  s+=R(126,H-30,18,26,'#9B7152',{sw:.8})+L(128,H-22,142,H-22,'#E8D5B5',.8)+L(128,H-14,142,H-14,'#E8D5B5',.8);
-  for(let i=0;i<3;i++)s+=R(128+i*4.6,H-29,3.6,6,['#C4696A','#6E97B8','#E0B75A'][i],{sw:.3})+R(128+i*4.6,H-21,3.6,6,['#7FA66F','#A987B8','#E08E5E'][i],{sw:.3});
-  if(n)s+=E(cx,H-4,70,8,'#FFE3A0',{sw:0,op:.22})+Rn(150,66,98,96,'#FFF1C4',{op:.06});
+// ショーウィンドーの マネキン（ドレス・ジャケットと スカート・ズボン）
+function mannequin(cx,bottom,c,kind,c2){
+  let s=L(cx,bottom-14,cx,bottom-2,'#9B8F80',1.2)+E(cx,bottom-1.5,6,1.8,'#C9BBA6',{sw:.6});
+  s+=C(cx,bottom-50,4.6,'#F4EEE6',{sw:.8})+R(cx-1.4,bottom-45.5,2.8,3,'#F4EEE6',{sw:.5});
+  if(kind==='dress')s+=Pth(`M${cx-5},${bottom-42} h10 l2,8 l5,20 h-24 l5,-20Z`,c,{sw:.8})+L(cx-7,bottom-34,cx+7,bottom-34,shade(c,-.25),.8);
+  else if(kind==='skirt')s+=R(cx-6,bottom-42,12,13,c,{sw:.8,rx:2})+Pth(`M${cx-6},${bottom-29} h12 l4,13 h-20Z`,c2||'#F4D27A',{sw:.8})+L(cx,bottom-42,cx,bottom-29,shade(c,-.3),.6);
+  else s+=R(cx-6,bottom-42,12,14,c,{sw:.8,rx:2})+Pth(`M${cx-6},${bottom-28} h12 l1,14 h-5 l-1,-10 l-1,10 h-5Z`,c2||'#6E8FB5',{sw:.7});
+  return s;
+}
+// ドレスの マーク（かんばん）
+function dressMark(x,y,sz,c='#F4D98C'){return g(x,y,`<g transform="scale(${sz})">`+Pth('M-3,-12 Q0,-15 3,-12 L5,-6 L11,12 H-11 L-5,-6Z',c,{sw:1})+Pth('M-5,-6 H5','none',{sw:.8,stroke:'#5B3A55'})+Pth('M0,-15 V-18 M-2,-18 h4','none',{sw:.9,stroke:c})+'</g>');}
+function sparkle(x,y,r,c='#F4D98C'){return Pth(`M${x},${y-r} Q${x+r*.18},${y-r*.18} ${x+r},${y} Q${x+r*.18},${y+r*.18} ${x},${y+r} Q${x-r*.18},${y+r*.18} ${x-r},${y} Q${x-r*.18},${y-r*.18} ${x},${y-r}Z`,c,{sw:.6});}
+function fashionHall(o={}){
+  const n=!!o.night,W=384,H=384,cx=208,wall='#F4ECE0',rose='#D77A93',plum='#5B3A55',gold='#E8C46A';let s=dropShadow(W,H,16);
+  // 屋上: ちいさな 植えこみ・スポットライト・「FASHION」の 文字
+  s+=roofDeck(4,4,W-8,56,'#D8D2C8');
+  for(const [x,r]of [[34,10],[56,12],[330,12],[352,9]])s+=E(x,40,r,r*.8,'#7FA563',{sw:.9})+E(x-r*.3,36,r*.45,r*.35,'#A3C27E',{sw:0});
+  s+=R(100,24,196,10,'#9C8A70',{sw:.8});
+  for(const [i,ch]of [...'FASHION'].entries())s+=R(104+i*27,-12,23,32,n?'#FFE7A8':'#FFF6F0',{sw:1.1,rx:3})+T(115.5+i*27,13,ch,{size:18,fill:plum});
+  for(const x of [86,310])s+=L(x,34,x,18,INK,1)+Pth(`M${x-6},18 h12 l-3,-8 h-6Z`,'#5E5A5C',{sw:.8})+(n?Pth(`M${x-5},10 L${x-26},-34 H${x+26} L${x+5},10Z`,'#FFF4C8',{sw:0,op:.22}):'');
+  // 正面: クリームの 石の かべ・ローズの 柱・3かいぶんの カーテンの まど
+  s+=R(6,58,W-12,H-58,wall,{sw:1.3})+sideFace(W-6,58,H-58,10,wall);
+  for(let y=66;y<268;y+=12)s+=L(8,y,W-8,y,shade(wall,-.04),.5);
+  for(const x of [8,72,136,248,312,370])s+=R(x,58,8,212,shade(rose,.55),{sw:.8})+R(x-1,58,10,5,gold,{sw:.6})+R(x-1,265,10,5,gold,{sw:.6});
+  for(let f=0;f<3;f++){const y=72+f*64;for(const x of [22,86,262,326])s+=drapeWindow(x,y,38,46,n,f*7+x)+R(x-4,y+48,46,4,shade(rose,.45),{sw:.7});}
+  // まんなかの たてかんばん（ドレスの マークと なまえ）・よこの たれまく
+  s+=R(150,68,98,152,plum,{sw:1.2,rx:4})+R(155,73,88,142,'none',{sw:.8,stroke:gold,rx:3})+dressMark(199,118,1.9);
+  s+=T(199,170,'ファッション',{size:13,fill:gold})+T(199,188,'かん',{size:15,fill:gold})+T(199,204,'FASHION HALL',{size:6,fill:'#E6CFE0',ls:1.2});
+  for(const sp of [[166,90],[232,92],[170,150],[228,148]])s+=sparkle(sp[0],sp[1],4);
+  for(const [x,t,c]of [[150,'ショー',rose],[226,'まいにち',rose]])s+=Pth(`M${x},226 h22 v34 l-11,-6 l-11,6Z`,c,{sw:.9})+T(x+11,240,t.length>3?t.slice(0,2):t,{size:t.length>3?6.5:7,fill:'#FFFFFF'})+(t.length>3?T(x+11,248,t.slice(2),{size:6.5,fill:'#FFFFFF'}):'');
+  // よこの かんばん（でんきゅうの ふち）
+  s+=R(40,272,304,26,plum,{sw:1.2,rx:2})+bulbs(44,275,296,20,n,12)+T(192,290,'ファッションかん',{size:16,fill:gold})+sparkle(66,285,6)+sparkle(318,285,6);
+  // 1かい: ショーウィンドーの マネキン 6たい・スポットライト・ひさし・あかい じゅうたんと ロープの ポール
+  s+=R(8,300,W-16,H-302,'#E9DCCB',{sw:1});
+  const looks=[['dress','#F2A7B8'],['skirt','#9EC9E8','#F4D27A'],['pants','#F4D27A','#8E7BC4'],['dress','#B9A3DD'],['skirt','#A9D6A0','#F2A7B8'],['pants','#F29E7A','#6E8FB5']];
+  for(const [k,x]of [[0,18],[1,262]]){
+    s+=R(x,308,104,H-318,n?'#FBEFD8':'#FFF8F2',{sw:1})+Rn(x+1,309,102,10,shade(rose,.6));
+    for(let i=0;i<3;i++){const L0=looks[k*3+i],mx=x+18+i*34;s+=Pth(`M${mx-4},312 h8 l10,${H-332} h-28Z`,'#FFF3C8',{sw:0,op:n?.5:.32})+mannequin(mx,H-12,L0[1],L0[0],L0[2]);}
+    s+=R(x,H-12,104,4,'#C9B39A',{sw:.6});
+    if(!n)s+=Pth(`M${x+4},${H-12} L${x+40},${310} h14 L${x+18},${H-12}Z`,'#FFFFFF',{sw:0,op:.22});else s+=Rn(x+1,309,102,H-320,'#FFE3A0',{op:.18});
+  }
+  s+=awning(150,312,116,rose,'#FFF6F2',12);
+  s+=Rn(cx-30,H-6,60,6,'#C8434F')+autoDoor(cx,H-3,60,40,n,{frame:plum,mat:'#C8434F'});
+  for(const x of [cx-46,cx+46])s+=R(x-2,H-24,4,22,gold,{sw:.6})+C(x,H-25,3,gold,{sw:.6})+R(x-5,H-3,10,3,shade(gold,-.2),{sw:.5});
+  s+=Pth(`M${cx-44},${H-20} Q${cx-38},${H-12} ${cx-32},${H-18}`,'none',{sw:1.6,stroke:'#C8434F'})+Pth(`M${cx+44},${H-20} Q${cx+38},${H-12} ${cx+32},${H-18}`,'none',{sw:1.6,stroke:'#C8434F'});
+  if(n)s+=E(cx,H-4,70,8,'#FFE3A0',{sw:0,op:.22})+Rn(150,68,98,152,'#FFF1C4',{op:.06});
   return s;
 }
 // ===== いけぶ えきまえ館（駅に つながる デパート） =====
@@ -616,7 +642,7 @@ export const IKEBUKURO_PROPS=[
 
 export const IKEBUKURO_BUILDINGS=[
   {id:'ikebukuro.station',buildingId:'city_station',name:'池袋えき（東口の 駅ビル）',w:12,h:12,door:6,draw:station,details:['ガラスの アーチ天窓','ガラスの 吹きぬけと 横長の まど','駅名と 3つの 路線マーク','まちあわせの 時計','東口の ひさしと 改札ホール','きっぷうりば・コインロッカー・えきの ちず']},
-  {id:'ikebukuro.bookstore',buildingId:'ike_annex1',name:'ほんの ギャラリー（おおきな 本やさん）',w:12,h:12,door:6,draw:bookstore,details:['屋上の 庭と BOOKS の 文字','れんがと 石の 柱','本だなの 見える アーチの まど','ひらいた 本の たてかんばん','えほんフェアの かざり まど・本の ワゴン']},
+  {id:'ikebukuro.fashion',buildingId:'ike_annex1',name:'ファッションかん（ファッションショーの かいじょう）',w:12,h:12,door:6,draw:fashionHall,details:['屋上の スポットライトと FASHION の 文字','クリームの 石の かべと ローズの 柱','カーテンと ハンガーの ふくが 見える まど','ドレスの マークの たてかんばん・ショー まいにちの たれまく','でんきゅうの ふちの よこかんばん','マネキン 6たいの ショーウィンドー・あかい じゅうたんと ロープの ポール']},
   {id:'ikebukuro.officeblock',buildingId:'city_clothes',name:'えきまえ ビル（駅の となりの ふつうの ビル）',w:12,h:13,door:6,draw:officeBlock,details:['屋上の 水の タンクと アンテナ','よこながの まどと ブラインド','たての テナントの かんばん（カフェ・じむしょ・じゅく）','ガラスの ロビーと あんないばん']},
   {id:'ikebukuro.electronics',buildingId:'ike_electronics',name:'ネリカス電機（10かいの 家電の お店）',w:18,h:14,door:9,top:40,draw:electronics,details:['屋上の 文字の かんばんと ほし','あかい たてかんばん','10かいの 売り場の おび','4K テレビの 大きな 画面','ポイント 10%','ならんだ テレビ・せんたくき・すいはんき・風船']},
   {id:'ikebukuro.arcade',buildingId:'ike_arcade',name:'Meeときょれじゃ（ゲームセンター）',w:13,h:13,door:6,top:60,draw:arcade,details:['まるい Mee の かんばんと でんきゅう','ほしの かざり','ネオンの ときょれじゃ','まどの むこうの クレーンゲーム（3人の ぬいぐるみ）','でんきゅうの ふちの 入口','ガチャと 1かい 100コイン']},

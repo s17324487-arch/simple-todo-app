@@ -1,4 +1,4 @@
-// ファッションショーの 会場（UI-36）。池袋の「ほんの ギャラリー」の なかを ごうかな ホールに（オーナーの FB 2026-10-01「建物の内装も豪華で
+// ファッションショーの 会場（UI-36）。池袋の「ファッションかん」（まえの なまえは ほんの ギャラリー。オーナーの FB 2026-10-03「ほんのギャリーは、名前をファッション館に改めよう」）の なかを ごうかな ホールに（オーナーの FB 2026-10-01「建物の内装も豪華で
 // クオリティの高い仕様にして。建物に入ると、受付と着替えスペースがあって、過去のショーの写真も飾ってある。参加費500円もとる」）。
 // サンシャインいけぶ と おなじ 斜め上の 館（IsoVenueScene・VenueHalls.defs.fashion）。きまりは js/fashion-show.js・ランウェイは js/fashion-scene.js。
 // ・入口（みなみ）から 赤い じゅうたんが おくの「ランウェイ」の 入口まで。りょうがわに ロープの さく・天じょうに シャンデリア。
@@ -77,7 +77,7 @@ const FashionHall = (() => {
     F.push({ kind: "npc", sp: "panda", ci: 0, x: 3, y: 12, w: 1, h: 1, dir: "right", emo: "happy", label: "おきゃくさん", action: "info", text: "ポーズは カメラの わが ボタンの わに かさなった ときに おすんだって。はやすぎても だめ なんだよ。", spots: [[3, 13], [3, 11]] });
     return {
       id: ID, iso: true, w: W, h: H, rows: rows.map((r) => r.join("")), wallH: 300, scale: 0.5, spawn: AT_DOOR, crowd: 2, bgm: "fashion_hall", fashionHall: true,
-      title: "ほんの ギャラリー", fixtures: F, mats: { ".": "fsMarble", r: "fsCarpet", w: "wood", m: "fsMat" },
+      title: "ファッションかん", fixtures: F, mats: { ".": "fsMarble", r: "fsCarpet", w: "wood", m: "fsMat" },
       zones: [
         { x: 11, y: 0, w: 6, h: 2, shop: "fsGate", label: "ランウェイの いりぐち", map: "ランウェイ" },
         { x: 17, y: 11, w: 5, h: 4, shop: "fsDesk", label: "うけつけ" },
@@ -616,7 +616,7 @@ const FashionHall = (() => {
 
   // ---- 館の とうろく ----
   const install = () => {
-    VenueHalls.defs.fashion = { name: "ほんの ギャラリー", iso: true, art, guide: MallGuide, bgm: "fashion_hall", floors: { 1: room() } };
+    VenueHalls.defs.fashion = { name: "ファッションかん", iso: true, art, guide: MallGuide, bgm: "fashion_hall", floors: { 1: room() } };
     Object.assign(MallArt.MAT, { fsMarble: { c: ["#FFFDF8", "#F7F2EA"], line: "#E3D6C2", pat: "tile" }, fsCarpet: { c: ["#B42746", "#AC2242"], line: "#7A1A33", pat: "carpet" }, fsMat: { c: ["#7A2440", "#6A1F3A"], line: "#561A31", pat: "mat" } });
     Object.assign(MallArt.SHOP, {
       fsGate: { name: "ランウェイ", c: ["#F6D9E3", "#EAA0B6", "#CF7F98"] }, fsDesk: { name: "うけつけ", c: ["#F3E4C4", "#E2C58A", "#C9A35A"] }, fsDress: { name: "きがえ", c: ["#EEDDF2", "#D6B8E3", "#B391C8"] },

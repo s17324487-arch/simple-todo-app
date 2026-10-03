@@ -140,7 +140,7 @@ const PokaDebug = {
       "PokaDebug.burgerMenu()                バーガーやさんの メニュー（4つの タブ）・にこにこ セットの おまけの おもちゃ（6しゅ・もって いる かず）",
       "PokaDebug.foodBalance()               たべものの バランス（そのままの やさい・りょうりと ざいりょうの ごうけい・ねだんで ごきげんを あげた もの）",
       "PokaDebug.fashion()                   ファッションショー（うけつけ・テーマ・3人の おしゃれ レベル・ランク・けいひん・しゃしん）",
-      "PokaDebug.fashionGo([13, 2])          ほんの ギャラリー（ファッションショーの 会場）へ（at: たつ マス）",
+      "PokaDebug.fashionGo([13, 2])          ファッションかん（ファッションショーの 会場）へ（at: たつ マス）",
       "PokaDebug.fashionStart()              ショーを はじめる（うけつけが まだ なら さんかひを はらう）",
       "PokaDebug.fashionAuto(0.02)           カメラの わが かさなって から 0.02びょうで じどうで おす（null で やめる）",
       "PokaDebug.fashionSpeed(4)             ショーを 4ばいで すすめる",

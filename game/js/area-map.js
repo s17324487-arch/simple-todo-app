@@ -20,7 +20,7 @@ const AreaMap = {
   // 道の なまえ（道の id → ひらがな）
   STREETS: { "neri-oodori": "おおどおり", "ike-meiji": "めいじどおり", "ike-east": "ひがしどおり", "ike-s60": "サンシャイン60どおり", "ike-green": "みどりの おおどおり", avenue: "へいわだい どおり", satsuki: "さつきどおり", "port-avenue": "みなと どおり", "terminal-avenue": "くうこう どおり" },
   SHOP_ICON: { furniture: "sofa", clothes: "shirt", lawson: "conbini", sevenbun: "conbini", market: "cart", crepe: "crepe", postoffice: "mail", florist: "flower", gasstand: "fuel", relay: "box", korokoro: "fruit", cake: "cake", dentist: "tooth", groom: "scissors", bakery: "bread", burger: "burger", link: "puzzle" },
-  VENUE_ICON: { bikkupo: "fork", neri_apart: "apart", school: "school", nursery: "blocks", electronics: "tv", arcade: "claw", mall: "bag", office: "office" },
+  VENUE_ICON: { fashion: "shirt", bikkupo: "fork", neri_apart: "apart", school: "school", nursery: "blocks", electronics: "tv", arcade: "claw", mall: "bag", office: "office" },
   // みる だけの たてもの: なまえで めじるしを きめる（うえから じゅんに）
   VISIT: [[/おうち|いえ$/, "house"], [/トイレ/, "wc"], [/こうばん|交番/, "police"], [/わがし/, "dango"], [/きっさ|カフェ/, "cup"], [/中華|ちゅうか|飯店/, "ramen"], [/こや/, "hut"], [/じんじゃ/, "torii"], [/せんとう/, "bath"],
     [/ほんや|ほんの/, "book"], [/やおや/, "carrot"], [/駐輪|ちゅうりん/, "bike"], [/ホテル/, "bed"], [/シネマ|えいが/, "film"], [/ていえん/, "tree"], [/すいぞくかん/, "fish"], [/まちあい/, "bench"],

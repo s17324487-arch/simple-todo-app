@@ -1,6 +1,6 @@
 // ファッションショー（UI-36・js/fashion-show.js・js/fashion-hall.js・js/fashion-scene.js）。オーナーの FB 2026-10-01「池袋駅にファションショーが
 // できる所を追加してほしい。ファッションのレベルとタイミングに合わせてごわががポーズをとる(ボタンを押す)ことで、点数が決まる。…参加費500円もとる」:
-// 池袋の ほんの ギャラリー（会場）→ うけつけで 500コイン → きがえ スペース（おしゃれ ★ と テーマの ふだ）→ ランウェイの いりぐち
+// 池袋の ファッションかん（会場。まえの なまえは ほんの ギャラリー）→ うけつけで 500コイン → きがえ スペース（おしゃれ ★ と テーマの ふだ）→ ランウェイの いりぐち
 // → ショー: まつ 3人の ひとこと → 1人ずつ あるく → ズーム → ポーズ（はやく おすと ミス・おさないと ミス・ぴったりで おす）→ しんさの ふだと ひとこと
 // → フィナーレ → ランク → ごほうびの まど（コイン・しゃしん）→ 会場の ランウェイの まえに もどる → かべに しゃしん → すまほの「しゃしん」
 export async function fashionShowSmoke({ scenario, expect }) {
@@ -11,7 +11,7 @@ export async function fashionShowSmoke({ scenario, expect }) {
     await H.dbg('fashionGo');
     await H.until(() => !Game.trans && G.sceneName === 'venue' && PokaDebug.venueIso()?.ready && PokaDebug.idle(), 20000);
     let st = await H.dbg('fashion');
-    expect(st.building === 'ike_annex1' && st.venue && !st.entry && st.theme === 'kawaii', 'ほんの ギャラリーが 会場 ' + JSON.stringify(st).slice(0, 200));
+    expect(st.building === 'ike_annex1' && st.venue && !st.entry && st.theme === 'kawaii', 'ファッションかんが 会場 ' + JSON.stringify(st).slice(0, 200));
     await H.shot('hall');
     // うけつけ: はじめての あいさつ → テーマ → さんかする（500コイン）
     await H.dbg('venueVisit', 'うけつけ');

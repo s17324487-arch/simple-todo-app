@@ -1,5 +1,5 @@
 // 池袋（MAP_DEFS.city）の 街区を、オーナーの 配置イメージ（2026-09-29）どおりに 作りなおす。
-//   西: 線路と 駅ビル（北から 本の ギャラリー・えきまえ ビル・池袋えき）と 東口の えきまえ ひろば。明治通りが 駅に そって 南北に はしる。
+//   西: 線路と 駅ビル（北から ファッションかん・えきまえ ビル・池袋えき）と 東口の えきまえ ひろば。明治通りが 駅に そって 南北に はしる。
 //   上: 左から ネリカス電機・Meeときょれじゃ・サンシャインいけぶ（右上）。東通りが 上から 右下へ ななめに おりて 緑の大通りへ。
 //   東通りの かど K（よこちょうの はし）から サンシャイン60通りが 右上の いけぶへ。下は 緑の大通り（まんなかに しばふと いちょう）。
 //   射撃場は 下の まんなか、ままの オフィスは 右下（どちらも 緑の大通りの 北がわ）。
@@ -37,8 +37,8 @@ const IkebukuroTown = (() => {
   // 建物: id, x, y, w, h, door（左からの マス）, 絵, ほか
   const BUILDINGS = [
     // 駅の 列（線路の ひがし）
-    // ほんの ギャラリーの なかは ファッションショーの 会場（js/fashion-hall.js。オーナーの FB 2026-10-01「実施できる場所は既存の建物(ほんのギャラリー)でよい」）
-    ["ike_annex1", 4, 1, 12, 12, 6, "bookstore", { label: "ほんの ギャラリー", act: { type: "venue", venue: "fashion" } }],
+    // ファッションかんの なかは ファッションショーの 会場（js/fashion-hall.js。オーナーの FB 2026-10-01「実施できる場所は既存の建物(ほんのギャラリー)でよい」・2026-10-03「ほんのギャリーは、名前をファッション館に改めよう」）
+    ["ike_annex1", 4, 1, 12, 12, 6, "fashion", { label: "ファッションかん", act: { type: "venue", venue: "fashion" } }],
     ["city_clothes", 4, 16, 12, 13, 6, "officeblock", { label: "えきまえ ビル" }],
     ["city_station", 4, 32, 12, 12, 6, "station", {}],
     // 上の 列（なかどおりの 北がわ）
@@ -225,7 +225,7 @@ const IkebukuroTown = (() => {
     const medianGap = (x) => MEDIAN_GAPS.some(([a, b]) => x >= a && x <= b);
     for (let x = 25; x < W; x++) if (!medianGap(x)) { if (x % 3 === 0) art("nat.ginkgo", x, 51); else art("nat.hedge", x, 51); art("nat.shrub", x, 50, { opts: { flower: x % 2 === 0 } }); }
     // 店さきの 小物（入口の りょうがわの かど）
-    const front = { station: ["prop.planter", "city_bikerack"], bookstore: ["prop.aboard", "prop.planter"], department: ["prop.planter", "prop.planter"], electronics: ["city_screen", "prop.aboard", "prop.nobori", "city_bikerack"], arcade: ["prop.gacha", "prop.gacha", "prop.aboard"], mall: ["prop.planter", "prop.flowerbed", "prop.planter"], wing_marche: ["prop.aboard"], wing_interior: ["prop.planter"], puzzle: ["prop.aboard"], hotel: ["prop.planter"], cafe: ["city_coffee", "prop.aboard"], cinema: ["city_billboard", "prop.aboard"], foodhall: ["prop.aboard", "prop.nobori"], garden: ["prop.flowerbed"], museum: ["direction", "prop.planter"], range: ["direction", "prop.bench"], office_lobby: ["prop.planter"], office_tower: ["prop.planter", "prop.bench", "city_bikerack"], passage: [], parcel: ["city_delivery"] };
+    const front = { station: ["prop.planter", "city_bikerack"], fashion: ["prop.aboard", "prop.planter"], department: ["prop.planter", "prop.planter"], electronics: ["city_screen", "prop.aboard", "prop.nobori", "city_bikerack"], arcade: ["prop.gacha", "prop.gacha", "prop.aboard"], mall: ["prop.planter", "prop.flowerbed", "prop.planter"], wing_marche: ["prop.aboard"], wing_interior: ["prop.planter"], puzzle: ["prop.aboard"], hotel: ["prop.planter"], cafe: ["city_coffee", "prop.aboard"], cinema: ["city_billboard", "prop.aboard"], foodhall: ["prop.aboard", "prop.nobori"], garden: ["prop.flowerbed"], museum: ["direction", "prop.planter"], range: ["direction", "prop.bench"], office_lobby: ["prop.planter"], office_tower: ["prop.planter", "prop.bench", "city_bikerack"], passage: [], parcel: ["city_delivery"] };
     for (const b of d.buildings) { const list = front[b.asset.split(".")[1]] || [], y = b.y + b.h; let i = 0;
       for (const x of [b.x, b.x + b.w - 1, b.x + 2, b.x + b.w - 3]) { if (i >= list.length) break; const k = list[i]; const o = k.startsWith("prop.") ? art(k, Math.min(x, b.x + b.w - (HeiwadaiArt.assets[k].w)), y, k === "prop.nobori" ? { opts: { c: "#F28C28", t: "やきたて" } } : {}) : prop(k, Math.min(x, b.x + b.w - 2), y); if (o) i++; } }
     // 駅の 列の とおりみち（ベンチ・花・じはんき・じてんしゃ）
