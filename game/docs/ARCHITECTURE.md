@@ -172,6 +172,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `gacha-art.js` / `gacha-art-more.js` / `gacha.js`（purikura.js の あと） | `GachaArt` ／ `GachaArtMore` ／ `Gacha` |
 | — | `gacha-forest-art.js` / `gacha-forest.js`（gacha.js の すぐ あと） | `GachaForestArt` ／ `GachaForest` |
 | — | `sticker-art.js` / `sticker-book.js`（gacha-forest.js の すぐ あと） | `StickerArt` ／ `StickerBook` |
+| — | `gacha-forest-more.js` / `mee-rotation.js`（sticker-book.js の すぐ あと・UI-62） | `GachaForestMore` ／ `MeeRotation` |
 | — | `collab-goods.js` / `puzzle-collab.js` / `korokoro-collab.js`（gacha.js・korokoro-score.js の あと・item-dex-sources.js の まえ） | `CollabGoods` ／ `PuzzleCollab` ／ `KorokoroCollab` |
 | — | `aqua-gifts.js`（aqua-art.js の あと・ike-aquarium.js の まえ） | `AquaGifts` |
 | — | `figure-stand.js`（aqua-gifts.js の あと・ike-aquarium.js の まえ） | `FigureStand` |
@@ -1058,6 +1059,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 4F: `StickerBook.patch4(floor4)`（きたの かべ 16〜18 に 3だい・へや `arcForestSticker`〔15〜18。みぎの 20〜25 は クレーン 3だい・UI-54〕・かべの「シール 100コイン」〔z 158。き の はっぱに かくれない〕・あんないの ことば。2かい よんでも ふえない）。`PokaDebug.gachaForest().machines` は もりの 18だい だけ。
 - PokaDebug: `stickers()`・`stickerGive(id, n)`・`stickerUi()`・`gachaOpen(30〜32)`。検査は `tools/check-stickers.mjs`、スモーク「sticker-book-390 / 375」。
 - UI-57 で ふえた こと（ネリカス でんきの シール うりば・`js/kaden-stickers.js`）: `addDesigns` の シールは しゅるい `kind`（`puku`・`drop`・`shaka`・`flake`・`tile`・`mat`）・うごき `fx`（`squish` タップで ふにっ／`jelly` ぷるん／`shaka`／`tile`）・はる ときの おおきさ `size`（SIZES の ばんごう）・`cut`（`{ into: [9まい], cols, size }`）・`layers`（シャカシャカの 4まい base・rest・up・top を かえす 関数）・`tip`（はじめて はった ときの ひとこと）を もてる。ページでは シャカシャカは `div.stk-shaka` に img 4まい（`layerUrl(id, k)` は シール 1しゅに 4つ まで）・ゆびで うごかすと `.shake`（うかんだ なかみが みえて、とまると 0.28びょうで しずむ）。ふにっ・ぷるんは CSS の `scale` の アニメーション。`cutTile(p, i)` は タイルの シートを シートの ならびの まま 9まいに（`got` が ふえる・ページが いっぱいなら -3）。したの ならびは `grouped()`（ガチャ・くじ・ぷくぷく・ドロップ・シャカシャカ・フレーク・タイル・そざい の たての ふだ）。セーブの かたちは おなじ。
+
+## ガチャの しゅうがわり（Meeときょれじゃ・UI-62）
+
+- 読み込みは `js/gacha-forest-more.js` → `js/mee-rotation.js`（sticker-book.js の すぐ あと。シールの 30〜32 ばんを かえない ため）。トップレベル名は `GachaForestMore`・`MeeRotation`。
+- `GachaForestMore.SERIES`（6。`forest: true`・`more: true`・`isle`〔はいる しま〕）。`Gacha.add` で 33〜38 ばん。絵は `GachaForestArt` の 部品（`machi`・`face`・`shadow` など を かえす）と `FIG`（16 → `GachaForestArt.FIG` と `GachaArt.FIG`）。ポーチの かたち fish・whale・octopus・orca と めじるしの carrot・tomato・eggplant・pumpkin は `js/gacha-forest-art.js`。フルーツ スクイーズは `GachaForest.squishable(id)`（`SQUISH` は 16）。しまに `add`（まわる シリーズ）と `rest`（さいしょに やすむ ids の ばんごう）を たす。
+- `MeeRotation`: `week(day)`（2026-09-21 から）・`RINGS`（`{ id, floor, name, ids, add, rest, from }`。4F は しま 6つ）・`pool(R)`・`lineup(R, w)`（`[{ slot, id, si, fresh, debut, leaving }]`）・`resting(R, w)`・`apply(day)`（部屋の 台を その しゅうに）・`stateOf(si)`・`info(day)`・`notice(sc)`。
+  - 台の 目じるしは `ring`・`slot`（`GachaForest.floor4()` の しまの 台）。`VenueScene.prototype.loadFloor` を つつんで、Meeときょれじゃ の 部屋を コピーする まえに `apply()`。
+  - 館の 台の「NEW」の はたは `f.fresh`（`ArcadeArt.M.gacha`・`modelKey` に `:new` → シリーズ × 2 の 有限）。ガチャの がめんの ふだは `Gacha.tagOf(si)`（`js/gacha.js` の `info()` が よぶ・`.gacha-week`／`.gacha-week.new`）。
+  - セーブは `Save.d.gacha.week`（おしらせ だけに つかう）。ならびは 日づけで きまる ので セーブに いれない。
+- 検査は `tools/check-mee-rotation.mjs`（しゅうの ばんごう・まいしゅう 1だい だけ・4しゅうに 3しゅう・さいしょの いれかえ・apply と loadFloor・NEW の はた と キー・ふだ・おしらせ・セーブ・とうろく・PokaDebug）。スモークは `tests/mee-rotation-smoke.mjs`。
 
 ## 4F の クレーン 3だい（たこやき・バーバーカット・バウンドボール。Meeときょれじゃ 4F・UI-54）
 

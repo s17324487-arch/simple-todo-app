@@ -14,12 +14,12 @@ const kanji = /[一-鿿]/;
 // ---- 1. シリーズと けいひん ----
 // 2F の 12シリーズ（4F の ガチャガチャの もり の 18シリーズは tools/check-gacha-forest.mjs・シールの 3シリーズは tools/check-stickers.mjs）
 const BASE = GA.SERIES.filter((s) => !s.forest && !s.sticker), BI = BASE.flatMap((s) => s.list);
-ok(BASE.length === 12 && BI.length === 48 && GA.SERIES.length === 33 && GA.ITEMS.length === 132 && BASE.every((s, i) => s.index === i), "2F は 12シリーズ・48しゅ（UI-28 で 2ばい）・4F（もり 18・シール 3）と あわせて 33シリーズ");
+ok(BASE.length === 12 && BI.length === 48 && GA.SERIES.length === 39 && GA.ITEMS.length === 156 && BASE.every((s, i) => s.index === i), "2F は 12シリーズ・48しゅ（UI-28 で 2ばい）・4F（もり 18・シール 3・UI-62 の 6）と あわせて 39シリーズ");
 ok(BASE.filter((s) => s.kind === "furn").length === 7 && BASE.filter((s) => s.kind === "wear").length === 5, "へやに かざる もの 7シリーズ・服 5シリーズ");
 ok(BASE.filter((s) => s.acc).map((s) => s.id).join() === "sparkle,hair,neck,party" && GA.SERIES.filter((s) => s.acc).every((s) => s.kind === "wear"), "アクセサリーの シリーズ 4つ（キラキラ アクセ・ヘアアクセ・ネックレス・パーティー）");
 ok(GA.SERIES.slice(0, 6).map((s) => s.id).join() === "friends,sleepy,sweets,ride,ears,sparkle", "まえの 6シリーズの じゅんばんは そのまま（台の ばんごう・セーブの id）");
-ok(new Set(GA.ITEMS.map((it) => it.id)).size === 132 && new Set(GA.SERIES.map((s) => s.id)).size === 33, "id が かさなる");
-ok(new Set(GA.SERIES.map((s) => s.color.toUpperCase())).size === 33, "台の いろが ぜんぶ ちがう");
+ok(new Set(GA.ITEMS.map((it) => it.id)).size === 156 && new Set(GA.SERIES.map((s) => s.id)).size === 39, "id が かさなる");
+ok(new Set(GA.SERIES.map((s) => s.color.toUpperCase())).size === 39, "台の いろが ぜんぶ ちがう");
 {
   const wears = BI.filter((it) => it.kind === "wear");
   ok(new Set(wears.map((it) => it.wear)).size === wears.length && wears.filter((it) => !it.wear.startsWith("gacha_")).map((it) => it.wear).join() === "catears", "アクセサリー・服の かたちが ぜんぶ ちがう（しろねこ だけ まえからの ねこみみ）");

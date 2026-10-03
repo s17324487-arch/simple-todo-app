@@ -245,6 +245,12 @@ const ArcadeArt = (() => {
         const d = StickerArt.heartD(t.x, t.y - 3, 0.36);
         s += `<path d="${d}" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="4.4" stroke-linejoin="round"/><path d="${d}" fill="#FF8FB0" stroke="${INK}" stroke-width="1.2"/><path d="M${f2(t.x - 7)} ${f2(t.y - 5)} q1 -3 4 -4" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>`;
       }
+      // しゅうがわりで こんしゅう はいった 台（js/mee-rotation.js の f.fresh）: うえに「NEW」の はた（ほんものの カプセルトイの 店の POP と おなじ）
+      if (f.fresh) {
+        const b = S.P(...F.Q(W * 0.78, D * 0.3, 104)), t = S.P(...F.Q(W * 0.78, D * 0.3, 170)); S.grow(t.x - 4, t.y - 6, t.x + 44, b.y + 2);
+        s += `<path d="M${f2(b.x)} ${f2(b.y)} V${f2(t.y - 3)}" stroke="${INK}" stroke-width="3.6" stroke-linecap="round"/><path d="M${f2(b.x)} ${f2(b.y)} V${f2(t.y - 3)}" stroke="#E6E9F2" stroke-width="1.8" stroke-linecap="round"/>`;
+        s += `<path d="M${f2(t.x)} ${f2(t.y)} H${f2(t.x + 40)} L${f2(t.x + 34)} ${f2(t.y + 11)} L${f2(t.x + 40)} ${f2(t.y + 22)} H${f2(t.x)} Z" fill="#E8434F" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>${txt(t.x + 17, t.y + 15.6, 12.5, "NEW", "#FFFFFF")}<circle cx="${f2(b.x)}" cy="${f2(t.y - 3)}" r="2.6" fill="#FFE07A" stroke="${INK}" stroke-width="1.1"/>`;
+      }
       return s;
     },
     // ぷりくら（しゃしんの ブース。まえに カーテン・よこに ポスター）。variant = ブース（0 ゆめかわ・1 がっこう・2 おでかけ）で いろ・かんばん・ポスターが ちがう
@@ -632,7 +638,8 @@ const ArcadeArt = (() => {
   Object.assign(art, {
     M: { ...MallArt.M, ...M }, L: { ...MallArt.L, ...L }, models: new Map(),
     // 日がわりの 台は その日の ならび（pool の くみあわせ だけ → 有限）も キーに
-    modelKey(f) { return "arcade:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.machine ?? "") + ":" + (f.dir || "") + ":" + (f.variant ?? "") + ":" + (f.item || "") + (f.kind === "crane" && CraneMachines.DEFS[f.machine].pool ? ":" + PrizeArcade.prizeList(f.machine).join(",") : ""); },
+    // しゅうがわりの「NEW」の はた（f.fresh）も キーに（ある か ない かの 2つ）
+    modelKey(f) { return "arcade:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.machine ?? "") + ":" + (f.dir || "") + ":" + (f.variant ?? "") + ":" + (f.item || "") + (f.kind === "crane" && CraneMachines.DEFS[f.machine].pool ? ":" + PrizeArcade.prizeList(f.machine).join(",") : "") + (f.fresh ? ":new" : ""); },
     frame, specOf, SPEC,
     async prepare(r, sc) {
       const k = Math.min(sc.k, 1.2), jobs = [];

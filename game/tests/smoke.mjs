@@ -4400,6 +4400,7 @@ await (await import("./hand-items-smoke.mjs")).handItemsSmoke({scenario,expect})
 await (await import("./pet-walk-smoke.mjs")).petWalkSmoke({scenario,expect});
 await (await import("./rare-calm-smoke.mjs")).rareCalmSmoke({scenario,expect});
 await (await import("./gacha-forest-smoke.mjs")).gachaForestSmoke({scenario,expect});
+await (await import("./mee-rotation-smoke.mjs")).meeRotationSmoke({scenario,expect});
 await (await import("./sticker-book-smoke.mjs")).stickerBookSmoke({scenario,expect});
 await (await import("./crane-4f-smoke.mjs")).crane4fSmoke({scenario,expect});
 await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});
