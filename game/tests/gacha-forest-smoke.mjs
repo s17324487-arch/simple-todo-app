@@ -1,6 +1,6 @@
 // ガチャガチャの もり（Meeときょれじゃ 4F・js/gacha-forest.js・UI-52。オーナーの FB 2026-10-02「4階を増設して…新しい景品のガチャガチャ18台を追加して、4階はガチャガチャの森の名称にして（待ちぼうけや、スクイーズ、ポーチ、目印アクセサリー、面白いグッズなど）」）
 // 1. 3F の 南東の エスカレーターで 4F へ → 「Meeときょれじゃ 4F」・ガチャ 18だい（どれも まえに いける）・フロアマップは 1F〜4F
-// 2. いちばん はじの「まちぼうけ ぽかぽか」→ はっぱの 台・レアの「まちぼうけ 3にん」（あける まで わからない）→ ポーチ・かぶりもの・スクイーズの 台
+// 2. まんなかの ガチャの しま（オーナーの FB 2026-10-03 で かべぎわから うつした）の「まちぼうけ ぽかぽか」→ はっぱの 台・レアの「まちぼうけ 3にん」（あける まで わからない）→ ポーチ・かぶりもの・スクイーズの 台
 // 3. おうち: きがえで ポーチ（もちもの）と えびフライの かぶりもの・へやに スクイーズを おいて タップ → むにっ・3人が しゃべる
 // 4. さいかい しても のこる → 4F から 3F へ おりる
 export async function gachaForestSmoke({ scenario, expect }) {
@@ -26,11 +26,11 @@ export async function gachaForestSmoke({ scenario, expect }) {
     // フロアマップ: 1F〜4F・4F の へや
     await H.page.getByRole('button', { name: 'フロア案内', exact: true }).click(); await H.page.locator('.mall-guide svg').waitFor(); await H.wait(300);
     const gd = await H.eval(() => { const r = (e) => e.getBoundingClientRect(), bs = [...document.querySelectorAll('.mall-guide .btn')]; return { tabs: [...document.querySelectorAll('.mall-guide .mg-tabs .btn')].map((b) => b.textContent).join(), spots: [...document.querySelectorAll('.mall-guide .mg-spot')].map((b) => b.dataset.label), small: bs.filter((b) => r(b).height < 43.5).length, out: bs.filter((b) => r(b).left < -0.5 || r(b).right > innerWidth + 0.5).length, text: document.querySelector('.mall-guide').textContent }; });
-    expect(gd.tabs === '1F,2F,3F,4F' && ['もりの ガチャ（きた）', 'もりの ガチャ（にし）', 'もりの あんない', 'おおきな カプセル', '3Fへ おりる'].every((l) => gd.spots.includes(l)) && !gd.small && !gd.out, '4F の フロアマップ ' + JSON.stringify(gd));
+    expect(gd.tabs === '1F,2F,3F,4F' && ['ガチャの しま（にし）', 'ガチャの しま（ひがし）', 'もりの あんない', 'おおきな カプセル', '3Fへ おりる'].every((l) => gd.spots.includes(l)) && !gd.spots.includes('もりの き') && !gd.small && !gd.out, '4F の フロアマップ ' + JSON.stringify(gd));
     await H.shot('guide');
     await H.page.locator('.modal-wrap .close').last().click(); await H.idle();
-    // 2. まちぼうけ ぽかぽか（きたの かべの はし）: はっぱの 台 → レアの 3にん
-    expect(await H.dbg('venueVisit', 'もりの ガチャ'), 'もりの ガチャ が ない');
+    // 2. まちぼうけ ぽかぽか（まんなかの ガチャの しまの「まちぼうけ」の くみの はし）: はっぱの 台 → レアの 3にん
+    expect(await H.dbg('venueVisit', 'まちぼうけ'), 'ガチャの しまの まちぼうけ が ない');
     await H.page.locator('.modal-wrap:not(.out) .gacha').waitFor({ timeout: 25000 }); await H.wait(400);
     let L = await fits(H, 'まちぼうけ');
     const leaf = await H.eval(() => document.querySelector('.modal-wrap:not(.out) .gacha-machine').innerHTML.includes('#7DBA4C'));

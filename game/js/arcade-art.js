@@ -2,6 +2,8 @@
 // 什器は 種類ごとの SVG（キーは 種類・大きさ・台の 番号・向き だけ → 有限）。MallArt の くみたて（svgBuilder）・町の人・ベンチ などを つかう。
 // クレーンの 台は なかの 景品（ArcadePrizes の ぬいぐるみ）・アーム・ガラス・かんばん。ひかる 電球と ネオンは canvas で 毎フレーム。
 const ArcadeArt = (() => {
+  // ガチャの かんばんの もじ（variant の ばんごう。0・1 は 2F の ガチャ コーナー、2〜7 は 4F の ガチャの しまの テーマ。js/gacha-forest.js の ISLES）
+  const GACHA_BOARDS = ["ガチャ コーナー", "1かい 200コイン", "まちぼうけ", "スクイーズ", "ポーチ・ぼうし", "めじるし・もり", "ミニチュア", "ミニ グッズ"];
   const T = () => IsoVenue.T, A = () => IsoVenue.A, B = () => IsoVenue.B;
   const shade = (c, k) => MallArt.shade(c, k);
   const txt = (x, y, size, t, fill = INK, extra = "") => `<text x="${f2(x)}" y="${f2(y)}" font-size="${size}" font-weight="900" text-anchor="middle" font-family="'M PLUS Rounded 1c','Hiragino Maru Gothic ProN',sans-serif" fill="${fill}" ${extra}>${t}</text>`;
@@ -421,7 +423,7 @@ const ArcadeArt = (() => {
     },
     // ガチャ コーナーの かんばん（台の うしろ: ひくい しきり・2本の ぼう・うえの いた。いたの まえは 台の せなかに ぴったり）。もじは variant（キャッシュの キー）で きまる
     gachaboard(S, f) {
-      const text = ["ガチャ コーナー", "1かい 200コイン"][(f.variant || 0) % 2];
+      const text = GACHA_BOARDS[(f.variant || 0) % GACHA_BOARDS.length];
       const F = frame(f), W = F.W, D = F.D, z0 = 126, hh = 40, fw = (W - 0.04) * 48;
       let s = boxC(S, F, 0.04, D - 0.42, W - 0.08, 0.38, 0, 44, ["#D6EFD8", "#5FA866", "#4E8B56"], 1.4);
       for (const u of [0.16, W - 0.28]) s += boxC(S, F, u, D - 0.2, 0.12, 0.14, 44, z0 - 44, ["#F4F0E6", "#C9BFA9", "#AFA48C"], 1.1);
