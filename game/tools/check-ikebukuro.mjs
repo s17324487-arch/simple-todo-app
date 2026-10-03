@@ -33,10 +33,10 @@ for(const type of Object.keys(R.IkebukuroCatalog.appliances))for(let i=0;i<3;i++
 for(let i=0;i<3;i++)assert(R.ITEM_INDEX['ike_phone_'+i].rare&&R.ITEM_INDEX['ike_phone_'+i].slot==='neck');
 for(const id of R.IkebukuroCatalog.groups.luxury)assert(R.FURN_INDEX[id].price>=10000&&R.FURN_INDEX[id].price<=50000);
 for(const shop of ['clothes','furniture','market'])for(const [tab]of R.BUY_SHOPS[shop].tabs)assert(!R.BUY_SHOPS[shop].items(tab).some(i=>i.exclusive));
-assert.equal(R.PrizeArcade.machines.length,21);assert.equal(R.CraneMachines.DEFS.length,21);
+assert.equal(R.PrizeArcade.machines.length,24);assert.equal(R.CraneMachines.DEFS.length,24);
 for(const id of ['prize_uma','prize_pie','prize_cookie',...R.IkebukuroCatalog.groups.marche])assert.equal(R.BAG_INDEX[id].kind,'food',id+' must be edible');
 for(const food of R.FOODS.filter(f=>f.exclusive==='ikebukuro')){const svg=R.Art.iconSvg('bag',food.id);assert(!/=>|\$\{|undefined/.test(svg),food.id+' must register SVG markup, not a renderer function');assert(/<(path|rect|circle)\b/.test(svg),food.id+' must have visible artwork');}
-for(const [type,min] of [['claw',2],['sweet',1],['pusher',1],['tripod',2],['ring',2],['bridge',2],['road',1]])assert(R.PrizeArcade.machines.filter(m=>m.type===type).length>=min,type);
+for(const [type,min] of [['claw',2],['sweet',1],['pusher',1],['tripod',2],['ring',2],['bridge',2],['road',1],['tako',1],['barber',1],['bound',1]])assert(R.PrizeArcade.machines.filter(m=>m.type===type).length>=min,type);
 // 100コインの 支払いと ごほうびは 1かいだけ（くわしい 物理の 検査は tools/check-crane.mjs）
 R.Save.d=R.Save.fresh();R.Save.d.coins=99999;const before=R.Save.d.coins,back={venue:'arcade',floor:1,back:{map:'city',x:mee.x+mee.door,y:mee.y+mee.h}};
 const run=R.PrizeArcade.start(0,back);assert(run);assert.equal(R.Save.d.coins,before-100);assert.equal(R.PrizeArcade.start(1,back),null);
@@ -75,4 +75,4 @@ let hiddenChecks=0;
   for(const f of s3){const m=R.ArcadeArt.model(f);assert(m&&/^<svg /.test(m.svg)&&!/NaN|undefined/.test(m.svg)&&m.vb.w>0&&m.vb.h>0&&!/NaN|undefined/.test(R.ArcadeArt.modelKey(f)),'3F の '+f.label+' の 絵');}
   assert(R.ArcadeArt.specOf(19)==='road'&&R.ArcadeArt.specOf(20)==='tower','台の しゅるい');}
 function r2walk(r,[x,y]){return !R.IsoVenue.solidAt(r,x,y)&&!r.fixtures.some(f=>!f.walk&&!f.over&&f.kind!=='hangsign'&&x>=f.x&&x<f.x+f.w&&y>=f.y&&y<f.y+f.h);}
-console.log('Ikebukuro: layout (station west / electronics・Mee・mall top / S60 to the mall / range・office on Green Odori), '+city.buildings.length+' buildings reachable, exclusive catalogs, twenty-one machines (twelve on 1F, five snack catchers and two bridges on 2F, a treasure road and a snack tower on 3F), the gacha corner in the middle of 2F, 3F (three purikura booths) by the 2F south-west escalator, nothing hidden behind the escalator landing ('+hiddenChecks+' checks), seven distinct mechanics, fee/reward idempotency and legacy money OK');
+console.log('Ikebukuro: layout (station west / electronics・Mee・mall top / S60 to the mall / range・office on Green Odori), '+city.buildings.length+' buildings reachable, exclusive catalogs, twenty-four machines (twelve on 1F, five snack catchers and two bridges on 2F, a treasure road and a snack tower on 3F, takoyaki, barber cut and bound ball on 4F), the gacha corner in the middle of 2F, 3F (three purikura booths) by the 2F south-west escalator, nothing hidden behind the escalator landing ('+hiddenChecks+' checks), ten distinct mechanics, fee/reward idempotency and legacy money OK');

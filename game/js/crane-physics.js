@@ -1,6 +1,7 @@
 // クレーンゲームの 物理（位置ベースの うごき・PBD）。景品は 小さな たまの あつまり（形は shape matching で たもつ）。
 // たんい: cm・びょう。じゅうりょく 980cm/s²。machine の 中は x（左→右）・y（下→上）・z（手前→おく）。
-// 当たり: 平面・箱（かたむき あり）・カプセル（アームの ぼう）・円ばん（まわる 台）・円い 穴の ある 床・つつの かべ。
+// 当たり: 平面・箱（かたむき あり）・カプセル（アームの ぼう）・円ばん（まわる 台）・円い 穴の ある 床・つつの かべ・たま・くぼみの ある いた（たこやき）。
+// はねかえり（bounce）の ある 当たり（ゴムボール・てっぱん）も ある。
 // うごく もの（アーム・フック・ショベル・プッシャー）は 前の ばしょを おぼえて、まさつで 景品を いっしょに うごかす。
 const CranePhys = (() => {
   const GRAV = 980;
@@ -43,7 +44,7 @@ const CranePhys = (() => {
       this.B.push(b);
       return b;
     }
-    // 当たり（type: plane・box・cap・disk・holefloor・cyl・sphere）。move: true は うごく もの
+    // 当たり（type: plane・box・cap・disk・holefloor・cyl・sphere・cups）。move: true は うごく もの・bounce: はねかえり
     collider(c) { c.push = 0; c.fr = c.fr != null ? c.fr : 0.6; if (c.k === "box" && !c.R) c.R = rotYXZ(c.yaw || 0, c.pitch || 0, c.roll || 0); this.save(c); this.box(c); this.C.push(c); return c; }
     // 当たりの まわりの はこ（とおい つぶは しらべない）。null = どこでも
     box(c) {
@@ -54,6 +55,7 @@ const CranePhys = (() => {
       else if (c.k === "disk") a = [c.c[0] - c.rad - 3, c.c[1] - c.h - 3, c.c[2] - c.rad - 3, c.c[0] + c.rad + 3, c.c[1] + 8, c.c[2] + c.rad + 3];
       else if (c.k === "cyl") a = [c.cx - c.rad - 1, c.y0, c.cz - c.rad - 1, c.cx + c.rad + 1, c.y1, c.cz + c.rad + 1];
       else if (c.k === "holefloor") a = [-1e9, c.y - c.th, -1e9, 1e9, c.y + 8, 1e9];
+      else if (c.k === "cups") a = [c.x0, c.top - c.th, c.z0, c.x1, c.top + 8, c.z1];
       c.bb = a;
     }
     // うごく ものの 前の ばしょを おぼえる（まさつで いっしょに うごかす ため）
@@ -77,7 +79,8 @@ const CranePhys = (() => {
       for (let i = b.i0; i < b.i0 + b.n; i++) { const p = this.P[i]; x += p.x * p.m; y += p.y * p.m; z += p.z * p.m; m += p.m; }
       return [x / m, y / m, z / m];
     }
-    wake(b) { if (b.sleep) { b.sleep = false; b.still = 0; b.ride = null; for (let i = b.i0; i < b.i0 + b.n; i++) { const p = this.P[i]; p.px = p.x; p.py = p.y; p.pz = p.z; } } }
+    // b.pin: いつまでも ねて いる（たこやきの あなに はまった ボール。うえに のった ボールで おきない）
+    wake(b) { if (b.sleep && !b.pin) { b.sleep = false; b.still = 0; b.ride = null; for (let i = b.i0; i < b.i0 + b.n; i++) { const p = this.P[i]; p.px = p.x; p.py = p.y; p.pz = p.z; } } }
     // ねむる（まわりの 大きさを おぼえて、うごく ものが 近づいたら おこせる ように する）
     nap(b, c, ride) {
       let R = 0; for (let i = b.i0; i < b.i0 + b.n; i++) { const p = this.P[i]; R = Math.max(R, Math.hypot(p.x - c[0], p.y - c[1], p.z - c[2]) + p.r); }
@@ -244,15 +247,17 @@ const CranePhys = (() => {
     }
     // おしだす ＋ まさつ（c が うごく ものなら その うごきに ついて いく。c.belt は うごかない ベルトの おもての 1サブステップの うごき）
     push(p, nx, ny, nz, pen, c) {
+      // c.bounce: はねかえり（ゴムボール・たこやきの てっぱん。ぶつかる まえの 法線の はやさ vin の bounce ばいで はねかえす。
+      // ゆっくり ふれて いる だけ〔1サブステップ 0.05cm より おそい〕は はねない: のって いる ものが ねむれる）
+      const vin = c && c.bounce ? (p.x - p.px) * nx + (p.y - p.py) * ny + (p.z - p.pz) * nz : 0;
       p.x += nx * pen; p.y += ny * pen; p.z += nz * pen;
       let vx = 0, vy = 0, vz = 0;
       if (c && (c.move || c.spin)) { const v = this.vel(c, p.x - nx * p.r, p.y - ny * p.r, p.z - nz * p.r); vx = v[0]; vy = v[1]; vz = v[2]; }
       else if (c && c.belt) { vx = c.belt[0]; vy = c.belt[1]; vz = c.belt[2]; }
       const rx = (p.x - p.px) - vx, ry = (p.y - p.py) - vy, rz = (p.z - p.pz) - vz, rn = rx * nx + ry * ny + rz * nz;
       const tx = rx - rn * nx, ty = ry - rn * ny, tz = rz - rn * nz, tl = Math.hypot(tx, ty, tz), mu = c ? Math.min(p.fr, c.fr) * (c.grip || 1) : 0.3;
-      if (tl < 1e-9) return;
-      const k = tl < mu * 1.3 * pen ? 1 : Math.min(1, (mu * pen) / tl);
-      p.x -= tx * k; p.y -= ty * k; p.z -= tz * k;
+      if (tl >= 1e-9) { const k = tl < mu * 1.3 * pen ? 1 : Math.min(1, (mu * pen) / tl); p.x -= tx * k; p.y -= ty * k; p.z -= tz * k; }
+      if (vin < -0.05) { const now = (p.x - p.px) * nx + (p.y - p.py) * ny + (p.z - p.pz) * nz, want = -c.bounce * vin; if (want > now) { const add = want - now; p.px -= nx * add; p.py -= ny * add; p.pz -= nz * add; } }
     }
     // うごく ものの その 点の 1サブステップの うごき
     vel(c, x, y, z) {
@@ -318,6 +323,17 @@ const CranePhys = (() => {
         const e = c.rad - rr, l = Math.hypot(e, Math.max(dy, 0));
         if (dy > 0 && l < 8) return { d: l, nx: (-dx / (rr || 1)) * e / (l || 1), ny: Math.max(dy, 0) / (l || 1), nz: (-dz / (rr || 1)) * e / (l || 1) };
         return dy <= 0 ? { d: e, nx: -dx / (rr || 1), ny: 0, nz: -dz / (rr || 1) } : null;
+      }
+      if (c.k === "cups") { // たこやきの てっぱん（たいらな 上の 面に まるい くぼみ。c.holes: [[x, z], …]・hr: あなの はんけい・dep: ふかさ・th: あつみ）
+        const dy = y - c.top; if (dy > 8 || dy < -c.th || x < c.x0 || x > c.x1 || z < c.z0 || z > c.z1) return null;
+        let k = -1, hd = 1e9; for (let i = 0; i < c.holes.length; i++) { const h = c.holes[i], d = Math.hypot(x - h[0], z - h[1]); if (d < hd) { hd = d; k = i; } }
+        if (k < 0 || hd >= c.hr) return { d: dy, nx: 0, ny: 1, nz: 0 };
+        // くぼみ（たまの いちぶ: まん中 cy・はんけい Rb。ふちは あなの ふちの わ）
+        const [hx, hz] = c.holes[k], Rb = (c.hr * c.hr + c.dep * c.dep) / (2 * c.dep), cy = c.top + Rb - c.dep, ex = x - hx, ey = y - cy, ez = z - hz, l = Math.hypot(ex, ey, ez) || 1e-6;
+        const bowl = cy + (ey * Rb) / l <= c.top + 1e-6 ? { d: Rb - l, nx: -ex / l, ny: -ey / l, nz: -ez / l } : null;
+        if (dy < 0) return bowl || { d: dy, nx: 0, ny: 1, nz: 0 };
+        const e = c.hr - hd, rl = Math.hypot(e, dy) || 1e-6, ux = hd > 1e-6 ? ex / hd : 0, uz = hd > 1e-6 ? ez / hd : 0, rim = { d: rl, nx: (-ux * e) / rl, ny: dy / rl, nz: (-uz * e) / rl };
+        return bowl && bowl.d < rim.d ? bowl : rim;
       }
       if (c.k === "cyl") { // つつ（inside: 中に とじこめる かべ・ふつう: 中まで つまった はしら）
         if (y < c.y0 || y > c.y1) return null;

@@ -4399,6 +4399,7 @@ await (await import("./pet-walk-smoke.mjs")).petWalkSmoke({scenario,expect});
 await (await import("./rare-calm-smoke.mjs")).rareCalmSmoke({scenario,expect});
 await (await import("./gacha-forest-smoke.mjs")).gachaForestSmoke({scenario,expect});
 await (await import("./sticker-book-smoke.mjs")).stickerBookSmoke({scenario,expect});
+await (await import("./crane-4f-smoke.mjs")).crane4fSmoke({scenario,expect});
 // すいぞくかん・はくぶつかんの きふの ごほうび（UI-33）: みだし・カード・はくぶつかんで 4つ・もちもの・おうち
 await (await import("./museum-wear-smoke.mjs")).museumWearSmoke({scenario,expect});
 await (await import("./dino-museum-smoke.mjs")).dinoMuseumSmoke({scenario,expect});

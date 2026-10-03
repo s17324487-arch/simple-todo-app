@@ -61,9 +61,12 @@ const HomeBubbleRef = {
     if (list.length === 1) return [A[0]];
     // 2つ いっしょに えらぶ（さきに 出た ほうが いい 場所を とって しまわないように。候補は 62 × 62 とおり）
     const B = candidates(list[1]);
+    // かさなる 組は えらばない（点数で さけるだけ だと、3人が ちかくに いる ときに かさなった 組が いちばんに なる ことが ある）
+    const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
     let best = null;
-    for (const a of A) for (const b of B) { const t = a.score + b.score + pair(a, b); if (!best || t < best.t) best = { t, a, b }; }
-    return [best.a, best.b];
+    for (const a of A) for (const b of B) { if (hit(a, b)) continue; const t = a.score + b.score + pair(a, b); if (!best || t < best.t) best = { t, a, b }; }
+    // どこに おいても かさなる ときは 古い 吹き出しを 消す（あたらしい ほうだけ 出す）
+    return best ? [best.a, best.b] : [B[0]];
   },
   // 形（ふち）の 道すじ
   shape(ctx, b) {

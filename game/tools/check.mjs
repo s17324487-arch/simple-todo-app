@@ -565,6 +565,15 @@ for(const kind of ['say','shout','cry','think','whisper','rare']){
   const boxes=bubbles.layout(measure,[{id:'wanko',text:'みんな なかよし',kind},{id:'gachan',text:'いっしょに あそぼ',kind:'say'}],heads,{top:120,bottom:500,left:8,right:352});
   ok(boxes.length===2&&boxes.every(b=>Number.isFinite(b.score)&&b.x>=8&&b.y>=120&&b.x+b.w<=352&&b.y+b.h<=500),'吹き出し配置が不正 '+kind);
 }
+// 3人が ちかくに いても 2つの 吹き出しは かさならない（375 はばの へや・もじの はば 1〜1.15 ばい〔webkit は すこし ひろい〕・きまった たねの 3000 とおり）
+{let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647,texts=['わんこ、きょうは あめだね。おうちで あそぼう！','ピヨ！ あめの おと すき','ガゥ… ねむく なって きた','ぱぱも いっしょに あそぼうか','ほんを よんで あげるね'],ids=['wanko','gachan','goji','papa','mama'];
+  let over=0,one=0;
+  for(let t=0;t<3000;t++){const k=1+rnd()*0.15,m={measureText:s=>({width:Array.from(s).length*13*k})},cx=60+rnd()*255,cy=260+rnd()*220,heads={};
+    for(const id of ids)heads[id]={x:cx+(rnd()-.5)*110,y:cy+(rnd()-.5)*80,r:14+rnd()*6};
+    const a=ids[Math.floor(rnd()*5)],b=ids[(ids.indexOf(a)+1+Math.floor(rnd()*4))%5];
+    const out=bubbles.layout(m,[{id:a,text:texts[Math.floor(rnd()*5)],kind:'say'},{id:b,text:texts[Math.floor(rnd()*5)],kind:rnd()<.2?'shout':'say'}],heads,{top:120,bottom:560,left:8,right:367});
+    if(out.length===1)one++;else if(out[0].x<out[1].x+out[1].w&&out[0].x+out[0].w>out[1].x&&out[0].y<out[1].y+out[1].h&&out[0].y+out[0].h>out[1].y)over++;}
+  ok(over===0,`吹き出しが かさなる（${over} / 3000）`);ok(one<=30,`吹き出しを 1つに へらす ことが おおすぎる（${one} / 3000）`);}
 
 const bubbleFlow=vm.runInContext(`(()=>{const old=Save.d,oldT=G.t;Save.d=Save.fresh();const money=Save.d.coins;
 const sc={life:{bubbles:[],queue:[],talkWait:0,log:[]}};G.t=10;
