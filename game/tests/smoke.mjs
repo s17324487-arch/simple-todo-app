@@ -316,7 +316,7 @@ function helpers(page, name) {
       await H.shot(`${shop}_result`);
       H.shopResult = await H.eval(() => document.querySelector(".modal-wrap")?.textContent || "");
       if (H.atShopResult) await H.atShopResult(); // その まどを しらべる スモーク（work-exp）
-      await page.click(".modal-wrap .panel-foot .btn");
+      await page.click(".modal-wrap .panel-foot .btn:last-child"); // 「もういちど」（UI-67）の となりの「まちに もどる」「てんないに もどる」
       await H.until(scene => PokaDebug.state().scene === scene && PokaDebug.idle(), 10000, fromStore ? (typeof fromStore === "string" ? fromStore : "store") : "world");
       return st.ranks;
     },
@@ -1591,7 +1591,9 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(rocks.length===4&&(await H.dbg('fossilRocks','forest')).length===3&&(await H.dbg('fossilRocks','coast')).length===3,'きょうの いわの 数が 不正 '+JSON.stringify(rocks));
   // いわの となりで「ほる」（44px いじょう・はみ出さない）。いわの マスは とおれない
   const spot=await H.dbg('fossilSpot','cave');expect(spot,'いわの となりに 立てない');
-  await H.dbg('teleport','cave',spot.x,spot.y,spot.dir);await H.until(()=>G.sceneName==='world'&&PokaDebug.idle(),10000);
+  await H.dbg('teleport','cave',spot.x,spot.y,spot.dir);await H.until(()=>G.sceneName==='world'&&G.scene.mapId==='cave'&&PokaDebug.idle(),10000);
+  // ほった あとに どうくつの てきに つかまると バトルに なる（いわの いちと てきの いちで たまに おきる）ので、この テストでは てきを けす
+  await H.dbg('clearFoes');
   expect(await H.eval(([x,y])=>!G.scene.walkable(x,y)&&!!G.scene.rockAt(x,y),spot.rock),'いわの マスを とおれる');
   await H.page.locator('.fossil-go-btn').waitFor({timeout:5000});
   const go=await H.eval(()=>{const r=document.querySelector('.fossil-go-btn').getBoundingClientRect();return {h:r.height,inside:r.left>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1,fish:!!document.querySelector('.fish-go-btn')};});
@@ -1632,6 +1634,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   // ② おねがい「ほねを みせて」: ケロスケに たのまれる → ほる → ケロスケに 話すと おわる（コイン +150）
   await H.dbg('folkOffer','ev-bone-show');await folkTalk(H,'explorer',{greet:false});await folkAnswer(H,0);await H.dialogs();await H.idle();
   expect((await H.dbg('folk')).req.some(r=>r.id==='ev-bone-show'),'ほねを みせての おねがいを うけられない');
+  await H.dbg('clearFoes');
   await noDig(H);await H.dbg('fossilDig','forest','stego.tail');await H.page.locator('.dig-wrap canvas').waitFor({timeout:5000});await H.wait(300);await digAll(H);
   await H.page.locator('.bone-card').waitFor({timeout:6000});await H.wait(200);await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.wait(300);await H.dialogs();await H.idle();
   expect((await H.dbg('folk')).req.find(r=>r.id==='ev-bone-show')?.step===1,'ほっても おねがいが すすまない');
@@ -4380,6 +4383,7 @@ await (await import("./nerikasu-work-smoke.mjs")).nerikasuWorkSmoke({scenario,ex
 // あたまの たいそう（のうトレの おてつだい・UI-64）: ネリカスタウンの お店 → 3しゅから えらぶ → まちがい さがし・おなじ え さがし・くだもの けいさん
 await (await import("./brain-smoke.mjs")).brainSmoke({scenario,expect});
 await (await import("./kobo-smoke.mjs")).koboSmoke({scenario,expect});
+await (await import("./shop-again-smoke.mjs")).shopAgainSmoke({scenario,expect});
 await (await import("./nerikasu-quests-smoke.mjs")).nerikasuQuestsSmoke({scenario,expect,folkTalk,folkTapSpot});
 await (await import("./farm-smoke.mjs")).farmSmoke({scenario,expect});
 

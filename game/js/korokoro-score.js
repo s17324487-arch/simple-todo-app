@@ -279,8 +279,10 @@ class KorokoroScoreScene {
     // ハイスコアの ごほうび: とくべつな かぐ（js/korokoro-prizes.js）
     const gifts = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.claim(score) : [];
     const goods = collabOn ? CollabGoods.add("korokoro", score) : [];
-    const coins = KorokoroScore.pay(score, this.difficulty, this.dailyBoost), rep = KorokoroScore.rep(score), grade = KorokoroScore.grade(score);
-    Save.addCoins(coins); st.rep += rep;
+    const earned = KorokoroScore.pay(score, this.difficulty, this.dailyBoost), rep = KorokoroScore.rep(score), grade = KorokoroScore.grade(score);
+    // 1つの おみせで 1にち 20000コイン まで（UI-67・js/shop-day-cap.js）。ちゅうもん モードと おなじ おみせ（korokoro）
+    const coins = Math.min(earned, ShopDayCap.left("korokoro")), capCut = coins < earned;
+    Save.addCoins(coins); ShopDayCap.add("korokoro", coins); st.rep += rep;
     const before = st.lv; st.lv = ShopRewards.level(st);
     const lvUp = st.lv > before, prizes = ShopRewards.claim("korokoro");
     const discs = typeof MusicDiscs !== "undefined" ? MusicDiscs.fromShop("korokoro", [grade]) : [];
@@ -297,6 +299,7 @@ class KorokoroScoreScene {
       <div class="r"><span>もらった コイン</span><span><b>+${coins}</b></span></div>
       <div class="r"><span>ひょうばん</span><span>+${rep}（${st.rep}${next ? " / " + next : ""}）</span></div>`;
     body.append(rows);
+    if (capCut) body.append(U.el("div", { class: "note", text: "この おみせの きょうの コインは ここまで。また あした あそんでね！" }));
     for (const p of gifts) body.append(KorokoroScore.giftEl(p, true));
     body.append(KorokoroScore.rankingEl(st.tops, rec.rank));
     if (typeof KorokoroPrizes !== "undefined") { const nx = KorokoroPrizes.next(); body.append(U.el("div", { class: "muted koro-next", text: nx ? `つぎの とくべつな かぐは ${U.fmt(nx.score)}てん（あと ${U.fmt(nx.score - rec.hi)}てん）` : "とくべつな かぐを ぜんぶ あつめた！" })); }
@@ -309,11 +312,14 @@ class KorokoroScoreScene {
     for (const t of discs) body.append(U.el("div", { class: "note", text: t }));
     body.append(U.el("div", { class: "muted", text: `あそびかた: ${GameEconomy.mode(this.difficulty).name}` }));
     body.append(U.el("div", { class: "muted", style: "margin-top:6px", text: "はたらいたので おなかが すこし へった。" }));
+    body.append(U.el("div", { class: "muted shop-cap-line", text: ShopDayCap.line("korokoro") }));
+    const again = !ShopDayCap.full("korokoro"); // きょうの コインが いっぱいなら「もういちど」は ださない（UI-67）
     let pick = await new Promise((res) => {
       const foot = U.el("div", { class: "koro-foot" });
       let m = null;
       const go = (v) => () => { if (!m) return; Sound.se("ok"); m.close(); m = null; res(v); };
-      foot.append(UI.btn("もういちど", go("again"), "yellow"), UI.btn("てんないに もどる", go("store")));
+      if (again) foot.append(UI.btn("もういちど", go("again"), "yellow"));
+      foot.append(UI.btn("てんないに もどる", go("store"), again ? "" : "yellow"));
       m = UI.modal({ title: "スコア モードの けっか", body, closable: false, footer: foot });
     });
     if (this.closed) return;

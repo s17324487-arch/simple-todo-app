@@ -483,6 +483,10 @@ html, body {
 .koro-next { margin-top: 6px; }
 .koro-foot { display: flex; gap: 8px; width: 100%; }
 .koro-foot .btn { flex: 1; min-height: 48px; padding: 8px 6px; white-space: nowrap; }
+/* おてつだいの けっかの「もういちど」と「まちに もどる」（UI-67） */
+.again-foot { display: flex; gap: 8px; width: 100%; }
+.again-foot .btn { flex: 1; min-height: 48px; padding: 8px 6px; white-space: nowrap; }
+.shop-cap-line { margin-top: 6px; font-size: 13px; }
 /* スコア モードの みぎ うえ（きろく・やめる）と、きろくと けいひんの まど（2026-09-30） */
 .koro-top { position: absolute; right: 8px; top: calc(8px + var(--safe-t)); display: flex; gap: 6px; z-index: 15; }
 .koro-top .btn { min-height: 44px; min-width: 56px; }
