@@ -190,6 +190,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `fossil-sell.js`（dino-hall-art.js の あと・neri-bikkupo.js の まえ＝fossils.js・museum.js・furniture-models.js の あと、item-dex-sources.js の まえ） | `FossilSell` ／ `DinoAward`（かせきの ほねを うる・そんちょうさんの ひょうしょう・かざる もの 3つ・UI-69） |
 | — | `burger-menu.js`（scene-store.js・shop.js・puri-pose.js の あと・figure-stand.js の まえ） | `BurgerMenu`（バーガーやさんの メニュー・にこにこ セットの おまけ・UI-34） |
 | — | `shop-goods-art.js` → `shop-goods.js`（farm-cook.js の あと・food-balance.js の まえ） | `ShopGoodsArt`（たべもの・どうぐの 絵 58しゅ: まえからの 26しゅの かきなおし と あたらしい 32しゅ。`FOOD_ART` を 上がき）／ `ShopGoods`（たべものの おみせ 5けんの しなぞろえ・タブ。UI-76） |
+| — | `salon-goods.js` → `florist-goods.js`（shop-goods.js の あと・ikebukuro-catalog.js・slow-life-prices.js・shop-reward-art.js より あと） | `SalonGoods`（びようしつの リボン 6・ヘアアクセ 10。`WEAR.salon_*`・`HeadPair.KIND` に たす）／ `FloristGoods`（おはなやさんの うえきの かぐ 8: `FurnModels`・`FurnLive`。UI-77） |
 | — | `food-balance.js`（farm-cook.js の あと＝ぜんぶの たべものが そろった あと） | `FoodBalance`（たべものの バランス: そのままの やさい・りょうり・ねだんで ごきげん・「おなか+N ごきげん+M」・UI-35） |
 | — | `fashion-show.js` → `fashion-art.js` → `fashion-hall.js` → `fashion-scene.js`（food-balance.js の あと・item-dex-sources.js の まえ） | `FashionShow`（ファッションショーの きまり・セーブ）／ `FashionArt`（かお・ポーズ・けいひん・しゃしん）／ `FashionHall`（会場・ファッションかん〔まえの ほんの ギャラリー。2026-10-03 に なまえと 外観を かえた〕）／ `FashionScene`（ランウェイ・`SCENES.fashion`）・UI-36 |
 | — | `kaden-sticker-art.js`（kaden-live.js の あと・kaden-hall-art.js の まえ）・`kaden-stickers.js`（kaden-hall.js の あと） | `KadenStickerArt`（シール 46しゅと パックの 絵）／ `KadenStickers`（1F の シール うりば・しなもの 12・UI-57。さいごで `install()`） |
@@ -1237,6 +1238,13 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 絵（`ShopGoodsArt.ART`）: 64×64・INK・id なし。まえからの 26しゅ（ショートケーキ・プリン・ぎゅうにゅう・メロンパン・チーズバーガー・りんご・おにぎり・カレー・ばんそうこう・げんきドリンク・きせつの デザ など）は id・なまえ・ねだんを かえずに 絵だけ かきなおす。さきに 読む ところで 絵の もじれつを とって おく もの（おうちの「ごはん」の ボタン `HOUSE_ICONS.food`・にこにこ セットの おもちゃの バーガー `CHARA_GESTURES.bm_hug_burger`）は いまの 絵を つかう。
 - 店内の みほん（`STORE_INTERIORS` の かべの メニュー・ポスター・たなの `foods`）は その おみせで うって いる たべもの だけ（`tools/check-shop-goods.mjs`）。
 - PokaDebug: `shopGoods(おみせ)`（タブ・しなものの id・かず）。スモーク `shop-goods-390 / 375`。
+
+## びようしつ・おはなやさんの しなもの（UI-77・`js/salon-goods.js`・`js/florist-goods.js`）
+
+- びようしつ（`SalonGoods`）: タブ「リボン」（まえからの 2しゅ ＋ きいろ・ミント・ラベンダー・あか。`WEAR.ribbon` の いろちがい）と「ヘアアクセ」10しゅ（シュシュ 2・はなの クリップ 2・ぽんぽん ゴム 2・さくらんぼの ピン・リボン カチューシャ 2・ほしの カチューシャ）。絵は `WEAR.salon_scrunchie`・`salon_flowerclip`・`salon_pompom`・`salon_cherrypin`・`salon_ribbonband`・`salon_starband`（hatWrap・いろは `col`）。`HeadPair.KIND` に pin／band を たす（ピンは 2つ・カチューシャと ピンは いっしょに つけられる）。`exclusive: "groom"`（ようふくやさんには ならばない）。
+- おはなやさん（`FloristGoods`）: タブ「はちうえ」（かんようしょくぶつ・ひまわり・サボテン・あじさい・モンステラ・ぼんさい）と「はな・かざり」（チューリップの プランター・ばらの かびん・ハーブの プランター・みどりの たな・ガーランド）。あたらしい 8しゅは `FurnModels` の 立体（はち・くき・はなの 絵・はんてんも）と `FurnLive` の さわる うごき（ひとこと・はなびら など）。`cat: ["plant"]`（もようがえの「みどり」）・`exclusive: "florist"`（かぐやさんには ならばない）。
+- ねだんは あとから たす ので `SlowLifePrices.price()` で きめる（服 2.5ばい・家具 4ばい）。ずかんの ヒントは `ItemDexSources` が ほかの おみせも さがす（「びようしつで かえるよ。」）。
+- セーブは 服の かず・家具の かずが ふえる だけ。PokaDebug: `shopGoods('groom')`・`shopGoods('florist')`。検査 `tools/check-salon-florist.mjs`・スモーク `salon-florist-390 / 375`。
 
 ## たべものの バランス（UI-35・`js/food-balance.js`）
 

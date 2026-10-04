@@ -4453,6 +4453,8 @@ await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});
 await (await import("./store-iso-smoke.mjs")).storeIsoSmoke({scenario,expect});
 // たべものの おみせの しなもの（UI-76。くわしくは tests/shop-goods-smoke.mjs）
 await (await import("./shop-goods-smoke.mjs")).shopGoodsSmoke({scenario,expect});
+// びようしつ・おはなやさんの しなもの（UI-77。くわしくは tests/salon-florist-smoke.mjs）
+await (await import("./salon-florist-smoke.mjs")).salonFloristSmoke({scenario,expect});
 // ネリカス でんき（池袋の 家電の 館・UI-56）: 1F〜3F・10F・だいで かう・ためしの だい・マッサージ・シアター・フロアマップ・おうちで 家電を さわる
 await (await import("./kaden-smoke.mjs")).kadenSmoke({scenario,expect});
 // ネリカス でんき 1F の シール うりば（UI-57）: たな・うりばの がめん・かう・シールちょうの まとまり・ふにっ・シャカシャカ・タイルを きる
