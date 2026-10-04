@@ -334,6 +334,9 @@ const PokaDebug = {
   // おねがいの おれいの しな（js/wish-gifts.js・UI-70）: mode "none"（でない）・しゅるい（letter／stone／acc／hand）・id（つぎ だけ）・null（ふつう）
   wishGift(mode=null) {if(typeof WishGifts==='undefined')return null;WishGifts.force=mode===null?undefined:mode;return WishGifts.state();},
   wishGifts() {return typeof WishGifts==='undefined'?null:WishGifts.state();},
+  // きろく（js/play-records.js・UI-71）: 3人の きろく・たべものごとの かず・みんなの きろく。recordsAdd は テスト用に かずを たす
+  records() {return typeof PlayRecords==='undefined'?null:PlayRecords.state();},
+  recordsAdd(id,key,n=1) {return typeof PlayRecords==='undefined'?null:PlayRecords.add(id,key,n);},
   wishGiftGive(id) {return !!(typeof WishGifts!=='undefined'&&WishGifts.give(id));},
   wishLetter(id) {if(typeof WishGifts==='undefined'||!WishGifts.INDEX[id])return false;WishGifts.openLetter(id);return true;},
   // おうちで その おねがいを きく（まどが ひらく。こたえは テストの がわで おす）

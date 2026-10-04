@@ -48,7 +48,7 @@ const Menu = {
         <div class="muted" style="margin-top:6px">とくぎ: ${Stats.skills(id).map((s) => SKILLS[s].name).join("・")}</div>
         ${typeof WorkExp !== "undefined" && WorkExp.favShops(id).length ? `<div class="muted fav-shops">とくいな おてつだい（けいけんち ${WorkExp.FAV_MUL}ばい）: ${WorkExp.favShops(id).map((s) => SHOPS[s].name).join("・")}</div>` : ""}`;
       const row = U.el("div", { class: "row wrap", style: "margin-top:8px" });
-      if (idx > 0) row.append(UI.btn("せんとうに する", () => { Sound.se("ok"); d.order.splice(idx, 1); d.order.unshift(id); Save.mark(); this.refreshScene(); el.innerHTML = ""; this.status(el); }, "small"));
+      if (idx > 0) row.append(UI.btn("せんとうに する", () => { Sound.se("ok"); d.order.splice(idx, 1); d.order.unshift(id); if (typeof PlayRecords !== "undefined") PlayRecords.add(id, "lead"); Save.mark(); this.refreshScene(); el.innerHTML = ""; this.status(el); }, "small"));
       row.append(UI.btn("なまえ", () => this.rename(id, el), "small"));
       info.append(row);
       card.append(por, info);
@@ -106,11 +106,11 @@ const Menu = {
 
   dex(el, m, kind = this.dexKind || "enemy") {
     // まもの・さかな・かせきに、家具と服のコレクションを並べる。
-    const kinds = [["enemy", "まもの"], ...(typeof Fishing !== "undefined" && Fishing.data() ? [["fish", "さかな"]] : []), ...(typeof Fossils !== "undefined" && Fossils.data() ? [["fossil", "かせき"]] : []), ["furn", "かぐ"], ["wear", "ふく"]];
+    const kinds = [["enemy", "まもの"], ...(typeof Fishing !== "undefined" && Fishing.data() ? [["fish", "さかな"]] : []), ...(typeof Fossils !== "undefined" && Fossils.data() ? [["fossil", "かせき"]] : []), ["furn", "かぐ"], ["wear", "ふく"], ...(typeof PlayRecords !== "undefined" ? [["food", "たべもの"]] : [])]; // たべもの（UI-71・js/play-records.js）
     if (!kinds.some(([key]) => key === kind)) kind = "enemy";
     if (kinds.length > 1) {
       const sw = U.el("div", { class: "tabs dex-kinds" });
-      sw.style.gridTemplateColumns = `repeat(${kinds.length}, minmax(0, 1fr))`;
+      sw.style.gridTemplateColumns = `repeat(${kinds.length > 5 ? 3 : kinds.length}, minmax(0, 1fr))`;
       for (const [k, label] of kinds) {
         const b = U.el("button", { class: "tab" + (k === kind ? " on" : ""), text: label });
         b.dataset.k = k;
@@ -121,6 +121,7 @@ const Menu = {
       if (kind === "fish") return Fishing.dex(el);
       if (kind === "fossil") return Fossils.note(el);
       if (kind === "furn" || kind === "wear") return ItemDex.render(el, kind);
+      if (kind === "food") return PlayRecords.foodDex(el);
     }
     const d = Save.d;
     const all = Object.keys(ENEMIES);

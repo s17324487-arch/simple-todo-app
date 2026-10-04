@@ -122,6 +122,8 @@ const Save = {
       stats: { battles: 0, wins: 0, coinsEarned: 0, shifts: 0, perfects: 0, fed: 0 },
       // おてつだいの コインの 1にちの じょうげん（UI-67・js/shop-day-cap.js）: きょうの 日づけと おみせごとの もらった コイン
       shopDay: { day: "", earn: {} },
+      // きろく（UI-71・js/play-records.js）: 3人の きろく・たべものごとの かず・バトルの にげた／まけ（since から かぞえる）
+      records: { since: "", kids: {}, food: {}, battle: { fled: 0, lost: 0 } },
       settings: { bgm: true, se: true, difficulty: "normal", worldZoom: 1 },
     };
   },
