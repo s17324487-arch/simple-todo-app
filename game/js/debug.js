@@ -144,7 +144,7 @@ const PokaDebug = {
       "PokaDebug.shop('crepe', 3)            お店ミニゲームを Lv3 で開始",
       "PokaDebug.shop('brain', 2, 'pair')    あたまの たいそうを ゲーム（spot・pair・math）を きめて 開始",
       "PokaDebug.shop('kobo', 3, 'logic')    パズル こうぼうを ゲーム（slide・shape・logic）を きめて 開始",
-      "PokaDebug.shopCap('crepe', 19950)     おみせの きょうの コイン（1にち 20000 まで）を きめる・ようす",
+      "PokaDebug.shopCap('crepe', 19950)     おみせで きょう もらった コインの きろく（じょうげんは なし・UI-83）を きめる・ようす",
       "PokaDebug.mgFinish(100)               いまの おきゃくさんを その てんすうで おわらせる",
       "PokaDebug.koroSetup({bodies:[[3,40,100],[3,60,100]]}) ころころ フルーツの 箱に 玉を おく（seed・held・next も。スコア モードでも）",
       "PokaDebug.koroScore({ seed: 1 })     ころころ フルーツの スコア モードを はじめる（お店の まえに もどる）",
@@ -1020,12 +1020,12 @@ const PokaDebug = {
     Game.trans = null;
     Game.goto("shop", { shop: id, back: { map: "town", x: 12, y: 21, dir: "down" }, variant }, "none");
   },
-  // おてつだいの コインの 1にちの じょうげん（UI-67・ShopDayCap）。earn を わたすと きょう もらった ことに する（day を わたすと その 日づけ）
+  // おみせで きょう もらった コインの きろく（UI-67・ShopDayCap。1にちの じょうげんは UI-83 で なくした）。earn を わたすと きょう もらった ことに する（day を わたすと その 日づけ）
   shopCap(key = null, earn = null, day = null) {
     const s = ShopDayCap.state();
     if (day) s.day = String(day);
     if (key && earn != null) { s.earn[key] = Math.max(0, Math.floor(earn)); Save.mark(); }
-    return { day: s.day, today: U.today(), max: ShopDayCap.MAX, earn: { ...s.earn }, left: key ? ShopDayCap.left(key) : null };
+    return { day: s.day, today: U.today(), earn: { ...s.earn }, earned: key ? ShopDayCap.earned(key) : null };
   },
   // いまの おきゃくさんを その てんすう（0〜100）で おわらせる（テスト用。はたらいて いる ときだけ）
   mgFinish(score = 100) { if (G.sceneName !== "shop" || G.scene.phase !== "work" || !G.scene.finish) return false; G.scene.finish(score); return true; },
@@ -1119,7 +1119,7 @@ const PokaDebug = {
     const cv = G.canvas.getBoundingClientRect();
     const css = (x, y) => ({ cx: Math.round(cv.left + x * G.cssPerUnit), cy: Math.round(cv.top + y * G.cssPerUnit) });
     const out = { shop: sc.shopId, lv: sc.lv, workLv: sc.workLv, phase: sc.phase, n: sc.n, total: sc.total, ranks: [...(sc.ranks || [])], earn: sc.earn, tips: sc.tips, difficulty: sc.difficulty, dailyBoost: sc.dailyBoost, timeLimit: sc.timeLimit, timeLeft: sc.timeLeft, buttons: [], order: null, targets: [],
-      variant: sc.variant || null, capKey: sc.capKey, capLeft: ShopDayCap.left(sc.capKey) - (sc.paid ? 0 : sc.earn + sc.tips), capHit: !!sc.capHit };
+      variant: sc.variant || null, capKey: sc.capKey, dayEarned: ShopDayCap.earned(sc.capKey) };
     out.score = sc.stamp?.score ?? null;
     if (!t) return out;
     out.buttons = t.btns.filter((b) => !b.disabled).map((b) => ({ label: b.label || "", ...css(b.x + b.w / 2, b.y + b.h / 2) }));

@@ -79,7 +79,7 @@ class ShopScene {
     this.shopId = p.shop; this.back = p.back;
     this.returnStore = !!p.returnStore; this.returnVenue = p.returnVenue || null; this.variant=p.variant;
     this.S = this.variant==='mac'?{...SHOPS[p.shop],name:'マックさん'}:SHOPS[p.shop]; this.st = Save.d.shops[p.shop];
-    this.capKey = ShopDayCap.key(p.shop, p.variant, p.returnVenue && p.returnVenue.venue); this.capHit = false; // 1にち 20000コイン まで（UI-67）
+    this.capKey = ShopDayCap.key(p.shop, p.variant, p.returnVenue && p.returnVenue.venue); // きょう この おみせで もらった コインの きろく（js/shop-day-cap.js）
     this.lv = ShopRewards.level(this.st); this.workLv = Math.min(5, this.lv); this.dailyBoost = DailyPlay.boost(this.shopId);
     this.total = this.S.rounds || 3 + Math.min(4, this.lv);
     this.difficulty = Save.d.settings.difficulty;
@@ -147,17 +147,10 @@ class ShopScene {
   // ---- 進行 ----
   async flow() {
     const face = Art.npcSvg({ ...this.owner, emo: "happy" });
-    // 1つの おみせで 1にち 20000コイン まで（UI-67）。きょうの ぶんが いっぱいなら はじめない
-    if (ShopDayCap.full(this.capKey)) {
-      await UI.say([{ name: this.owner.name, face, text: ShopDayCap.fullText }]);
-      if (!this.closed) { this.paid = true; this.homeBtn?.remove(); this.leaveTo(); }
-      return;
-    }
     const first = !this.st.plays;
     const how = typeof HOWTO[this.shopId] === "function" ? HOWTO[this.shopId](this) : HOWTO[this.shopId]; // あたまの たいそう・パズル こうぼうは えらんだ ゲームの せつめい（js/mg-brain.js・js/mg-kobo.js）
     const lines = this.variant==='mac' ? [...MacShop.howto] : first ? [...how] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
     if(this.dailyBoost>1)lines.push('きょうの おすすめ！ コインが '+DailyPlay.label(this.dailyBoost)+'だよ。');
-    if (ShopDayCap.left(this.capKey) <= 5000) lines.push(ShopDayCap.leftText(this.capKey));
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
     if (this.closed) return;
     // とくいな おてつだい（UI-68）: その 子が ひとこと（その おみせで きょう はじめての とき だけ）
@@ -186,9 +179,7 @@ class ShopScene {
       await this.tween(0.8, (k) => (this.cust.x = U.lerp(this.custX, G.W + 70, k)));
       this.task = null;
       if (this.closed) return;
-      if (this.capHit) break; // きょうの コインが いっぱいに なったら この おきゃくさんで おしまい（UI-67）
     }
-    if (this.capHit && !this.closed) await UI.say([{ name: this.owner.name, face, text: ShopDayCap.stopText }]);
     if (!this.closed) await this.results();
   }
   timePenalty() {
@@ -220,10 +211,6 @@ class ShopScene {
     if (rank >= 2 && Save.avg("mood") > 80) perkMul += 0.1;
     tip += Math.round((pay + tip) * perkMul);
     ({pay,tip}=DailyPlay.payout(pay,tip,this.dailyBoost));
-    // 1つの おみせで 1にち 20000コイン まで（UI-67）: のこりを こえる ぶんは もらえない
-    const capLeft = ShopDayCap.left(this.capKey) - this.earn - this.tips;
-    ({ pay, tip } = ShopDayCap.clip(capLeft, pay, tip));
-    if (capLeft - pay - tip <= 0) this.capHit = true;
     this.earn += pay; this.tips += tip; this.rep += R.rep;
     this.ranks.push(rank);
     this.cust.emo = R.emo;
@@ -279,9 +266,7 @@ class ShopScene {
     for (const p of prizes) body.append(U.el("div", { class: "note", text: `Lv.${p.level}の ごほうび！ 「${p.name}」を もらったよ。` }));
     if (xp.some((r) => r.n)) body.append(U.el("div", { class: "wexp-box", html: `<div class="wexp-ttl">けいけんち</div>${WorkExp.html(xp)}` }));
     if (fraction) body.append(U.el("div", { class: "muted", style: "margin-top:8px", text: "はたらいたので おなかが すこし へった。" }));
-    // 1にち 20000コイン まで（UI-67）: きょう この おみせで もらった コイン。いっぱいなら「もういちど」は ださない
-    const again = !ShopDayCap.full(this.capKey);
-    if (!again) body.append(U.el("div", { class: "note", text: "この おみせの きょうの コインは ここまで。また あした てつだってね！" }));
+    // きょう この おみせで もらった コイン（UI-67。1にちの じょうげんは UI-83 で なくした）
     body.append(U.el("div", { class: "muted shop-cap-line", text: ShopDayCap.line(this.capKey) }));
     Save.write();
     WorkExp.cheer(xp, 1200); // レベルが あがったら おいわいの おと（victory の あと）
@@ -289,8 +274,8 @@ class ShopScene {
     let pick = await new Promise((res) => {
       let m = null;
       const go = (v) => () => { if (!m) return; Sound.se("ok"); m.close(); m = null; res(v); };
-      const back = UI.btn(this.returnStore || this.returnVenue ? "てんないに もどる" : "まちに もどる", go("back"), again ? "" : "yellow wide");
-      m = UI.modal({ title: "きょうの けっか", body, closable: false, footer: U.el("div", { class: "again-foot" }, again ? [UI.btn("もういちど", go("again"), "yellow"), back] : [back]) });
+      const back = UI.btn(this.returnStore || this.returnVenue ? "てんないに もどる" : "まちに もどる", go("back"));
+      m = UI.modal({ title: "きょうの けっか", body, closable: false, footer: U.el("div", { class: "again-foot" }, [UI.btn("もういちど", go("again"), "yellow"), back]) });
     });
     if (lvUp) Sound.se("fanfare");
     Save.write();

@@ -1,17 +1,19 @@
-// おてつだいの「もういちど」と 1つの おみせで 1にち 20000コイン まで（js/shop-day-cap.js・UI-67）の 検査。
-// ブラウザ なしで: セーブ（Save.d.shopDay・まえの セーブ）・おみせの キー（マックさん・びっくぽ）・のこりに おさめる けいさん・日づけで 0 から・
-// ShopScene の しはらい（のこりを こえない・いっぱいで おしまい）・お店と ころころ フルーツの スコア モードの くみこみ・「もういちど」・ことば・PokaDebug
+// おてつだいの「もういちど」（UI-67）と、きょう もらった コインの きろく（js/shop-day-cap.js）の 検査。
+// 1にちの コインの じょうげん（UI-67 の 20000）は オーナーの FB 2026-10-04「お手伝いの上限金額について、やっぱりなしにして」で なくした（UI-83）。
+// ブラウザ なしで: セーブ（Save.d.shopDay・まえの セーブ）・おみせの キー（マックさん・びっくぽ）・たす・日づけで 0 から・
+// ShopScene の しはらい（まえの じょうげんの ちかくでも へらない）・お店と ころころ フルーツの スコア モードに じょうげんが ない こと・「もういちど」・ことば・PokaDebug
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
-const { ShopDayCap: C, ShopScene, Save: S, SHOPS, SHOP_OWNERS, PokaDebug, G, U } = R;
+const { ShopDayCap: C, ShopScene, Save: S, SHOPS, PokaDebug, G, U } = R;
 R.UI.updateHud = () => {}; R.UI.toast = () => {};
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
-const read = (f) => readFileSync(new URL("../" + f, import.meta.url), "utf8");
+const file = (f) => new URL("../" + f, import.meta.url);
+const read = (f) => readFileSync(file(f), "utf8");
 const fresh = () => { S.d = S.fresh(); return S.d; };
 
 // ---- 1. セーブ ----
@@ -23,65 +25,59 @@ const fresh = () => { S.d = S.fresh(); return S.d; };
   ok(m.shopDay && m.shopDay.day === "" && typeof m.shopDay.earn === "object", "まえの セーブ（shopDay なし）にも できる");
   fresh(); S.d.shopDay = { day: U.today(), earn: [] };
   ok(C.earned("crepe") === 0 && !Array.isArray(S.d.shopDay.earn), "こわれた earn（はいれつ）は なおす");
-  S.d.shopDay = { day: U.today(), earn: { crepe: "x", bakery: -5, cake: 12.7 } };
-  ok(C.earned("crepe") === 0 && C.earned("bakery") === 0 && C.earned("cake") === 12, "かずで ない・マイナス・はすうは 0 か きりすて");
+  S.d.shopDay = { day: U.today(), earn: { crepe: "x", bakery: -5, cake: 12.7, florist: 20000 } };
+  ok(C.earned("crepe") === 0 && C.earned("bakery") === 0 && C.earned("cake") === 12 && C.earned("florist") === 20000, "かずで ない・マイナス・はすうは 0 か きりすて（まえの じょうげんまで ためた セーブも そのまま よめる）");
 }
 
 // ---- 2. おみせの キー ----
 {
   ok(C.key("crepe") === "crepe" && C.key("burger", "mac") === "burger_mac" && C.key("burger", null, "bikkupo") === "bikkupo_burger", "キー: ふつう・ヘイワダイの マックさん・びっくぽの キッチン は べつの おみせ");
-  ok(C.key("brain", "spot") === "brain" && C.key("kobo", "logic") === "kobo", "あたまの たいそう・パズル こうぼうの 3しゅは おなじ おみせ");
+  ok(C.key("brain", "spot") === "brain" && C.key("kobo", "logic") === "kobo", "あたまの たいそう・パズル こうぼうの ゲームは おなじ おみせ");
 }
 
-// ---- 3. のこりに おさめる・たす・日づけ ----
+// ---- 3. じょうげんが ない・たす・日づけ ----
 {
-  ok(C.MAX === 20000, "1にち 20000コイン（オーナーの FB で 10000 → 20000）");
-  const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-  ok(eq(C.clip(100, 40, 30), { pay: 40, tip: 30, cut: 0 }), "のこりが たりる ときは そのまま");
-  ok(eq(C.clip(50, 40, 30), { pay: 40, tip: 10, cut: 20 }), "うりあげ から さきに・チップを へらす");
-  ok(eq(C.clip(25, 40, 30), { pay: 25, tip: 0, cut: 45 }), "うりあげも へる");
-  ok(eq(C.clip(0, 40, 30), { pay: 0, tip: 0, cut: 70 }) && eq(C.clip(-9, 40, 30), { pay: 0, tip: 0, cut: 70 }), "のこり 0・マイナスは 0");
+  for (const k of ["MAX", "left", "full", "clip", "fullText", "stopText", "leftText"]) ok(!(k in C), `じょうげんの しくみ（${k}）が のこって いない`);
   fresh();
-  ok(C.left("crepe") === 20000 && !C.full("crepe"), "はじめは のこり 20000");
   C.add("crepe", 1500.9); C.add("crepe", -50); C.add("crepe", "abc");
-  ok(C.earned("crepe") === 1500 && C.left("crepe") === 18500 && C.earned("bakery") === 0, "たす（はすうは きりすて・マイナスと かずで ない ものは たさない・おみせごと）");
+  ok(C.earned("crepe") === 1500 && C.earned("bakery") === 0, "たす（はすうは きりすて・マイナスと かずで ない ものは たさない・おみせごと）");
   C.add("crepe", 99999);
-  ok(C.earned("crepe") === 20000 && C.left("crepe") === 0 && C.full("crepe"), "20000 で とまる・いっぱい");
+  ok(C.earned("crepe") === 101499, "まえの じょうげん（20000）を こえても とまらない");
   S.d.shopDay.day = "2000-1-1";
-  ok(C.earned("crepe") === 0 && S.d.shopDay.day === U.today() && C.left("crepe") === 20000, "日づけが かわると 0 から");
+  ok(C.earned("crepe") === 0 && S.d.shopDay.day === U.today(), "日づけが かわると 0 から");
 }
 
-// ---- 4. ShopScene の しはらい（judge）----
+// ---- 4. ShopScene の しはらい（judge）: まえの じょうげんの ちかくでも へらない ----
 {
   R.U.wait = async () => {}; // 1.7びょう まつ ところを とばす
-  const judge = async (key, capped, score = 100, earn = 0) => {
-    fresh(); S.d.shopDay.day = U.today(); if (capped != null) S.d.shopDay.earn[key] = capped;
+  const judge = async (key, before, score = 100, earn = 0) => {
+    fresh(); S.d.shopDay.day = U.today(); if (before != null) S.d.shopDay.earn[key] = before;
     const sc = Object.create(ShopScene.prototype);
     Object.assign(sc, { shopId: "crepe", S: SHOPS.crepe, st: S.d.shops.crepe, lv: 5, workLv: 5, difficulty: "normal", variant: null, dailyBoost: 2, timeLeft: 30, timeLimit: 40,
-      earn, tips: 0, rep: 0, ranks: [], team: [], cust: {}, coinsFx: [], fxs: [], capKey: key, capHit: false, task: null });
+      earn, tips: 0, rep: 0, ranks: [], team: [], cust: {}, coinsFx: [], fxs: [], capKey: key, task: null });
     await sc.judge(score);
     return sc;
   };
-  const free = await judge("crepe", null);
-  ok(free.earn + free.tips > 50 && !free.capHit, "ふだんは へらない: " + (free.earn + free.tips));
+  const free = await judge("crepe", null), got = free.earn + free.tips;
+  ok(got > 50 && free.ranks.length === 1, "ふだんの しはらい: " + got);
   const near = await judge("crepe", 19990);
-  ok(near.earn + near.tips === 10 && near.capHit && near.ranks.length === 1, "のこり 10コイン → 10コイン だけ・この おきゃくさんで おしまい");
-  const pend = await judge("crepe", 19900, 100, 95);
-  ok(pend.earn + pend.tips === 100 && pend.capHit, "まだ もらって いない ぶん（この シフトの うりあげ）も かぞえる");
-  const exact = await judge("crepe", 20000 - (free.earn + free.tips));
-  ok(exact.earn + exact.tips === free.earn + free.tips && exact.capHit, "ちょうど いっぱいに なっても おしまい");
+  ok(near.earn + near.tips === got && !("capHit" in near), "きょう もう 19990コイン でも おなじだけ もらえる（まえは 10コイン だけ）");
+  const over = await judge("crepe", 250000, 100, 95);
+  ok(over.earn + over.tips === 95 + got, "もっと たくさん もらった 日も へらない");
 }
 
 // ---- 5. くみこみ（ShopScene・お店・ころころ フルーツの スコア モード）----
 {
-  const mg = read("js/minigames.js"), store = read("js/scene-store.js"), koro = read("js/korokoro-score.js");
-  ok(/ShopDayCap\.full\(this\.capKey\)[\s\S]{0,200}ShopDayCap\.fullText[\s\S]{0,120}this\.leaveTo\(\)/.test(mg), "ShopScene: いっぱいなら はじめずに もどる");
-  ok(/ShopDayCap\.clip\(capLeft, pay, tip\)/.test(mg) && /if \(this\.capHit\) break;/.test(mg) && /ShopDayCap\.stopText/.test(mg), "ShopScene: のこりに おさめる・いっぱいで おしまい・ひとこと");
-  ok(/Save\.addCoins\(total\);\s*ShopDayCap\.add\(this\.capKey, total\);/.test(mg), "ShopScene: もらった コインを きょうの ぶんに たす");
+  const mg = read("js/minigames.js"), koro = read("js/korokoro-score.js");
+  const store = read("js/scene-store.js") + (existsSync(file("js/store-iso.js")) ? read("js/store-iso.js") : "");
+  const capUse = /ShopDayCap\.(full|left|clip|fullText|stopText|leftText|MAX)\b|capHit|capCut/;
+  ok(!capUse.test(mg), "ShopScene: じょうげんで はじめない・へらす・とちゅうで おわる しくみが ない");
+  ok(/Save\.addCoins\(total\);\s*ShopDayCap\.add\(this\.capKey, total\);/.test(mg), "ShopScene: もらった コインを きょうの きろくに たす");
   ok(/UI\.btn\("もういちど", go\("again"\), "yellow"\)/.test(mg) && /Game\.goto\("shop", \{ shop: this\.shopId, back: this\.back, returnStore: this\.returnStore, returnVenue: this\.returnVenue, variant: this\.variant \}/.test(mg), "ShopScene: もういちど は おなじ おみせ・おなじ ゲーム・おなじ もどりさき");
-  ok(/const again = !ShopDayCap\.full\(this\.capKey\)/.test(mg) && /hunger < 8/.test(mg.slice(mg.indexOf("async results("))), "ShopScene: いっぱい・おなかが ぺこぺこ の ときは もういちど できない");
-  ok(/ShopDayCap\.full\(ShopDayCap\.key\(this\.shopId,this\.shopId==="burger"&&this\.back\.map==="heiwadai"\?"mac":null\)\)/.test(store), "お店: いっぱいなら おてつだいを はじめない（マックさんは べつの キー）");
-  ok(/Math\.min\(earned, ShopDayCap\.left\("korokoro"\)\)/.test(koro) && /ShopDayCap\.add\("korokoro", coins\)/.test(koro) && /const again = !ShopDayCap\.full\("korokoro"\)/.test(koro), "ころころ フルーツの スコア モードも おなじ おみせ（korokoro）で かぞえる");
+  ok(/hunger < 8/.test(mg.slice(mg.indexOf("async results("))), "ShopScene: おなかが ぺこぺこ の ときは もういちど できない");
+  ok(/ShopDayCap\.line\(this\.capKey\)/.test(mg), "ShopScene: けっかに きょう この おみせで もらった コイン");
+  ok(!capUse.test(store), "お店: じょうげんで おてつだいを ことわらない");
+  ok(!capUse.test(koro) && /ShopDayCap\.add\("korokoro", coins\)/.test(koro) && /foot\.append\(UI\.btn\("もういちど", go\("again"\), "yellow"\)\)/.test(koro), "ころころ フルーツの スコア モード: じょうげん なし・きろくは おなじ おみせ（korokoro）・もういちど");
   const html = read("index.html"), sw = read("sw.js");
   ok(html.indexOf("js/shop-day-cap.js") > html.indexOf("js/economy.js") && html.indexOf("js/shop-day-cap.js") < html.indexOf("js/minigames.js") && sw.includes('"./js/shop-day-cap.js"'), "index.html（economy.js の あと・minigames.js の まえ）と sw.js に とうろく");
 }
@@ -89,14 +85,15 @@ const fresh = () => { S.d = S.fresh(); return S.d; };
 // ---- 6. ことば・PokaDebug ----
 {
   fresh();
-  for (const t of [C.fullText, C.stopText, C.leftText("crepe"), C.line("crepe")]) ok(!kanji.test(t) && t.length > 8, "ことばは ひらがな: " + t);
-  ok(C.line("crepe") === "この おみせで きょう もらった コイン 0 / 20,000" && C.leftText("crepe").includes("20,000コイン"), "かずは 3けたごとに くぎる");
+  ok(C.line("crepe") === "きょう この おみせで もらった コイン 0" && !kanji.test(C.line("crepe")), "ことばは ひらがな・じょうげんの かずは ださない: " + C.line("crepe"));
+  C.add("crepe", 23456);
+  ok(C.line("crepe") === "きょう この おみせで もらった コイン 23,456", "かずは 3けたごとに くぎる");
   const st = PokaDebug.shopCap("crepe", 19950);
-  ok(st.max === 20000 && st.earn.crepe === 19950 && st.left === 50 && st.today === U.today(), "PokaDebug.shopCap: きめる・ようす");
+  ok(st.earn.crepe === 19950 && st.earned === 19950 && st.today === U.today() && !("max" in st) && !("left" in st), "PokaDebug.shopCap: きめる・ようす（max・left は ない）");
   const back = PokaDebug.shopCap(null, null, "2000-1-1");
   ok(back.day === "2000-1-1" && C.earned("crepe") === 0, "PokaDebug.shopCap: 日づけを かえると 0 から");
   G.sceneName = "world";
   ok(PokaDebug.mgFinish(100) === false, "PokaDebug.mgFinish: おてつだいの とき だけ");
 }
 
-console.log(`✓ shop day cap (UI-67): ${n} checks（セーブ・キー・のこりに おさめる・日づけ・しはらい・もういちど・お店と スコア モード・ことば・PokaDebug）`);
+console.log(`✓ shop day record (UI-67・UI-83): ${n} checks（セーブ・キー・じょうげん なし・日づけ・しはらい・もういちど・お店と スコア モード・ことば・PokaDebug）`);
