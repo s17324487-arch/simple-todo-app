@@ -277,6 +277,11 @@ html, body {
 /* かぐやの ひがわり（js/furniture-collection.js）: カードの ひだり うえの ふだ */
 .card.daily { box-shadow: 0 3px 0 var(--ink), inset 0 0 0 3px #F5C76E; }
 .card .daily-tag { position: absolute; top: 3px; left: 5px; background: var(--orange); color: #fff; font-size: 10px; font-weight: 800; line-height: 1; border-radius: 8px; padding: 3px 5px; pointer-events: none; }
+/* かべがみ・ゆかの なかまの ふだ（js/room-styles.js・UI-90） */
+.card .rs-tag { position: absolute; top: 3px; left: 5px; color: #fff; font-size: 10px; font-weight: 800; line-height: 1; border-radius: 8px; padding: 3px 5px; pointer-events: none; white-space: nowrap; }
+.card .rs-tag.rs-cute { background: #E8739C; }
+.card .rs-tag.rs-cool { background: #3D4F72; }
+.card .rs-tag.rs-concept { background: #3B9466; }
 /* フィギュア台（js/figure-stand.js）: 3×3 の ばしょ・えらぶ リスト */
 .figst-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
 .figst-slot { min-height: 72px; border: 3px solid var(--ink); border-radius: 14px; background: #FFF8EC; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 0 var(--ink); font: inherit; padding: 4px; }

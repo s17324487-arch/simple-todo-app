@@ -205,6 +205,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `furn-tray.js`（home-floors.js の あと） | `FurnTray`（もようがえの 一覧を ひろげる・さがす・ならびかえ・しゅるい・UI-37） |
 | — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび 44この 立体と さわる うごき・UI-38） |
 | — | `rug-lamp.js`（shop-reward-art.js の あと・slow-life-prices.js の まえ） | `RugLamp`（かぐやの ラグ 8 と ランプ 8・UI-39） |
+| — | `room-styles.js`（shop.js・home-design.js の あと・slow-life-prices.js の まえ） | `RoomStyles`（かべがみ 15・ゆか 15〔かわいい・かっこいい・コンセプト × 5〕と もようの 絵・かぐやの ならびと ふだ・UI-90） |
 | — | `furniture-collection.js`（slow-life-prices.js・quiz-prizes.js の あと） | `FurnCollection`（あき・ふゆの かぐ 4・ひがわり 20・クイズの だんろ・UI-40） |
 | — | `gowaga-wish.js`（くみこむ ものの あと・world-zoom.js の まえ） | `GowagaWish`（おうちで ごわがの おねがい・かなえて おれいと あまえる・UI-46） |
 | — | `wish-gift-art.js` → `wish-gifts.js`（gowaga-wish.js の すぐ あと・smaho.js・figure-stand.js・chara.js の あと） | `WishGiftArt`（ふうとう・らくがき・いし・つる・え・けん・アクセサリーの `WEAR.wg_*`）／ `WishGifts`（おねがいの おれいの しな・すまほの「たからもの」・UI-70） |
@@ -941,6 +942,14 @@ UI-38（2026-10-01）で 44種の絵を 店ごとに ちがう 立体に 作り�
 - ランプ: `lamp()`（つく／きえる・よるは はじめから・`light()`）。ラバランプと しょくだいは `extra` で たまと ほのおを 描く（立体の 中の `L()` を live で ぬく）。
 - ラグ: `simple()` と 店ごとの うごき。どうろの マットの ミニカーは `RugLamp.roadAt(u)`（まんなかの せんの うえ）。ラグも 絵の ピクセルで あたり（`hitItem`）なので タップできる。
 - 検査は `tools/check-rug-lamp.mjs`、スモークは `rug-lamp`。
+
+### かべがみ 15・ゆか 15（UI-90・`js/room-styles.js`）
+`RoomStyles` の かべがみ 15（`WALLS`）と ゆか 15（`FLOORS`）を `WALLPAPERS`・`WALL_INDEX`・`FLOORS`・`FLOOR_INDEX` に たす（`slow-life-prices.js` の まえに よむので ねだんは 3ばい: かわいい 1140・かっこいい 1260・コンセプト 1560。いごこち 4・4・5）。どれも `style`（`cute`・`cool`・`concept`）を もつ。
+- もよう: `HomeDesign.texture` を つつみ、`pat` が `RoomStyles` の ものなら `RoomStyles.texture(p, w, h)`（それ いがいは まえの まま）。`Art.patternSvg` も `HomeDesign.texture` を よぶので かぐやの 見本（64 × 64）も おなじ 絵。見本は もようを 半分の 大きさ（`k` 0.5）。
+- かべは へやの がわの clipPath で きれる（L × H）。ゆかは きりぬきが ない ので `RoomStyles` が じぶんの clipPath で W × D に きる。グラデーション・clipPath の id は よぶ たびに ちがう（`RoomStyles.uid`）。SvgCache の キーは いままでどおり かべがみと ゆかの id（ふえない）。
+- かぐやの「かべがみ」「ゆか」: `BUY_SHOPS.furniture.items` を つつんで あたらしい 15しゅ（かわいい → かっこいい → コンセプト）を さきに。`ShopUI.card` を つつんで カードの ひだり うえに なかまの ふだ（`.rs-tag.rs-cute` など）。
+- セーブは かわらない（`Save.d.room.wallpapers`・`floors` に id が ふえる だけ）。
+- 検査は `tools/check-room-styles.mjs`（かず・なまえ・ねだん・もようの 絵〔かべ 4・ゆか 2・見本〕・id・ゆかの clipPath・まえの もよう・ならび・セーブ）、スモークは `room-styles`（ふだ・かう・はる・30しゅが ブラウザで よめる・さいかい）。
 
 ### あき・ふゆの かぐと ひがわり（UI-40・`js/furniture-collection.js`）
 Jules の PR #116 の かぐ 25こを つくりなおした もの。`FurnCollection` の `AUTUMN`（4）・`FLOOR`（ひがわりの ゆか 10）・`WALL`（ひがわりの かべかざり 10）を `FURNITURE`・`FURN_INDEX`・`FURN_ART` に たし、`QUIZ`（ほしぞらの だんろ）を `QuizPrizes.items` と `FURNITURE`（`rare`・`quizPrize`）に たす。`slow-life-prices.js` の あとに よむので、ねだんは `SlowLifePrices.price("furniture", もとの ねだん)` で じぶんで 4ばいに する。
