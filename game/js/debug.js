@@ -108,6 +108,7 @@ const PokaDebug = {
       "PokaDebug.idle()                      画面切り替え中・会話中でなければ true",
       "PokaDebug.newGame({ goji: 'soft' })   オープニングを飛ばして はじめから（おうちへ）",
       "PokaDebug.teleport('meadow', 14, 3)   マップの (x, y) へ移動（town/city/coast/meadow/forest/cave）",
+      "PokaDebug.clearFoes()                 いまの マップの てきを けす（テスト用・ボスは のこす）",
       "PokaDebug.water('coast', 30, 10)   水の かたまりの しゅるい（川・海・湖）・岸・その マスの 色",
       "PokaDebug.cast('town_walker0')   町の人の 名前・種・見た目（id なしで 全員の ようす）",
       "PokaDebug.house()                     おうちへ",
@@ -640,6 +641,8 @@ const PokaDebug = {
     Game.trans = null;
     Game.goto("world", { map, x, y, dir, grace: 2 }, "none");
   },
+  // いまの マップの てきを けす（テスト用。ボスは のこす。てきは マップに はいった ときだけ でる ので、つぎに はいるまで でない）。けした かず
+  clearFoes() { if (G.sceneName !== "world" || !G.scene.enemies) return 0; const sc = G.scene, n = sc.enemies.length; sc.enemies = sc.enemies.filter((e) => e.boss); return n - sc.enemies.length; },
   house() { Game.trans = null; Game.goto("house", {}, "none"); },
   // ② 町の人: その人の マップの となりへ 行って 話しかける（Talk.run）。会話は テストの がわで すすめる（またない）
   npcLife() {

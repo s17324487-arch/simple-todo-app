@@ -587,6 +587,7 @@ class NewTask extends TaskBase {
 | `idle()` | 画面切り替え中・会話中でなければ true |
 | `newGame({ goji })` | オープニングを飛ばして はじめから（おうちへ） |
 | `teleport(map, x, y, dir)` / `house()` | 移動 |
+| `clearFoes()` | いまの マップの てきを けす（テスト用・ボスは のこす。つぎに はいるまで でない） |
 | `battle(foes, area, boss)` | バトル開始。例 `battle([{ kind: "purun", lv: 2 }], "meadow")` |
 | `shop(id, lv)` | お店ミニゲームを そのレベルで開始 |
 | `coins(n)` / `level(lv)` / `unlockAll()` / `give(id, n)` | お金・レベル・全アイテム・もちもの |
