@@ -126,8 +126,11 @@ const Save = {
       dex: {},
       itemDex: { furn: {}, wear: {}, claimed: { furn: {}, wear: {} } },
       stats: { battles: 0, wins: 0, coinsEarned: 0, shifts: 0, perfects: 0, fed: 0 },
-      // おてつだいの コインの 1にちの じょうげん（UI-67・js/shop-day-cap.js）: きょうの 日づけと おみせごとの もらった コイン
+      // おてつだいで きょう もらった コイン（UI-67・js/shop-day-cap.js。1にちの じょうげんは UI-83 で なくした）: きょうの 日づけと おみせごとの もらった コイン
       shopDay: { day: "", earn: {} },
+      // コンビニの ポイントカード（UI-85・js/conbini-card.js）: shops { みせ: { has・pts・carry 200 に たりない コイン・total・used・spent・owner オーナーに なった 日・got } }・
+      // tickets { crane クレーン チケット・lv10／lv25 おてつだい レベル けん }・bus { until ていきけんの さいごの 日 }・log さいきんの こうかん
+      conbiniCard: { shops: { lawson: { has: false, pts: 0, carry: 0, total: 0, used: 0, spent: 0, owner: "", got: {} }, sevenbun: { has: false, pts: 0, carry: 0, total: 0, used: 0, spent: 0, owner: "", got: {} } }, tickets: { crane: 0, lv10: 0, lv25: 0 }, bus: { until: "" }, log: [] },
       // きろく（UI-71・js/play-records.js）: 3人の きろく・たべものごとの かず・バトルの にげた／まけ（since から かぞえる）
       records: { since: "", kids: {}, food: {}, battle: { fled: 0, lost: 0 } },
       settings: { bgm: true, se: true, difficulty: "normal", worldZoom: 1 },

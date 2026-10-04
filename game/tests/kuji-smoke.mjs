@@ -125,6 +125,9 @@ export async function kujiSmoke({ scenario, expect }) {
     // かいもので つかう: しなものが きまって いる クーポンを さきに（なければ「なんでも」で からあげ）
     const cp = k.coupons.find((c) => c.item) || k.coupons[0], item = cp.item || 'karaage', name = await H.eval((id) => BAG_INDEX[id].name, item);
     await btn(H, 'てんいんと はなす'); await btn(H, 'かいものを する'); await H.page.locator('.modal-wrap .grid .card').first().waitFor();
+    // コンビニの まどは「ごはん」「おやつ」「のみもの」の タブ（js/conbini-goods.js）: その しなものの タブを ひらく
+    const tab = (await H.dbg('conbini', 'lawson')).goods.find((g) => g.id === item).tab;
+    await H.page.locator(`.modal-wrap .tab[data-k="${tab}"]`).click(); await H.wait(200);
     await H.page.locator('.modal-wrap .grid .card').filter({ hasText: name }).first().click(); await H.wait(250);
     const before = await H.dbg('saveData');
     const label = await H.eval(() => (document.querySelector('.coupon-use') || {}).textContent || '');

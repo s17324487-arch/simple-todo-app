@@ -59,8 +59,14 @@ const PrizeArcade = {
   upgrade(a) {
     const run = a.active, m = run && this.machines[run.machine]; if (!run || (run.def && m && run.def === m.id)) return;
     if (!run.def && m && m.legacy) { run.def = m.id; return; }
-    a.active = null; a.refunded = (a.refunded || 0) + 1; Save.d.coins += this.PRICE; Save.write();
+    a.active = null;
+    // クレーン チケットで はじめた 1かいは チケットを かえす（js/conbini-card.js・UI-85）
+    if (run.ticket && typeof ConbiniCard !== "undefined" && ConbiniCard.giveTicket("crane")) a.refundedTicket = (a.refundedTicket || 0) + 1;
+    else { a.refunded = (a.refunded || 0) + 1; Save.d.coins += this.PRICE; }
+    Save.write();
   },
+  // クレーン チケット（コンビニの ポイントカードの けいひん・js/conbini-card.js・UI-85）: コイン プッシャー いがいの 台で 1かい ただ。のこりの まいすう（つかえない 台は 0）
+  ticketsFor(machine) { const m = this.machines[machine]; return m && m.type !== "pusher" && typeof ConbiniCard !== "undefined" ? ConbiniCard.tickets("crane") : 0; },
   // とれた 景品（形ごと）→ [{ id, n } | { coins }]。ふるい とちゅうの 1かい（形が ない）は 台の だいひょうの 景品
   prizesOf(machine, round) {
     const m = this.machines[machine], got = (round && round.got) || [], shapes = (round && round.gotShapes) || [], out = new Map();
@@ -104,24 +110,35 @@ const PrizeArcade = {
     const a = this.norm();
     if (a.active) { const yes = await UI.confirm("とちゅうの クレーンが あるよ。おかねを はらわずに つづける？", "つづける", "やめる"); if (yes) Game.goto("prize", { run: a.active }); return; }
     if (a.refunded) { UI.toast("台が あたらしく なったので、とちゅうだった 1かいの " + this.PRICE + "コインを かえしたよ"); a.refunded = 0; Save.write(); }
+    if (a.refundedTicket) { UI.toast("台が あたらしく なったので、とちゅうだった 1かいの クレーン チケットを かえしたよ"); a.refundedTicket = 0; Save.write(); }
     if (!this.coinOpen(machine)) { await UI.say([{ name: "Meeときょれじゃ", text: "きょうの コインの けいひんは おしまい。\nまた あした あそびに きてね！" }]); return; }
     const each = m.type === "sweet" ? "（おちた ぶんだけ）" : "", prize = m.type === "pusher" ? `てまえに おちた メダル 1まい ${m.coins}コイン` : m.coins ? `コイン ${m.coins} ${each}` : m.daily ? `きょうは ${this.todayText(machine)}${each}\n（けいひんは まいにち かわるよ${CraneMachines.DEFS[machine].keep ? "。とちゅうの けいひんは とれるまで そのまま" : ""}）${this.seasonNote(machine) ? "\n" + this.seasonNote(machine) : ""}` : m.mix ? `${this.item(m.prize).name.replace(/^\S+ /, "")}（${m.mix}しゅるい）${each}` : this.item(m.prize).name + " " + (each || "×" + m.qty);
     const cap = m.coins ? `\nコインの けいひんは 1にち ${ArcadePrizes.COIN_DAY_MAX}コイン まで（きょう のこり ${ArcadePrizes.coinLeft()}）。` : "";
     const fee = m.type === "pusher" ? `\n1かい ${this.PRICE}コインで メダル ${m.medals}まい。` : "\n1かい " + this.PRICE + "コイン。とれない ことも あるよ。";
-    if (!(await UI.confirm(m.name + "\n" + this.rules[m.rule || m.type] + "\nけいひん：" + prize + cap + fee, this.PRICE + "コインで あそぶ", "やめる"))) return;
-    const run = this.start(machine, back);
-    if (run) Game.goto("prize", { run }); else UI.toast("コインが たりないか、セーブできなかったよ");
+    const text = m.name + "\n" + this.rules[m.rule || m.type] + "\nけいひん：" + prize + cap + fee, tickets = this.ticketsFor(machine);
+    let pay = "coin";
+    if (tickets) {
+      // クレーン チケットが あれば「チケットで あそぶ」も えらべる
+      const i = await UI.ask(text, [this.PRICE + "コインで あそぶ", `チケットで あそぶ（のこり ${tickets}まい）`, "やめる"]);
+      if (i !== 0 && i !== 1) return;
+      pay = i === 1 ? "ticket" : "coin";
+    } else if (!(await UI.confirm(text, this.PRICE + "コインで あそぶ", "やめる"))) return;
+    const run = this.start(machine, back, pay);
+    if (run) Game.goto("prize", { run }); else UI.toast(pay === "ticket" ? "チケットが つかえなかったよ" : "コインが たりないか、セーブできなかったよ");
   },
-  // 100コインを はらって はじめる（セーブに のこせた ときだけ）
-  start(machine, back) {
-    const a = this.norm();
-    if (a.active || !this.machines[machine] || Save.d.coins < this.PRICE || !this.coinOpen(machine)) return null;
+  // 100コイン（pay = "ticket" なら クレーン チケット 1まい）を はらって はじめる（セーブに のこせた ときだけ）
+  start(machine, back, pay = "coin") {
+    const a = this.norm(), ticket = pay === "ticket";
+    if (a.active || !this.machines[machine] || !this.coinOpen(machine) || (ticket ? !this.ticketsFor(machine) : Save.d.coins < this.PRICE)) return null;
     const m = this.machines[machine], strong = m.type === "claw" ? Math.random() < this.chance(machine) : true;
     // はしわたし: はずれが 4かい つづくと、おみせの 人が はこを おとしやすい むきに おきなおす（assist）。バーバーカットは よく きれる ハサミに かえる
-    const run = { id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2), machine, def: m.id, back, strong, cp: null, ...((m.type === "bridge" || m.type === "barber") && (a.miss[machine] || 0) >= this.ASSIST ? { assist: true } : {}) };
-    const coins = Save.d.coins; Save.d.coins -= this.PRICE; a.active = run; Save.write();
+    const run = { id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2), machine, def: m.id, back, strong, cp: null, ...((m.type === "bridge" || m.type === "barber") && (a.miss[machine] || 0) >= this.ASSIST ? { assist: true } : {}), ...(ticket ? { ticket: true } : {}) };
+    const coins = Save.d.coins;
+    if (ticket) ConbiniCard.takeTicket("crane"); else Save.d.coins -= this.PRICE;
+    a.active = run; Save.write();
     try { if (JSON.parse(localStorage.getItem(Save.KEY))?.arcade?.active?.id === run.id) return run; } catch (e) {}
-    Save.d.coins = coins; a.active = null; Save.mark(); return null;
+    if (ticket) ConbiniCard.giveTicket("crane"); else Save.d.coins = coins;
+    a.active = null; Save.mark(); return null;
   },
   // おわり: けいひんを わたす・台の ようすを のこす（1かいだけ）
   finish(run, round) {
@@ -295,10 +312,10 @@ class CraneScene {
     if (!this.finished) this.checkpoint();
     Game.goto("venue", this.run.back, "circle");
   }
-  again() {
+  again(pay = "coin") {
     if (Game.inputLocked) return;
-    const run = PrizeArcade.start(this.i, this.run.back);
-    if (!run) { UI.toast("コインが たりないよ"); return; }
+    const run = PrizeArcade.start(this.i, this.run.back, pay);
+    if (!run) { UI.toast(pay === "ticket" ? "チケットが ないよ" : "コインが たりないよ"); return; }
     Game.goto("prize", { run }, "none");
   }
   exit() { this.closed = true; if (!this.finished && this.round) this.checkpoint(); this.panel?.remove(); UI.showHud(false); }
@@ -314,7 +331,9 @@ class CraneScene {
     const coinText = (p) => (this.run.capped > 0 ? `コイン ${this.run.paid}（きょうの じょうげん）` : "コイン " + p.coins), medals = this.m.type === "pusher" ? `メダル ${r.got.length}まいで ` : "";
     const msg = U.el("div", { class: "crane-result-text", text: n ? medals + prizes.map((p) => (p.coins ? coinText(p) : PrizeArcade.item(p.id).name + " ×" + p.n)).join("・") + " を もらったよ！" : "こんどは とれるかな？" });
     const btns = U.el("div", { class: "crane-result-btns" });
-    btns.append(UI.btn("もういちど（" + PrizeArcade.PRICE + "コイン）", () => this.again(), "yellow"), UI.btn("おみせに もどる", () => this.leave(), ""));
+    // クレーン チケットが あれば「チケットで もういちど」も（js/conbini-card.js・UI-85）
+    const tickets = PrizeArcade.ticketsFor(this.i);
+    btns.append(UI.btn("もういちど（" + PrizeArcade.PRICE + "コイン）", () => this.again(), "yellow"), ...(tickets ? [UI.btn(`チケットで もういちど（のこり ${tickets}まい）`, () => this.again("ticket"), "pink")] : []), UI.btn("おみせに もどる", () => this.leave(), ""));
     this.result.append(n ? pic : U.el("span"), msg, btns);
     this.result.classList.remove("hidden"); this.panel.classList.add("done");
     if (!ok) this.result.dataset.settled = "again";

@@ -300,7 +300,7 @@ const IchibanKuji = (() => {
     coupons(s) { const d = st(); return BY[s] ? BY[s].ids.H.map((id) => ({ id, item: INDEX[id], n: d.coupons[id] || 0 })).filter((c) => c.n > 0) : []; },
     couponFor(s, it) {
       if (!BY[s] || !it) return null;
-      const sold = BUY_SHOPS[s] && BUY_SHOPS[s].items ? BUY_SHOPS[s].items("goods").some((x) => x && x.id === it.id) : false;
+      const sold = BUY_SHOPS[s] && BUY_SHOPS[s].items ? BUY_SHOPS[s].items().some((x) => x && x.id === it.id) : false; // タブ（ごはん・おやつ・のみもの。js/conbini-goods.js）を まとめて
       if (!sold) return null;
       const list = this.coupons(s), c = list.find((x) => x.item.item === it.id) || list.find((x) => !x.item.item);
       if (!c) return null;

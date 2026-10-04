@@ -47,7 +47,7 @@ for(const id of ['home','clothes','furniture','crepe','dentist','florist','cake'
 // 2つの コンビニ（ちがう 商品・歩いて 入る 店）と ファミレス びっくぽ（斜め上の 館）
 for(const id of ['lawson','sevenbun']){
   assert.equal(d.buildings.filter(b=>b.act.type==='buy'&&b.act.shop===id).length,1,id+' building');
-  const shop=R.BUY_SHOPS[id],items=shop.items(),design=R.STORE_INTERIORS[id];assert(items.length===6&&items.every(i=>i&&R.BAG_INDEX[i.id]),id+' goods');
+  const shop=R.BUY_SHOPS[id],items=shop.items(),design=R.STORE_INTERIORS[id];assert(items.length===16&&items.every(i=>i&&R.BAG_INDEX[i.id]),id+' goods'); // 16しゅ（js/conbini-goods.js・UI-84）
   // おみせの 6こ ＋ いちばんくじの たな（js/ichiban-kuji.js・UI-55）
   assert(design&&design.fixtures.length>=12&&design.fixtures.filter(([kind])=>kind==='kuji_'+id).length===1,id+' interior');for(const f of R.StoreIso.fixtures(id))if(f.kind!=='keeper'&&f.kind!=='npc')assert(R.StoreIsoArt.model(f).svg.length>400,id+' fixture art '+f.kind);
 }
