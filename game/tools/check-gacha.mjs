@@ -137,6 +137,12 @@ for (const f of ["../js/gacha.js", "../js/gacha-art.js"]) {
   ok(!/f\.rare\s*&&/.test(house) && !/sparkle/.test(house), "おうち: レアの けいひんの まわりに ほしを ださない");
   ok(!R.FURNITURE.some((f) => "sparkle" in f), "家具に sparkle の しるしは ない");
   ok(!/gacha-cap\.gold|gacha-bigcap\.gold|gacha-prize\.rare|gacha-card\.rare\{background/.test(css) && !/item-dex-card\.rare[^}]*gradient/.test(css), "CSS: レアの カプセル・カードを ひからせない");
+  // なかよしパズルの けいひん（レア）も おうちで ほしを ちらつかせない（UI-66。UI-50 の のこり）。おうちが よぶ PuzzlePrizeArt.draw に FX.star・FX.sparkles が ない
+  const pz = read("js/puzzle-prizes.js"), drawSrc = pz.slice(pz.indexOf("  draw(ctx, id, r, t"), pz.indexOf("\n  },\n};", pz.indexOf("  draw(ctx, id, r, t")));
+  ok(drawSrc.length > 40 && !/FX\.(star|sparkles)|sparkle/.test(drawSrc) && /PuzzlePrizeArt\.draw\(/.test(house), "なかよしパズルの けいひん: おうちで まわりに ほしを ださない");
+  // 絵の なかで まわりに うかぶ ほしも ない（ランプ・すいぞくかん・ピアノ 0・ブランコは ひもで つるした 3つ・てんきゅうぎは だいの もよう 12）
+  const pzStars = Object.fromEntries(R.PUZZLE_PRIZES.map((p) => [p.id, (R.FURN_ART[p.id]().match(/fill="#FFF4B8" stroke="#AD8645"/g) || []).length]));
+  ok(JSON.stringify(pzStars) === JSON.stringify({ puzzle_crystal: 0, puzzle_aquarium: 0, puzzle_swing: 3, puzzle_piano: 0, puzzle_orrery: 12 }), "なかよしパズルの けいひん: うかぶ ほしを 描かない " + JSON.stringify(pzStars));
   ok(!/classList\.add\("gold"\)|" gold"|"gacha-prize" \+ \(r\.rare/.test(src), "ガチャ: 金の カプセル・レアの カードの クラスは つかわない");
 }
 // ---- あける まで どれが でたか わからない（UI-51。オーナーの FB「回したらどの景品が出るかが、景品に枠がつくのですぐわかってしまう。カプセルを開けた時にわかるようにして」）----
