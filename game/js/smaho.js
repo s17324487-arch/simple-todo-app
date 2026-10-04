@@ -240,7 +240,7 @@ const Smaho = {
         go.disabled = true; Sound.se("sparkle"); ball.classList.add("shake");
         setTimeout(() => { ball.classList.remove("shake"); Save.d.flags.fortuneDay = f.day; Save.mark(); Sound.se("fanfare"); reveal(); go.remove(); }, 900);
       }, "wide yellow smaho-draw");
-      box.append(go, U.el("p", { class: "muted", text: "1にち 1かい。ラッキー おみせは ほんとうに コインが ふえるよ（ひによって 1.2〜2ばい）。" }));
+      box.append(go, U.el("p", { class: "muted", text: "1にち 1かい。ラッキー おみせは ほんとうに コインが ふえるよ（ひによって 1.5〜3ばい）。" }));
     }
     el.append(box);
   },

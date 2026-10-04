@@ -553,15 +553,16 @@ for(const id of Object.keys(R.STORE_INTERIORS))for(const f of R.StoreIso.fixture
 const daily=vm.runInContext('DailyPlay',ctx);
 ok(daily.dayIndex('2030-9-10')>daily.dayIndex('2030-9-9')&&daily.dayIndex('2031-1-1')>daily.dayIndex('2030-12-31'),'スタンプの日付比較が文字列順');
 ok(daily.dayIndex('2030-2-29')===null&&daily.dayIndex('2032-2-29')!==null,'スタンプの実在日付の検査');
-for(let i=1;i<=14;i++){const day='2030-10-'+i,id=daily.featured(day),m=daily.mul(day);ok(!!R.MG_TASKS[id]&&id!=='link'&&daily.boost(id,day)===m&&m>=1.2&&m<=2&&daily.boost(id==='crepe'?'bakery':'crepe',day)===(daily.featured(day)===(id==='crepe'?'bakery':'crepe')?m:1),'おすすめに未実装/有料パズルが入る／ばいりつが 1.2〜2 でない');}
-// ラッキー おみせの ばいりつ: 日づけで きまる（おなじ 日は おなじ）・1.2〜2 の 0.1 きざみ 9とおりが ほぼ おなじ 確率・ひごとに かわる
+for(let i=1;i<=14;i++){const day='2030-10-'+i,id=daily.featured(day),m=daily.mul(day);ok(!!R.MG_TASKS[id]&&id!=='link'&&daily.boost(id,day)===m&&m>=1.5&&m<=3&&daily.boost(id==='crepe'?'bakery':'crepe',day)===(daily.featured(day)===(id==='crepe'?'bakery':'crepe')?m:1),'おすすめに未実装/有料パズルが入る／ばいりつが 1.5〜3 でない');}
+// ラッキー おみせの ばいりつ: 日づけで きまる（おなじ 日は おなじ）・1.5〜3 の 0.1 きざみ 16とおりが ほぼ おなじ 確率・ひごとに かわる（UI-89）
 {
   const cnt=new Map();let n=0;for(let y=2027;y<2037;y++)for(let mo=1;mo<=12;mo++)for(let d=1;d<=28;d++){const v=daily.mul(y+'-'+mo+'-'+d);cnt.set(v,(cnt.get(v)||0)+1);n++;}
-  ok(JSON.stringify([...cnt.keys()].sort((a,b)=>a-b))===JSON.stringify(daily.MULS)&&daily.MULS.length===9&&daily.MULS[0]===1.2&&daily.MULS[8]===2&&[...cnt.values()].every(k=>Math.abs(k/n-1/9)<0.025),'ばいりつが 1.2〜2 の 9とおりで おなじ くらいに ならない '+JSON.stringify([...cnt]));
+  ok(JSON.stringify([...cnt.keys()].sort((a,b)=>a-b))===JSON.stringify(daily.MULS)&&daily.MULS.length===16&&daily.MULS[0]===1.5&&daily.MULS[15]===3&&daily.MULS.every((v,i)=>Math.abs(v-(1.5+i/10))<1e-9)&&[...cnt.values()].every(k=>Math.abs(k/n-1/16)<0.02),'ばいりつが 1.5〜3 の 16とおりで おなじ くらいに ならない '+JSON.stringify([...cnt]));
   ok(daily.mul('2030-10-5')===daily.mul('2030-10-5')&&new Set(Array.from({length:14},(_,i)=>daily.mul('2030-11-'+(i+1)))).size>=5,'ばいりつが おなじ 日で かわる／ひごとに かわらない');
-  ok(daily.label(2)==='2ばい'&&daily.label(1.5)==='1.5ばい'&&daily.label(1.2)==='1.2ばい','ばいりつの ことば');
+  ok(daily.label(2)==='2ばい'&&daily.label(1.5)==='1.5ばい'&&daily.label(2.5)==='2.5ばい'&&daily.label(3)==='3ばい'&&daily.MULS.every(v=>/^[123](\.[0-9])?ばい$/.test(daily.label(v))),'ばいりつの ことば');
   const read=(f)=>readFileSync(join(GAME,f),"utf8");
   for(const f of ['js/minigames.js','js/korokoro-score.js','js/smaho.js','js/daily-play.js'])ok(!/コインが 1\.2ばい|コイン 1\.2ばい/.test(read(f)),f+': ラッキー おみせの ばいりつが 1.2ばいの まま');
+  for(const f of ['js/smaho.js','js/daily-play.js'])ok(read(f).includes('1.5〜3ばい')&&!/1\.2〜2ばい/.test(read(f)),f+': ラッキー おみせの ばいりつの せつめいが 1.5〜3ばい で ない（UI-89）');
 }
 for(const [pay,tip,boost]of [[28,7,1.2],[0,0,1.2],[32,13,1]]){const r=daily.payout(pay,tip,boost);ok(r.pay+r.tip===Math.round((pay+tip)*boost),'おすすめの合計報酬倍率が不正');}
 const dailyFixture=vm.runInContext(`(()=>{const before=Save.d;Save.d=Save.fresh();Save.d.coins=987654;const initial=JSON.stringify({wardrobe:Save.d.wardrobe,furn:Save.d.furn,room:Save.d.room});
@@ -1445,7 +1446,7 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
   // うらない: おなじ 日は おなじ けっか（Math.random・Date.now を つかわない）・日で かわる・ラッキーの もの は ほんとうに ある
   ok(!/Math\.random|Date\.now|new Date/.test(sm.fortuneSrc), "うらないが その日の うちに かわる（Math.random・Date を つかって いる）");
   ok(JSON.stringify(sm.f1) === JSON.stringify(sm.f2), "うらないが おなじ 日で ちがう");
-  ok(sm.f1.mul === sm.mul && sm.mul >= 1.2 && sm.mul <= 2, "うらないの ラッキー おみせの ばいりつが 1.2〜2 で ない／ほんとうの ばいりつと ちがう");
+  ok(sm.f1.mul === sm.mul && sm.mul >= 1.5 && sm.mul <= 3, "うらないの ラッキー おみせの ばいりつが 1.5〜3 で ない／ほんとうの ばいりつと ちがう");
   ok(sm.lucks.length >= 3 && sm.lucks.every((l) => sm.LUCK.includes(l)), "うらないの けっかが 日で かわらない: " + sm.lucks.join());
   ok(sm.foods.includes(sm.f1.food), `うらないの ラッキー たべもの ${sm.f1.food} が ない`);
   ok(sm.places.includes(sm.f1.place), `うらないの ラッキー ばしょ ${sm.f1.place} が ない`);
