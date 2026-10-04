@@ -1127,6 +1127,12 @@ html, body {
 .puri-chip.swatch.on{background:var(--sw);outline:3px solid #1F1D1B;outline-offset:2px}
 .puri-chip.stamp{width:48px;padding:2px;display:grid;place-items:center}
 .puri-chip.stamp img{width:36px;height:36px}
+/* 1まいずつの はいけい（UI-87）: ぜんぶ・1まいめ〜4まいめ（ちいさい 絵の したに なまえ）と、さつえいの「はいけい」の チップ（絵の よこに なまえ） */
+.puri-slots{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.puri-chip.slot{min-width:0;padding:3px 1px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:12px;line-height:1.1}
+.puri-chip.slot img{width:18px;height:24px;border-radius:4px;border:1.5px solid #1F1D1B;flex:none}
+.puri-chip.bgchip{display:flex;align-items:center;gap:5px;padding:2px 10px 2px 4px}
+.puri-chip.bgchip img{width:27px;height:36px;border-radius:5px;border:1.5px solid #1F1D1B;flex:none}
 .puri-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .puri-main{flex:1;min-height:48px;font-size:15px}
 .puri-small{min-width:66px;min-height:44px;padding:4px 8px;font-size:13px}
@@ -1149,7 +1155,7 @@ html, body {
 .puri-nav{display:flex;gap:8px;align-items:center;justify-content:center;width:100%}
 .puri-nav .btn{min-height:44px;flex:1;padding:4px 6px}
 .puri-pos{font-weight:900;min-width:52px;text-align:center}
-@media (max-height:700px){.puri-shot{min-width:72px;min-height:72px;width:72px;height:72px;font-size:17px}.puri-bg{min-height:52px}.puri-bg img{width:21px;height:28px}.puri-panel{gap:5px;padding:6px 8px 8px}}
+@media (max-height:700px){.puri-shot{min-width:72px;min-height:72px;width:72px;height:72px;font-size:17px}.puri-bg{min-height:48px}.puri-bg img{width:18px;height:24px}.puri-panel{gap:5px;padding:6px 8px 8px}.puri-chip.slot img{width:15px;height:20px}.puri-chip.bgchip img{width:24px;height:32px}}
 @media(prefers-reduced-motion:reduce){.puri-shot.ready{animation:none}}
 /* クレーンゲーム（crane-scene.js）: 下の そうさばん。やじるし・つかむ（まるい ボタン）・カメラ・やめる */
 .crane-panel{position:absolute;left:8px;right:8px;bottom:8px;padding:8px 10px 10px;background:linear-gradient(#FFF8EC,#F2E4D2);border:2px solid #1F1D1B;border-radius:18px;pointer-events:auto;box-shadow:0 4px 0 rgba(31,29,27,.25);user-select:none;-webkit-user-select:none;touch-action:none}

@@ -201,4 +201,26 @@ const ph = (extra = {}) => ({ id: "ptest-0", t: 1790000000000, bg: "hoshi", z: 1
   for (let i = 0; i < 6; i++) sc.undo();
   ok(JSON.stringify(sc.deco[0]) === JSON.stringify({ p: [], s: [["heart", 150, 200, 1, 45]], x: [["なかよし", 150, 60, 2]], e: [] }) && sc.hist.length === 0, "もどす で ぜんぶ もとに もどらない " + JSON.stringify(sc.deco[0]));
 }
-console.log(`Purikura: 3 booths (ゆめかわ・がっこう・おでかけ) × 6 backgrounds = 18 / 11 poses (5 arm gestures) / 8 faces (all different for the three) / 20 stamps (8 for faces) / 8 effects / 8 words + booth words, rotation and flip of stamps and words, effect layers, select-move-rotate-delete and undo, movable positions, stroke codec, photo repair and limits, 300-coin session paid once and finished once, 60-photo album, old saves and finite art keys — ${n} checks OK`);
+// ---- 9. 1まいずつの はいけい（UI-87。オーナーの 指示 2026-10-04「撮影ごとに背景を変えられるようにして」）----
+{
+  ok(P.slotBgs("odekake").join() === "yuenchi,yuenchi,yuenchi,yuenchi" && P.slotBgs("nazo").join() === "yume,yume,yume,yume", "はじめは 4まい ブースの 1つめ");
+  let b = P.setBg(P.slotBgs("odekake"), "all", "uchu", "odekake"); ok(b.join() === "uchu,uchu,uchu,uchu", "ぜんぶ おなじ はいけい");
+  b = P.setBg(b, 1, "oshiro", "odekake"); b = P.setBg(b, 3, "cafe", "odekake"); ok(b.join() === "uchu,oshiro,uchu,cafe", "1まいずつ はいけい");
+  ok(P.setBg(b, 2, "hoshi", "odekake").join() === b.join() && P.setBg(b, 4, "cafe", "odekake").join() === b.join() && P.setBg(b, -1, "cafe", "odekake").join() === b.join() && P.setBg(b, "1", "cafe", "odekake").join() === b.join(), "ほかの ブースの はいけい・ない まいは つかわない");
+  ok(P.setBg(["nazo", 5], 0, "matsuri", "odekake").join() === "matsuri,yuenchi,yuenchi,yuenchi" && P.setBg(null, "all", "nazo", "school").join() === "kyoshitsu,kyoshitsu,kyoshitsu,kyoshitsu", "こわれた かずは ブースの 1つめ");
+  // がめん（ブラウザ なしで）: えらぶ → とる（とちゅうで つぎの まいを かえる）→ らくがき・できあがりの しゃしんに 1まいずつ
+  S.d = S.fresh();
+  const ids = R.Chara.IDS, sc = Object.assign(Object.create(R.PurikuraScene.prototype), { booth: P.BOOTH.odekake, phase: "bg", bgs: P.slotBgs("odekake"), slot: "all", shots: [], deco: [], di: 0, z: 0, sel: Object.fromEntries(ids.map((id) => [id, ["stand", "happy"]])), pos: Object.fromEntries(ids.map((id) => [id, [0, 0]])), ui() {} });
+  sc.pickBg("matsuri"); ok(sc.bgs.join() === "matsuri,matsuri,matsuri,matsuri" && sc.curBg() === "matsuri" && sc.photoOf(null, null).bg === "matsuri", "えらぶ: ぜんぶ");
+  sc.slot = 2; ok(sc.curBg() === "matsuri", "えらぶ: 3まいめ"); sc.pickBg("suizoku"); ok(sc.bgs.join() === "matsuri,matsuri,suizoku,matsuri" && sc.curBg() === "suizoku" && sc.photoOf(null, null).bg === "suizoku", "えらぶ: 3まいめ だけ かわる");
+  sc.phase = "shoot"; ok(sc.curBg() === "matsuri", "さつえい: 1まいめの はいけいが うつる"); sc.snap();
+  ok(sc.shots.length === 1 && sc.shots[0].bg === "matsuri" && sc.curBg() === "matsuri", "1まいめを とる");
+  sc.pickBg("uchu"); ok(sc.bgs.join() === "matsuri,uchu,suizoku,matsuri" && sc.shots[0].bg === "matsuri" && sc.curBg() === "uchu", "さつえいの とちゅう: つぎの まい だけ かわる（とった しゃしんは そのまま）");
+  sc.snap(); ok(sc.curBg() === "suizoku", "3まいめは えらんで おいた はいけい"); sc.snap(); sc.snap();
+  ok(sc.phase === "deco" && sc.shots.map((x) => x.bg).join() === "matsuri,uchu,suizoku,matsuri", "4まいの はいけい " + sc.shots.map((x) => x.bg).join());
+  ok(sc.curBg() === "matsuri" && sc.photoOf(sc.shots[1], sc.deco[1]).bg === "uchu" && (sc.di = 2) && sc.curBg() === "suizoku", "らくがき: その しゃしんの はいけい");
+  const src = readFileSync(new URL("../js/purikura.js", import.meta.url), "utf8");
+  ok(/bg: s\.bg \|\| this\.bgs\[i\]/.test(src) && /this\.chip\("はいけい", this\.tab === "bg"/.test(src) && /"puri-slots"/.test(src) && !/this\.bg\b/.test(src), "できあがりの しゃしん・さつえいの「はいけい」・ぜんぶ／1〜4まいめ");
+  ok(/\.puri-chip\.slot\{[^}]*\}/.test(readFileSync(new URL("../css/style.css", import.meta.url), "utf8")), "1〜4まいめの ボタンの みため");
+}
+console.log(`Purikura: 3 booths (ゆめかわ・がっこう・おでかけ) × 6 backgrounds = 18 / 11 poses (5 arm gestures) / 8 faces (all different for the three) / 20 stamps (8 for faces) / 8 effects / 8 words + booth words, rotation and flip of stamps and words, effect layers, select-move-rotate-delete and undo, movable positions, a background per shot (UI-87), stroke codec, photo repair and limits, 300-coin session paid once and finished once, 60-photo album, old saves and finite art keys — ${n} checks OK`);
