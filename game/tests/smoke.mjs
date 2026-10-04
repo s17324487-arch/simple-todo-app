@@ -4440,6 +4440,8 @@ await (await import("./head-pair-smoke.mjs")).headPairSmoke({scenario,expect});
 await (await import("./work-exp-smoke.mjs")).workExpSmoke({scenario,expect});
 await (await import("./home-talk-more-smoke.mjs")).homeTalkMoreSmoke({scenario,expect});
 await (await import("./gowaga-wish-smoke.mjs")).gowagaWishSmoke({scenario,expect});
+// おねだり（UI-88。家電・シール・ガチャ・クレーン・館の その かいで おねだり。くわしくは tests/gowaga-beg-smoke.mjs）
+await (await import("./gowaga-beg-smoke.mjs")).gowagaBegSmoke({scenario,expect});
 await (await import("./home-toilet-smoke.mjs")).homeToiletSmoke({scenario,expect});
 // おうちの みち（UI-73）: 3人と ぱぱが 家具を よけて あるく・いきさきが 家具の なか → そばで とまる・家具の うえから でる
 await (await import("./home-nav-smoke.mjs")).homeNavSmoke({scenario,expect});
@@ -4460,6 +4462,8 @@ await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});
 await (await import("./conbini-card-smoke.mjs")).conbiniCardSmoke({scenario,expect});
 // コンビニ × ごわがの コラボ けいひん（UI-86。くわしくは tests/conbini-collab-smoke.mjs）
 await (await import("./conbini-collab-smoke.mjs")).conbiniCollabSmoke({scenario,expect});
+// ぷりくらの 1まいずつの はいけい（UI-87。くわしくは tests/purikura-bgs-smoke.mjs）
+await (await import("./purikura-bgs-smoke.mjs")).purikuraBgsSmoke({scenario,expect});
 // 歩いて 入る お店の 斜め上の 館（UI-75。くわしくは tests/store-iso-smoke.mjs）
 await (await import("./store-iso-smoke.mjs")).storeIsoSmoke({scenario,expect});
 // たべものの おみせの しなもの（UI-76。くわしくは tests/shop-goods-smoke.mjs）

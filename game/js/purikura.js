@@ -1,4 +1,4 @@
-// ぷりくら（Meeときょれじゃ 3F の しゃしんの ブース 3台・UI-11／UI-21／UI-24／UI-25）: 300コイン → はいけいを えらぶ → 4まい とる（ポーズ・かお・アップ／ぜんしん・3・2・1）→ らくがき（ペン・スタンプ・かお・もじ・キラキラ。おいた ものは さわって うごかす・まわす）→ すまほの「しゃしん」アプリで みる。
+// ぷりくら（Meeときょれじゃ 3F の しゃしんの ブース 3台・UI-11／UI-21／UI-24／UI-25／UI-87）: 300コイン → はいけいを えらぶ（ぜんぶ おなじ か 1まいずつ・とる まえにも かえられる）→ 4まい とる（ポーズ・かお・アップ／ぜんしん・3・2・1）→ らくがき（ペン・スタンプ・かお・もじ・キラキラ。おいた ものは さわって うごかす・まわす）→ すまほの「しゃしん」アプリで みる。
 // ブースは 3つの コンセプト（ゆめかわ・がっこう・おでかけ）。ブースごとに はいけい 6つ・わくの いろ・ことばが ちがう（BOOTHS）。
 // ほんものの プリクラと おなじ ながれ（お金を いれる → はいけい → さつえい → らくがき → スマホで みる）。
 // しゃしんは 画像では なく 絵の データ（Save.d.photos）。みる ときに 描く ので セーブが 大きく ならない。しゃしんの 座標は 300×400（たて）。
@@ -113,6 +113,15 @@ const Purikura = (() => {
   return {
     PW, PH, MAX, SHOTS, PRICE, BGS, BOOTHS, POSES, FACES, PENS, PEN_W, STAMPS, STAMP_SIZE, EFFECTS, WORDS, LIMIT, BG, BOOTH, POSE, FACE, STAMP, EFFECT,
     packStroke, unpackStroke, clean, view, st, boothOf, MOVE, moves, turn,
+    // 1まいずつの はいけい（UI-87。オーナーの 指示 2026-10-04「撮影ごとに背景を変えられるようにして」）: 4まいぶん（はじめは ブースの 1つめ）。
+    // slot は "all"（ぜんぶ おなじ）か 0〜3（その まい）。ブースに ない はいけいは つかわない（しゃしんは 1まいずつ bg を もつ ので セーブの かたちは まえの まま）
+    slotBgs(booth) { const b = BOOTH[booth] || BOOTHS[0]; return Array(SHOTS).fill(b.bgs[0]); },
+    setBg(bgs, slot, id, booth) {
+      const b = BOOTH[booth] || BOOTHS[0], out = Array.from({ length: SHOTS }, (_, i) => (Array.isArray(bgs) && b.bgs.includes(bgs[i]) ? bgs[i] : b.bgs[0]));
+      if (!b.bgs.includes(id)) return out;
+      if (slot === "all") out.fill(id); else if (Number.isInteger(slot) && slot >= 0 && slot < SHOTS) out[slot] = id;
+      return out;
+    },
     // ブースで つかえる ことば（ブースの ことば → みんなの ことば）
     wordsOf(booth) { const b = BOOTH[booth] || BOOTHS[0]; return [...b.words, ...WORDS]; },
     // こわれて いない しゃしん（ふるい じゅん）。こわれた ものは セーブから のぞく
@@ -506,7 +515,7 @@ const PurikuraArt = (() => {
 class PurikuraScene {
   async enter(p = {}) {
     this.booth = Purikura.BOOTH[p.booth] || Purikura.BOOTHS[0];
-    this.back = p.back || null; this.phase = "bg"; this.bg = this.booth.bgs[0]; this.z = 0; this.who = "all"; this.tab = "pose";
+    this.back = p.back || null; this.phase = "bg"; this.bgs = Purikura.slotBgs(this.booth.id); this.slot = "all"; this.z = 0; this.who = "all"; this.tab = "pose";
     this.sel = Object.fromEntries(Chara.IDS.map((id) => [id, ["stand", "happy"]]));
     // 3人の ばしょ（ならびから の ずれ・しゃしんの 座標）。ゆびで うごかす（drag）
     this.pos = Object.fromEntries(Chara.IDS.map((id) => [id, [0, 0]])); this.drag = null; this.moved = false;
@@ -521,11 +530,20 @@ class PurikuraScene {
     await Promise.all([Chara.preload(list, this.charaSize()), ...this.booth.bgs.map((id) => SvgCache.ensure("puri:bg:" + id, PurikuraArt.BG_SVG[id], 300, 400))]);
   }
   exit() { this.closed = true; this.panel?.remove(); this.resetBtn?.remove(); UI.showHud(false); }
+  // いま カメラに うつす はいけい（UI-87: 1まいずつ）: えらぶ ときは えらんで いる まい（ぜんぶ なら 1まいめ）・さつえいは つぎに とる まい・らくがきは その しゃしん
+  shotIndex() { return Math.min(this.shots.length, Purikura.SHOTS - 1); }
+  curBg() {
+    if (this.phase === "deco" || this.phase === "done") return (this.shots[this.di] && this.shots[this.di].bg) || this.bgs[0];
+    return this.bgs[this.phase === "shoot" ? this.shotIndex() : this.slot === "all" ? 0 : this.slot];
+  }
+  // はいけいを えらぶ: えらぶ ときは ぜんぶ か その まい・さつえいの とちゅうは つぎに とる まい だけ
+  pickBg(id) { Sound.se("tap"); this.bgs = Purikura.setBg(this.bgs, this.phase === "shoot" ? this.shotIndex() : this.slot, id, this.booth.id); this.ui(); }
+  bgThumb(id) { return U.el("img", { src: U.svgUrl(PurikuraArt.BG_SVG[id]()), alt: "" }); }
   // いまの えらびかた（さつえいの まえの カメラ・とった しゃしん）
   photoOf(shot, deco) {
     const o = shot ? shot.o : Purikura.outfits(), c = shot ? shot.c : this.sel;
     const m = shot ? shot.m : Purikura.moves(this.pos);
-    return { id: "live", t: shot ? shot.t : Date.now(), bg: this.bg, k: this.booth.id, z: shot ? shot.z : this.z, r: Save.d.order.slice(), c, o, d: deco || { p: [], s: [], x: [] }, ...(m ? { m } : {}) };
+    return { id: "live", t: shot ? shot.t : Date.now(), bg: shot ? shot.bg || this.bgs[0] : this.curBg(), k: this.booth.id, z: shot ? shot.z : this.z, r: Save.d.order.slice(), c, o, d: deco || { p: [], s: [], x: [] }, ...(m ? { m } : {}) };
   }
   charaSize() { return PurikuraArt.LAYOUT[1].S * ((this.view ? this.view.w : 260) / Purikura.PW); }
   // ---- ボタン ----
@@ -550,15 +568,24 @@ class PurikuraScene {
     const P = this.panel, ph = this.phase; P.replaceChildren(); P.dataset.phase = ph;
     if (ph === "bg") {
       P.append(U.el("div", { class: "puri-title", text: "はいけいを えらんでね" }));
+      // ぜんぶ おなじ／1まいめ〜4まいめ（UI-87）。えらんで いる まいの はいけいを したの 6つから えらぶ
+      const all = this.slot === "all";
+      const slots = this.row("puri-slots", [["all", "ぜんぶ"], ...this.bgs.map((id, i) => [i, `${i + 1}まいめ`])].map(([k, name]) => {
+        const b = this.chip("", this.slot === k, () => { this.slot = k; this.ui(); }, "slot");
+        if (k !== "all") { b.append(this.bgThumb(this.bgs[k])); b.title = Purikura.BG[this.bgs[k]].name; }
+        b.append(U.el("span", { text: name })); return b;
+      }));
       const grid = U.el("div", { class: "puri-bgs" });
-      for (const b of this.booth.bgs.map((id) => Purikura.BG[id])) { const btn = UI.btn("", () => { Sound.se("tap"); this.bg = b.id; this.ui(); }, "puri-bg" + (this.bg === b.id ? " on" : "")); btn.setAttribute("aria-label", b.name); btn.append(U.el("img", { src: U.svgUrl(PurikuraArt.BG_SVG[b.id]()), alt: "" }), U.el("span", { text: b.name })); grid.append(btn); }
-      P.append(grid, this.row("puri-actions", [UI.btn("やめる", () => this.quit(), "puri-small"), UI.btn("とりはじめる", () => { Sound.se("ok"); this.phase = "shoot"; this.ui(); this.resize(); }, "yellow puri-main")]));
+      for (const b of this.booth.bgs.map((id) => Purikura.BG[id])) { const on = all ? this.bgs.every((x) => x === b.id) : this.bgs[this.slot] === b.id, btn = UI.btn("", () => this.pickBg(b.id), "puri-bg" + (on ? " on" : "")); btn.setAttribute("aria-label", b.name); btn.append(this.bgThumb(b.id), U.el("span", { text: b.name })); grid.append(btn); }
+      P.append(slots, grid, U.el("div", { class: "puri-hint", text: all ? "1〜4まいめを おすと 1まいずつ えらべるよ" : `${this.slot + 1}まいめの はいけいを えらんでね` }), this.row("puri-actions", [UI.btn("やめる", () => this.quit(), "puri-small"), UI.btn("とりはじめる", () => { Sound.se("ok"); this.phase = "shoot"; this.ui(); this.resize(); }, "yellow puri-main")]));
     } else if (ph === "shoot") {
       const whoRow = this.row("puri-who", [["all", "みんな"], ...Save.d.order.map((id) => [id, Save.d.chars[id].name])].map(([k, name]) => this.chip(name, this.who === k, () => { this.who = k; this.ui(); })));
-      const tabs = this.row("puri-tabs", [this.chip("ポーズ", this.tab === "pose", () => { this.tab = "pose"; this.ui(); }, "tab"), this.chip("かお", this.tab === "face", () => { this.tab = "face"; this.ui(); }, "tab"), this.chip(this.z ? "ぜんしんに" : "アップに", false, () => { this.z = this.z ? 0 : 1; this.ui(); }, "tab zoom")]);
+      const tabs = this.row("puri-tabs", [this.chip("ポーズ", this.tab === "pose", () => { this.tab = "pose"; this.ui(); }, "tab"), this.chip("かお", this.tab === "face", () => { this.tab = "face"; this.ui(); }, "tab"), this.chip("はいけい", this.tab === "bg", () => { this.tab = "bg"; this.ui(); }, "tab"), this.chip(this.z ? "ぜんしんに" : "アップに", false, () => { this.z = this.z ? 0 : 1; this.ui(); }, "tab zoom")]);
       const cur = (k) => (this.who === "all" ? Save.d.order.every((id) => this.sel[id][k] === this.sel[Save.d.order[0]][k]) && this.sel[Save.d.order[0]][k] : this.sel[this.who][k]);
       const set = (k, v) => { for (const id of this.who === "all" ? Chara.IDS : [this.who]) this.sel[id][k] = v; this.ui(); };
-      const opts = this.tab === "pose" ? Purikura.POSES.map((x) => this.chip(x.name, cur(0) === x.id, () => set(0, x.id))) : Purikura.FACES.map((x) => this.chip(x.name, cur(1) === x.id, () => set(1, x.id)));
+      // はいけい（UI-87）: つぎに とる まいの はいけいを かえる（ほかの まいは そのまま）
+      const bgOpt = (id) => { const b = UI.btn("", () => this.pickBg(id), "puri-chip bgchip" + (this.curBg() === id ? " on" : "")); b.setAttribute("aria-pressed", this.curBg() === id ? "true" : "false"); b.append(this.bgThumb(id), U.el("span", { text: Purikura.BG[id].name })); return b; };
+      const opts = this.tab === "pose" ? Purikura.POSES.map((x) => this.chip(x.name, cur(0) === x.id, () => set(0, x.id))) : this.tab === "face" ? Purikura.FACES.map((x) => this.chip(x.name, cur(1) === x.id, () => set(1, x.id))) : this.booth.bgs.map(bgOpt);
       const shot = UI.btn("とる！", () => this.shoot(), "puri-shot" + (this.count ? "" : " ready")); shot.disabled = !!this.count;
       P.append(whoRow, tabs, this.row("puri-chips", opts), this.row("puri-actions", [UI.btn("やめる", () => this.quit(), "puri-small"), shot, U.el("div", { class: "puri-count", text: `${this.shots.length + 1} / ${Purikura.SHOTS}` })]));
     } else if (ph === "deco") {
@@ -611,8 +638,8 @@ class PurikuraScene {
   }
   snap() {
     this.count = null; this.flash = 0.45; Sound.se("puri_shutter");
-    const m = Purikura.moves(this.pos);
-    this.shots.push({ c: JSON.parse(JSON.stringify(this.sel)), z: this.z, o: Purikura.outfits(), t: Date.now(), ...(m ? { m } : {}) }); this.deco.push({ p: [], s: [], x: [], e: [] });
+    const m = Purikura.moves(this.pos), bg = this.curBg();
+    this.shots.push({ c: JSON.parse(JSON.stringify(this.sel)), z: this.z, o: Purikura.outfits(), t: Date.now(), bg, ...(m ? { m } : {}) }); this.deco.push({ p: [], s: [], x: [], e: [] });
     if (this.shots.length >= Purikura.SHOTS) { this.phase = "deco"; this.di = 0; this.msg = "らくがき しよう！"; } else this.msg = `${this.shots.length}まいめ とれたよ！`;
     this.msgT = 1.2; this.ui();
   }
@@ -755,7 +782,7 @@ class PurikuraScene {
     if (this.saved || UI.busy) return;
     this.pick = null; this.grab = null;
     const base = Date.now().toString(36);
-    const photos = this.shots.map((s, i) => ({ id: `p${base}-${i}`, t: s.t, bg: this.bg, k: this.booth.id, z: s.z, r: Save.d.order.slice(), c: s.c, o: s.o, d: { p: this.deco[i].p.filter((x) => x.pts.length).map(Purikura.packStroke), s: this.deco[i].s, x: this.deco[i].x, e: this.deco[i].e }, ...(s.m ? { m: s.m } : {}) }));
+    const photos = this.shots.map((s, i) => ({ id: `p${base}-${i}`, t: s.t, bg: s.bg || this.bgs[i], k: this.booth.id, z: s.z, r: Save.d.order.slice(), c: s.c, o: s.o, d: { p: this.deco[i].p.filter((x) => x.pts.length).map(Purikura.packStroke), s: this.deco[i].s, x: this.deco[i].x, e: this.deco[i].e }, ...(s.m ? { m: s.m } : {}) }));
     if (!Purikura.finish(photos)) { UI.toast("もう できあがって いるよ"); return; }
     this.saved = true; this.photos = photos.map(Purikura.clean); this.phase = "done"; Sound.se("fanfare"); this.ui(); this.resize();
     await UI.say(Save.d.order.map((id) => ({ who: id, emo: "happy", text: id === "goji" ? "ガゥ♪ いい かお できた！" : id === "gachan" ? "ピヨ！ きらきらに なった♪" : "わん！ すまほで また みようね！" })));

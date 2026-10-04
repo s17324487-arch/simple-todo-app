@@ -3,12 +3,20 @@
 // → おうちに かえると 3人が まえに かけよって おれい → 「ぎゅー！」か「なでなで」→ しばらく くっついて あまえる（ハート・ごきげん・なかよし）。
 // ・おねがいが くるのは おうちに はいって 6〜12びょう あと（6わり）。まえの おねがいから 12ふん たってから（ことわったら 6ふん）。すまほの アプリから きく ことも できる。
 // ・かなった かどうか: たべさせる（Care.feed）・ついた ばしょ（館の かい・町と フィールド）・ぷりくら／ファッションショー／つり／ガチャ／しゅうかく の おわり。
+// ・おねだり（UI-88。オーナーの 指示 2026-10-04「おねだりは家電やシール、ガチャガチャ、クレーンゲームも対象にして。とくにガチャガチャとクレーンゲームはよくやりたくなるようだ」）:
+//   ネリカス でんき（つれてって・マッサージチェア・ためしの だい）・シール・ガチャ 3・クレーン 3 を たした（29しゅ）。ガチャと クレーンは w: 3（3ばい でやすい）。
+//   beg が ある おねがいは 館（Meeときょれじゃ・ネリカス でんき）の その かいで、その場で「あっ、○○だ！ やりたい！」と おねだり する
+//   （かいに はいって 4〜8びょう・はんぶんの かくりつ・おねがいが ない とき・まえの おねがいから 5ふん）。「いいよ！」で すまほの「おねがい」に のる（かなえかたは おうちの おねがいと おなじ）。
 // セーブ: Save.d.wish（はじめて つかう ときに できる。Save.fresh() には ない）= { cur: { id, t, done, doneT } | null, last, n, log: [{ id, t, how }] }
 const GowagaWish = {
   COOL: 12 * 60e3,
   CHANCE: 0.6,
+  // 館の おねだり（UI-88）: まえの おねがいから 5ふん・かいに はいる たびに はんぶんの かくりつ・4〜8びょう あと
+  BEG_COOL: 5 * 60e3,
+  BEG_CHANCE: 0.5,
   AMAE: 24, // あまえる じかん（びょう）
   // kind: go（つれてって）・eat（たべたい）・do（あそびたい）。at: いる ばしょ（venue と floors・map・scene）。foods: たべもの。act: あそび
+  // w: でやすさ（ない ときは 1）。beg: 館の その かいで おねだり する（venue と floors）・begAsk: その ときの ことば（UI-88。まどで ことばの とちゅうで おりかえさない ように \n で 2ぎょう）
   WISHES: [
     { id: "go_aquarium", kind: "go", who: "gachan", short: "すいぞくかん", ask: "すいぞくかんに つれてって！ くらげさん、みたいな〜", hint: "サンシャインいけぶの 12かい・13かいの すいぞくかんへ", thanks: "すいぞくかん、つれて いって くれて ありがとう！ くらげさん、きれい だったね♪", at: [{ venue: "mall", floors: [12, 13] }] },
     { id: "go_museum", kind: "go", who: "goji", short: "きょうりゅう はくぶつかん", ask: "はくぶつかんの ティラノさんに あいたい！ つれてって ガウっ", hint: "いけぶくろの きょうりゅう はくぶつかんへ", thanks: "ティラノさんに あえた！ つれて いって くれて ありがとう ガウっ", at: [{ venue: "museum" }] },
@@ -17,6 +25,7 @@ const GowagaWish = {
     { id: "go_beach", kind: "go", who: "wanko", short: "しおかぜビーチ", ask: "うみに いきたい！ すなはまで かけっこ しよう！", hint: "しおかぜビーチへ", thanks: "うみ、ひろかった〜！ つれて いって くれて ありがとう！", at: [{ map: "coast" }] },
     { id: "go_forest", kind: "go", who: "goji", short: "どんぐりの もり", ask: "どんぐりの もりに いきたい。どんぐり ひろいたい ガウっ", hint: "どんぐりの もりへ", thanks: "もり、きもち よかった！ つれて いって くれて ありがとう ガウっ", at: [{ map: "forest" }] },
     { id: "go_airport", kind: "go", who: "gachan", short: "そらいろくうこう", ask: "ひこうき、ちかくで みたいな… くうこうに つれてって？", hint: "そらいろくうこうへ", thanks: "ひこうき、おっきかった！ つれて いって くれて ありがとう♪", at: [{ map: "airport" }] },
+    { id: "go_kaden", kind: "go", who: "gachan", short: "ネリカス でんき", ask: "ネリカス でんきに いきたいな♪ おっきな テレビ みたい！", hint: "いけぶくろの ネリカス でんきへ", thanks: "でんきやさん、ピカピカ だったね♪ つれて いって くれて ありがとう！", at: [{ venue: "electronics" }] },
     { id: "eat_burger", kind: "eat", who: "wanko", short: "ハンバーガー", ask: "ハンバーガー たべたい！ チーズ とろ〜り！", hint: "バーガーやさんで かって、たべさせて あげよう", thanks: "ハンバーガー、おいしかった〜！ ありがとう！", foods: ["burger", "bm_hamburger", "bm_teriyaki", "bm_fish", "bm_chicken", "bm_ebi", "bm_double", "bm_big"] },
     { id: "eat_cake", kind: "eat", who: "gachan", short: "ショートケーキ", ask: "いちごの ショートケーキ たべたいな♪", hint: "ケーキやさんで かって、たべさせて あげよう", thanks: "ケーキ、あま〜い♪ ありがとう！", foods: ["cake", "annual_christmas_deza"] },
     { id: "eat_pudding", kind: "eat", who: "goji", short: "プリン", ask: "ぷるぷるの プリン たべたい ガウっ", hint: "ケーキやさん・ローリソン・スーパーで かえるよ", thanks: "プリン、ぷるぷる だった！ ありがとう ガウっ", foods: ["pudding", "annual_halloween_deza"] },
@@ -25,11 +34,20 @@ const GowagaWish = {
     { id: "eat_karaage", kind: "eat", who: "goji", short: "からあげ", ask: "からあげ、ぼく いっぱい たべたい ガウっ", hint: "ローリソンで かって、たべさせて あげよう", thanks: "からあげ、カリカリ！ ありがとう ガウっ", foods: ["karaage"] },
     { id: "eat_crepe", kind: "eat", who: "gachan", short: "クレープ", ask: "クレープ たべたいな〜♪ いちごの やつ！", hint: "まちの クレープやさんで かうか、サンシャインいけぶで いっしょに たべよう", thanks: "クレープ、ふわふわ♪ ありがとう！", foods: ["crepe_berry", "crepe_choco", "crepe_custard", "crepe_ice", "ike_crepes_0", "ike_crepes_1", "ike_crepes_2", "ike_crepes_3", "ike_crepes_4", "ike_crepes_5"] },
     { id: "eat_pancake", kind: "eat", who: "wanko", short: "パンケーキ", ask: "ふわふわの パンケーキ たべたい！", hint: "びっくぽで かって、たべさせて あげよう", thanks: "パンケーキ、ふわっふわ！ ありがとう！", foods: ["pancake"] },
-    { id: "do_purikura", kind: "do", who: "gachan", short: "ぷりくら", ask: "3にんで ぷりくら とりたい！ ハートの ポーズ しよ♪", hint: "Meeときょれじゃ 3かいの ぷりくら（300 コイン）", thanks: "ぷりくら、たからもの！ いっしょに とって くれて ありがとう♪", act: "purikura" },
+    { id: "do_purikura", kind: "do", who: "gachan", short: "ぷりくら", ask: "3にんで ぷりくら とりたい！ ハートの ポーズ しよ♪", hint: "Meeときょれじゃ 3かいの ぷりくら（300 コイン）", thanks: "ぷりくら、たからもの！ いっしょに とって くれて ありがとう♪", act: "purikura", beg: [{ venue: "arcade", floors: [3] }], begAsk: "ぷりくら あるよ♪\n3にんで とろうよ〜" },
     { id: "do_fashion", kind: "do", who: "wanko", short: "ファッションショー", ask: "ファッションショーに でたい！ ランウェイを あるいて みたい！", hint: "いけぶくろえきの ファッションかん（500 コイン）", thanks: "ランウェイ、どきどき したけど たのしかった！ ありがとう！", act: "fashion" },
     { id: "do_fishing", kind: "do", who: "goji", short: "つり", ask: "いっしょに つりが したい！ おっきい さかな つる ガウっ", hint: "つりざおを もって、いけや うみの ちかくで", thanks: "さかな、つれた！ いっしょに つって くれて ありがとう ガウっ", act: "fishing" },
-    { id: "do_gacha", kind: "do", who: "wanko", short: "ガチャガチャ", ask: "ガチャガチャ まわして みたい！ なにが でるかな？", hint: "Meeときょれじゃ 2かいの ガチャ コーナー（200 コイン）", thanks: "ガチャガチャ、どきどき した！ ありがとう！", act: "gacha" },
+    { id: "do_gacha", kind: "do", who: "wanko", short: "ガチャガチャ", ask: "ガチャガチャ まわして みたい！ なにが でるかな？", hint: "Meeときょれじゃ 2かいの ガチャ コーナー（200 コイン）", thanks: "ガチャガチャ、どきどき した！ ありがとう！", act: "gacha", w: 3, beg: [{ venue: "arcade", floors: [2, 4] }], begAsk: "あっ、ガチャガチャだ！\n1かい まわしたい！" },
     { id: "do_harvest", kind: "do", who: "goji", short: "やさいの しゅうかく", ask: "はたけで やさい ぬきたい！ うんとこしょ ガウっ", hint: "おうちの よこの はたけで、そだった やさいを とろう", thanks: "やさい、とれた！ いっしょに して くれて ありがとう ガウっ", act: "harvest" },
+    // UI-88: 家電・シール・ガチャ・クレーン（ガチャと クレーンは よく やりたく なる → w: 3）
+    { id: "do_massage", kind: "do", who: "goji", short: "マッサージチェア", ask: "マッサージチェアに すわって みたい ガウっ。もみもみ〜", hint: "ネリカス でんき 10かいの マッサージチェア", thanks: "もみもみ、きもち よかった ガウっ… ありがとう！", act: "massage", beg: [{ venue: "electronics", floors: [10] }], begAsk: "あっ、マッサージチェアだ！\nすわって いい？ ガウっ" },
+    { id: "do_kaden_try", kind: "do", who: "wanko", short: "でんきやさんの おためし", ask: "でんきやさんで ゲームや カメラを ためして みたい！", hint: "ネリカス でんき 1かい・3かいの ためしの だい", thanks: "おためし、たのしかった！ いっしょに きて くれて ありがとう！", act: "demo", beg: [{ venue: "electronics", floors: [1, 3] }], begAsk: "わあ、さわれる だいだ！\nためして みて いい？" },
+    { id: "do_sticker", kind: "do", who: "gachan", short: "シール", ask: "キラキラの シール ほしいな♪ シールちょうに はりたい！", hint: "ネリカス でんき 1かいの シールうりば か Mee 4かいの ガチャ", thanks: "シール、かわいい♪ シールちょうに はるね！ ありがとう！", act: "sticker", beg: [{ venue: "electronics", floors: [1] }, { venue: "arcade", floors: [4] }], begAsk: "シールが いっぱい♪\n1つ ほしいな… だめ？" },
+    { id: "do_gacha_forest", kind: "do", who: "gachan", short: "ガチャガチャの もり", ask: "ガチャガチャの もりで いっぱい まわしたいな♪", hint: "Meeときょれじゃ 4かいの ガチャガチャの もり", thanks: "ガチャガチャ、かわいいの でた♪ ありがとう！", act: "gacha", w: 3, beg: [{ venue: "arcade", floors: [2, 4] }], begAsk: "なにが でるかな？\nガチャガチャ しても いい？" },
+    { id: "do_gacha_goji", kind: "do", who: "goji", short: "フィギュアの ガチャ", ask: "ガチャガチャで フィギュア あてたい ガウっ！", hint: "Meeときょれじゃ 2かい・4かいの ガチャ（200 コイン）", thanks: "ガチャガチャ、どきどき した ガウっ！ ありがとう！", act: "gacha", w: 3, beg: [{ venue: "arcade", floors: [2, 4] }], begAsk: "ガウっ！ ガチャガチャ\nやりたい！ 1かい だけ！" },
+    { id: "do_crane", kind: "do", who: "wanko", short: "クレーンゲーム", ask: "クレーンゲーム やりたい！ ぬいぐるみ とるんだ！", hint: "Meeときょれじゃの クレーンゲーム（1かい 100 コイン）", thanks: "クレーンゲーム、たのしかった！ いっしょに やって くれて ありがとう！", act: "crane", w: 3, beg: [{ venue: "arcade", floors: [1, 2, 3, 4] }], begAsk: "あっ、クレーンゲーム！\nやりたい やりたい！" },
+    { id: "do_crane_snack", kind: "do", who: "gachan", short: "おかしの クレーン", ask: "おかしの クレーンゲーム やって みたいな♪", hint: "Meeときょれじゃ 2かいの おかし キャッチャー など", thanks: "クレーンゲーム、どきどき したね♪ ありがとう！", act: "crane", w: 3, beg: [{ venue: "arcade", floors: [2, 3] }], begAsk: "おかしが いっぱい♪\nクレーンで とって みたい！" },
+    { id: "do_crane_goji", kind: "do", who: "goji", short: "ぬいぐるみの クレーン", ask: "クレーンゲームで ぬいぐるみ とりたい ガウっ！", hint: "Meeときょれじゃの クレーンゲーム（チケットでも できる）", thanks: "クレーンゲーム、さいこう ガウっ！ ありがとう！", act: "crane", w: 3, beg: [{ venue: "arcade", floors: [1, 2, 3, 4] }], begAsk: "ガウっ！ あの ぬいぐるみ、\nぼくが とる！" },
   ],
   KIND: { go: { name: "つれてって", col: "#BFE6C9" }, eat: { name: "たべたい", col: "#FBE3A0" }, do: { name: "あそびたい", col: "#F9CFDE" } },
   // おれいの とき ほかの 2人・あまえる ことば・ぎゅー／なでなでの へんじ・あまえて いる あいだの ひとこと
@@ -49,14 +67,15 @@ const GowagaWish = {
     return w;
   },
   who(x) { const c = Save.d.chars[x.who]; return (c && c.name) || x.who; },
-  // つぎの おねがい: さいきんの 8つ と まえと おなじ しゅるいを さける
-  pick(r = Math.random) {
+  // つぎの おねがい: さいきんの 8つ と まえと おなじ しゅるいを さける。でやすさ w（ガチャ・クレーンは 3）で えらぶ（UI-88）
+  pick(r = Math.random, from = this.WISHES, kinds = true) {
     const w = this.st(), recent = w.log.slice(-8).map((x) => x.id), last = w.log.length ? this.INDEX[w.log[w.log.length - 1].id] : null;
-    let list = this.WISHES.filter((x) => !recent.includes(x.id) && (!last || x.kind !== last.kind));
-    if (!list.length) list = this.WISHES.filter((x) => !recent.includes(x.id));
-    if (!list.length) list = this.WISHES;
-    return list[Math.min(list.length - 1, Math.floor(r() * list.length))];
+    let list = from.filter((x) => !recent.includes(x.id) && (!kinds || !last || x.kind !== last.kind));
+    if (!list.length) list = from.filter((x) => !recent.includes(x.id));
+    if (!list.length) list = from;
+    return this.weighted(list, r());
   },
+  weighted(list, v) { const tot = list.reduce((s, x) => s + (x.w || 1), 0); let a = Math.max(0, Math.min(0.999999, v)) * tot; for (const x of list) { a -= x.w || 1; if (a < 0) return x; } return list[list.length - 1]; },
   start(id) {
     const w = this.st(), x = this.INDEX[id];
     if (!x || w.cur) return false;
@@ -96,6 +115,44 @@ const GowagaWish = {
     if (typeof Save === "undefined" || !Save.d || !Save.d.wish) return false;
     const c = Save.d.wish.cur, x = c && this.INDEX[c.id];
     return !!(x && !c.done && x.kind === "go") && this.signal("go", p);
+  },
+
+  // ---- 館の なかの おねだり（UI-88）: beg の ある おねがいを その かいで ----
+  begList(p) { return p ? this.WISHES.filter((x) => (x.beg || []).some((a) => a.venue === p.venue && (!a.floors || a.floors.includes(p.floor)))) : []; },
+  // まいフレーム（VenueScene の update の あと）: かいに はいって 4〜8びょう・はんぶんの かくりつ（かいごとに 1かい）・おねがいが ない とき・まえの おねがいから 5ふん
+  venue(sc, dt, r = Math.random) {
+    if (!sc || sc.closed || typeof Save === "undefined" || !Save.d) return;
+    let b = sc.begFx;
+    if (!b || b.floor !== sc.floor || b.venue !== sc.id) b = sc.begFx = { venue: sc.id, floor: sc.floor, t: 0, at: r() < this.BEG_CHANCE ? 4 + r() * 4 : null };
+    if (b.at == null) return;
+    b.t += dt;
+    if (b.t < b.at || sc.busy || UI.busy || Game.trans || Game.inputLocked || sc.lift > 0 || this.asking) return;
+    b.at = null;
+    const w = this.st();
+    if (w.cur || Date.now() - w.last < this.BEG_COOL || !this.begList({ venue: sc.id, floor: sc.floor }).length) return;
+    this.beg(sc);
+  },
+  // おねだり（id を わたすと その おねがい。PokaDebug から）: 「いいよ！」で すまほの「おねがい」に のる・「また こんどね」で 5ふん まつ
+  async beg(sc, id) {
+    const x = id ? this.INDEX[id] : this.pick(Math.random, this.begList({ venue: sc.id, floor: sc.floor }), false);
+    if (!x || this.st().cur || this.asking || sc.busy) return false;
+    sc.busy = true; this.asking = true;
+    try {
+      Sound.se("pop");
+      if (typeof PlayRecords !== "undefined") PlayRecords.add(x.who, "ask"); // きろく（UI-71）
+      const i = await UI.ask(x.begAsk || x.ask, ["いいよ！", "また こんどね"], { cancel: false, who: x.who, name: `${this.who(x)}の おねだり` });
+      if (G.scene !== sc) return false;
+      if (i === 0) {
+        this.start(x.id);
+        if (typeof PlayRecords !== "undefined") PlayRecords.add(x.who, "yes");
+        Sound.se("ok");
+        UI.toast(`<span class="wish-toast">${this.icon("note")}${this.who(x)}「やったー！」 すまほの「おねがい」に かいたよ</span>`);
+        return true;
+      }
+      const w = this.st(); w.last = Date.now(); Save.mark(); Save.write();
+      UI.toast(`${this.who(x)}「そっか… また こんど ね」`);
+      return false;
+    } finally { sc.busy = false; this.asking = false; }
   },
 
   // ---- おうち（SCENES.house の update の あと） ----
@@ -223,7 +280,7 @@ const GowagaWish = {
 };
 GowagaWish.INDEX = Object.fromEntries(GowagaWish.WISHES.map((x) => [x.id, x]));
 
-// くみこみ: たべさせる・ぷりくら・ファッションショー・つり・ガチャ・しゅうかく の おわり・ついた ばしょ・おうちの まいフレーム
+// くみこみ: たべさせる・ぷりくら・ファッションショー・つり・ガチャ・しゅうかく・クレーン・シール・マッサージ・ためしの だい の おわり・ついた ばしょ・おうちと 館の まいフレーム
 (() => {
   const after = (obj, name, fn) => {
     if (!obj || typeof obj[name] !== "function") return;
@@ -234,11 +291,21 @@ GowagaWish.INDEX = Object.fromEntries(GowagaWish.WISHES.map((x) => [x.id, x]));
   if (typeof Purikura !== "undefined") after(Purikura, "finish", (r) => { if (r) GowagaWish.signal("do", "purikura"); });
   if (typeof FashionShow !== "undefined") after(FashionShow, "finish", (r) => { if (r) GowagaWish.signal("do", "fashion"); });
   if (typeof Fishing !== "undefined") after(Fishing, "record", () => GowagaWish.signal("do", "fishing"));
-  if (typeof Gacha !== "undefined") after(Gacha, "spin", (r) => { if (r) GowagaWish.signal("do", "gacha"); });
+  if (typeof Gacha !== "undefined") after(Gacha, "spin", (r) => { if (r) { GowagaWish.signal("do", "gacha"); if (r.item && r.item.kind === "sticker") GowagaWish.signal("do", "sticker"); } });
   if (typeof Farm !== "undefined") after(Farm, "harvest", (r) => { if (r) GowagaWish.signal("do", "harvest"); });
+  // UI-88: クレーン（メダルの コイン プッシャーは のぞく）・シール（ネリカス でんきの うりば・シールの ガチャ）・ネリカス でんきの マッサージチェア／ためしの だい
+  if (typeof PrizeArcade !== "undefined") after(PrizeArcade, "finish", (r, [run]) => { const m = r && run && PrizeArcade.machines[run.machine]; if (m && m.type !== "pusher") GowagaWish.signal("do", "crane"); });
+  if (typeof StickerBook !== "undefined") after(StickerBook, "add", (r) => { if (r) GowagaWish.signal("do", "sticker"); });
+  if (typeof KadenHall !== "undefined") {
+    const base = KadenHall.interact;
+    KadenHall.interact = async function (sc, f) { const r = await base.call(this, sc, f); try { if (r && f && (f.action === "massage" || f.action === "demo")) GowagaWish.signal("do", f.action); } catch (e) { console.error(e); } return r; };
+  }
   // 館: かいに はいる たび（エレベーターで 12かい など）。町・フィールド: はいった とき
   const VP = VenueScene.prototype, load = VP.loadFloor;
   VP.loadFloor = function (...a) { const r = load.apply(this, a); if (G.sceneName === "venue") GowagaWish.arrive({ venue: this.id, floor: this.floor }); return r; };
+  // 館の おねだり（UI-88）: まいフレーム
+  const vup = VP.update;
+  VP.update = function (dt) { vup.call(this, dt); if (G.sceneName === "venue" && G.scene === this) GowagaWish.venue(this, dt); };
   const WP = WorldScene.prototype, enter = WP.enter;
   WP.enter = async function (...a) { const r = await enter.apply(this, a); if (G.sceneName === "world") GowagaWish.arrive({ map: this.mapId }); return r; };
   const HS = SCENES.house.prototype, up = HS.update;
