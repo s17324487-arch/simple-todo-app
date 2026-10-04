@@ -20,7 +20,7 @@ export async function foodBalanceSmoke({ scenario, expect }) {
     await openMeal();
     let L = await meal();
     const gain = (name) => (L.cards.find((c) => c.name === name) || {}).gain;
-    expect(gain('トマト') === 'おなか+5 ごきげん+8' && gain('やさいサラダ') === 'おなか+28 ごきげん+18' && gain('ピーマン') === 'おなか+5 ごきげん-4' && gain('季節のパフェ') === 'おなか+18 ごきげん+31', 'ごはんの カードに おなか・ごきげん ' + JSON.stringify(L.cards));
+    expect(gain('トマト') === 'おなか+5 ごきげん+8' && gain('やさいサラダ') === 'おなか+28 ごきげん+18' && gain('ピーマン') === 'おなか+5 ごきげん-4' && gain('きせつの パフェ') === 'おなか+18 ごきげん+31', 'ごはんの カードに おなか・ごきげん ' + JSON.stringify(L.cards));
     expect(L.cards.find((c) => c.name === 'ピーマン').down && !L.cards.find((c) => c.name === 'トマト').down, 'ごきげんが へる ものは あかく ' + JSON.stringify(L.cards));
     expect(!L.wide && !L.page && L.cards.every((c) => !c.out && c.h >= 44), 'ごはんの カードが はみ出す ' + JSON.stringify(L));
     await H.shot('meal');

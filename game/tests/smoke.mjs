@@ -4093,9 +4093,9 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  await H.page.getByRole('button',{name:'てんないに もどる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),15000);
  const after=await H.dbg('saveData');
  expect(after.coins>before.coins&&after.shops.korokoro.plays===1&&after.shops.korokoro.pts>0&&after.shops.korokoro.rep>0,'コイン・ひょうばん・ポイントの きろく '+JSON.stringify(after.shops.korokoro));
- // レジの かいもの（くだものと ジュース）
+ // レジの かいもの（くだもの 6しゅ と ジュース・おやつの 2つの タブ・UI-76）
  await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'かいものを する',exact:true}).click();
- await H.page.locator('.modal-wrap .grid > *').first().waitFor();expect(await H.eval(()=>document.querySelectorAll('.modal-wrap .grid > *').length)===3,'レジの しなもの');
+ await H.page.locator('.modal-wrap .grid > *').first().waitFor();expect(await H.eval(()=>document.querySelectorAll('.modal-wrap .grid > *').length===6&&document.querySelectorAll('.modal-wrap .tabs .tab').length===2),'レジの しなもの');
  await H.page.getByRole('button',{name:'とじる',exact:true}).last().click();await H.idle();
 },{viewport,timeout:180000});
 
@@ -4451,6 +4451,12 @@ await (await import("./crane-4f-smoke.mjs")).crane4fSmoke({scenario,expect});
 await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});
 // 歩いて 入る お店の 斜め上の 館（UI-75。くわしくは tests/store-iso-smoke.mjs）
 await (await import("./store-iso-smoke.mjs")).storeIsoSmoke({scenario,expect});
+// たべものの おみせの しなもの（UI-76。くわしくは tests/shop-goods-smoke.mjs）
+await (await import("./shop-goods-smoke.mjs")).shopGoodsSmoke({scenario,expect});
+// びようしつ・おはなやさんの しなもの（UI-77。くわしくは tests/salon-florist-smoke.mjs）
+await (await import("./salon-florist-smoke.mjs")).salonFloristSmoke({scenario,expect});
+// サンシャインいけぶの フードコートと マルシェの たべもの（UI-78。くわしくは tests/mall-food-smoke.mjs）
+await (await import("./mall-food-smoke.mjs")).mallFoodSmoke({scenario,expect});
 // ネリカス でんき（池袋の 家電の 館・UI-56）: 1F〜3F・10F・だいで かう・ためしの だい・マッサージ・シアター・フロアマップ・おうちで 家電を さわる
 await (await import("./kaden-smoke.mjs")).kadenSmoke({scenario,expect});
 // ネリカス でんき 1F の シール うりば（UI-57）: たな・うりばの がめん・かう・シールちょうの まとまり・ふにっ・シャカシャカ・タイルを きる

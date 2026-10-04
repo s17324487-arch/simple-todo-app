@@ -258,6 +258,7 @@ const Bikkupo = (() => {
         if (i < 0 || i >= ids.length) return;
         const food = BAG_INDEX[ids[i]]; if (Save.d.coins < food.price) { UI.toast("コインが たりないよ"); return; }
         Save.d.coins -= food.price; for (const id of Save.d.order) Save.care(id, { hunger: food.hunger, mood: food.mood }); Save.write(); UI.updateHud();
+        if (typeof GowagaWish !== "undefined") GowagaWish.signal("eat", food.id); // せきで たべても「たべたい」の おねがいが かなう（UI-78）
         this.robotGo(sc, f); Sound.se("good");
         if (seated) { const r = sc.fixtures.find((o) => o.robot); await D.until(() => !r || !r.goal, 5); await D.serve(sc, food.id); } else sc.sitting = 6;
         await UI.say([{ name: "はいぜん ロボ", text: "おまたせ しました ニャ〜。\n" + food.name + " です。" }, ...Save.d.order.map((id) => ({ who: id, emo: "happy", text: say(id, food) }))]);

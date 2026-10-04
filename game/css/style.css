@@ -230,7 +230,7 @@ html, body {
 .dlg-next { position: absolute; right: 16px; bottom: 8px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid var(--ink); animation: bob 0.6s infinite alternate; }
 @keyframes bob { to { transform: translateY(4px); } }
 .choices { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; margin-bottom: 10px; }
-.btn.choice { min-width: 150px; text-align: left; background: var(--paper); font-size: 16px; padding: 10px 16px; }
+.btn.choice { min-width: 150px; min-height: 44px; text-align: left; background: var(--paper); font-size: 16px; padding: 10px 16px; }
 
 /* ---- モーダルパネル ---- */
 .modal-wrap { position: absolute; inset: 0; z-index: 30; background: rgba(31, 29, 27, 0.35); display: flex; align-items: flex-end; justify-content: center; animation: fadeIn 0.18s; }
@@ -359,6 +359,15 @@ html, body {
 .bm-panel .panel-foot .btn { min-height: 48px; font-size: 16px; }
 .shop-bm .card > div { word-break: keep-all; overflow-wrap: anywhere; }
 .shop-bm .tab { min-height: 44px; }
+/* たべものの おみせ（js/shop-goods.js・UI-76）: なまえは ことばの きれめ（スペース・「・」）で おりかえす・タブは 44px */
+.shop-goods .card > div { word-break: keep-all; overflow-wrap: anywhere; }
+.shop-goods .tab { min-height: 44px; }
+/* たべものの メニュー（館の カウンター・テーブル。js/mall-food.js・UI-78）: なまえの まえの ちいさな 絵 */
+.choice .menu-row { display: flex; align-items: center; gap: 6px; margin: -3px 0; }
+.choice .menu-ico { flex: none; width: 28px; height: 28px; margin: -6px 0 -6px -4px; }
+.choice .menu-ico > svg { display: block; width: 100%; height: 100%; }
+.choice .menu-txt { word-break: keep-all; overflow-wrap: anywhere; }
+.choice .menu-price { white-space: nowrap; font-size: 14px; }
 /* 服は 1こで 1人（js/wear-stock.js）: のこりが ない 服は いろを おとして、つかって いる 人の なまえ */
 .card.busy:not(.on) { background: #f1ede6; }
 .card.busy:not(.on) .ico { opacity: .6; }
@@ -1364,7 +1373,7 @@ html, body {
 .fs-ph-tabs .btn { min-height:44px; }
 .fs-ph-big { display:block; margin:0 auto; border:3px solid var(--ink); border-radius:6px; background:#231C42; width:auto; max-width:100%; }
 /* ごわがの おねがい（UI-46・js/gowaga-wish.js）: トースト・すまほの「おねがい」 */
-.toast .wish-toast { display: inline-flex; align-items: center; gap: 6px; }
+.toast .wish-toast { display: inline-flex; align-items: center; gap: 6px; word-break: keep-all; overflow-wrap: anywhere; } /* 館で かなった ときの「おうちに かえろう」を ことばの とちゅうで おりかえさない（UI-78） */
 .wish-app { display: flex; flex-direction: column; gap: 10px; }
 .wish-head { display: flex; align-items: center; gap: 6px; font-size: 16px; }
 .wish-card { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; align-items: center; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 10px; }

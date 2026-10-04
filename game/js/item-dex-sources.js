@@ -59,6 +59,11 @@ const ItemDexSources = {
       const shop = BUY_SHOPS[kind === "wear" ? "clothes" : "furniture"];
       const tab = kind === "wear" ? item.slot : item.kind === "wall" ? "wall" : "floor";
       if (shop && shop.items(tab).some(it => it.id === id)) return `${shop.name}で かえるよ。`;
+      // ほかの おみせ（びようしつの ヘアアクセ・おはなやさんの うえき など。UI-77）
+      for (const s of Object.values(BUY_SHOPS)) {
+        if (s === shop || !Array.isArray(s.tabs)) continue;
+        try { if (s.tabs.some(([k]) => (s.items(k) || []).some(it => it && it.id === id))) return `${s.name}で かえるよ。`; } catch (e) { /* しなものの ない おみせ */ }
+      }
     }
     return "たんけんや イベントで さがして みよう。";
   },

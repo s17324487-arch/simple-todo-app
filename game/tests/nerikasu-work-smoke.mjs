@@ -8,9 +8,9 @@ export async function nerikasuWorkSmoke({scenario,expect}){
     await H.dbg('teleport','town',door.x,door.y+1,'up');await H.idle();await H.shot('exterior');await H.dbg('walkTo',door.x,door.y);
     await H.until(()=>PokaDebug.state().scene==='store'&&PokaDebug.idle(),20000);
     const st=await H.dbg('storeState');expect(st.shop===shop&&st.party.length===3,'3人で 入れない '+shop);await H.wait(400);await H.shot('interior');
-    if(shop==='gasstand'){ // レジの のみものと おやつ（3しゅ）
+    if(shop==='gasstand'){ // レジの のみもの 4しゅ と おやつ 4しゅ（2つの タブ・UI-76）
       await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'かいものを する',exact:true}).click();
-      await H.page.locator('.modal-wrap .grid .card').first().waitFor();expect(await H.eval(()=>document.querySelectorAll('.modal-wrap .grid .card').length)===3,'スタンドの しなもの');
+      await H.page.locator('.modal-wrap .grid .card').first().waitFor();expect(await H.eval(()=>document.querySelectorAll('.modal-wrap .grid .card').length===4&&document.querySelectorAll('.modal-wrap .tabs .tab').length===2),'スタンドの しなもの');
       await H.page.locator('.modal-wrap .close').last().click();await H.idle();
     }
     await H.page.getByRole('button',{name:'てんいんと はなす',exact:true}).click();await H.page.getByRole('button',{name:'おてつだいする',exact:true}).click();

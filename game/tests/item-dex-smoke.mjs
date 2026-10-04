@@ -91,7 +91,7 @@ export async function itemDexSmoke({scenario,expect}) {
         visited.push(...current);
         expect(page>0||await H.page.locator('.item-dex-prev').isDisabled(),'最初のページで前へ進める');
         const next=H.page.locator('.item-dex-next');if(!await next.count()||await next.isDisabled())break;
-        await next.click();page++;expect(page<20,'ページ送りが終わらない');
+        await next.click();page++;expect(page<Math.ceil(state.entries.length/24),'ページ送りが終わらない '+page); // ページの かずは ずかんの しゅるいで きまる（家具が ふえても よい）
       }
       expect(JSON.stringify(visited)===JSON.stringify(state.entries.map(row=>row.id)),'ページ送りで種類が欠落/重複');
       expect(page>0,'ページ送りの検証対象がない');

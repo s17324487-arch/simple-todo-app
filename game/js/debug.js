@@ -153,6 +153,7 @@ const PokaDebug = {
       "PokaDebug.aquaGifts()                 すいぞくかんの おみやげ（フィギュア 10・コラボ 5・ねだん・もって いる かず・12F の 台・ずかんの ヒント）",
       "PokaDebug.figStand()                  フィギュア台（へやの だいと かざった フィギュア・のこりの かず・いごこち・かざる 画面が ひらいて いるか）",
       "PokaDebug.burgerMenu()                バーガーやさんの メニュー（4つの タブ）・にこにこ セットの おまけの おもちゃ（6しゅ・もって いる かず）",
+      "PokaDebug.shopGoods('cake')           おみせの しなぞろえ（タブ・しなものの id・かず。'crepe'・'bakery'・'korokoro'・'gasstand'・'groom'・'florist'・'mall'〔サンシャインいけぶの メニュー〕）",
       "PokaDebug.foodBalance()               たべものの バランス（そのままの やさい・りょうりと ざいりょうの ごうけい・ねだんで ごきげんを あげた もの）",
       "PokaDebug.fashion()                   ファッションショー（うけつけ・テーマ・3人の おしゃれ レベル・ランク・けいひん・しゃしん）",
       "PokaDebug.fashionGo([13, 2])          ファッションかん（ファッションショーの 会場）へ（at: たつ マス）",
@@ -904,6 +905,8 @@ const PokaDebug = {
   museumWear() { return typeof MuseumWear === "undefined" ? null : MuseumWear.state(); },
   // バーガーやさんの メニュー（タブ・食べ物の id）と にこにこ セットの おまけの おもちゃ（もって いる かず。js/burger-menu.js）
   burgerMenu() { return typeof BurgerMenu === "undefined" ? null : BurgerMenu.state(); },
+  // UI-76: たべものの おみせ 5けんの しなぞろえ（タブ・しなものの id・かず。js/shop-goods.js）
+  shopGoods(shop = "cake") { if (shop === "mall") return typeof MallFood === "undefined" ? null : MallFood.state(); if (shop === "groom") return typeof SalonGoods === "undefined" ? null : SalonGoods.state(); if (shop === "florist") return typeof FloristGoods === "undefined" ? null : FloristGoods.state(); return typeof ShopGoods === "undefined" ? null : ShopGoods.state(shop); },
   // UI-42: はくぶつかんの ようす（階・へや・ほねの 台の 寄贈の かず と 絵が できたか・ロボット）
   dinoHall() { return typeof DinoMuseum === "undefined" || G.sceneName !== "venue" ? null : DinoMuseum.state(G.scene); },
   // UI-56: ネリカス でんき（池袋の 家電の 館）の ようす（階・うりば・だいの しなもの・ためしの だい・エスカレーター・絵が できたか）
