@@ -4407,7 +4407,9 @@ await (await import("./nerikasu-shops-smoke.mjs")).nerikasuShopsSmoke({scenario,
 await (await import("./nerikasu-work-smoke.mjs")).nerikasuWorkSmoke({scenario,expect});
 // あたまの たいそう（のうトレの おてつだい・UI-64）: ネリカスタウンの お店 → 3しゅから えらぶ → まちがい さがし・おなじ え さがし・くだもの けいさん
 await (await import("./brain-smoke.mjs")).brainSmoke({scenario,expect});
+await (await import("./english-smoke.mjs")).englishSmoke({scenario,expect}); // 英語（あたまの たいそうの 4つめ・大人むけ。UI-82）
 await (await import("./kobo-smoke.mjs")).koboSmoke({scenario,expect});
+await (await import("./numpla-smoke.mjs")).numplaSmoke({scenario,expect}); // ナンプレ（パズル こうぼうの 4つめ・大人むけ。UI-81）
 await (await import("./shop-again-smoke.mjs")).shopAgainSmoke({scenario,expect});
 await (await import("./fossil-sell-smoke.mjs")).fossilSellSmoke({scenario,expect});
 await (await import("./wish-gifts-smoke.mjs")).wishGiftsSmoke({scenario,expect});

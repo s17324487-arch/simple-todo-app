@@ -176,8 +176,10 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
 | — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
 | — | `brain-art.js` / `mg-brain.js`（korokoro-town.js の あと・nerikasu-town.js の まえ） | `BrainArt` ／ `BRAIN_FONT`, `BrainGames`, `BRAIN_SPOT_SCENES`, `BrainSpotTask`, `BrainPairTask`, `BrainMathTask`, `BRAIN_TASKS`, `SHOP_GAMES`, `BrainTask`, `BrainTown` |
+| — | `eng-words.js` / `eng-sentences.js` / `mg-english.js`（mg-brain.js の あと・UI-82） | `ENG_WORDS` ／ `ENG_FILL` ／ `ENG_PLAY`, `ENG_LEVELS`, `ENG_MODES`, `ENG_POS`, `ENG_FONT`, `ENG_HOWTO`, `EnglishGame`, `englishSentenceLines`, `englishWrapText`, `BrainEngTask` |
 | — | `shop-day-cap.js`（economy.js の あと・minigames.js・scene-store.js・korokoro-score.js の まえ） | `ShopDayCap`（おてつだいで きょう もらった コインの きろく。UI-67。1にちの じょうげんは UI-83 で なくした） |
 | — | `kobo-art.js` / `mg-kobo.js`（mg-brain.js の あと・nerikasu-town.js の まえ） | `KoboArt` ／ `KOBO_FONT`, `KoboGames`, `KoboSlideTask`, `KOBO_SIMILAR`, `KOBO_EASY`, `KoboShapeTask`, `KoboLogicTask`, `KOBO_TASKS`, `KoboTask`, `KoboTown` |
+| — | `numpla-rules.js` / `numpla-data.js` / `mg-numpla.js`（mg-kobo.js の あと・UI-81） | `NumplaRules`（ナンプレの きまり・解の かず・人の 解き方・いれかえ） ／ `NUMPLA_BANK`（**自動生成** `tools/build-numpla.mjs`） ／ `NUMPLA_PLAY`, `NUMPLA_FONT`, `Numpla`, `NUMPLA_LEVEL_NOTE`, `NUMPLA_HOWTO`, `NumplaTask` |
 | — | `arcade-jpop-maoudamashii.js` / `arcade-jpop.js`（ike-arcade.js の あと） | `ARCADE_JPOP_DATA`（自動生成） ／ `ArcadeJpop` |
 | — | `gacha-art.js` / `gacha-art-more.js` / `gacha.js`（purikura.js の あと） | `GachaArt` ／ `GachaArtMore` ／ `Gacha` |
 | — | `gacha-forest-art.js` / `gacha-forest.js`（gacha.js の すぐ あと） | `GachaForestArt` ／ `GachaForest` |
@@ -1152,9 +1154,22 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - PokaDebug: `shop('brain', lv, 'spot' | 'pair' | 'math')`・`mg().order`（`game` と ゲームごとの ようす: まちがい さがしは `diffs`〔ひだり・みぎの CSS 座標〕と `same`〔ちがいで ない こもの〕・おなじ え さがしは `cards`〔`key`・CSS 座標〕と `peek`・くだもの けいさんは `cur`〔`ans`・`choices`〕）。
 - 検査: `tools/check-brain.mjs`（とうろく・ふるい セーブ・3しゅの きまりと 採点・Lv ごとの かず・2つの がめんで 44px・ことば）・`tools/check.mjs`（3しゅとも 正しく あそぶと 100点）。スモーク `brain-spot`・`brain-pair`・`brain-math`（各 390/375。`tests/brain-smoke.mjs`）。
 
+## 英語（あたまの たいそうの 4つめ・大人むけ・UI-82・`js/eng-words.js`・`js/eng-sentences.js`・`js/mg-english.js`）
+
+オーナーの 依頼（2026-10-04）「脳トレは、英語ゲーム（英語は中学生レベルと高校レベル選べる。また、英単語の日本語の意味を選択するゲームと、文章中に英語を当てはめるゲームがある。）」。前提の かきかえ（対象は 大人）は UI-81。
+
+- 単語 `ENG_WORDS`（`jh` 中学 275・`hs` 高校 359）: [英語, 品詞〔n・v・a・d〕, 意味, なかま]。意味は おなじ レベル・品詞で かさならない。似た 意味の 語（holiday と vacation・refuse と reject・crucial と vital など）は おなじ「なかま」に して、まちがいの 選択肢に いっしょに ださない。中学と 高校で おなじ 単語は ない。
+- 穴うめ `ENG_FILL`（中学 99・高校 107）: [英文〔___ が あな〕, 正解, まちがい 3つ, 和訳, ポイント]。まちがいは 文ごとに 決めた もの（文法か 意味で はっきり あわない・別の 読み方で 正しく なる ものは さけた）。どちらも この ゲームの ために 書いた もの。
+- `EnglishGame`: `questions(レベル, あそびかた, 10)`（さいきん だした 問題 `recent` を さける・きろくは たばの 6わり まで）・`wordQ`（まちがいは おなじ 品詞・べつの 意味・べつの なかま）・`fillQ`・`pick(store)`（`BrainGames.choose` の `pick`: レベル → あそびかた。ベストつき）・`hello`。
+- `BrainEngTask`（`BRAIN_TASKS.eng`・`BrainGames.GAMES` の 4つめ `adult: true`）: `static full`・`static rounds = 1`（`BrainTask.classOf`）。1回 10問。こたえると 正解は みどり・えらんだ まちがいは あか・カードの したに 解説（単語は「break ＝ 壊す」・穴うめは 正解と ポイント。あなは 正解で うまる）→「次へ」（さいごは「結果へ」）。よんで いる あいだは 時間を かぞえない（`think`）。
+- てんすう: 100 × 正解 ÷ 10 − めやすを こえた 時間（めやすの 2ばいで −10 まで）。全問正解で ◎。`payFor` = ○ で 中学 300・高校 450（◎ は 1.5ばい・おみせ Lv で 1.4ばい まで・あそびかたの reward）。`repFor` は 2・3ばい。けっかの `sc.resultNote` に 正解の かず・ベスト・まちがえた もの（5つ まで）。
+- セーブ: `Save.d.shops.brain.games.eng`・`Save.d.shops.brain.eng`（`lv`・`mode`・`plays`・`best`・`recent`〔「レベル_あそびかた」ごと〕）を `fresh()` に たした だけ（`SCHEMA` は 2 の まま）。
+- PokaDebug: `shop('brain', lv, 'eng')`・`mg().order`（`lv`・`mode`・`index`・`correct`・`missed`・`answered`・`cur`〔`en`・`ans`・`choices`・`right`〕・`choices`〔CSS 座標・たかさ〕・`next`）・`english()`（セーブの ようす・問題の かず）。
+- 検査: `tools/check-english.mjs`（とうろく・単語と 文の かたち・意味と なかま・大文字・和訳・ポイント・10問の えらびかた〔12回 つづけて おなじ 問題が でない・まちがいは おなじ 品詞で べつの なかま〕・2つの がめんで 44px・まちがい → 次へ・9問 → 90・全問 → 100・時間・コイン・ひょうばん・セーブ）・`tools/check-brain.mjs`（4しゅ）。スモーク `brain-english-390` / `-375`。
+
 ## パズル こうぼう（ネリカスタウンの パズルの おてつだい・UI-65・`js/kobo-art.js`・`js/mg-kobo.js`）
 
-- おみせ `kobo`（`SHOPS`・4にん）。えらびかた・せつめい・セーブ（`Save.d.shops.kobo.games`〔`slide`・`shape`・`logic`〕・`last`）は あたまの たいそうと おなじ（`KoboGames` は `Object.create(BrainGames)` に `shop`・`ASK`・`GAMES`・`HELLO` を かさねた もの。`SHOP_GAMES.kobo`）。`MG_TASKS.kobo` は `KoboTask`（`sc.variant` の クラス `KOBO_TASKS`・ない ときは スライド パズル）。`HOWTO.kobo` も 関数。
+- おみせ `kobo`（`SHOPS`・4にん。4つめの ナンプレは 1問。下の「ナンプレ」）。えらびかた・せつめい・セーブ（`Save.d.shops.kobo.games`〔`slide`・`shape`・`logic`・`numpla`〕・`last`）は あたまの たいそうと おなじ（`KoboGames` は `Object.create(BrainGames)` に `shop`・`ASK`・`GAMES`・`HELLO` を かさねた もの。`SHOP_GAMES.kobo`）。`MG_TASKS.kobo` は `KoboTask`（`sc.variant` の クラス `KOBO_TASKS`・ない ときは スライド パズル）。`HOWTO.kobo` も 関数。
 - スライド パズル `KoboSlideTask`: いた `tiles`（ばしょ → いたの ばんごう。`n*n - 1` が あき）。かんせいから あきを でたらめに うごかして、いちばん すくない てかず `par`（`KoboSlideTask.solve`: IDA*・マンハッタン きょり）が Lv の はんい（3〜4・5〜7・8〜10・11〜13・4×4 の 10〜12）の ものを えらぶ（かならず とける）。あきと おなじ ぎょう・れつの いたを タップすると あきまでの いたが まとめて ずれる（てかずは うごいた いたの かず）。めやす `allow` = ⌈par × 1.5⌉ + 4 を こえた 1てごとに 2.5てん・ヒント（つぎに うごかす いた。とおすぎる ときは ちかづく いた）10てん。え は `KoboArt.PICTURES` の 3まい（おきゃくさんごとに じゅんばん。キーは「kobo:pic:え」と 大きさ だけ）。
 - かたち はめ `KoboShapeTask`: あな `holes` と ピース `pieces`（`hole` で おなじ ばんごう）。Lv で あな 3〜6・まわす ピース 0〜4（Lv.3 から。タップで 90° `turn`）・にた かたちの くみ（`KOBO_SIMILAR`。Lv.4 から 1くみ）・おおきさ ちがいの ふたご（Lv.5。0.68ばい）。ドラッグして あなの ちかくで はなす: おなじ かたち・おおきさ・むき（`turnsTo` = 0）なら はまる。むきだけ ちがうと もどる（減点 なし `wrongTurn`）。かたちか おおきさが ちがうと もどって 6てん。
 - おえかき ロジック `KoboLogicTask`: `KoboArt.LOGIC` の やさしい 5×5（Lv.1・2）・ふつう 5×5（Lv.3）・6×6（Lv.4・5）。さいしょに ぬって ある ます 3・1・0・2・0。ちがう ますは ばつ（6てん・なぞるのを とめる）。ぬりおわった ぎょう・れつの すうじは うすく、のこりは うすい ばつ（`lines`）。なぞると さいしょに うごいた ほう（よこ か たて）の 1れつ だけ ぬる（とばした ますも）。ますは 2つの がめんで 44px いじょう（のこりの かずは ひだり うえの すみ）。
@@ -1163,6 +1178,20 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ごほうび: ジグソーの スツール（4まいの マットが かみあう）・キューブの ランプ（さわると ひかる）・パズルの テーブル（てんばんが スライド パズル）・からくり ビーだま コース。
 - PokaDebug: `shop('kobo', lv, 'slide' | 'shape' | 'logic')`・`mg().order`（スライドは `path`〔いちばん すくない てじゅんの CSS 座標〕・`next`・`far`〔うごかない いた〕、かたち はめは `holes`・`pieces`〔`turns`・`hole`〕・`tip`、ロジックは `todo`・`empty`・`cellCss`）。
 - 検査: `tools/check-kobo.mjs`（とうろく・ふるい セーブ・3×3 の ぜんぶの ならびの いちばん すくない てかず〔はばの ひろい たんさく 181440〕と くらべる・ヒントで とける・かたちの rots・ロジック 24もんを ならびの ヒントだけで とく・2つの がめんで 44px・ことば）・`tools/check.mjs`（3しゅとも 正しく あそぶと 100点）。スモーク `kobo-slide`・`kobo-shape`・`kobo-logic`（各 390/375。`tests/kobo-smoke.mjs`）。
+
+## ナンプレ（パズル こうぼうの 4つめ・大人むけ・UI-81・`js/numpla-rules.js`・`js/numpla-data.js`・`js/mg-numpla.js`）
+
+オーナーの 指示（2026-10-04）「脳トレとパズルに関して、完全に大人向けゲームを追加してほしい。というより、実はこのアプリは大人向けを、想定しているのだ。前提を書き換えなさい。例えば、パズルはナンプレ。」。AGENTS.md の 1・5・Code Review Rules を「対象は 大人」に かきかえた（ふだんの 画面・セリフは ひらがな中心の やさしい 口調の まま、大人むけの あそびは 漢字かな まじり・本格的な むずかしさ）。
+
+- きまり `NumplaRules`（ほかの ファイルに たよらない。ツールも おなじ ものを つかう）: マス i = 行 × 9 + 列・`UNITS`（行 9・列 9・ブロック 9）・`PEERS`（20）。`count(g, limit)` は ビットマスクで 候補の すくない マスから ためす 解の かず・`solve` は 1つめの 解。`grade(g)` は 人の 解き方 `TECHS`（1 ブロック内の唯一・2 行・列の唯一・3 候補が1つ・4 ロックされた候補・5〜8 ネイキッド／隠れ ペア・トリプル・9 X-Wing・10 XY-Wing・11 ソードフィッシュ）だけで、いつも いちばん やさしい 解き方から 1手ずつ すすめ、つかった いちばん むずかしい 解き方 `max` を かえす（とけないと `solved: false`）。`nextStep` は ヒント用（1〜3 の どれで 入るか `how`）。`transform` は 数字・バンドの 中の 行・バンド・スタックの 中の 列・スタック・てんちの いれかえ（解の かずも むずかしさも かわらない）。`LEVELS` と `fits(問題, 難しさ)`。
+- 問題の たば `NUMPLA_BANK`（**自動生成**。`npm run build:numpla` = `node tools/build-numpla.mjs`。`--check` で つくりなおして おなじか を `npm run check` が みる）: ななめの 3ブロックに でたらめの 数字 → のこりを とく → 点対称に 2マスずつ ぬく（解が 1つで なくなったら もどす。初級・中級は めあての かずで とめる）→ `fits` で わける。4つの 難しさ × 40もん（初級 36〜40マス・解き方 1〜2／中級 29〜33・3〜4／上級 22〜31・5〜8／超上級 20〜31・9〜11）。seed 20261004 で いつも おなじ。
+- あそぶ ところ `NumplaTask`（`KOBO_TASKS.numpla`・`KoboGames.GAMES` の 4つめ `adult: true`）: `static full`（ShopScene の うえの おみせを 92 の おびに して、したを ぜんぶ 盤に）・`static rounds = 1`（おきゃくさん 1人に 1問）。ShopScene は `MG_TASKS[おみせ].classOf(variant)`（`KoboTask.classOf`）で クラスを みる。盤は よこ いっぱい（375 はばで 1マス 39px・390 で 41px。9マスは 375 はばで 44px に できない）、数字 1〜9（のこりの かず・ぜんぶ 入ったら おせない）・消す・メモ・戻す・ヒントは 44px いじょう。まちがいは 赤く のこして ミス +1（`sc.mistake`）・おなじ まちがいの くりかえしは かぞえない。正しい 数字で まわりの メモから その 数字を けす。戻すは さいごの 1手（ミス・ヒントの かずは そのまま）。ヒントは えらんだ マス（あき・まちがい）か `nextStep` の マスに 正しい 数字と わけ（「この 列で 7 が 入るのは ここだけ」など。うえの 行に かさねて 盤を かくさない）。
+- てんすう: クリアで 100 − ミス × 6 − ヒント × 8 − めやすを こえた 時間（めやすの 2ばいで −20 まで）。時間ぎれは 60 × うめた わりあい − 20 − へらす ぶん（40 まで）。ランクの しきいは ShopScene と おなじ（92・72・45）。`payFor(rank)` = `NUMPLA_PLAY[難しさ].pay`（初級 700・中級 1500・上級 2600・超上級 4000）×〔0・0.45・1・1.5〕×（1 ＋ 0.1 ×（おみせ Lv − 1）・Lv5 まで）× あそびかたの reward。`repFor` は ひょうばんを 2〜6ばい。1にち 20000 の じょうげん（ShopDayCap）の なか。時間の 上限は 20・30・45・60ぷん（めやすは 6・12・20・30ぷん）。
+- えらぶ: `BrainGames.choose` が ゲームの `pick(store)` を よぶ（ない ゲームは そのまま。`null` で やめる）。ナンプレは とちゅうの 問題が あれば「続きから／新しい問題／やめる」、なければ 難しさ 4つ（クリアの かず・ベストつき）。2かいめ からの ひとことは ゲームの `hello(sc)`。
+- 続きから: 1手ごと・5びょうごとに `Save.d.shops.kobo.numpla.cont`（`lv`・`p` いれかえた 問題・`v` いまの 盤〔まちがいも〕・`m` メモ 81・`miss`・`hint`・`used` びょう）。つぎの タスクは `Numpla.validCont` が とおれば おなじ ところから（ShopScene は `timeLeft = timeLimit − task.usedTime`）。やめる ときの ことばは `task.stopText`・けっかの ことばは `task.stopNote`。クリア・時間ぎれで けす。クリアで `clear[難しさ]`・`best[難しさ]`（びょう）・けっかの `sc.resultNote`。`n[難しさ]` は だした かず（たばの じゅんばん）。
+- セーブ: `Save.d.shops.kobo.games.numpla`・`Save.d.shops.kobo.numpla`（`lv`・`n`・`clear`・`best`・`cont`）を `fresh()` に たした だけ（`SCHEMA` は 2 の まま・ふるい セーブは `migrate` の fill が おぎなう）。
+- PokaDebug: `shop('kobo', lv, 'numpla')`・`mg().order`（`puzzle`・`solution`・`val`・`memo`・`sel`・`mistakes`・`hints`・`filled`・`blank`・`resumed`・`cellCss`・`grid`・`empty`〔のこりの マスの CSS 座標と 正しい 数字〕）・`numpla()`（セーブの ようす）・`numplaFill(leave)`（のこり leave マス まで うめる）。
+- 検査: `tools/check-numpla.mjs`（とうろく・ユニット・解の かず・160もんの 解が 1つ・点対称・はじめの かず・人の 解き方で とける・その 難しさ だけに あう・いれかえても おなじ むずかしさ・ヒントの 1手が 正しく 初級は さいごまで・2つの がめんの ならびと 44px・入れる／まちがい／メモ／消す／戻す／ヒント・続きから と こわれた 続き・クリア・てんすう・コイン・セーブ）・`tools/build-numpla.mjs --check`・`tools/check-kobo.mjs`（4しゅ）。スモーク `kobo-numpla-390` / `-375`。
 
 ## サンシャインいけぶ（斜めの 館・UI-04）
 

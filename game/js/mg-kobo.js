@@ -1,5 +1,6 @@
 // パズルの おてつだい「パズル こうぼう」（ネリカスタウン・UI-65。オーナーの 依頼 2026-10-03「パズル系も同様〔異なるゲーム3種で選択できる〕」）。
 // おみせで「おてつだいする」→ 3しゅから えらぶ（KoboGames.choose・ShopScene の variant）→ おきゃくさん 1にんに 1もん。
+// 4つめの ゲーム「ナンプレ」（大人むけ・UI-81）は js/mg-numpla.js が KoboGames.GAMES・KOBO_TASKS に たす。
 //  ・スライド パズル（KoboSlideTask）: ばらばらの え（3×3・Lv.5 は 4×4）。あいた ところと おなじ れつの いたを タップして もとに もどす
 //  ・かたち はめ（KoboShapeTask）: ピースを ゆびで はこんで おなじ かたちの あなへ（Lv.3 から タップで まわす・Lv.4 から にた かたち・Lv.5 は おおきさ ちがい）
 //  ・おえかき ロジック（KoboLogicTask）: よこと たての すうじの ヒントで ますを ぬると えが でる（5×5・Lv.4 から 6×6。ちがう ますは ばつ）
@@ -516,6 +517,7 @@ const KOBO_TASKS = { slide: KoboSlideTask, shape: KoboShapeTask, logic: KoboLogi
 KoboGames.tasks = KOBO_TASKS;
 SHOP_GAMES.kobo = KoboGames;
 function KoboTask(sc, lv) { return new (KOBO_TASKS[sc && sc.variant] || KoboSlideTask)(sc, lv); }
+KoboTask.classOf = (variant) => KOBO_TASKS[variant] || KoboSlideTask; // ShopScene が ゲームの full・rounds を みる（ナンプレ。js/mg-numpla.js）
 // おみせの おく（たなに パズルの はこ・ジグソーの ピース・いろの キューブ）
 KoboTask.backdrop = (ctx, sc, W) => {
   ctx.save(); ctx.strokeStyle = INK; ctx.lineWidth = 2;
@@ -544,7 +546,7 @@ STORE_INTERIORS.kobo = {
   counter: { body: "#E0A040", top: "#FFF8EC", items: ["bell", "plant"] },
   walls: {
     north: [{ t: "lights", a: 0, b: 4, z: 222 }, { t: "sign", a: 4.0, b: 7.0, z0: 174, z1: 220 }, { t: "pegs", a: 7.2, b: 9.8, z0: 112, z1: 206, goods: "tools", col: "#E7D3B0" }],
-    west: [{ t: "window", a: 3.0, b: 5.8, z0: 104, z1: 200, curtain: "#E8C38E" }, { t: "chalk", a: 7.1, b: 9.9, z0: 150, z1: 214, lines: ["きょうの パズル", "スライド・かたち・ロジック"] }, { t: "clock", a: 10.4, z: 200 }],
+    west: [{ t: "window", a: 3.0, b: 5.8, z0: 104, z1: 200, curtain: "#E8C38E" }, { t: "chalk", a: 7.1, b: 9.9, z0: 150, z1: 214, lines: ["きょうの パズル", "ナンプレ・ロジック ほか"] }, { t: "clock", a: 10.4, z: 200 }],
   },
   fixtures: [
     ["wallshelf", 4, 0, 3, 1, "キューブの たな", { variant: "cubes", sign: "キューブ", height: 150 }], ["slideframe", 4, 1, 1, 1, "スライド パズルの がく"], ["cubes", 6, 1, 1, 1, "いろの キューブ"],

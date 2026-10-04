@@ -26,13 +26,14 @@ const inside = (b, R) => b.x >= R.x - 0.5 && b.y >= R.y - 0.5 && b.x + b.w <= R.
 
 // ---- 1. とうろく ----
 ok(SHOPS.kobo && SHOPS.kobo.name === "パズル こうぼう" && SHOPS.kobo.rounds === 4 && SHOPS.kobo.lines.length === 4 && SHOPS.kobo.lines.every((l) => !kanji.test(l)) && !kanji.test(SHOPS.kobo.desc), "おみせ（4にん・ことば）");
-ok(MG_TASKS.kobo === KoboTask && Object.keys(KOBO_TASKS).join() === "slide,shape,logic", "MG_TASKS.kobo は 3しゅの ゲームを えらぶ");
+ok(MG_TASKS.kobo === KoboTask && Object.keys(KOBO_TASKS).join() === "slide,shape,logic,numpla", "MG_TASKS.kobo は 4しゅの ゲームを えらぶ（4つめは 大人むけの ナンプレ。js/mg-numpla.js・tools/check-numpla.mjs）");
+ok(KoboTask.classOf("numpla") === R.NumplaTask && KoboTask.classOf("logic") === Logic && KoboTask.classOf(null) === Slide && R.NumplaTask.full && R.NumplaTask.rounds === 1 && !Slide.full && !Slide.rounds, "ShopScene が みる ゲームの クラス（ナンプレは 画面いっぱい・1問）");
 ok(new KoboTask(fake("shape"), 1) instanceof Shape && new KoboTask(fake("logic"), 1) instanceof Logic && new KoboTask(fake(null), 1) instanceof Slide && new KoboTask(fake("slide"), 1) instanceof Slide, "variant で ゲームが きまる（なければ スライド パズル）");
 ok(SHOP_GAMES.kobo === KG && SHOP_GAMES.brain === BrainGames && KG.tasks === KOBO_TASKS && BrainGames.tasks.spot && Object.getPrototypeOf(KG) === BrainGames && KG.choose === BrainGames.choose, "ゲームを えらぶ しくみは あたまの たいそうと おなじ（SHOP_GAMES）");
 ok(KG.shop === "kobo" && BrainGames.shop === "brain" && !kanji.test(KG.ASK + KG.HELLO), "えらぶ ときの ことば");
 ok(SHOP_OWNERS.kobo.sp === "hedgehog" && SHOP_OWNERS.kobo.name === "はりねずみの チクタさん" && /<svg/.test(R.Art.npcSvg({ ...SHOP_OWNERS.kobo, emo: "happy" })), "店主は はりねずみの チクタさん");
 const fresh = Save.fresh().shops.kobo;
-ok(fresh && fresh.lv === 1 && fresh.plays === 0 && JSON.stringify(fresh.games) === '{"slide":0,"shape":0,"logic":0}' && fresh.last === "", "セーブ（ゲームごとの かず）");
+ok(fresh && fresh.lv === 1 && fresh.plays === 0 && JSON.stringify(fresh.games) === '{"slide":0,"shape":0,"logic":0,"numpla":0}' && fresh.last === "" && fresh.numpla && fresh.numpla.cont === null, "セーブ（ゲームごとの かず・ナンプレ）");
 { // ふるい セーブ（kobo が ない）を よむと たりない ところを おぎなう
   const old = Save.fresh(); delete old.shops.kobo; const m = Save.migrate(JSON.parse(JSON.stringify(old)));
   ok(JSON.stringify(m.shops.kobo) === JSON.stringify(fresh) && m.v === Save.SCHEMA, "ふるい セーブに kobo を おぎなう（SCHEMA は そのまま）");
@@ -60,11 +61,13 @@ svgOk(SIGN_ICON.kobo(0, 0), "かんばんの しるし");
 ok(ShopRewards.prizes.filter((p) => p.shop === "kobo").map((p) => p.id).join() === "shop_kobo_5,shop_kobo_10,shop_kobo_15,shop_kobo_30", "ごほうびの かぐ 4つ");
 
 // ---- 2. えらぶ・せつめい ----
-ok(KG.GAMES.map((g) => g.id).join() === "slide,shape,logic" && KG.GAMES.every((g) => !kanji.test(g.name + g.desc) && g.name.length <= 9 && width(`・${g.name}：${g.desc}`) <= 19.5), "3しゅの なまえと ひとこと（ひらがな・みじかく）");
-for (const v of ["slide", "shape", "logic", null]) {
-  const lines = HOWTO.kobo({ variant: v });
-  ok(Array.isArray(lines) && lines.length === 4 && lines[0] === KG.HELLO && lines.slice(1).join() === KG.game(v).howto.join(), `せつめい（${v}）は えらんだ ゲームの ぶん`);
-  for (const l of lines) { ok(!kanji.test(l), "せつめいに 漢字: " + l); for (const row of l.split("\n")) ok(width(row) <= 26, `せつめいの 1行が ながい「${row}」`); }
+// 大人むけの ゲーム（adult。ナンプレ）は 漢字かな まじりで よい（AGENTS.md の 5。2026-10-04）。ほかの 3しゅは ひらがな
+ok(KG.GAMES.map((g) => g.id).join() === "slide,shape,logic,numpla" && KG.GAMES.every((g) => (g.adult || !kanji.test(g.name + g.desc)) && g.name.length <= 9 && width(`・${g.name}：${g.desc}`) <= 19.5), "4しゅの なまえと ひとこと（みじかく・こどもむけ 3しゅは ひらがな）");
+ok(KG.GAMES.filter((g) => g.adult).map((g) => g.id).join() === "numpla" && typeof KG.game("numpla").pick === "function", "大人むけは ナンプレ（えらんだ あとに 難しさ）");
+for (const v of ["slide", "shape", "logic", "numpla", null]) {
+  const lines = HOWTO.kobo({ variant: v }), g = KG.game(v);
+  ok(Array.isArray(lines) && lines.length === 1 + g.howto.length && lines[0] === KG.HELLO && lines.slice(1).join() === g.howto.join(), `せつめい（${v}）は えらんだ ゲームの ぶん`);
+  for (const l of lines) { ok(g.adult && l !== KG.HELLO ? true : !kanji.test(l), "せつめいに 漢字: " + l); for (const row of l.split("\n")) ok(width(row) <= 26, `せつめいの 1行が ながい「${row}」`); }
 }
 ok(KG.howto("slide").some((l) => /おてほん/.test(l)) && KG.howto("shape").some((l) => /まわる/.test(l)) && KG.howto("logic").some((l) => /なぞる/.test(l)), "せつめいの なかみ");
 ok(HOWTO.brain({ variant: "pair" }).some((l) => /カード/.test(l)), "あたまの たいそうの せつめいも かわらない");
@@ -305,4 +308,4 @@ for (const v of ["slide", "shape", "logic"]) for (let lv = 1; lv <= 5; lv++) {
   if (v === "shape") ok(d.holes.length === t.k && d.pieces.every((p) => p.turns >= 0 && p.turns < 4), `shape Lv${lv}: debug の あな と ピース`);
   if (v === "logic") ok(d.todo.length === t.total - t.preset && d.empty.length > 0, `logic Lv${lv}: debug の ます`);
 }
-console.log(`✓ kobo: ${n} checks（スライド パズル・かたち はめ・おえかき ロジック × Lv1〜5・2つの がめん・ロジック 24もんは 1とおりに とける）`);
+console.log(`✓ kobo: ${n} checks（スライド パズル・かたち はめ・おえかき ロジック × Lv1〜5・2つの がめん・ロジック 24もんは 1とおりに とける・4つめの ナンプレの とうろく）`);

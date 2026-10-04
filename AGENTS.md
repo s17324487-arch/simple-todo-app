@@ -8,6 +8,9 @@
 - `game/` にあるのが、スマホ向けブラウザゲーム「ぽかぽかタウン」。**ver1（v1.0.0）は完成済み**で、いまは **ver2 を開発中**。
 - 主人公は わんこ・がちゃん・ごじ の3人。**3人はいつも一緒に行動する**（町・おうち・お店・バトル）。これはゲームの核なので崩さない。
 - 遊びの柱: おうちでの ほのぼの育成 ／ 着せ替え（服・部屋） ／ お店のおてつだいミニゲーム（たまごっちの「プチプチおみせっち」風）でコインをためる ／ 上から見下ろす町と外の世界の探検 ／ ターン制バトル。
+- **対象は 大人**（2026-10-04 オーナーの 指示「実はこのアプリは大人向けを、想定しているのだ。前提を書き換えなさい。」）。かわいい 3人と ほのぼのした 町で、大人が ゆっくり くつろいで あそぶ ゲーム。
+  - お金の 入り方と 値段は 大人むけの スローライフ（`game/docs/ARCHITECTURE.md` の「大人向けスローライフの価格」）。
+  - パズル・脳トレには **完全に 大人むけの 本格的な あそび** も おく（パズル こうぼうの ナンプレ〔UI-81〕・あたまの たいそうの 英語〔中学／高校 × 単語の意味／文の穴うめ。UI-82〕）。子どもむけに やさしく しすぎない。
 - 公開先は GitHub Pages（main ブランチのルート）: https://s17324487-arch.github.io/simple-todo-app/game/
   **main にマージしたものが そのまま公開される**（1〜2分で反映）。
 - リポジトリ直下の `index.html` / `script.js` / `style.css` / `firebase-config.js` は**別の ToDo アプリ**。触らない。
@@ -24,6 +27,7 @@
 | 手元で遊ぶ | `npm start` → http://localhost:8080/ | — |
 | 素材プレビュー（服・NPC・敵・家具を一覧表示） | `npm start` → http://localhost:8080/tools/preview.html | — |
 | キャラ素材 SVG から `js/chara-data.js` を作り直す | `npm run build:chara` | 数秒 |
+| ナンプレの 問題の たばを 作り直す（`js/numpla-data.js`。`npm run check` は `--check` で 同じか だけ 見る） | `npm run build:numpla` | 数秒 |
 | 町の検査（小物の密度・何もない場所・道のつながり など） | `npm run audit:town`（`-- --check heiwadai` で めやす未満なら失敗） | 数秒 |
 | 町のデザイン見本を作り直す（`docs/design/towns/heiwadai/`） | `npm run design:heiwadai`（日本語フォントが必要） | 約20秒 |
 | 機能の見本 ①〜⑥ を作り直す（`docs/design/features/`） | `npm run design:features`（画像なしは `-- --no-mock`） | 約3分 |
@@ -64,9 +68,10 @@
    - ver2 を完成させるとき（オーナーが「リリースして」と言ったとき）に `2.0.0` にして日付を書く。
      その PR が main にマージされると、GitHub Actions の `release` が タグ `v2.0.0` と Releases のページを自動で作る（タグを自分で push しなくてよい）。
      その後は 修正=2.0.1、機能追加=2.1.0 のように上げる。
-5. **画面の文言**:
-   - 小さな子どもにも読める、ひらがな中心の やさしい言葉にする。文節ごとに半角スペースを入れる
-     （例:「おみせで おてつだいすると コインが もらえるよ。」）。漢字・カタカナ語は最小限。
+5. **画面の文言**（読む 人は 大人。2026-10-04 に 前提を かえた）:
+   - キャラクターの セリフと ふだんの 画面（町・おうち・お店・メニュー）は、ゲームの ほのぼのした 雰囲気として ひらがな中心の やさしい 口調に そろえ、文節ごとに半角スペースを入れる
+     （例:「おみせで おてつだいすると コインが もらえるよ。」）。子どもむけ だから では ない ので、意味が つたわりにくい ときは 漢字・カタカナ語を つかって よい。
+   - 大人むけの あそび（ナンプレ・英語 など）の 問題・用語・説明は、ふつうの 漢字かな まじり（文節の スペースは なくて よい）・英語は 英語の まま で よい（例:「初級」「超上級」「X-Wing」「文の穴うめ」）。むずかしさも 大人に あわせる。
    - スマホの縦画面が基準。**390×844 と 375×667 で、はみ出し・重なり・読めない文字がない**こと。指で押すところは 44px 以上を目安。
 6. **絵のルール**（素材の画風に合わせる）:
    - 線の色は `INK`（`#1F1D1B`）。キャラの座標系（viewBox 220 幅）で線幅 4.5、`stroke-linecap`/`stroke-linejoin` は `round`。塗りはパステル調。
@@ -145,8 +150,10 @@
 | `js/arcade-prizes.js` / `js/crane-physics.js` / `js/crane-art.js` / `js/snack-art.js` / `js/bridge-prizes.js` / `js/crane-machines.js` / `js/crane-scene.js` | クレーンゲーム（池袋 Meeときょれじゃ の 24台。1F 12台・2F の おかし キャッチャー 5台・はしわたし 2台・3F の おかし ロード〔7れつの ベルトの トレジャーロード `RoadRig`〕と おかし タワー〔ペラわに ひっかけて くずす〕・4F の たこやき〔ピンポンだまを てっぱんの あなへ〕・バーバーカット〔ハサミで ひもを きる `BarberRig`〕・バウンドボール〔ゴムボールで はねる〕〔1F の 7台と 2F〜4F の 12台は けいひんが 日がわり `CraneMachines.lineup`。トライポッドと はしわたしは とれるまで そのまま `keepDay`〕。台 3 は コイン プッシャー `PusherRig`）。おかしの けいひん 23しゅ（たべもの。ふくろ・はこの 絵 `SnackArt`）。はしわたしの けいひん 14しゅ（フィギュア 6・ざっか 8。家具・まどつきの はこの 絵 `BridgePrizes`）。景品の ぬいぐるみ 66しゅ（3人の 表情・ポーズ・こもの ちがい 24・3人の きせつの ぬいぐるみ 12〔はる・なつ・あき・ふゆ。その きせつだけ 3人の 台の めだま `ArcadePrizes.seasonal`・UI-63〕・ミニマスコット 10・ビッグ／どうぶつえん／みずべの なかま 20）と コインの 上限（`ArcadePrizes`）・物理（`CranePhys`。はねかえり `bounce`・てっぱんの くぼみ `cups`）・景品と 台の 絵（`CraneArt`）・24台の しかけと 1かいの あそび（`CraneMachines`・`CraneRound`）・画面と 100コイン・ごほうび・つづきから（`SCENES.prize`・`PrizeArcade`） |
 | `js/korokoro-physics.js` / `js/korokoro-art.js` / `js/mg-korokoro.js` / `js/korokoro-score.js` / `js/korokoro-prizes.js` / `js/korokoro-town.js` | ころころ フルーツ（ネリカスタウンの パズルの おてつだい。スイカゲームの ような おちもの パズル。だんは さくらんぼ → いちご → みかん → りんご → なし → がちゃん → わんこ → ごじ）。玉の 物理・がったい・あふれ（`KorokoroWorld`）・くだもの と 3人の かおの 玉の 絵（`KorokoroArt`）・はこと ちゅうもん モード（`KorokoroBoard`・`KorokoroTask`）・本物の スイカゲームと おなじ きまりの スコア モード（`KorokoroScore`・`SCENES.koroscore`。ハイスコアと ランキングは `shops.korokoro.hi`・`tops`）・ハイスコアの ごほうびの フルーツの とくべつな かぐ 6つ（`KOROKORO_PRIZES`・`KorokoroPrizes`。立体モデルと さわる うごき）・お店（nerikasu_home5 を かえる `KorokoroTown`。建物の 原画は `tools/town-design/nerikasu-buildings.mjs`） |
 | `js/farm-art.js` / `js/farm.js` / `js/farm-cook.js` | はたけ（ネリカスタウンの おうちの ひだり・まえの やおや の ところ）。さくもつ 13しゅの 5だんかいの 絵・つち・どうぐ・あたらしい 食べ物の 絵（`FarmArt`）と、たねまき・みずやり・ほんとうの じかんで そだつ・あめ・ひりょう・しゅうかく・町の はたけ 6まい・はたけの がめん（`Farm`・`FARM_CROPS`・`SCENES.farm`）と、とれた やさいで つくる りょうり 10しゅ（おうちの ごはん・はたけの がめんの「りょうり」。`FarmCook`・`FARM_RECIPES`） |
-| `js/brain-art.js` / `js/mg-brain.js` | あたまの たいそう（ネリカスタウンの のうトレの おてつだい・UI-64。nerikasu_home6 を かえる `BrainTown`）。店内で 3しゅから えらぶ（`BrainGames.choose`〔`SHOP_GAMES`。パズル こうぼうも おなじ〕・`ShopScene` の `variant`）: まちがい さがし（2まいの えの ちがう ところ・ヒント `BrainSpotTask`）・おなじ え さがし（カードを めくって そろえる `BrainPairTask`）・くだもの けいさん（たしざん・ひきざん 20まで・こたえ 4つ `BrainMathTask`）。こもの 12しゅ × いろ 2つ・くだもの・カードの うらの 絵（`BrainArt`）・店主 ふくろうの ホーせんせい・店内・BGM。ごほうびの かぐは `js/shop-rewards.js`・`js/shop-reward-art.js` |
-| `js/kobo-art.js` / `js/mg-kobo.js` | パズル こうぼう（ネリカスタウンの パズルの おてつだい・UI-65。nerikasu_home2 を かえる `KoboTown`）。店内で 3しゅから えらぶ（`KoboGames`。`SHOP_GAMES.kobo`）: スライド パズル（3×3・Lv.5 は 4×4。いちばん すくない てかずの はんいで まぜる・ヒント `KoboSlideTask`）・かたち はめ（ピースを あなへ ドラッグ・タップで まわす・にた かたち・おおきさ ちがい `KoboShapeTask`）・おえかき ロジック（5×5・6×6 の 24もん〔ぜんぶ ならびの ヒントだけで 1とおりに とける〕・なぞって ぬる `KoboLogicTask`）。かたち 13しゅ・スライドの え 3まい・ロジックの もんだい（`KoboArt`）・店主 はりねずみの チクタさん・店内・BGM（オリジナル）。ごほうびの かぐは `js/shop-rewards.js`・`js/shop-reward-art.js` |
+| `js/brain-art.js` / `js/mg-brain.js` | あたまの たいそう（ネリカスタウンの のうトレの おてつだい・UI-64。nerikasu_home6 を かえる `BrainTown`）。店内で 3しゅ（＋ 大人むけの 英語。つぎの 行）から えらぶ（`BrainGames.choose`〔`SHOP_GAMES`。パズル こうぼうも おなじ〕・`ShopScene` の `variant`）: まちがい さがし（2まいの えの ちがう ところ・ヒント `BrainSpotTask`）・おなじ え さがし（カードを めくって そろえる `BrainPairTask`）・くだもの けいさん（たしざん・ひきざん 20まで・こたえ 4つ `BrainMathTask`）。こもの 12しゅ × いろ 2つ・くだもの・カードの うらの 絵（`BrainArt`）・店主 ふくろうの ホーせんせい・店内・BGM。ごほうびの かぐは `js/shop-rewards.js`・`js/shop-reward-art.js` |
+| `js/eng-words.js` / `js/eng-sentences.js` / `js/mg-english.js` | 英語（あたまの たいそうの 4つめ・**大人むけ**・UI-82）。単語 中学 275・高校 359（品詞・意味・似た 意味の なかま。`ENG_WORDS`）・穴うめの 文 中学 99・高校 107（正解・まちがい 3つ・和訳・ポイント。`ENG_FILL`）・レベル（中学／高校）→ あそびかた（単語の意味／文の穴うめ）・1回 10問・解説と「次へ」・まちがえた ものの まとめ・ベスト（`EnglishGame`・`BrainEngTask`・`Save.d.shops.brain.eng`） |
+| `js/kobo-art.js` / `js/mg-kobo.js` | パズル こうぼう（ネリカスタウンの パズルの おてつだい・UI-65。nerikasu_home2 を かえる `KoboTown`）。店内で 3しゅ（＋ 大人むけの ナンプレ。つぎの 行）から えらぶ（`KoboGames`。`SHOP_GAMES.kobo`）: スライド パズル（3×3・Lv.5 は 4×4。いちばん すくない てかずの はんいで まぜる・ヒント `KoboSlideTask`）・かたち はめ（ピースを あなへ ドラッグ・タップで まわす・にた かたち・おおきさ ちがい `KoboShapeTask`）・おえかき ロジック（5×5・6×6 の 24もん〔ぜんぶ ならびの ヒントだけで 1とおりに とける〕・なぞって ぬる `KoboLogicTask`）。かたち 13しゅ・スライドの え 3まい・ロジックの もんだい（`KoboArt`）・店主 はりねずみの チクタさん・店内・BGM（オリジナル）。ごほうびの かぐは `js/shop-rewards.js`・`js/shop-reward-art.js` |
+| `js/numpla-rules.js` / `js/numpla-data.js` / `js/mg-numpla.js` | ナンプレ（パズル こうぼうの 4つめ・**大人むけ**・UI-81）。きまりと 解き方（解の かず・人の 解き方 11しゅで むずかしさを はかる・ヒントの 1手・数字と 行・列の いれかえ。`NumplaRules`）・問題の たば 4×40（初級・中級・上級・超上級。**自動生成** `npm run build:numpla`。`NUMPLA_BANK`）・画面いっぱいの 盤（メモ・消す・戻す・ヒント・ミス・続きから `Save.d.shops.kobo.numpla`・おきゃくさん 1人に 1問。`NumplaTask`・`Numpla`） |
 | `js/fashion-show.js` / `js/fashion-art.js` / `js/fashion-hall.js` / `js/fashion-scene.js` | ファッションショー「ぽかぽか コレクション」（UI-36）。きまり（テーマ 8しゅ・おしゃれ レベル・ポーズの はんてい・しんさ・ランク・けいひん・しゃしん・`Save.d.fashion`。`FashionShow`）・かお／ポーズ／けいひん／しゃしんの 絵（`FashionArt`）・池袋の ファッションかん〔まえの ほんの ギャラリー〕の 会場（うけつけ 500コイン・きがえ・しゃしんの かべ。`FashionHall`）・ランウェイ（`FashionScene`・`SCENES.fashion`） |
 | `js/food-balance.js` | たべものの バランス（`FoodBalance`。そのままの やさいは おなか はんぶん・りょうりは おなかも ごきげんも おおめ〔かずは farm.js・farm-cook.js・data.js・home-catalog.js〕・50コイン いじょうは ねだんで ごきげん〔6 × log2(ねだん ÷ 20)〕を よみこみの さいごに なおす・おうちの ごはん と りょうりの まどの「おなか+N ごきげん+M」） |
 | `js/shop-goods-art.js` / `js/shop-goods.js` | たべものの おみせの しなもの（UI-76。`ShopGoodsArt`・`ShopGoods`）。ケーキ・クレープ・パン・ころころ フルーツ・ガソリンスタンドの しなぞろえを 2つの タブに（ケーキ 12・クレープ 9・パン 11・ころころ 10・スタンド 8）・あたらしい 食べ物 32しゅ（その おみせ だけ）・まえからの たべもの・どうぐの 絵 26しゅの かきなおし（`FOOD_ART` を 上がき。farm-cook.js の あと・food-balance.js の まえ） |
@@ -189,6 +196,7 @@
 | `tools/check.mjs` | 静的チェック（約2400項目: 登録漏れ・名前の重複・データの参照・マップの到達性・SVG・ミニゲームの採点など） |
 | `tools/serve.mjs` | 依存なしのローカルサーバー |
 | `tools/build-chara.mjs` | 素材 SVG → `js/chara-data.js` |
+| `tools/build-numpla.mjs` | ナンプレの 問題を つくって むずかしさで わける → `js/numpla-data.js`（`--check` で 同じか） |
 | `tools/preview.html` | 素材プレビュー（開発用） |
 | `tools/town-audit.mjs` | 町の検査（`npm run audit:town`） |
 | `tools/build-arcade-jpop.mjs` | MIDI → `js/arcade-jpop-maoudamashii.js`（Meeときょれじゃ の J-POP。MIDI は リポジトリに いれない） |
@@ -220,5 +228,5 @@
 - `window.<トップレベルの const/class 名>` の参照と、短く衝突しやすいトップレベル名（1〜2文字など）の追加を指摘する。全スクリプトがグローバルを共有するため。
 - `game/js/chara-data.js` を手で編集していたら指摘する（`npm run build:chara` で生成するファイル）。
 - リポジトリ直下の ToDo アプリ（`index.html`・`script.js`・`style.css`・`firebase-config.js`）の変更を指摘する。
-- 画面の文言が漢字の多い大人向けの言い回しになっていたり、390×844 / 375×667 で はみ出すおそれのあるレイアウトだったりしたら指摘する。
+- キャラクターの セリフ・ふだんの 画面の 文言が ひらがな中心の やさしい 口調から はずれて かたく なっていたり、390×844 / 375×667 で はみ出すおそれのあるレイアウトだったりしたら指摘する（大人むけの あそび〔ナンプレ・英語 など〕の 問題・用語の 漢字・英語は 指摘しない）。
 - `GAME_VERSION`・`package.json` の version・`CHANGELOG.md` の先頭の版の不一致、テストの削除・スキップを指摘する。

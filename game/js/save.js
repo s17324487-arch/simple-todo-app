@@ -81,9 +81,15 @@ const Save = {
         gasstand: { lv: 1, rep: 0, best: 0, plays: 0 },
         postoffice: { lv: 1, rep: 0, best: 0, plays: 0 },
         // あたまの たいそう（js/mg-brain.js・2026-10-03）: games は ゲームごとに えらんだ かず・last は さいごに えらんだ ゲーム
-        brain: { lv: 1, rep: 0, best: 0, plays: 0, games: { spot: 0, pair: 0, math: 0 }, last: "" },
+        // eng（js/mg-english.js・2026-10-04）: lv は さいごの レベル（jh 中学・hs 高校）・mode は あそびかた（word 単語の意味・fill 文の穴うめ）・
+        //   plays・best（10問中の いちばん おおい 正解）・recent（さいきん だした 問題の ばんごう）は「レベル_あそびかた」ごと
+        brain: { lv: 1, rep: 0, best: 0, plays: 0, games: { spot: 0, pair: 0, math: 0, eng: 0 }, last: "",
+          eng: { lv: "jh", mode: "word", plays: { jh_word: 0, jh_fill: 0, hs_word: 0, hs_fill: 0 }, best: { jh_word: 0, jh_fill: 0, hs_word: 0, hs_fill: 0 }, recent: { jh_word: [], jh_fill: [], hs_word: [], hs_fill: [] } } },
         // パズル こうぼう（js/mg-kobo.js・2026-10-03）: games・last は あたまの たいそうと おなじ
-        kobo: { lv: 1, rep: 0, best: 0, plays: 0, games: { slide: 0, shape: 0, logic: 0 }, last: "" },
+        // numpla（js/mg-numpla.js・2026-10-04）: lv は さいごに えらんだ 難しさ・n は 難しさごとに だした かず（問題の たばの じゅんばん）・
+        //   clear は クリアの かず・best は いちばん はやい 時間（びょう・0 は まだ）・cont は とちゅうの 問題（続きから。なければ null）
+        kobo: { lv: 1, rep: 0, best: 0, plays: 0, games: { slide: 0, shape: 0, logic: 0, numpla: 0 }, last: "",
+          numpla: { lv: "easy", n: { easy: 0, normal: 0, hard: 0, expert: 0 }, clear: { easy: 0, normal: 0, hard: 0, expert: 0 }, best: { easy: 0, normal: 0, hard: 0, expert: 0 }, cont: null } },
       },
       daily: {last:'',stamps:0,total:0,cycles:0},
       // ネリカスタウンの いらいの けいじばん（js/neri-quests.js）: きょうの 6まい・うけて いる いらい（3つまで）・きょう おわった もの・これまでの かず と ほうしゅう

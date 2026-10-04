@@ -1,5 +1,6 @@
 // のうトレの おてつだい「あたまの たいそう」（ネリカスタウン・UI-64。オーナーの 依頼 2026-10-03「脳トレ系の中でも異なるゲーム3種で選択できて、たとえば間違え探しなど」）。
 // おみせで「おてつだいする」→ 3しゅから えらぶ（BrainGames.choose・ShopScene の variant）→ おきゃくさん 1にんに 1もん。
+// 4つめの ゲーム「英語」（大人むけ・UI-82）は js/mg-english.js が BrainGames.GAMES・BRAIN_TASKS に たす。
 //  ・まちがい さがし（BrainSpotTask）: ひだりと みぎの 2まいの え。ちがう ところを タップ（ない・ふえた・いろ・ちがう もの・おおきさ・むき）
 //  ・おなじ え さがし（BrainPairTask）: さいしょに ちらっと みせて → カードを 2まいずつ めくって おなじ えを そろえる
 //  ・くだもの けいさん（BrainMathTask）: くだものの かずの たしざん・ひきざん（Lv で 5 → 20 まで）。こたえを 4つから えらぶ
@@ -31,6 +32,8 @@ const BrainGames = {
     const g = this.GAMES[i];
     // はじめての ゲームは せつめいを きく（いちばん さいしょの おてつだいは おみせの なかで HOWTO[おみせ] が でる）
     if (st.plays && !st.games[g.id]) await UI.say(g.howto.map((t) => ({ name: store.owner.name, face, text: t })));
+    // えらんだ あとに きく こと（ナンプレの 難しさ・続きから。js/mg-numpla.js）。やめたら null
+    if (g.pick && (await g.pick(store)) == null) return null;
     st.games[g.id] = (st.games[g.id] || 0) + 1; st.last = g.id;
     Save.write();
     return g.id;
@@ -411,6 +414,7 @@ BrainGames.tasks = BRAIN_TASKS;
 // ゲームを えらぶ おみせ（js/store-iso.js の「おてつだいする」・PokaDebug.shop の variant）。パズル こうぼうは js/mg-kobo.js が たす
 const SHOP_GAMES = { brain: BrainGames };
 function BrainTask(sc, lv) { return new (BRAIN_TASKS[sc && sc.variant] || BrainSpotTask)(sc, lv); }
+BrainTask.classOf = (variant) => BRAIN_TASKS[variant] || BrainSpotTask; // ShopScene が ゲームの full・rounds を みる（英語。js/mg-english.js）
 // おみせの おく（たなに ちきゅうぎ・ほん・パズル）
 BrainTask.backdrop = (ctx, sc, W) => {
   ctx.save(); ctx.strokeStyle = INK; ctx.lineWidth = 2;
