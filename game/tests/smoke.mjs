@@ -4488,6 +4488,8 @@ await (await import("./fashion-show-smoke.mjs")).fashionShowSmoke({scenario,expe
 await (await import("./furn-tray-smoke.mjs")).furnTraySmoke({scenario,expect});
 // かべがみ・ゆか 15しゅずつ（UI-90。くわしくは tests/room-styles-smoke.mjs）
 await (await import("./room-styles-smoke.mjs")).roomStylesSmoke({scenario,expect});
+// フィギュア だいの あたらしい 5しゅ（UI-93。くわしくは tests/figure-stand-more-smoke.mjs）
+await (await import("./figure-stand-more-smoke.mjs")).figureStandMoreSmoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 
