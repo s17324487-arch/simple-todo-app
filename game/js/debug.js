@@ -119,6 +119,7 @@ const PokaDebug = {
       "PokaDebug.toilet()                    おトイレ（3人の いきたさ・ドアの ばしょ・はいって いる 子）。toiletNeed('goji', 80) で いきたさを きめる",
       "PokaDebug.homeFloor()                 おうちの 2かい（かいだん・1かいと 2かいの 画面の ばしょ・かたち polys・のぼって いるか）",
       "PokaDebug.homeNav()                   おうちの みち（家具の 足もと・ふさいだ マス・3人と ぱぱ ままの いち・いきさき・みち）。homeWalk('goji', 300, 400) で あるかせる",
+      "PokaDebug.exterior()                  おうちの そと（パーツ・ペンキ・もって いる もの・町の 絵の キー・かう がめん）。exteriorSet({ roof: 'steep' }, { wall: 'sora' }) で つける",
       "PokaDebug.fishSpawn('magoi', 60)      3人の ちかくに 魚の かげ（cm で ながさが きまる）。fishAuto(false, true) で かってに 出さない",
       "PokaDebug.fishAim()                   かげの あたまの まえ（ながおしする 画面の ばしょ）。fishState() で うき・かげ・じまんの ようす",
       "PokaDebug.smaho('map')                すまほを ひらく（アプリ id: map・status・bag・dex・event・rally・hint・fortune・rewards・music。なしで ホーム・null で とじる）",
@@ -478,6 +479,23 @@ const PokaDebug = {
     if (G.sceneName !== "house" || typeof HomeNav === "undefined") return null;
     const sc = G.scene, I = HomeNav.info(sc), nav = (a) => a._nav && !a._nav.done ? a._nav : null;
     return { ...I, actors: [...sc.chars, ...sc.parents].map((a) => ({ id: a.id, x: a.x, y: a.y, tx: a.tx, ty: a.ty, state: a.state, hidden: !!a.hidden, inside: HomeNav.blockedAt(sc, a.x, a.y), path: nav(a) ? nav(a).pts.map((p) => ({ x: p.x, y: p.y })) : null, loose: !!(nav(a) && nav(a).loose), straight: !!(nav(a) && nav(a).straight) })) };
+  },
+  // おうちの そと（UI-74・js/house-ext.js）: パーツ・ペンキ・もって いる もの・かえて いるか・町の 絵の キー・町で 描いた か（drawn）・かう がめん（ui）
+  exterior() {
+    if (typeof HouseExt === "undefined") return null;
+    const e = HouseExt.view(), key = HouseExt.key(), pre = "w:house_ext:" + JSON.stringify({ ext: key });
+    return { parts: { ...e.parts }, paint: { ...e.paint }, owned: Object.keys(e.owned), paints: Object.keys(e.paints), custom: HouseExt.custom(), key, total: HouseExt.total(),
+      drawn: [...SvgCache.map.keys()].some((k) => k.startsWith(pre)), ui: typeof HouseExtUI !== "undefined" ? HouseExtUI.state() : null };
+  },
+  // テスト よう: パーツと いろを もって いる ことに して つける（exteriorSet({ roof: "steep" }, { wall: "sora" })。{} で はじめの おうち）
+  exteriorSet(parts = {}, paint = {}) {
+    if (typeof HouseExt === "undefined") return null;
+    const e = HouseExt.st();
+    for (const [c, id] of Object.entries(parts)) { const p = HouseExt.part(c, id); if (p && p.price > 0) e.owned[p.key] = true; }
+    for (const id of Object.values(paint)) if (HouseExt.PAINT[id]?.price > 0) e.paints[id] = true;
+    const reset = !Object.keys(parts).length && !Object.keys(paint).length;
+    if (!HouseExt.apply(reset ? { parts: { ...HouseExt.DEFAULT_PARTS }, paint: { ...HouseExt.DEFAULT_PAINT } } : { parts, paint })) return null;
+    return this.exterior();
   },
   // 3人の だれか（papa・mama も）を へやの (x, y) へ あるかせる。みちを かえす
   homeWalk(who, x, y) {

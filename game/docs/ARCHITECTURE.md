@@ -159,6 +159,8 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
 | — | `home-nav.js`（home-floors.js の あと・debug.js の まえ） | `HomeNav`（おうちの みち: 3人と ぱぱ・ままが 家具を よけて あるく。UI-73） |
+| — | `house-ext-art.js`・`house-ext.js`・`house-ext-ui.js`（nerikasu-layout.js の あと） | `HouseExtArt`（おうちの そとの 絵）・`HouseExt`（パーツと ペンキ・セーブ・町の 絵の きりかえ）・`HouseExtUI`（かう がめん）。UI-74 |
+| — | `koumuten.js`（neri-apart.js の あと＝mall-art.js・nerikasu-layout.js・house-ext*.js の あと） | `Koumuten`（ネリカスタウンの 工務店「ぽかぽか こうむてん」の 館と 町の 建物。UI-74） |
 | — | `nerikasu-layout.js`（nerikasu-town.js の あと） | `NerikasuLayout` |
 | — | `neri-shops.js`（nerikasu-layout.js の あと） | `NeriShops` |
 | — | `dino-museum.js` / `dino-hall-art.js`（ike-aquarium.js の あと・neri-bikkupo.js の まえ） | `DinoMuseum` ／ `DinoHallArt`（きょうりゅう はくぶつかんの 3かいだての 館・UI-42。`dino-hall-art.js` の さいごで `DinoMuseum.install()`） |
@@ -1437,6 +1439,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ずかん: `Menu.dex` の kinds に `["food", "たべもの"]`（6つ なら 3れつ）→ `foodDex(el)`（`.rec-sort`・`.rec-food[data-id]`・`.lock`）→ `foodCard(f)`（`.rec-food-panel`）。
 - セーブ: `Save.fresh().records = { since: "", kids: {}, food: {}, battle: { fled: 0, lost: 0 } }`（SCHEMA は そのまま）。
 - PokaDebug: `records()`・`recordsAdd(id, key, n)`。検査は `tools/check-play-records.mjs`、スモークは `tests/play-records-smoke.mjs`（`play-records-390/375`）。
+
+## おうちの そとと 工務店（UI-74・`js/house-ext*.js`・`js/koumuten.js`）
+
+オーナーの FB 2026-10-03「お家の外見カスタマイズ機能もつけて。それに伴い、工務店をネリカスタウンに追加して、そこでパーツや塗装を購入してカスタマイズできるようにして。」
+
+- データ（`HouseExt.CATS`・`PAINTS`）: パーツは しゅるい（roof・siding・window・door・chimney・top・lamp・post・yard）ごとに `{ id, name, price, key: しゅるい + ":" + id }`。さいしょの ものは ただ（はじめの おうち）。ペンキは `{ id, name, hex, price }`、ぬる ところ `TARGETS`（roof・wall・door・trim）。
+- セーブ（`Save.d.exterior`）: `{ parts, paint, owned: { "roof:steep": true }, paints: { sora: true } }`。`view()` は しらべる だけ（ない ときは はじめの おうち）、`st()` が つくって なおす（へんな id・ただの ものの もちもの・もって いない ものを つけて いる → はじめの もの）。`buy`・`buyPaint`（コインが たりない ときは false・2どめは ただ）・`apply(d)`（もって いる もの だけ）。
+- 絵（`HouseExtArt`）: `model(p, night)` は `HeiwadaiArt.model` と おなじ かたち（bbox [-10,-49,207,140]・6×4 マス）。p は `HouseExt.resolve()`（パーツの id と いろの #rrggbb）。`picture(p, night, zoom)` は がめん よう（そら・じめん つき）、`icon(p, しゅるい)` は `ZOOM` で その ところを 大きく。
+- 町: `WorldArt.house_ext({ ext: キー, night })`。`HeiwadaiTown.canvas` を つつんで、`nerikasu.bld_home` は `HouseExt.custom()` の ときだけ `scene.objCanvas("house_ext", { ext })`（よみこみは ひる・よるの 2まい）。キーは `HouseExt.key()`（パーツ 9つ と いろ 4つ の id。`parse` で もどせる・有限）。
+- 工務店（`Koumuten`）: `VenueHalls.defs.koumuten`（iso・16×12・1かい）。什器 `paintshelf`・`doorsamples`・`roofsamples`・`windowstand`・`modelhouse`（キーに `HouseExt.key()`）・`workbench`・`lumber`・`ladder`・`buckets`・`kcounter`。`action`: `koumuten`（とうりょうさん・うけつけ → えらぶ）・`hx`（みほん → `HouseExtUI.open({ tab })`）・`model`・`talk`（でし）・`sit`・`leave`。町の 建物は `nerikasu_home7` を かえる（`NerikasuLayout.install` の あと。`house` の しるしで「まちの おうち」に なった ところを `label`・`act: { type: "venue", venue: "koumuten" }` に）。
+- PokaDebug: `exterior()`（パーツ・いろ・もちもの・キー・町で 描いた か `drawn`・がめん `ui`）・`exteriorSet(parts, paint)`。検査は `tools/check-house-ext.mjs`、スモークは `tests/house-ext-smoke.mjs`（`house-ext-390/375`）。
 
 ## おうちの みち（UI-73・`js/home-nav.js`・`HomeNav`）
 
