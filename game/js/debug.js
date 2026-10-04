@@ -118,6 +118,7 @@ const PokaDebug = {
       "PokaDebug.homeDoors()                 おうちの ドア（おでかけ・おへや・おにわの うらぐち）の 画面の ばしょと いける へや",
       "PokaDebug.toilet()                    おトイレ（3人の いきたさ・ドアの ばしょ・はいって いる 子）。toiletNeed('goji', 80) で いきたさを きめる",
       "PokaDebug.homeFloor()                 おうちの 2かい（かいだん・1かいと 2かいの 画面の ばしょ・かたち polys・のぼって いるか）",
+      "PokaDebug.homeNav()                   おうちの みち（家具の 足もと・ふさいだ マス・3人と ぱぱ ままの いち・いきさき・みち）。homeWalk('goji', 300, 400) で あるかせる",
       "PokaDebug.fishSpawn('magoi', 60)      3人の ちかくに 魚の かげ（cm で ながさが きまる）。fishAuto(false, true) で かってに 出さない",
       "PokaDebug.fishAim()                   かげの あたまの まえ（ながおしする 画面の ばしょ）。fishState() で うき・かげ・じまんの ようす",
       "PokaDebug.smaho('map')                すまほを ひらく（アプリ id: map・status・bag・dex・event・rally・hint・fortune・rewards・music。なしで ホーム・null で とじる）",
@@ -472,6 +473,21 @@ const PokaDebug = {
   homeDoors() { return G.sceneName === "house" ? HomeDoors.state(G.scene) : null; },
   // おうちの 2かい（HOME-2F）: かって いるか・いる かい・かいだんと 2つの へやの 画面の ばしょ・3人の たかさ z
   homeFloor() { return G.sceneName === "house" ? HomeFloors.state(G.scene) : null; },
+  // おうちの みち（UI-73・js/home-nav.js）: マス・家具の 足もと（へやの 座標）・3人と ぱぱ ままの いち・いきさき・みち・家具の うえか（inside）・ゆるして いるか（loose）
+  homeNav() {
+    if (G.sceneName !== "house" || typeof HomeNav === "undefined") return null;
+    const sc = G.scene, I = HomeNav.info(sc), nav = (a) => a._nav && !a._nav.done ? a._nav : null;
+    return { ...I, actors: [...sc.chars, ...sc.parents].map((a) => ({ id: a.id, x: a.x, y: a.y, tx: a.tx, ty: a.ty, state: a.state, hidden: !!a.hidden, inside: HomeNav.blockedAt(sc, a.x, a.y), path: nav(a) ? nav(a).pts.map((p) => ({ x: p.x, y: p.y })) : null, loose: !!(nav(a) && nav(a).loose), straight: !!(nav(a) && nav(a).straight) })) };
+  },
+  // 3人の だれか（papa・mama も）を へやの (x, y) へ あるかせる。みちを かえす
+  homeWalk(who, x, y) {
+    if (G.sceneName !== "house" || typeof HomeNav === "undefined") return null;
+    const sc = G.scene, a = [...sc.chars, ...sc.parents].find((c) => c.id === who);
+    if (!a || a.hidden || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+    HomeActions.cancel(a); if (sc.parents.includes(a)) a.target = null;
+    a.state = "walk"; a.tx = x; a.ty = y; a._nav = null;
+    const p = HomeNav.plan(sc, a, x, y); return { pts: p.pts.map((q) => ({ x: q.x, y: q.y })), loose: p.loose };
+  },
   homePoint(x, y) { const p = G.scene.toScreen(x, y), r = G.canvas.getBoundingClientRect(); return { x: r.left + p.x * G.cssPerUnit, y: r.top + p.y * G.cssPerUnit }; },
   homeDesign() {
     if(G.sceneName !== "house")return null;

@@ -158,6 +158,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
+| — | `home-nav.js`（home-floors.js の あと・debug.js の まえ） | `HomeNav`（おうちの みち: 3人と ぱぱ・ままが 家具を よけて あるく。UI-73） |
 | — | `nerikasu-layout.js`（nerikasu-town.js の あと） | `NerikasuLayout` |
 | — | `neri-shops.js`（nerikasu-layout.js の あと） | `NeriShops` |
 | — | `dino-museum.js` / `dino-hall-art.js`（ike-aquarium.js の あと・neri-bikkupo.js の まえ） | `DinoMuseum` ／ `DinoHallArt`（きょうりゅう はくぶつかんの 3かいだての 館・UI-42。`dino-hall-art.js` の さいごで `DinoMuseum.install()`） |
@@ -1436,6 +1437,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ずかん: `Menu.dex` の kinds に `["food", "たべもの"]`（6つ なら 3れつ）→ `foodDex(el)`（`.rec-sort`・`.rec-food[data-id]`・`.lock`）→ `foodCard(f)`（`.rec-food-panel`）。
 - セーブ: `Save.fresh().records = { since: "", kids: {}, food: {}, battle: { fled: 0, lost: 0 } }`（SCHEMA は そのまま）。
 - PokaDebug: `records()`・`recordsAdd(id, key, n)`。検査は `tools/check-play-records.mjs`、スモークは `tests/play-records-smoke.mjs`（`play-records-390/375`）。
+
+## おうちの みち（UI-73・`js/home-nav.js`・`HomeNav`）
+
+オーナーの FB 2026-10-03「お家で、できるだけ家具とごわがやぱぱままが交差(重なり、通過してしまう)しないようにして。だだ、詰まることを避けるため、状況に応じて許されるものとする。」
+
+- マス（`build(sc)`）: へやの ゆかを `C`=16 の マスに わけた `Uint8Array`（0 あいて いる・1 家具・2 へやの ふち）。家具の 足もと（`feet(sc)`）は ゆかの 家具（kind `floor`）の `HomeDesign.model(id, it)` の footW × footD（てまえの まんなかが `sc.anchor(it)`）。ラグ（`rug`）と かべの かざり（`wall`）は ふさがない。2かいが ある ときの 1かいは かいだん（`HomeFloors.STAIR`）も。マスの まんなかが 足もとを `PAD`=12 ひろげた 四角に はいれば ふさぐ（あいた マスの どこでも 家具から 4 いじょう）。へやの かたちの しるし `signature()`（へやの ひろさ・かいだん・家具の id と いち）が おなじ あいだは つくりなおさない。
+- みち（`plan(sc, a, tx, ty)` → `{ pts, loose }`）: A*（ななめ あり・かどは けずらない）→ 見とおし（`sight`）で まっすぐに（`smooth`）。`loose` は どこかで 家具に かかるのを ゆるした しるし。いま 家具の うえ → いちばん ちかい あいた マスへ でる（ゆるす）・家具の そば（ひろげた ところ）→ 家具に かからずに でられる マス（`clear`）／いきさきが 家具の そば → さいごの まっすぐが 家具に かからない マスから／いきさきが 家具の なか → いちばん ちかい マスで とまる／とどかない → いちばん ちかづける マスまで いって さいごは まっすぐ（ゆるす）。
+- あるく（`walk(sc, a, speed, dt, tx = a.tx, ty = a.ty)` → ついたら true）: みちを `a._nav` に もつ。いきさき・へやの かたちが かわったら さがしなおす（うごく いきさきは `REPLAN`=0.25びょうに 1かい・その あいだは さいごの 点だけ うごかす）。ちかくで とまった あとは おなじ いきさきの あいだ さがしなおさない（`done`）。`STUCK`=1.2びょう ちかづかない → まっすぐ（ゆるす）。むき（`a.dir`）も きめる。
+- くみこみ（どれも `typeof HomeNav !== "undefined"` の ときだけ。ない ときは まえの まっすぐ）: `scene-house.js` の `updateChar`（walk）・`parent-care.js`（ぱぱ ままの おせわ・さんぽ）・`parent-work.js`（いってきます／ただいま）・`home-doors.js`（ドアまで。ついたら ドアの ばしょに）・`home-toilet.js`（おトイレの ドアまで）。`HomeNav.near(sc, x, y)` で ごはんに ならぶ・ねる まえの ばしょを 家具の うえに しない。`home-actions.js` の かくれて のぞく は 家具の 足もとの おく（`p.y - footD - 16`）。
+- セーブは かえない（おうちの なかの うごき だけ）。PokaDebug: `homeNav()`（マス・ふさいだ かず・家具の 足もと・3人と ぱぱ ままの いち・いきさき・みち・`inside`・`loose`）・`homeWalk(who, x, y)`。検査は `tools/check-home-nav.mjs`、スモークは `tests/home-nav-smoke.mjs`（`home-nav-390/375`）。
 
 ## ごはんの せき（UI-72・`js/dine-seats.js`・`DineSeats`）
 

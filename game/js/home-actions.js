@@ -22,7 +22,8 @@ const HomeActions = {
     const it=items.sort((a,b)=>{const p=sc.anchor(a),q=sc.anchor(b);return Math.hypot(p.x-c.x,p.y-c.y)-Math.hypot(q.x-c.x,q.y-c.y);})[0];
     const a=c.activity={id,elapsed:0,duration:k.duration,stage:it?'approach':'act',travel:0,uid:it?.uid};
     c.jumpT=-1;c.emo=null;c.dir='down';
-    if(it){const p=sc.anchor(it);c.state='walk';c.tx=U.clamp(p.x+30,40,ROOM.W-40);c.ty=U.clamp(p.y+(id==='peek'?-60:24),ROOM.WALL+65,ROOM.H-30);}
+    // かくれて のぞく ときは 家具の うしろ（足もとの おく。家具の なかに はいらない。js/home-nav.js）
+    if(it){const p=sc.anchor(it),m=HomeDesign.model(it.id,it);c.state='walk';c.tx=U.clamp(p.x+30,40,ROOM.W-40);c.ty=U.clamp(id==='peek'?Math.min(p.y-60,p.y-m.footD-16):p.y+24,ROOM.WALL+65,ROOM.H-30);}
     else c.state='activity';
     sc.actions.log.push({id,who:c.id,time:sc.actions.time,uid:a.uid});if(sc.actions.log.length>40)sc.actions.log.shift();
     return true;

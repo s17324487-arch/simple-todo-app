@@ -144,7 +144,7 @@ const ParentWork = {
     // PokaDebug.hour で 時こくを とばした ときは 「いってきます／ただいま」を しないで すぐ かえる
     if (a !== w.away) { w.away = a; if (jump) this.snap(sc, a); else if (a) this.leave(sc); else this.arrive(sc); }
     if (w.phase === "home") return false;
-    const walk = () => { for (const p of sc.parents) { p.anim += dt; const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy), step = Math.min(d, 90 * dt); if (d > 1) { p.x += (dx / d) * step; p.y += (dy / d) * step; p.state = "walk"; } else p.state = "idle"; } };
+    const walk = () => { for (const p of sc.parents) { p.anim += dt; if (typeof HomeNav !== "undefined") { p.state = HomeNav.walk(sc, p, 90, dt) ? "idle" : "walk"; continue; } const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy), step = Math.min(d, 90 * dt); if (d > 1) { p.x += (dx / d) * step; p.y += (dy / d) * step; p.state = "walk"; } else p.state = "idle"; } }; // 家具を よけて（js/home-nav.js）
     // ドアを 出るまで・入って くる あいだは 2人とも 見せる（ほかの しくみが さきに かくしても）
     if (w.phase === "leaving") {
       for (const p of sc.parents) p.hidden = false;

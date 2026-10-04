@@ -179,9 +179,9 @@ const HomeToilet = {
     if (T.phase === "go") {
       const dx = f.x - c.x, dy = f.y - c.y, d = Math.hypot(dx, dy);
       if (d > 2 && T.t < 6) {
-        const k = Math.min(1, (this.SPEED * dt) / d); c.x += dx * k; c.y += dy * k;
-        c.dir = Math.abs(dx) > Math.abs(dy) * 0.7 ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up";
-        return;
+        // 家具を よけて ドアまで（js/home-nav.js。つまる ときだけ まっすぐ）
+        if (typeof HomeNav !== "undefined") { if (!HomeNav.walk(sc, c, this.SPEED, dt, f.x, f.y)) return; }
+        else { const k = Math.min(1, (this.SPEED * dt) / d); c.x += dx * k; c.y += dy * k; c.dir = Math.abs(dx) > Math.abs(dy) * 0.7 ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up"; return; }
       }
       c.x = f.x; c.y = f.y; c.dir = "up"; c.hidden = true;
       T.phase = "in"; T.t = 0; T.at = { x: c.x, y: c.y };

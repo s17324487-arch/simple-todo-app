@@ -112,9 +112,9 @@ const ParentCare = {
     for(const p of sc.parents.filter(p=>!p.hidden)){
       p.anim+=dt;
       if(p.state==="walk"){
-        const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy),step=Math.min(d,90*dt);
-        if(d>1){p.x+=dx/d*step;p.y+=dy/d*step;}
-        else if(p.target)this.care(sc,p);else{p.state="idle";p.time=3;}
+        // 家具を よけて あるく（js/home-nav.js）
+        const done=typeof HomeNav!=="undefined"?HomeNav.walk(sc,p,90,dt):(()=>{const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy),step=Math.min(d,90*dt);if(d>1){p.x+=dx/d*step;p.y+=dy/d*step;return false;}return true;})();
+        if(done){if(p.target)this.care(sc,p);else{p.state="idle";p.time=3;}}
       }else if(p.state==="care" && (p.time-=dt)<=0)this.next(sc,p);
     }
   },

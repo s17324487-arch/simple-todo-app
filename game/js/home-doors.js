@@ -76,8 +76,9 @@ const HomeDoors = {
       const dx = g.x - c.x, dy = g.y - c.y, dist = Math.hypot(dx, dy);
       if (dist > 2) {
         all = false; // あるく うごき（c.anim）は updateChar が すすめる
-        const k = Math.min(1, (this.SPEED * dt) / dist); c.x += dx * k; c.y += dy * k;
-        c.dir = Math.abs(dx) > Math.abs(dy) * 0.7 ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up";
+        // 家具を よけて ドアまで（js/home-nav.js。つまる ときだけ まっすぐ）
+        if (typeof HomeNav !== "undefined") { if (HomeNav.walk(sc, c, this.SPEED, dt, g.x, g.y)) { c.x = g.x; c.y = g.y; } }
+        else { const k = Math.min(1, (this.SPEED * dt) / dist); c.x += dx * k; c.y += dy * k; c.dir = Math.abs(dx) > Math.abs(dy) * 0.7 ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up"; }
       } else c.dir = "up";
     }
     if ((all && W.t > 0.35) || W.t > this.LIMIT) { sc.doorWalk = null; W.done(); }
