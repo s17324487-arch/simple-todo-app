@@ -331,6 +331,11 @@ const PokaDebug = {
     const w=GowagaWish.st(),x=w.cur&&GowagaWish.INDEX[w.cur.id],h=G.sceneName==='house'&&G.scene?G.scene.wishFx:null;
     return {cur:w.cur?{...w.cur,kind:x.kind,who:x.who}:null,n:w.n||0,log:w.log.map(l=>l.id),how:w.log.map(l=>l.how),asking:GowagaWish.asking,busy:!!(h&&h.busy),amae:h?Math.max(0,Math.round(h.amae*10)/10):0,ids:GowagaWish.WISHES.map(x=>x.id),place:GowagaWish.place()};
   },
+  // おねがいの おれいの しな（js/wish-gifts.js・UI-70）: mode "none"（でない）・しゅるい（letter／stone／acc／hand）・id（つぎ だけ）・null（ふつう）
+  wishGift(mode=null) {if(typeof WishGifts==='undefined')return null;WishGifts.force=mode===null?undefined:mode;return WishGifts.state();},
+  wishGifts() {return typeof WishGifts==='undefined'?null:WishGifts.state();},
+  wishGiftGive(id) {return !!(typeof WishGifts!=='undefined'&&WishGifts.give(id));},
+  wishLetter(id) {if(typeof WishGifts==='undefined'||!WishGifts.INDEX[id])return false;WishGifts.openLetter(id);return true;},
   // おうちで その おねがいを きく（まどが ひらく。こたえは テストの がわで おす）
   wishAsk(id) {if(G.sceneName!=='house'||typeof GowagaWish==='undefined'||!GowagaWish.INDEX[id])return false;GowagaWish.ask(G.scene,id);return true;},
   // もちもの（UI-48）: 7しゅ・ようふくやさんの たな・3人が もって いる もの・絵に でて いるか

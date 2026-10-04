@@ -192,6 +192,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `rug-lamp.js`（shop-reward-art.js の あと・slow-life-prices.js の まえ） | `RugLamp`（かぐやの ラグ 8 と ランプ 8・UI-39） |
 | — | `furniture-collection.js`（slow-life-prices.js・quiz-prizes.js の あと） | `FurnCollection`（あき・ふゆの かぐ 4・ひがわり 20・クイズの だんろ・UI-40） |
 | — | `gowaga-wish.js`（くみこむ ものの あと・world-zoom.js の まえ） | `GowagaWish`（おうちで ごわがの おねがい・かなえて おれいと あまえる・UI-46） |
+| — | `wish-gift-art.js` → `wish-gifts.js`（gowaga-wish.js の すぐ あと・smaho.js・figure-stand.js・chara.js の あと） | `WishGiftArt`（ふうとう・らくがき・いし・つる・え・けん・アクセサリーの `WEAR.wg_*`）／ `WishGifts`（おねがいの おれいの しな・すまほの「たからもの」・UI-70） |
 | — | `home-toilet.js`（gowaga-wish.js の あと・world-zoom.js の まえ） | `HomeToilet`（おうちの おトイレ・3人の いきたさ・UI-47） |
 | — | `hand-items.js`（dressup.js の あと・slow-life-prices.js の まえ） | `HandItems`（もちもの: ふうせん・バッグ・`outfit.hand`・UI-48） |
 | — | `pet-walk.js`（home-toilet.js の あと・world-zoom.js の まえ） | `PetWalk`（いぬの さんぽ: おさんぽ リードと こいぬ 3びき・UI-49） |
@@ -1406,6 +1407,21 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - おうち: `sc.wishFx` = { t, ask, busy, amae, beat }。`ask(sc, id)`・`thank(sc)`・`amaeTick(sc, h, dt)`（state "amae" で ぶらぶら しない・`sc.life.next` を のばす）。
 - すまほ: `Smaho.APPS` の `wish`（`phoneView(el, ph)`）と `Smaho.ICON.wish`。
 - PokaDebug: `wish()`・`wishAsk(id)`。検査は `tools/check-gowaga-wish.mjs`、スモークは `tests/gowaga-wish-smoke.mjs`（`gowaga-wish-390/375`）。
+
+## おねがいの おれいの しな（UI-70・`js/wish-gifts.js`・`js/wish-gift-art.js`）
+
+オーナーの FB 2026-10-03「3人のお願いを聞いたら、低確率でお礼の品が3人から貰えるようにして。…お手紙（ひらがなで二行くらい…実際に開いて見ることのできる）、街で拾ったキラキラの石、お小遣いで買ったアクセサリーなど、子供らしいものにして。」
+
+- データ: `WishGifts.LETTERS`（3人 × 8・ひらがな だけの 2ぎょう）→ `ALL` の `wg_l_<子>_<1〜8>`（kind: letter）。`THINGS`（いし 9・アクセ 6・てづくり 3。{ id, kind: stone|acc|hand, who, name, say, desc, slot }）。`INDEX`・`SECTIONS`・`ASK`（わたす ことば）・`AFTER`・`TAP`（かたたたき）。
+- でる きまり: `roll(who, r)` は `CHANCE`（0.15）・`PITY`（8。`st().miss` が 8 なら かならず）。`choose(who, r, kind)` は `WEIGHT`（letter 45・stone 25・acc 18・hand 12）で しゅるい → その 子の まだ もって いない もの（ぜんぶ もって いれば その 子の てがみ）。`force`（PokaDebug）: "none"・しゅるい・id。
+- くみこみ: `GowagaWish.thank` の さいご（`h.amae` を きめた あと・`h.busy` の まま）で `WishGifts.after(sc, x)` → ぎゅー／なでなでの へんじ（`sc.life.queue`）が おわるまで まつ → `HomeLife.say`（`ASK`）→ `give(id)` → `present(it, true)`（てがみは `openLetter`・ほかは `card`。もらう ときは ✕ なし）→ `AFTER`。シーンが かわって いたら `give` と トースト だけ。おねがいの きろく（`Save.d.wish.log` の さいご）に `gift`。すまほの「おねがい」の きろくに `WishGifts.icon()`。
+- `openLetter(id, gift)`: `.wg-letter-box` に `.wg-env`（うしろ・びんせん・まえ・ふた・「○○より」の 5まいを かさねる）。タップ か「あける」で `.open`（ふたが rotateX で ひらく → びんせんが うえへ）→ 1びょう あとで `.read`（`.wg-letter`: ぶんせつごとの `.wg-w`〔nowrap〕・`.wg-sign`・`.wg-doodle`）→「だいじに する」。
+- `card(it, gift)`: 子の かお と ことば・絵・なまえ・「○○から・○がつ ○にち」・せつめい・つかいかた。かたたたき けんは「つかう」（`st().used.wg_coupon`・10かい・`.tap` で かおが うごく）。
+- 家具: いし 9（ゆか 30×26・`A.stone`＝ハンカチ＋いし）・つる（ゆか 34×30）・え（かべ 56×44）。`FURNITURE`／`FURN_INDEX`（`price: 0`・`rare`・`exclusive: "wish"`・`wishGift`）と `FURN_ART`。`FigureStand.addFigures`（いしと つる）。服: アクセ 6（`WEAR_ITEMS`／`ITEM_INDEX`・`exclusive: "wish"`・`WEAR.wg_*`）。ヘアピンは `HeadPair.KIND[id] = "pin"`。ずかんの ヒントは `WishGifts.source(id)`（`ItemDexSources.source`）。
+- すまほ: `Smaho.APPS` に `treasure`（「たからもの」・「おねがい」の つぎ）と `Smaho.ICON.treasure`。`phoneView(el)`（`.wg-app`・`.wg-sec`・`.wg-grid`・`.wg-cell[data-id]`。まだ ない ものは `disabled` の「？」）。
+- フォント: `index.html` の Google Fonts に `Hachi Maru Pop`（てがみ だけ。`font-family` の さいごは いつもの もじ なので よめない ときも だいじょうぶ）。
+- セーブ: `Save.d.wish.gift = { miss, got: { id: かず }, log: [{ id, who, t }], used: { wg_coupon } }`（`WishGifts.st()` が つくって こわれた 形を なおす。`Save.fresh()` には いれない・SCHEMA は そのまま）。
+- PokaDebug: `wishGift(mode)`・`wishGifts()`・`wishGiftGive(id)`・`wishLetter(id)`。検査は `tools/check-wish-gifts.mjs`、スモークは `tests/wish-gifts-smoke.mjs`（`wish-gifts-390/375`）。
 
 ## いぬの さんぽ（UI-49・`js/pet-walk.js`・`PetWalk`）
 

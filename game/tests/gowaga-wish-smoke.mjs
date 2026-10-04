@@ -12,6 +12,7 @@ export async function gowagaWishSmoke({ scenario, expect }) {
   const waitAsk = (H, ms = 15000) => H.page.locator('.dlg-shade.ask .choices .btn').first().waitFor({ timeout: ms });
   for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario('gowaga-wish-' + viewport.width, async H => {
     await H.newGameFast(); await H.dbg('hour', 20); await H.dbg('weather', 'clear'); await H.wait(800);
+    await H.dbg('wishGift', 'none'); // おれいの しな（UI-70）は wish-gifts の スモークで みる
     let w = await H.dbg('wish');
     expect(w && w.ids.length === 20 && !w.cur && w.n === 0, 'PokaDebug.wish ' + JSON.stringify(w));
     // 1. ショートケーキ
@@ -50,6 +51,7 @@ export async function gowagaWishSmoke({ scenario, expect }) {
     expect(await H.dbg('wishAsk', 'go_museum'), 'はくぶつかんの おねがいを きけない');
     await waitAsk(H, 8000); await H.page.getByRole('button', { name: 'いいよ！', exact: true }).click(); await H.wait(300);
     await H.dbg('save'); await H.page.reload(); await H.page.getByRole('button', { name: 'つづきから', exact: true }).click(); await H.idle();
+    await H.dbg('wishGift', 'none'); // よみなおすと もとに もどる。はくぶつかんの おれいで おれいの しな（15%）の まどが でると 3. の おねがいが きけない
     w = await H.dbg('wish'); expect(w.cur && w.cur.id === 'go_museum' && !w.cur.done && w.n === 1, 'さいかいで おねがいが きえる ' + JSON.stringify(w));
     await H.dbg('museumGo', 'museum'); await H.until(() => PokaDebug.state().scene === 'venue' && PokaDebug.idle(), 20000);
     w = await H.dbg('wish'); expect(w.cur && w.cur.done && w.place && w.place.venue === 'museum', 'はくぶつかんに ついても かなわない ' + JSON.stringify(w));

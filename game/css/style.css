@@ -1523,3 +1523,67 @@ html, body {
 .kb-news-row.done { opacity:.6; } .kb-news-n { display:flex; flex-direction:column; min-width:0; } .kb-news-n b { font-size:13px; } .kb-news-n small { font-size:11px; color:#6A6458; font-weight:800; }
 .kb-news-t { font-size:12px; font-weight:800; } .kb-news-s { font-size:12px; font-weight:900; text-align:right; color:#C9473F; }
 .kb-stats { font-size:11.5px; color:#6A6458; font-weight:800; margin-top:8px; }
+
+/* おねがいの おれいの しな（UI-70・js/wish-gifts.js）: ふうとう → びんせん・いし／アクセサリー／てづくりの カード・すまほの「たからもの」 */
+.wg-panel .panel-foot .btn { min-height: 48px; font-size: 16px; }
+.wg-panel .panel-foot { display: flex; gap: 8px; }
+.wg-panel .panel-foot .btn { flex: 1 1 0; }
+.wg-letter-box { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.wg-env { position: relative; width: min(74vw, 270px); aspect-ratio: 200 / 140; border: 0; padding: 0; margin: 10px 0 4px; background: none; cursor: pointer; perspective: 600px; }
+.wg-env > span { position: absolute; inset: 0; display: block; }
+.wg-env svg { display: block; width: 100%; height: 100%; }
+.wg-env-back { z-index: 0; }
+.wg-env-paper { inset: 10% 8% 6% 8% !important; z-index: 1; border: 2px solid var(--ink); border-radius: 4px; background: repeating-linear-gradient(to bottom, #fffdf6 0 11px, #e8e1d2 11px 12px); transition: transform 0.5s ease 0.45s; }
+.wg-env-front { z-index: 2; pointer-events: none; }
+.wg-env-flap { z-index: 3; transform-origin: 50% 1.5%; transition: transform 0.45s ease, z-index 0s linear 0.22s; }
+.wg-env-to { inset: auto 8% 9% auto !important; z-index: 4; font-family: "Hachi Maru Pop", "M PLUS Rounded 1c", sans-serif; font-size: 15px; font-weight: 700; color: #4a3f36; white-space: nowrap; }
+.wg-env.open .wg-env-flap { transform: rotateX(180deg); z-index: 0; }
+.wg-env.open .wg-env-paper { transform: translateY(-48%); }
+.wg-env.open .wg-env-to { opacity: 0; transition: opacity 0.2s; }
+.wg-hint { margin: 0; text-align: center; }
+.wg-letter { display: none; position: relative; box-sizing: border-box; width: 100%; max-width: 340px; margin-top: 10px; padding: 22px 12px 84px; border: 3px solid var(--ink); border-radius: 8px; box-shadow: 0 4px 0 var(--ink);
+  background-color: var(--wg-paper); background-image: repeating-linear-gradient(to bottom, transparent 0 30px, var(--wg-line) 30px 32px); background-position: 0 22px; }
+.wg-letter.k-wanko { --wg-paper: #F3F8FE; --wg-line: rgba(111, 163, 214, 0.45); --wg-ink: #2F6DB5; --wg-tape: #F7C873; }
+.wg-letter.k-gachan { --wg-paper: #FFF5F9; --wg-line: rgba(229, 131, 168, 0.45); --wg-ink: #D2477A; --wg-tape: #9ED9D6; }
+.wg-letter.k-goji { --wg-paper: #F5FBF1; --wg-line: rgba(125, 186, 107, 0.5); --wg-ink: #3B8A3E; --wg-tape: #F4B6C2; }
+.wg-tape { position: absolute; top: -12px; left: 50%; width: 86px; height: 22px; margin-left: -43px; background: var(--wg-tape); opacity: 0.85; transform: rotate(-3deg); border-left: 3px dotted rgba(255, 255, 255, 0.7); border-right: 3px dotted rgba(255, 255, 255, 0.7); }
+.wg-text { margin: 0; font-family: "Hachi Maru Pop", "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif; font-size: 16px; font-weight: 400; line-height: 32px; color: var(--wg-ink); }
+.wg-ln { display: block; }
+.wg-w { display: inline-block; white-space: nowrap; }
+.wg-sign { margin-top: 0; text-align: right; font-family: "Hachi Maru Pop", "M PLUS Rounded 1c", sans-serif; font-size: 16px; line-height: 32px; color: var(--wg-ink); word-break: keep-all; overflow-wrap: anywhere; }
+.wg-doodle { position: absolute; left: 12px; bottom: 8px; width: 92px; height: 74px; }
+.wg-doodle svg { width: 100%; height: 100%; display: block; }
+.wg-letter-box.read .wg-env, .wg-letter-box.read .wg-hint { display: none; }
+.wg-letter-box.read .wg-letter { display: block; animation: wgUnfold 0.45s ease; }
+@keyframes wgUnfold { from { transform: translateY(24px) scale(0.86); opacity: 0; } to { transform: none; opacity: 1; } }
+.wg-card { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.wg-from { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; align-items: center; width: 100%; text-align: left; }
+.wg-face svg { width: 64px; height: auto; display: block; }
+.wg-say { position: relative; margin: 0; padding: 8px 10px; border: 3px solid var(--ink); border-radius: 14px; background: #fff; font-size: 14px; font-weight: 800; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+.wg-art { display: flex; align-items: center; justify-content: center; width: 132px; height: 112px; border: 3px solid var(--ink); border-radius: 20px; background: radial-gradient(circle at 50% 40%, #fffdf6 0 45%, #fff0c8 100%); }
+.wg-card.k-wanko .wg-art { background: radial-gradient(circle at 50% 40%, #ffffff 0 45%, #dcebfa 100%); }
+.wg-card.k-gachan .wg-art { background: radial-gradient(circle at 50% 40%, #ffffff 0 45%, #fde3ee 100%); }
+.wg-card.k-goji .wg-art { background: radial-gradient(circle at 50% 40%, #ffffff 0 45%, #e3f2dc 100%); }
+.wg-art svg { width: 104px; height: 88px; }
+.wg-name { font-size: 18px; font-weight: 900; }
+.wg-when { font-size: 12px; font-weight: 800; color: #8a6234; }
+.wg-desc, .wg-use { margin: 0; font-size: 13px; font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; }
+.wg-use { font-size: 12px; }
+.wg-card.tap .wg-face svg { animation: wgTap 0.32s ease 2; }
+@keyframes wgTap { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px) rotate(-4deg); } }
+.wg-app { display: flex; flex-direction: column; gap: 8px; }
+.wg-app-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 15px; }
+.wg-app-head b { word-break: keep-all; overflow-wrap: anywhere; }
+.wg-count { flex: none; font-weight: 900; font-size: 14px; }
+.wg-app-lead { margin: 0; font-size: 12px; word-break: keep-all; overflow-wrap: anywhere; }
+.wg-sec { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; padding: 2px 4px; border-bottom: 2px dashed #d8c8a8; font-size: 14px; font-weight: 900; }
+.wg-sec small { font-size: 12px; font-weight: 800; color: #8a6234; }
+.wg-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.wg-grid.g-letter { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.wg-cell { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; min-height: 64px; padding: 4px 2px; border: 2px solid var(--ink); border-radius: 12px; background: #fff; font: inherit; font-size: 10.5px; font-weight: 800; color: var(--ink); cursor: pointer; }
+.wg-cell:disabled { cursor: default; border-style: dashed; border-color: #b9ad98; background: #faf6ee; color: #9c8f7a; }
+.wg-cell-art { display: flex; align-items: center; justify-content: center; width: 100%; height: 40px; }
+.wg-cell-art svg { max-width: 54px; max-height: 40px; }
+.wg-cell-nm { line-height: 1.2; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
+.wg-q { font-size: 20px; font-weight: 900; color: #c9bba3; }
+.wish-gift { display: inline-flex; flex: none; }
