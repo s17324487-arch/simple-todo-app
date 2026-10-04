@@ -1,143 +1,218 @@
-// 店内は町とは別の、10×12マスの歩ける空間。セーブの座標は入口の外に保つ。
+// 歩いて 入る 店の 内装（O10・UI-75 から 斜め上の 館。シーンは js/store-iso.js・絵は js/store-iso-art.js・js/store-iso-props.js）。
+// 10×12 マス: 店員（5,1）・レジ（4〜6,2）・はなす ところ（5,3）・でぐちの マット（4〜6,11）は どの 店も おなじ。セーブの 座標は 入口の 外に 保つ。
+// wall・wallPat（stripe／dots／tile／brick／wood）・wainscot・wainPat（tile）・accent・wood: かべと 什器の いろ。mats・zones: 床（もじ → 材質）。
+// counter: { body, top, items }（レジの いろと うえの こもの）。walls: 北・西の かべの パーツ（まど・かんばん・メニュー・ポスター など。a〜b は かべに そった マス）。
+// fixtures: [kind, x, y, w, d, label, opts]。label が ある ものは タップで ひとこと（opts.action "sit" の テーブルは 3人が すわる）。
+const STORE_HAIR_ART = (i) => `<circle cx="0" cy="2" r="9" fill="#FFE6CC" stroke="#1F1D1B" stroke-width="1.2"/>` + [`<path d="M-10,0 Q-10,-12 0,-12 Q10,-12 10,0 Q6,-6 0,-6 Q-6,-6 -10,0 Z" fill="#8A5A3C" stroke="#1F1D1B" stroke-width="1.2"/>`, `<path d="M-11,6 Q-12,-12 0,-12 Q12,-12 11,6 L8,2 Q6,-6 0,-6 Q-6,-6 -8,2 Z" fill="#E9B74E" stroke="#1F1D1B" stroke-width="1.2"/><circle cx="9" cy="-8" r="3" fill="#F28BB2"/>`, `<path d="M-10,-1 Q-8,-13 2,-12 Q11,-10 10,-1 Q4,-8 -2,-6 Z" fill="#3F3A44" stroke="#1F1D1B" stroke-width="1.2"/><circle cx="-11" cy="-4" r="4.6" fill="#3F3A44" stroke="#1F1D1B" stroke-width="1.2"/>`][i % 3] + `<circle cx="-3" cy="2" r="1" fill="#1F1D1B"/><circle cx="3" cy="2" r="1" fill="#1F1D1B"/>`;
 const STORE_INTERIORS = {
-  burger:{wall:"#E7DDCB",floor:"#EADBC3",accent:"#A9BBB6",motif:"check",caption:"こんがり できたて バーガー",fixtures:[
-    ["burgergrill",0,0,3,2,"じゅうじゅう てっぱん"],["sodas",8,0,2,2,"のみもの コーナー"],["booth",0,5,3,2,"まどべの ボックスせき"],["burgerprep",7,5,3,2,"ぐざいを ならべる だい"],["menu",0,9,3,1,"きょうの バーガー"],["booth",7,9,3,1,"ひとやすみの せき"]]},
-  groom:{wall:"#DCEBE5",floor:"#E4DCCA",accent:"#94B6AF",motif:"tile",caption:"ふんわり すっきり おしゃれ",fixtures:[
-    ["mirror",0,0,3,2,"おおきな かがみ"],["sink",8,0,2,2,"シャンプーの ながし"],["salonchair",0,5,3,2,"カットの いす"],["haircart",7,5,3,2,"ドライヤーと はさみ"],["accessories",0,9,3,1,"いろとりどりの リボン"],["waiting",7,9,3,1,"まちあいの ソファ"]]},
-  cake: {wall:"#F2DEE5",floor:"#EFE2CA",accent:"#BC98AC",motif:"check",caption:"きねんびを いろどる デザ",fixtures:[
-    ["pastrycase",0,0,3,2,"ホールケーキの ショーケース"],["jars",8,0,2,2,"クリームと くだもの"],["pastrycase",0,5,3,2,"ちいさな デザ"],["decorating",7,5,3,2,"ケーキを かざる だい"],["cafe",0,9,3,1,"おいわいの せき"],["dessert",8,9,2,1,"おくりものの ケーキ"]]},
-  clothes: { wall: "#F4DCE5", floor: "#EDDAC3", accent: "#B87893", motif: "stripe", caption: "とっておきの いちまい", fixtures: [
-    ["rack",0,1,3,1,"ふくの ラック"], ["fitting",8,0,2,3,"しちゃくしつ"], ["mirror",0,4,2,1,"おおきな かがみ"], ["folded",7,5,3,2,"たたんだ おようふく"], ["mannequin",1,7,2,1,"きょうの おすすめ"], ["accessories",7,9,3,1,"ぼうしと リボン"] ] },
-  furniture: { wall: "#E8DEC7", floor: "#CDA878", accent: "#7F9A88", motif: "wood", caption: "くらしの どうぐと ぬくもり", fixtures: [
-    ["bookcase",0,0,3,2,"きの ほんだな"], ["swatches",8,0,2,2,"かべがみの みほん"], ["bed",0,5,3,3,"ベッドの おへや"], ["sofa",7,5,3,2,"くつろぎ コーナー"], ["lamp",1,9,2,1,"あかりの みほん"], ["table",7,9,3,1,"テーブルの みほん"] ] },
-  market: { wall: "#E6EBD3", floor: "#F4F0DE", accent: "#77A785", motif: "tile", caption: "しんせん・おいしい・まいにち", fixtures: [
-    ["fridge",0,0,3,2,"ひんやり れいぞうこ"], ["shelf",8,0,2,3,"のみものの たな"], ["produce",0,5,3,2,"くだもの いちば"], ["groceries",7,5,3,2,"たべものの たな"], ["baskets",0,9,2,1,"おかいもの かご"], ["flowers",8,9,2,1,"きせつの はな"] ] },
-  crepe: { wall: "#FFE2D3", floor: "#F7DFCF", accent: "#D9979E", motif: "check", caption: "あまい かおりの クレープや", fixtures: [
-    ["griddle",0,0,3,2,"クレープの てっぱん"], ["dessert",8,0,2,2,"デザの ショーケース"], ["cafe",0,5,3,2,"まどべの テーブル"], ["cafe",7,6,3,2,"くつろぎの せき"], ["menu",1,9,2,1,"きょうの メニュー"], ["jars",8,9,2,1,"トッピングの びん"] ] },
-  dentist: { wall: "#D9EDF0", floor: "#EEF4EE", accent: "#80B8C8", motif: "tile", caption: "にっこり しろい は", fixtures: [
-    ["sink",0,0,3,2,"てあらい コーナー"], ["cabinet",8,0,2,2,"きれいな どうぐ"], ["dental",0,5,3,3,"しんさつの いす"], ["waiting",7,6,3,1,"まちあいの いす"], ["books",7,9,2,1,"えほん コーナー"], ["tooth",1,9,2,1,"はみがきの みほん"] ] },
-  bakery: { wall: "#F2DFC0", floor: "#CBA17D", accent: "#B8764E", motif: "wood", caption: "まいあさ こんがり やきたて", fixtures: [
-    ["oven",0,0,3,2,"いしがま オーブン"], ["flour",8,0,2,2,"こむぎこの ふくろ"], ["bread",0,5,3,2,"やきたての パン"], ["dough",7,5,3,2,"パンを こねる だい"], ["bread",7,9,3,1,"おみやげの パン"], ["cafe",0,9,3,1,"ひとやすみの せき"] ] },
-  florist: { wall: "#E1ECD6", floor: "#D2C5A5", accent: "#85A277", motif: "stone", caption: "おはなと みどりの おくりもの", fixtures: [
-    ["trellis",0,0,3,2,"つるばなの たな"], ["flowers",8,0,2,2,"いろとりどりの はな"], ["bouquets",0,5,3,2,"はなたば コーナー"], ["potting",7,5,3,2,"おはなの さぎょうだい"], ["pots",0,9,2,1,"ちいさな うえきばち"], ["flowers",8,9,2,1,"まどべの はな"] ] },
-  link: { wall: "#DEDDF1", floor: "#C7C9E2", accent: "#9284BB", motif: "stars", caption: "みんなで つなごう パズルひろば", fixtures: [
-    ["arcade",0,0,3,2,"パズルの ゲームだい"], ["prizes",8,0,2,2,"ぬいぐるみの たな"], ["puzzle",0,5,3,2,"おためし パズル"], ["arcade",7,5,3,2,"なかよし ゲームだい"], ["waiting",0,9,3,1,"ひとやすみ ベンチ"], ["prizes",8,9,2,1,"きらきら トロフィー"] ] },
-  // ころころ フルーツ（パズルの おてつだい）: 玉が つみかさなる ガラスの 箱・くだものの たな・ジュースの せき
-  korokoro: { wall: "#FCE9D2", floor: "#EFDDBE", accent: "#D78E5B", motif: "check", caption: "おなじ ものを くっつけて まんまる", fixtures: [
-    ["fruitbox",0,0,3,2,"ころころ パズルの はこ"], ["produce",8,0,2,2,"くだものの たな"], ["fruitbox",0,5,3,2,"れんしゅうの はこ"], ["cafe",7,5,3,2,"フルーツ ジュースの せき"], ["baskets",0,9,2,1,"くだものの かご"], ["prizes",8,9,2,1,"まんまるの ぬいぐるみ"] ] },
-  relay: { wall: "#DDE9F0", floor: "#D9C7A6", accent: "#779DB8", motif: "route", caption: "そらへ とどける おくりもの", fixtures: [
-    ["parcels",0,0,3,2,"にもつの たな"], ["lockers",8,0,2,3,"はいたつ ロッカー"], ["conveyor",0,5,3,2,"にもつの ベルト"], ["sorting",7,5,3,2,"しわけ コーナー"], ["cart",0,9,2,1,"はこぶ カート"], ["plane",7,9,3,1,"ひこうきの もけい"] ] },
-};
-
-const StoreArt = {
-  // 絵は有限個の種類だけをキャッシュする。位置・アニメの時刻はキーに含めない。
-  svg(body, w=220, h=190) { return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><g stroke="${INK}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">${body}</g></svg>`; },
-  rect(x,y,w,h,col,r=4) { return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${col}"/>`; },
-  path(d,col="none") { return `<path d="${d}" fill="${col}"/>`; },
-  dot(x,y,r,col) { return `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}"/>`; },
-  flower(x,y,col) { return this.path(`M${x},${y+35} V${y}`)+this.path(`M${x},${y+23} q-24,-22 -24,-6 q12,15 24,6 m0,-7 q24,-22 24,-6 q-12,15 -24,6`,"#93B882")+[[-9,0],[0,-9],[9,0],[0,9]].map(([dx,dy])=>this.dot(x+dx,y+dy,9,col)).join("")+this.dot(x,y,5,"#F5D48A"); },
-  shirt(x,y,col) { return `<g transform="translate(${x} ${y})">${this.path("M0,6 L15,0 Q25,14 35,0 L50,6 L61,29 L46,36 L42,26 L42,76 L8,76 L8,26 L4,36 L-11,29 Z",col)}${this.path("M17,4 Q25,25 33,4")}</g>`; },
-  prop(kind) {
-    const r=this.rect.bind(this),p=this.path.bind(this),c=this.dot.bind(this),fl=this.flower.bind(this);
-    const base=(col="#BA9973")=>r(12,96,196,74,col)+p("M12,96 L32,76 H190 L208,96 Z","#E9CFAD")+p("M29,170 V182 M192,170 V182 M20,112 H200");
-    const shelf=(col="#DFC49A")=>r(12,15,196,161,col)+p("M20,66 H200 M20,118 H200 M20,169 H200 M20,20 V169 M200,20 V169");
-    const bread=(x,y)=>`<g transform="translate(${x} ${y})">${p("M-21,11 Q-29,-16 0,-22 Q29,-16 21,11 Z","#ECC184")}${p("M-10,-12 L-5,4 M3,-14 L8,2")}</g>`;
-    const bottle=(x,y,col)=>r(x+6,y,14,8,"#EFE7D0",2)+r(x,y+8,26,33,col,6)+r(x+3,y+20,20,12,"#FFF4DE",1);
-    let a="";
-    switch(kind) {
-      case "counter": a=base("#CBAE88")+r(18,85,184,16,"#E9DBC6")+r(136,46,52,37,"#B8C9C1")+r(143,52,38,20,"#45645C")+p("M152,83 V94 M126,95 H194")+r(33,68,52,13,"#FFF5DF")+p("M38,68 V54 H78 V68","#D6AB85"); break;
-      case "rack": a=p("M24,177 V38 H196 V177 M10,177 H38 M182,177 H210"); for(let i=0;i<3;i++)a+=p(`M${40+i*62},48 l18,-10 18,10`)+this.shirt(33+i*62,55,["#DDA7B8","#AECBD1","#E8C88D"][i]); break;
-      case "fitting": a=r(20,10,180,173,"#E8D1BB")+r(33,23,154,157,"#BE859D")+p("M50,27 Q70,105 46,174 M88,27 Q104,110 87,174 M126,27 Q141,110 127,174 M165,27 Q179,110 165,174")+r(13,6,194,15,"#E8CFAB"); break;
-      case "mirror": a=r(43,8,134,168,"#D4AF78",24)+r(53,18,114,142,"#D9EBEB",20)+p("M64,107 L144,30 M76,140 L157,59","none")+p("M60,174 L52,187 M160,174 L168,187"); break;
-      case "folded": a=base();for(let i=0;i<3;i++)for(let j=0;j<3;j++)a+=r(29+i*58,81-j*14,47,14,["#BCBCD9","#ABD0C9","#E3B5B8"][i])+p(`M${35+i*58},${87-j*14} h32`);break;
-      case "mannequin": a=p("M110,103 V178 M72,182 H148")+c(110,28,16,"#EEDBB9")+this.shirt(85,51,"#DFA9BD")+p("M93,122 L73,161 H147 L127,122","#DFA9BD");break;
-      case "accessories": a=base()+p("M35,80 Q35,15 90,45 V76 Z","#D6BD91")+r(25,77,82,12,"#E7D0A4")+p("M124,67 Q116,35 148,61 Q181,35 175,67 Q172,95 148,72 Q121,95 124,67","#D399AC")+c(148,67,8,"#EDCF89");break;
-      case "bookcase": case "books": a=shelf();for(let y=0;y<3;y++)for(let i=0;i<7;i++)a+=r(26+i*24,30+y*50,18,32,["#AFBB93","#C6927C","#96B7BA","#E5C88B"][i%4],1)+p(`M${30+i*24},${36+y*50} v20`);break;
-      case "swatches": a=shelf("#E1D7BF");for(let i=0;i<9;i++)a+=r(27+i%3*57,27+Math.floor(i/3)*50,45,38,["#DDAABD","#B7C8AB","#A5C5D0","#ECD59D"][i%4])+p(`M${33+i%3*57},${33+Math.floor(i/3)*50} h30`);break;
-      case "bed": case "sofa": case "lamp": case "table": {
-        const id={bed:"bed_simple",sofa:"sofa",lamp:"lamp",table:"table_wood"}[kind];
-        a=Art.furnSvg(id).replace("<svg ",'<svg x="5" y="5" width="210" height="175" ');break;
-      }
-      case "fridge": a=r(12,8,196,172,"#D4E4DD")+r(23,20,174,148,"#BDD9DC")+p("M110,20 V168 M24,69 H195 M24,120 H195 M94,77 V103 M125,77 V103");for(let y=0;y<3;y++)for(let x=0;x<4;x++)a+=bottle(31+x*43,25+y*49,["#E9C97D","#D8B0C0","#A7C59F"][x%3]);a+=p("M35,59 L67,28 M132,111 L174,75");break;
-      case "shelf": case "groceries": case "jars": a=shelf();for(let y=0;y<3;y++)for(let i=0;i<5;i++)a+=bottle(27+i*35,23+y*50,["#DBC17E","#D5A5B0","#AFCC98","#A5C8D3"][i%4]);break;
-      case "produce": a=base("#92AB80");for(let i=0;i<15;i++)a+=c(36+i%5*36,49+Math.floor(i/5)*21,13,["#DB9982","#C8D183","#ECC874"][Math.floor(i/5)]);a+=p("M25,102 H195 M77,77 V98 M147,77 V98");break;
-      case "baskets": for(let i=0;i<4;i++)a+=r(35+i*3,90-i*17,143,67,"#D0B991")+p(`M50,${98-i*17} v45 m25,-45 v45 m25,-45 v45 m25,-45 v45 m25,-45 v45 m-104,-20 h115`);break;
-      case "griddle": a=base("#AABBB8")+r(26,70,168,22,"#777E7D")+`<ellipse cx="110" cy="71" rx="58" ry="24" fill="#EED395"/>`+p("M62,69 Q112,40 157,70 M161,39 L183,18");break;
-      case "dessert": a=base("#D5ABA8")+r(20,30,180,75,"#DDE9E5");for(let i=0;i<3;i++)a+=p(`M${36+i*58},88 l22,-44 22,44 Z`,"#EDC685")+c(58+i*58,50,15,"#FFF3D9")+c(58+i*58,37,7,"#D78784");a+=p("M25,105 H195 M33,47 L53,34");break;
-      case "cafe": a=p("M57,103 L44,180 M163,103 L176,180 M74,102 L77,153 M146,102 L143,153")+`<ellipse cx="110" cy="98" rx="91" ry="33" fill="#DEC19B"/>`+r(72,60,30,30,"#FFF2D9",8)+p("M102,64 Q125,62 120,77 Q117,84 103,80")+r(130,67,25,12,"#C7D4B5")+p("M43,143 H76 M145,143 H178");break;
-      case "menu": a=p("M41,184 L58,16 H168 L183,184")+r(48,18,124,138,"#CBB187")+r(57,28,106,116,"#577169")+p("M78,63 H146 M78,86 H141 M78,111 H147")+c(80,45,6,"#EBC88D");break;
-      case "sink": a=base("#C8D8D8")+`<ellipse cx="88" cy="87" rx="53" ry="17" fill="#F7FAF0"/>`+p("M94,73 V45 Q115,32 118,58 M110,57 H128")+bottle(155,38,"#ACD5C9");break;
-      case "cabinet": case "lockers": a=r(14,12,192,166,kind==="cabinet"?"#DAEBE8":"#99B8C9")+p("M78,13 V176 M142,13 V176 M15,96 H204");for(let i=0;i<6;i++)a+=r(30+i%3*64,26+Math.floor(i/3)*84,28,9,"#F5EADA",1)+p(`M${58+i%3*64},${60+Math.floor(i/3)*84} v16`);break;
-      case "dental": a=p("M89,125 V173 H149 V157")+r(70,36,102,79,"#9DC8CD",24)+r(73,12,96,29,"#DAE7DB",10)+p("M71,95 L25,142 Q25,158 46,160 H153 Q173,145 168,118 Z","#8ABABD")+p("M181,158 V39 L144,14 L105,21")+r(84,13,40,18,"#FFF1C1",8)+p("M28,114 L25,142 M169,103 V137");break;
-      case "waiting": a=p("M26,151 V180 M191,151 V180")+r(14,60,192,83,"#A6BEC1",12)+r(9,122,202,38,"#C0D4CD",10)+p("M75,66 V119 M141,66 V119");break;
-      case "tooth": a=r(31,142,158,31,"#B7D7D3")+p("M110,48 C64,18 44,57 62,98 C78,151 83,137 93,109 Q110,78 126,112 C138,154 151,124 165,93 C190,48 160,15 110,48 Z","#FFFBEB")+p("M154,145 L189,44 M180,42 L202,49");break;
-      case "oven": a=r(12,14,196,163,"#D6A88F",18)+p("M23,44 H193 M23,80 H193 M23,118 H193 M23,156 H193 M50,16 V43 M130,16 V43 M87,44 V79 M170,44 V79 M50,119 V154 M170,119 V154")+p("M46,152 V91 Q110,22 174,91 V152 Z","#624E43")+p("M63,144 Q80,122 89,133 Q96,94 111,126 Q137,110 150,144 Z","#EDB46C")+p("M34,163 H186");break;
-      case "pastrycase": a=base("#B99FA9")+r(14,17,192,93,"#D3E2E3",9)+p("M18,105 H201 M20,60 H202 M22,22 L46,19");for(let i=0;i<4;i++){const x=54+i%2*105,y=43+Math.floor(i/2)*43;a+=r(x-26,y,51,18,["#E5BAC8","#E6CF99"][i%2],5)+p(`M${x-26},${y+7} h51`,"none")+[x-16,x,x+16].map(cx=>c(cx,y-3,5,"#DB9C9B")).join("");}break;
-      case "decorating": a=base("#C2A7A8")+r(23,39,173,48,"#F0DECE")+r(59,33,75,43,"#EDD5A6",9)+p("M59,43 Q71,53 83,43 Q94,53 105,43 Q118,53 134,43","#F8CFD8")+c(78,32,6,"#D9A1AA")+c(111,32,6,"#D9A1AA")+p("M157,32 L178,42 L165,73 L153,65 Z","#F7EBD6")+r(23,88,172,11,"#D6B9A1");break;
-      case "burgergrill": a=base("#B4BFBA")+r(21,50,180,42,"#727C78")+p("M26,60 H197 M26,70 H197 M26,80 H197");for(let i=0;i<4;i++)a+=r(33+i*40,58,31,20,"#AA8265",9)+p(`M${40+i*40},62 l9,11`);a+=r(23,119,174,13,"#7C9490")+[48,90,132,174].map(x=>c(x,147,8,"#E6D2AB")).join("");break;
-      case "burgerprep": a=base()+["#96B982","#D99E89","#EAC87B"].map((col,i)=>r(24+i*61,55,54,37,"#B6C8C1")+r(30+i*61,63,41,22,col)).join("")+p("M33,126 H182 M33,151 H182");break;
-      case "sodas": a=r(27,20,166,147,"#B1C3BF",12)+r(40,34,140,55,"#E0D4B9")+[55,105,155].map((x,i)=>c(x,59,12,["#D9AE86","#E0C876","#B4B5CA"][i])+p(`M${x},91 v20 h8`)+r(x-11,125,22,29,"#F5E8CF")).join("")+r(32,155,156,15,"#8F9F9D");break;
-      case "booth": a=r(19,39,75,66,"#CFA296",14)+r(15,100,84,32,"#CBA093",9)+r(131,39,75,66,"#CFA296",14)+r(125,100,84,32,"#CBA093",9)+p("M30,133 V173 M192,133 V173 M110,109 V175 M86,179 H136")+r(69,87,83,19,"#E1C69C",8)+p("M38,49 V88 M174,49 V88");break;
-      case "salonchair": a=p("M109,122 V173 M61,176 H160","none")+r(58,20,106,86,"#B3BACF",18)+r(44,103,134,40,"#D1BED0",15)+p("M29,79 V129 H51 M192,79 V129 H168","none")+r(21,70,37,17,"#B9ADBB",8)+r(161,70,37,17,"#B9ADBB",8)+p("M68,56 H153 M101,165 H170 V148","none");break;
-      case "haircart": a=r(30,48,161,110,"#AEC3BB")+p("M29,93 H192 M29,130 H192 M43,160 V176 M179,160 V176")+r(43,112,63,38,"#E6D5B5")+bottle(53,23,"#E3BDD0")+bottle(100,23,"#C8DBA8")+r(134,20,42,20,"#C6B6D4",9)+p("M147,40 V58 M168,32 H193")+c(67,77,7,"#DEC69E")+c(91,77,7,"#DEC69E")+p("M69,73 L97,53 M90,73 L64,53");break;
-      case "flour": a=p("M31,162 L25,77 Q64,51 96,78 L100,167 Z","#F0DEBB")+p("M110,168 L112,43 Q152,22 192,46 L190,166 Z","#E5D1A4")+p("M42,82 H86 M123,49 H180 M146,79 V137 M146,97 L131,86 M146,115 L164,100");break;
-      case "bread": a=base("#C49969");for(let i=0;i<6;i++)a+=bread(49+i%3*61,48+Math.floor(i/3)*41);a+=p("M17,111 H201 M76,93 V108 M145,93 V108");break;
-      case "dough": a=base()+`<ellipse cx="96" cy="76" rx="45" ry="21" fill="#F7E7B5"/>`+r(64,43,90,13,"#B98457",7)+p("M44,50 H64 M154,50 H176")+bottle(163,44,"#F4E4C3");break;
-      case "flowers": a="";for(let i=0;i<3;i++){a+=p(`M${22+i*61},139 h50 l-7,42 h-36 Z`,["#C79E88","#A5BBA3","#D9B492"][i]);for(let j=0;j<2;j++)a+=fl(37+i*61+j*18,88-j*20,["#D5A0B6","#E8C782","#B8B5D5"][i]);}break;
-      case "bouquets": for(let i=0;i<2;i++){const x=62+i*97;for(let j=0;j<3;j++)a+=fl(x+(j-1)*21,58+(j%2)*16,["#DFAABE","#F1D39D"][i]);a+=p(`M${x-40},91 L${x},173 L${x+40},91 L${x},104 Z`,"#E7CDA5")+p(`M${x-17},132 Q${x-42},111 ${x-28},142 L${x+24},144 Q${x+40},118 ${x+15},132`,"#B3C7BD");}break;
-      case "pots": for(let i=0;i<3;i++){const x=44+i*65;a+=p(`M${x},141 Q${x-43},69 ${x-21},84 Q${x-7},55 ${x},102 Q${x+35},45 ${x+24},101 Z`,"#9ABA90")+p(`M${x-24},136 h48 l-7,43 h-34 Z`,"#D3A98E")+r(x-27,131,54,12,"#E4BE9F");}break;
-      case "trellis": a=r(18,12,184,157,"#DCE1C0");for(let i=0;i<5;i++)a+=p(`M${28+i*39},17 V164 M21,${24+i*33} H197`);a+=p("M42,169 Q180,152 70,107 Q15,51 172,29","none");for(let i=0;i<5;i++)a+=fl(51+i*30,45+i%2*40,["#DDAEB9","#EEE0AC"][i%2]);break;
-      case "potting": a=base("#B2AE8D")+r(24,49,60,41,"#DAC6A8")+p("M132,43 L150,94 M128,83 L155,60")+c(127,85,9,"#D5A9B0")+c(154,86,9,"#D5A9B0")+fl(102,40,"#E3BF92");break;
-      case "arcade": a=p("M26,177 V107 L39,79 V15 H181 V79 L194,107 V177 Z","#A6A0C9")+r(51,29,118,67,"#516479",8)+p("M26,112 H194 M57,153 H90")+c(159,116,9,"#E6ADAD")+p("M63,116 V103")+c(63,99,9,"#EBD89C");for(let i=0;i<6;i++)a+=c(76+i%3*35,49+Math.floor(i/3)*27,10,["#E3A9B8","#C9D89E","#EED48C"][i%3]);break;
-      case "prizes": a=shelf("#C8B9D9");for(let i=0;i<6;i++)a+=c(51+i%3*59,46+Math.floor(i/3)*68,18,["#E5C394","#D6B1BC","#ABBFCF"][i%3])+c(40+i%3*59,30+Math.floor(i/3)*68,8,"#E5C394")+c(62+i%3*59,30+Math.floor(i/3)*68,8,"#E5C394")+c(46+i%3*59,47+Math.floor(i/3)*68,2,INK)+c(57+i%3*59,47+Math.floor(i/3)*68,2,INK);break;
-      // ころころ フルーツ: 木の わくの ガラス箱に 3人の かおの 玉（いちばん 大きい ごじ・わんこ・がちゃん）と くだもの 5しゅ（あかい てんせんの したまで）
-      case "fruitbox": {
-        a=r(18,14,184,152,"#C98E5A",12)+r(31,26,158,128,"#FFF6E3",5)+`<path d="M36,40 H184" stroke="#E8453C" stroke-width="3" stroke-dasharray="8 7"/>`;
-        const dot=(x,y,rr=2.6)=>`<circle cx="${x}" cy="${y}" r="${rr}" fill="${INK}" stroke="none"/>`,eyes=(x,y,s)=>dot(x-s*.35,y,s*.12)+dot(x+s*.35,y,s*.12)+`<path d="M${x-s*.18},${y+s*.3} q${s*.18},${s*.16} ${s*.36},0" fill="none" stroke-width="3"/>`;
-        // ごじ（目の でっぱり・ぎざぎざの くち）
-        a+=c(44,101,10,"#8C8686")+c(84,101,10,"#8C8686")+c(64,124,28,"#8C8686")+`<ellipse cx="64" cy="128" rx="15" ry="9" fill="#FFFFFF" stroke-width="3"/><path d="M52,128 l6,-4 l6,5 l6,-5 l6,4" fill="none" stroke="#D8434B" stroke-width="2.5"/>`;
-        // わんこ（くろい みみ）・がちゃん（くちばし）
-        a+=`<ellipse cx="127" cy="121" rx="9" ry="13" fill="${INK}"/><ellipse cx="173" cy="121" rx="9" ry="13" fill="${INK}"/>`+c(150,128,24,"#FFFFFF")+eyes(150,130,24);
-        a+=c(108,96,18,"#FADA78")+dot(101,95,2.6)+dot(115,95,2.6)+`<path d="M102,103 q6,-5 12,0 q-2,7 -6,7 q-4,0 -6,-7Z" fill="#F29A1F" stroke-width="2.5"/>`;
-        // なし・りんご・みかん・いちご・さくらんぼ
-        a+=c(164,84,15,"#EBD27C")+eyes(164,86,15)+c(58,80,14,"#E9525A")+`<path d="M58,66 q2,-7 7,-10" fill="none" stroke="#7A5634" stroke-width="3.5"/>`+eyes(58,82,14);
-        a+=c(84,60,11,"#F7A43A")+eyes(84,62,11)+c(136,62,9,"#F0606B")+eyes(136,64,9)+c(112,58,7,"#E8545E")+`<path d="M112,51 q3,-6 7,-8" fill="none" stroke="#7A5634" stroke-width="2.5"/>`;
-        a+=`<path d="M40,150 L82,32 h16 L58,150 Z" fill="#FFFFFF" stroke="none" opacity=".35"/>`+r(10,158,200,16,"#B98457",4);
-        break;
-      }
-      case "puzzle": a=base("#B5A8CF");for(let i=0;i<9;i++)a+=c(60+i%3*48,39+Math.floor(i/3)*25,13,["#E5B1C0","#B7CCA3","#EACD8A"][i%3]);break;
-      case "parcels": a=shelf("#AFBAB7");for(let i=0;i<6;i++)a+=r(28+i%3*58,26+Math.floor(i/3)*74,48,47,"#D6BA8D")+p(`M${52+i%3*58},${26+Math.floor(i/3)*74} v47`)+r(32+i%3*58,44+Math.floor(i/3)*74,14,11,"#F6ECD4",1);break;
-      case "conveyor": a=base("#B1BEBE")+r(16,61,188,43,"#747F83",16);for(let i=0;i<9;i++)a+=p(`M${27+i*20},70 V95`);a+=r(76,28,60,54,"#DCBD8C")+p("M106,28 V82 M81,57 H130");break;
-      case "sorting": a=base("#9CB3B9");for(let i=0;i<3;i++)a+=r(27+i*61,50,51,45,["#D5B0B8","#B6CD9D","#C3D6E3"][i])+r(37+i*61,63,31,15,"#FFF0D3",2);break;
-      case "cart": a=c(59,166,15,"#6D777C")+c(171,166,15,"#6D777C")+p("M24,48 H47 V144 H190", "none")+r(59,91,116,51,"#D9B990")+r(93,49,68,42,"#E7D0AC")+p("M125,49 V91 M116,92 V139");break;
-      case "plane": a=p("M102,114 V171 M63,178 H160")+p("M18,84 L88,72 L102,20 Q111,5 119,23 L129,71 L202,84 L202,99 L131,95 L123,133 L151,148 V158 L110,148 L69,158 V148 L97,132 L90,95 L18,99 Z","#E8E5D8")+p("M106,38 H117 M107,52 H119");break;
-    }
-    return this.svg(a);
+  burger: {
+    wall: "#FFF4E4", wallPat: "stripe", accent: "#E8553E", wainscot: "#EE7A62", wainPat: "tile", wood: "#C98A52", caption: "こんがり できたて バーガー",
+    mats: { ".": { c: ["#F8EDDC", "#EFCDBE"], pat: "check" }, k: { c: ["#DDE2E5", "#D2D8DC"], pat: "tile" } }, zones: [["k", 3, 0, 7, 1]],
+    counter: { body: "#E8553E", top: "#F6EEDF", items: ["tray", "menu"] },
+    walls: {
+      north: [{ t: "window", a: 0.25, b: 2.75, z0: 156, z1: 214, awning: "#E8553E" }, { t: "menu", a: 3.25, b: 7.75, z0: 156, z1: 226, title: "きょうの バーガー", items: ["bm_hamburger", "bm_teriyaki", "bm_double", "bm_fries_m", "bm_shake_berry"] }, { t: "poster", a: 7.9, b: 9.1, z0: 182, z1: 226, food: "bm_nikoniko", text: "にこにこ セット" }, { t: "clock", a: 9.1, z: 206 }],
+      west: [{ t: "window", a: 2.9, b: 5.6, z0: 98, z1: 196, curtain: "#F4B95E" }, { t: "window", a: 6.9, b: 9.6, z0: 98, z1: 196, curtain: "#F4B95E" }, { t: "poster", a: 0.3, b: 1.5, z0: 120, z1: 196, food: "bm_shake_vanilla", text: "シェイク" }, { t: "poster", a: 10.3, b: 11.5, z0: 120, z1: 196, food: "bm_fries_l", text: "ポテト" }],
+    },
+    fixtures: [
+      ["burgerkitchen", 4, 0, 3, 1, "じゅうじゅう てっぱん"], ["sodafountain", 4, 1, 1, 1, "ドリンクの きかい"], ["fryer", 6, 1, 1, 1, "あげたて ポテト"],
+      ["wallshelf", 0, 0, 3, 1, "おまけの おもちゃ", { variant: "toys", sign: "おまけ", height: 150 }], ["fridge", 7, 0, 3, 1, "つめたい のみもの", { variant: "drinks", sign: "ドリンク" }],
+      ["booth", 0, 3, 2, 3, "まどべの ボックスせき", { dir: "x", action: "sit", text: "ふかふかの ボックスせき。まどから まちが みえるね。" }], ["plant", 0, 6, 1, 1, null, { variant: "tall" }], ["booth", 0, 7, 2, 3, null, { dir: "x", variant: "b" }],
+      ["table", 7, 4, 2, 2, "テーブルせき", { action: "sit", text: "できたての バーガーの いい におい！" }], ["table", 7, 7, 2, 2, "テーブルせき", { action: "sit", text: "ポテトは ふたりで わけっこ しよう。" }],
+      ["board", 9, 3, 1, 1, "きょうの セット", { lines: ["きょうの", "にこにこ", "セット"], col: "#5A3A2E" }], ["trash", 9, 10, 1, 1, "ごみばこと トレイ", { col: "#C9A16E" }],
+    ],
   },
-  room(id) {
-    const s=STORE_INTERIORS[id],r=this.rect.bind(this),p=this.path.bind(this);
-    let a=r(6,8,340,496,"#BBAB92",12)+r(16,16,320,100,s.wall)+r(16,112,320,384,s.floor,0);
-    for(let y=0;y<12;y++)for(let x=0;x<10;x++){
-      const px=16+x*32,py=112+y*32;
-      if(s.motif==="wood"||s.motif==="stripe")a+=`<path d="M${px},${py} h32 m-32,0 v32 m5,-22 h17" stroke="#A38261" stroke-width=".8" opacity=".35"/>`;
-      else a+=`<rect x="${px+1}" y="${py+1}" width="30" height="30" rx="${s.motif==="stone"?5:1}" fill="${(x+y)%2?s.floor:"#FFF8E8"}" stroke="#A89F8A" stroke-width=".6" opacity=".45"/>`;
-    }
-    // 壁の腰板・タイル・格子も業種に合わせる。
-    for(let x=18;x<330;x+=20)a+=`<path d="M${x},86 v20" stroke="${s.accent}" stroke-width="1" opacity=".45"/>`;
-    if(["crepe","dentist","market"].includes(id))a+=`<path d="M16,89 H336 M16,98 H336" stroke="${s.accent}" stroke-width="1" opacity=".4"/>`;
-    if(s.motif==="stars")for(const [x,y] of [[158,277],[213,329],[156,405]])a+=`<path d="M${x},${y-10} l3,7 8,1 -6,5 2,8 -7,-4 -7,4 2,-8 -6,-5 8,-1 Z" fill="#EEE3AE" stroke="none"/>`;
-    if(s.motif==="route")a+=`<path d="M193,449 V407 Q193,386 167,386 H137 M193,387 H224 M193,363 V244" fill="none" stroke="#F7EAD2" stroke-width="6" stroke-dasharray="9 8"/>`;
-    a+=r(10,106,332,9,s.accent,0)+r(29,28,62,62,"#E1EEEB",7)+p("M60,29 V88 M29,58 H89")+p("M33,75 L58,36 M65,80 L83,61")+r(262,28,61,61,"#F8EED2",5)+`<g transform="translate(292 58)">${SIGN_ICON[id]?SIGN_ICON[id](0,0):""}</g>`;
-    if(id==="florist")a+=`<path d="M22,22 Q76,5 99,26 T251,26 Q293,7 328,24" fill="none" stroke="#789473" stroke-width="3"/>`+[33,87,253,314].map((x,i)=>this.flower(x,26+i%2*5,"#EDCBCA").replace('stroke-width="4.5"','stroke-width="2"')).join("");
-    // 展示の値札・道具・小さな飾りを壁際にまとめ、中央の通路を確保。
-    for(const f of s.fixtures){const [kind,x,y,w,d]=f;if(y<4)continue;const px=16+x*32+w*16,py=112+(y+d)*32+6;
-      a+=`<rect x="${px-16}" y="${py}" width="32" height="10" rx="2" fill="#FFF5DA" stroke="#A58E70" stroke-width=".7"/><path d="M${px-10},${py+4} h19 m-19,3 h11" stroke="#A58E70" stroke-width=".7"/>`;
-    }
-    a+=`<path d="M103,17 H249 V78 H103 Z" fill="${s.accent}" stroke="none" opacity=".22"/><text x="176" y="49" text-anchor="middle" font-size="15" font-family="sans-serif" font-weight="bold" stroke="none" fill="${INK}">${(BUY_SHOPS[id]||SHOPS[id]).name}</text><text x="176" y="68" text-anchor="middle" font-size="8" font-family="sans-serif" stroke="none" fill="${INK}">${s.caption}</text>`;
-    for(const x of [46,304])a+=p(`M${x},12 V20`)+p(`M${x-13},35 Q${x-13},17 ${x},19 Q${x+13},17 ${x+13},35 Z`,"#F8E9BF");
-    // 低い展示ラグと入口のマット。どちらも歩ける。
-    a+=`<rect x="25" y="256" width="95" height="107" rx="12" fill="${s.accent}" opacity=".19" stroke="none"/><rect x="236" y="256" width="92" height="107" rx="12" fill="${s.accent}" opacity=".19" stroke="none"/>`;
-    a+=r(143,460,100,36,s.accent,5)+`<text x="193" y="483" text-anchor="middle" font-size="11" font-family="sans-serif" fill="#FFFAE9" stroke="none">でぐち ▼</text>`+p("M149,504 H239","none");
-    return this.svg(a,352,512);
+  groom: {
+    wall: "#EEF7F4", wallPat: "tile", accent: "#6FB3A8", wainscot: "#BFE0D8", wood: "#D9C3A5", caption: "ふんわり すっきり おしゃれ",
+    mats: { ".": { c: ["#F8F8F3", "#DFE8E4"], pat: "check" } },
+    counter: { body: "#7FBFB3", top: "#FFFFFF", items: ["bell", "plant"] },
+    walls: {
+      north: [{ t: "mirror", a: 0.3, b: 1.7, z0: 96, z1: 204 }, { t: "mirror", a: 2.3, b: 3.7, z0: 96, z1: 204 }, { t: "sign", a: 4.0, b: 7.0, z0: 170, z1: 216 }, { t: "frames", a: 7.3, b: 9.7, z0: 150, z1: 214, n: 3, art: STORE_HAIR_ART }],
+      west: [{ t: "window", a: 3.0, b: 4.0, z0: 170, z1: 214 }, { t: "window", a: 7.0, b: 7.9, z0: 100, z1: 196, curtain: "#A8D5CB" }, { t: "clock", a: 10.2, z: 200 }, { t: "shelf", a: 10.1, b: 11.8, z: 150, goods: "tubes" }, { t: "poster", a: 1.0, b: 2.6, z0: 110, z1: 196, art: STORE_HAIR_ART(1).replace(/^/, '<g transform="scale(2.4)">') + "</g>", text: "あたらしい かみがた" }],
+    },
+    fixtures: [
+      ["wallshelf", 4, 0, 3, 1, "ヘアケアの たな", { variant: "tubes", sign: "ヘアケア", height: 150 }], ["towelcart", 4, 1, 1, 1, "ふかふか タオル"], ["haircart", 6, 1, 1, 1, "ドライヤーと ブラシ"],
+      ["station", 0, 0, 2, 2, "カットの せき", { sp: "rabbit", ci: 1 }], ["station", 2, 0, 2, 2, "カットの せき", { sp: "bear", ci: 0 }], ["shampoo", 7, 0, 3, 2, "シャンプー だい"],
+      ["wallshelf", 0, 4, 1, 3, "シャンプーの たな", { variant: "tubes", sign: "シャンプー" }], ["wallshelf", 0, 8, 1, 2, "リボンと かみかざり", { variant: "ribbons", sign: "リボン" }],
+      ["seat", 7, 5, 2, 1, "まちあいの ソファ", { col: "#8FC7BC" }], ["magazines", 9, 5, 1, 1, "ざっしの ラック"], ["plant", 9, 10, 1, 1, null, { variant: "monstera" }], ["plant", 0, 11, 1, 1, null, { variant: "bush" }],
+    ],
+  },
+  cake: {
+    wall: "#FFF2F5", wallPat: "stripe", accent: "#E89AAF", wainscot: "#F8D7DF", wood: "#E2C49A", caption: "きねんびを いろどる デザ",
+    mats: { ".": { c: ["#FFF9F5", "#F7E0E6"], pat: "check" } },
+    counter: { body: "#F2B8C6", top: "#FFFFFF", items: ["dome", "ribbon"] },
+    walls: {
+      north: [{ t: "shelf", a: 0.3, b: 2.7, z: 172, goods: "cupcakes" }, { t: "sign", a: 4.0, b: 7.0, z0: 170, z1: 216 }, { t: "poster", a: 7.6, b: 8.8, z0: 182, z1: 226, food: "cake", text: "おたんじょうび" }, { t: "lights", a: 0, b: 10, z: 226 }],
+      west: [{ t: "window", a: 3.0, b: 5.9, z0: 118, z1: 204, curtain: "#F2B8C6" }, { t: "window", a: 7.0, b: 8.9, z0: 118, z1: 204, curtain: "#F2B8C6" }, { t: "menu", a: 9.3, b: 11.7, z0: 120, z1: 196, title: "ケーキ", items: ["cake", "rollcake", "deza_tart", "pudding"], dark: false }, { t: "lights", a: 0, b: 12, z: 226 }],
+    },
+    fixtures: [
+      ["wallshelf", 4, 0, 3, 1, "ギフトの はこ", { variant: "boxes", sign: "ギフト", height: 150 }], ["cakestand", 4, 1, 1, 1, "カップケーキの スタンド"], ["giftboxes", 6, 1, 1, 1, "リボンの はこ"],
+      ["wallshelf", 0, 0, 3, 1, "やきがしの たな", { variant: "jars", sign: "やきがし", height: 150 }], ["fridge", 7, 0, 3, 1, "ホールケーキの れいぞうこ", { variant: "cakes", sign: "ホールケーキ", body: "#F6DDE4", glow: "#FFF6F8" }],
+      ["showcase", 0, 3, 1, 3, "ケーキの ショーケース", { variant: "cakes", sign: "ケーキ" }], ["showcase", 0, 7, 1, 2, "プチケーキ", { variant: "cupcakes", sign: "プチ" }],
+      ["weddingcake", 2, 5, 2, 2, "おいわいの ケーキ", { text: "まっしろな 3だんの ケーキ。いつか たべて みたいな" }],
+      ["table", 7, 4, 2, 2, "カフェの せき", { action: "sit", text: "あまい かおり。ケーキ、どれに しようかな。" }], ["table", 7, 7, 2, 2, "カフェの せき", { action: "sit", text: "いちごの ケーキ、だいすき！" }],
+      ["board", 9, 3, 1, 1, "きょうの ケーキ", { lines: ["きょうの", "いちご", "ケーキ"], col: "#6E4A5A" }], ["plant", 9, 10, 1, 1, null, { variant: "flower" }],
+    ],
+  },
+  clothes: {
+    wall: "#FFF5F7", wallPat: "dots", accent: "#D98CA6", wainscot: "#F4D3DE", wood: "#D8B48C", caption: "とっておきの いちまい",
+    mats: { ".": { c: ["#EBD7B8", "#E3CCAA"], pat: "plank" }, r: { c: ["#F7DFE7", "#F2D6DF"], pat: "carpet" } }, zones: [["r", 1, 7, 2, 8]],
+    counter: { body: "#E7AFC2", top: "#FFFDF8", items: ["bags", "ribbon"] },
+    walls: {
+      north: [{ t: "frames", a: 0.3, b: 2.7, z0: 178, z1: 224, n: 3, cols: ["#F2C6D8", "#C8DEEF", "#F4E3A1"], art: (i) => `<g transform="scale(1.3)">${StoreIsoArt.SP.dress(["#E7AFC2", "#8EC5F4", "#F6D47A"][i % 3])}</g>` }, { t: "sign", a: 4.0, b: 7.0, z0: 168, z1: 214 }, { t: "lights", a: 6.8, b: 10, z: 226 }],
+      west: [{ t: "window", a: 7.0, b: 9.8, z0: 100, z1: 200, curtain: "#E7AFC2", awning: "#D98CA6" }, { t: "poster", a: 10.3, b: 11.6, z0: 120, z1: 196, art: '<g transform="scale(2.2)">' + '<path d="M-6,-18 L-2,-20 Q0,-17 2,-20 L6,-18 L8,-12 L5,-11 L5,0 L-5,0 L-5,-11 L-8,-12 Z" fill="#8EC5F4" stroke="#1F1D1B" stroke-width=".8"/></g>', text: "あたらしい ふく" }],
+    },
+    fixtures: [
+      ["wallshelf", 4, 0, 3, 1, "たたんだ おようふく", { variant: "folded", sign: "おようふく", height: 150 }], ["hatstand", 4, 1, 1, 1, "ぼうしの スタンド"], ["showcase", 6, 1, 1, 1, "アクセサリーの ケース", { variant: "ribbons", height: 72 }],
+      ["wallrack", 0, 0, 3, 1, "ハンガーの ふく"], ["fittingroom", 7, 0, 3, 2, "しちゃくしつ"],
+      ["wallrack", 0, 3, 1, 4, "ワンピースの かべ"], ["mannequin", 2, 4, 1, 1, "きょうの おすすめ", { item: "ike_hane_0" }],
+      ["clothesrack", 1, 7, 2, 2, "まるい ラック", { variant: "round" }], ["mirror", 0, 10, 1, 1, "おおきな かがみ"],
+      ["clothesrack", 7, 4, 2, 1, "シャツの ラック"], ["foldtable", 7, 6, 2, 2, "セーターの テーブル"], ["mannequin", 8, 9, 1, 1, "ぼうしと コート", { item: "forest_coat" }],
+    ],
+  },
+  furniture: {
+    wall: "#F4EDE1", wallPat: "wood", accent: "#8FA88E", wainscot: "#D8C6A6", wood: "#B98B5E", caption: "くらしの どうぐと ぬくもり",
+    mats: { ".": { c: ["#CFAA7C", "#C6A072"], pat: "plank" } },
+    counter: { body: "#B98B5E", top: "#F1E3C8", items: ["cards", "plant"] },
+    walls: {
+      north: [{ t: "frames", a: 0.3, b: 2.7, z0: 168, z1: 220, n: 2, cols: ["#C9DDB9", "#E8D3B0"] }, { t: "sign", a: 4.0, b: 7.0, z0: 172, z1: 218, col: "#8FA88E" }, { t: "window", a: 7.2, b: 9.8, z0: 176, z1: 222 }],
+      west: [{ t: "window", a: 3.2, b: 5.8, z0: 108, z1: 204, curtain: "#C9DDB9" }, { t: "frames", a: 7.2, b: 9.6, z0: 120, z1: 190, n: 2, cols: ["#F4E3A1", "#C8DEEF"] }, { t: "clock", a: 10.4, z: 196 }],
+    },
+    fixtures: [
+      ["wallshelf", 4, 0, 3, 1, "カタログの たな", { variant: "books", sign: "カタログ", height: 150 }], ["floorlamp", 4, 1, 1, 1, "あかりの みほん", { item: "lamp_tulip" }], ["plant", 6, 1, 1, 1, null, { variant: "bush" }],
+      ["wallshelf", 0, 0, 3, 1, "ざっかの たな", { variant: "mugs", sign: "ざっか", height: 150 }], ["swatches", 7, 0, 3, 1, "かべがみの みほん"],
+      ["vignette", 0, 3, 3, 3, "ベッドの おへや", { variant: "bedroom", text: "ふかふかの ベッド。ねころんで みたいな" }], ["vignette", 0, 7, 3, 3, "べんきょうの へや", { variant: "study" }],
+      ["vignette", 7, 4, 3, 3, "くつろぎの へや", { variant: "living" }], ["vignette", 7, 8, 3, 3, "ダイニングの みほん", { variant: "dining" }],
+      ["plant", 0, 6, 1, 1, null, { variant: "monstera" }],
+    ],
+  },
+  market: {
+    wall: "#EEF4E4", accent: "#5DA676", wainscot: "#CFE3C8", wainPat: "tile", wood: "#C99A6B", caption: "しんせん・おいしい・まいにち",
+    mats: { ".": { c: ["#F6F6F0", "#EDEDE6"], pat: "tile" } },
+    counter: { body: "#5DA676", top: "#F2F5F2", items: ["scale", "bags"] },
+    walls: {
+      north: [{ t: "board", a: 0.3, b: 2.7, z0: 178, z1: 222, lines: ["ぎゅうにゅう・チーズ"], col: "#FFFDF4" }, { t: "sign", a: 4.0, b: 7.0, z0: 172, z1: 218 }, { t: "board", a: 7.3, b: 9.7, z0: 178, z1: 222, lines: ["のみもの"], col: "#FFFDF4" }],
+      west: [{ t: "board", a: 3.2, b: 6.8, z0: 176, z1: 220, lines: ["かんづめ・おかし"], col: "#FFFDF4" }, { t: "window", a: 8.1, b: 9.9, z0: 104, z1: 196 }, { t: "poster", a: 10.2, b: 11.6, z0: 120, z1: 196, food: "watermelon", text: "スイカ！" }],
+    },
+    fixtures: [
+      ["fishtank", 4, 0, 3, 1, "いけすの さかな"], ["scalestand", 4, 1, 1, 1, "はかりの だい"], ["baskets", 6, 1, 1, 1, null, { col: "#5DA676" }],
+      ["fridge", 0, 0, 3, 1, "ひんやり れいぞうこ", { foods: ["milk", "pudding", "deza_berrymilk", "deza_jelly"], sign: "ひんやり" }], ["fridge", 7, 0, 3, 1, "のみものの たな", { variant: "drinks", sign: "ドリンク" }],
+      ["wallshelf", 0, 3, 1, 4, "たべものの たな", { variant: "cans", sign: "かんづめ" }], ["wallshelf", 0, 8, 1, 2, "パンの たな", { variant: "bread", sign: "パン" }],
+      ["produce", 2, 4, 2, 2, "くだもの いちば"], ["produce", 2, 7, 2, 1, "やさいの はこ", { variant: "veg" }],
+      ["gondola", 7, 4, 2, 1, "おかしの たな", { variant: "snacks", sign: "おかし" }], ["freezer", 7, 6, 2, 2, "アイスの れいとうこ", { variant: "candy", sign: "アイス" }],
+      ["plant", 9, 9, 1, 1, "きせつの はな", { variant: "flower" }], ["baskets", 2, 10, 1, 1, "おかいもの かご"], ["cart", 1, 10, 1, 1, "カート"],
+      ["npc", 3, 6, 1, 1, "おかいものの おきゃくさん", { sp: "duck", ci: 1, dir: "left", action: "chat", lines: ["きょうは りんごが やすいのよ。", "スイカも まるごと ひとつ ほしいわ〜"] }],
+    ],
+  },
+  crepe: {
+    wall: "#FFF0E6", wallPat: "stripe", accent: "#F09A8A", wainscot: "#FBD7C9", wood: "#E0B98E", caption: "あまい かおりの クレープや",
+    mats: { ".": { c: ["#FFF7EF", "#F9DFD0"], pat: "check" } },
+    counter: { body: "#F4A99A", top: "#FFFFFF", items: ["menu", "candy"] },
+    walls: {
+      north: [{ t: "shelf", a: 0.3, b: 2.7, z: 168, foods: ["ike_crepes_0", "ike_crepes_1", "ike_crepes_2"] }, { t: "menu", a: 3.3, b: 7.7, z0: 172, z1: 230, title: "クレープ", items: ["ike_crepes_0", "ike_crepes_1", "ike_crepes_2", "deza_ice"], dark: false, col: "#F09A8A" }, { t: "lights", a: 7.6, b: 10, z: 226 }],
+      west: [{ t: "window", a: 3.0, b: 6.9, z0: 104, z1: 204, awning: "#F09A8A" }, { t: "poster", a: 8.0, b: 9.4, z0: 120, z1: 200, food: "ike_crepes_1", text: "いちご クレープ" }, { t: "clock", a: 10.4, z: 200 }],
+    },
+    fixtures: [
+      ["crepekitchen", 4, 0, 3, 1, "クレープの てっぱん"], ["toppingbar", 4, 1, 1, 1, "トッピングの だい"], ["icecase", 6, 1, 1, 1, "アイスの ケース"],
+      ["wallshelf", 0, 0, 3, 1, "クレープの みほん", { foods: ["ike_crepes_0", "ike_crepes_1", "ike_crepes_2", "deza_ice"], sign: "みほん", height: 150 }], ["fridge", 7, 0, 3, 1, "のみものの れいぞうこ", { variant: "drinks", sign: "ドリンク" }],
+      ["barseat", 0, 3, 1, 4, "まどべの カウンターせき", { seat: "#F4A99A" }], ["plant", 0, 8, 1, 1, null, { variant: "flower" }],
+      ["table", 7, 4, 2, 2, "テーブルせき", { action: "sit", text: "クリーム たっぷりの クレープ、たべたいな。" }], ["table", 7, 7, 2, 2, "テーブルせき", { action: "sit", text: "いちごと バナナ、どっちに しよう？" }],
+      ["board", 9, 3, 1, 1, "きょうの メニュー", { lines: ["きょうの", "いちご", "クレープ"], col: "#7A4A4A" }], ["plant", 9, 10, 1, 1, null, { variant: "bush" }],
+    ],
+  },
+  dentist: {
+    wall: "#EEF7FA", wallPat: "tile", accent: "#6FB3D2", wainscot: "#D2E8F2", wainPat: "tile", wood: "#D9C3A5", caption: "にっこり しろい は",
+    mats: { ".": { c: ["#F4F9F8", "#E7EFEE"], pat: "tile" } },
+    counter: { body: "#8EC5DD", top: "#FFFFFF", items: ["brushes", "bell"] },
+    walls: {
+      north: [{ t: "poster", a: 0.4, b: 1.6, z0: 160, z1: 214, art: '<g transform="scale(1.8)"><path d="M0,-4 C-5,-8 -9,-4 -7,2 C-5,8 -4,7 -3,4 Q0,1 3,4 C4,7 5,8 7,2 C9,-4 5,-8 0,-4 Z" fill="#FFFFFF" stroke="#1F1D1B" stroke-width="1"/></g>', text: "はみがき" }, { t: "sign", a: 4.0, b: 7.0, z0: 172, z1: 218 }, { t: "window", a: 7.3, b: 9.7, z0: 172, z1: 222 }],
+      west: [{ t: "poster", a: 4.0, b: 5.6, z0: 110, z1: 196, art: '<g transform="scale(1.6)">' + '<rect x="-1" y="-14" width="2" height="18" rx="1" fill="#8EC5F4" stroke="#1F1D1B" stroke-width=".8"/><rect x="-2" y="-17" width="4" height="5" rx="1" fill="#FFFFFF" stroke="#1F1D1B" stroke-width=".8"/></g>', text: "1にち 3かい" }, { t: "window", a: 7.0, b: 9.0, z0: 108, z1: 200, curtain: "#A8D5E2" }, { t: "clock", a: 10.3, z: 196 }],
+    },
+    fixtures: [
+      ["wallshelf", 4, 0, 3, 1, "カルテの たな", { variant: "boxes", sign: "カルテ", height: 150 }], ["plant", 4, 1, 1, 1, null, { variant: "tall" }], ["coffeemachine", 6, 1, 1, 1, "おくすりの たな", { col: "#DCEFF6" }],
+      ["dentalchair", 0, 0, 3, 3, "しんさつの いす", { text: "ここで はを みて もらうよ。こわくないよ" }], ["dentcabinet", 7, 0, 3, 1, "きれいな どうぐ"],
+      ["wallshelf", 0, 4, 1, 2, "えほんの たな", { variant: "books", sign: "えほん", height: 120, levels: 3 }], ["kidscorner", 0, 7, 2, 2, "キッズ コーナー"],
+      ["seat", 7, 4, 2, 1, "まちあいの いす", { col: "#8EC5DD" }], ["seat", 7, 6, 2, 1, "まちあいの いす", { col: "#8EC5DD" }], ["aquarium", 8, 9, 2, 1, "すいそう"],
+      ["plant", 0, 11, 1, 1, null, { variant: "monstera" }], ["magazines", 9, 4, 1, 1, "ざっしの ラック"],
+    ],
+  },
+  bakery: {
+    wall: "#FBF0DE", wallPat: "brick", accent: "#C98A52", wainscot: "#E8C9A0", wood: "#B98450", caption: "まいあさ こんがり やきたて",
+    mats: { ".": { c: ["#E9C9A6", "#E1BE98"], pat: "tile" } },
+    counter: { body: "#C98A52", top: "#F6E7CF", items: ["breadbasket", "bags"] },
+    walls: {
+      north: [{ t: "chalk", a: 0.3, b: 2.7, z0: 168, z1: 222, lines: ["やきたて", "メロンパン 120"] }, { t: "sign", a: 4.0, b: 7.0, z0: 172, z1: 218 }, { t: "shelf", a: 7.3, b: 9.7, z: 180, goods: "bread" }],
+      west: [{ t: "window", a: 3.1, b: 5.9, z0: 168, z1: 214 }, { t: "window", a: 7.1, b: 8.9, z0: 104, z1: 200, curtain: "#E8C9A0" }, { t: "poster", a: 9.4, b: 11.0, z0: 120, z1: 196, food: "bread", text: "しょくぱん" }],
+    },
+    fixtures: [
+      ["stoneoven", 4, 0, 3, 1, "いしがま オーブン"], ["coolingrack", 4, 1, 1, 1, "やきたての たな"], ["flourbags", 6, 1, 1, 1, "こむぎこの ふくろ"],
+      ["wallshelf", 0, 0, 3, 1, "やきたての パン", { variant: "bread", sign: "やきたて", height: 150 }], ["wallshelf", 7, 0, 3, 1, "フランスパンの たな", { variant: "baguettes", sign: "フランスパン", height: 150, levels: 3 }],
+      ["wallshelf", 0, 3, 1, 3, "そうざいパン", { foods: ["sandwich", "bread", "nikuzume", "yakicorn"], sign: "そうざい" }], ["wallshelf", 0, 7, 1, 2, "ジャムの たな", { variant: "jars", sign: "ジャム" }],
+      ["breadtable", 2, 4, 2, 3, "パンの テーブル"], ["traystand", 7, 4, 1, 1, "トレイと トング"],
+      ["table", 7, 6, 2, 2, "イートインの せき", { action: "sit", text: "やきたての パンの におい……おなか すいてきた！", shop: "cafe" }], ["plant", 9, 10, 1, 1, null, { variant: "tall" }],
+    ],
+  },
+  florist: {
+    wall: "#F3F8EE", wallPat: "brick", accent: "#7FAE6E", wainscot: "#D4E5C8", wood: "#B99B74", caption: "おはなと みどりの おくりもの",
+    mats: { ".": { c: ["#E7DAC6", "#DECFB8"], pat: "tile" } },
+    counter: { body: "#8DBB7C", top: "#F7F2E8", items: ["bouquet", "ribbon"] },
+    walls: {
+      north: [{ t: "garland", a: 0, b: 4, z: 222 }, { t: "sign", a: 4.0, b: 7.0, z0: 172, z1: 218 }, { t: "garland", a: 7, b: 10, z: 222 }],
+      west: [{ t: "window", a: 3.1, b: 5.9, z0: 104, z1: 204, awning: "#7FAE6E" }, { t: "garland", a: 0, b: 12, z: 222 }, { t: "shelf", a: 7.2, b: 9.8, z: 168, goods: "pots" }, { t: "poster", a: 10.2, b: 11.6, z0: 120, z1: 196, art: '<g transform="scale(2.2)">' + '<circle r="4" fill="#F2A7B8" stroke="#1F1D1B" stroke-width=".7"/></g>', text: "はなたば" }],
+    },
+    fixtures: [
+      ["fridge", 4, 0, 3, 1, "おはなの れいぞうこ", { variant: "flowers", sign: "おはな", body: "#DDE9D8", glow: "#F2FAF0" }], ["paperroll", 4, 1, 1, 1, "つつみがみの ロール"], ["ribbonrack", 6, 1, 1, 1, "リボンの たな"],
+      ["bucketstand", 0, 0, 3, 1, "いろとりどりの はな"], ["trellis", 7, 0, 3, 1, "つるばらの トレリス"],
+      ["wallshelf", 0, 3, 1, 3, "はちうえの たな", { variant: "pots", sign: "はちうえ", wood: "#C9B08E" }], ["bucketstand", 0, 7, 1, 2, "きりばなの バケツ"],
+      ["bucketstand", 2, 5, 2, 1, "きょうの おはな"], ["plant", 8, 4, 1, 1, "おおきな かんようしょくぶつ", { variant: "monstera" }],
+      ["bouquettable", 7, 6, 2, 1, "はなたばの テーブル"], ["wateringcans", 9, 8, 1, 1, "じょうろ"], ["plant", 9, 10, 1, 1, null, { variant: "flower" }], ["plant", 7, 8, 1, 1, null, { variant: "cactus" }],
+    ],
+  },
+  link: {
+    wall: "#EEEDFB", wallPat: "dots", accent: "#8D7BC9", wainscot: "#D8D3F0", wood: "#B9A6E0", caption: "みんなで つなごう パズルひろば",
+    mats: { ".": { c: ["#D6D9EF", "#CDD1EA"], pat: "carpet" } },
+    counter: { body: "#9C8CD6", top: "#FFFFFF", items: ["cards", "candy"] },
+    walls: {
+      north: [{ t: "lights", a: 0, b: 4, z: 226 }, { t: "sign", a: 4.0, b: 7.0, z0: 176, z1: 222 }, { t: "lights", a: 7, b: 10, z: 226 }, { t: "poster", a: 7.4, b: 8.6, z0: 178, z1: 220, art: '<g transform="scale(1.6)"><path d="M-6,-6 h4 q0,-3 2,-3 t2,3 h4 v4 q3,0 3,2 t-3,2 v4 h-12 Z" fill="#F3C24F" stroke="#1F1D1B" stroke-width=".8"/></g>', text: "パズル" }],
+      west: [{ t: "poster", a: 3.2, b: 4.6, z0: 160, z1: 214, art: '<g transform="scale(1.6)"><circle r="6" fill="#F28B82" stroke="#1F1D1B" stroke-width=".8"/></g>', text: "つなげて" }, { t: "lights", a: 0, b: 12, z: 226 }, { t: "window", a: 8.1, b: 9.9, z0: 104, z1: 200 }],
+    },
+    fixtures: [
+      ["wallshelf", 4, 0, 3, 1, "けいひんの たな", { variant: "plush", sign: "けいひん", height: 150, wood: "#C9B8E8" }], ["trophy", 4, 1, 1, 1, "きらきら トロフィー"], ["candyjar", 6, 1, 1, 1, "あめの びん"],
+      ["puzzlecab", 0, 0, 3, 1, "パズルの ゲームだい"], ["puzzlecab", 7, 0, 3, 1, "なかよし ゲームだい"],
+      ["puzzlecab", 0, 3, 1, 3, "パズルの ゲームだい"], ["wallshelf", 0, 7, 1, 2, "ぬいぐるみの たな", { variant: "plush", sign: "ぬいぐるみ", wood: "#C9B8E8" }],
+      ["seat", 2, 6, 2, 1, "ひとやすみ ベンチ", { col: "#B9A6E0" }], ["puzzletable", 7, 4, 2, 2, "おためし パズル"], ["showcase", 7, 7, 2, 1, "トロフィーの ケース", { variant: "cups", body: "#9C8CD6", sign: "トロフィー" }],
+      ["plant", 9, 10, 1, 1, null, { variant: "bush" }], ["npc", 8, 9, 1, 1, "パズルの おともだち", { sp: "cat", ci: 2, dir: "left", action: "chat", lines: ["3つ つなげると きえるんだよ！", "なかよし パズル、いっしょに やろう♪"] }],
+    ],
+  },
+  korokoro: {
+    wall: "#FFF4E2", wallPat: "dots", accent: "#F0A04B", wainscot: "#FBD9B0", wood: "#D9A06A", caption: "おなじ ものを くっつけて まんまる",
+    mats: { ".": { c: ["#FFF8EC", "#F6E0C0"], pat: "check" } },
+    counter: { body: "#F6B26B", top: "#FFFFFF", items: ["candy", "cup"] },
+    walls: {
+      north: [{ t: "poster", a: 0.4, b: 1.6, z0: 176, z1: 222, food: "watermelon", text: "スイカ" }, { t: "poster", a: 1.8, b: 3.0, z0: 176, z1: 222, food: "strawberry", text: "いちご" }, { t: "sign", a: 4.0, b: 7.0, z0: 176, z1: 222 }, { t: "menu", a: 7.2, b: 9.8, z0: 170, z1: 228, title: "ジュース", items: ["juice", "deza_punch", "deza_berrymilk"], dark: false, col: "#F0A04B" }],
+      west: [{ t: "window", a: 3.1, b: 5.9, z0: 168, z1: 214 }, { t: "window", a: 7.1, b: 9.9, z0: 104, z1: 200, awning: "#F0A04B" }, { t: "clock", a: 10.4, z: 200 }],
+    },
+    fixtures: [
+      ["juicebar", 4, 0, 3, 1, "フルーツ ジュースの だい"], ["fruitbasket", 4, 1, 1, 1, "くだものの かご"], ["giftboxes", 6, 1, 1, 1, "フルーツの はこ"],
+      ["fruitbox", 0, 0, 2, 1, "ころころ パズルの はこ"], ["fruitbox", 2, 0, 1, 1, "ちいさな はこ"], ["wallshelf", 7, 0, 3, 1, "くだものの たな", { variant: "fruit", sign: "くだもの", height: 150 }],
+      ["fruitbox", 0, 3, 1, 2, "れんしゅうの はこ"], ["wallshelf", 0, 6, 1, 2, "まんまるの ぬいぐるみ", { variant: "plush", sign: "けいひん" }],
+      ["table", 7, 4, 2, 2, "フルーツ ジュースの せき", { action: "sit", text: "あまい くだものの におい！" }], ["table", 7, 7, 2, 2, "フルーツ ジュースの せき", { action: "sit", text: "つぎは スイカを つくるぞ〜" }],
+      ["produce", 2, 7, 2, 1, "くだものの はこ"], ["plant", 9, 10, 1, 1, null, { variant: "flower" }], ["board", 9, 3, 1, 1, "きょうの くだもの", { lines: ["きょうの", "メロン"], col: "#6A4A2E" }],
+    ],
+  },
+  relay: {
+    wall: "#EAF2F7", accent: "#5D8FB8", wainscot: "#CFE0EC", wood: "#C9A16E", caption: "そらへ とどける おくりもの",
+    mats: { ".": { c: ["#E5E3DC", "#DCD9D1"], pat: "tile" }, y: { c: ["#F2D06B", "#EBC75F"], pat: "tile" } }, zones: [["y", 6, 4, 6, 9]],
+    counter: { body: "#7FA7C9", top: "#F2F2EE", items: ["stamp", "scale"] },
+    walls: {
+      north: [{ t: "board", a: 0.3, b: 2.7, z0: 178, z1: 222, lines: ["はいたつ ロッカー"], col: "#FFFDF4" }, { t: "sign", a: 4.0, b: 7.0, z0: 176, z1: 222 }, { t: "window", a: 7.2, b: 9.8, z0: 176, z1: 222, sky: "#BFE3F7" }],
+      west: [{ t: "poster", a: 3.0, b: 5.8, z0: 166, z1: 222, art: '<g transform="scale(1.4)"><ellipse rx="22" ry="12" fill="#BFE3F7" stroke="#1F1D1B" stroke-width=".8"/><path d="M-8,-4 q6,-6 12,0 q4,4 8,2 M-14,4 q8,2 12,-2" fill="none" stroke="#7DAF62" stroke-width="2"/></g>', text: "せかいの ちず" }, { t: "window", a: 7.1, b: 9.9, z0: 104, z1: 200, sky: "#BFE3F7" }, { t: "clock", a: 10.4, z: 200 }],
+    },
+    fixtures: [
+      ["wallshelf", 4, 0, 3, 1, "にもつの たな", { variant: "parcels", sign: "にもつ", height: 150, wood: "#B7C2CB" }], ["parcelstack", 4, 1, 1, 1, "にもつの やま"], ["giftboxes", 6, 1, 1, 1, "ちいさな こづつみ"],
+      ["lockers", 0, 0, 3, 1, "はいたつ ロッカー"], ["conveyor", 7, 0, 3, 1, "にもつの ベルト"],
+      ["wallshelf", 0, 3, 1, 3, "にもつの たな", { variant: "parcels", sign: "にもつ", wood: "#B7C2CB" }], ["sortingtable", 0, 7, 2, 2, "しわけ コーナー"],
+      ["cart", 8, 5, 1, 1, "はこぶ カート"], ["planemodel", 8, 8, 1, 1, "ひこうきの もけい"], ["parcelstack", 9, 10, 1, 1, null], ["plant", 0, 11, 1, 1, null, { variant: "tall" }],
+      ["npc", 2, 5, 1, 1, "はいたつの なかま", { sp: "penguin", ci: 1, dir: "down", action: "chat", lines: ["そらの はいたつ、きょうも いそがしい！", "にもつは ていねいに ね。"] }],
+    ],
   },
 };

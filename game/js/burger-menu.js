@@ -5,7 +5,7 @@
 // ・バーガー 8しゅ（チーズバーガーは いままでの burger）・サイド 4しゅ・のみもの 5しゅ（シェイク 3しゅ ＋ ジュース・ぎゅうにゅう）・セット 1しゅ
 // ・にこにこ セットを 1こ かうと おまけの おもちゃ（6しゅの フィギュア）が 1こ。まだ もって いない ものから でる。へやや フィギュア だい に かざれる（js/figure-stand.js）
 // 食べ物は exclusive（スーパーには ならばない）。絵は FOOD_ART（64×64・INK）・おもちゃは 100×110（家具は 50×55）。
-// バーガーやさんは マックさん（平和台）・バーガーやさん（まちなか）など どこも BUY_SHOPS.burger（js/scene-store.js の 店内）。
+// バーガーやさんは マックさん（平和台）・バーガーやさん（まちなか）など どこも BUY_SHOPS.burger（js/scene-store.js が つくる・店内は js/store-iso.js）。
 // セーブは もちもの（Save.d.bag）と 家具（Save.d.furn）が ふえる だけ（Save.SCHEMA は そのまま）。
 const BurgerMenu = (() => {
   const K = INK, S = (w = 3) => IS(w), f1 = (v) => Math.round(v * 10) / 10;

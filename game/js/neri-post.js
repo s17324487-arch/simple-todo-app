@@ -164,21 +164,26 @@ HOWTO.postoffice = [
 ];
 // かんばんの しるし: ふうとう
 SIGN_ICON.postoffice = (x, y) => `<g transform="translate(${x} ${y})"><rect x="-10" y="-7" width="20" height="14" rx="2" fill="#FFFFFF" ${OS(1.5)}/><path d="M-9,-6 L0,1 L9,-6" fill="none" stroke="${INK}" stroke-width="1.4"/><rect x="4" y="-5" width="4" height="4" fill="#E8453C" stroke="none"/></g>`;
-// 店内（10×12）: まどぐち・ポスト・ゆうびんうけの ロッカー・こづつみの はかり・きっての ケース・てがみを かく だい
+// 店内（10×12・斜め上の 館 js/store-iso.js）: ゆうびんうけ・きっての ケース・てがみを かく だい・ばんごうふだ・こづつみの はかり・あかい ポスト・まちあい
+STORE_INTERIORS.postoffice = {
+  wall: "#FCEEEA", wallPat: "tile", accent: "#E53935", wainscot: "#F2CFC8", wainPat: "tile", wood: "#C9A16E", caption: "てがみと こづつみを とどけよう",
+  mats: { ".": { c: ["#F0EBE2", "#E6E0D5"], pat: "tile" } },
+  counter: { body: "#E53935", top: "#F7F2E8", items: ["stamp", "scale"] },
+  walls: {
+    north: [{ t: "board", a: 0.3, b: 2.7, z0: 178, z1: 222, lines: ["ゆうびんうけ"], col: "#FFFDF4" }, { t: "sign", a: 4.0, b: 7.0, z0: 174, z1: 220 }, { t: "poster", a: 7.2, b: 8.4, z0: 156, z1: 214, art: `<g transform="scale(2.4)"><rect x="-5" y="-12" width="10" height="12" fill="#FFFFFF" stroke="${INK}" stroke-width=".5" stroke-dasharray="1.6 1"/><rect x="-3.4" y="-10.4" width="6.8" height="8.8" fill="#F28B82"/></g>`, text: "きって" }, { t: "clock", a: 8.8, z: 200 }],
+    west: [{ t: "window", a: 3.6, b: 5.8, z0: 120, z1: 204 }, { t: "poster", a: 6.8, b: 8.2, z0: 120, z1: 196, art: `<g transform="scale(2.2)"><rect x="-7" y="-9" width="14" height="9" rx="1" fill="#FFFFFF" stroke="${INK}" stroke-width=".6"/><path d="M-7,-9 L0,-4 L7,-9" fill="none" stroke="${INK}" stroke-width=".5"/></g>`, text: "てがみを かこう" }, { t: "board", a: 8.8, b: 11.6, z0: 150, z1: 202, lines: ["ねんがじょう", "うけつけ ちゅう"], col: "#FFFDF4" }],
+  },
+  fixtures: [
+    ["wallshelf", 4, 0, 3, 1, "てがみの しわけ だな", { variant: "letters", sign: "てがみ", height: 150 }], ["parcelstack", 4, 1, 1, 1, "こづつみの やま"], ["giftboxes", 6, 1, 1, 1, "ちいさな こづつみ"],
+    ["pobox", 0, 0, 3, 1, "ゆうびんうけの ロッカー"], ["showcase", 7, 0, 2, 1, "きっての ケース", { variant: "stamps", body: "#E57373", sign: "きって" }], ["brochures", 9, 0, 1, 1, "パンフレット"],
+    ["writingdesk", 0, 3, 1, 2, "てがみを かく だい"], ["seat", 0, 6, 1, 3, "まちあいの いす", { col: "#E57373" }],
+    ["ticketmachine", 7, 4, 1, 1, "ばんごうふだ"], ["parcelscale", 9, 4, 1, 1, "こづつみの はかり"], ["showcase", 7, 6, 2, 1, "はがきの ケース", { variant: "cards", body: "#F2B8B0", sign: "はがき" }],
+    ["postbox", 8, 9, 1, 1, "あかい ポスト"], ["plant", 9, 10, 1, 1, null, { variant: "monstera" }], ["plant", 2, 10, 1, 1, null, { variant: "bush" }],
+    ["npc", 2, 7, 1, 1, "てがみを だす おきゃくさん", { sp: "sheep", ci: 1, dir: "left", action: "chat", lines: ["おばあちゃんに てがみを だすの。", "きって、どれが かわいい かな？"] }],
+  ],
+};
+// 店内 BGM: ヘンデル「ガヴォット」（パブリックドメイン。サンシャインいけぶ 1F の 写し）を ていねいな 音で
 (() => {
-  const r = (x, y, w, h, col, rr = 4) => StoreArt.rect(x, y, w, h, col, rr), p = (d, col = "none") => StoreArt.path(d, col), c = (x, y, rr, col) => StoreArt.dot(x, y, rr, col);
-  const PROPS = {
-    postbox: () => r(78, 20, 64, 34, "#E53935", 18) + r(78, 36, 64, 118, "#E53935", 6) + r(92, 56, 36, 7, INK, 2) + r(96, 92, 28, 30, "#FFFDF6", 3) + p("M104,100 h12 M110,100 v16 M102,108 h16") + r(86, 154, 48, 22, "#B71C1C", 3),
-    pobox: () => { let a = r(12, 20, 196, 156, "#C9C1B3", 6); for (let y = 0; y < 3; y++) for (let x = 0; x < 5; x++) a += r(22 + x * 38, 30 + y * 48, 32, 40, "#E6E1D6", 3) + c(48 + x * 38, 50 + y * 48, 3, "#8C8890"); return a; },
-    parcelscale: () => r(30, 110, 160, 60, "#D9D4CC", 8) + r(40, 96, 140, 16, "#B9B4AC", 4) + r(70, 50, 80, 48, "#D9A066", 4) + p("M110,50 V98") + r(126, 128, 44, 22, "#2F3A3E", 3) + `<text x="148" y="144" text-anchor="middle" font-size="12" font-family="sans-serif" font-weight="bold" fill="#8FF0A0" stroke="none">1.2</text>` + p("M40,170 V184 M180,170 V184"),
-    stampcase: () => { let a = r(14, 70, 192, 100, "#D9C7A6") + r(22, 44, 176, 36, "#E6F4FA", 4); for (let i = 0; i < 6; i++) a += r(30 + i * 28, 50, 22, 24, ["#F4A6B8", "#8FD19E", "#8EC5F4", "#F7D56A", "#C7B8E8", "#F7B267"][i], 2); return a + p("M14,110 H206") + p("M26,170 V182 M194,170 V182"); },
-    writingdesk: () => r(20, 80, 180, 20, "#C98A52", 4) + p("M34,100 V176 M186,100 V176") + r(50, 60, 60, 22, "#FFFFFF", 2) + p("M54,64 L80,76 L106,64") + r(130, 50, 12, 30, "#8EC5F4", 3) + r(152, 62, 30, 18, "#FFF3B0", 2),
-  };
-  const prop0 = StoreArt.prop.bind(StoreArt);
-  StoreArt.prop = (kind) => (PROPS[kind] ? StoreArt.svg(PROPS[kind]()) : prop0(kind));
-  STORE_INTERIORS.postoffice = { wall: "#FBE9E4", floor: "#EEE9E0", accent: "#E53935", motif: "tile", caption: "てがみと こづつみを とどけよう", fixtures: [
-    ["pobox", 0, 0, 3, 2, "ゆうびんうけの ロッカー"], ["stampcase", 8, 0, 2, 2, "きっての ケース"], ["parcelscale", 0, 5, 3, 2, "こづつみの はかり"], ["writingdesk", 7, 5, 3, 2, "てがみを かく だい"], ["waiting", 0, 9, 3, 1, "まちあいの いす"], ["postbox", 8, 9, 2, 1, "あかい ポスト"]] };
-  // 店内 BGM: ヘンデル「ガヴォット」（パブリックドメイン。サンシャインいけぶ 1F の 写し）を ていねいな 音で
   const src = SONGS.mall_1f, inst = ["mallet", "pluck", "bass"];
   if (src) SONGS.shop_postoffice = { ...src, title: "ゆうびんの ガヴォット", disc: false, mall: undefined, bpm: 88, tracks: src.tracks.map((t, k) => (t.drum ? t : { ...t, instrument: inst[k] || t.instrument })) };
 })();

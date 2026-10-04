@@ -22,9 +22,12 @@ export async function kujiSmoke({ scenario, expect }) {
     await H.dbg('teleport', 'town', door.x, door.y + 1, 'up'); await H.idle(); await H.dbg('walkTo', door.x, door.y);
     await H.until(() => PokaDebug.state().scene === 'store' && PokaDebug.idle(), 20000); await H.wait(400);
   };
+  // くじの たなは レジの みぎの かべ（7,0・3ます。O10 から 斜め上の 館）。はいった ところからは 画面の みぎに かくれる ので、まえまで あるいて カメラを よせてから タップ
   const tapShelf = async (H, shop) => {
+    if (await H.dbg('storeWalkTo', 8, 3)) await H.until(() => { const s = PokaDebug.storeState(); return s && !s.party[0].moving && !s.path; }, 15000);
+    await H.wait(700);
     const st = await H.dbg('storeState'), fx = st.fixtures.find((f) => f.kind === 'kuji_' + shop);
-    expect(st.shop === shop && fx && fx.label === 'いちばんくじ' && fx.x === 7 && fx.y === 2 && fx.w === 3, 'くじの たなが ない ' + JSON.stringify(st.fixtures.map((f) => f.kind)));
+    expect(st.shop === shop && fx && fx.label === 'いちばんくじ' && fx.x === 7 && fx.y === 0 && fx.w === 3, 'くじの たなが ない ' + JSON.stringify(st.fixtures.map((f) => f.kind)));
     await H.tap(fx.cx, fx.cy); await phase(H, 'board', 20000); await H.wait(300);
     return fx;
   };

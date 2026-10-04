@@ -67,7 +67,7 @@ for (const f of scripts) {
 }
 if (errors.length) finish();
 R = vm.runInContext(`({ GAME_VERSION, WEAR_ITEMS, ITEM_INDEX, WEAR, SLOT_NAMES, PERK_TEXT, FOODS, TOOLS, BAG_INDEX, FURNITURE, FURN_INDEX, FURN_ART, WALLPAPERS, FLOORS,
-  ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, GAS_FUELS, MAP_DEFS, WorldMap, STORE_INTERIORS, StoreArt, StoreScene,
+  ENEMIES, ENEMY_ART, AREAS, SKILLS, CHARA_STATS, CHARA_INFO, CHARA_DATA, SHOPS, SHOP_LV_REP, MG_TASKS, SHOP_OWNERS, HOWTO, BUY_SHOPS, GAS_FUELS, MAP_DEFS, WorldMap, STORE_INTERIORS, StoreIso, StoreIsoArt, StoreScene,
   Chara, Art, Save, Stats, Care, Loot, SPECIES, TALKS, SCENES, SONGS, Sound, EMO, PokaDebug, HomeRooms, Room, HomeDesign, GameEconomy, Transit, Seasonal, SEASON_ITEMS, AtlasArt, VenueHalls, ParentCare, ANNUAL_EVENTS, AnnualArt, AnnualFestivals, Weather, SeasonPalette, TownRoads, ShopDecor })`, ctx);
 
 // 道の判定はブラウザがなくても同じ。車道・歩道・隅切り・切り下げがタイルでつながる。
@@ -547,19 +547,8 @@ for (const [name, song] of Object.entries(R.SONGS)) for (const tr of song.tracks
 ok(typeof R.PokaDebug.help === "function", "PokaDebug（js/debug.js）がない");
 ok(typeof R.SCENES.store==="function","歩ける店内シーンが未登録");
 for(const [map,def] of Object.entries(R.MAP_DEFS))for(const b of def.buildings||[])if(["buy","work"].includes(b.act?.type))ok(!!R.STORE_INTERIORS[b.act.shop],map+"/"+b.id+": 店内がない");
-for(const [id,def] of Object.entries(R.STORE_INTERIORS)){
-  const sc=new R.StoreScene();sc.party=[{tx:5,ty:10}];
-  sc.fixtures=def.fixtures.map(([kind,x,y,w,d])=>({kind,x,y,w,d}));
-  sc.fixtures.push({kind:"counter",x:4,y:2,w:3,d:1});
-  ok(sc.route(5,3)!==null&&sc.route(5,11)!==null,id+": 店員/出口に到達できない");
-  for(let y=0;y<12;y++)for(let x=0;x<10;x++)if(sc.walkable(x,y))ok(sc.route(x,y)!==null,id+": 到達できない床 "+x+","+y);
-  for(const f of sc.fixtures){
-    ok(f.x>=0&&f.x+f.w<=10&&f.y>=0&&f.y+f.d<=12,id+": 展示が室外");
-    ok(!sc.walkable(f.x,f.y),id+": 展示に衝突判定がない");
-    ok(R.StoreArt.prop(f.kind).includes("<svg")&&!/undefined|NaN/.test(R.StoreArt.prop(f.kind)),id+": 展示SVGが不正");
-  }
-  ok(!/undefined|NaN/.test(R.StoreArt.room(id)),id+": 店内SVGが不正");
-}
+// 店内の くわしい 検査は tools/check-store-iso.mjs（O10 から 斜め上の 館）。ここでは どの 什器にも 絵が ある ことだけ
+for(const id of Object.keys(R.STORE_INTERIORS))for(const f of R.StoreIso.fixtures(id))if(f.kind!=="keeper"&&f.kind!=="npc"){const m=R.StoreIsoArt.model(f);ok(!!m&&!/undefined|NaN/.test(m.svg),id+": 展示 "+f.kind+" の SVG が不正");}
 
 const daily=vm.runInContext('DailyPlay',ctx);
 ok(daily.dayIndex('2030-9-10')>daily.dayIndex('2030-9-9')&&daily.dayIndex('2031-1-1')>daily.dayIndex('2030-12-31'),'スタンプの日付比較が文字列順');

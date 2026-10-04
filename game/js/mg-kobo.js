@@ -537,24 +537,25 @@ SHOP_OWNERS.kobo = { sp: "hedgehog", col: "#F3E0C8", col2: "#9C7A5E", name: "は
 HOWTO.kobo = (sc) => KoboGames.howto(sc && sc.variant); // ShopScene.flow が えらんだ ゲームで よぶ（js/minigames.js）
 // かんばんの しるし: ジグソーの ピース
 SIGN_ICON.kobo = (x, y) => `<g transform="translate(${x} ${y})"><path d="M-8,-8 H-2.6 A3,3 0 1 1 2.6,-8 H8 V-2.6 A3,3 0 1 1 8,2.6 V8 H-8 Z" fill="#F2C14E" ${OS(1.5)}/><circle cx="-3" cy="2" r="1.4" fill="${INK}"/><path d="M-0.4,3.6 L3.4,-0.8" stroke="${INK}" stroke-width="1.2" stroke-linecap="round"/></g>`;
-// 店内（10×12）: スライド パズルの がく・ジグソーの かべ・こうぼうの さぎょうだい・かたち はめの つくえ・いろの キューブ・おえかき ロジックの ボード
-(() => {
-  const r = (x, y, w, h, col, rr = 4) => StoreArt.rect(x, y, w, h, col, rr), p = (d, col = "none") => StoreArt.path(d, col), c = (x, y, rr, col) => StoreArt.dot(x, y, rr, col);
-  const TILE = ["#F2C14E", "#E57373", "#64B5F6", "#81C784", "#BA68C8", "#FFB74D", "#4DB6AC", "#F48FB1"];
-  const piece = (x, y, s, col) => `<path d="M${x},${y} h${s * 0.36} a${s * 0.14},${s * 0.14} 0 1 1 ${s * 0.28},0 h${s * 0.36} v${s * 0.36} a${s * 0.14},${s * 0.14} 0 1 1 0,${s * 0.28} v${s * 0.36} h-${s} Z" fill="${col}"/>`;
-  const PROPS = {
-    slideframe: () => { let a = r(26, 12, 168, 150, "#B98555", 10) + r(40, 26, 140, 122, "#7A5638", 4); for (let i = 0; i < 9; i++) if (i !== 8) a += r(44 + (i % 3) * 45, 30 + Math.floor(i / 3) * 38, 42, 34, TILE[i], 4) + `<text x="${65 + (i % 3) * 45}" y="${53 + Math.floor(i / 3) * 38}" text-anchor="middle" font-size="16" font-family="sans-serif" font-weight="bold" fill="#FFFFFF" stroke="none">${i + 1}</text>`; return a + p("M60,162 L46,184 M160,162 L174,184"); },
-    jigsawwall: () => r(16, 14, 188, 150, "#E9D7B8", 8) + piece(36, 34, 52, "#F2C14E") + piece(100, 30, 50, "#64B5F6") + piece(150, 70, 40, "#E57373") + piece(40, 100, 46, "#81C784") + piece(104, 102, 44, "#BA68C8") + c(60, 24, 4, "#E53935") + c(124, 22, 4, "#E53935") + c(168, 62, 4, "#E53935") + c(62, 92, 4, "#E53935") + c(126, 94, 4, "#E53935"),
-    workbench: () => r(10, 92, 200, 18, "#C98A52", 3) + p("M22,110 V176 M198,110 V176 M22,150 H198") + r(30, 64, 60, 28, "#E8C38E", 3) + p("M36,72 h48 M36,82 h40") + r(104, 70, 36, 22, "#9CCC65", 3) + r(148, 56, 8, 36, "#8D6E63", 2) + r(140, 50, 24, 10, "#B0BEC5", 3) + piece(166, 68, 24, "#F2C14E") + c(60, 140, 10, "#64B5F6") + r(120, 132, 40, 14, "#FFD54F", 3),
-    shapesorter: () => r(16, 96, 188, 16, "#D9A066", 3) + p("M26,112 V176 M194,112 V176") + r(30, 40, 160, 56, "#E8C38E", 8) + c(62, 68, 13, "#6D5D4B") + r(94, 55, 26, 26, "#6D5D4B", 2) + p("M152,54 L168,82 H136 Z", "#6D5D4B") + c(70, 132, 12, "#EF5350") + r(102, 120, 24, 24, "#42A5F5", 2) + p("M152,120 L166,146 H138 Z", "#66BB6A"),
-    cubes: () => { let a = r(52, 150, 116, 18, "#B98555", 4) + p("M66,168 V186 M154,168 V186"); for (const [x, y, k] of [[64, 104, 0], [110, 104, 2], [87, 62, 4]]) a += r(x, y, 44, 44, TILE[k], 6) + p(`M${x + 15},${y} V${y + 44} M${x + 29},${y} V${y + 44} M${x},${y + 15} H${x + 44} M${x},${y + 29} H${x + 44}`); return a; },
-    picross: () => { let a = r(28, 14, 164, 158, "#FFFDF6", 8); const heart = [".#.#.", "#####", "#####", ".###.", "..#.."]; heart.forEach((row, y) => [...row].forEach((v, x) => { a += r(60 + x * 24, 48 + y * 24, 22, 22, v === "#" ? "#EF5350" : "#FFFFFF", 2); })); a += `<text x="42" y="64" text-anchor="middle" font-size="12" font-family="sans-serif" font-weight="bold" fill="${INK}" stroke="none">1 1</text><text x="72" y="40" text-anchor="middle" font-size="14" font-family="sans-serif" font-weight="bold" fill="${INK}" stroke="none">2</text><text x="120" y="40" text-anchor="middle" font-size="14" font-family="sans-serif" font-weight="bold" fill="${INK}" stroke="none">4</text>`; return a + p("M60,172 V186 M160,172 V186"); },
-  };
-  const prop0 = StoreArt.prop.bind(StoreArt);
-  StoreArt.prop = (kind) => (PROPS[kind] ? StoreArt.svg(PROPS[kind]()) : prop0(kind));
-  STORE_INTERIORS.kobo = { wall: "#F4EBDD", floor: "#D8B88E", accent: "#E0A040", motif: "wood", caption: "とけた とき、すっきり！", fixtures: [
-    ["slideframe", 0, 0, 3, 2, "スライド パズルの がく"], ["jigsawwall", 8, 0, 2, 2, "ジグソーの かべ"], ["workbench", 0, 5, 3, 2, "こうぼうの さぎょうだい"], ["shapesorter", 7, 5, 3, 2, "かたち はめの つくえ"], ["cubes", 0, 9, 2, 1, "いろの キューブ"], ["picross", 7, 9, 3, 1, "おえかき ロジックの ボード"]] };
-})();
+// 店内（10×12・斜め上の 館 js/store-iso.js）: ジグソーの かべ・こうぼうの さぎょうだいと どうぐの かべ・スライド パズルの がく・かたち はめの つくえ・ジグソーの テーブル・いろの キューブ・おえかき ロジックの ボード
+STORE_INTERIORS.kobo = {
+  wall: "#F6EEE2", wallPat: "wood", accent: "#E0A040", wainscot: "#E8D2B0", wood: "#C98A52", caption: "とけた とき、すっきり！",
+  mats: { ".": { c: ["#D8B88E", "#CFAE82"], pat: "plank" } },
+  counter: { body: "#E0A040", top: "#FFF8EC", items: ["bell", "plant"] },
+  walls: {
+    north: [{ t: "lights", a: 0, b: 4, z: 222 }, { t: "sign", a: 4.0, b: 7.0, z0: 174, z1: 220 }, { t: "pegs", a: 7.2, b: 9.8, z0: 112, z1: 206, goods: "tools", col: "#E7D3B0" }],
+    west: [{ t: "window", a: 3.0, b: 5.8, z0: 104, z1: 200, curtain: "#E8C38E" }, { t: "chalk", a: 7.1, b: 9.9, z0: 150, z1: 214, lines: ["きょうの パズル", "スライド・かたち・ロジック"] }, { t: "clock", a: 10.4, z: 200 }],
+  },
+  fixtures: [
+    ["wallshelf", 4, 0, 3, 1, "キューブの たな", { variant: "cubes", sign: "キューブ", height: 150 }], ["slideframe", 4, 1, 1, 1, "スライド パズルの がく"], ["cubes", 6, 1, 1, 1, "いろの キューブ"],
+    ["jigsawwall", 0, 0, 3, 1, "ジグソーの かべ"], ["workbench", 7, 0, 3, 1, "こうぼうの さぎょうだい"],
+    ["wallshelf", 0, 3, 1, 3, "パズルの たな", { variant: "puzzles", sign: "パズル" }], ["picross", 0, 7, 1, 2, "おえかき ロジックの ボード"],
+    ["shapesorter", 7, 4, 2, 1, "かたち はめの つくえ"], ["puzzletable", 7, 6, 2, 2, "ジグソーの テーブル", { variant: "jigsaw", wood: "#E8C38E" }],
+    ["board", 9, 3, 1, 1, "きょうの パズル", { lines: ["きょうの", "スライド", "パズル"], col: "#5A3E2A" }],
+    ["plant", 9, 10, 1, 1, null, { variant: "bush" }], ["plant", 0, 11, 1, 1, null, { variant: "tall" }],
+    ["npc", 2, 8, 1, 1, "パズルずきの こ", { sp: "squirrel", ci: 1, dir: "left", action: "chat", lines: ["ロジック、ハートが できたよ！", "スライド パズル、あと 3て！"] }],
+  ],
+};
 // 店内 BGM「からくり こうぼう」: この ゲームの ために つくった きょく（オルゴールと プラック・8小節）
 SONGS.shop_kobo = { title: "からくり こうぼう", bpm: 108, key: "F", modern: true, groove: "pop", swing: 0.04, original: true, tracks: [
   { instrument: "pluck", vol: 0.17, gate: 0.7, pan: 0.14, notes: "F4 A4 C5 A4 F4 . C5 . | D5 C5 Bb4 A4 G4 . . . | E4 G4 C5 G4 E4 . Bb4 . | A4 G4 F4 G4 A4 . . . | F4 A4 C5 F5 E5 D5 C5 . | D5 . Bb4 . G4 A4 Bb4 . | A4 C5 G4 Bb4 E4 G4 C5 . | F4 . A4 . F4 . _ _" },

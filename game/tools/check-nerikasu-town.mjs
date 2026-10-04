@@ -49,7 +49,7 @@ for(const id of ['lawson','sevenbun']){
   assert.equal(d.buildings.filter(b=>b.act.type==='buy'&&b.act.shop===id).length,1,id+' building');
   const shop=R.BUY_SHOPS[id],items=shop.items(),design=R.STORE_INTERIORS[id];assert(items.length===6&&items.every(i=>i&&R.BAG_INDEX[i.id]),id+' goods');
   // おみせの 6こ ＋ いちばんくじの たな（js/ichiban-kuji.js・UI-55）
-  assert(design&&design.fixtures.length===7&&design.fixtures.filter(([kind])=>kind==='kuji_'+id).length===1,id+' interior');for(const [kind] of design.fixtures)assert(R.StoreArt.prop(kind).length>400,id+' fixture art '+kind);
+  assert(design&&design.fixtures.length>=12&&design.fixtures.filter(([kind])=>kind==='kuji_'+id).length===1,id+' interior');for(const f of R.StoreIso.fixtures(id))if(f.kind!=='keeper'&&f.kind!=='npc')assert(R.StoreIsoArt.model(f).svg.length>400,id+' fixture art '+f.kind);
 }
 const goods=(id)=>R.BUY_SHOPS[id].items().map(i=>i.id);assert(!goods('lawson').some(g=>goods('sevenbun').includes(g)),'the two convenience stores sell the same goods');
 for(const id of ['karaage','rollcake','oden','cocoa','hamburg','omurice','doria','kidsplate','pancake','parfait']){const f=R.BAG_INDEX[id];assert(f&&f.exclusive==='nerikasu'&&f.price>0,'food '+id);assert(R.Art.iconSvg('bag',id).length>600,'food art '+id);}
@@ -63,7 +63,7 @@ assert(R.BUY_SHOPS.market.items('food').every(f=>!f.exclusive),'convenience food
 assert.equal(B('neri_gas').act.shop,'gasstand');assert.equal(B('neri_post').act.shop,'postoffice');assert.equal(B('neri_apartment').act.venue,'neri_apart');
 for(const id of ['gasstand','postoffice']){
   assert(R.SHOPS[id]&&R.MG_TASKS[id]&&R.SHOP_OWNERS[id]&&R.HOWTO[id]&&R.SONGS['shop_'+id]&&R.Save.fresh().shops[id],id+' registration');
-  const design=R.STORE_INTERIORS[id];assert(design&&design.fixtures.length===6,id+' interior');for(const [kind] of design.fixtures)assert(R.StoreArt.prop(kind).length>300,id+' fixture art '+kind);
+  const design=R.STORE_INTERIORS[id];assert(design&&design.fixtures.length>=12,id+' interior');for(const f of R.StoreIso.fixtures(id))if(f.kind!=='keeper'&&f.kind!=='npc')assert(R.StoreIsoArt.model(f).svg.length>300,id+' fixture art '+f.kind);
 }
 assert(R.BUY_SHOPS.gasstand.items().length===3,'gas station goods');
 {const v=R.VenueHalls.defs.neri_apart;assert(v.iso&&Object.keys(v.floors).join()==='1,2','apartment floors');

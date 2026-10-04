@@ -2,7 +2,7 @@
 // ・ビッグ ぬいぐるみ（A〜Cしょう・ラストワンしょう）: すわった 3人を ぬいぐるみに した オリジナルの 絵。ししゅうの め・フェルトの ほっぺ・ぬいめ・ぬのの タグ。
 //   ローリソン: あおい しましまの せいふくの ごじ（からあげ）・おにぎりの きぐるみの わんこ・プリンの がちゃん・3人の レジ。
 //   せぶんぶん: メロンパンの フードの わんこ・おでんの たまごの がちゃん・ココアの ごじ・おでんの なべの 3人。
-// ・クッション・マグ・ブランケット（ラグの 立体）・エコバッグ（もちもの）・アクリル スタンド・ちび ぬいぐるみ・クーポンけん・シール・タペストリー・店の たな・くじの はこ。
+// ・クッション・マグ・ブランケット（ラグの 立体）・エコバッグ（もちもの）・アクリル スタンド・ちび ぬいぐるみ・クーポンけん・シール・タペストリー・くじの はこ（店の たなは js/store-iso-props.js の kuji_*）。
 // ・線は INK。SVG の id（グラデーション）は つかわない（かさねても かけない）。キラキラの えんしゅつは つけない（UI-50）。
 // ・どれも この ゲームの ための オリジナルの 絵（じっさいの 商品・お店の なまえや 絵は つかわない）。
 const KujiArt = (() => {
@@ -260,18 +260,6 @@ const KujiArt = (() => {
     return s;
   };
 
-  // ===================== コンビニの たな（店の なかの くじ・StoreArt と おなじ 220×190）=====================
-  const shelf = (store) => {
-    const S = store === "lawson", col = S ? LAW.blue : SEV.or, bg = S ? LAW.light : SEV.bg, A = S ? ["kj_law_b", "kj_law_a", "kj_law_c"] : ["kj_sev_c", "kj_sev_a", "kj_sev_b"];
-    let s = R(10, 64, 200, 116, 6, "#FFFFFF", 4) + R(18, 72, 184, 50, 4, bg, 0) + L("M14,122 H206 M14,150 H206", K, 3.6);
-    s += place(plush(A[0]), 22, 70, 58, 54) + place(plush(A[1]), 80, 58, 62, 66) + place(plush(A[2]), 142, 70, 58, 54);
-    for (let i = 0; i < 6; i++) s += R(24 + i * 30, 128, 24, 18, 3, ["#FFE08A", "#F7B6C8", "#A8D5BA", "#A8C4E8", "#F7C08A", "#C7B8E8"][i], 2.6);
-    for (let i = 0; i < 7; i++) s += R(22 + i * 26, 156, 20, 18, 3, i % 2 ? "#FFFFFF" : bg, 2.4) + L(`M${26 + i * 26},${163} h12`, col, 2.4);
-    s += R(30, 6, 160, 44, 8, col, 4) + `<text x="110" y="34" text-anchor="middle" font-size="22" font-family="sans-serif" font-weight="bold" fill="#FFFFFF" stroke="none">いちばんくじ</text>`;
-    s += R(46, 44, 128, 16, 4, "#FFFFFF", 3) + `<text x="110" y="56" text-anchor="middle" font-size="11" font-family="sans-serif" font-weight="bold" fill="${col}" stroke="none">1かい 1000コイン</text>`;
-    return s + L("M26,180 V186 M194,180 V186", K, 4);
-  };
-
   // ===================== くじの はこ（がめん）=====================
   const box = (store) => {
     const S = store === "lawson", col = S ? LAW.blue : SEV.or, bg = S ? LAW.light : SEV.bg;
@@ -316,5 +304,5 @@ const KujiArt = (() => {
     }
   };
 
-  return { PLUSH, ART, STK, plush, pic, furn, coupon, sticker, bag, shelf, box, install, blanketFlat, charImg, smallHead, LAW, SEV };
+  return { PLUSH, ART, STK, plush, pic, furn, coupon, sticker, bag, box, install, blanketFlat, charImg, smallHead, LAW, SEV };
 })();
