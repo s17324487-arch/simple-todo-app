@@ -49,6 +49,12 @@ const PokaDebug = {
   english(){if(typeof EnglishGame==='undefined')return null;const E=EnglishGame.state();return{lv:E.lv,mode:E.mode,plays:{...E.plays},best:{...E.best},recent:Object.fromEntries(Object.entries(E.recent).map(([k,v])=>[k,v.length])),words:{jh:ENG_WORDS.jh.length,hs:ENG_WORDS.hs.length},fill:{jh:ENG_FILL.jh.length,hs:ENG_FILL.hs.length}};},
   // コンビニの しなぞろえ（UI-84。js/conbini-goods.js）: しなもの・タブ・もとの ねだん・コンビニの ねだん（×1.5）
   conbini(shop='lawson'){if(typeof ConbiniGoods==='undefined'||!ConbiniGoods.LINEUP[shop])return null;return{shop,mul:ConbiniGoods.MUL,tabs:ConbiniGoods.TABS.map(t=>t[0]),goods:BUY_SHOPS[shop].items().map(it=>({id:it.id,name:it.name,tab:ConbiniGoods.tabOf(shop,it.id),base:it.basePrice,price:it.price}))};},
+  // コンビニの ポイントカード（UI-85。js/conbini-card.js）: カード・チケット・ていきけん・オーナーの ようす。
+  // set { has, pts, carry, owner: true/false, tickets: { crane, lv10, lv25 }, busUntil: "2027-4-3" } で きめる（pts を きめると カードも つくる）
+  conbiniCard(shop='lawson',set=null){if(typeof ConbiniCard==='undefined'||!ConbiniCard.card(shop))return null;const C=ConbiniCard,d=C.st(),c=d.shops[shop],n=(v)=>Math.max(0,Math.floor(Number(v)||0));
+    if(set){if(set.has!=null)c.has=!!set.has;if(set.pts!=null){c.has=true;c.pts=n(set.pts);}if(set.carry!=null)c.carry=Math.min(C.PER-1,n(set.carry));if(set.owner!=null)c.owner=set.owner?U.today():'';if(set.tickets)for(const[k,v]of Object.entries(set.tickets))if(d.tickets[k]!==undefined)d.tickets[k]=n(v);if(set.busUntil!=null)d.bus.until=String(set.busUntil);Save.mark();Save.write();}
+    const g=BUY_SHOPS[shop].items().find(i=>i.id===(shop==='lawson'?'karaage':'oden')),v=C.view&&C.view.shop===shop&&document.querySelector('.modal-wrap:not(.out) .cc-wrap');
+    return{shop,name:C.cardName(shop),has:c.has,pts:c.pts,carry:c.carry,total:c.total,used:c.used,spent:c.spent,owner:!!c.owner,got:{...c.got},tickets:{...d.tickets},bus:{until:d.bus.until,free:C.busFree(),text:C.busText()},hello:BUY_SHOPS[shop].hello[0],sample:g?{id:g.id,price:g.price,base:g.basePrice}:null,prizes:C.prizes(shop).map(p=>({id:p.id,cost:p.cost,can:c.has&&c.pts>=p.cost&&!(p.id==='owner'&&c.owner)})),open:!!v,rows:v?[...v.querySelectorAll('.cc-prize')].map(r=>({id:r.dataset.id,can:r.classList.contains('can'),done:r.classList.contains('done'),name:r.querySelector('b').textContent})):[]};},
   // ナンプレ（パズル こうぼう・UI-81。js/mg-numpla.js）: セーブの ようす（さいごの 難しさ・だした かず・クリア・ベスト・とちゅうの 問題）
   numpla(){if(typeof Numpla==='undefined')return null;const N=Numpla.state(),c=N.cont;return{lv:N.lv,n:{...N.n},clear:{...N.clear},best:{...N.best},cont:c?{lv:c.lv,used:c.used,miss:c.miss||0,hint:c.hint||0,filled:[...c.v].filter((ch,i)=>ch!=='.'&&c.p[i]==='.').length,valid:Numpla.validCont(c)}:null,bank:Object.fromEntries(Object.entries(NUMPLA_BANK).map(([k,v])=>[k,v.length]))};},
   // あそんで いる ナンプレの あきマス（まちがいも）を 正しい 数字で うめる。leave マス だけ のこす（テストを みじかく する）。のこした かずを かえす
@@ -68,7 +74,11 @@ const PokaDebug = {
   puriFast(k=1){if(G.sceneName!=='purikura')return false;G.scene.speed=Math.max(1,Math.min(8,k));return true;},
   photos(){return Purikura.list().map(p=>({id:p.id,bg:p.bg,k:p.k,z:p.z,c:p.c,o:Object.fromEntries(Object.entries(p.o).map(([id,v])=>[id,{...v[0]}])),p:p.d.p.length,s:p.d.s.length,x:p.d.x.map(t=>t[0]),m:p.m||null,st:p.d.s,xt:p.d.x,e:p.d.e||[]}));},
   // 台の ある 階へ もどる（2F の おかし キャッチャーは 2F の 台の まえ）
-  arcadeStart(machine=0){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),fl=IkeArcade.floorOf(machine),f=VenueHalls.defs.arcade.floors[fl].fixtures.find(f=>f.machine===machine),back={venue:'arcade',floor:fl,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'},...(fl>1&&f?{at:f.spots[0]}:{})},run=PrizeArcade.start(machine,back);if(run)Game.goto('prize',{run},'none');return !!run;},
+  // pay: "coin"（100コイン）・"ticket"（クレーン チケット。js/conbini-card.js・UI-85）
+  arcadeStart(machine=0,pay='coin'){const run=PrizeArcade.start(machine,this.arcadeBack(machine),pay);if(run)Game.goto('prize',{run},'none');return !!run;},
+  // 台の まど（あそびかたと「○コインで あそぶ」・チケットが あれば「チケットで あそぶ」）を ひらく。もどりさきは その台の まえ
+  arcadeOpen(machine=0){if(!PrizeArcade.machines[machine])return false;PrizeArcade.open(machine,this.arcadeBack(machine));return true;},
+  arcadeBack(machine){const b=MAP_DEFS.city.buildings.find(b=>b.id==='ike_arcade'),fl=IkeArcade.floorOf(machine),f=VenueHalls.defs.arcade.floors[fl].fixtures.find(f=>f.machine===machine);return{venue:'arcade',floor:fl,back:{map:'city',x:b.x+b.door,y:b.y+b.h,dir:'down'},...(fl>1&&f?{at:f.spots[0]}:{})};},
   // 日がわりの 台の その日の けいひん（day: "2026-10-1" の かたち・なしで その台の いまの 日〔PrizeArcade.dayOf〕。calendar("2026-10-01") でも かわる）。text: 台の せつめいの よびかた・keep: とれるまで かわらない 台
   // season: 3人の 台の きせつの ぬいぐるみ（UI-63。その きせつの いま めだまの けいひんの id）・note: 台の せつめいの ひとこと
   arcadeLineup(machine=12,day){const d=CraneMachines.DEFS[machine];if(!d||!d.pool)return null;const dd=day||PrizeArcade.dayOf(machine),prizes=PrizeArcade.prizeList(machine,dd),se=d.season?ArcadePrizes.seasonal(d.season,dd):null;return {day:dd,shapes:CraneMachines.lineup(d,dd),prizes,names:prizes.map(id=>PrizeArcade.item(id).name),text:PrizeArcade.todayText(machine,dd),keep:!!d.keep,season:se?se.id:null,note:PrizeArcade.seasonNote(machine,dd)};},
@@ -199,6 +209,7 @@ const PokaDebug = {
       "PokaDebug.gachaHeiseiMore()         4F の へいせい じょじ ふうの ガチャ 5シリーズ（ばんごう・しま・けいひん・こんしゅう でて いるか。UI-80）",
       "PokaDebug.english()                 英語の セーブ（レベル・あそびかた・かず・ベスト・さいきんの 問題）と 問題の かず（UI-82）",
       "PokaDebug.conbini('lawson')          コンビニの しなぞろえ（16しゅ・タブ・もとの ねだん・コンビニの ねだん ×1.5。UI-84）",
+      "PokaDebug.conbiniCard('lawson', set) コンビニの ポイントカード（ポイント・チケット・ていきけん・オーナー。set { pts, owner, tickets, busUntil } で きめる。UI-85）",
       "PokaDebug.numpla()                  ナンプレの セーブ（さいごの 難しさ・クリア・ベスト・とちゅうの 問題・たばの かず。UI-81）",
       "PokaDebug.numplaFill(leave=1)       あそんで いる ナンプレを leave マス だけ のこして 正しく うめる（0 で クリア）",
       "PokaDebug.arcadeStart(21〜23)       4F の たこやき（arcadeTako(0) で あたりの あなに だま）・バーバーカット（arcadeBarber(1, 0, -2) で まん中の ひもの てまえ）・バウンドボール",

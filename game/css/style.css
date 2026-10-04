@@ -1667,3 +1667,30 @@ html, body {
 .hx-foot .hx-reset { flex: 0 0 auto; }
 .hx-foot .hx-go { flex: 1; line-height: 1.15; }
 .hx-foot .hx-go small { display: block; font-size: 12px; font-weight: 800; }
+/* コンビニの ポイントカード（UI-85・js/conbini-card.js）: カードの 絵・ポイント・こうかんの けいひん・レベル けんの おみせ・もちものの だいじな もの */
+.cc-wrap { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cc-card { width: min(300px, 88%); margin: 2px auto 0; filter: drop-shadow(0 4px 0 rgba(31, 29, 27, 0.22)); }
+.cc-card svg { display: block; width: 100%; height: auto; }
+.cc-pts { text-align: center; font-weight: 800; line-height: 1.1; }
+.cc-pts b { font-size: 32px; margin-right: 4px; }
+.cc-info { text-align: center; font-size: 12px; font-weight: 700; color: #6b625a; word-break: keep-all; overflow-wrap: anywhere; }
+.cc-info span { display: block; }
+/* てんいんさんの ひとこと（オーナーの ていねいな ことばも）は ことばの きれめで おりかえす */
+.shop-goods .chara-card .info { word-break: keep-all; overflow-wrap: anywhere; }
+.cc-rule { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
+.cc-list { display: flex; flex-direction: column; gap: 8px; }
+.cc-prize { display: flex; align-items: center; gap: 8px; background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; padding: 6px 8px; box-shadow: 0 3px 0 var(--ink); }
+.cc-prize.can { background: var(--yellow-l); }
+.cc-prize.done { background: #EEF3F8; }
+.cc-ico { width: 48px; height: 48px; flex: 0 0 48px; }
+.cc-ico svg { display: block; width: 100%; height: 100%; }
+.cc-txt { flex: 1 1 auto; min-width: 0; font-size: 13px; word-break: keep-all; overflow-wrap: anywhere; }
+.cc-txt b { font-size: 14px; }
+.cc-txt .muted { font-size: 11.5px; line-height: 1.4; }
+.cc-cost { font-size: 12.5px; font-weight: 800; color: #9A5B00; }
+.cc-trade { flex: 0 0 auto; min-width: 76px; min-height: 44px; }
+.cc-lv { display: flex; flex-direction: column; gap: 6px; }
+.cc-lv .note { margin: 0 0 4px; word-break: keep-all; overflow-wrap: anywhere; }
+.cc-lv-btn { min-height: 44px; justify-content: flex-start; text-align: left; }
+.cc-key .cc-key-txt { flex: 1 1 auto; min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
+.cc-key .cc-use { flex: 0 0 auto; min-height: 44px; }

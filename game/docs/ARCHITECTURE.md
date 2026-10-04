@@ -165,6 +165,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `nerikasu-layout.js`（nerikasu-town.js の あと） | `NerikasuLayout` |
 | — | `neri-shops.js`（nerikasu-layout.js の あと） | `NeriShops` |
 | — | `conbini-goods.js`（neri-shops.js の あと・food-balance.js の まえ・UI-84） | `ConbiniGoods` |
+| — | `conbini-card-art.js` → `conbini-card.js`（store-iso.js の あと。conbini-goods.js・ichiban-kuji.js・menu.js より あと・UI-85） | `ConbiniCardArt` ／ `ConbiniCard`（コンビニの ポイントカード） |
 | — | `dino-museum.js` / `dino-hall-art.js`（ike-aquarium.js の あと・neri-bikkupo.js の まえ） | `DinoMuseum` ／ `DinoHallArt`（きょうりゅう はくぶつかんの 3かいだての 館・UI-42。`dino-hall-art.js` の さいごで `DinoMuseum.install()`） |
 | — | `neri-bikkupo.js`（ike-aquarium.js の あと） | `Bikkupo` |
 | — | `neri-gas.js`（neri-bikkupo.js の あと） | `GAS_FUELS`, `GAS_AMOUNTS`, `GAS_CARS`, `GAS_COLORS`, `gasCarSvg`, `GasTask`, `GasStand` |
@@ -1384,7 +1385,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - `neri-shops.js`（`NeriShops`）: あたらしい 食べ物 10しゅを `FOODS`・`BAG_INDEX`・`FOOD_ART` に たす（`exclusive: "nerikasu"`。ikebukuro-catalog.js が つつんだ まえの `BUY_SHOPS` ＝ スーパーには ならばない）。店内（`STORE_INTERIORS.lawson` / `sevenbun`）は 斜め上の 館の データで、什器の 絵は `js/store-iso-props.js`（cvsback・opencase・hotdrinks・cocoa・microwave・magrack・atm・kuji_*）。`BUY_SHOPS.lawson` / `sevenbun`（`kind: "bag"`・しなもの 6つずつ・かさならない）・`STORE_INTERIORS`・`SIGN_ICON`・`SONGS.shop_<id>`（ディスクの パブリックドメインの 曲の 楽器を かえた 写し）。町の 建物は `{ type: "buy", shop }`。
 - `neri-bikkupo.js`（`Bikkupo`）: `VenueHalls.defs.bikkupo`（`iso`・22×16・`scale` 0.5）。絵は `Object.create(MallArt)` に 什器の モデル（booth・fmtable・drinkbar・kitchen・pass・dessertcase・fmregister・kidsmat・robot・menuboard・podium・partition。キーは 種類・大きさ・variant・dir だけ）・床の 材質・かべ（まど・ブラインド・ポスター）。しらべる: `order`（ごはん／デザート → 3人で たべる）・`drink`・`kitchen`（`Game.goto("shop", { shop: "burger", returnVenue })`。`ShopScene` は `returnVenue` が あれば 館へ もどる）・`register`（`BUY_SHOPS.bikkupo`）・`kids`。はいぜん ロボは `tick` で たのんだ せきの まえへ いって もどる（`walk: true`）。町の 建物は `{ type: "venue", venue: "bikkupo" }`。
 - `conbini-goods.js`（`ConbiniGoods`・UI-84）: 2つの コンビニの しなぞろえ `LINEUP`（16しゅずつ・[id, タブ]）・あたらしい たべもの 20しゅ（`cv_*`・`FOODS`・`BAG_INDEX`・`FOOD_ART`・`exclusive: "nerikasu"`）・タブ `TABS`（meal・sweet・drink）。`BUY_SHOPS.lawson/sevenbun` の `tabs` と `items(tab)` を かきかえ、`items` は コンビニの ねだん（`ConbiniGoods.price` = もとの ねだん × 1.5・`basePrice` に もとの ねだん）を つけた コピーを かえす（`BAG_INDEX` の ねだんは かえない）。しらない タブ（くじの クーポンの `goods` など）は ぜんぶ。`NeriShops.SHOPS[id].goods` と たなの `foods` も あたらしい しなぞろえに。PokaDebug: `conbini(shop)`。
-- テスト: `tools/check-nerikasu-town.mjs`（しなもの・絵・館の 什器と キー）・`tools/check-conbini-goods.mjs`（16しゅ × 2・タブ・1.5ばい・ほかの おみせ・絵・クーポン）・`tools/check-venues.mjs`（什器に いける）。スモーク「nerikasu-shops-390 / 375」「burger-shop」。
+- `conbini-card-art.js`・`conbini-card.js`（`ConbiniCardArt`・`ConbiniCard`・UI-85）: コンビニの ポイントカード。2つの コンビニは べつべつ（`STORES`）。セーブは `Save.d.conbiniCard`（`shops.<みせ>` の has・pts・carry〔200 に たりない コイン〕・total・used・spent・owner〔オーナーに なった 日〕・got、`tickets` の crane・lv10・lv25、`bus.until`〔ていきけんの さいごの 日〕、`log`）。`st()` が よむ たびに かたちを なおす。
+  - ポイント: `earn(shop, coins)`（`PER` 200 ごとに `PTS` 10・あまりは carry に もちこし・はじめての かいもので カードを つくる）。くみこみは `BUY_SHOPS.lawson/sevenbun.bought`（おみせの まどで かった `it.price × qty`・クーポンは よばれない）と `IchibanKuji.draw` を つつむ（1まい 1000コイン）。
+  - こうかん: `prizes(shop)`（`PRIZES`: crane 100・lv10 1000・lv25 2000・bus 5000・owner 10000〔`secret`〕と、みせごとの `add(shop, p)`〔ごわが コラボ・UI-86〕）・`exchange(shop, id)`（ポイントを へらして わたす・オーナーは 1かい）。てんいんさんの「ポイントカード」（`talkChoice`・js/store-iso.js の talk）で カードの まど（`open`）。
+  - クレーン チケット: `PrizeArcade.ticketsFor(machine)`（コイン プッシャー いがい）・`PrizeArcade.start(machine, back, "ticket")`（コインの かわりに `takeTicket`・`run.ticket`）・台が いれかわった とちゅうの 1かいは `giveTicket`（`arcade.refundedTicket`）。台の まどは `UI.ask`（○コイン／チケット／やめる）・けっかに「チケットで もういちど」。
+  - おてつだい レベル けん: `lvTargets(kind)`・`useLv(kind, shop)`（`SHOP_LV_REP[to]` まで ひょうばんを あげて `st.lv`・30 まで・`ShopRewards.claim`）。こうかんの あと すぐ か、もちものの「つかう」（`chooseLv`）。
+  - バスの ていきけん: `extendBus()`（きょう〔もって いれば つぎの 日〕から `BUS_MONTHS` 6かげつ・`lastDay`）・`busFree()`・`busText()`。`Transit.busPass()` が あれば `Transit.bus` は はらわない。
+  - オーナー: `owner(shop)`。`ConbiniGoods.price` を つつんで 10%びき（もとの 1.5ばいの ねだんは `ConbiniGoods.price0`）・`BUY_SHOPS[shop].hello` は getter（オーナーには `POLITE`）・`note` に 10%びき・`StoreScene.prototype.enter` を つつんで はいった ときの あいさつ・かった あとの おれい。
+  - もちもの: `Menu.bag` を つつんで「だいじな もの」（カード 4しゅの 絵・チケット・ていきけん・レベル けんの「つかう」）。
+  - 絵（`ConbiniCardArt`）: `big(shop, owner)`（200×126）・`icon(shop, owner)`（64）・`prize(id)`（チケット・レベル けん・ていきけん・ひみつ）。id なし。
+- テスト: `tools/check-nerikasu-town.mjs`（しなもの・絵・館の 什器と キー）・`tools/check-conbini-goods.mjs`（16しゅ × 2・タブ・1.5ばい・ほかの おみせ・絵・クーポン）・`tools/check-conbini-card.mjs`（ポイントカード: セーブ・ポイント・こうかん・オーナー・チケット・レベル けん・ていきけん・絵・ことば）・`tools/check-venues.mjs`（什器に いける）。スモーク「nerikasu-shops-390 / 375」「conbini-card-390 / 375」「burger-shop」。PokaDebug: `conbiniCard(shop, set)`・`arcadeStart(machine, pay)`・`arcadeOpen(machine)`。
 
 ## ネリカスタウンの ガソリンスタンド・ゆうびんきょく・アパート（TOWN-NERI-03）
 

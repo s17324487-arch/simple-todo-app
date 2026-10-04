@@ -51,7 +51,9 @@ const Transit = {
       let m = null;
       const done = (v) => { if (!m) return; const mm = m; m = null; mm.close(); res(v); };
       const body = U.el("div", { class: "bus-picker" }), grid = U.el("div", { class: "bus-grid" });
-      body.append(U.el("p", { class: "bus-lead", text: `どこへ いく？ どこでも ${this.BUS_FARE}コイン。` }));
+      // バスの ていきけん（コンビニの ポイントカードの けいひん・js/conbini-card.js・UI-85）が あれば ただ
+      const pass = this.busPass();
+      body.append(U.el("p", { class: "bus-lead", text: pass ? `どこへ いく？ バスの ていきけんで ただ（${pass}）。` : `どこへ いく？ どこでも ${this.BUS_FARE}コイン。` }));
       for (const map of this.busMaps(from)) {
         const p = typeof AtlasArt !== "undefined" ? AtlasArt.places[map] : null, b = UI.btn(this.busName(map), () => { Sound.se("ok"); done(map); });
         b.setAttribute("aria-label", this.busName(map) + "へ");
@@ -62,12 +64,16 @@ const Transit = {
       m = UI.modal({ title: "バスてい", body, onClose: () => { if (m) { m = null; res(null); } } });
     });
   },
+  // バスの ていきけんの のこり（「○ねん ○がつ ○にち まで」・なければ ""）
+  busPass() { return typeof ConbiniCard !== "undefined" && ConbiniCard.busFree() ? ConbiniCard.busText() : ""; },
   async bus(from) {
     if (UI.busy || Game.trans) return false;
     const map = await this.busPick(from);
     if (!map || !this.BUS[map] || map === from) return false;
-    if (Save.d.coins < this.BUS_FARE) { await UI.say([{ name: "バスてい", text: `${this.BUS_FARE}コインが ひつようだよ。` }]); return false; }
-    Save.d.coins -= this.BUS_FARE; Save.write(); UI.updateHud();
+    const pass = !!this.busPass();
+    if (!pass && Save.d.coins < this.BUS_FARE) { await UI.say([{ name: "バスてい", text: `${this.BUS_FARE}コインが ひつようだよ。` }]); return false; }
+    if (pass) UI.toast("バスの ていきけんで のったよ", "good"); else Save.d.coins -= this.BUS_FARE;
+    Save.write(); UI.updateHud();
     Game.goto("travel", { from: "bus:" + from, to: "bus:" + map, kind: "bus", label: this.busName(map), arrival: this.busArrival(map) }, "circle");
     return true;
   },

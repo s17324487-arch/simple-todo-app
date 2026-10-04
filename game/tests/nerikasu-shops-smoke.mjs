@@ -25,8 +25,10 @@ export async function nerikasuShopsSmoke({scenario,expect}){
       expect(lists[shop].length===16&&lists[shop].every(Boolean),shop+' の しなもの '+JSON.stringify(lists[shop]));
       await H.page.locator('.modal-wrap .tab[data-k="meal"]').click();await H.wait(150);
       const name=await H.eval(id=>BAG_INDEX[id].name,item),price=cv.goods.find(g=>g.id===item).price,before=await H.dbg('saveData');
-      await H.page.locator('.modal-wrap .grid .card').filter({hasText:name}).first().click();await H.page.getByRole('button',{name:'かう',exact:true}).click();await H.wait(250);
-      const saved=await H.dbg('persistedSave');expect(saved.coins===before.coins-price&&(saved.bag[item]||0)===(before.bag[item]||0)+1,shop+' で かえない '+item);
+      await H.page.locator('.modal-wrap .grid .card').filter({hasText:name}).first().click();await H.page.getByRole('button',{name:'かう',exact:true}).click();
+      // はじめて かうと ポイントカードを つくる（てんいんさんの ひとこと。js/conbini-card.js・UI-85）
+      await H.until(()=>/ポイントカードを つくったよ/.test(document.querySelector('.dlg-shade:not(.ask) .dlg-text')?.textContent||''),8000);await H.dialogs();await H.wait(150);
+      const saved=await H.dbg('persistedSave');expect(saved.coins===before.coins-price&&(saved.bag[item]||0)===(before.bag[item]||0)+1&&(await H.dbg('conbiniCard',shop)).has,shop+' で かえない '+item);
       await H.page.locator('.modal-wrap .close').last().click();await H.idle();
       await H.page.getByRole('button',{name:'おみせを でる',exact:true}).click();await H.until(()=>PokaDebug.state().scene==='world'&&PokaDebug.idle(),15000);
     }
