@@ -133,6 +133,21 @@ function helpers(page, name) {
         await page.waitForTimeout(70);
       }
     },
+    // そんちょうさんの ひょうしょう（js/fossil-sell.js・UI-69）: 会話を おくり、ひょうしょうじょうの カードを「ありがとう！」で とじる（とじた かず）
+    async awards(max = 12) {
+      let n = 0;
+      for (let i = 0; i < max * 4 && n < max; i++) {
+        await H.dialogs();
+        await H.until(() => !!document.querySelector('.modal-wrap:not(.out) .award-card') || !!document.querySelector('.dlg-shade:not(.ask)') || window.PokaDebug.idle(), 10000);
+        const s = await page.evaluate(() => document.querySelector('.modal-wrap:not(.out) .award-card') ? 'card' : document.querySelector('.dlg-shade:not(.ask)') ? 'dlg' : 'idle');
+        if (s === 'idle') break;
+        if (s === 'dlg') continue;
+        await page.locator('.modal-wrap:not(.out)').filter({ has: page.locator('.award-card') }).locator('.panel-foot .btn').click();
+        await page.waitForTimeout(300); n++;
+      }
+      await H.dialogs();
+      return n;
+    },
     async choose(i) {
       await page.waitForSelector(".choices .btn");
       await (await page.$$(".choices .btn"))[i].click();
@@ -1771,8 +1786,16 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   v=await H.eval(()=>{const e=document.querySelector('.dn-done'),b=e.getBoundingClientRect();return {text:e.innerText,inside:b.left>=0&&b.right<=innerWidth+1};});
   expect(/コンプソグナトゥスの がいこつが かんせい！/.test(v.text)&&/まめちしき/.test(v.text)&&v.inside,'かんせいの 画面が 不正 '+JSON.stringify(v));
   await H.shot('done');
-  await H.page.getByRole('button',{name:'ホールで みる',exact:true}).click();await H.wait(300);await H.dialogs();await H.idle();
+  const coinsDone=(await H.dbg('state')).coins;
+  await H.page.getByRole('button',{name:'ホールで みる',exact:true}).click();await H.wait(300);await H.dialogs();
+  // そんちょうさんの ひょうしょう（UI-69）: ひょうしょうじょうの カード（はじめての かんせいは かべの ひょうしょうじょうも）→ ありがとう！
+  await H.page.locator('.award-card').waitFor({timeout:8000});await H.wait(300);
+  const aw=await H.eval(()=>{const e=document.querySelector('.award-card'),b=e.closest('.panel').getBoundingClientRect();return {text:e.innerText,inside:b.left>=0&&b.right<=innerWidth+1&&b.bottom<=innerHeight+1};});
+  expect(/ひょうしょうじょう/.test(aw.text)&&/コンプソグナトゥスの がいこつを かんせい/.test(aw.text)&&/おいわい コイン \+1,100/.test(aw.text)&&/ひょうしょうじょう」も もらった/.test(aw.text)&&aw.inside,'ひょうしょうの カードが 不正 '+JSON.stringify(aw));
+  await H.shot('award');
+  await H.page.getByRole('button',{name:'ありがとう！',exact:true}).click();await H.wait(300);await H.dialogs();await H.idle();
   d=await H.dbg('saveData');expect(d.museum.done.compso&&d.museum.bones['compso.head']&&!d.fossil.bones['compso.head']&&!d.fossil.bones['compso.body'],'骨の 寄贈・かんせいが 不正');
+  expect(d.museum.awards.compso&&d.furn.dino_award_cert===1&&d.coins===coinsDone+1100,'ひょうしょうの コイン・ひょうしょうじょうが 不正 '+JSON.stringify({aw:d.museum.awards,cert:d.furn.dino_award_cert,c:[coinsDone,d.coins]}));
   const st=await H.dbg('museumState');expect(st.fish===1&&st.bones===2&&st.done.join()==='compso','museumState が 不正 '+JSON.stringify(st));
   // 1F の ドームの 骨格の 台に コンプソグナトゥス（ぜんぶ 骨の 色）
   await H.dbg('museumGo','museum','jura');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===1&&!s.changingFloor&&PokaDebug.venueIso()?.ready&&PokaDebug.idle();},30000);await H.wait(1200);
@@ -4384,6 +4407,7 @@ await (await import("./nerikasu-work-smoke.mjs")).nerikasuWorkSmoke({scenario,ex
 await (await import("./brain-smoke.mjs")).brainSmoke({scenario,expect});
 await (await import("./kobo-smoke.mjs")).koboSmoke({scenario,expect});
 await (await import("./shop-again-smoke.mjs")).shopAgainSmoke({scenario,expect});
+await (await import("./fossil-sell-smoke.mjs")).fossilSellSmoke({scenario,expect});
 await (await import("./nerikasu-quests-smoke.mjs")).nerikasuQuestsSmoke({scenario,expect,folkTalk,folkTapSpot});
 await (await import("./farm-smoke.mjs")).farmSmoke({scenario,expect});
 

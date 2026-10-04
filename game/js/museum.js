@@ -150,6 +150,8 @@ const Museum = {
     if (!f.talked[n.id]) { f.talked[n.id] = true; Save.mark(); await say(T.first); }
     // きふの かずで もらえる げんていの 服（js/museum-wear.js・UI-33）: まえから きふして いて もう とどいて いる ぶん
     if (typeof MuseumWear !== "undefined") await MuseumWear.reward(bid, n, face);
+    // そんちょうさんの ひょうしょう（js/fossil-sell.js・UI-69）: まえに かんせいして いて まだ もらって いない ぶん
+    if (bid === "museum" && typeof DinoAward !== "undefined") await DinoAward.catchUp();
     if (this.complete(bid)) {
       if (!this.st().all[bid]) { this.st().all[bid] = true; Save.mark(); Save.write(); Sound.se("fanfare"); UI.toast("ぜんぶ そろった！", "good"); }
       await say(T.all); await say(U.pick(T.lines)); return true;
@@ -209,6 +211,7 @@ const Museum = {
         await this.refresh(sc);
         await UI.say([{ name: n.name, face, text: T.thanks }]);
         if (r.done) await this.doneCard(r.done, n, face, T);
+        if (r.done && typeof DinoAward !== "undefined") await DinoAward.present(r.done.id); // そんちょうさんの ひょうしょう（UI-69）
         if (typeof MuseumWear !== "undefined") await MuseumWear.reward(bid, n, face);
         busy = false;
         if (!this.donatable(bid).length) { if (m) m.close(); } else render();

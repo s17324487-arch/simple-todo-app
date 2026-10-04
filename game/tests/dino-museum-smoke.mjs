@@ -60,7 +60,8 @@ export async function dinoMuseumSmoke({ scenario, expect }) {
     await H.page.getByRole('button', { name: 'とじる', exact: true }).last().click(); await H.wait(300); await H.idle();
     await H.dbg('museumGo', 'museum', 'lab'); await arrive(2);
     expect((await rooms()).includes('museum.mu2_lab'), 'けんきゅうしつの 案内が 出ない'); await H.shot('lab');
-    expect(await H.dbg('museumDonate'), 'はかせに 話しかけられない'); await H.page.locator('.dlg-text').waitFor({ timeout: 10000 }); await H.dialogs(); await H.idle();
+    expect(await H.dbg('museumDonate'), 'はかせに 話しかけられない'); await H.page.locator('.dlg-text').waitFor({ timeout: 10000 }); await H.dialogs();
+    expect((await H.awards()) === 1, 'コンプソグナトゥスの ひょうしょう（UI-69）が でない'); await H.idle();
     const mood0 = (await H.dbg('saveData')).chars.wanko.mood;
     expect(await H.dbg('venueVisit', 'かせきほり たいけん'), 'かせきほりへ いけない');
     await H.page.locator('.dlg-text').waitFor({ timeout: 15000 }); await H.dialogs(); await H.idle();

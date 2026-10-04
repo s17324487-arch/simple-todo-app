@@ -42,6 +42,9 @@ export async function museumWearSmoke({ scenario, expect }) {
     const names = [];
     for (let i = 0; i < 4; i++) { c = await card('はくぶつかん ' + (i + 1)); names.push(c.name); if (i === 3) await H.shot('card-ptera'); await thanks(); await H.dialogs(); }
     expect(names.join() === 'ほねほね めがね,きばの ネックレス,ステゴ パーカー,プテラの つばさ', 'はくぶつかんの カードの じゅん ' + names);
+    // ふくの あとで そんちょうさんの ひょうしょう（UI-69）: がいこつ 10たい ぶん まとめて
+    const aw = await H.awards();
+    expect(aw === 10 && (await H.dbg('fossilSell')).count === 10, 'ひょうしょうが 10たい ぶん でない ' + aw);
     await H.dialogs(); await H.idle();
     st = await H.dbg('museumWear'); d = await H.dbg('persistedSave');
     expect(st.museum.got.length === 4 && st.museum.next === null && ['mw_boneglass', 'mw_fang', 'mw_stego', 'mw_ptera'].every((id) => d.wardrobe[id] === true && d.museum.wear[id]), 'はくぶつかんの ごほうびが ほぞん されない ' + JSON.stringify([st.museum, d.museum.wear]));

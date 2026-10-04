@@ -180,6 +180,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `aqua-gifts.js`（aqua-art.js の あと・ike-aquarium.js の まえ） | `AquaGifts` |
 | — | `figure-stand.js`（aqua-gifts.js の あと・ike-aquarium.js の まえ） | `FigureStand` |
 | — | `museum-wear.js`（aqua-gifts.js の あと・item-dex-sources.js の まえ） | `MuseumWear`（きふの ごほうびの 服 8つ・UI-33） |
+| — | `fossil-sell.js`（dino-hall-art.js の あと・neri-bikkupo.js の まえ＝fossils.js・museum.js・furniture-models.js の あと、item-dex-sources.js の まえ） | `FossilSell` ／ `DinoAward`（かせきの ほねを うる・そんちょうさんの ひょうしょう・かざる もの 3つ・UI-69） |
 | — | `burger-menu.js`（scene-store.js・shop.js・puri-pose.js の あと・figure-stand.js の まえ） | `BurgerMenu`（バーガーやさんの メニュー・にこにこ セットの おまけ・UI-34） |
 | — | `food-balance.js`（farm-cook.js の あと＝ぜんぶの たべものが そろった あと） | `FoodBalance`（たべものの バランス: そのままの やさい・りょうり・ねだんで ごきげん・「おなか+N ごきげん+M」・UI-35） |
 | — | `fashion-show.js` → `fashion-art.js` → `fashion-hall.js` → `fashion-scene.js`（food-balance.js の あと・item-dex-sources.js の まえ） | `FashionShow`（ファッションショーの きまり・セーブ）／ `FashionArt`（かお・ポーズ・けいひん・しゃしん）／ `FashionHall`（会場・ファッションかん〔まえの ほんの ギャラリー。2026-10-03 に なまえと 外観を かえた〕）／ `FashionScene`（ランウェイ・`SCENES.fashion`）・UI-36 |
@@ -1195,6 +1196,18 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - わたしかた: `Museum.talk`（館の 人に はなした とき）と `Museum.donate` の きふの あと に `MuseumWear.reward(館, 人, かお)` → `claim(館)`（めやすに とどいて まだ もらって いない ものを `WearStock.add(id, 1)`）→ 1つずつ カード（3人が つけた 絵・「ありがとう！」）。まえから きふして いる 人は つぎに はなした ときに まとめて もらえる。きふの まどの みだしの したに `hint(館)`（つぎの ごほうびまで あと なん しゅ／こ）。
 - セーブ: `Save.d.museum.wear = { id: もらった 日 }`（fresh に たす だけ・SCHEMA は 2 の まま）。ずかんの ヒントは `MuseumWear.source(id)`（`ItemDexSources.source`）。
 - PokaDebug: `museumWear()`。検査は `tools/check-museum-wear.mjs`、スモークは `tests/museum-wear-smoke.mjs`（`museum-wear-390/375`）。
+
+## かせきの ほねを うる・そんちょうさんの ひょうしょう（UI-69・`js/fossil-sell.js`）
+
+オーナーの FB 2026-10-03「採掘した骨も売れるようにして。これは結構、高単価で。ただ、寄贈するインセンティブも残したい。寄贈してひとつの模型が完成すると、町長から表彰されて、お金ももらえるようにして。」
+
+- `FossilSell.price(key)`: `RARITY[rarity]`（300・300・500・800・1200）× あたまの ほね（`skull`／`head`）は `HEAD`（1.5）・10 きざみ。`held()`（もって いる ほね・データの じゅん）・`needed(key)`（`Museum.gaveBone` が まだ）・`spare(key)`（きふに いる 1こを のこした あまり）・`sellBone(key, n)`（`Fossils.take`・`Save.addCoins`）。
+- お店: `StoreScene` の「てんいんと はなす」の えらぶ ことばに `FossilSell.choice(this)`（スーパーで ほねが ある とき「ほねを うる」）→ `FossilSell.open()`（`.fossil-sell` の まど。行は `.fossil-sell-row[data-key]`・まだ ない ほねは `.need`・さいごの 1こは `UI.confirm(WARN)`・したに「あまった ほねを ぜんぶ うる」）。
+- `DinoAward`: `coins(id)` = その きょうりゅうの ほねの ねだんの ごうけい × `MUL`（1.5）を 100 きざみ。`GIFTS`（1たいめ `dino_award_cert`・5たいめ `dino_award_trophy`・10たいめ `dino_award_gold`）。`give(id)` は `Save.d.museum.awards[id]` に 日づけ・コイン・かざる もの（`Save.d.furn`）・2ど めは `null`。`present(id)` は そんちょうさん（`MAP_DEFS.town` の `mayor` の 絵）の ことば → `card(r)`（`.award-card`・`closable: false`・「ありがとう！」）→ ことば。`pending()`／`catchUp()` は まえの セーブで `museum.done` に ある のに `awards` に ない ぶん。
+- くみこみ（`js/museum.js`）: `Museum.donate` の `doneCard` の あと に `DinoAward.present(r.done.id)`（そのあと `MuseumWear.reward`）。`Museum.talk` の はかせ（`bid === "museum"`）は `MuseumWear.reward` の あと に `DinoAward.catchUp()`。
+- かざる もの 3つ: `FURNITURE`／`FURN_INDEX`（`price: 0`・`rare`・`exclusive: "museum"`〔`ikebukuro-catalog.js` が かぐやさんから のぞく〕・`dinoAward`）。かべの ひょうしょうじょうは `FURN_ART`（60×46 の SVG）、ゆかの トロフィー 2つは `FurnModels.register`（立体）と `FURN_ART = HomeDesign.model(id).full`。ずかんの ヒントは `DinoAward.source(id)`（`ItemDexSources.source`）。
+- セーブ: `Save.fresh().museum.awards = {}`（たす だけ・`Save.SCHEMA` は 2 の まま）。`DinoAward.st()` が こわれた 形（配列 など）を なおす。
+- PokaDebug: `fossilSell()`（`held`・`spareCoins`・`coins`・`awards`・`count`・`pending`）・`museumDino(id)`（その きょうりゅうの ほねを ぜんぶ きふ ずみに・`done` に する・ひょうしょうは まだ）。検査は `tools/check-fossil-sell.mjs`、スモークは `tests/fossil-sell-smoke.mjs`（`fossil-sell-390/375`）。
 
 ## バーガーやさんの メニュー（UI-34・`js/burger-menu.js`）
 
