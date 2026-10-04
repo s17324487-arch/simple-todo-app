@@ -1,6 +1,8 @@
 // おうちの そとの パーツと ペンキ（O9・UI-74。オーナーの FB 2026-10-03「お家の外見カスタマイズ機能もつけて。それに伴い、工務店をネリカスタウンに追加して、
 // そこでパーツや塗装を購入してカスタマイズできるようにして。」）
-// - パーツ 9しゅ（やね・かべ・まど・ドア・えんとつ・やねの うえ・あかり・ポスト・にわ）と ペンキ 18いろ（やね・かべ・ドア・まどわく に ぬる）。
+// - パーツ 10しゅ（たてもの・やね・かべ・まど・ドア・えんとつ・やねの うえ・あかり・ポスト・にわ）と ペンキ 18いろ（やね・かべ・ドア・まどわく に ぬる）。
+//   たてもの（UI-91。オーナーの FB 2026-10-04「工務店について、もっと建物の形から変わるような種類を増やして。3階建てにできたり、奇抜な建物にできたりしてよい。」）:
+//   いつもの・3かいだて・おしろ・きのこ・ケーキ・ツリーハウス・ユーフォー。セーブは parts.form（ない ときは いつもの）。
 //   さいしょの パーツと 4いろは はじめから もって いる。かったら なんどでも つけかえられる。
 // - セーブは Save.d.exterior（つかう ときに できる。こわれた ものは なおす）: parts・paint（いろの id）・owned（"やね:かたち" の id）・paints。
 // - 町の「みんなの おうち」（nerikasu.bld_home）は、はじめの まま なら もとの 絵・かえたら js/house-ext-art.js の 絵（キーは えらんだ もの だけ・有限）。
@@ -20,6 +22,8 @@ const HouseExt = (() => {
   const TARGETS = [{ id: "roof", name: "やね" }, { id: "wall", name: "かべ" }, { id: "door", name: "ドア" }, { id: "trim", name: "まどわく" }];
   const DEFAULT_PAINT = { roof: "akacha", wall: "cream", door: "kinoiro", trim: "kusumi" };
   const CATS = [
+    // たてものの かたち（UI-91）。いつもの おうち・3かいだて・きばつな たてもの 5つ（つかう パーツは FORM_USES）
+    { id: "form", name: "たてもの", parts: [["basic", "いつもの", 0], ["three", "3かいだて", 6800], ["castle", "おしろ", 9800], ["mushroom", "きのこ", 7800], ["cake", "ケーキ", 8800], ["tree", "ツリーハウス", 8200], ["ufo", "ユーフォー", 9200]] },
     { id: "roof", name: "やね", parts: [["gable", "きりづま", 0], ["tile", "かわら", 1800], ["steep", "とんがり", 2400], ["round", "まるやね", 2200], ["flat", "ひらやね", 2000]] },
     { id: "siding", name: "かべ", parts: [["plaster", "しっくい", 0], ["brick", "れんが", 2200], ["board", "いたばり", 1600], ["tile", "タイル", 2000], ["log", "ログ", 2600]] },
     { id: "window", name: "まど", parts: [["square", "しかく", 0], ["round", "まる", 1400], ["arch", "アーチ", 1600], ["bay", "でまど", 2400], ["lattice", "こうし", 1500]] },
@@ -31,6 +35,19 @@ const HouseExt = (() => {
     { id: "yard", name: "にわ", parts: [["planter", "はなの プランター", 0], ["tree", "ちいさな き", 1200], ["bench", "ベンチ", 1400], ["bike", "じてんしゃ", 1600], ["doghouse", "いぬごや", 2000], ["pumpkin", "かぼちゃ", 1000]] },
   ].map((c) => ({ ...c, parts: c.parts.map(([id, name, price]) => ({ id, name, price, key: c.id + ":" + id })) }));
   const CAT = Object.fromEntries(CATS.map((c) => [c.id, c])), PAINT = Object.fromEntries(PAINTS.map((p) => [p.id, p]));
+  // きばつな たてものが つかう パーツ（ない もの は いつもの・3かいだて だけ。えらんで おいても よい・もどすと つかう）
+  // おしろ: やねの かたちで とうの やね（とんがり・まるい たまねぎ・ひらは のこぎりの は）。ペンキは どの かたちでも 4か所
+  const FORM_USES = {
+    castle: ["roof", "siding", "window", "door", "lamp", "post", "yard"],
+    mushroom: ["window", "door", "chimney", "lamp", "post", "yard"],
+    cake: ["window", "door", "lamp", "post", "yard"],
+    tree: ["siding", "window", "door", "lamp", "post", "yard"],
+    ufo: ["door", "post", "yard"],
+  };
+  const uses = (form, cat) => cat === "form" || !FORM_USES[form] || FORM_USES[form].includes(cat);
+  // ペンキの ところの なまえ（きのこ・ケーキは よびかたが ちがう）
+  const TARGET_NAMES = { mushroom: { roof: "かさ", wall: "じく" }, cake: { roof: "クリーム", wall: "スポンジ" } };
+  const targetName = (form, t) => TARGET_NAMES[form]?.[t] || TARGETS.find((x) => x.id === t)?.name || t;
   const DEFAULT_PARTS = Object.fromEntries(CATS.map((c) => [c.id, c.parts[0].id]));
   const part = (cat, id) => CAT[cat]?.parts.find((x) => x.id === id) || null;
   const blank = () => ({ parts: { ...DEFAULT_PARTS }, paint: { ...DEFAULT_PAINT }, owned: {}, paints: {} });
@@ -104,5 +121,5 @@ const HouseExt = (() => {
     };
   }
   hook();
-  return { PAINTS, TARGETS, CATS, CAT, PAINT, DEFAULT_PARTS, DEFAULT_PAINT, DEFAULT_KEY, HOME_ASSET, part, clean, view, st, has, hasPaint, buy, buyPaint, apply, resolve, key, parse, custom, total };
+  return { PAINTS, TARGETS, CATS, CAT, PAINT, DEFAULT_PARTS, DEFAULT_PAINT, DEFAULT_KEY, HOME_ASSET, FORM_USES, part, uses, targetName, clean, view, st, has, hasPaint, buy, buyPaint, apply, resolve, key, parse, custom, total };
 })();

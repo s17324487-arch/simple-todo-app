@@ -1,7 +1,7 @@
 // おうちの そとの カスタマイズと 工務店（js/house-ext*.js・js/koumuten.js・UI-74。オーナーの FB 2026-10-03「お家の外見カスタマイズ機能もつけて。
 // それに伴い、工務店をネリカスタウンに追加して、そこでパーツや塗装を購入してカスタマイズできるようにして。」）
 // 1. ネリカスタウンの 工務店「ぽかぽか こうむてん」に はいる（斜め上の 館・什器・とうりょうさん）
-// 2. うけつけ →「おうちの そとを かえる」→ がめん（おうちの 絵・タブ 10・ペンキ 18いろ）→ やね「とんがり」・にわ「ちいさな き」・かべを「さくら」に ためす
+// 2. うけつけ →「おうちの そとを かえる」→ がめん（おうちの 絵・タブ 11〔UI-91 で たてもの〕・ペンキ 18いろ）→ やね「とんがり」・にわ「ちいさな き」・かべを「さくら」に ためす
 //    → 「かって きめる（3900コイン）」→ コインが へる・とうりょうさんの ことば
 // 3. やねの みほんを タップ → やねの タブから ひらく → もう もって いる ので「これに きめる」だけ（ただ）→ とじる
 // 4. 町の おうちが あたらしい 絵（ひる・よる）・さいかい しても のこる
@@ -24,7 +24,7 @@ export async function houseExtSmoke({ scenario, expect }) {
     await page.getByRole("button", { name: "おうちの そとを かえる", exact: true }).click();
     await page.locator(".hx-panel").waitFor({ timeout: 8000 });
     let ui = (await H.dbg("exterior")).ui;
-    expect(ui.open && ui.tab === "paint" && !ui.dirty && (await page.locator(".hx-tab").count()) === 10 && (await page.locator(".hx-swatch").count()) === 18 && (await page.locator(".hx-preview svg").count()) === 1, "がめんの かたち " + JSON.stringify(ui));
+    expect(ui.open && ui.tab === "paint" && !ui.dirty && (await page.locator(".hx-tab").count()) === 11 && (await page.locator(".hx-swatch").count()) === 18 && (await page.locator(".hx-preview svg").count()) === 1, "がめんの かたち " + JSON.stringify(ui));
     await H.wait(450); // パネルが したから でて くる うごきが おわってから はかる
     const box = await page.locator(".hx-panel").boundingBox(), go0 = await page.locator(".hx-go").boundingBox();
     expect(box && box.x >= 0 && box.x + box.width <= viewport.width + 1 && go0 && go0.y + go0.height <= viewport.height && go0.height >= 44, "がめんが はみ出す・ボタンが ちいさい " + JSON.stringify({ box, go0 }));

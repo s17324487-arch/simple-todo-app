@@ -4447,6 +4447,8 @@ await (await import("./home-toilet-smoke.mjs")).homeToiletSmoke({scenario,expect
 await (await import("./home-nav-smoke.mjs")).homeNavSmoke({scenario,expect});
 // おうちの そと（UI-74）: 工務店で ためして かう・みほんから その タブ・町の おうち（ひる・よる）・さいかい
 await (await import("./house-ext-smoke.mjs")).houseExtSmoke({scenario,expect});
+// たてものの かたち（UI-91。3かいだて・おしろ・きのこ・ケーキ・ツリーハウス・ユーフォー。くわしくは tests/house-forms-smoke.mjs）
+await (await import("./house-forms-smoke.mjs")).houseFormsSmoke({scenario,expect});
 await (await import("./hand-items-smoke.mjs")).handItemsSmoke({scenario,expect});
 await (await import("./pet-walk-smoke.mjs")).petWalkSmoke({scenario,expect});
 await (await import("./rare-calm-smoke.mjs")).rareCalmSmoke({scenario,expect});

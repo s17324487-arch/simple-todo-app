@@ -1,6 +1,7 @@
 // おうちの そとを かえる がめん（O9・UI-74。工務店の とうりょうさんに はなすと ひらく。js/koumuten.js）。
-// うえに いまの おうちの 絵（ためしに えらんだ ものが すぐ うつる・☀/🌙 で よるの すがた）→ しゅるいの タブ（ペンキ・やね・かべ・まど・ドア・
+// うえに いまの おうちの 絵（ためしに えらんだ ものが すぐ うつる・☀/🌙 で よるの すがた）→ しゅるいの タブ（ペンキ・たてもの・やね・かべ・まど・ドア・
 // えんとつ・やねの うえ・あかり・ポスト・にわ）→ えらぶ。もって いない ものも ためせる。したの ボタンで「かって きめる（○コイン）」／「これに きめる」。
+// たてもの（UI-91）が つかわない パーツの タブは「○○ では つかわないよ」と だし、ちいさな 絵は いつもの おうちで 見せる（えらんで おける）。
 // 絵は js/house-ext-art.js（がめんの なかの SVG。SvgCache は つかわない）、かう・つけるは js/house-ext.js。
 const HouseExtUI = (() => {
   let V = null; // ひらいて いる とき: { m, draft, tab, target, night, resolve, spent, changed }
@@ -21,7 +22,7 @@ const HouseExtUI = (() => {
     const d = V.draft, body = V.m.body;
     body.innerHTML = "";
     // おうちの 絵
-    const pic = U.el("div", { class: "hx-preview", html: A().picture(X().resolve(d), V.night) });
+    const r = X().resolve(d), pic = U.el("div", { class: "hx-preview" + (A().box(r)[1] < -80 ? " tall" : ""), html: A().picture(r, V.night) });
     const nightBtn = UI.btn(V.night ? "☀ ひる" : "🌙 よる", () => { V.night = !V.night; Sound.se("tap"); render(); }, "small hx-night");
     pic.append(nightBtn);
     body.append(pic, U.el("div", { class: "hx-coins", text: `もって いる コイン: ${Save.d.coins.toLocaleString()}` }));
@@ -34,7 +35,7 @@ const HouseExtUI = (() => {
     body.append(tabs);
     if (V.tab === "paint") {
       const tg = U.el("div", { class: "hx-targets" });
-      for (const t of X().TARGETS) { const b = UI.btn(t.name, () => { V.target = t.id; Sound.se("tap"); render(); }, "small hx-target" + (V.target === t.id ? " on" : "")); b.dataset.target = t.id; tg.append(b); }
+      for (const t of X().TARGETS) { const b = UI.btn(X().targetName(d.parts.form, t.id), () => { V.target = t.id; Sound.se("tap"); render(); }, "small hx-target" + (V.target === t.id ? " on" : "")); b.dataset.target = t.id; tg.append(b); }
       const grid = U.el("div", { class: "hx-swatches" });
       for (const p of X().PAINTS) {
         const own = X().hasPaint(p.id), on = d.paint[V.target] === p.id;
@@ -46,12 +47,16 @@ const HouseExtUI = (() => {
       }
       body.append(tg, grid);
     } else {
-      const c = X().CAT[V.tab], grid = U.el("div", { class: "hx-grid" });
+      const c = X().CAT[V.tab], grid = U.el("div", { class: "hx-grid" }), fm = d.parts.form, used = X().uses(fm, c.id);
+      if (!used) {
+        const forms = X().CAT.form.parts.filter((f) => X().uses(f.id, c.id)).map((f) => f.name).join("・");
+        body.append(U.el("div", { class: "hx-note", text: `${X().part("form", fm).name} では ${c.name}は つかわないよ。（${forms} で つかえる）` }));
+      }
       for (const p of c.parts) {
         const own = X().has(c.id, p.id), on = d.parts[c.id] === p.id, now = X().view().parts[c.id] === p.id;
         const b = U.el("button", { class: "hx-card" + (on ? " on" : "") + (own ? " own" : "") });
         b.dataset.cat = c.id; b.dataset.id = p.id;
-        const t = copy(d); t.parts[c.id] = p.id;
+        const t = copy(d); t.parts[c.id] = p.id; if (!used) t.parts.form = "basic"; // つかわない パーツは いつもの おうちで 見せる
         b.append(U.el("span", { class: "hx-thumb", html: A().icon(X().resolve(t), c.id) }), U.el("span", { class: "hx-name", text: p.name }), U.el("span", { class: "hx-price", text: now ? "いまの" : own ? "もってる" : `${p.price}コイン` }));
         b.addEventListener("click", () => { d.parts[c.id] = p.id; Sound.se("tap"); render(); });
         grid.append(b);

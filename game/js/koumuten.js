@@ -2,7 +2,8 @@
 // 大通りの 北の いちばん にしの「まちの おうち」（nerikasu_home7・8×5・入口 4。家具工房の となり）を 工務店に する。足もと・入口・大きさは そのまま。
 // 建物の 絵は tools/town-design/nerikasu-buildings.mjs の koumuten（js/nerikasu-town-art.js に 生成）。
 // 中は サンシャインいけぶ と おなじ 斜め上の 館（IsoVenueScene・16×12 マス）: ペンキの たな・ドアの みほん・やねの みほん・まどの みほん・
-// もけいの おうち（いまの おうちの そとが うつる）・さぎょうだい・ざいもく・はしご・バケツ・うけつけ（くまの とうりょう ガンさん）・まちあいの ベンチ。
+// もけいの おうち（いまの おうちの そとが うつる）・たてものの みほん（UI-91。おしろ・きのこ・ケーキ・ユーフォー）・さぎょうだい・ざいもく・はしご・バケツ・
+// うけつけ（くまの とうりょう ガンさん）・まちあいの ベンチ。
 // とうりょうさん・みほんを タップすると「おうちの そとを かえる」がめん（js/house-ext-ui.js）。
 const Koumuten = (() => {
   const W = 16, H = 12, T = () => IsoVenue.T;
@@ -32,12 +33,19 @@ const Koumuten = (() => {
     bell: `<path d="M-7,0 Q-7,-12 0,-12 Q7,-12 7,0 Z" fill="#E8C35A" stroke="${INK}" stroke-width="1.6"/><rect x="-9" y="0" width="18" height="3" rx="1.5" fill="#B99B4A" stroke="${INK}" stroke-width="1.2"/><circle cx="0" cy="-13" r="2" fill="#E8C35A" stroke="${INK}" stroke-width="1"/>`,
     ledger: `<path d="M-14,-2 L0,-6 L14,-2 L14,4 L0,0 L-14,4 Z" fill="#FFFDF5" stroke="${INK}" stroke-width="1.4"/><path d="M-10,-1 l8,-2 M-10,1.5 l8,-2 M3,-3 l8,2 M3,-0.5 l8,2" stroke="#9AA6AE" stroke-width="0.9"/>`,
   };
-  // もけいの おうち（いまの おうちの そと。そらは なし）
-  const houseImg = (scale = 0.62) => {
-    const [x0, y0, x1, y1] = HouseExtArt.BOX, w = x1 - x0, h = y1 - y0;
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x0} ${y0} ${w} ${h}">${HouseExtArt.body(HouseExt.resolve(), false)}</svg>`;
+  // もけいの おうち（p の おうちの そと。そらは なし。あしもとの まんなかが 0,0）
+  const houseImg = (scale = 0.62, p = HouseExt.resolve()) => {
+    const [x0, y0, x1, y1] = HouseExtArt.box(p), w = x1 - x0, h = y1 - y0;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x0} ${y0} ${w} ${h}">${HouseExtArt.body(p, false)}</svg>`;
     return `<image href="${U.svgUrl(svg)}" x="${f2((-w * scale) / 2)}" y="${f2(-h * scale)}" width="${f2(w * scale)}" height="${f2(h * scale)}"/>`;
   };
+  // たてものの みほん（UI-91。きまった いろの おしろ・きのこ・ケーキ・ユーフォー）
+  const FORM_SAMPLES = [
+    { form: "castle", roof: "steep", window: "arch", paint: { roof: "#8B78A8", wall: "#F3CDD3", door: "#7E5E4B", trim: "#FFFFFF" } },
+    { form: "mushroom", window: "round", paint: { roof: "#B5654F", wall: "#F2E5CB", door: "#A97850", trim: "#CDE7D2" } },
+    { form: "cake", window: "round", paint: { roof: "#F3CDD3", wall: "#F4E3A1", door: "#B18775", trim: "#FFFFFF" } },
+    { form: "ufo", paint: { roof: "#8B78A8", wall: "#C7DDEF", door: "#5D84A8", trim: "#F4E3A1" } },
+  ].map((x) => ({ ...HouseExt.DEFAULT_PARTS, ...x }));
   const M = {
     // ペンキの たな（3だん・18いろの かん・「ペンキ」の ふだ）
     paintshelf(S, f) {
@@ -85,6 +93,13 @@ const Koumuten = (() => {
       s += S.box(0.05, 0.05, f.w - 0.1, f.h - 0.1, 62, 8, C.wood) + S.poly([[0.3, 0.3, 70], [f.w - 0.3, 0.3, 70], [f.w - 0.3, f.h - 0.3, 70], [0.3, f.h - 0.3, 70]], "#A9CF8C", 1.2);
       s += S.at(f.w / 2, f.h / 2 + 0.2, 70, houseImg(0.62));
       return s + S.at(f.w / 2, f.h - 0.02, 50, `<rect x="-36" y="-10" width="72" height="16" rx="5" fill="#FFE07A" stroke="${INK}" stroke-width="1.6"/>${txt(0, 3, 10, "あなたの おうち")}`);
+    },
+    // たてものの みほん（ひくい だいに ちいさな おしろ・きのこ・ケーキ・ユーフォー。いろは きまって いる）
+    formsamples(S, f) {
+      let s = S.ellipse(f.w / 2, f.h / 2, 0, Math.min(f.w, f.h) * 0.55, "#00000012", 0) + S.box(0.08, 0.08, f.w - 0.16, f.h - 0.16, 0, 26, C.wood);
+      s += S.poly([[0.22, 0.22, 26], [f.w - 0.22, 0.22, 26], [f.w - 0.22, f.h - 0.22, 26], [0.22, f.h - 0.22, 26]], "#A9CF8C", 1.2);
+      [[0.75, 0.62], [2.2, 0.62], [0.8, 1.45], [2.25, 1.45]].forEach(([x, y], i) => { s += S.at(x, y, 26, houseImg(0.26, FORM_SAMPLES[i])); });
+      return s + S.at(f.w / 2, f.h - 0.02, 12, `<rect x="-40" y="-10" width="80" height="16" rx="5" fill="#FFE07A" stroke="${INK}" stroke-width="1.6"/>${txt(0, 3, 10, "たてものの みほん")}`);
     },
     // さぎょうだい（いたと のこぎり・かんな くず）
     workbench(S, f) {
@@ -152,11 +167,14 @@ const Koumuten = (() => {
       const [c0, c1] = span(11, 15.4);
       s += R(c0, V(214), c1 - c0, 100, "#FFFDF5", `rx="6" stroke="${INK}" stroke-width="2"`);
       const ex = [
-        { ...HouseExt.DEFAULT_PARTS, roof: "steep", window: "arch", paint: { roof: "#8B78A8", wall: "#F3CDD3", door: "#7E5E4B", trim: "#FFFFFF" } },
-        { ...HouseExt.DEFAULT_PARTS, roof: "round", window: "round", yard: "tree", paint: { roof: "#6E9278", wall: "#C7DDEF", door: "#5D84A8", trim: "#F4E3A1" } },
+        { ...HouseExt.DEFAULT_PARTS, form: "three", roof: "steep", window: "arch", paint: { roof: "#8B78A8", wall: "#F3CDD3", door: "#7E5E4B", trim: "#FFFFFF" } },
+        { ...HouseExt.DEFAULT_PARTS, form: "castle", roof: "round", window: "round", yard: "tree", paint: { roof: "#6E9278", wall: "#C7DDEF", door: "#5D84A8", trim: "#F4E3A1" } },
       ];
-      const [x0, y0, x1, y1] = HouseExtArt.BOX, hw = x1 - x0, hh = y1 - y0, sc = ((c1 - c0 - 30) / 2) / hw;
-      ex.forEach((p, i) => { const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x0} ${y0} ${hw} ${hh}">${HouseExtArt.body(p, false)}</svg>`; s += `<image href="${U.svgUrl(svg)}" x="${f2(c0 + 10 + i * ((c1 - c0 - 10) / 2))}" y="${f2(V(204))}" width="${f2(hw * sc)}" height="${f2(hh * sc)}"/>`; });
+      const bw = (c1 - c0 - 30) / 2, bh = V(130) - V(204); // 1つぶんの わく（よこ・たて。したを そろえる）
+      ex.forEach((p, i) => {
+        const [x0, y0, x1, y1] = HouseExtArt.box(p), hw = x1 - x0, hh = y1 - y0, sc = Math.min(bw / hw, bh / hh), svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x0} ${y0} ${hw} ${hh}">${HouseExtArt.body(p, false)}</svg>`;
+        s += `<image href="${U.svgUrl(svg)}" x="${f2(c0 + 10 + i * ((c1 - c0 - 10) / 2) + (bw - hw * sc) / 2)}" y="${f2(V(204) + bh - hh * sc)}" width="${f2(hw * sc)}" height="${f2(hh * sc)}"/>`;
+      });
       s += `<text x="${f2((c0 + c1) / 2)}" y="${f2(V(126))}" font-size="12" font-weight="900" text-anchor="middle" fill="${INK}">こんな おうちにも できるよ</text>`;
     } else {
       // どうぐの かべ（あなあき ボードに かなづち・のこぎり・スパナ・さしがね）
@@ -186,8 +204,9 @@ const Koumuten = (() => {
     add({ kind: "roofsamples", x: 0, y: 3, w: 2, h: 3, height: 70, label: "やねの みほん", action: "hx", tab: "roof", spots: [[2, 4], [2, 5]] });
     add({ kind: "windowstand", x: 0, y: 7, w: 2, h: 1, height: 120, label: "まどの みほん", action: "hx", tab: "window", spots: [[2, 7], [1, 8]] });
     add({ kind: "modelhouse", x: 5, y: 4, w: 3, h: 2, height: 90, label: "もけいの おうち", action: "model", spots: [[6, 6], [5, 6], [7, 6], [8, 5]] });
+    add({ kind: "formsamples", x: 3, y: 7, w: 3, h: 2, height: 70, label: "たてものの みほん", action: "hx", tab: "form", spots: [[4, 9], [6, 8], [6, 7], [3, 9]] });
     add({ kind: "workbench", x: 11, y: 3, w: 3, h: 2, height: 70, label: "さぎょうだい", action: "info", text: "つくりかけの まどわくと のこぎり。\nかんなくずが ふわふわ ちらばって いる。", spots: [[12, 5], [10, 4]] });
-    add({ kind: "npc", sp: "raccoon", ci: 0, x: 14, y: 4, w: 1, h: 1, dir: "left", emo: "happy", outfit: { head: "hachimaki" }, label: "たぬきの でし ポンた", action: "talk", lines: ["ポンたです！ とうりょうの でし です。", "ペンキの いろを ならべて、すきな いろを さがしてね。", "やねの かたちを かえると、おうちの ふんいきが がらっと かわるよ！"], spots: [[14, 5], [15, 4]] });
+    add({ kind: "npc", sp: "raccoon", ci: 0, x: 14, y: 4, w: 1, h: 1, dir: "left", emo: "happy", outfit: { head: "hachimaki" }, label: "たぬきの でし ポンた", action: "talk", lines: ["ポンたです！ とうりょうの でし です。", "ペンキの いろを ならべて、すきな いろを さがしてね。", "やねの かたちを かえると、おうちの ふんいきが がらっと かわるよ！", "たてもの ごと かえる ことも できるんだ。\nおしろ・きのこ・ケーキ・ユーフォー……ぼくは ツリーハウスが すき！"], spots: [[14, 5], [15, 4]] });
     add({ kind: "ladder", x: 15, y: 2, w: 1, h: 1, height: 130 });
     add({ kind: "buckets", x: 6, y: 1, w: 2, h: 1, height: 40, walk: false });
     add({ kind: "kcounter", x: 10, y: 7, w: 4, h: 1, height: 80, label: "うけつけ", action: "koumuten", spots: [[11, 8], [12, 8], [13, 8]] });
@@ -238,7 +257,8 @@ const Koumuten = (() => {
           else if (k === 1) await UI.say([
             { name: BOSS.name, face: bossFace(), text: "ペンキで やね・かべ・ドア・まどわくの いろを ぬりかえられる。\nやねの かたち・かべの そざい・まど・ドアも とりかえ OK だ。" },
             { name: BOSS.name, face: bossFace(), text: "えんとつ・かざみどり・ソーラーパネル・ライト・ポスト・にわの かざりも あるよ。\nいちど かった ものは、いつでも ただで つけかえて あげる！" },
-            { who: "goji", emo: "happy", text: "ガゥ！ とんがり やねが いいな〜" },
+            { name: BOSS.name, face: bossFace(), text: "たてもの ごと たてなおす ことも できるぞ。\n3かいだて・おしろ・きのこ・ケーキ・ツリーハウス・ユーフォー！" },
+            { who: "goji", emo: "happy", text: "ガゥ！ おしろに すみたいな〜" },
           ]);
         }
       } finally { sc.busy = false; }

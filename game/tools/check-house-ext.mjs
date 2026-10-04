@@ -1,6 +1,7 @@
 // おうちの そとの カスタマイズと 工務店（js/house-ext*.js・js/koumuten.js・UI-74。オーナーの FB 2026-10-03「お家の外見カスタマイズ機能もつけて。
 // それに伴い、工務店をネリカスタウンに追加して、そこでパーツや塗装を購入してカスタマイズできるようにして。」）の 検査。
-// ブラウザ なしで: パーツ 9しゅと ペンキ 18いろ（id・なまえ・ねだん・はじめから もって いる もの）・セーブ（つかう ときに できる・こわれた ものを なおす）・
+// たてものの かたち（UI-91。オーナーの FB 2026-10-04「工務店について、もっと建物の形から変わるような種類を増やして。3階建てにできたり、奇抜な建物にできたりしてよい。」）も。
+// ブラウザ なしで: パーツ 10しゅと ペンキ 18いろ（id・なまえ・ねだん・はじめから もって いる もの）・セーブ（つかう ときに できる・こわれた ものを なおす）・
 // かう（コイン・たりない・2どめは ただ）・つける（もって いる もの だけ）・町の 絵の キー（有限・もどせる）・絵（ぜんぶの パーツ × ひる／よる・
 // id なし・NaN なし・タグの かず）・町の「みんなの おうち」の きりかえ・工務店（町の 建物・館の かたち・とおれる マス・みほん → タブ・もけいの キー）・
 // 建物の 原画・とうろく・PokaDebug・文書
@@ -18,16 +19,23 @@ const read = (f) => readFileSync(new URL("../" + f, import.meta.url), "utf8");
 const fresh = (coins = 0) => { S.d = S.fresh(); S.d.coins = coins; return S.d; };
 
 // ---- 1. パーツと ペンキ ----
-ok(X.CATS.map((c) => c.id).join() === "roof,siding,window,door,chimney,top,lamp,post,yard", "パーツは 9しゅ（やね・かべ・まど・ドア・えんとつ・やねの うえ・あかり・ポスト・にわ）");
+ok(X.CATS.map((c) => c.id).join() === "form,roof,siding,window,door,chimney,top,lamp,post,yard", "パーツは 10しゅ（たてもの・やね・かべ・まど・ドア・えんとつ・やねの うえ・あかり・ポスト・にわ）");
+ok(X.CAT.form.parts.map((p) => p.id).join() === "basic,three,castle,mushroom,cake,tree,ufo" && X.CAT.form.parts.map((p) => p.name).join() === "いつもの,3かいだて,おしろ,きのこ,ケーキ,ツリーハウス,ユーフォー", "たてもの 7しゅ（いつもの・3かいだて・おしろ・きのこ・ケーキ・ツリーハウス・ユーフォー）");
+ok(JSON.stringify(A.FORMS) === JSON.stringify(X.CAT.form.parts.map((p) => p.id)), "たてものの 絵が 7しゅ ぜんぶ ある");
 let parts = 0;
 for (const c of X.CATS) {
   ok(c.parts.length >= 4 && c.parts[0].price === 0 && new Set(c.parts.map((p) => p.id)).size === c.parts.length, `${c.name}: 4しゅ いじょう・さいしょは ただ・id が ちがう`);
   ok(!kanji.test(c.name) && c.parts.every((p) => !kanji.test(p.name) && p.name.length <= 9), `${c.name}: なまえは ひらがな・カタカナ（9もじ まで）`);
-  ok(c.parts.every((p) => p.price === 0 || (p.price >= 800 && p.price <= 3000 && p.price % 100 === 0)), `${c.name}: ねだんは 800〜3000（100 きざみ）`);
+  const [lo, hi] = c.id === "form" ? [5000, 12000] : [800, 3000];
+  ok(c.parts.every((p) => p.price === 0 || (p.price >= lo && p.price <= hi && p.price % 100 === 0)), `${c.name}: ねだんは ${lo}〜${hi}（100 きざみ）`);
   ok(c.parts.every((p) => p.key === c.id + ":" + p.id), `${c.name}: もちものの キー`);
   parts += c.parts.length;
 }
-ok(parts >= 40, `パーツ ぜんぶで ${parts}`);
+ok(parts === 49, `パーツ ぜんぶで ${parts}（42 ＋ たてもの 7）`);
+// たてものが つかう パーツ（FORM_USES）・ペンキの よびかた
+ok(X.CATS.every((c) => X.uses("basic", c.id) && X.uses("three", c.id)) && Object.keys(X.FORM_USES).join() === "castle,mushroom,cake,tree,ufo", "いつもの・3かいだては ぜんぶ つかう");
+ok(Object.values(X.FORM_USES).every((u) => u.every((c) => X.CAT[c] && c !== "form") && ["door", "post", "yard"].every((c) => u.includes(c))) && !X.uses("castle", "chimney") && X.uses("castle", "roof") && X.uses("mushroom", "chimney") && !X.uses("ufo", "window"), "きばつな たてものの つかう パーツ（ドア・ポスト・にわは いつも）");
+ok(X.targetName("mushroom", "roof") === "かさ" && X.targetName("cake", "wall") === "スポンジ" && X.targetName("castle", "roof") === "やね" && X.targetName(undefined, "trim") === "まどわく", "ペンキの ところの なまえ（きのこ・ケーキ）");
 ok(X.PAINTS.length === 18 && new Set(X.PAINTS.map((p) => p.id)).size === 18 && X.PAINTS.every((p) => /^#[0-9A-F]{6}$/.test(p.hex) && !kanji.test(p.name)), "ペンキ 18いろ（id・いろ・なまえ）");
 ok(X.PAINTS.filter((p) => p.price === 0).map((p) => p.id).sort().join() === Object.values(X.DEFAULT_PAINT).sort().join(), "ただの いろは はじめの 4いろ（やね・かべ・ドア・まどわく）");
 ok(X.PAINTS.every((p) => [0, 300, 500].includes(p.price)), "ペンキは 300・500 コイン");
@@ -46,6 +54,15 @@ ok(X.TARGETS.map((t) => t.id).join() === "roof,wall,door,trim" && X.TARGETS.ever
   ok(Object.keys(c.owned).join() === "roof:steep" && Object.keys(c.paints).join() === "sora", "もちものは かえる もの だけ（ただの もの・へんな id は のこさない）");
   S.d.exterior = { parts: { roof: "round" }, paint: { wall: "ao" }, owned: {}, paints: {} };
   ok(X.st().parts.roof === "gable" && X.st().paint.wall === "cream", "もって いない ものは つけて いない ことに");
+  // たてもの（UI-91）: まえの セーブ（form なし）は いつもの・もって いない たてものは いつもの・かった たてものは のこる
+  S.d.exterior = { parts: { roof: "steep" }, paint: {}, owned: { "roof:steep": true }, paints: {} };
+  ok(X.st().parts.form === "basic" && X.st().parts.roof === "steep" && X.custom(), "まえの セーブ（form なし）は いつもの おうち（ほかは そのまま）");
+  S.d.exterior = { parts: { form: "castle" }, paint: {}, owned: {}, paints: {} };
+  ok(X.st().parts.form === "basic", "もって いない たてものは いつもの");
+  S.d.exterior = { parts: { form: "castle" }, paint: {}, owned: { "form:castle": true }, paints: {} };
+  ok(X.st().parts.form === "castle" && X.st().owned["form:castle"] === true, "かった たてものは のこる");
+  S.d.exterior = { parts: { form: "pyramid" }, paint: {}, owned: { "form:pyramid": true }, paints: {} };
+  ok(X.st().parts.form === "basic" && !("form:pyramid" in X.st().owned), "ない たてものは いつもの");
 }
 
 // ---- 3. かう・つける ----
@@ -64,12 +81,19 @@ ok(X.TARGETS.map((t) => t.id).join() === "roof,wall,door,trim" && X.TARGETS.ever
   // がめんの けいさん（まだ かって いない もの・ごうけい）
   const d = { parts: { ...X.DEFAULT_PARTS, roof: "round", yard: "tree" }, paint: { ...X.DEFAULT_PAINT, wall: "sakura", roof: "sakura" } };
   ok(XU.cost(d) === 2200 + 1200 + 300 && XU.unpaid(d).length === 3, "まだ かって いない もの（おなじ いろは 1かい）・ごうけい " + XU.cost(d));
+  // たてものを かう（おしろ 9800）
+  fresh(12000);
+  ok(!X.apply({ parts: { form: "castle" } }) && X.view().parts.form === "basic", "かって いない たてものは たてられない");
+  ok(XU.cost({ parts: { ...X.DEFAULT_PARTS, form: "castle" }, paint: { ...X.DEFAULT_PAINT } }) === 9800, "おしろの ねだん（がめんの けいさん）");
+  ok(X.buy("form", "castle") && S.d.coins === 2200 && X.apply({ parts: { form: "castle" } }) && X.view().parts.form === "castle" && X.custom(), "おしろを かって たてる");
+  ok(!X.buy("form", "ufo") && S.d.coins === 2200, "コインが たりない たてものは かえない");
+  ok(X.apply({ parts: { form: "basic" } }) && X.has("form", "castle") && X.view().parts.form === "basic", "いつもの おうちに もどしても おしろは もって いる");
 }
 
 // ---- 4. 町の 絵の キー ----
 {
   fresh();
-  ok(/^[a-z]+(\.[a-z]+){8}\|[a-z]+(\.[a-z]+){3}$/.test(X.DEFAULT_KEY), "キーは パーツ 9つ と いろ 4つ の id だけ: " + X.DEFAULT_KEY);
+  ok(/^[a-z]+(\.[a-z]+){9}\|[a-z]+(\.[a-z]+){3}$/.test(X.DEFAULT_KEY) && X.DEFAULT_KEY.startsWith("basic."), "キーは パーツ 10こ と いろ 4つ の id だけ: " + X.DEFAULT_KEY);
   let combos = 1; for (const c of X.CATS) combos *= c.parts.length; combos *= X.PAINTS.length ** 4;
   ok(Number.isFinite(combos) && combos > 1, `キーは 有限（${combos.toExponential(2)} とおり）`);
   for (const c of X.CATS) for (const p of c.parts) {
@@ -84,7 +108,8 @@ ok(X.TARGETS.map((t) => t.id).join() === "roof,wall,door,trim" && X.TARGETS.ever
 {
   const check = (p, n, tag) => {
     const m = A.model(p, n), svg = m.svg;
-    ok(m.w === 217 && m.h === 189 && m.originX === -10 && m.originY === -49 && m.footW === 6 && m.footH === 4, tag + ": 町の 絵と おなじ 大きさ（6×4 マス）");
+    const [bx0, by0, bx1, by1] = A.box(p);
+    ok(m.w === 217 && m.originX === -10 && bx0 === -10 && bx1 === 207 && by1 === 140 && m.originY === by0 && by0 <= -49 && by0 >= -200 && m.h === 140 - by0 && m.top === -by0 && m.footW === 6 && m.footH === 4, tag + ": 町の 絵と おなじ よこはば・あしもと（6×4 マス）・たかさは わく まで " + JSON.stringify([m.w, m.h, m.originY]));
     ok(!/NaN|undefined|Infinity/.test(svg), tag + ": かずが こわれて いない");
     ok(!/ id="/.test(svg) && !/url\(#/.test(svg), tag + ": id を つかわない（ほかの 絵と ぶつからない）");
     ok((svg.match(/<g[ >]/g) || []).length === (svg.match(/<\/g>/g) || []).length, tag + ": g の かず");
@@ -93,6 +118,9 @@ ok(X.TARGETS.map((t) => t.id).join() === "roof,wall,door,trim" && X.TARGETS.ever
   };
   const base = X.resolve(X.parse(X.DEFAULT_KEY));
   const day = check(base, false, "はじめの おうち"), night = check(base, true, "はじめの おうち（よる）");
+  ok(A.model(base, false).h === 189 && A.model(base, false).originY === -49 && JSON.stringify(A.box(base)) === JSON.stringify(A.BOX), "はじめの おうちは もとの 大きさ（217×189）");
+  // かざみどりが とんがり・まるい・ひらの やねで きれない（わくが うえに ひろがる）
+  for (const r of ["steep", "round", "flat"]) { const pv = X.resolve({ parts: { ...X.DEFAULT_PARTS, roof: r, top: "vane" }, paint: { ...X.DEFAULT_PAINT } }); ok(A.box(pv)[1] < -49 && A.box(pv)[1] <= A.box({ ...pv, top: "none" })[1], `かざみどり × ${r}: わくが うえに ひろがる`); }
   ok(day !== night && night.includes("#EACB89"), "よるは まどに あかり");
   for (const c of X.CATS) for (const p of c.parts) for (const nn of [false, true]) {
     const r = X.resolve({ parts: { ...X.DEFAULT_PARTS, [c.id]: p.id }, paint: { ...X.DEFAULT_PAINT } });
@@ -104,7 +132,30 @@ ok(X.TARGETS.map((t) => t.id).join() === "roof,wall,door,trim" && X.TARGETS.ever
   const all = X.resolve({ parts: { roof: "round", siding: "log", window: "bay", door: "double", chimney: "stone", top: "skylight", lamp: "string", post: "bird", yard: "doghouse" }, paint: { roof: "sumi", wall: "lemon", door: "renga", trim: "shiro" } });
   check(all, true, "ぜんぶ かえた おうち");
   ok(A.picture(base, false).startsWith("<svg") && A.picture(base, true).includes("#3E4C78"), "がめんの 絵（そら・よる）");
-  for (const cat of [...X.CATS.map((c) => c.id), "paint"]) ok(A.ZOOM[cat] && A.icon(base, cat).includes(`viewBox="${A.ZOOM[cat].join(" ")}"`), `パーツの ちいさな 絵: ${cat}`);
+  for (const cat of [...X.CATS.map((c) => c.id), "paint"]) ok(A.icon(base, cat).includes(`viewBox="${A.zoomOf(base, cat).join(" ")}"`) && (cat === "form" || JSON.stringify(A.zoomOf(base, cat)) === JSON.stringify(A.ZOOM[cat === "form" ? "paint" : cat])), `パーツの ちいさな 絵: ${cat}`);
+  // ---- たてものの かたち（UI-91）----
+  const look = (form, parts = {}, paint = {}) => X.resolve({ parts: { ...X.DEFAULT_PARTS, ...parts, form }, paint: { ...X.DEFAULT_PAINT, ...paint } });
+  const wild = { roof: "round", siding: "log", window: "bay", door: "double", chimney: "stone", top: "skylight", lamp: "string", post: "bird", yard: "doghouse" };
+  for (const fp of X.CAT.form.parts) {
+    const fm = fp.id, b0 = check(look(fm), false, `たてもの ${fm}`), b1 = check(look(fm), true, `たてもの ${fm}（よる）`);
+    check(look(fm, wild, { roof: "sumi", wall: "lemon", door: "renga", trim: "shiro" }), true, `たてもの ${fm}（ぜんぶ かえた・よる）`);
+    if (fm !== "basic") ok(b0 !== day && A.box(look(fm))[1] <= -49, `${fm}: いつもの おうちと ちがう 絵`);
+    ok(b0 !== b1 && /#EACB89|#FFF2B8|#FFD25E/.test(b1), `${fm}: よるは あかりが つく`);
+    // つかう パーツは 絵が かわる・つかわない パーツは かわらない（FORM_USES と 絵が あって いる）
+    for (const c of X.CATS.filter((c) => c.id !== "form")) {
+      const svgs = new Set(c.parts.map((p) => A.model(look(fm, { [c.id]: p.id }), false).svg));
+      ok(X.uses(fm, c.id) ? svgs.size > 1 : svgs.size === 1, `${fm} × ${c.name}: ${X.uses(fm, c.id) ? "えらぶと かわる" : "つかわない（かわらない）"}（${svgs.size}とおり）`);
+    }
+    for (const t of X.TARGETS) ok(A.model(look(fm, {}, { [t.id]: "ao" }), false).svg.includes(X.PAINT.ao.hex), `${fm}: ペンキ（${X.targetName(fm, t.id)}）の いろが うつる`);
+    for (const cat of [...X.CATS.map((c) => c.id), "paint"]) { const z = A.zoomOf(look(fm), cat); ok(z.length === 4 && z.every(Number.isFinite) && z[2] > 20 && z[3] > 20 && A.icon(look(fm), cat).includes(`viewBox="${z.join(" ")}"`), `${fm}: ちいさな 絵（${cat}）の ばしょ`); }
+    ok(A.picture(look(fm), true).includes(`<circle cx="170" cy="${A.box(look(fm))[1] + 17}"`), `${fm}: がめんの 絵の つきは わくの うえ`);
+  }
+  // 3かいだて: いつもの おうちの やねが 112 うえ・まどが 3かいぶん
+  const t3 = A.model(look("three"), false).svg;
+  ok(A.box(look("three"))[1] === -29 - 112 - 4 && A.box(look("three", { roof: "steep", top: "vane" }))[1] === -36 - 32 - 112 - 4, "3かいだての わく（やねの いちばん うえ − 112 − 4）" + A.box(look("three")));
+  ok(t3.includes('transform="translate(0,-112)"') && (t3.match(/#94BEC2/g) || []).length > (day.match(/#94BEC2/g) || []).length * 2, "3かいだて: やねは 112 うえ・まどが ふえる");
+  // おしろ: やねの かたちで とうの やねが かわる（とんがりが いちばん たかい）
+  ok(A.box(look("castle", { roof: "steep" }))[1] < A.box(look("castle", { roof: "gable" }))[1] && A.box(look("castle", { roof: "gable" }))[1] < A.box(look("castle", { roof: "flat" }))[1], "おしろ: とんがり ＞ きりづま ＞ ひらやね の たかさ");
   const w = WorldArt.house_ext({ ext: X.DEFAULT_KEY, night: true }); ok(w.svg === A.model(base, true).svg, "WorldArt.house_ext（キー → 絵）");
   ok(Art.worldSvg("house_ext", { ext: X.DEFAULT_KEY }).full.startsWith("<svg"), "Art.worldSvg で つかえる");
 }
@@ -146,7 +197,10 @@ ok(X.TARGETS.map((t) => t.id).join() === "roof,wall,door,trim" && X.TARGETS.ever
   for (const f of acts) ok(f.spots && f.spots.some((s) => seen.has(s.join())), `${f.label}: いりぐちから いける`);
   ok(acts.every((f) => !kanji.test(f.label) && (!f.text || !kanji.test(f.text)) && (!f.lines || f.lines.every((t) => !kanji.test(t)))), "ことばは ひらがな");
   const tabs = acts.filter((f) => f.action === "hx").map((f) => f.tab).sort().join();
-  ok(tabs === "door,paint,roof,window", "みほんを タップすると その タブ（ペンキ・ドア・やね・まど）: " + tabs);
+  ok(tabs === "door,form,paint,roof,window", "みほんを タップすると その タブ（ペンキ・たてもの・ドア・やね・まど）: " + tabs);
+  const fs = r.fixtures.find((f) => f.kind === "formsamples");
+  ok(fs && fs.label === "たてものの みほん" && fs.tab === "form" && def.art.modelKey(fs) === "koumu:formsamples:3x2:", "たてものの みほん（たてものの タブ・キーは きまって いる）");
+  const fsSvg = def.art.model(fs); ok(fsSvg && !/NaN|undefined/.test(JSON.stringify(fsSvg)), "たてものの みほんの 立体");
   ok(acts.some((f) => f.action === "koumuten" && f.kind === "npc" && f.sp === "bear") && acts.some((f) => f.action === "koumuten" && f.kind === "kcounter"), "とうりょうさん（くま）と うけつけ");
   ok(acts.some((f) => f.action === "model" && f.kind === "modelhouse") && acts.some((f) => f.action === "leave"), "もけいの おうち・でぐち");
   for (const f of r.fixtures.filter((f) => f.kind !== "npc" && f.kind !== "exitMat")) ok(!!def.art.model(f), `${f.kind}: 立体の 絵`);
@@ -177,6 +231,7 @@ ok(X.TARGETS.map((t) => t.id).join() === "roof,wall,door,trim" && X.TARGETS.ever
   const road = read("docs/ROADMAP_V2.md"), ch = read("CHANGELOG.md");
   ok((road.split("\n").find((l) => l.includes("UI-74")) || "").includes("✅"), "ROADMAP_V2 に UI-74 ✅");
   ok((ch.split("\n## [")[1] || "").includes("UI-74"), "CHANGELOG の いちばん うえの 版に UI-74");
+  ok((road.split("\n").find((l) => l.includes("UI-91")) || "").includes("✅") && (ch.split("\n## [")[1] || "").includes("UI-91"), "ROADMAP_V2 に UI-91 ✅・CHANGELOG に UI-91（たてものの かたち）");
   ok(read("tools/town-design/nerikasu-buildings.mjs").includes("function koumuten(w,h,d,n)"), "建物の 原画 koumuten");
 }
 
