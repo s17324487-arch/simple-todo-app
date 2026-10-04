@@ -475,6 +475,14 @@ const PokaDebug = {
   homeDoors() { return G.sceneName === "house" ? HomeDoors.state(G.scene) : null; },
   // おうちの 2かい（HOME-2F）: かって いるか・いる かい・かいだんと 2つの へやの 画面の ばしょ・3人の たかさ z
   homeFloor() { return G.sceneName === "house" ? HomeFloors.state(G.scene) : null; },
+  // いない ほうの かいの 1まいの 絵（UI-92）: どの かいか・大きさ・いろの まとめ（hash）・その かいの フィギュア だいに かざって いる かず
+  homeFloorBake() {
+    const F = G.sceneName === "house" && G.scene.floorImage; if (!F) return null;
+    const c = F.cv, d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data, room = Save.d.rooms.stored[F.id];
+    let hash = 0, solid = 0; for (let i = 0; i < d.length; i += 4) { hash = (hash * 31 + d[i] + d[i + 1] * 3 + d[i + 2] * 7 + d[i + 3] * 11) >>> 0; if (d[i + 3] > 200) solid++; }
+    const figs = typeof FigureStand === "undefined" || !room ? 0 : room.items.reduce((n, it) => n + (FigureStand.isStand(it.id) ? FigureStand.figsOf(it).filter(Boolean).length : 0), 0);
+    return { id: F.id, w: c.width, h: c.height, hash, solid, figs };
+  },
   // おうちの みち（UI-73・js/home-nav.js）: マス・家具の 足もと（へやの 座標）・3人と ぱぱ ままの いち・いきさき・みち・家具の うえか（inside）・ゆるして いるか（loose）
   homeNav() {
     if (G.sceneName !== "house" || typeof HomeNav === "undefined") return null;

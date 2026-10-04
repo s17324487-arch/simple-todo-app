@@ -5,6 +5,7 @@
 // ・いつもの おへや（1かい）の ひだりの かべに そって 木の かいだん。うえは かべの うえの おどりば（おでかけの ドアの うえ）で、
 //   おくの かどから 2かいの ゆかの ひだりまえに つながる。
 //   いない ほうの かいは かぐごと 1まいの 絵に して 描く（うごかない）。いる ほうの かいは いつもの ように うごく。
+//   その 1まいの 絵には フィギュア だいの フィギュアなど うごく かぐの 絵も はいる（よみこみを まってから 描く・UI-92）。
 // ・かいだん・もう ひとつの かいを タップすると、3人が かいだんを のぼって（おりて）いく（ふだは 出さない）。
 // HouseScene を 外から つつむ。scene-house.js は へやの 絵の まえと あとに よぶ 2行だけ。セーブの 形は かえない（rooms の 1へや）。
 const HomeFloors = {
@@ -142,24 +143,32 @@ const HomeFloors = {
   otherId() { return this.upper() ? this.BASE : this.ID; },
   async prepare(sc) {
     sc.floorImage = null;
+    const seq = sc.floorSeq = (sc.floorSeq || 0) + 1; // あとから よんだ ほうが かち（よみこみの とちゅうで かいを うつったら まえの ぶんは やめる）
     if (!this.on()) return;
-    const id = this.otherId(), room = Save.d.rooms.stored[id];
+    const id = this.otherId(), room = Save.d.rooms.stored[id], stale = () => seq !== sc.floorSeq || this.otherId() !== id;
     if (!room) return;
     const size = this.size(id), b = HomeDesign.bounds(size);
     const bgKey = "house-design:" + id + ":" + room.wall + ":" + room.floor + ":" + size.w + "x" + size.d;
     const jobs = [SvgCache.ensure(bgKey, () => HomeDesign.roomSvg(room.wall, room.floor, size), Math.ceil(b.w * 2), Math.ceil(b.h * 2)), ...room.items.map((it) => sc.furnCanvas(it, true))];
     if (id === this.BASE) jobs.push(this.stairsCanvas(true));
     const [bg] = await Promise.all(jobs);
+    if (stale()) return;
     const R = this.R, cv = document.createElement("canvas"); cv.width = Math.ceil(b.w * R); cv.height = Math.ceil(b.h * R);
     const g = cv.getContext("2d");
-    if (bg) g.drawImage(bg, 0, 0, cv.width, cv.height);
-    this.swap(sc, id, () => {
+    const draw = (ctx) => this.swap(sc, id, () => {
       Object.assign(sc, { ox: -b.x * R, oy: -b.y * R, s: R, mode: null, sel: null }); sc.life.furniture = {};
       const items = sc.drawOrder(), flat = (it) => ["wall", "rug"].includes(FURN_INDEX[it.id].kind);
-      for (const it of items) if (flat(it)) sc.drawFurn(g, it);
-      if (id === this.BASE) this.drawStairs(g, sc, { x: sc.ox, y: sc.oy }, R);
-      for (const it of items) if (!flat(it)) sc.drawFurn(g, it);
+      for (const it of items) if (flat(it)) sc.drawFurn(ctx, it);
+      if (id === this.BASE) this.drawStairs(ctx, sc, { x: sc.ox, y: sc.oy }, R);
+      for (const it of items) if (!flat(it)) sc.drawFurn(ctx, it);
     });
+    // うごく かぐの 絵（フィギュア だいの フィギュア・もくば・おふろ グッズ など）は 描く ときに はじめて よみこむ（SvgCache.get）。
+    // いちど ためしに 描いて、よみこみが おわってから ほんとうに 描く（UI-92: 1かいの だいの フィギュアが 2かいから 見ると きえて いた）
+    draw(document.createElement("canvas").getContext("2d"));
+    await Promise.all([...SvgCache.pending.values()]);
+    if (stale()) return;
+    if (bg) g.drawImage(bg, 0, 0, cv.width, cv.height);
+    draw(g);
     sc.floorImage = { id, cv, b };
   },
   drawStairs(ctx, sc, o, s = sc.s) {
@@ -318,7 +327,7 @@ const HomeFloors = {
     if (p.floor) HomeFloors.arrive(this, p.floor);
     return r;
   });
-  wrap("exit", function (orig) { this.climb = null; this.floorImage = null; return orig.call(this); });
+  wrap("exit", function (orig) { this.climb = null; this.floorImage = null; this.floorSeq = (this.floorSeq || 0) + 1; return orig.call(this); });
   wrap("up", function (orig, p) {
     const dir = HomeFloors.at(this, p);
     if (!dir) return orig.call(this, p);

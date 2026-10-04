@@ -4421,6 +4421,8 @@ await (await import("./world-zoom-smoke.mjs")).worldZoomSmoke({scenario,expect})
 await (await import("./home-doors-smoke.mjs")).homeDoorsSmoke({scenario,expect});
 
 await (await import("./home-2f-smoke.mjs")).home2fSmoke({scenario,expect});
+// 2かいから 見た 1かいの フィギュア だい（UI-92。くわしくは tests/home-2f-figs-smoke.mjs）
+await (await import("./home-2f-figs-smoke.mjs")).home2fFigsSmoke({scenario,expect});
 
 await (await import("./npc-life-smoke.mjs")).npcLifeSmoke({scenario,expect});
 
