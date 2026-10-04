@@ -19,7 +19,7 @@ const src = (f) => readFileSync(new URL("../" + f, import.meta.url), "utf8");
 
 // ---- 1. シリーズ ----
 const IDS = ["heiseibungu", "heiseiroom", "heiseitama", "heiseioshare"], RING = { heiseibungu: "2f-a", heiseiroom: "2f-b", heiseitama: "2f-c", heiseioshare: "2f-d" };
-ok(H.SERIES.length === 4 && H.SERIES.map((S) => S.id).join() === IDS.join() && H.first === 43 && GA.SERIES.length === 47, "4シリーズ・43〜46 ばん（ガチャは ぜんぶで 47）");
+ok(H.SERIES.length === 4 && H.SERIES.map((S) => S.id).join() === IDS.join() && H.first === 43 && GA.SERIES.length >= 47 && GA.SERIES.slice(47).every((S) => S.heisei && S.forest), "4シリーズ・43〜46 ばん（そのあとは 4F の へいせい・UI-80）");
 for (const [i, S] of H.SERIES.entries()) {
   ok(S.index === 43 + i && GA.SERIES[43 + i] === S && GA.byId(S.id) === S && H.index[S.id] === S.index, `${S.id}: ばんごう ${S.index}`);
   ok(S.heisei && S.more && !S.corner && !S.forest && !S.sticker && S.ring === RING[S.id], `${S.id}: しるし・くみ ${S.ring}`);

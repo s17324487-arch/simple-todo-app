@@ -15,7 +15,7 @@ export async function gachaForestSmoke({ scenario, expect }) {
     await H.newGameFast(); const c0 = await H.dbg('coins', 3000); await H.dbg('calendar', '2026-10-05'); await H.dbg('hour', 11); await H.dbg('weather', 'clear');
     const gf = await H.dbg('gachaForest'), idx = Object.fromEntries(gf.series.map((S) => [S.id, S.index]));
     // シリーズは 18 ＋ しゅうがわりの 6（UI-62）。台に でて いるのは その しゅうの 18（2026-10-05 は 2しゅうめ: まちぼうけ ぽかぽか は でて いる）
-    expect(gf.series.length === 24 && gf.series.filter((S) => S.more).length === 6 && gf.first === 12 && gf.machines.length === 18 && gf.machines.includes(idx.machi3) && gf.squish.length === 16, '4F の シリーズ ' + JSON.stringify(gf).slice(0, 300));
+    expect(gf.series.length === 24 && gf.series.filter((S) => S.more).length === 6 && gf.first === 12 && gf.machines.length === 18 && gf.machines.includes(idx.machi3) && gf.squish.length === 20 && gf.squish.filter((id) => /^gacha_squish/.test(id)).length === 16, '4F の シリーズ（さわれる スクイーズ 16 ＋ へいせいの ぷにぷに しずく 4・UI-80） ' + JSON.stringify(gf).slice(0, 300));
     // 1. 3F → 4F（南東の すみの エスカレーター）
     await H.dbg('venue', 'arcade', 3); await H.idle(); await arrive(H, 3);
     expect(await H.dbg('venueVisit', '4Fへ のぼる'), '3F に 4F への エスカレーターが ない'); await arrive(H, 4); await H.wait(900);

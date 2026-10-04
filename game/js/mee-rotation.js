@@ -55,7 +55,9 @@ const MeeRotation = (() => {
       const se = typeof ArcadePrizes !== "undefined" && ArcadePrizes.seasonal ? ["wanko", "gachan", "goji"].map((who) => ArcadePrizes.seasonal(who, day)).filter(Boolean) : [];
       return `\nクレーンの けいひんは まいにち、ガチャは まいしゅう げつようびに かわるよ。つぎの いれかえは ${md(monday(w + 1))}。` + (se.length ? `\nいまの きせつの ぬいぐるみ: ${se.map((it) => it.name.replace(/の ぬいぐるみ$/, "")).join("・")}（1F の 3にんの クレーン）` : "");
     }
-    return "\n" + next;
+    // 4F の あんない: こんしゅう はいった シリーズ（UI-80 の へいせい 5つ など）と つぎの いれかえ
+    const fresh4 = RINGS.filter((R) => R.floor === 4).flatMap((R) => lineup(R, w)).filter((x) => x.fresh).map((x) => `「${Gacha.SERIES[x.si].name}」`);
+    return (fresh4.length ? `\nこんしゅうの NEW: ${fresh4.join("")}` : "") + "\n" + next;
   };
   // いまの しゅうの シリーズの ようす（ガチャの がめん・PokaDebug）
   const stateOf = (si, w = week()) => { for (const R of RINGS) { const it = lineup(R, w).find((x) => x.si === si); if (it) return { ring: R.id, ...it }; } return null; };

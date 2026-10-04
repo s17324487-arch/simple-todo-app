@@ -24,10 +24,14 @@ at(2026, 10, 3); ok(MR.week() === 1, "2026-10-03 は 1しゅうめ");
 // ---- 2. わ（4F の しま 6つ）----
 const rings = MR.RINGS.filter((r) => r.floor === 4);
 ok(MR.RINGS.length === 10 && rings.length === 6 && rings.map((r) => r.id).join() === GF.ISLES.map((I) => "4f-" + I.id).join(), "4F の しま 6つが わ");
+// UI-80: へいせい じょじ ふうの 5シリーズ（js/gacha-heisei-more.js）が 5つの しまの 5ばんめ（まちぼうけの しまは 4シリーズの まま）
+const heiseiOf = (I) => (R.GachaHeiseiMore ? R.GachaHeiseiMore.SERIES.find((S) => S.isle === I.id) : null);
+ok(GF.ISLES.filter((I) => heiseiOf(I)).map((I) => I.id).join() === "squish,pouch,meji,mini,goods", "へいせいの 5シリーズは まちぼうけ いがいの 5つの しまに 1つずつ");
 for (const Rg of rings) {
-  const I = GF.ISLES.find((x) => "4f-" + x.id === Rg.id), P = MR.pool(Rg);
-  ok(Rg.ids.join() === I.ids.join() && Rg.add.length === 1 && Rg.add[0] === I.add[0] && P.length === 4 && new Set(P).size === 4 && P.every((id) => GA.byId(id) && GA.byId(id).forest), `${Rg.name}: 3だい・4シリーズ`);
-  ok(P[3] === I.add[0] && P[0] === I.ids[I.rest], `${Rg.name}: さいしょに やすむのは ${I.ids[I.rest]}`);
+  const I = GF.ISLES.find((x) => "4f-" + x.id === Rg.id), P = MR.pool(Rg), H = heiseiOf(I), n = H ? 5 : 4;
+  ok(Rg.ids.join() === I.ids.join() && Rg.add.length === n - 3 && Rg.add.join() === I.add.join() && P.length === n && new Set(P).size === n && P.every((id) => GA.byId(id) && GA.byId(id).forest), `${Rg.name}: 3だい・${n}シリーズ`);
+  ok(P[3] === I.add[0] && P[0] === I.ids[I.rest] && !GA.byId(I.add[0]).heisei, `${Rg.name}: さいしょに やすむのは ${I.ids[I.rest]}`);
+  if (H) ok(P[4] === H.id && GA.byId(H.id).heisei && GA.byId(H.id).forest, `${Rg.name}: 5ばんめは へいせい じょじ ふうの ${H.id}（UI-80）`);
   ok(!kanji.test(Rg.name), `${Rg.name}: なまえ`);
 }
 // 2F の ガチャ コーナーの 4くみ（js/gacha-corner-more.js の RINGS・UI-63）
@@ -118,7 +122,7 @@ ok(![1, 3].some((k) => VH.defs.arcade.floors[k].fixtures.some((f) => f.ring)), "
   ok(!/NaN|undefined/.test(a.svg) && a.vb.h >= b.vb.h, "NEW の はたが 絵の はんいに はいる");
   const keys = new Set();
   for (let w = -2; w <= 60; w++) { MR.apply(MR.monday(w)); for (const f of g4()) keys.add(AA.modelKey(f)); }
-  ok(keys.size <= 24 * 2, "台の 絵の キーは シリーズ × NEW の ある・なし だけ " + keys.size);
+  ok(keys.size <= 29 * 2, "台の 絵の キーは シリーズ（29: もりの 24・UI-80 の へいせい 5）× NEW の ある・なし だけ " + keys.size);
   const keys2 = new Set(); for (let w = -2; w <= 60; w++) { MR.apply(MR.monday(w)); for (const f of g2()) keys2.add(AA.modelKey(f)); }
   ok(keys2.size <= 20 * 2 && [...keys2].some((k) => k.endsWith(":new")), "2F の 台の キーも シリーズ（20: もとの 12・UI-63 の 4・UI-79 の へいせい 4）× NEW だけ " + keys2.size);
 }
@@ -129,7 +133,11 @@ ok(![1, 3].some((k) => VH.defs.arcade.floors[k].fixtures.some((f) => f.ring)), "
   for (const x of L) ok(GA.tagOf(x.si) === (x.debut ? "NEW！ あたらしい ガチャ" : x.fresh ? "NEW！ また きた ガチャ" : x.leaving ? "らいしゅうは おやすみ" : ""), `ふだ ${x.id}`);
   // 1しゅうめは あたらしい 6シリーズが「はじめて」・5しゅうめに もどって きた ときは「また」
   at(2026, 10, 1); for (const S2 of [...GM.SERIES, ...CM.SERIES]) ok(GA.tagOf(S2.index) === "NEW！ あたらしい ガチャ", `1しゅうめの ${S2.id} は はじめて`);
-  at(2026, 10, 26); for (const S2 of GM.SERIES) ok(GA.tagOf(S2.index) === "NEW！ また きた ガチャ", `5しゅうめの ${S2.id} は また`);
+  // L シリーズの わでは 1+L しゅうめに また（へいせい の 5ばんめが ある しまは 6しゅうめ・まちぼうけの しまは 5しゅうめ）
+  const atMonday = (w) => { const [y, m, d] = MR.monday(w).split("-").map(Number); at(y, m, d); };
+  for (const S2 of GM.SERIES) { const L = MR.pool(ALL.find((Rg) => MR.pool(Rg).includes(S2.id))).length; atMonday(1 + L); ok(GA.tagOf(S2.index) === "NEW！ また きた ガチャ", `${1 + L}しゅうめの ${S2.id} は また`); atMonday(L); ok(GA.tagOf(S2.index) !== "NEW！ また きた ガチャ", `${L}しゅうめの ${S2.id} は まだ`); }
+  // 4F の へいせい じょじ ふうの 5シリーズ（UI-80）: 2しゅうめに はじめて → 7しゅうめに また
+  if (R.GachaHeiseiMore) { atMonday(2); for (const S2 of R.GachaHeiseiMore.SERIES) ok(GA.tagOf(S2.index) === "NEW！ あたらしい ガチャ", `2しゅうめの ${S2.id} は はじめて`); atMonday(7); for (const S2 of R.GachaHeiseiMore.SERIES) ok(GA.tagOf(S2.index) === "NEW！ また きた ガチャ", `7しゅうめの ${S2.id} は また`); }
   // 2F の くみは 5シリーズ（UI-79）: UI-63 の 4つは 6しゅうめに また・へいせい の 4つは 2しゅうめに はじめて → 7しゅうめに また
   at(2026, 11, 2); for (const S2 of CM.SERIES) ok(GA.tagOf(S2.index) === "NEW！ また きた ガチャ", `6しゅうめの ${S2.id} は また`);
   at(2026, 10, 5); for (const S2 of R.GachaHeisei.SERIES) ok(GA.tagOf(S2.index) === "NEW！ あたらしい ガチャ", `2しゅうめの ${S2.id} は はじめて`);
@@ -191,4 +199,4 @@ ok(![1, 3].some((k) => VH.defs.arcade.floors[k].fixtures.some((f) => f.ring)), "
   const gf = D.gachaForest(); ok(gf.series.length === 24 && gf.series.filter((s) => s.more).length === 6 && gf.machines.length === 18, "PokaDebug.gachaForest（24シリーズ・台は 18）");
 }
 R.Seasonal.override = null; MR.apply();
-console.log(`Mee rotation: weeks from Monday 2026-09-21, six 4F island rings (3 machines, 4 series) and four 2F corner rings (3 machines, 5 series with the Heisei ones), exactly one machine swaps each Monday (others stay put), every series out 3 of L weeks, first swap puts the new series in the resting slot, apply/loadFloor use this week's line-up, NEW flag (art + finite keys), gacha screen tags, arrival notice + save (gacha.week), 2F board / 1F and 4F directory texts, files registered, PokaDebug — ${n} checks OK`);
+console.log(`Mee rotation: weeks from Monday 2026-09-21, six 4F island rings (3 machines, 4 series; 5 with the Heisei ones on five islands, UI-80) and four 2F corner rings (3 machines, 5 series with the Heisei ones), exactly one machine swaps each Monday (others stay put), every series out 3 of L weeks, first swap puts the new series in the resting slot, apply/loadFloor use this week's line-up, NEW flag (art + finite keys), gacha screen tags, arrival notice + save (gacha.week), 2F board / 1F and 4F directory texts, files registered, PokaDebug — ${n} checks OK`);

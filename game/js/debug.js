@@ -45,6 +45,7 @@ const PokaDebug = {
   meeRotation(day){return typeof MeeRotation==='undefined'?null:MeeRotation.info(day||undefined);},
   // いまの かいの その シリーズの ガチャの 台まで あるいて まわす（id: "machi3" など。台に いなければ false）
   // へいせい じょじ ふうの ガチャ（js/gacha-heisei.js・UI-79）: 4シリーズの ばんごう・くみ・けいひん と、こんしゅう 台に でて いるか
+  gachaHeiseiMore(){if(typeof GachaHeiseiMore==='undefined')return null;const st=GachaHeiseiMore.state();if(typeof MeeRotation!=='undefined')for(const s of st.series){const x=MeeRotation.stateOf(s.index);s.on=!!x;s.fresh=!!(x&&x.fresh);s.debut=!!(x&&x.debut);}return st;},
   gachaHeisei(){if(typeof GachaHeisei==='undefined')return null;const st=GachaHeisei.state();if(typeof MeeRotation!=='undefined')for(const s of st.series){const x=MeeRotation.stateOf(s.index);s.on=!!x;s.fresh=!!(x&&x.fresh);s.debut=!!(x&&x.debut);}return st;},
   gachaVisit(id){if(G.sceneName!=='venue'||typeof Gacha==='undefined')return false;const S=Gacha.byId(id);if(!S)return false;const f=G.scene.fixtures.find(f=>f.kind==='gacha'&&f.series===S.index);return !!f&&G.scene.request(f);},
   // すいぞくかんの おみやげ（aqua-gifts.js）: しなもの（ねだん・もって いる かず）・12F の 台と レジ・ずかんの ヒント
@@ -187,6 +188,7 @@ const PokaDebug = {
       "PokaDebug.venue('arcade', 4)         Meeときょれじゃ の 4F（ガチャガチャの もり・ガチャ 18だい・シールの ガチャ・クレーン 3台）。gachaForest() で シリーズの ばんごう（12〜29）・gachaOpen(12) で まちぼうけ ぽかぽか の 台",
       "PokaDebug.meeRotation('2026-10-5')   ガチャの しゅうがわり（まいしゅう げつようびに しまごとに 1だい いれかわる・NEW の はた）。gachaVisit('machisea') で その シリーズの 台へ",
       "PokaDebug.gachaHeisei()             へいせい じょじ ふうの ガチャ 4シリーズ（ばんごう・くみ・けいひん・こんしゅう でて いるか。UI-79）",
+      "PokaDebug.gachaHeiseiMore()         4F の へいせい じょじ ふうの ガチャ 5シリーズ（ばんごう・しま・けいひん・こんしゅう でて いるか。UI-80）",
       "PokaDebug.arcadeStart(21〜23)       4F の たこやき（arcadeTako(0) で あたりの あなに だま）・バーバーカット（arcadeBarber(1, 0, -2) で まん中の ひもの てまえ）・バウンドボール",
       "PokaDebug.stickers()                 シールの ガチャ（4F・30〜32）と シールちょう（てもと・ページ）。stickerGive('stk_wanko', 3) で シールを もらう・stickerUi() で ひらいて いる ページ",
       "PokaDebug.kuji('lawson')             ネリカスタウンの コンビニの いちばんくじ（ロット・のこり・はりつけ ひょう・はんけん・クーポン）。kujiOpen で ボード・kujiNext('A') で つぎの 賞・kujiLeft(s, n) で のこり n まい・kujiDays(s, 1) で つぎの 日・kujiDc(true)・kujiUi()",
