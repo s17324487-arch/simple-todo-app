@@ -293,7 +293,7 @@ ok(Art.HERO.wanko.crop >= 1.33 && Art.HERO.gachan.crop >= 1.5 && Art.HERO.goji.c
   ok(S && S.rounds === 4 && S.lines.length === 4 && !kanji.test(S.name + S.desc + S.lines.join("")), "お店の データ・ことば");
   ok(owner && owner.sp === "squirrel" && !kanji.test(owner.name) && how.length >= 3 && how.every((l) => !kanji.test(l)), "店主と あそびかたの ことば");
   ok(R.GameEconomy.pay("korokoro", 1, 0) === 0 && R.GameEconomy.pay("korokoro", 1, 2) > R.GameEconomy.pay("crepe", 1, 2), "コイン（1にんに じかんが かかる ぶん おおめ）");
-  ok(R.STORE_INTERIORS.korokoro && R.StoreArt.prop("fruitbox").startsWith("<svg") && !/NaN|undefined/.test(R.StoreArt.prop("fruitbox")), "店内と ガラスの 箱の 絵");
+  { const box = R.StoreIso.fixtures("korokoro").find((f) => f.kind === "fruitbox"), m = box && R.StoreIsoArt.model(box); ok(R.STORE_INTERIORS.korokoro && m && (m.svg.match(/<image /g) || []).length >= 4 && !/NaN|undefined/.test(m.svg), "店内と ガラスの 箱の 絵（3人の かおの 玉と くだもの）"); }
   ok(R.BUY_SHOPS.korokoro.items().every((it) => it && it.price > 0), "レジで かえる もの");
   const town = R.MAP_DEFS.town, b = town.buildings.find((x) => x.id === "nerikasu_home5"), m = new R.WorldMap("town");
   ok(b && b.act.type === "work" && b.act.shop === "korokoro" && b.label === "ころころ フルーツ" && b.asset === "nerikasu.bld_nerikasu_home5", "ネリカスタウンの お店");

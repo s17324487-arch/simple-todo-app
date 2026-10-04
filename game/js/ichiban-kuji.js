@@ -339,23 +339,21 @@ const IchibanKuji = (() => {
   // フィギュア だいに かざれる もの（マグ・アクリル スタンド・ちび ぬいぐるみ）。ずかんの ヒントは js/item-dex-sources.js が API.source を よぶ
   FigureStand.addFigures(ITEMS.filter((it) => it.fig).map((it) => it.id));
 
-  // ---- コンビニの なか: レジの みぎに くじの たな（3ます）・てんいんの「いちばんくじを ひく」・クーポン ----
+  // ---- コンビニの なか: レジの みぎの かべに くじの たな（3ます。絵は js/store-iso-props.js の kuji_*）・てんいんの「いちばんくじを ひく」・クーポン ----
   for (const S of SERIES) {
     const I = STORE_INTERIORS[S.id];
-    if (I && !I.fixtures.some((f) => f[0] === "kuji_" + S.id)) I.fixtures.push(["kuji_" + S.id, 7, 2, 3, 1, "いちばんくじ"]);
+    if (I && !I.fixtures.some((f) => f[0] === "kuji_" + S.id)) I.fixtures.push(["kuji_" + S.id, 7, 0, 3, 1, "いちばんくじ"]);
     if (BUY_SHOPS[S.id]) BUY_SHOPS[S.id].coupon = (it) => API.couponFor(S.id, it);
   }
-  const prop0 = StoreArt.prop.bind(StoreArt);
-  StoreArt.prop = (kind) => { const m = /^kuji_(lawson|sevenbun)$/.exec(kind); return m ? StoreArt.svg(KujiArt.shelf(m[1])) : prop0(kind); };
   API.isFixture = (f) => !!f && /^kuji_(lawson|sevenbun)$/.test(f.kind);
-  // てんいんの はなしの えらぶ ことば（js/scene-store.js の talk）
+  // てんいんの はなしの えらぶ ことば（js/store-iso.js の StoreScene.talk）
   API.talkChoice = (sc) => (BY[sc.shopId] ? { label: "いちばんくじを ひく", run: () => KujiUI.open(sc.shopId, sc) } : null);
   // たなを タップ: たなの まえまで あるいて くじの ボード
   API.tapFixture = (sc, f) => {
     if (!API.isFixture(f) || !BY[sc.shopId]) return false;
     Sound.se("tap");
     const go = async () => { if (sc.closed || sc.interacting) return; sc.interacting = true; sc.party[0].dir = "up"; try { await KujiUI.open(sc.shopId, sc); } finally { sc.interacting = false; } };
-    if (!sc.walkTo(8, 3, go)) go();
+    if (!sc.walkTo(8, 1, go)) go();
     return true;
   };
   return API;

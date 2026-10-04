@@ -408,7 +408,7 @@ class BrainMathTask extends TaskBase {
 // ShopScene は MG_TASKS[おみせ] を new する。のうトレは えらんだ ゲーム（sc.variant）の クラスを かえす
 const BRAIN_TASKS = { spot: BrainSpotTask, pair: BrainPairTask, math: BrainMathTask };
 BrainGames.tasks = BRAIN_TASKS;
-// ゲームを えらぶ おみせ（js/scene-store.js の「おてつだいする」・PokaDebug.shop の variant）。パズル こうぼうは js/mg-kobo.js が たす
+// ゲームを えらぶ おみせ（js/store-iso.js の「おてつだいする」・PokaDebug.shop の variant）。パズル こうぼうは js/mg-kobo.js が たす
 const SHOP_GAMES = { brain: BrainGames };
 function BrainTask(sc, lv) { return new (BRAIN_TASKS[sc && sc.variant] || BrainSpotTask)(sc, lv); }
 // おみせの おく（たなに ちきゅうぎ・ほん・パズル）
@@ -427,22 +427,27 @@ SHOP_OWNERS.brain = { sp: "owl", col: "#A98B6D", col2: "#F3E6D3", name: "ふく�
 HOWTO.brain = (sc) => BrainGames.howto(sc && sc.variant); // ShopScene.flow が えらんだ ゲームで よぶ（js/minigames.js）
 // かんばんの しるし: ふくろうの かお
 SIGN_ICON.brain = (x, y) => `<g transform="translate(${x} ${y})"><ellipse cx="0" cy="1" rx="9" ry="8" fill="#C7A27A" ${OS(1.5)}/><path d="M-8,-4 L-7,-10 L-3,-6 Z M8,-4 L7,-10 L3,-6 Z" fill="#C7A27A" ${OS(1.2)}/><circle cx="-3.6" cy="-1" r="3.4" fill="#FFFFFF" ${OS(1.2)}/><circle cx="3.6" cy="-1" r="3.4" fill="#FFFFFF" ${OS(1.2)}/><circle cx="-3.6" cy="-0.6" r="1.4" fill="${INK}"/><circle cx="3.6" cy="-0.6" r="1.4" fill="${INK}"/><path d="M-1.4,3 L1.4,3 L0,5.4 Z" fill="#FFB74D" stroke="none"/></g>`;
-// 店内（10×12）: こくばん・ずかんの ほんだな・かんがえる つくえ・まちがい さがしの え・ちきゅうぎ・パズルの たな
+// 店内（10×12・斜め上の 館 js/store-iso.js）: こくばん・ずかんの ほんだな・かんがえる つくえ・まちがい さがしの え・カード あわせの テーブル・ちきゅうぎ・パズルの たな
+STORE_INTERIORS.brain = {
+  wall: "#E9F0F8", wallPat: "dots", accent: "#5C8FE6", wainscot: "#CFDDF2", wood: "#D9A066", caption: "かんがえる って たのしい！",
+  mats: { ".": { c: ["#E7D7BC", "#DFCCAE"], pat: "plank" }, r: { c: ["#DCE6F6", "#D2DDF0"], pat: "carpet" } }, zones: [["r", 0, 6, 2, 9]],
+  counter: { body: "#5C8FE6", top: "#FFFDF6", items: ["cards", "bell"] },
+  walls: {
+    north: [{ t: "frames", a: 0.3, b: 2.7, z0: 174, z1: 222, n: 3, art: (i) => [`<circle r="9" fill="#F28B82" stroke="${INK}" stroke-width="1.2"/>`, `<rect x="-8" y="-8" width="16" height="16" fill="#8EC5F4" stroke="${INK}" stroke-width="1.2"/>`, `<path d="M0,-10 L10,8 L-10,8 Z" fill="#F6D47A" stroke="${INK}" stroke-width="1.2"/>`][i % 3] }, { t: "sign", a: 4.0, b: 7.0, z0: 174, z1: 220 }, { t: "poster", a: 7.4, b: 8.6, z0: 176, z1: 222, art: `<g transform="scale(1.7)">${SIGN_ICON.brain(0, 0)}</g>`, text: "ホーせんせい" }, { t: "clock", a: 9.0, z: 206 }],
+    west: [{ t: "window", a: 3.0, b: 5.6, z0: 104, z1: 200, curtain: "#A8C4E8" }, { t: "board", a: 6.3, b: 9.7, z0: 170, z1: 214, lines: ["きょうの めあて", "よく みて よく かんがえよう"], col: "#FFFDF4" }, { t: "shelf", a: 10.1, b: 11.8, z: 150, goods: "books" }],
+  },
+  fixtures: [
+    ["wallshelf", 4, 0, 3, 1, "ずかんの ほんだな", { variant: "books", sign: "ずかん", height: 150 }], ["globe", 4, 1, 1, 1, "ちきゅうぎ"], ["candyjar", 6, 1, 1, 1, "ごほうびの あめ", { col: "#8EB4EE" }],
+    ["chalkboard", 0, 0, 3, 1, "きょうの もんだいの こくばん"], ["wallshelf", 7, 0, 3, 1, "パズルの たな", { variant: "puzzles", sign: "パズル", height: 150 }],
+    ["wallshelf", 0, 3, 1, 2, "えほんの たな", { variant: "books", sign: "えほん", height: 120, levels: 3 }], ["desks", 0, 6, 2, 2, "かんがえる つくえ"],
+    ["spotboard", 7, 4, 2, 1, "まちがい さがしの え"], ["puzzletable", 7, 6, 2, 2, "カード あわせの テーブル", { variant: "cards" }],
+    ["board", 9, 3, 1, 1, "きょうの けいさん", { lines: ["けいさん", "3 + 4 =", "？"], col: "#3E6B57" }],
+    ["plant", 9, 10, 1, 1, null, { variant: "tall" }], ["plant", 0, 11, 1, 1, null, { variant: "bush" }],
+    ["npc", 2, 9, 1, 1, "べんきょうちゅうの こ", { sp: "rabbit", ci: 2, dir: "up", action: "chat", lines: ["まちがい さがし、5こ みつけたよ！", "カード あわせ、ぜんぶ そろった！"] }],
+  ],
+};
+// 店内 BGM: モーツァルト「きらきらぼし」（パブリックドメイン。ディスクの 写し）を やさしい 音で
 (() => {
-  const r = (x, y, w, h, col, rr = 4) => StoreArt.rect(x, y, w, h, col, rr), p = (d, col = "none") => StoreArt.path(d, col), c = (x, y, rr, col) => StoreArt.dot(x, y, rr, col);
-  const t = (x, y, s, size = 16, col = "#FFFFFF") => `<text x="${x}" y="${y}" text-anchor="middle" font-size="${size}" font-family="sans-serif" font-weight="bold" fill="${col}" stroke="none">${s}</text>`;
-  const PROPS = {
-    chalkboard: () => r(16, 14, 188, 120, "#B98555", 8) + r(26, 24, 168, 100, "#3E6B57", 4) + t(70, 62, "1+2=3", 20) + t(150, 62, "○△□", 18, "#FFE48A") + p("M44,96 Q70,80 96,96 T148,96") + r(36, 134, 148, 8, "#D9C7A6", 2) + r(60, 128, 22, 6, "#FFFFFF", 2) + r(92, 128, 16, 6, "#F7D56A", 2) + p("M60,142 L48,184 M160,142 L172,184"),
-    desks: () => { let a = ""; for (const x of [16, 116]) a += r(x, 96, 88, 16, "#D9A066", 3) + p(`M${x + 10},112 V172 M${x + 78},112 V172`) + r(x + 14, 78, 34, 20, "#FFFFFF", 2) + p(`M${x + 20},84 h22 M${x + 20},90 h16`) + r(x + 58, 80, 6, 18, "#E57373", 2) + c(x + 44, 150, 14, "#8EC5F4") + r(x + 30, 138, 28, 6, "#5C8FE6", 2); return a; },
-    spotboard: () => r(14, 20, 192, 120, "#FFFDF6", 8) + r(24, 30, 82, 100, "#D3ECF8", 4) + r(114, 30, 82, 100, "#D3ECF8", 4) + r(24, 86, 82, 44, "#C5E6A6", 0) + r(114, 86, 82, 44, "#C5E6A6", 0) + c(50, 70, 10, "#EF5350") + c(140, 70, 10, "#EF5350") + c(80, 104, 9, "#FFD54F") + c(170, 104, 9, "#64B5F6") + `<circle cx="170" cy="104" r="15" fill="none" stroke="#E53935" stroke-width="4"/>` + p("M60,140 V184 M160,140 V184"),
-    globe: () => r(70, 166, 80, 12, "#B98555", 4) + p("M110,166 V140") + `<path d="M64,84 A52,52 0 1 0 152,48" fill="none"/>` + c(110, 84, 44, "#8EC5F4") + p("M84,58 C96,70 92,86 80,92 C92,100 104,96 110,110 C120,100 134,104 140,90 C128,80 126,66 136,56", "#8FD19E") + p("M70,84 H150"),
-    puzzleshelf: () => { let a = r(12, 15, 196, 161, "#DFC49A") + p("M20,66 H200 M20,118 H200 M20,169 H200 M20,20 V169 M200,20 V169"); for (let y = 0; y < 3; y++) for (let i = 0; i < 4; i++) a += r(28 + i * 44, 30 + y * 52, 34, 30, ["#E57373", "#64B5F6", "#FFD54F", "#81C784"][(i + y) % 4], 4) + c(45 + i * 44, 30 + y * 52, 6, ["#E57373", "#64B5F6", "#FFD54F", "#81C784"][(i + y) % 4]); return a; },
-  };
-  const prop0 = StoreArt.prop.bind(StoreArt);
-  StoreArt.prop = (kind) => (PROPS[kind] ? StoreArt.svg(PROPS[kind]()) : prop0(kind));
-  STORE_INTERIORS.brain = { wall: "#E7EEF6", floor: "#E7D7BC", accent: "#5C8FE6", motif: "stars", caption: "かんがえる って たのしい！", fixtures: [
-    ["chalkboard", 0, 0, 3, 2, "きょうの もんだいの こくばん"], ["bookcase", 8, 0, 2, 2, "ずかんの ほんだな"], ["desks", 0, 5, 3, 2, "かんがえる つくえ"], ["spotboard", 7, 5, 3, 2, "まちがい さがしの え"], ["globe", 0, 9, 2, 1, "ちきゅうぎ"], ["puzzleshelf", 7, 9, 3, 1, "パズルの たな"]] };
-  // 店内 BGM: モーツァルト「きらきらぼし」（パブリックドメイン。ディスクの 写し）を やさしい 音で
   const src = SONGS.disc_twinkle, inst = ["piano", "mallet", "bass", "pad"];
   if (src) SONGS.shop_brain = { ...src, title: "かんがえる きらきらぼし", disc: false, bpm: 92, tracks: src.tracks.map((tr, k) => (tr.drum ? tr : { ...tr, instrument: inst[k] || tr.instrument })) };
 })();

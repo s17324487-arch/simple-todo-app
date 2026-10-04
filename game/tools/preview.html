@@ -42,7 +42,6 @@
 <script src="../js/shop-reward-art.js"></script>
 <script src="../js/tiles.js"></script>
 <script src="../js/world-art.js"></script>
-<script src="../js/store-interiors.js"></script>
 <script src="../js/world-scenery.js"></script>
 <script src="../js/museum-art.js"></script>
 <script src="../js/gun-art.js"></script>
@@ -108,8 +107,6 @@
     h += "<h2>町ごとの建物</h2>"+row(TownRenewalArt.styles.map(style=>cell(Art.worldSvg("building",{style,w:6,h:4,door:2}).full,176,style)));
     h += "<h2>街区の小物</h2>"+row(TownRenewalArt.props.map(k=>cell(Art.worldSvg(k).full,72,k)));
     out.innerHTML = h;
-    const props=[...new Set(Object.values(STORE_INTERIORS).flatMap(d=>d.fixtures.map(f=>f[0])).concat("counter"))];
-    out.innerHTML += '<section id="store-art"><h2>おみせの内装・展示</h2>'+row(props.map(kind=>cell(StoreArt.prop(kind),110,kind)))+'</section>';
   }
   render();
 </script>

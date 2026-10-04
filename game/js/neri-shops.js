@@ -1,7 +1,7 @@
 // ネリカスタウンの あたらしい お店（オーナーの FB 2026-09-29「2種類の コンビニは、売って いる 商品を 変える」「レストランは 内装を 実際の ファミレス風に」）。
 // ・コンビニ「ローリソン」: からあげ・おにぎり・ロールケーキ・プリン・たまごサンド・ぎゅうにゅう（あおい おみせ・つめたい たな・あつあつ ケース）
 // ・コンビニ「せぶんぶん」: おでん・メロンパン・あったか ココア・アイス・ゼリー・オレンジジュース（おでんの なべ・アイスの れいとうこ・パンの たな）
-// どちらも 歩いて 入る 店（StoreScene・10×12マス）。あたらしい 食べ物 10しゅ（ファミレス びっくぽの メニューも）の 絵は FOOD_ART（64×64・INK）。
+// どちらも 歩いて 入る 店（StoreScene・10×12マスの 斜め上の 館。什器の 絵は js/store-iso-props.js の cvsback・opencase・kuji_* など）。あたらしい 食べ物 10しゅ（ファミレス びっくぽの メニューも）の 絵は FOOD_ART（64×64・INK）。
 // 食べ物は exclusive（スーパーの たなには ならばない）。セーブは もちもの（Save.d.bag）に ふえる だけ。
 const NeriShops = (() => {
   const S = (w = 3) => IS(w);
@@ -28,50 +28,31 @@ const NeriShops = (() => {
     FOODS.push(f); BAG_INDEX[id] = { ...f, kind: "food" }; FOOD_ART[id] = art;
   }
 
-  // ---- コンビニの 什器（StoreArt と おなじ 220×190・線は INK 4.5）----
-  const r = (x, y, w, h, col, rr = 4) => StoreArt.rect(x, y, w, h, col, rr), p = (d, col = "none") => StoreArt.path(d, col), c = (x, y, rr, col) => StoreArt.dot(x, y, rr, col);
-  const bottle = (x, y, col, cap = "#EFE7D0") => r(x + 5, y, 10, 6, cap, 2) + r(x, y + 6, 20, 30, col, 5) + r(x + 2, y + 16, 16, 9, "#FFF6E2", 1);
-  const onigiri = (x, y) => `<g transform="translate(${x} ${y})">${p("M0,-17 C4,-17 17,6 15,9 C13,12 -13,12 -15,9 C-17,6 -4,-17 0,-17 Z", "#FFFDF5")}${r(-7, -1, 14, 11, "#2E3B33", 1)}</g>`;
-  const cup = (x, y, col) => `<g transform="translate(${x} ${y})">${p("M-13,-8 L13,-8 L10,12 L-10,12 Z", col)}${c(-5, -12, 6, "#D98A2E")}${c(5, -13, 6, "#E39A3C")}${c(0, -17, 5.5, "#D98A2E")}</g>`;
-  const roll = (x, y) => `<g transform="translate(${x} ${y})">${c(0, 0, 14, "#F2C57C")}<path d="M0,0 m-2,0 a2,2 0 1,1 4,0 a5.5,5.5 0 1,1 -10,0 a9,9 0 1,1 17,0" fill="none" stroke="#FFFBF2" stroke-width="3"/></g>`;
-  const pudding = (x, y) => `<g transform="translate(${x} ${y})">${p("M-11,10 L-8,-8 C-6,-12 6,-12 8,-8 L11,10 Z", "#FFE08A")}${p("M-8,-8 C-6,-12 6,-12 8,-8 C6,-4 -6,-4 -8,-8 Z", "#8D5524")}</g>`;
-  const melon = (x, y) => `<g transform="translate(${x} ${y})" stroke-width="2.6"><rect x="-19" y="-15" width="38" height="30" rx="8" fill="#FBF8EE"/><path d="M-13,6 C-13,-9 13,-9 13,6 Z" fill="#EFC26A"/><path d="M-9,-4 L3,6 M-3,-7 L9,3 M9,-4 L-3,6 M3,-7 L-9,3" fill="none" stroke="#C9953F" stroke-width="1.8" stroke-linecap="round"/>${r(-6, -18, 12, 5, "#F7A8C4", 2)}</g>`;
-  const icebox = (x, y, col) => `<path d="M${x + 2},${y + 4} L${x + 24},${y + 4} L${x + 21},${y + 20} L${x + 5},${y + 20} Z" fill="#FFFFFF" stroke="${INK}" stroke-width="2.6" stroke-linejoin="round"/><rect x="${x}" y="${y}" width="26" height="6" rx="2.5" fill="${col}" stroke="${INK}" stroke-width="2.6"/><circle cx="${x + 13}" cy="${y + 13}" r="3.4" fill="${col}" stroke="none"/>`;
-  const PROPS = {
-    // つめたい のみもの（ガラスの とびら 3まい）
-    reachin: () => { let a = r(12, 6, 196, 176, "#C9D7DE") + r(20, 14, 180, 158, "#B9DDE9", 3); for (let i = 0; i < 3; i++) { a += p(`M${80 + i * 60 - 60},14 V172`); for (let y = 0; y < 3; y++) for (let k = 0; k < 2; k++) a += bottle(28 + i * 60 + k * 24, 22 + y * 50, ["#E9C97D", "#9CCFA8", "#E7A8B8", "#A8C4E8", "#F4B26A", "#C7B8E8"][(i * 2 + k + y) % 6]); a += p(`M${72 + i * 60},70 V110`); } return a + p("M20,64 H200 M20,116 H200") + r(12, 174, 196, 10, "#8FA2AB", 2); },
-    // あつあつ ケース（からあげ）: ガラスの はこと あかい のれん
-    hotsnack: () => r(12, 96, 196, 74, "#C7B7A2") + p("M12,96 L32,76 H190 L208,96 Z", "#E9DBC6") + r(30, 18, 160, 66, "#F7E6C8", 8) + r(38, 26, 144, 50, "#FFF6E3", 6) + [0, 1, 2, 3].map((i) => cup(62 + i * 32, 60, ["#E95F4B", "#F4B63F", "#E95F4B", "#F4B63F"][i])).join("") + r(30, 8, 160, 16, "#E95F4B", 5) + `<text x="110" y="21" text-anchor="middle" font-size="13" font-family="sans-serif" font-weight="bold" fill="#FFFFFF" stroke="none">あげたて</text>` + p("M29,170 V182 M192,170 V182"),
-    // おにぎりと サンドイッチの たな（ひくい れいぞう）
-    onigiri: () => { let a = r(12, 40, 196, 132, "#D8E4E6") + r(20, 48, 180, 116, "#EEF6F7", 3) + p("M20,88 H200 M20,128 H200"); for (let i = 0; i < 5; i++) a += onigiri(42 + i * 34, 76); for (let i = 0; i < 5; i++) a += i % 2 ? onigiri(42 + i * 34, 116) : p(`M${28 + i * 34},125 L${56 + i * 34},125 L${42 + i * 34},101 Z`, "#FFF8E6") + r(30 + i * 34, 117, 24, 5, "#FFD95A", 1); return a + r(20, 150, 180, 12, "#4A8CC9", 3) + p("M29,172 V182 M192,172 V182"); },
-    // ロールケーキと スイーツの れいぞうケース
-    sweets: () => { let a = r(12, 30, 196, 142, "#DCE7EF") + r(20, 38, 180, 126, "#F7FBFF", 3) + p("M20,100 H200"); for (let i = 0; i < 4; i++) a += roll(46 + i * 42, 74); for (let i = 0; i < 5; i++) a += pudding(38 + i * 36, 134); return a + r(12, 20, 196, 14, "#4A8CC9", 5) + p("M29,172 V182 M192,172 V182"); },
-    // えほんと ざっしの たな（まどの まえ）
-    magazines: () => { let a = r(14, 70, 192, 100, "#D9C7A6") + p("M14,104 H206 M14,138 H206"); for (let i = 0; i < 6; i++) a += `<g transform="rotate(${(i % 2 ? 5 : -5)} ${36 + i * 30} 90)">${r(22 + i * 30, 56, 28, 40, ["#F4B6C2", "#A8D5BA", "#FFE08A", "#A8C4E8", "#F7C08A", "#C7B8E8"][i], 3)}${c(36 + i * 30, 70, 6, "#FFFFFF")}${p(`M${27 + i * 30},86 h18`)}</g>`; return a + p("M26,170 V182 M194,170 V182"); },
-    // ATMと コピーき
-    atm: () => r(14, 34, 88, 144, "#9FB6C7", 8) + r(26, 48, 64, 40, "#E6F4FA", 4) + p("M34,64 h48 M34,74 h30") + [0, 1, 2].map((i) => [0, 1, 2].map((k) => r(34 + k * 17, 100 + i * 15, 13, 10, "#F5F2EA", 2)).join("")).join("") + r(118, 70, 90, 108, "#E3E0D6", 6) + r(118, 58, 90, 18, "#C9C4B6", 5) + r(128, 86, 70, 24, "#F9F7F0", 3) + r(176, 118, 24, 14, "#8FD19E", 3) + p("M128,150 H198"),
-    // おでんの なべ（しきりの ある 四角い なべ・ゆげ）
-    oden: () => r(12, 96, 196, 74, "#C9C9C4") + p("M12,96 L32,76 H190 L208,96 Z", "#E3E3DE") + r(34, 44, 152, 52, "#B5B8BA", 6) + r(42, 50, 136, 38, "#E6B96E", 3) + p("M87,50 V88 M133,50 V88") + c(64, 64, 11, "#FFF3CF") + `<ellipse cx="64" cy="77" rx="8" ry="5" fill="#FFFFFF"/>` + `<ellipse cx="110" cy="66" rx="12" ry="9" fill="#FFFFFF"/>` + c(110, 67, 4.5, "#FFD54F") + p("M142,82 L156,56 L170,82 Z", "#9EA3A8") + r(148, 58, 22, 9, "#E8D2A8", 4) + `<path d="M70,30 c-6,-6 6,-9 0,-16 M104,32 c-6,-6 6,-9 0,-16 M140,30 c-6,-6 6,-9 0,-16" fill="none" stroke="#B9C6CF" stroke-width="4"/>` + p("M29,170 V182 M192,170 V182"),
-    // あったか ココアの マシン
-    cocoa: () => r(40, 14, 140, 164, "#5E5A60", 10) + r(54, 28, 112, 44, "#F4ECE2", 6) + `<text x="110" y="57" text-anchor="middle" font-size="16" font-family="sans-serif" font-weight="bold" fill="#8D5B3E" stroke="none">ココア</text>` + r(70, 84, 80, 58, "#3E3A40", 6) + p("M110,84 V100") + p("M92,108 L128,108 L124,138 L96,138 Z", "#FFFFFF") + r(94, 104, 32, 6, "#8D5B3E", 2) + r(40, 150, 140, 14, "#7A767C", 3) + [0, 1, 2].map((i) => c(160, 36 + i * 12, 4, ["#F28B82", "#FFD54F", "#8FD19E"][i])).join(""),
-    // アイスの れいとうこ（ガラスの ふた）
-    freezer: () => { let a = r(12, 64, 196, 108, "#DDEBF2", 8) + p("M12,64 L28,44 H192 L208,64 Z", "#C4DDEA") + r(32, 48, 156, 14, "#EAF6FB", 3) + p("M110,48 V62"); for (let i = 0; i < 6; i++) a += icebox(26 + (i % 3) * 58, 76 + Math.floor(i / 3) * 26, ["#F7A8C4", "#FFE08A", "#A8D5BA", "#A8C4E8", "#F7C08A", "#C7B8E8"][i]); return a + p("M29,172 V182 M192,172 V182"); },
-    // パンの たな（メロンパン）
-    breadshelf: () => { let a = r(12, 15, 196, 161, "#E8D2AE") + p("M20,66 H200 M20,118 H200 M20,169 H200 M20,20 V169 M200,20 V169"); for (let y = 0; y < 3; y++) for (let i = 0; i < 4; i++) a += melon(44 + i * 44, 44 + y * 52); return a; },
-    // おかしの たな
-    snacks: () => { let a = r(12, 15, 196, 161, "#E3DCCF") + p("M20,66 H200 M20,118 H200 M20,169 H200 M20,20 V169 M200,20 V169"); for (let y = 0; y < 3; y++) for (let i = 0; i < 5; i++) a += p(`M${28 + i * 35},${60 + y * 52} L${31 + i * 35},${28 + y * 52} Q${43 + i * 35},${22 + y * 52} ${55 + i * 35},${28 + y * 52} L${58 + i * 35},${60 + y * 52} Z`, ["#F28B82", "#FFD54F", "#8FD19E", "#8EC5F4", "#F7B267"][(i + y) % 5]) + c(43 + i * 35, 42 + y * 52, 6, "#FFFFFF"); return a; },
-  };
-  const prop0 = StoreArt.prop.bind(StoreArt);
-  StoreArt.prop = (kind) => (PROPS[kind] ? StoreArt.svg(PROPS[kind]()) : prop0(kind));
-
   // ---- 2つの コンビニ（店内・店員・品ぞろえ・かんばんの しるし・BGM）----
   const SHOPS2 = {
     lawson: {
       name: "ローリソン", keeper: { sp: "bear", col: "#A1887F", name: "くまの アオ", outfit: { body: "marine_stripe", neck: "bowtie_blue" }, look: { eye: "smile", cheek: "peach" } }, keeperName: "てんいんの アオ",
       hello: ["いらっしゃいませ〜！ あげたての からあげ、いかが？", "ロールケーキも ひえてるよ。"],
       goods: ["karaage", "onigiri", "rollcake", "pudding", "sandwich", "milk"],
-      design: { wall: "#DDEBF6", floor: "#EEF3F6", accent: "#4A8CC9", motif: "tile", caption: "あげたて からあげと ひえた スイーツ", fixtures: [
-        ["reachin", 0, 0, 3, 2, "つめたい のみもの"], ["hotsnack", 8, 0, 2, 2, "あげたての からあげ"], ["onigiri", 0, 5, 3, 2, "おにぎりと サンドイッチ"], ["sweets", 7, 5, 3, 2, "ロールケーキと プリン"], ["magazines", 0, 9, 3, 1, "えほんと ざっし"], ["atm", 8, 9, 2, 1, "ATMと コピーき"]] },
+      design: {
+        wall: "#E4EFF8", wallPat: "tile", accent: "#4A8CC9", wainscot: "#C6DCEF", wainPat: "tile", wood: "#D9D2C4", caption: "あげたて からあげと ひえた スイーツ",
+        mats: { ".": { c: ["#F1F5F8", "#E6ECF1"], pat: "tile" } },
+        counter: { body: "#4A8CC9", top: "#F2F5F7", items: ["hotcase", "bags"] },
+        walls: {
+          north: [{ t: "board", a: 0.3, b: 2.7, z0: 182, z1: 222, lines: ["つめたい ドリンク"], col: "#FFFDF4" }, { t: "sign", a: 3.9, b: 7.1, z0: 174, z1: 220 }],
+          west: [{ t: "stripe", a: 0, b: 12, z0: 212, z1: 220, col: "#4A8CC9" }, { t: "board", a: 3.2, b: 5.8, z0: 180, z1: 206, lines: ["おにぎり・サンド"], col: "#FFFDF4" }, { t: "board", a: 7.2, b: 9.8, z0: 180, z1: 206, lines: ["スイーツ"], col: "#FFFDF4" }, { t: "window", a: 10.2, b: 11.8, z0: 104, z1: 200 }],
+        },
+        fixtures: [
+          ["cvsback", 4, 0, 3, 1, "コーヒーと フライヤー"], ["hotdrinks", 4, 1, 1, 1, "ホットの のみもの"], ["microwave", 6, 1, 1, 1, "でんしレンジ"],
+          ["fridge", 0, 0, 3, 1, "つめたい のみもの", { variant: "drinks", sign: "ドリンク" }], ["kuji_lawson", 7, 0, 3, 1, "いちばんくじ"],
+          ["opencase", 0, 3, 1, 3, "おにぎりと サンドイッチ", { foods: ["onigiri", "sandwich", "karaage", "onigiri", "sandwich"], sign: "おにぎり" }],
+          ["opencase", 0, 7, 1, 3, "ロールケーキと プリン", { foods: ["rollcake", "pudding", "milk", "deza_jelly"], sign: "スイーツ" }],
+          ["gondola", 2, 4, 1, 4, "おかしの たな", { foods: ["ike_snack_chips", "ike_snack_choco", "ike_snack_senbei", "ike_snack_gummy", "ike_snack_popcorn"], sign: "おかし" }],
+          ["gondola", 7, 4, 2, 1, "パンの たな", { variant: "bread", sign: "パン" }], ["freezer", 7, 6, 2, 2, "アイスの れいとうこ", { foods: ["deza_ice", "deza_shavedice"], sign: "アイス" }],
+          ["atm", 8, 9, 2, 1, "ATMと コピーき"], ["magrack", 0, 10, 1, 2, "えほんと ざっし"], ["baskets", 3, 10, 1, 1, "おかいもの かご", { col: "#4A8CC9" }],
+          ["npc", 3, 6, 1, 1, "おかいものの おきゃくさん", { sp: "dog", ci: 2, dir: "left", action: "chat", lines: ["おにぎり、どれに しようかな〜", "からあげ、あげたて だって！"] }],
+        ],
+      },
       icon: (x, y) => `<g transform="translate(${x} ${y})"><path d="M-8,10 L-8,-4 C-8,-10 8,-10 8,-4 L8,10 Z" fill="#FFFFFF" stroke="#4A8CC9" stroke-width="2.4"/><rect x="-5" y="-14" width="10" height="5" rx="1.5" fill="#4A8CC9" stroke="none"/><path d="M-8,2 H8" stroke="#4A8CC9" stroke-width="2"/></g>`,
       song: ["disc_nacht", 132, ["pluck", "mallet", "bass"]],
     },
@@ -79,8 +60,25 @@ const NeriShops = (() => {
       name: "せぶんぶん", keeper: { sp: "fox", name: "きつねの ナナ", outfit: { head: "hachimaki", body: "apron", neck: "bowtie_red" }, look: { eye: "sparkle", cheek: "pink" } }, keeperName: "てんいんの ナナ",
       hello: ["いらっしゃいませ！ おでん、ぐつぐつ にえてるよ。", "あったか ココアも あるよ。"],
       goods: ["oden", "cocoa", "bread", "deza_ice", "deza_jelly", "juice"],
-      design: { wall: "#FCEFE3", floor: "#F4F1EA", accent: "#E86F3A", motif: "stripe", caption: "ぐつぐつ おでんと やきたて パン", fixtures: [
-        ["cocoa", 0, 0, 3, 2, "あったか ココア"], ["oden", 8, 0, 2, 2, "ぐつぐつ おでん"], ["freezer", 0, 5, 3, 2, "アイスの れいとうこ"], ["breadshelf", 7, 5, 3, 2, "メロンパンの たな"], ["reachin", 0, 9, 3, 1, "つめたい のみもの"], ["snacks", 7, 9, 3, 1, "おかしの たな"]] },
+      design: {
+        wall: "#FDF3E8", wallPat: "stripe", accent: "#E86F3A", wainscot: "#F6D2B8", wood: "#D9C7A6", caption: "ぐつぐつ おでんと やきたて パン",
+        mats: { ".": { c: ["#F6F3EC", "#ECE7DC"], pat: "tile" } },
+        counter: { body: "#E86F3A", top: "#FBF6EE", items: ["oden", "steamer"] },
+        walls: {
+          north: [{ t: "board", a: 0.3, b: 2.7, z0: 182, z1: 222, lines: ["つめたい ドリンク"], col: "#FFFDF4" }, { t: "sign", a: 3.9, b: 7.1, z0: 174, z1: 220 }],
+          west: [{ t: "stripe", a: 0, b: 12, z0: 208, z1: 212, col: "#F4A13A" }, { t: "stripe", a: 0, b: 12, z0: 212, z1: 216, col: "#3FA36B" }, { t: "stripe", a: 0, b: 12, z0: 216, z1: 220, col: "#E53935" }, { t: "board", a: 3.2, b: 5.8, z0: 178, z1: 204, lines: ["やきたて パン"], col: "#FFFDF4" }, { t: "board", a: 7.2, b: 9.8, z0: 178, z1: 204, lines: ["おにぎり"], col: "#FFFDF4" }, { t: "window", a: 10.2, b: 11.8, z0: 104, z1: 198 }],
+        },
+        fixtures: [
+          ["cvsback", 4, 0, 3, 1, "コーヒーと ちゅうかまん"], ["cocoa", 4, 1, 1, 1, "あったか ココア"], ["microwave", 6, 1, 1, 1, "でんしレンジ"],
+          ["fridge", 0, 0, 3, 1, "つめたい のみもの", { variant: "drinks", sign: "ドリンク" }], ["kuji_sevenbun", 7, 0, 3, 1, "いちばんくじ"],
+          ["wallshelf", 0, 3, 1, 3, "メロンパンの たな", { variant: "bread", sign: "パン", wood: "#D9B686" }],
+          ["opencase", 0, 7, 1, 3, "おにぎりと ゼリー", { foods: ["onigiri", "sandwich", "deza_jelly", "juice"], sign: "おにぎり" }],
+          ["gondola", 2, 4, 1, 4, "おかしの たな", { foods: ["ike_snack_corn", "ike_snack_ramune", "ike_snack_stick", "ike_snack_candy", "ike_snack_waffle"], sign: "おかし" }],
+          ["freezer", 7, 4, 2, 2, "アイスの れいとうこ", { foods: ["deza_ice", "deza_snow"], sign: "アイス" }], ["gondola", 7, 7, 2, 1, "あめと ガム", { variant: "candy", sign: "あめ" }],
+          ["atm", 8, 9, 2, 1, "ATMと コピーき"], ["magrack", 0, 10, 1, 2, "えほんと ざっし"], ["baskets", 3, 10, 1, 1, "おかいもの かご", { col: "#E86F3A" }],
+          ["npc", 3, 6, 1, 1, "おかいものの おきゃくさん", { sp: "raccoon", ci: 1, dir: "left", action: "chat", lines: ["おでんは だいこんが いちばん！", "ココアで ぽかぽか〜"] }],
+        ],
+      },
       icon: (x, y) => `<g transform="translate(${x} ${y})"><rect x="-10" y="-10" width="20" height="20" rx="4" fill="#FFFFFF" stroke="#E86F3A" stroke-width="2.4"/><path d="M-10,-4 H10" stroke="#F4A13A" stroke-width="3.2"/><path d="M-10,1 H10" stroke="#3FA36B" stroke-width="3.2"/><path d="M-10,6 H10" stroke="#E53935" stroke-width="3.2"/></g>`,
       song: ["disc_twinkle", 120, ["mallet", "pluck", "bass"]],
     },
@@ -93,5 +91,5 @@ const NeriShops = (() => {
     const [songId, bpm, inst] = s.song, src = SONGS[songId];
     if (src) SONGS["shop_" + id] = { ...src, title: s.name + "（" + src.title + "）", disc: false, bpm, tracks: src.tracks.map((t, k) => (t.drum ? t : { ...t, instrument: inst[k] || t.instrument })) };
   }
-  return { FOOD: FOOD.map((f) => f[0]), PROPS: Object.keys(PROPS), SHOPS: SHOPS2 };
+  return { FOOD: FOOD.map((f) => f[0]), SHOPS: SHOPS2 };
 })();

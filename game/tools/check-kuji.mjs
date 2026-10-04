@@ -163,24 +163,24 @@ ok(Q.got.kj_law_a === 2 && Q.got.kj_law_b === 3 && !Q.got.kj_x && Q.coupons.kj_l
 // ---- 8. 店の なか（レジの みぎの たな・てんいんの ことば・たなの タップ）----
 for (const X of K.SERIES) {
   const I = R.STORE_INTERIORS[X.id], f = I.fixtures.find((x) => x[0] === "kuji_" + X.id);
-  ok(f && f[1] === 7 && f[2] === 2 && f[3] === 3 && f[4] === 1 && f[5] === "いちばんくじ", `${X.shop}: レジの みぎに くじの たな（3ます）`);
-  // たなと ほかの 什器が かさならない・入口から レジ と たなの まえ（8,3）に あるいて いける
+  ok(f && f[1] === 7 && f[2] === 0 && f[3] === 3 && f[4] === 1 && f[5] === "いちばんくじ", `${X.shop}: レジの みぎの かべに くじの たな（3ます）`);
+  // たなと ほかの 什器が かさならない・入口から レジ と たなの まえ（8,1・8,3）に あるいて いける
   const cells = new Set(); let clash = false;
   for (const [, x, y, w, d] of I.fixtures.concat([["counter", 4, 2, 3, 1]])) for (let i = 0; i < w; i++) for (let j = 0; j < d; j++) { const k = x + i + "," + (y + j); if (cells.has(k)) clash = true; cells.add(k); }
   ok(!clash, `${X.shop}: 什器が かさならない`);
   const walk = (x, y) => x >= 0 && x < 10 && y >= 0 && y < 12 && !(x === 5 && y === 1) && !cells.has(x + "," + y);
   const seen = new Set(["5,11"]), q = [[5, 11]];
   while (q.length) { const [x, y] = q.shift(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = x + dx + "," + (y + dy); if (walk(x + dx, y + dy) && !seen.has(k)) { seen.add(k); q.push([x + dx, y + dy]); } } }
-  ok(seen.has("8,3") && seen.has("5,3"), `${X.shop}: 入口から たなの まえ と レジの まえへ いける`);
-  const svg = R.StoreArt.prop("kuji_" + X.id);
+  ok(seen.has("8,1") && seen.has("8,3") && seen.has("5,3"), `${X.shop}: 入口から たなの まえ と レジの まえへ いける`);
+  const svg = R.StoreIsoArt.model(R.StoreIso.fixtures(X.id).find((x) => x.kind === "kuji_" + X.id)).svg;
   ok(svgOk(svg) && /いちばんくじ/.test(svg) && /1000コイン/.test(svg), `${X.shop}: たなの 絵（いちばんくじ・1000コイン）`);
   const sc = { shopId: X.id, closed: false };
   const tc = K.talkChoice(sc); ok(tc && tc.label === "いちばんくじを ひく" && typeof tc.run === "function", `${X.shop}: てんいんさんに「いちばんくじを ひく」`);
   ok(K.isFixture({ kind: "kuji_" + X.id }) && !K.isFixture({ kind: "reachin" }), `${X.shop}: たなの しるし`);
 }
 ok(!K.talkChoice({ shopId: "market" }) && !K.tapFixture({ shopId: "market" }, { kind: "kuji_lawson" }), "ほかの おみせには くじが ない");
-const storeSrc = readFileSync(new URL("../js/scene-store.js", import.meta.url), "utf8");
-ok(/IchibanKuji\.talkChoice\(this\)/.test(storeSrc) && /IchibanKuji\.tapFixture\(this,f\)/.test(storeSrc) && /typeof action==="function"\)action\(\)/.test(storeSrc), "StoreScene: てんいんの ことば・たなの タップ・あるいた あとの しごと");
+const storeSrc = readFileSync(new URL("../js/store-iso.js", import.meta.url), "utf8");
+ok(/IchibanKuji\.talkChoice\(this\)/.test(storeSrc) && /IchibanKuji\.tapFixture\(this, f\)/.test(storeSrc) && /typeof f === "function"\) return f\(\)/.test(storeSrc), "StoreScene（js/store-iso.js）: てんいんの ことば・たなの タップ・あるいた あとの しごと");
 
 // ---- 9. 絵（SVG）----
 for (const it of K.ITEMS) {

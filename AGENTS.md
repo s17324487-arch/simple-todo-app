@@ -162,6 +162,7 @@
 | `js/neri-gas.js` / `js/neri-post.js` / `js/neri-apart.js` | ネリカスタウンの ガソリンスタンドの おてつだい（ノズルの いろ・ながおしで きゅうゆ・せんしゃ・タイヤ。`GasTask`）・ゆうびんきょくの おてつだい（けしいん・あてさきの はこへ しわける。`PostTask`）・ひだまり アパート（斜め上の 2かいだて。おうちの 家具の 立体・すむ 人・こたつ・ギター・ベランダ。`NeriApart`） |
 | `js/neri-quests.js` | ネリカスタウンの いらいの けいじばん（町の いりぐち）。たいじ・おつかい・さがしもの の いらい 24しゅ（まいにち 6まい・3つまで・★で ほうしゅう 400〜2600）。すまほの「いらい」アプリ（`NeriQuests`） |
 | `js/kuji-art.js` / `js/ichiban-kuji.js` / `js/kuji-ui.js` | ネリカスタウンの コンビニの いちばんくじ（UI-55。1かい 1000コイン・1ロット 80まい〔A1 B1 C1 D3 E6 F9 G12 H20 I27〕・ひいた くじは もどらない・さいごの 1まいで ラストワンしょう・ほかの おきゃくさんも ひく・うりきれた つぎの 日に あたらしい ロット・はんけんで ダブルチャンス）。ローリソン と せぶんぶんで ちがう けいひん 25しゅずつ（ビッグ ぬいぐるみ・クッション・マグ／ブランケット・エコバッグ・アクリル スタンド／ちび ぬいぐるみ・むりょう けん・シール）。きまりと セーブ（`IchibanKuji`・`Save.d.kuji`）・けいひんと たなの 絵（`KujiArt`）・くじの がめん（`KujiUI`） |
+| `js/store-iso-art.js` / `js/store-iso-props.js` / `js/store-iso.js` | 歩いて 入る お店（19店）を サンシャインいけぶと おなじ 斜め上の 館に（UI-75）。10×12 マス・店員（5,1）・レジ・でぐちは どの 店も おなじ（`StoreIso`・`StoreScene`・`SCENES.store`）。かべ・床・汎用の 什器・店員・ふきだし（`StoreIsoArt`）と 店ごとの 什器 約 80しゅ（`store-iso-props.js`）。内装の データは `STORE_INTERIORS`（`js/store-interiors.js` と 各店の ファイル） |
 | `js/maps.js` | マップ（町は ASCII の手描き、外の世界は `FieldGen` で決まった形に生成） |
 | `js/save.js` | セーブ（`Save`）、ステータス計算（`Stats`）、お世話（`Care`） |
 | `js/wear-stock.js` | 服の かず（`WearStock`。1こで ひとり・3人と ぱぱ・ままで わける・5こ まで・わたす。`Save.d.wardrobe` は `true`=1こ か かず） |

@@ -103,7 +103,7 @@ ok(X.rate("folk") === 0.05 && X.rate("nope") === 0, "おねがい 5%・しらな
 const mg = src("minigames.js"), nq = src("neri-quests.js"), tf = src("townsfolk.js"), idx = readFileSync(new URL("../index.html", import.meta.url), "utf8"), sw = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 ok(/WorkExp\.give\("shift", \[this\.ranks, fraction\], this\.shopId\)/.test(mg) && /WorkExp\.html\(xp\)/.test(mg) && /WorkExp\.cheer\(xp, \d+\)/.test(mg), "おてつだいの けっかで けいけんち（とくいな 子は おみせで きまる）");
 ok(/WorkExp\.favOf\(this\.shopId\)[\s\S]{0,80}WorkExp\.hello\(this\.shopId\)[\s\S]{0,80}WorkExp\.FAV_SAY\[fav\]/.test(mg), "おてつだいの はじめに とくいな 子の ひとこと");
-ok(/WorkExp\.favOf\(this\.shopId\)/.test(src("scene-store.js")) && /の とくいな おてつだい/.test(src("scene-store.js")) && /WorkExp\.favShops\(id\)/.test(src("menu.js")), "お店の ことばと ようすに とくいな おてつだい");
+ok(/WorkExp\.favOf\(this\.shopId\)/.test(src("store-iso.js")) && /の とくいな おてつだい/.test(src("store-iso.js")) && /WorkExp\.favShops\(id\)/.test(src("menu.js")), "お店の ことばと ようすに とくいな おてつだい");
 ok(/WorkExp\.give\("quest", q\.stars\)/.test(nq) && /WorkExp\.toast\(/.test(nq), "いらいの ほうこくで けいけんち");
 ok(/WorkExp\.give\("folk"\)/.test(tf) && /WorkExp\.toast\(/.test(tf), "町の人の おねがいで けいけんち");
 ok(idx.indexOf("js/work-exp.js") > idx.indexOf("js/save.js") && idx.indexOf("js/work-exp.js") < idx.indexOf("js/minigames.js") && sw.includes('"./js/work-exp.js"'), "index.html と sw.js に とうろく（save.js の あと）");

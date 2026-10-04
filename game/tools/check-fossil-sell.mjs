@@ -91,7 +91,7 @@ const D = FOSSIL_DATA.dinos, keys = D.flatMap((d) => d.art.parts.map((p) => d.id
 
 // ---- 5. くみこみ・ことば・PokaDebug ----
 {
-  const store = read("js/scene-store.js"), mu = read("js/museum.js"), html = read("index.html"), sw = read("sw.js"), save = read("js/save.js");
+  const store = read("js/store-iso.js"), mu = read("js/museum.js"), html = read("index.html"), sw = read("sw.js"), save = read("js/save.js");
   ok(/FossilSell\.choice\(this\)/.test(store) && /FossilSell\.open\(\)/.test(store), "お店: スーパーで「ほねを うる」");
   ok(/if \(r\.done\) await this\.doneCard\(r\.done, n, face, T\);\s*if \(r\.done && typeof DinoAward !== "undefined"\) await DinoAward\.present\(r\.done\.id\);/.test(mu), "はくぶつかん: かんせいの あとで ひょうしょう");
   ok(/bid === "museum" && typeof DinoAward !== "undefined"\) await DinoAward\.catchUp\(\)/.test(mu), "はくぶつかん: はかせに はなすと まえの ぶんの ひょうしょう");

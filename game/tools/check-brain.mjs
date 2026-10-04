@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
-const { BrainArt: A, BrainGames: BG, BrainSpotTask: Spot, BrainPairTask: Pair, BrainMathTask: Mth, BRAIN_TASKS, BrainTask, SHOPS, SHOP_OWNERS, HOWTO, MG_TASKS, Save, STORE_INTERIORS, StoreArt, SONGS, GameEconomy, AreaMap, AreaMapArt, SIGN_ICON, MAP_DEFS, ShopRewards, MusicDiscs } = R;
+const { BrainArt: A, BrainGames: BG, BrainSpotTask: Spot, BrainPairTask: Pair, BrainMathTask: Mth, BRAIN_TASKS, BrainTask, SHOPS, SHOP_OWNERS, HOWTO, MG_TASKS, Save, STORE_INTERIORS, StoreIso, StoreIsoArt, SONGS, GameEconomy, AreaMap, AreaMapArt, SIGN_ICON, MAP_DEFS, ShopRewards, MusicDiscs } = R;
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
@@ -38,8 +38,9 @@ ok(AreaMap.SHOP_ICON.brain === "owl" && AreaMapArt.ICON.owl, "ちずの めじ�
 svgOk(SIGN_ICON.brain(0, 0), "かんばんの しるし");
 {
   const I = STORE_INTERIORS.brain;
-  ok(I && I.fixtures.length === 6 && !kanji.test(I.caption) && I.fixtures.every((f) => !kanji.test(f[5])), "店内（6つの 什器・ひらがな）");
-  for (const kind of ["chalkboard", "desks", "spotboard", "globe", "puzzleshelf"]) { const s = StoreArt.prop(kind); ok(s.startsWith("<svg") && s.length > 400 && !/NaN|undefined/.test(s), `店内の 絵 ${kind}`); }
+  ok(I && I.fixtures.length >= 12 && !kanji.test(I.caption) && I.fixtures.every((f) => !kanji.test(f[5] || "")), "店内（12 いじょうの 什器・ひらがな）");
+  for (const kind of ["chalkboard", "desks", "spotboard", "globe", "puzzletable"]) ok(I.fixtures.some((f) => f[0] === kind), `店内に ${kind}`);
+  for (const f of StoreIso.fixtures("brain")) if (f.kind !== "keeper" && f.kind !== "npc") { const m = StoreIsoArt.model(f); ok(m && m.svg.length > 400 && !/NaN|undefined/.test(m.svg), `店内の 絵 ${f.kind}`); }
 }
 {
   const b = MAP_DEFS.town.buildings.find((x) => x.id === "nerikasu_home6");

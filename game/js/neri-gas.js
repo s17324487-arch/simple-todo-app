@@ -266,20 +266,27 @@ BUY_SHOPS.gasstand = { name: SHOPS.gasstand.name, keeper: SHOP_OWNERS.gasstand, 
   tabs: [["goods", "のみものと おやつ"]], items: () => ["drink", "juice", "candy"].map((k) => BAG_INDEX[k]) };
 // かんばんの しるし: きゅうゆき
 SIGN_ICON.gasstand = (x, y) => `<g transform="translate(${x} ${y})"><rect x="-8" y="-10" width="12" height="20" rx="2" fill="#E8453C" ${OS(1.5)}/><rect x="-5" y="-6" width="6" height="5" fill="#FFFDF6" stroke="none"/><path d="M4,-6 H8 V6 Q8,9 5,8" fill="none" stroke="${INK}" stroke-width="1.6" stroke-linecap="round"/></g>`;
-// 店内（10×12）: 事務所の なか。オイルの たな・タイヤの ラック・せんしゃの メニュー・のみもの・まちあい
+// 店内（10×12・斜め上の 館 js/store-iso.js）: 事務所の なか。オイルの たな・タイヤの ラック・じどうはんばいき・きょうの ガソリン・せんしゃの メニュー・まちあい
+STORE_INTERIORS.gasstand = {
+  wall: "#FDF0E2", wallPat: "tile", accent: "#E8453C", wainscot: "#F2C9B8", wainPat: "tile", wood: "#B8B2A6", caption: "ぴかぴか せんしゃと きゅうゆ",
+  mats: { ".": { c: ["#E6E3DB", "#DCD8CE"], pat: "tile" } },
+  counter: { body: "#E8453C", top: "#F2F2EE", items: ["gas", "bell"] },
+  walls: {
+    north: [{ t: "board", a: 0.3, b: 2.7, z0: 150, z1: 196, lines: ["タイヤ こうかん", "うけつけ ちゅう"], col: "#FFFDF4" }, { t: "sign", a: 4.0, b: 7.0, z0: 174, z1: 220 }, { t: "window", a: 7.2, b: 9.8, z0: 178, z1: 224 }],
+    west: [{ t: "window", a: 2.8, b: 6.2, z0: 104, z1: 204 }, { t: "poster", a: 7.0, b: 8.4, z0: 120, z1: 196, art: `<g transform="scale(1.3)"><rect x="-14" y="-6" width="28" height="9" rx="3" fill="#8EC5F4" stroke="${INK}" stroke-width=".9"/><path d="M-8,-6 L-4,-12 H5 L9,-6 Z" fill="#CFE9F7" stroke="${INK}" stroke-width=".9"/><circle cx="-8" cy="4" r="3.4" fill="#3F4448"/><circle cx="8" cy="4" r="3.4" fill="#3F4448"/><circle cx="12" cy="-12" r="3" fill="#FFFFFF" stroke="#8EC5F4"/><circle cx="-13" cy="-11" r="2.4" fill="#FFFFFF" stroke="#8EC5F4"/></g>`, text: "せんしゃ" }, { t: "poster", a: 8.8, b: 10.2, z0: 120, z1: 196, art: `<g transform="scale(1.8)"><path d="M-5,0 V-12 L-2,-15 H5 V0 Z" fill="#F3C24F" stroke="${INK}" stroke-width=".7"/><rect x="1" y="-18" width="3" height="3" fill="#2F3540"/></g>`, text: "オイル" }, { t: "clock", a: 10.6, z: 206 }],
+  },
+  fixtures: [
+    ["wallshelf", 4, 0, 3, 1, "エンジンオイルの たな", { variant: "oil", sign: "オイル", height: 150 }], ["toolchest", 4, 1, 1, 1, "どうぐばこ"], ["tirestack", 6, 1, 1, 1, "タイヤの やま"],
+    ["tirerack", 0, 0, 3, 1, "タイヤの ラック"], ["vending", 7, 0, 2, 1, "じどうはんばいき"], ["trash", 9, 0, 1, 1, "ごみばこ", { col: "#5DA676" }],
+    ["wallshelf", 0, 3, 1, 2, "カーグッズの たな", { variant: "tools", sign: "カーグッズ", height: 130, levels: 3 }],
+    ["seat", 0, 6, 1, 3, "まちあいの いす", { col: "#E8453C" }], ["magazines", 2, 6, 1, 1, "ざっしの ラック"],
+    ["priceboard", 7, 4, 1, 1, "きょうの ガソリン"], ["board", 9, 4, 1, 1, "せんしゃの メニュー", { lines: ["せんしゃ", "ぴかぴか", "コース"], col: "#2F6CA8" }],
+    ["tirerack", 7, 8, 2, 1, "ふゆの タイヤ"], ["plant", 9, 10, 1, 1, null, { variant: "bush" }],
+    ["npc", 2, 8, 1, 1, "ドライブの おきゃくさん", { sp: "dog", ci: 3, dir: "left", action: "chat", lines: ["せんしゃ したら くるまが ぴかぴか！", "ガソリン まんたんで しゅっぱつ！"] }],
+  ],
+};
+// 店内 BGM: モーツァルト「トルコ こうしんきょく」（パブリックドメイン。ディスクの 写し）を げんきな 音で
 (() => {
-  const r = (x, y, w, h, col, rr = 4) => StoreArt.rect(x, y, w, h, col, rr), p = (d, col = "none") => StoreArt.path(d, col), c = (x, y, rr, col) => StoreArt.dot(x, y, rr, col);
-  const can = (x, y, col) => r(x, y + 6, 26, 34, col, 4) + r(x + 7, y, 12, 8, "#D9D4CC", 2) + r(x + 5, y + 16, 16, 12, "#FFFDF6", 2);
-  const PROPS = {
-    oilshelf: () => { let a = r(12, 15, 196, 161, "#D9D2C4") + p("M20,66 H200 M20,118 H200 M20,169 H200 M20,20 V169 M200,20 V169"); for (let y = 0; y < 3; y++) for (let i = 0; i < 5; i++) a += can(26 + i * 35, 26 + y * 52, ["#E8453C", "#F7C948", "#4FAE5A", "#8EC5F4", "#F7B267"][(i + y) % 5]); return a; },
-    tirerack: () => { let a = r(18, 40, 184, 136, "#B8B2A6", 6) + p("M28,40 V176 M192,40 V176"); for (let i = 0; i < 4; i++) a += c(56 + (i % 2) * 108, 76 + Math.floor(i / 2) * 64, 30, "#4A4550") + c(56 + (i % 2) * 108, 76 + Math.floor(i / 2) * 64, 13, "#D9D4CC"); return a; },
-    washmenu: () => r(30, 16, 160, 150, "#FFFDF6", 8) + r(40, 26, 140, 34, "#8EC5F4", 6) + `<text x="110" y="49" text-anchor="middle" font-size="16" font-family="sans-serif" font-weight="bold" fill="#FFFFFF" stroke="none">せんしゃ</text>` + [0, 1, 2].map((i) => c(56, 82 + i * 26, 8, ["#FFD54F", "#8FD19E", "#F28B82"][i]) + p(`M72,${82 + i * 26} H170`)).join("") + p("M60,166 V184 M160,166 V184"),
-  };
-  const prop0 = StoreArt.prop.bind(StoreArt);
-  StoreArt.prop = (kind) => (PROPS[kind] ? StoreArt.svg(PROPS[kind]()) : prop0(kind));
-  STORE_INTERIORS.gasstand = { wall: "#FCEBD9", floor: "#E3E0D8", accent: "#E8453C", motif: "tile", caption: "ぴかぴか せんしゃと きゅうゆ", fixtures: [
-    ["oilshelf", 0, 0, 3, 2, "エンジンオイルの たな"], ["tirerack", 8, 0, 2, 2, "タイヤの ラック"], ["washmenu", 0, 5, 3, 2, "せんしゃの メニュー"], ["sodas", 7, 5, 3, 2, "のみもの コーナー"], ["waiting", 0, 9, 3, 1, "まちあいの いす"], ["menu", 8, 9, 2, 1, "きょうの ガソリン"]] };
-  // 店内 BGM: モーツァルト「トルコ こうしんきょく」（パブリックドメイン。ディスクの 写し）を げんきな 音で
   const src = SONGS.disc_turkish, inst = ["pluck", "mallet", "bass"];
   if (src) SONGS.shop_gasstand = { ...src, title: "ぴかぴか トルコマーチ", disc: false, bpm: 176, tracks: src.tracks.map((t, k) => (t.drum ? t : { ...t, instrument: inst[k] || t.instrument })) };
 })();
