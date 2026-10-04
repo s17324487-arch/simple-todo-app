@@ -65,9 +65,11 @@ class VenueScene {
     const D=this.iso&&typeof DineSeats!=='undefined'?DineSeats:null;if(D&&D.counter(this,f))return;
     const seated=D&&D.can(this,f)?await D.sit(this,f):false;
     try{
-      const ids=f.menu,i=await UI.ask(f.label+'\nテーブルで 3にん いっしょに たべよう。',[...ids.map(id=>BAG_INDEX[id].name+'（'+BAG_INDEX[id].price+'コイン／3にん）'),'やめておく']);if(i<0||i>=ids.length)return;
+      // メニューの まえに ちいさな 絵（js/mall-food.js・UI-78）
+      const ids=f.menu,label=id=>typeof MallFood!=='undefined'?MallFood.choice(id):BAG_INDEX[id].name+'（'+BAG_INDEX[id].price+'コイン／3にん）',i=await UI.ask(f.label+'\nテーブルで 3にん いっしょに たべよう。',[...ids.map(label),'やめておく']);if(i<0||i>=ids.length)return;
       const food=BAG_INDEX[ids[i]];if(Save.d.coins<food.price){UI.toast('コインが たりないよ');return;}Save.d.coins-=food.price;
-      for(const id of Save.d.order)Save.care(id,{hunger:food.hunger,mood:food.mood});Save.write();UI.updateHud();if(seated)await D.serve(this,food.id);else this.sitting=6;
+      for(const id of Save.d.order)Save.care(id,{hunger:food.hunger,mood:food.mood});Save.write();UI.updateHud();if(typeof GowagaWish!=='undefined')GowagaWish.signal('eat',food.id);// いっしょに たべても「たべたい」の おねがいが かなう（UI-78）
+      if(seated)await D.serve(this,food.id);else this.sitting=6;
       await UI.say(Save.d.order.map(id=>({who:id,emo:'happy',text:id==='goji'?'ガゥー♡ おいしい！':food.deza?'デザ、だいすき♡':'おいしいね！ あとで デザも たべたいな♪'})));
     }finally{if(seated)await D.stand(this);}
   }
