@@ -77,8 +77,10 @@ const svgOk = (s) => typeof s === "string" && s.startsWith("<svg") && s.trim().e
 {
   fresh();
   const P = C.prizes("lawson");
-  ok(JSON.stringify(P.map((p) => [p.id, p.cost])) === JSON.stringify([["crane", 100], ["lv10", 1000], ["lv25", 2000], ["bus", 5000], ["owner", 10000]]), "けいひん: 100 クレーン チケット・1000 レベル +10・2000 レベル +25・5000 ていきけん・10000 ひみつ");
-  ok(JSON.stringify(C.prizes("sevenbun").map((p) => p.id)) === JSON.stringify(P.map((p) => p.id)) && P.filter((p) => p.secret).map((p) => p.id).join() === "owner", "2つの みせで おなじ・ひみつは 10000 だけ");
+  // 200・500・800・3000 の ごわが コラボ（みせごとに ちがう）は js/conbini-collab.js（UI-86・tools/check-conbini-collab.mjs）
+  const base = P.filter((p) => !p.collab);
+  ok(JSON.stringify(base.map((p) => [p.id, p.cost])) === JSON.stringify([["crane", 100], ["lv10", 1000], ["lv25", 2000], ["bus", 5000], ["owner", 10000]]), "けいひん: 100 クレーン チケット・1000 レベル +10・2000 レベル +25・5000 ていきけん・10000 ひみつ");
+  ok(JSON.stringify(C.prizes("sevenbun").map((p) => p.id)) === JSON.stringify(P.map((p) => p.id)) && P.filter((p) => p.secret).map((p) => p.id).join() === "owner" && P.every((p, i) => !i || P[i - 1].cost < p.cost), "2つの みせで おなじ だん・ひみつは 10000 だけ・ねだんの じゅん");
   ok(C.exchange("lawson", "crane") === null, "カードが ない ときは こうかん できない");
   C.card("lawson").has = true; C.card("lawson").pts = 99;
   ok(C.exchange("lawson", "crane") === null && C.card("lawson").pts === 99, "ポイントが たりない");
@@ -207,7 +209,7 @@ const svgOk = (s) => typeof s === "string" && s.startsWith("<svg") && s.trim().e
 {
   fresh();
   const a = PokaDebug.conbiniCard("lawson", { pts: 1500, tickets: { crane: 3 }, busUntil: "2099-1-1" });
-  ok(a.has && a.pts === 1500 && a.tickets.crane === 3 && a.bus.free && a.prizes.filter((p) => p.can).map((p) => p.id).join() === "crane,lv10" && a.sample.price === 60, "PokaDebug.conbiniCard: きめる・ようす");
+  ok(a.has && a.pts === 1500 && a.tickets.crane === 3 && a.bus.free && a.prizes.filter((p) => p.can && !p.kinds).map((p) => p.id).join() === "crane,lv10" && a.sample.price === 60, "PokaDebug.conbiniCard: きめる・ようす");
   const b = PokaDebug.conbiniCard("lawson", { owner: true });
   ok(b.owner && b.sample.price === 54 && /オーナー/.test(b.hello) && b.name === "ローリソン オーナー カード", "PokaDebug.conbiniCard: オーナー");
   ok(PokaDebug.conbiniCard("nope") === null, "しらない おみせは null");

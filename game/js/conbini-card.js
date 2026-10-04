@@ -7,7 +7,7 @@
 // ・こうかん（ポイントは へる）: 100 クレーン チケット（Meeときょれじゃの クレーンゲームが 1かい ただ・js/crane-scene.js）・
 //   1000／2000 おてつだい レベル +10／+25 けん（すきな おみせを えらぶ・30 まで・とどいた レベルの ごほうびも もらえる）・
 //   5000 バスの ていきけん（はんとし バスが ただ・js/transit.js）・10000 ひみつ（コンビニ オーナー けん: その みせの しなものが 10%びき・てんいんさんが とても ていねいに）。
-//   200・500・800・3000 の ごわが コラボ（かんジュース・コップ・おさら・おふろ グッズ。みせごとに ちがう）は add() で たす。
+//   200・500・800・3000 の ごわが コラボ（かんジュース・グラス／タンブラー・おさら・おふろ グッズ。みせごとに ちがう・4しゅから えらぶ）は js/conbini-collab.js が add() で たす（UI-86）。
 // ・セーブ: Save.d.conbiniCard（Save.SCHEMA は 2 の まま・たす だけ）
 //   shops { みせ: { has カード・pts いまの ポイント・carry 200 に たりない コイン・total これまで ためた ポイント・used つかった ポイント・spent かいものの コイン・
 //                   owner オーナーに なった 日（"" は まだ）・got { けいひん: こうかんした かず } } }・tickets { crane, lv10, lv25: まいすう }・bus { until: ていきけんの さいごの 日 }・log さいきんの こうかん
@@ -71,7 +71,8 @@ const ConbiniCard = (() => {
     // こうかんの けいひん（その みせ。ねだんの じゅん）
     prizes(shop) { return [...PRIZES, ...(EXTRA[shop] || [])].sort((a, b) => a.cost - b.cost); },
     prize(shop, id) { return this.prizes(shop).find((p) => p.id === id) || null; },
-    // ごわが コラボ など（みせごとの けいひん）を たす: { id, cost, name, desc, icon(), give(shop) → false なら こうかん しない }
+    // ごわが コラボ など（みせごとの けいひん）を たす: { id, cost, name, desc, icon(), give(shop, kind) → false なら こうかん しない,
+    //   kinds: [えらべる しなもの]・kindIcon(id)・kindName(id)・have(id)・after(shop, r) }
     add(shop, p) { if (EXTRA[shop] && !this.prize(shop, p.id)) EXTRA[shop].push(p); },
     // カードを つくる（むりょう）
     make(shop) { const c = this.card(shop); if (!c || c.has) return false; c.has = true; Save.mark(); return true; },
@@ -85,17 +86,18 @@ const ConbiniCard = (() => {
       const opened = this.prizes(shop).filter((p) => p.cost > before && p.cost <= c.pts && !(p.id === "owner" && c.owner));
       return { shop, first, coins, pts: n, now: c.pts, carry: c.carry, need: PER - c.carry, opened };
     },
-    // こうかん。ポイントが たりない・もう オーナー・わたせない ときは null
-    exchange(shop, id) {
+    // こうかん（kind: 4しゅから えらぶ けいひんの どれ）。ポイントが たりない・もう オーナー・えらんで いない・わたせない ときは null
+    exchange(shop, id, kind = null) {
       const d = st(), c = this.card(shop), p = this.prize(shop, id);
       if (!c || !p || !c.has || c.pts < p.cost || (p.id === "owner" && c.owner)) return null;
-      if (p.give && p.give(shop) === false) return null;
-      const out = { shop, prize: p };
+      if (p.kinds ? !p.kinds.includes(kind) : kind) return null;
+      if (p.give && p.give(shop, kind) === false) return null;
+      const out = { shop, prize: p, ...(kind ? { kind } : {}) };
       if (d.tickets[p.id] !== undefined) d.tickets[p.id] = Math.min(TICKET_MAX, d.tickets[p.id] + 1);
       else if (p.id === "bus") out.until = this.extendBus();
       else if (p.id === "owner") c.owner = U.today();
-      c.pts -= p.cost; c.used += p.cost; c.got[p.id] = (c.got[p.id] || 0) + 1; out.left = c.pts;
-      d.log.unshift([U.today(), shop, p.id]); if (d.log.length > LOG_MAX) d.log.length = LOG_MAX;
+      c.pts -= p.cost; c.used += p.cost; c.got[p.id] = (c.got[p.id] || 0) + 1; if (kind) c.got[kind] = (c.got[kind] || 0) + 1; out.left = c.pts;
+      d.log.unshift([U.today(), shop, kind || p.id]); if (d.log.length > LOG_MAX) d.log.length = LOG_MAX;
       Save.mark(); Save.write();
       return out;
     },
@@ -161,7 +163,7 @@ const ConbiniCard = (() => {
         row.append(U.el("div", { class: "cc-ico", html: hide ? ConbiniCardArt.prize("secret") : API.icon(shop, p) }));
         const txt = U.el("div", { class: "cc-txt" });
         txt.append(U.el("b", { text: hide ? "？？？ ひみつの けいひん" : p.name }), U.el("div", { class: "muted", text: hide ? "なにが もらえるかは こうかん してからの おたのしみ。" : p.desc }),
-          U.el("div", { class: "cc-cost", text: `${fmt(p.cost)}ポイント${have && p.unit ? `　もってる ${have}${p.unit}` : ""}${p.id === "bus" && API.busFree() ? `　${API.busText()}` : ""}` }));
+          U.el("div", { class: "cc-cost", text: `${fmt(p.cost)}ポイント${have && p.unit ? `　もってる ${have}${p.unit}` : ""}${p.kinds ? `　もってる ${p.kinds.filter((k) => p.have(k) > 0).length}／${p.kinds.length}しゅ` : ""}${p.id === "bus" && API.busFree() ? `　${API.busText()}` : ""}` }));
         row.append(txt);
         const b = UI.btn(done ? "オーナー" : "こうかん", () => trade(p), can ? "yellow small cc-trade" : "small cc-trade");
         b.disabled = !can; b.setAttribute("aria-label", (hide ? "ひみつの けいひん" : p.name) + "と こうかん");
@@ -172,9 +174,11 @@ const ConbiniCard = (() => {
     };
     const trade = async (p) => {
       const c = API.card(shop); if (c.pts < p.cost) return;
-      const hide = p.secret && !c.got[p.id];
-      if (!(await UI.confirm(`${hide ? "ひみつの けいひん" : p.name}と こうかん する？\n${fmt(p.cost)}ポイント つかうよ（いま ${fmt(c.pts)}ポイント）。`, "こうかん", "やめる"))) return;
-      const r = API.exchange(shop, p.id);
+      const hide = p.secret && !c.got[p.id], kind = p.kinds ? await API.pickKind(shop, p) : null;
+      if (p.kinds && !kind) return;
+      const label = kind ? p.kindName(kind) : hide ? "ひみつの けいひん" : p.name;
+      if (!(await UI.confirm(`${label}と こうかん する？\n${fmt(p.cost)}ポイント つかうよ（いま ${fmt(c.pts)}ポイント）。`, "こうかん", "やめる"))) return;
+      const r = API.exchange(shop, p.id, kind);
       if (!r) { Sound.se("bad"); render(); return; }
       Sound.se(p.id === "owner" ? "fanfare" : "buy");
       render();
@@ -184,6 +188,21 @@ const ConbiniCard = (() => {
     UI.modal({ title: API.cardName(shop), body, cls: "full cc-modal", onClose: () => resolve() });
     render();
     API.view = { shop, render };
+  });
+  // 4しゅから 1つ えらぶ まど（ごわが コラボ）。えらんだ しなものの id（とじたら null）
+  API.pickKind = (shop, p) => new Promise((resolve) => {
+    let m = null;
+    const body = U.el("div", { class: "cc-kinds" });
+    body.append(U.el("p", { class: "note", text: `${fmt(p.cost)}ポイントで どれか 1つ。どれに する？` }));
+    const grid = U.el("div", { class: "cc-kind-grid" });
+    for (const id of p.kinds) {
+      const n = p.have(id), b = U.el("button", { class: "card cc-kind" + (n ? " have" : ""), html: `${n ? `<span class="cnt">×${n}</span>` : ""}<div class="cc-kind-ico">${p.kindIcon(id)}</div><div class="cc-kind-name"></div>` });
+      b.querySelector(".cc-kind-name").textContent = p.kindName(id); b.dataset.kind = id;
+      b.addEventListener("click", () => { Sound.se("tap"); const mm = m; m = null; mm.close(); resolve(id); });
+      grid.append(b);
+    }
+    body.append(grid);
+    m = UI.modal({ title: p.name, body, onClose: () => { if (m) { m = null; resolve(null); } } });
   });
   // こうかんした あと（てんいんさんの ことば・つかいかた）
   API.after = async (shop, r) => {

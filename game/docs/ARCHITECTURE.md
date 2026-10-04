@@ -166,6 +166,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `neri-shops.js`（nerikasu-layout.js の あと） | `NeriShops` |
 | — | `conbini-goods.js`（neri-shops.js の あと・food-balance.js の まえ・UI-84） | `ConbiniGoods` |
 | — | `conbini-card-art.js` → `conbini-card.js`（store-iso.js の あと。conbini-goods.js・ichiban-kuji.js・menu.js より あと・UI-85） | `ConbiniCardArt` ／ `ConbiniCard`（コンビニの ポイントカード） |
+| — | `conbini-collab-art.js` → `conbini-collab.js`（conbini-card.js の あと・food-balance.js の まえ・UI-86） | `ConbiniCollabArt` ／ `ConbiniCollab`（コンビニ × ごわがの コラボ けいひん 32しゅ） |
 | — | `dino-museum.js` / `dino-hall-art.js`（ike-aquarium.js の あと・neri-bikkupo.js の まえ） | `DinoMuseum` ／ `DinoHallArt`（きょうりゅう はくぶつかんの 3かいだての 館・UI-42。`dino-hall-art.js` の さいごで `DinoMuseum.install()`） |
 | — | `neri-bikkupo.js`（ike-aquarium.js の あと） | `Bikkupo` |
 | — | `neri-gas.js`（neri-bikkupo.js の あと） | `GAS_FUELS`, `GAS_AMOUNTS`, `GAS_CARS`, `GAS_COLORS`, `gasCarSvg`, `GasTask`, `GasStand` |
@@ -1394,7 +1395,11 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
   - オーナー: `owner(shop)`。`ConbiniGoods.price` を つつんで 10%びき（もとの 1.5ばいの ねだんは `ConbiniGoods.price0`）・`BUY_SHOPS[shop].hello` は getter（オーナーには `POLITE`）・`note` に 10%びき・`StoreScene.prototype.enter` を つつんで はいった ときの あいさつ・かった あとの おれい。
   - もちもの: `Menu.bag` を つつんで「だいじな もの」（カード 4しゅの 絵・チケット・ていきけん・レベル けんの「つかう」）。
   - 絵（`ConbiniCardArt`）: `big(shop, owner)`（200×126）・`icon(shop, owner)`（64）・`prize(id)`（チケット・レベル けん・ていきけん・ひみつ）。id なし。
-- テスト: `tools/check-nerikasu-town.mjs`（しなもの・絵・館の 什器と キー）・`tools/check-conbini-goods.mjs`（16しゅ × 2・タブ・1.5ばい・ほかの おみせ・絵・クーポン）・`tools/check-conbini-card.mjs`（ポイントカード: セーブ・ポイント・こうかん・オーナー・チケット・レベル けん・ていきけん・絵・ことば）・`tools/check-venues.mjs`（什器に いける）。スモーク「nerikasu-shops-390 / 375」「conbini-card-390 / 375」「burger-shop」。PokaDebug: `conbiniCard(shop, set)`・`arcadeStart(machine, pay)`・`arcadeOpen(machine)`。
+- `conbini-collab-art.js`・`conbini-collab.js`（`ConbiniCollabArt`・`ConbiniCollab`・UI-86）: ポイントカードの ごわが コラボの だん（200 かんジュース・500 グラス／タンブラー・800 プレート／しましまざら・3000 おふろ グッズ）。`SETS[みせ][だん]` に 4しゅ（わんこ・がちゃん・ごじ・なかよし）・id は `cvc_<law|sev>_<can|cup|plate|bath>_<who>`（`idOf`）。
+  - かんは `FOODS`・`BAG_INDEX`・`FOOD_ART`（ねだん 0・`exclusive: "conbini_card"`。food-balance.js の まえに よむ）。グラス／タンブラーは ゆかの 家具（`figure: true`・`FigureStand.addFigures`）・おさらは かべの 家具・おふろ グッズは ゆかの 家具（`FurnModels.register` の 立体と `FurnLive.register` の ぴょこっ・おと・3人の ひとこと）。
+  - `ConbiniCard.add(shop, { id, cost, kinds, kindIcon, kindName, have, give(shop, kind), after })` で みせごとに たす。`ConbiniCard.exchange(shop, id, kind)` は kinds の ある だんでは kind が いる（ちがう みせの しなものは だめ）・`got[kind]` も かぞえる。カードの まどは `ConbiniCard.pickKind`（4しゅの カード・もってる かず）→ たしかめる → こうかん。
+  - 絵: `can`（64×64）・`cup`（34×40）・`plate`（46×48）・`bath`（`BATH[みせ][who]`）・`tier`（4しゅの 2×2 の アイコン）。3人の かおは `KujiArt.smallHead`。ずかんの ヒントは `ConbiniCollab.source`（js/item-dex-sources.js）。
+- テスト: `tools/check-nerikasu-town.mjs`（しなもの・絵・館の 什器と キー）・`tools/check-conbini-goods.mjs`（16しゅ × 2・タブ・1.5ばい・ほかの おみせ・絵・クーポン）・`tools/check-conbini-card.mjs`（ポイントカード: セーブ・ポイント・こうかん・オーナー・チケット・レベル けん・ていきけん・絵・ことば）・`tools/check-conbini-collab.mjs`（コラボ 32しゅ・9だん・4しゅから えらぶ）・`tools/check-venues.mjs`（什器に いける）。スモーク「nerikasu-shops-390 / 375」「conbini-card-390 / 375」「conbini-collab-390 / 375」「burger-shop」。PokaDebug: `conbiniCard(shop, set)`・`arcadeStart(machine, pay)`・`arcadeOpen(machine)`。
 
 ## ネリカスタウンの ガソリンスタンド・ゆうびんきょく・アパート（TOWN-NERI-03）
 

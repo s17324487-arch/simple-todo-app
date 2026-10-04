@@ -58,7 +58,8 @@ export async function conbiniCardSmoke({ scenario, expect }) {
     let R = await rows(H), L = await fits(H, 'card');
     const info = await H.eval(() => ({ pts: document.querySelector('.cc-pts b').textContent, label: document.querySelector('.cc-card').getAttribute('aria-label'), svg: !!document.querySelector('.cc-card svg'), title: [...document.querySelectorAll('.modal-wrap:not(.out) .panel')].pop().querySelector('h2,.panel-title,.title')?.textContent || '' }));
     expect(info.pts === '10' && info.label === 'ローリソン ポイントカード' && info.svg, 'カードの まど ' + JSON.stringify(info));
-    expect(R.map((r) => r.id).join() === 'crane,lv10,lv25,bus,owner' && R.every((r) => r.off && !r.can) && R[4].name === '？？？ ひみつの けいひん', 'けいひん 5つ（まだ こうかん できない・10000 は ひみつ）' + JSON.stringify(R));
+    const row = (id) => R.find((r) => r.id === id);
+    expect(R.map((r) => r.id).join() === 'crane,can,cup,plate,lv10,lv25,bath,bus,owner' && R.every((r) => r.off && !r.can) && row('owner').name === '？？？ ひみつの けいひん', 'けいひん 9だん（まだ こうかん できない・10000 は ひみつ）' + JSON.stringify(R));
     expect(!L.wide && !L.page && !L.small.length && L.edge, 'カードの まどが はみ出す・ボタンが ちいさい ' + JSON.stringify(L));
     await H.shot('card');
     await closeTop(H); await H.idle();
@@ -82,7 +83,8 @@ export async function conbiniCardSmoke({ scenario, expect }) {
     await trade(H, 'owner'); await say(H, /「コンビニ オーナー けん」/, false); await say(H, /オーナーで ございます。しなものは いつでも 10%びき/);
     c = await card(H); R = await rows(H);
     const label = await H.eval(() => document.querySelector('.cc-card').getAttribute('aria-label')), title = await H.eval(() => [...document.querySelectorAll('.modal-wrap:not(.out) .panel')].pop().querySelector('.panel-title').textContent);
-    expect(c.owner && c.pts === 1900 && label === 'ローリソン オーナー カード' && title === 'ローリソン オーナー カード' && R[4].name === 'コンビニ オーナー けん' && R[4].off && R[4].btn === 'オーナー', 'オーナーに なる ' + JSON.stringify({ c, R, label, title }));
+    const own = R.find((r) => r.id === 'owner');
+    expect(c.owner && c.pts === 1900 && label === 'ローリソン オーナー カード' && title === 'ローリソン オーナー カード' && own.name === 'コンビニ オーナー けん' && own.off && own.btn === 'オーナー', 'オーナーに なる ' + JSON.stringify({ c, R, label, title }));
     await H.shot('card-owner');
     await closeTop(H); await H.idle();
     // 4. オーナー: ていねいな あいさつ・10%びき

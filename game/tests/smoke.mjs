@@ -4458,6 +4458,8 @@ await (await import("./crane-4f-smoke.mjs")).crane4fSmoke({scenario,expect});
 await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});
 // コンビニの ポイントカード（UI-85。くわしくは tests/conbini-card-smoke.mjs）
 await (await import("./conbini-card-smoke.mjs")).conbiniCardSmoke({scenario,expect});
+// コンビニ × ごわがの コラボ けいひん（UI-86。くわしくは tests/conbini-collab-smoke.mjs）
+await (await import("./conbini-collab-smoke.mjs")).conbiniCollabSmoke({scenario,expect});
 // 歩いて 入る お店の 斜め上の 館（UI-75。くわしくは tests/store-iso-smoke.mjs）
 await (await import("./store-iso-smoke.mjs")).storeIsoSmoke({scenario,expect});
 // たべものの おみせの しなもの（UI-76。くわしくは tests/shop-goods-smoke.mjs）
