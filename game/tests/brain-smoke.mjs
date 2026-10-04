@@ -1,4 +1,4 @@
-// のうトレの おてつだい「あたまの たいそう」（js/mg-brain.js・UI-64）: ネリカスタウンの お店 → 3しゅから えらぶ → あそぶ
+// のうトレの おてつだい「あたまの たいそう」（js/mg-brain.js・UI-64）: ネリカスタウンの お店 → 3しゅから えらぶ → あそぶ（4つめの 英語は tests/english-smoke.mjs）
 export async function brainSmoke({ scenario, expect }) {
   const PHONES = [{ width: 390, height: 844 }, { width: 375, height: 667 }];
   const dlgText = (H) => H.eval(() => document.querySelector(".dlg-text")?.textContent || "");
@@ -21,9 +21,9 @@ export async function brainSmoke({ scenario, expect }) {
     // 3しゅから えらぶ（はじめては「（はじめて）」）
     await H.page.getByRole("button", { name: "くだもの けいさん（はじめて）", exact: true }).waitFor({ timeout: 8000 });
     const ask = await H.eval(() => [...document.querySelectorAll(".dlg-shade.ask .choices .btn")].map((b) => b.textContent));
-    expect(ask.join("|") === "まちがい さがし（はじめて）|おなじ え さがし（はじめて）|くだもの けいさん（はじめて）|やめる", "えらぶ ボタン " + ask);
+    expect(ask.join("|") === "まちがい さがし（はじめて）|おなじ え さがし（はじめて）|くだもの けいさん（はじめて）|英語（はじめて）|やめる", "えらぶ ボタン（4つめは 大人むけの 英語。tests/english-smoke.mjs）" + ask);
     const askText = await H.eval(() => document.querySelector(".dlg-shade.ask .dlg-text")?.textContent || "");
-    expect(/まちがい さがし/.test(askText) && /おなじ え さがし/.test(askText) && /くだもの けいさん/.test(askText), "3しゅの せつめい " + askText);
+    expect(/まちがい さがし/.test(askText) && /おなじ え さがし/.test(askText) && /くだもの けいさん/.test(askText) && /英語/.test(askText), "4しゅの せつめい " + askText);
     await H.shot("choose");
     await H.page.getByRole("button", { name: "まちがい さがし（はじめて）", exact: true }).click();
     await H.until(() => PokaDebug.state().scene === "shop" && !PokaDebug.state().transitioning, 15000);

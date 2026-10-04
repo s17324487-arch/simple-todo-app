@@ -176,6 +176,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
 | — | `korokoro-prizes.js`（korokoro-score.js の あと） | `KOROKORO_PRIZES`, `KorokoroPrizes` |
 | — | `brain-art.js` / `mg-brain.js`（korokoro-town.js の あと・nerikasu-town.js の まえ） | `BrainArt` ／ `BRAIN_FONT`, `BrainGames`, `BRAIN_SPOT_SCENES`, `BrainSpotTask`, `BrainPairTask`, `BrainMathTask`, `BRAIN_TASKS`, `SHOP_GAMES`, `BrainTask`, `BrainTown` |
+| — | `eng-words.js` / `eng-sentences.js` / `mg-english.js`（mg-brain.js の あと・UI-82） | `ENG_WORDS` ／ `ENG_FILL` ／ `ENG_PLAY`, `ENG_LEVELS`, `ENG_MODES`, `ENG_POS`, `ENG_FONT`, `ENG_HOWTO`, `EnglishGame`, `englishSentenceLines`, `englishWrapText`, `BrainEngTask` |
 | — | `shop-day-cap.js`（economy.js の あと・minigames.js・scene-store.js・korokoro-score.js の まえ） | `ShopDayCap`（おてつだいで きょう もらった コインの きろく。UI-67。1にちの じょうげんは UI-83 で なくした） |
 | — | `kobo-art.js` / `mg-kobo.js`（mg-brain.js の あと・nerikasu-town.js の まえ） | `KoboArt` ／ `KOBO_FONT`, `KoboGames`, `KoboSlideTask`, `KOBO_SIMILAR`, `KOBO_EASY`, `KoboShapeTask`, `KoboLogicTask`, `KOBO_TASKS`, `KoboTask`, `KoboTown` |
 | — | `numpla-rules.js` / `numpla-data.js` / `mg-numpla.js`（mg-kobo.js の あと・UI-81） | `NumplaRules`（ナンプレの きまり・解の かず・人の 解き方・いれかえ） ／ `NUMPLA_BANK`（**自動生成** `tools/build-numpla.mjs`） ／ `NUMPLA_PLAY`, `NUMPLA_FONT`, `Numpla`, `NUMPLA_LEVEL_NOTE`, `NUMPLA_HOWTO`, `NumplaTask` |
@@ -1152,6 +1153,19 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ごほうび（`js/shop-rewards.js`・`js/shop-reward-art.js`）: ふくろうの スツール・ちきゅうぎの ランプ（さわると ひかる）・こくばんの つくえ・ほしの てんもんだい。
 - PokaDebug: `shop('brain', lv, 'spot' | 'pair' | 'math')`・`mg().order`（`game` と ゲームごとの ようす: まちがい さがしは `diffs`〔ひだり・みぎの CSS 座標〕と `same`〔ちがいで ない こもの〕・おなじ え さがしは `cards`〔`key`・CSS 座標〕と `peek`・くだもの けいさんは `cur`〔`ans`・`choices`〕）。
 - 検査: `tools/check-brain.mjs`（とうろく・ふるい セーブ・3しゅの きまりと 採点・Lv ごとの かず・2つの がめんで 44px・ことば）・`tools/check.mjs`（3しゅとも 正しく あそぶと 100点）。スモーク `brain-spot`・`brain-pair`・`brain-math`（各 390/375。`tests/brain-smoke.mjs`）。
+
+## 英語（あたまの たいそうの 4つめ・大人むけ・UI-82・`js/eng-words.js`・`js/eng-sentences.js`・`js/mg-english.js`）
+
+オーナーの 依頼（2026-10-04）「脳トレは、英語ゲーム（英語は中学生レベルと高校レベル選べる。また、英単語の日本語の意味を選択するゲームと、文章中に英語を当てはめるゲームがある。）」。前提の かきかえ（対象は 大人）は UI-81。
+
+- 単語 `ENG_WORDS`（`jh` 中学 275・`hs` 高校 359）: [英語, 品詞〔n・v・a・d〕, 意味, なかま]。意味は おなじ レベル・品詞で かさならない。似た 意味の 語（holiday と vacation・refuse と reject・crucial と vital など）は おなじ「なかま」に して、まちがいの 選択肢に いっしょに ださない。中学と 高校で おなじ 単語は ない。
+- 穴うめ `ENG_FILL`（中学 99・高校 107）: [英文〔___ が あな〕, 正解, まちがい 3つ, 和訳, ポイント]。まちがいは 文ごとに 決めた もの（文法か 意味で はっきり あわない・別の 読み方で 正しく なる ものは さけた）。どちらも この ゲームの ために 書いた もの。
+- `EnglishGame`: `questions(レベル, あそびかた, 10)`（さいきん だした 問題 `recent` を さける・きろくは たばの 6わり まで）・`wordQ`（まちがいは おなじ 品詞・べつの 意味・べつの なかま）・`fillQ`・`pick(store)`（`BrainGames.choose` の `pick`: レベル → あそびかた。ベストつき）・`hello`。
+- `BrainEngTask`（`BRAIN_TASKS.eng`・`BrainGames.GAMES` の 4つめ `adult: true`）: `static full`・`static rounds = 1`（`BrainTask.classOf`）。1回 10問。こたえると 正解は みどり・えらんだ まちがいは あか・カードの したに 解説（単語は「break ＝ 壊す」・穴うめは 正解と ポイント。あなは 正解で うまる）→「次へ」（さいごは「結果へ」）。よんで いる あいだは 時間を かぞえない（`think`）。
+- てんすう: 100 × 正解 ÷ 10 − めやすを こえた 時間（めやすの 2ばいで −10 まで）。全問正解で ◎。`payFor` = ○ で 中学 300・高校 450（◎ は 1.5ばい・おみせ Lv で 1.4ばい まで・あそびかたの reward）。`repFor` は 2・3ばい。けっかの `sc.resultNote` に 正解の かず・ベスト・まちがえた もの（5つ まで）。
+- セーブ: `Save.d.shops.brain.games.eng`・`Save.d.shops.brain.eng`（`lv`・`mode`・`plays`・`best`・`recent`〔「レベル_あそびかた」ごと〕）を `fresh()` に たした だけ（`SCHEMA` は 2 の まま）。
+- PokaDebug: `shop('brain', lv, 'eng')`・`mg().order`（`lv`・`mode`・`index`・`correct`・`missed`・`answered`・`cur`〔`en`・`ans`・`choices`・`right`〕・`choices`〔CSS 座標・たかさ〕・`next`）・`english()`（セーブの ようす・問題の かず）。
+- 検査: `tools/check-english.mjs`（とうろく・単語と 文の かたち・意味と なかま・大文字・和訳・ポイント・10問の えらびかた〔12回 つづけて おなじ 問題が でない・まちがいは おなじ 品詞で べつの なかま〕・2つの がめんで 44px・まちがい → 次へ・9問 → 90・全問 → 100・時間・コイン・ひょうばん・セーブ）・`tools/check-brain.mjs`（4しゅ）。スモーク `brain-english-390` / `-375`。
 
 ## パズル こうぼう（ネリカスタウンの パズルの おてつだい・UI-65・`js/kobo-art.js`・`js/mg-kobo.js`）
 

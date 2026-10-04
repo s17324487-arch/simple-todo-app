@@ -22,11 +22,12 @@ const inside = (b, R) => b.x >= R.x - 0.5 && b.y >= R.y - 0.5 && b.x + b.w <= R.
 
 // ---- 1. とうろく ----
 ok(SHOPS.brain && SHOPS.brain.name === "あたまの たいそう" && SHOPS.brain.rounds === 4 && SHOPS.brain.lines.length === 4 && SHOPS.brain.lines.every((l) => !kanji.test(l)), "おみせ（4にん・ことば）");
-ok(MG_TASKS.brain === BrainTask && Object.keys(BRAIN_TASKS).join() === "spot,pair,math", "MG_TASKS.brain は 3しゅの ゲームを えらぶ");
+ok(MG_TASKS.brain === BrainTask && Object.keys(BRAIN_TASKS).join() === "spot,pair,math,eng", "MG_TASKS.brain は 4しゅの ゲームを えらぶ（4つめは 大人むけの 英語。js/mg-english.js・tools/check-english.mjs）");
+ok(BrainTask.classOf("eng") === R.BrainEngTask && BrainTask.classOf("math") === Mth && BrainTask.classOf(null) === Spot && R.BrainEngTask.full && R.BrainEngTask.rounds === 1 && !Spot.full, "ShopScene が みる ゲームの クラス（英語は 画面いっぱい・おきゃくさん 1人）");
 ok(new BrainTask(fake("pair"), 1) instanceof Pair && new BrainTask(fake("math"), 1) instanceof Mth && new BrainTask(fake(null), 1) instanceof Spot && new BrainTask(fake("spot"), 1) instanceof Spot, "variant で ゲームが きまる（なければ まちがい さがし）");
 ok(SHOP_OWNERS.brain.sp === "owl" && SHOP_OWNERS.brain.name === "ふくろうの ホーせんせい", "店主は ふくろうの ホーせんせい");
 const fresh = Save.fresh().shops.brain;
-ok(fresh && fresh.lv === 1 && fresh.plays === 0 && JSON.stringify(fresh.games) === '{"spot":0,"pair":0,"math":0}' && fresh.last === "", "セーブ（ゲームごとの かず）");
+ok(fresh && fresh.lv === 1 && fresh.plays === 0 && JSON.stringify(fresh.games) === '{"spot":0,"pair":0,"math":0,"eng":0}' && fresh.last === "" && fresh.eng && fresh.eng.lv === "jh", "セーブ（ゲームごとの かず・英語）");
 { // ふるい セーブ（brain が ない）を よむと たりない ところを おぎなう
   const old = Save.fresh(); delete old.shops.brain; const m = Save.migrate(JSON.parse(JSON.stringify(old)));
   ok(JSON.stringify(m.shops.brain) === JSON.stringify(fresh) && m.v === Save.SCHEMA, "ふるい セーブに brain を おぎなう（SCHEMA は そのまま）");
@@ -49,11 +50,13 @@ svgOk(SIGN_ICON.brain(0, 0), "かんばんの しるし");
 ok(ShopRewards.prizes.filter((p) => p.shop === "brain").map((p) => p.id).join() === "shop_brain_5,shop_brain_10,shop_brain_15,shop_brain_30", "ごほうびの かぐ 4つ");
 
 // ---- 2. えらぶ・せつめい ----
-ok(BG.GAMES.map((g) => g.id).join() === "spot,pair,math" && BG.GAMES.every((g) => !kanji.test(g.name + g.desc) && g.name.length <= 9 && width(`・${g.name}：${g.desc}`) <= 19.5), "3しゅの なまえと ひとこと（ひらがな・みじかく）");
-for (const v of ["spot", "pair", "math", null]) {
-  const lines = HOWTO.brain({ variant: v });
-  ok(Array.isArray(lines) && lines.length === 4 && lines[0] === BG.HELLO && lines.slice(1).join() === BG.game(v).howto.join(), `せつめい（${v}）は えらんだ ゲームの ぶん`);
-  for (const l of lines) { ok(!kanji.test(l), "せつめいに 漢字: " + l); for (const row of l.split("\n")) ok(width(row) <= 26, `せつめいの 1行が ながい「${row}」`); }
+// 大人むけの ゲーム（adult。英語）は 漢字かな まじりで よい（AGENTS.md の 5。2026-10-04）。ほかの 3しゅは ひらがな
+ok(BG.GAMES.map((g) => g.id).join() === "spot,pair,math,eng" && BG.GAMES.every((g) => (g.adult || !kanji.test(g.name + g.desc)) && g.name.length <= 9 && width(`・${g.name}：${g.desc}`) <= 19.5), "4しゅの なまえと ひとこと（みじかく・こどもむけ 3しゅは ひらがな）");
+ok(BG.GAMES.filter((g) => g.adult).map((g) => g.id).join() === "eng" && typeof BG.game("eng").pick === "function", "大人むけは 英語（えらんだ あとに レベルと あそびかた）");
+for (const v of ["spot", "pair", "math", "eng", null]) {
+  const lines = HOWTO.brain({ variant: v }), g = BG.game(v);
+  ok(Array.isArray(lines) && lines.length === 1 + g.howto.length && lines[0] === BG.HELLO && lines.slice(1).join() === g.howto.join(), `せつめい（${v}）は えらんだ ゲームの ぶん`);
+  for (const l of lines) { ok(g.adult && l !== BG.HELLO ? true : !kanji.test(l), "せつめいに 漢字: " + l); for (const row of l.split("\n")) ok(width(row) <= 26, `せつめいの 1行が ながい「${row}」`); }
 }
 ok(BG.howto("pair").some((l) => /カード/.test(l)) && BG.howto("math").some((l) => /くだもの/.test(l)) && BG.howto("spot").some((l) => /ヒント/.test(l)), "せつめいの なかみ");
 
@@ -181,4 +184,4 @@ ok(A.KINDS.length === 12 && A.KINDS.every((k) => !kanji.test(A.name(k)) && A.PIE
 ok(A.KINDS.filter((k) => A.flips(k)).length >= 5, "むきの ちがいが わかる こもの");
 for (const k of A.FRUIT_KINDS) svgOk(A.fruit(k), `くだもの ${k}`);
 for (const [nm, f] of [["カードの うら", A.cardBack], ["むしめがね", A.lens], ["まる", A.ring], ["ばつ", A.miss]]) svgOk(f(), nm);
-console.log(`✓ brain: ${n} checks（まちがい さがし・おなじ え さがし・くだもの けいさん × Lv1〜5・2つの がめん）`);
+console.log(`✓ brain: ${n} checks（まちがい さがし・おなじ え さがし・くだもの けいさん × Lv1〜5・2つの がめん・4つめの 英語の とうろく）`);

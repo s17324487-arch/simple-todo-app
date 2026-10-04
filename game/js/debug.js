@@ -45,6 +45,8 @@ const PokaDebug = {
   meeRotation(day){return typeof MeeRotation==='undefined'?null:MeeRotation.info(day||undefined);},
   // いまの かいの その シリーズの ガチャの 台まで あるいて まわす（id: "machi3" など。台に いなければ false）
   // へいせい じょじ ふうの ガチャ（js/gacha-heisei.js・UI-79）: 4シリーズの ばんごう・くみ・けいひん と、こんしゅう 台に でて いるか
+  // 英語（あたまの たいそう・UI-82。js/mg-english.js）: セーブの ようす（さいごの レベル・あそびかた・かず・ベスト・さいきんの 問題の かず）と 問題の かず
+  english(){if(typeof EnglishGame==='undefined')return null;const E=EnglishGame.state();return{lv:E.lv,mode:E.mode,plays:{...E.plays},best:{...E.best},recent:Object.fromEntries(Object.entries(E.recent).map(([k,v])=>[k,v.length])),words:{jh:ENG_WORDS.jh.length,hs:ENG_WORDS.hs.length},fill:{jh:ENG_FILL.jh.length,hs:ENG_FILL.hs.length}};},
   // ナンプレ（パズル こうぼう・UI-81。js/mg-numpla.js）: セーブの ようす（さいごの 難しさ・だした かず・クリア・ベスト・とちゅうの 問題）
   numpla(){if(typeof Numpla==='undefined')return null;const N=Numpla.state(),c=N.cont;return{lv:N.lv,n:{...N.n},clear:{...N.clear},best:{...N.best},cont:c?{lv:c.lv,used:c.used,miss:c.miss||0,hint:c.hint||0,filled:[...c.v].filter((ch,i)=>ch!=='.'&&c.p[i]==='.').length,valid:Numpla.validCont(c)}:null,bank:Object.fromEntries(Object.entries(NUMPLA_BANK).map(([k,v])=>[k,v.length]))};},
   // あそんで いる ナンプレの あきマス（まちがいも）を 正しい 数字で うめる。leave マス だけ のこす（テストを みじかく する）。のこした かずを かえす
@@ -193,6 +195,7 @@ const PokaDebug = {
       "PokaDebug.meeRotation('2026-10-5')   ガチャの しゅうがわり（まいしゅう げつようびに しまごとに 1だい いれかわる・NEW の はた）。gachaVisit('machisea') で その シリーズの 台へ",
       "PokaDebug.gachaHeisei()             へいせい じょじ ふうの ガチャ 4シリーズ（ばんごう・くみ・けいひん・こんしゅう でて いるか。UI-79）",
       "PokaDebug.gachaHeiseiMore()         4F の へいせい じょじ ふうの ガチャ 5シリーズ（ばんごう・しま・けいひん・こんしゅう でて いるか。UI-80）",
+      "PokaDebug.english()                 英語の セーブ（レベル・あそびかた・かず・ベスト・さいきんの 問題）と 問題の かず（UI-82）",
       "PokaDebug.numpla()                  ナンプレの セーブ（さいごの 難しさ・クリア・ベスト・とちゅうの 問題・たばの かず。UI-81）",
       "PokaDebug.numplaFill(leave=1)       あそんで いる ナンプレを leave マス だけ のこして 正しく うめる（0 で クリア）",
       "PokaDebug.arcadeStart(21〜23)       4F の たこやき（arcadeTako(0) で あたりの あなに だま）・バーバーカット（arcadeBarber(1, 0, -2) で まん中の ひもの てまえ）・バウンドボール",
@@ -1033,7 +1036,7 @@ const PokaDebug = {
     // 終わったら いまの場所（セーブの world）に戻る
     Game.goto("battle", { foes, area, boss, back: { map: w.map, x: w.x, y: w.y, dir: w.dir }, spawnIdx: -99 }, "none");
   },
-  // variant: あたまの たいそう（"spot"・"pair"・"math"。js/mg-brain.js）・パズル こうぼう（"slide"・"shape"・"logic"・"numpla"。js/mg-kobo.js・js/mg-numpla.js）の ゲーム
+  // variant: あたまの たいそう（"spot"・"pair"・"math"・"eng"。js/mg-brain.js・js/mg-english.js）・パズル こうぼう（"slide"・"shape"・"logic"・"numpla"。js/mg-kobo.js・js/mg-numpla.js）の ゲーム
   shop(id = "crepe", lv, variant = null) {
     if (!SHOPS[id]) throw new Error("unknown shop: " + id);
     if (id === "link") return this.store("link", "city");
