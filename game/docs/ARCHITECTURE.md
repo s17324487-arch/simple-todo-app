@@ -182,7 +182,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `gacha-art.js` / `gacha-art-more.js` / `gacha.js`（purikura.js の あと） | `GachaArt` ／ `GachaArtMore` ／ `Gacha` |
 | — | `gacha-forest-art.js` / `gacha-forest.js`（gacha.js の すぐ あと） | `GachaForestArt` ／ `GachaForest` |
 | — | `sticker-art.js` / `sticker-book.js`（gacha-forest.js の すぐ あと） | `StickerArt` ／ `StickerBook` |
-| — | `gacha-forest-more.js` / `gacha-corner-more.js` / `mee-rotation.js`（sticker-book.js の すぐ あと・UI-62／UI-63） | `GachaForestMore` ／ `GachaCornerMore` ／ `MeeRotation` |
+| — | `gacha-forest-more.js` / `gacha-corner-more.js` / `gacha-heisei.js` / `mee-rotation.js`（sticker-book.js の すぐ あと・UI-62／UI-63／UI-79） | `GachaForestMore` ／ `GachaCornerMore` ／ `GachaHeisei`（へいせい じょじ ふうの 4シリーズ・2F の くみの 5ばんめ） ／ `MeeRotation` |
 | — | `collab-goods.js` / `puzzle-collab.js` / `korokoro-collab.js`（gacha.js・korokoro-score.js の あと・item-dex-sources.js の まえ） | `CollabGoods` ／ `PuzzleCollab` ／ `KorokoroCollab` |
 | — | `aqua-gifts.js`（aqua-art.js の あと・ike-aquarium.js の まえ） | `AquaGifts` |
 | — | `figure-stand.js`（aqua-gifts.js の あと・ike-aquarium.js の まえ） | `FigureStand` |
@@ -1092,6 +1092,9 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
   - 台は `js/ike-arcade.js` の `floor2()` の 12だいに `ring`・`slot`（ひだりから 0〜2）。`variant`・`series` は さいしょの しゅうの ならび（apply が その しゅうに かきかえる）。
   - めがね 4つの かたちは `WEAR.gacha_swirlglasses`・`gacha_catglasses`・`gacha_flowerglasses`・`gacha_rainbowgoggle`（`eyeWrap`・うしろ すがたは かかない）。フィギュアは `FIG`（12 → `GachaArt.FIG` と `GachaForestArt.FIG`）。
   - あんないの ことば: `rotInfo` の ある 什器（2F の かんばん `rotInfo: 2`・1F の フロア あんない `1`・4F の もりの あんない `4`）は `apply()` が `baseText` の あとに こんしゅうの NEW・らいしゅう やすむ シリーズ・つぎの いれかえの 日（`infoText`・`md`）を かく。1F には クレーンの きせつの ぬいぐるみ も。
+- へいせい じょじ ふうの ガチャ（UI-79）: `js/gacha-heisei.js`（`GachaHeisei`。gacha-corner-more.js の あと・mee-rotation.js の まえ）の `SERIES`（4。`heisei: true`・`more: true`・`ring`。`corner` は つけない。`Gacha.add` で 43〜46 ばん）。よみこみの さいごに `GachaCornerMore.RINGS[i].add` に 1つずつ たす（`MeeRotation.install` が `add` を コピーする まえ）→ 2F の くみは `pool` 5・やすみ 2。`lineup` の しき は そのまま で、1しゅうめ まで（p ＜ 4）は まえと おなじ・2しゅうめ に p = 4 が はじめて（`debut`）。
+  - 服の かたち: `WEAR.heisei_casquette`（`hatWrap`・よこむきは つばが まえ・うしろは アジャスター）・`heisei_butterflyshades`（`eyeWrap`）・`heisei_choker`（`neckWrap`・うしろは かかない）・`heisei_jumperskirt`（むねあて と かたひも〔うしろは バツ〕・A ラインの スカート・ハートの ポケット・ほしの ワッペン）。ガチャの 服は ふだん あたま・かお・くび・もちもの だけ で、ふく（body）は この ジャンスカ だけ（`tools/check-gacha.mjs`）。
+  - フィギュアは `FIG`（12 → `GachaArt.FIG` と `GachaForestArt.FIG`）。ぽけっと たまごの がめんは `PIX`（8×8 の ドット絵 4しゅ）。ガチャの がめんの「でるのは …」は `S.kindText` が あれば それ（js/gacha.js）。PokaDebug: `gachaHeisei()`。検査 `tools/check-gacha-heisei.mjs`・スモーク `gacha-heisei-390 / 375`。
 - クレーンの きせつの ぬいぐるみ（UI-63）: `ArcadePrizes.SEASON_HERO`（3人 × はる・なつ・あき・ふゆ → `HERO` の 9〜12ばんめ・`ike_chibi_<who>_8〜11`・`season`〔つき 3つ〕・`seasonName`）と `ArcadePrizes.seasonal(who, day)`。`CraneMachines.DEFS` の `chibi-wanko`／`chibi-gachan`／`chibi-goji` に `season: who` → `lineup()` の さいしょ（めだま）が その きせつの ぬいぐるみ（いつもの `pool`・ほかの 台には いれない）。台の せつめいの ひとことは `PrizeArcade.seasonNote(machine, day)`。ぼうし 2つ（`season_santahat`・`season_witchhat`）は `ITEM_INDEX` だけ（`plushOnly`・おみせ・きがえに でない）。
 
 ## 4F の クレーン 3だい（たこやき・バーバーカット・バウンドボール。Meeときょれじゃ 4F・UI-54）

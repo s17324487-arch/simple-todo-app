@@ -4448,6 +4448,8 @@ await (await import("./pet-walk-smoke.mjs")).petWalkSmoke({scenario,expect});
 await (await import("./rare-calm-smoke.mjs")).rareCalmSmoke({scenario,expect});
 await (await import("./gacha-forest-smoke.mjs")).gachaForestSmoke({scenario,expect});
 await (await import("./mee-rotation-smoke.mjs")).meeRotationSmoke({scenario,expect});
+// へいせい じょじ ふうの ガチャ 4シリーズ（UI-79。くわしくは tests/gacha-heisei-smoke.mjs）
+await (await import("./gacha-heisei-smoke.mjs")).gachaHeiseiSmoke({scenario,expect});
 await (await import("./sticker-book-smoke.mjs")).stickerBookSmoke({scenario,expect});
 await (await import("./crane-4f-smoke.mjs")).crane4fSmoke({scenario,expect});
 await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});

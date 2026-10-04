@@ -192,7 +192,7 @@ Gacha.open = function (si) {
         U.el("div", { class: "gacha-coins", text: `もって いる コイン ${U.fmt(Save.d.coins)}` }),
         U.el("div", { class: "gacha-rate", text: "ふつう 3しゅ 30%ずつ・レア 10%" }),
         ...[this.tagOf ? this.tagOf(si) : ""].filter(Boolean).map((t) => U.el("div", { class: "gacha-week" + (/NEW/.test(t) ? " new" : ""), text: t })),
-        U.el("div", { class: "gacha-kind", text: sticker ? "でるのは シールが 4まい はいった シート（すまほの「シール」で はれる）" : S.kind === "wear" ? (S.hand ? `でるのは もちもの（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : S.acc ? `でるのは アクセサリー（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : `でるのは ふく（1こで ひとり・おなじ ふくは ${WearStock.CAP}こ まで）`) : "でるのは へやに かざる フィギュア" }),
+        U.el("div", { class: "gacha-kind", text: S.kindText ? S.kindText : sticker ? "でるのは シールが 4まい はいった シート（すまほの「シール」で はれる）" : S.kind === "wear" ? (S.hand ? `でるのは もちもの（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : S.acc ? `でるのは アクセサリー（1こで ひとり・おなじ ものは ${WearStock.CAP}こ まで）` : `でるのは ふく（1こで ひとり・おなじ ふくは ${WearStock.CAP}こ まで）`) : "でるのは へやに かざる フィギュア" }),
         ...(done ? [U.el("div", { class: "gacha-done", text: "コンプリート！" })] : []),
       );
       line.replaceChildren(...S.list.map((it) => {

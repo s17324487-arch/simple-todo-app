@@ -1,5 +1,5 @@
 // Meeときょれじゃ の ガチャの しゅうがわり（js/mee-rotation.js・UI-62）の 検査。ブラウザ なしで
-// しゅうの ばんごう・4F の しま 6つと 2F の ガチャ コーナーの 4くみ（UI-63）の わ（3だい・4シリーズ）・まいしゅう 1だいずつ いれかわる（ほかの 台は そのまま）・やすみは 4しゅうに 1かい・
+// しゅうの ばんごう・4F の しま 6つ（3だい・4シリーズ）と 2F の ガチャ コーナーの 4くみ（UI-63。3だい・5シリーズ〔UI-79 で へいせい じょじ ふうを 1つずつ たした〕）の わ・まいしゅう 1だいずつ いれかわる（ほかの 台は そのまま）・やすみは 4しゅうに 1かい・
 // さいしょの しゅうの ならび・館の 台（apply・loadFloor）・NEW の はた（絵と キー）・ガチャの がめんの ふだ・おしらせ・あんないの ことば・セーブ を たしかめる。
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -36,11 +36,12 @@ const src = (Rg) => (Rg.floor === 4 ? GF.ISLES.find((x) => "4f-" + x.id === Rg.i
 ok(rings2.length === 4 && rings2.map((r) => r.id).join() === CM.RINGS.map((c) => c.id).join() && MR.RINGS.every((r) => r.floor === 2 || r.floor === 4), "2F の ガチャ コーナーの 4くみが わ（ほかの 階は ない）");
 for (const Rg of rings2) {
   const C = src(Rg), P = MR.pool(Rg);
-  ok(Rg.ids.join() === C.ids.join() && Rg.add.join() === C.add.join() && Rg.add.length === 1 && P.length === 4 && new Set(P).size === 4 && P.every((id) => GA.byId(id) && !GA.byId(id).forest && !GA.byId(id).sticker) && Rg.from === 1, `${Rg.name}: 3だい・4シリーズ（2F の シリーズ）`);
+  ok(Rg.ids.join() === C.ids.join() && Rg.add.join() === C.add.join() && Rg.add.length === 2 && P.length === 5 && new Set(P).size === 5 && P.every((id) => GA.byId(id) && !GA.byId(id).forest && !GA.byId(id).sticker) && Rg.from === 1, `${Rg.name}: 3だい・5シリーズ（2F の シリーズ）`);
   ok(P[3] === C.add[0] && P[0] === C.ids[C.rest] && GA.byId(C.add[0]).corner, `${Rg.name}: さいしょに やすむのは ${C.ids[C.rest]}・あたらしいのは ${C.add[0]}`);
+  ok(P[4] === C.add[1] && GA.byId(C.add[1]).heisei && !GA.byId(C.add[1]).forest, `${Rg.name}: 5ばんめは へいせい じょじ ふうの ${C.add[1]}（UI-79）`);
   ok(!kanji.test(Rg.name), `${Rg.name}: なまえ`);
 }
-ok(new Set(ALL.flatMap((Rg) => MR.pool(Rg))).size === ALL.length * 4, "おなじ シリーズは 2つの わに はいらない");
+ok(new Set(ALL.flatMap((Rg) => MR.pool(Rg))).size === ALL.reduce((a, Rg) => a + MR.pool(Rg).length, 0), "おなじ シリーズは 2つの わに はいらない");
 // ---- 3. まいしゅうの ならび ----
 const W0 = -12, W1 = 80;
 for (const Rg of ALL) {
@@ -49,8 +50,8 @@ for (const Rg of ALL) {
     const L = MR.lineup(Rg, w); lines[w] = L;
     ok(L.length === 3 && L.map((x) => x.slot).join() === "0,1,2" && new Set(L.map((x) => x.id)).size === 3 && L.every((x) => P.includes(x.id) && x.si === GA.byId(x.id).index), `${Rg.name} ${w}しゅう: 3だいに ちがう シリーズ`);
     ok(L.filter((x) => x.fresh).length === (w >= 1 ? 1 : 0) && L.filter((x) => x.leaving).length === 1, `${Rg.name} ${w}しゅう: NEW は 1つ（0しゅう までは なし）・らいしゅう やすむのは 1つ`);
-    ok(L.filter((x) => x.debut).length === (w === 1 ? 1 : 0) && L.every((x) => !x.debut || (x.fresh && Rg.add.includes(x.id))), `${Rg.name} ${w}しゅう: はじめて はいるのは 1しゅうめの あたらしい シリーズ だけ`);
-    ok(MR.resting(Rg, w).length === 1 && !L.some((x) => x.id === MR.resting(Rg, w)[0]), `${Rg.name} ${w}しゅう: やすみは 1シリーズ`);
+    ok(L.filter((x) => x.debut).length === (w >= 1 && w <= P.length - 3 ? 1 : 0) && L.every((x) => !x.debut || (x.fresh && Rg.add.includes(x.id))), `${Rg.name} ${w}しゅう: はじめて はいるのは あたらしい シリーズ（1しゅうめ・5シリーズの わは 2しゅうめも）だけ`);
+    ok(MR.resting(Rg, w).length === P.length - 3 && !L.some((x) => MR.resting(Rg, w).includes(x.id)), `${Rg.name} ${w}しゅう: やすみは ${P.length - 3}シリーズ`);
   }
   // 0しゅう まえは さいしょの ならび（ids の とおり）
   for (let w = W0; w <= 0; w++) ok(lines[w].map((x) => x.id).join() === Rg.ids.join(), `${Rg.name} ${w}しゅう: さいしょの ならび`);
@@ -59,8 +60,8 @@ for (const Rg of ALL) {
     const a = lines[w], b = lines[w + 1], ch = [0, 1, 2].filter((k) => a[k].id !== b[k].id);
     ok(ch.length === 1 && a[ch[0]].leaving && b[ch[0]].fresh && !a.some((x) => x.id === b[ch[0]].id), `${Rg.name} ${w}→${w + 1}しゅう: 1だい だけ いれかわる（ほかは おなじ 台の まま）`);
   }
-  // どの シリーズも 4しゅうの うち 3しゅう でる（やすみは 1しゅう）・ずっと やすむ シリーズは ない
-  for (let w = 1; w + 3 <= W1; w++) for (const id of P) ok([0, 1, 2, 3].filter((d) => lines[w + d].some((x) => x.id === id)).length === 3, `${Rg.name}: ${id} は 4しゅうに 3しゅう でる（${w}しゅう から）`);
+  // どの シリーズも L しゅう（わの シリーズの かず）の うち 3しゅう でる・ずっと やすむ シリーズは ない
+  for (let w = 1; w + P.length - 1 <= W1; w++) for (const id of P) ok([...Array(P.length).keys()].filter((d) => lines[w + d].some((x) => x.id === id)).length === 3, `${Rg.name}: ${id} は ${P.length}しゅうに 3しゅう でる（${w}しゅう から）`);
   // さいしょの いれかえ（1しゅうめ）: やすむ 台に あたらしい シリーズ・のこりの 2だいは おなじ ばしょ
   const I = src(Rg), L1 = lines[1];
   ok(L1[I.rest].id === I.add[0] && L1[I.rest].fresh && [0, 1, 2].filter((k) => k !== I.rest).every((k) => L1[k].id === I.ids[k] && !L1[k].fresh), `${Rg.name}: 1しゅうめは ${I.ids[I.rest]} の 台に ${I.add[0]}`);
@@ -119,7 +120,7 @@ ok(![1, 3].some((k) => VH.defs.arcade.floors[k].fixtures.some((f) => f.ring)), "
   for (let w = -2; w <= 60; w++) { MR.apply(MR.monday(w)); for (const f of g4()) keys.add(AA.modelKey(f)); }
   ok(keys.size <= 24 * 2, "台の 絵の キーは シリーズ × NEW の ある・なし だけ " + keys.size);
   const keys2 = new Set(); for (let w = -2; w <= 60; w++) { MR.apply(MR.monday(w)); for (const f of g2()) keys2.add(AA.modelKey(f)); }
-  ok(keys2.size <= 16 * 2 && [...keys2].some((k) => k.endsWith(":new")), "2F の 台の キーも シリーズ × NEW だけ " + keys2.size);
+  ok(keys2.size <= 20 * 2 && [...keys2].some((k) => k.endsWith(":new")), "2F の 台の キーも シリーズ（20: もとの 12・UI-63 の 4・UI-79 の へいせい 4）× NEW だけ " + keys2.size);
 }
 // ---- 7. ガチャの がめんの ふだ（Gacha.tagOf）----
 {
@@ -128,7 +129,11 @@ ok(![1, 3].some((k) => VH.defs.arcade.floors[k].fixtures.some((f) => f.ring)), "
   for (const x of L) ok(GA.tagOf(x.si) === (x.debut ? "NEW！ あたらしい ガチャ" : x.fresh ? "NEW！ また きた ガチャ" : x.leaving ? "らいしゅうは おやすみ" : ""), `ふだ ${x.id}`);
   // 1しゅうめは あたらしい 6シリーズが「はじめて」・5しゅうめに もどって きた ときは「また」
   at(2026, 10, 1); for (const S2 of [...GM.SERIES, ...CM.SERIES]) ok(GA.tagOf(S2.index) === "NEW！ あたらしい ガチャ", `1しゅうめの ${S2.id} は はじめて`);
-  at(2026, 10, 26); for (const S2 of [...GM.SERIES, ...CM.SERIES]) ok(GA.tagOf(S2.index) === "NEW！ また きた ガチャ", `5しゅうめの ${S2.id} は また`);
+  at(2026, 10, 26); for (const S2 of GM.SERIES) ok(GA.tagOf(S2.index) === "NEW！ また きた ガチャ", `5しゅうめの ${S2.id} は また`);
+  // 2F の くみは 5シリーズ（UI-79）: UI-63 の 4つは 6しゅうめに また・へいせい の 4つは 2しゅうめに はじめて → 7しゅうめに また
+  at(2026, 11, 2); for (const S2 of CM.SERIES) ok(GA.tagOf(S2.index) === "NEW！ また きた ガチャ", `6しゅうめの ${S2.id} は また`);
+  at(2026, 10, 5); for (const S2 of R.GachaHeisei.SERIES) ok(GA.tagOf(S2.index) === "NEW！ あたらしい ガチャ", `2しゅうめの ${S2.id} は はじめて`);
+  at(2026, 11, 9); for (const S2 of R.GachaHeisei.SERIES) ok(GA.tagOf(S2.index) === "NEW！ また きた ガチャ", `7しゅうめの ${S2.id} は また`);
   at(2026, 10, 5);
   for (const id of ALL.flatMap((Rg) => MR.resting(Rg, w))) ok(GA.tagOf(GA.byId(id).index) === "", `やすみの シリーズ ${id} の ふだは なし`);
   ok(GA.tagOf(30) === "" && GA.tagOf(31) === "" && GA.tagOf(0) === "らいしゅうは おやすみ", "シールの 台は ふだ なし・2F の 台にも ふだ");
@@ -181,9 +186,9 @@ ok(![1, 3].some((k) => VH.defs.arcade.floors[k].fixtures.some((f) => f.ring)), "
 // ---- 10. PokaDebug ----
 {
   at(2026, 10, 5); const D = R.PokaDebug, i = D.meeRotation("2026-10-5"), j = D.meeRotation();
-  ok(i && i.week === 2 && i.rings.length === MR.RINGS.length && i.rings.every((r) => r.slots.length === r.pool.length - 1 && r.resting.length === 1 && r.slots.every((x) => x.name && x.id)) && j.week === 2, "PokaDebug.meeRotation");
+  ok(i && i.week === 2 && i.rings.length === MR.RINGS.length && i.rings.every((r) => r.slots.length === 3 && r.resting.length === r.pool.length - 3 && r.slots.every((x) => x.name && x.id)) && j.week === 2, "PokaDebug.meeRotation");
   ok(typeof D.gachaVisit === "function" && D.gachaVisit("machi3") === false, "PokaDebug.gachaVisit（館の そとでは false）");
   const gf = D.gachaForest(); ok(gf.series.length === 24 && gf.series.filter((s) => s.more).length === 6 && gf.machines.length === 18, "PokaDebug.gachaForest（24シリーズ・台は 18）");
 }
 R.Seasonal.override = null; MR.apply();
-console.log(`Mee rotation: weeks from Monday 2026-09-21, six 4F island rings and four 2F corner rings (3 machines, 4 series), exactly one machine swaps each Monday (others stay put), every series out 3 of 4 weeks, first swap puts the new series in the resting slot, apply/loadFloor use this week's line-up, NEW flag (art + finite keys), gacha screen tags, arrival notice + save (gacha.week), 2F board / 1F and 4F directory texts, files registered, PokaDebug — ${n} checks OK`);
+console.log(`Mee rotation: weeks from Monday 2026-09-21, six 4F island rings (3 machines, 4 series) and four 2F corner rings (3 machines, 5 series with the Heisei ones), exactly one machine swaps each Monday (others stay put), every series out 3 of L weeks, first swap puts the new series in the resting slot, apply/loadFloor use this week's line-up, NEW flag (art + finite keys), gacha screen tags, arrival notice + save (gacha.week), 2F board / 1F and 4F directory texts, files registered, PokaDebug — ${n} checks OK`);
