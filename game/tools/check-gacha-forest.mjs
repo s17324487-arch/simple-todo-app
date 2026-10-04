@@ -17,7 +17,7 @@ const dupAttr = (s) => { for (const m of s.matchAll(/<[a-zA-Z][^<>]*>/g)) { cons
 const svgOk = (s) => typeof s === "string" && s.startsWith("<svg") && s.trim().endsWith("</svg>") && !/NaN|undefined/.test(s) && !dupAttr(s);
 
 // ---- 1. シリーズ（2F の 12 の あとに 18・シールの 3 の あとに 6〔UI-62〕）----
-const F = GA.SERIES.filter((s) => s.forest), F0 = F.filter((s) => !s.more), FM = F.filter((s) => s.more);
+const F = GA.SERIES.filter((s) => s.forest && !s.heisei), F0 = F.filter((s) => !s.more), FM = F.filter((s) => s.more); // 4F の へいせい じょじ ふうの 5シリーズ（UI-80）は tools/check-gacha-heisei-more.mjs
 ok(GA.SERIES.length >= 39 && F0.length === 18 && GF.SERIES.length === 18 && GF.first === 12 && F0.every((S, i) => S.index === 12 + i && GA.SERIES[12 + i] === S && GF.index[S.id] === S.index), "4F の 18シリーズは 12〜29 ばん");
 ok(FM.length === 6 && GM.SERIES.length === 6 && GM.first === 33 && FM.every((S, i) => S.index === 33 + i && GA.SERIES[33 + i] === S && GM.index[S.id] === S.index && GM.SERIES[i] === S), "4F の あたらしい 6シリーズは 33〜38 ばん（シールの あと）");
 ok(GA.SERIES.slice(0, 12).every((s) => !s.forest), "2F の 12シリーズは そのまま");
@@ -29,7 +29,7 @@ ok(F0.filter((s) => s.kind === "furn").length === 13 && F0.filter((s) => s.kind 
 ok(F.filter((s) => s.hand).map((s) => s.id).join() === "pouchzoo,pouchsnack,mejitrio,mejiforest,pouchsea,mejiyasai" && F.filter((s) => s.acc).map((s) => s.id).join() === "kaburi", "ポーチ・めじるしは もちもの、かぶりものは アクセサリー");
 ok(F.filter((s) => s.squish).map((s) => s.id).join() === "squishbread,squishmochi,squishsweet,squishfruit", "スクイーズ 4シリーズ");
 // あたらしい シリーズは しま 1つに 1つずつ（しゅうがわりで まわる。ISLES の add・rest）
-ok(GF.ISLES.every((I) => Array.isArray(I.add) && I.add.length === 1 && GM.index[I.add[0]] >= 33 && Number.isInteger(I.rest) && I.rest >= 0 && I.rest < 3 && I.id) && new Set(GF.ISLES.flatMap((I) => I.add)).size === 6 && FM.every((S) => GF.ISLES.some((I) => I.id === S.isle && I.add[0] === S.id)), "あたらしい 6シリーズは しまに 1つずつ");
+ok(GF.ISLES.every((I) => Array.isArray(I.add) && I.add.length >= 1 && GM.index[I.add[0]] >= 33 && I.add.slice(1).every((id) => GA.byId(id).heisei) && Number.isInteger(I.rest) && I.rest >= 0 && I.rest < 3 && I.id) && new Set(GF.ISLES.map((I) => I.add[0])).size === 6 && FM.every((S) => GF.ISLES.some((I) => I.id === S.isle && I.add[0] === S.id)), "あたらしい 6シリーズは しまに 1つずつ（2ばんめは へいせい じょじ ふう・UI-80）");
 for (const S of F) {
   ok(S.list.length === 4 && S.list.filter((it) => it.rare).length === 1 && S.list[GA.RARE].rare && S.list.every((it) => it.series === S.index && GA.seriesOf(it.id) === S), `${S.name}: 4しゅで レアは 1つ`);
   ok(S.name && !kanji.test(S.name) && S.name.length <= 10 && /^#[0-9A-F]{6}$/i.test(S.color) && S.caps.length >= 2 && GA.byId(S.id) === S, `${S.name}: なまえ（10もじ まで）・いろ`);
@@ -54,7 +54,7 @@ for (const it of F.flatMap((S) => S.list).filter((x) => x.kind === "furn")) {
   const m = R.HomeDesign.model(it.id, { id: it.id, x: 300, y: 300 });
   ok(m && svgOk(m.svg || m.full || "<svg></svg>"), `へやの 立体 ${it.id}`);
 }
-ok(GF.SQUISH.size === 16 && [...GF.SQUISH].every((id) => /^gacha_squish(bread|mochi|sweet|fruit)_\d$/.test(id) && R.FurnLive.LIVE.has(id) && R.FURN_INDEX[id].interactive && R.FurnModels.has(id)), "スクイーズ 16しゅは さわれる（FurnLive）・たった 絵（FurnModels）");
+ok(GF.SQUISH.size === 20 && [...GF.SQUISH].every((id) => /^gacha_(squish(bread|mochi|sweet|fruit)|heiseipuni)_\d$/.test(id) && R.FurnLive.LIVE.has(id) && R.FURN_INDEX[id].interactive && R.FurnModels.has(id)), "スクイーズ 16しゅと ぷにぷに しずく 4しゅ（UI-80）は さわれる（FurnLive）・たった 絵（FurnModels）");
 ok(Math.abs(GF.squash(0) - 1) < 1e-9 && GF.squash(-0.1) === 0 && GF.squash(1.2) === 0 && Math.abs(GF.squash(0.6)) < 0.1 && Math.abs(GF.squash(1.05)) < 0.02, "むにっ（つぶれて ゆれて もどる）");
 {
   const src = readFileSync(new URL("../js/gacha-forest.js", import.meta.url), "utf8");
@@ -167,4 +167,4 @@ for (const f of ["../js/gacha-forest.js", "../js/gacha-forest-more.js", "../js/m
   const src = readFileSync(new URL(f, import.meta.url), "utf8").split("\n").map((l) => l.replace(/\/\/.*$/, "")).join("\n");
   for (const m of src.matchAll(/"([^"\n]*[ぁ-んァ-ヶ][^"\n]*)"/g)) ok(!kanji.test(m[1]), `${f}: ことばに 漢字: ${m[1]}`);
 }
-console.log(`Gacha forest (4F): 18 + 6 series x 4 (12-29 and 33-38, unique colours, kana names), furniture/hand items/head gear registered and not sold, 16 squishies (FurnLive + FurnModels, finite keys), leafy machines, 28x22 floor with this week's 18 machines on six central gacha islands (no centre tree), 3F<->4F escalator, everything reachable and not overlapping, forest floor/walls, directory and floor map — ${n} checks OK`);
+console.log(`Gacha forest (4F): 18 + 6 series x 4 (12-29 and 33-38, unique colours, kana names), furniture/hand items/head gear registered and not sold, 16 squishies + 4 Heisei drops (UI-80, FurnLive + FurnModels, finite keys), leafy machines, 28x22 floor with this week's 18 machines on six central gacha islands (no centre tree), 3F<->4F escalator, everything reachable and not overlapping, forest floor/walls, directory and floor map — ${n} checks OK`);

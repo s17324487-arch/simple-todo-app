@@ -2,7 +2,7 @@
 // ・ほんものの カプセルトイ専門店と おなじく、まいしゅう げつようびに ガチャの なかみが いれかわる（クレーンの けいひんは まいにち かわる。js/crane-machines.js の lineup）。
 // ・わ（ring）: ならんだ 台（slot）と、そこを まわる シリーズ（pool。台の かず より おおい）。1しゅうに 1シリーズずつ いれかわる:
 //   いちばん ながく でて いた シリーズが やすみ、その 台に やすんで いた シリーズが はいる（ほかの 台は おなじ シリーズの まま・ばしょも かわらない）。
-//   pool が L・台が M なら、どの シリーズも L しゅうの うち M しゅう でて、L−M しゅう やすむ。4F は しま 6つ・2F は ガチャ コーナーの 4くみ（どれも 3だい・4シリーズ。2F は UI-63・js/gacha-corner-more.js）。
+//   pool が L・台が M なら、どの シリーズも L しゅうの うち M しゅう でて、L−M しゅう やすむ。4F は しま 6つ（3だい・4シリーズ）・2F は ガチャ コーナーの 4くみ（3だい・5シリーズ。UI-63・js/gacha-corner-more.js、5ばんめは UI-79 の へいせい じょじ ふう js/gacha-heisei.js）。
 // ・しゅうの ばんごう: 2026-09-21（げつ）から かぞえる（0 = まえの ならび・1 = 2026-09-28〜 さいしょの いれかえ）。日づけは CraneMachines.today（PokaDebug.calendar で かえられる）。
 // ・はいった ばかりの 台には「NEW」の はた（ArcadeArt の gacha・f.fresh）。ガチャの がめんに「NEW！ あたらしい ガチャ」「NEW！ また きた ガチャ」「らいしゅうは おやすみ」（Gacha.tagOf）。
 // ・2F・4F に はいった とき、まえに きた しゅうと ちがえば「ガチャの なかみが いれかわったよ」。2F の かんばん（rotInfo: 2）・1F／4F の あんない（rotInfo: 1／4）に こんしゅうの ないようと つぎの いれかえの 日（apply が かく）。
@@ -55,7 +55,9 @@ const MeeRotation = (() => {
       const se = typeof ArcadePrizes !== "undefined" && ArcadePrizes.seasonal ? ["wanko", "gachan", "goji"].map((who) => ArcadePrizes.seasonal(who, day)).filter(Boolean) : [];
       return `\nクレーンの けいひんは まいにち、ガチャは まいしゅう げつようびに かわるよ。つぎの いれかえは ${md(monday(w + 1))}。` + (se.length ? `\nいまの きせつの ぬいぐるみ: ${se.map((it) => it.name.replace(/の ぬいぐるみ$/, "")).join("・")}（1F の 3にんの クレーン）` : "");
     }
-    return "\n" + next;
+    // 4F の あんない: こんしゅう はいった シリーズ（UI-80 の へいせい 5つ など）と つぎの いれかえ
+    const fresh4 = RINGS.filter((R) => R.floor === 4).flatMap((R) => lineup(R, w)).filter((x) => x.fresh).map((x) => `「${Gacha.SERIES[x.si].name}」`);
+    return (fresh4.length ? `\nこんしゅうの NEW: ${fresh4.join("")}` : "") + "\n" + next;
   };
   // いまの しゅうの シリーズの ようす（ガチャの がめん・PokaDebug）
   const stateOf = (si, w = week()) => { for (const R of RINGS) { const it = lineup(R, w).find((x) => x.si === si); if (it) return { ring: R.id, ...it }; } return null; };
