@@ -31,6 +31,8 @@ const BrainGames = {
     const g = this.GAMES[i];
     // はじめての ゲームは せつめいを きく（いちばん さいしょの おてつだいは おみせの なかで HOWTO[おみせ] が でる）
     if (st.plays && !st.games[g.id]) await UI.say(g.howto.map((t) => ({ name: store.owner.name, face, text: t })));
+    // えらんだ あとに きく こと（ナンプレの 難しさ・続きから。js/mg-numpla.js）。やめたら null
+    if (g.pick && (await g.pick(store)) == null) return null;
     st.games[g.id] = (st.games[g.id] || 0) + 1; st.last = g.id;
     Save.write();
     return g.id;

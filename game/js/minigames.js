@@ -81,7 +81,10 @@ class ShopScene {
     this.S = this.variant==='mac'?{...SHOPS[p.shop],name:'マックさん'}:SHOPS[p.shop]; this.st = Save.d.shops[p.shop];
     this.capKey = ShopDayCap.key(p.shop, p.variant, p.returnVenue && p.returnVenue.venue); // きょう この おみせで もらった コインの きろく（js/shop-day-cap.js）
     this.lv = ShopRewards.level(this.st); this.workLv = Math.min(5, this.lv); this.dailyBoost = DailyPlay.boost(this.shopId);
-    this.total = this.S.rounds || 3 + Math.min(4, this.lv);
+    // えらんだ ゲームの クラス（パズル こうぼうの ナンプレ: full = 盤を 画面いっぱい・rounds = おきゃくさんの かず。js/mg-numpla.js）
+    const TC = this.variant !== "mac" && typeof MG_TASKS[p.shop]?.classOf === "function" ? MG_TASKS[p.shop].classOf(p.variant) : null;
+    this.full = !!TC?.full; this.resultNote = "";
+    this.total = TC?.rounds || this.S.rounds || 3 + Math.min(4, this.lv);
     this.difficulty = Save.d.settings.difficulty;
     this.n = 0; this.earn = 0; this.tips = 0; this.rep = 0; this.ranks = [];
     this.phase = "intro";
@@ -107,7 +110,7 @@ class ShopScene {
     this.task?.up?.(null, true);
     const total = this.earn + this.tips;
     const yes = await UI.confirm(
-      'おてつだいを ここで やめる？\nおわった ' + this.ranks.length + 'にんぶんの ' + total + 'コインを もらえるよ。\nいまの ちゅうもんは コインと ひょうばんに ならないよ。',
+      this.task?.stopText || 'おてつだいを ここで やめる？\nおわった ' + this.ranks.length + 'にんぶんの ' + total + 'コインを もらえるよ。\nいまの ちゅうもんは コインと ひょうばんに ならないよ。',
       'ここで やめる', 'つづける');
     this.stopAsked = false;
     if (!yes || this.closed) return;
@@ -116,6 +119,8 @@ class ShopScene {
   }
   layout() {
     const W = G.W, H = G.H;
+    // full: うえの おみせは ほそい おび（かんばん・おきゃくさん・ふきだし・3人）だけ。したは ぜんぶ 盤（ナンプレ）
+    if (this.full) { this.viewH = 92; this.counterY = this.viewH - 8; this.R = { x: 4, y: this.viewH + 6, w: W - 8, h: H - this.viewH - 12 }; this.custX = 30; return; }
     this.viewH = Math.round(Math.min(H * 0.4, 330));
     this.counterY = this.viewH - 74;
     this.R = { x: 10, y: this.viewH + 40, w: W - 20, h: H - this.viewH - 52 };
@@ -149,7 +154,8 @@ class ShopScene {
     const face = Art.npcSvg({ ...this.owner, emo: "happy" });
     const first = !this.st.plays;
     const how = typeof HOWTO[this.shopId] === "function" ? HOWTO[this.shopId](this) : HOWTO[this.shopId]; // あたまの たいそう・パズル こうぼうは えらんだ ゲームの せつめい（js/mg-brain.js・js/mg-kobo.js）
-    const lines = this.variant==='mac' ? [...MacShop.howto] : first ? [...how] : [`きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
+    const game = typeof SHOP_GAMES !== "undefined" && SHOP_GAMES[this.shopId] && this.variant ? SHOP_GAMES[this.shopId].game(this.variant) : null; // えらんだ ゲームの ひとこと（ナンプレ）
+    const lines = this.variant==='mac' ? [...MacShop.howto] : first ? [...how] : [game?.hello ? game.hello(this) : `きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
     if(this.dailyBoost>1)lines.push('きょうの おすすめ！ コインが '+DailyPlay.label(this.dailyBoost)+'だよ。');
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
     if (this.closed) return;
@@ -166,7 +172,7 @@ class ShopScene {
       this.task = new (this.variant==="mac"?MacKitchenTask:MG_TASKS[this.shopId])(this, this.workLv);
       this.task.layout(this.R);
       this.timeLimit = this.task.timeLimit * GameEconomy.mode(this.difficulty).time;
-      this.timeLeft = this.timeLimit;
+      this.timeLeft = Math.max(1, this.timeLimit - (this.task.usedTime || 0)); // ナンプレの 続きは つかった 時間から
       this.orderT = 0;
       Sound.se("pop");
       this.phase = "work";
@@ -201,6 +207,9 @@ class ShopScene {
     const base = GameEconomy.shopBase[this.shopId] * (1 + 0.28 * (this.workLv - 1)) * GameEconomy.mode(this.difficulty).reward;
     let pay = GameEconomy.pay(this.shopId, this.workLv, rank, this.difficulty);
     if(this.variant==='mac'&&rank>=2)pay=Math.round(pay*1.4);
+    // 1問が ながい ゲーム（ナンプレ）は じぶんで コインと ひょうばんを きめる（js/mg-numpla.js）
+    if (this.task?.payFor) pay = this.task.payFor(rank);
+    if (this.task?.repFor) R.rep = this.task.repFor(rank, R.rep);
     let tip = 0;
     if (rank === 3 && this.timeLeft / this.timeLimit > 0.35) tip += Math.round(base * 0.5);
     // おてつだいの とちゅうの ごほうび（ころころ フルーツの 大きな くだもの など）
@@ -233,7 +242,7 @@ class ShopScene {
     st.rep += this.rep;
     const perfect = this.ranks.filter((r) => r === 3).length;
     st.best = Math.max(st.best, total);
-    const boardNote = this.board?.summary ? this.board.summary(st) : "";
+    const boardNote = this.board?.summary ? this.board.summary(st) : this.resultNote || ""; // ナンプレの クリアの きろく
     if (!interrupted) Save.d.stats.shifts++;
     Save.d.stats.perfects += perfect;
     const good = this.ranks.filter((r) => r >= 2).length / Math.max(1, this.ranks.length);
@@ -260,7 +269,7 @@ class ShopScene {
       <div class="r"><span>ひょうばん</span><span>+${this.rep}（${st.rep}${next ? " / " + next : ""}）</span></div>`;
     body.append(rows);
     if (boardNote) body.append(U.el("div", { class: "note", text: boardNote }));
-    if (interrupted) body.append(U.el("div", { class: "note", text: `おわった ${this.ranks.length}にんぶんを うけとったよ。いまの ちゅうもんは ふくまれないよ。` }));
+    if (interrupted) body.append(U.el("div", { class: "note", text: this.task?.stopNote || `おわった ${this.ranks.length}にんぶんを うけとったよ。いまの ちゅうもんは ふくまれないよ。` }));
     body.append(U.el("div", { class: "muted", text: `あそびかた: ${GameEconomy.mode(this.difficulty).name}` }));
     if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！ ${st.lv <= 5 ? "ちゅうもんが むずかしく なって、コインも ふえるよ。" : "つぎの ごほうびを めざそう！"}` }));
     for (const p of prizes) body.append(U.el("div", { class: "note", text: `Lv.${p.level}の ごほうび！ 「${p.name}」を もらったよ。` }));
@@ -321,13 +330,13 @@ class ShopScene {
     this.team.forEach((t) => (t.emo = "surprise"));
     setTimeout(() => { if (this.cust && this.phase === "work") this.cust.emo = "normal"; }, 600);
     Sound.se("bad");
-    this.addFx("text", this.custX + 20, this.counterY - 120, { text, dur: 0.9 });
+    this.addFx("text", this.full ? this.custX + 70 : this.custX + 20, this.full ? 44 : this.counterY - 120, { text, dur: 0.9 });
   }
 
   // ---- 描画 ----
   render(ctx) {
     const W = G.W, H = G.H;
-    this.drawShop(ctx);
+    if (this.full) this.drawShopMini(ctx); else this.drawShop(ctx);
     // 作業エリア
     ctx.fillStyle = shade(this.S.color, 0.55);
     ctx.fillRect(0, this.viewH, W, H - this.viewH);
@@ -335,7 +344,7 @@ class ShopScene {
     for (let x = -20; x < W; x += 28) ctx.fillRect(x + ((G.t * 6) % 28), this.viewH, 12, H - this.viewH);
     ctx.strokeStyle = INK; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(0, this.viewH); ctx.lineTo(W, this.viewH); ctx.stroke();
-    this.drawHeader(ctx);
+    if (!this.full) this.drawHeader(ctx); // full は ゲームが じぶんで 時間を かく
     const R = this.R;
     U.rr(ctx, R.x, R.y, R.w, R.h, 18);
     ctx.fillStyle = "#FFFDF6"; ctx.fill(); ctx.lineWidth = 3; ctx.stroke();
@@ -415,7 +424,10 @@ class ShopScene {
       if (t.jump >= 0) { pose = t.jump < 0.45 ? "jump_01" : "idle_01"; dy = Math.sin(Math.min(1, t.jump / 0.45) * Math.PI) * 20; }
       Chara.draw(ctx, t.id, { pose, dir, face, outfit: c.outfit, color: c.color }, x, y - dy, 62);
     });
-    // コインの演出
+    this.drawFx(ctx, cy);
+  }
+  // コインの演出・もじ（drawShop・drawShopMini）
+  drawFx(ctx, cy) {
     for (const c of this.coinsFx) {
       const k = c.t / 1.4;
       ctx.save(); ctx.globalAlpha = 1 - k;
@@ -438,6 +450,38 @@ class ShopScene {
       else if (f.kind === "puff") { ctx.fillStyle = "#FFF"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; for (let i = 0; i < 5; i++) { const a = (i / 5) * 6.28; ctx.beginPath(); ctx.arc(f.x + Math.cos(a) * (6 + k * 14), f.y + Math.sin(a) * (6 + k * 14), 6 * (1 - k * 0.6), 0, 7); ctx.fill(); ctx.stroke(); } }
       ctx.restore();
     }
+  }
+  // full（ナンプレ）の うえの おび: かんばん・おきゃくさん（むねから うえ）・ちゅうもんの ふきだし・3人（こっちを むく）
+  drawShopMini(ctx) {
+    const W = G.W, vh = this.viewH;
+    ctx.fillStyle = shade(this.S.color, 0.62); ctx.fillRect(0, 0, W, vh);
+    ctx.fillStyle = shade(this.S.color, 0.5);
+    for (let x = 0; x < W; x += 36) ctx.fillRect(x, 0, 18, vh);
+    ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.fillStyle = "#FFF7E0";
+    U.rr(ctx, 10, 6, W - 115, 24, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = INK; ctx.font = "900 13px 'M PLUS Rounded 1c', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(`${this.S.name} Lv.${this.lv}`, 10 + (W - 115) / 2, 18.5, W - 130);
+    if (this.cust) {
+      const w = 50, h = (w * VB.h) / VB.w, walk = this.phase === "enter" || this.phase === "leave";
+      const c = this.npcC({ sp: this.cust.sp, col: this.cust.col, outfit: this.cust.outfit, emo: this.cust.emo, dir: walk ? "right" : "down", pose: walk && Math.floor(G.t * 8) % 2 ? "walk_01" : "idle_01" }, w);
+      if (c) ctx.drawImage(c, this.cust.x - w * ((FOOT.x - VB.x) / VB.w), vh + 18 - h * ((FOOT.y - VB.y) / VB.h), w, h);
+    }
+    if (this.task && (this.phase === "work" || this.phase === "judge")) {
+      const x = 60, y = 35, w = W - x - 112, h = vh - 41;
+      ctx.fillStyle = "#FFFFFF"; ctx.strokeStyle = INK; ctx.lineWidth = 2.5;
+      U.rr(ctx, x, y, w, h, 12); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + 1, y + h * 0.4); ctx.lineTo(x - 10, y + h * 0.62); ctx.lineTo(x + 1, y + h * 0.7); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillRect(x + 1, y + h * 0.42, 4, h * 0.26);
+      this.task.drawOrder(ctx, x + 6, y + 3, w - 12, h - 6);
+      this.bubbleRect = { x, y, w, h };
+    }
+    this.team.forEach((t, i) => {
+      const c = Save.d.chars[t.id], x = W - 92 + i * 31;
+      let pose = Math.floor((G.t + i * 0.3) / 0.5) % 2 ? "idle_02" : "idle_01", dy = 0, face = t.turn > 0 ? t.emo : "normal";
+      if (t.jump >= 0) { pose = t.jump < 0.45 ? "jump_01" : "idle_01"; dy = Math.sin(Math.min(1, t.jump / 0.45) * Math.PI) * 10; }
+      Chara.draw(ctx, t.id, { pose, dir: "down", face, outfit: c.outfit, color: c.color }, x, vh + 4 - dy, 36);
+    });
+    this.drawFx(ctx, this.counterY);
   }
   drawBubble(ctx) {
     const W = G.W;

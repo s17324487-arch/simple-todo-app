@@ -45,6 +45,10 @@ const PokaDebug = {
   meeRotation(day){return typeof MeeRotation==='undefined'?null:MeeRotation.info(day||undefined);},
   // いまの かいの その シリーズの ガチャの 台まで あるいて まわす（id: "machi3" など。台に いなければ false）
   // へいせい じょじ ふうの ガチャ（js/gacha-heisei.js・UI-79）: 4シリーズの ばんごう・くみ・けいひん と、こんしゅう 台に でて いるか
+  // ナンプレ（パズル こうぼう・UI-81。js/mg-numpla.js）: セーブの ようす（さいごの 難しさ・だした かず・クリア・ベスト・とちゅうの 問題）
+  numpla(){if(typeof Numpla==='undefined')return null;const N=Numpla.state(),c=N.cont;return{lv:N.lv,n:{...N.n},clear:{...N.clear},best:{...N.best},cont:c?{lv:c.lv,used:c.used,miss:c.miss||0,hint:c.hint||0,filled:[...c.v].filter((ch,i)=>ch!=='.'&&c.p[i]==='.').length,valid:Numpla.validCont(c)}:null,bank:Object.fromEntries(Object.entries(NUMPLA_BANK).map(([k,v])=>[k,v.length]))};},
+  // あそんで いる ナンプレの あきマス（まちがいも）を 正しい 数字で うめる。leave マス だけ のこす（テストを みじかく する）。のこした かずを かえす
+  numplaFill(leave=1){const t=G.sceneName==='shop'&&G.scene.task;if(typeof NumplaTask==='undefined'||!(t instanceof NumplaTask)||t.done)return -1;const todo=t.val.map((v,i)=>(v===t.sol[i]?-1:i)).filter((i)=>i>=0),k=Math.max(0,todo.length-Math.max(0,leave));for(const i of todo.slice(0,k)){t.val[i]=t.sol[i];t.memo[i]=0;}t.refresh();t.save();if(t.filled()>=t.blank)t.complete();return todo.length-k;},
   gachaHeiseiMore(){if(typeof GachaHeiseiMore==='undefined')return null;const st=GachaHeiseiMore.state();if(typeof MeeRotation!=='undefined')for(const s of st.series){const x=MeeRotation.stateOf(s.index);s.on=!!x;s.fresh=!!(x&&x.fresh);s.debut=!!(x&&x.debut);}return st;},
   gachaHeisei(){if(typeof GachaHeisei==='undefined')return null;const st=GachaHeisei.state();if(typeof MeeRotation!=='undefined')for(const s of st.series){const x=MeeRotation.stateOf(s.index);s.on=!!x;s.fresh=!!(x&&x.fresh);s.debut=!!(x&&x.debut);}return st;},
   gachaVisit(id){if(G.sceneName!=='venue'||typeof Gacha==='undefined')return false;const S=Gacha.byId(id);if(!S)return false;const f=G.scene.fixtures.find(f=>f.kind==='gacha'&&f.series===S.index);return !!f&&G.scene.request(f);},
@@ -189,6 +193,8 @@ const PokaDebug = {
       "PokaDebug.meeRotation('2026-10-5')   ガチャの しゅうがわり（まいしゅう げつようびに しまごとに 1だい いれかわる・NEW の はた）。gachaVisit('machisea') で その シリーズの 台へ",
       "PokaDebug.gachaHeisei()             へいせい じょじ ふうの ガチャ 4シリーズ（ばんごう・くみ・けいひん・こんしゅう でて いるか。UI-79）",
       "PokaDebug.gachaHeiseiMore()         4F の へいせい じょじ ふうの ガチャ 5シリーズ（ばんごう・しま・けいひん・こんしゅう でて いるか。UI-80）",
+      "PokaDebug.numpla()                  ナンプレの セーブ（さいごの 難しさ・クリア・ベスト・とちゅうの 問題・たばの かず。UI-81）",
+      "PokaDebug.numplaFill(leave=1)       あそんで いる ナンプレを leave マス だけ のこして 正しく うめる（0 で クリア）",
       "PokaDebug.arcadeStart(21〜23)       4F の たこやき（arcadeTako(0) で あたりの あなに だま）・バーバーカット（arcadeBarber(1, 0, -2) で まん中の ひもの てまえ）・バウンドボール",
       "PokaDebug.stickers()                 シールの ガチャ（4F・30〜32）と シールちょう（てもと・ページ）。stickerGive('stk_wanko', 3) で シールを もらう・stickerUi() で ひらいて いる ページ",
       "PokaDebug.kuji('lawson')             ネリカスタウンの コンビニの いちばんくじ（ロット・のこり・はりつけ ひょう・はんけん・クーポン）。kujiOpen で ボード・kujiNext('A') で つぎの 賞・kujiLeft(s, n) で のこり n まい・kujiDays(s, 1) で つぎの 日・kujiDc(true)・kujiUi()",
@@ -1027,7 +1033,7 @@ const PokaDebug = {
     // 終わったら いまの場所（セーブの world）に戻る
     Game.goto("battle", { foes, area, boss, back: { map: w.map, x: w.x, y: w.y, dir: w.dir }, spawnIdx: -99 }, "none");
   },
-  // variant: あたまの たいそう（"spot"・"pair"・"math"。js/mg-brain.js）・パズル こうぼう（"slide"・"shape"・"logic"。js/mg-kobo.js）の ゲーム
+  // variant: あたまの たいそう（"spot"・"pair"・"math"。js/mg-brain.js）・パズル こうぼう（"slide"・"shape"・"logic"・"numpla"。js/mg-kobo.js・js/mg-numpla.js）の ゲーム
   shop(id = "crepe", lv, variant = null) {
     if (!SHOPS[id]) throw new Error("unknown shop: " + id);
     if (id === "link") return this.store("link", "city");

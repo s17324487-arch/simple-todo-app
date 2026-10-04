@@ -1,4 +1,4 @@
-// パズルの おてつだい「パズル こうぼう」（js/mg-kobo.js・UI-65）: ネリカスタウンの お店 → 3しゅから えらぶ → あそぶ
+// パズルの おてつだい「パズル こうぼう」（js/mg-kobo.js・UI-65）: ネリカスタウンの お店 → 3しゅから えらぶ → あそぶ（4つめの ナンプレは tests/numpla-smoke.mjs）
 export async function koboSmoke({ scenario, expect }) {
   const PHONES = [{ width: 390, height: 844 }, { width: 375, height: 667 }];
   const dlgText = (H) => H.eval(() => document.querySelector(".dlg-text")?.textContent || "");
@@ -30,9 +30,9 @@ export async function koboSmoke({ scenario, expect }) {
     await H.page.getByRole("button", { name: "おてつだいする", exact: true }).click();
     await H.page.getByRole("button", { name: "おえかき ロジック（はじめて）", exact: true }).waitFor({ timeout: 8000 });
     const ask = await H.eval(() => [...document.querySelectorAll(".dlg-shade.ask .choices .btn")].map((b) => b.textContent));
-    expect(ask.join("|") === "スライド パズル（はじめて）|かたち はめ（はじめて）|おえかき ロジック（はじめて）|やめる", "えらぶ ボタン " + ask);
+    expect(ask.join("|") === "スライド パズル（はじめて）|かたち はめ（はじめて）|おえかき ロジック（はじめて）|ナンプレ（はじめて）|やめる", "えらぶ ボタン（4つめは 大人むけの ナンプレ。tests/numpla-smoke.mjs）" + ask);
     const askText = await H.eval(() => document.querySelector(".dlg-shade.ask .dlg-text")?.textContent || "");
-    expect(/どの パズル/.test(askText) && /スライド パズル/.test(askText) && /かたち はめ/.test(askText) && /おえかき ロジック/.test(askText), "3しゅの せつめい " + askText);
+    expect(/どの パズル/.test(askText) && /スライド パズル/.test(askText) && /かたち はめ/.test(askText) && /おえかき ロジック/.test(askText) && /ナンプレ/.test(askText), "4しゅの せつめい " + askText);
     await H.shot("choose");
     await H.page.getByRole("button", { name: "スライド パズル（はじめて）", exact: true }).click();
     await H.until(() => PokaDebug.state().scene === "shop" && !PokaDebug.state().transitioning, 15000);
