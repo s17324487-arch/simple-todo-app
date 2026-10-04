@@ -160,7 +160,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
 | — | `home-nav.js`（home-floors.js の あと・debug.js の まえ） | `HomeNav`（おうちの みち: 3人と ぱぱ・ままが 家具を よけて あるく。UI-73） |
-| — | `house-ext-art.js`・`house-ext.js`・`house-ext-ui.js`（nerikasu-layout.js の あと） | `HouseExtArt`（おうちの そとの 絵）・`HouseExt`（パーツと ペンキ・セーブ・町の 絵の きりかえ）・`HouseExtUI`（かう がめん）。UI-74 |
+| — | `house-ext-art.js`・`house-ext.js`・`house-ext-ui.js`（nerikasu-layout.js の あと） | `HouseExtArt`（おうちの そとの 絵・たてものの かたち 7しゅ）・`HouseExt`（パーツと ペンキ・セーブ・町の 絵の きりかえ）・`HouseExtUI`（かう がめん）。UI-74・UI-91 |
 | — | `koumuten.js`（neri-apart.js の あと＝mall-art.js・nerikasu-layout.js・house-ext*.js の あと） | `Koumuten`（ネリカスタウンの 工務店「ぽかぽか こうむてん」の 館と 町の 建物。UI-74） |
 | — | `nerikasu-layout.js`（nerikasu-town.js の あと） | `NerikasuLayout` |
 | — | `neri-shops.js`（nerikasu-layout.js の あと） | `NeriShops` |
@@ -205,6 +205,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `furn-tray.js`（home-floors.js の あと） | `FurnTray`（もようがえの 一覧を ひろげる・さがす・ならびかえ・しゅるい・UI-37） |
 | — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび 44この 立体と さわる うごき・UI-38） |
 | — | `rug-lamp.js`（shop-reward-art.js の あと・slow-life-prices.js の まえ） | `RugLamp`（かぐやの ラグ 8 と ランプ 8・UI-39） |
+| — | `room-styles.js`（shop.js・home-design.js の あと・slow-life-prices.js の まえ） | `RoomStyles`（かべがみ 15・ゆか 15〔かわいい・かっこいい・コンセプト × 5〕と もようの 絵・かぐやの ならびと ふだ・UI-90） |
 | — | `furniture-collection.js`（slow-life-prices.js・quiz-prizes.js の あと） | `FurnCollection`（あき・ふゆの かぐ 4・ひがわり 20・クイズの だんろ・UI-40） |
 | — | `gowaga-wish.js`（くみこむ ものの あと・world-zoom.js の まえ） | `GowagaWish`（おうちで ごわがの おねがい・かなえて おれいと あまえる・UI-46） |
 | — | `wish-gift-art.js` → `wish-gifts.js`（gowaga-wish.js の すぐ あと・smaho.js・figure-stand.js・chara.js の あと） | `WishGiftArt`（ふうとう・らくがき・いし・つる・え・けん・アクセサリーの `WEAR.wg_*`）／ `WishGifts`（おねがいの おれいの しな・すまほの「たからもの」・UI-70） |
@@ -942,6 +943,14 @@ UI-38（2026-10-01）で 44種の絵を 店ごとに ちがう 立体に 作り�
 - ラグ: `simple()` と 店ごとの うごき。どうろの マットの ミニカーは `RugLamp.roadAt(u)`（まんなかの せんの うえ）。ラグも 絵の ピクセルで あたり（`hitItem`）なので タップできる。
 - 検査は `tools/check-rug-lamp.mjs`、スモークは `rug-lamp`。
 
+### かべがみ 15・ゆか 15（UI-90・`js/room-styles.js`）
+`RoomStyles` の かべがみ 15（`WALLS`）と ゆか 15（`FLOORS`）を `WALLPAPERS`・`WALL_INDEX`・`FLOORS`・`FLOOR_INDEX` に たす（`slow-life-prices.js` の まえに よむので ねだんは 3ばい: かわいい 1140・かっこいい 1260・コンセプト 1560。いごこち 4・4・5）。どれも `style`（`cute`・`cool`・`concept`）を もつ。
+- もよう: `HomeDesign.texture` を つつみ、`pat` が `RoomStyles` の ものなら `RoomStyles.texture(p, w, h)`（それ いがいは まえの まま）。`Art.patternSvg` も `HomeDesign.texture` を よぶので かぐやの 見本（64 × 64）も おなじ 絵。見本は もようを 半分の 大きさ（`k` 0.5）。
+- かべは へやの がわの clipPath で きれる（L × H）。ゆかは きりぬきが ない ので `RoomStyles` が じぶんの clipPath で W × D に きる。グラデーション・clipPath の id は よぶ たびに ちがう（`RoomStyles.uid`）。SvgCache の キーは いままでどおり かべがみと ゆかの id（ふえない）。
+- かぐやの「かべがみ」「ゆか」: `BUY_SHOPS.furniture.items` を つつんで あたらしい 15しゅ（かわいい → かっこいい → コンセプト）を さきに。`ShopUI.card` を つつんで カードの ひだり うえに なかまの ふだ（`.rs-tag.rs-cute` など）。
+- セーブは かわらない（`Save.d.room.wallpapers`・`floors` に id が ふえる だけ）。
+- 検査は `tools/check-room-styles.mjs`（かず・なまえ・ねだん・もようの 絵〔かべ 4・ゆか 2・見本〕・id・ゆかの clipPath・まえの もよう・ならび・セーブ）、スモークは `room-styles`（ふだ・かう・はる・30しゅが ブラウザで よめる・さいかい）。
+
 ### あき・ふゆの かぐと ひがわり（UI-40・`js/furniture-collection.js`）
 Jules の PR #116 の かぐ 25こを つくりなおした もの。`FurnCollection` の `AUTUMN`（4）・`FLOOR`（ひがわりの ゆか 10）・`WALL`（ひがわりの かべかざり 10）を `FURNITURE`・`FURN_INDEX`・`FURN_ART` に たし、`QUIZ`（ほしぞらの だんろ）を `QuizPrizes.items` と `FURNITURE`（`rare`・`quizPrize`）に たす。`slow-life-prices.js` の あとに よむので、ねだんは `SlowLifePrices.price("furniture", もとの ねだん)` で じぶんで 4ばいに する。
 - ゆかの かぐ と だんろ: `FurnModels.register`（`HomeDesign.model` は `FurnModels.has` を さきに みるので、だんろも `QuizPrizes.model` では なく この 立体）。へこみの ある 形は `extrude()`（見える よこの 面を つないで 1まいずつ）。
@@ -1365,6 +1374,9 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 絵: `FurnModels.register` の 立体（ひなだん・ガラスの ケース）。ケースの まえ と みぎの ガラス・まえの はしらは `L()`（live の ときは FurnLive が フィギュアの あとに canvas で 描く）。`FurnLive.register(id, …)`: `draw` で だいの うえの フィギュア（`SvgCache` の `figstand:<id>:<ピクセル>`・8 の ばいすう）・ケースは よる（`DayTint.isNight()`）に たなの あかり（フィギュアの うしろ）と `light()`。
 - タップで「フィギュアを かざる」（`open(sc, it)`・`cls: "full figst-panel"`）: 3 × 3 の ばしょ（`.figst-slot`・72px）→ ばしょを えらぶと もって いて おいて いない フィギュアの いちらん（`×のこり`）・「とりだす」。「ぜんぶ ならべる」「ぜんぶ もどす」。かざると ちかくの 1人が よろこぶ。
 - PokaDebug: `figStand()`（へやの だい・figs・フィギュアの かず・もって いる かず・`free`〔Room.available〕・いごこち・ひらいて いるか・えらんで いる ばしょ）。
+- UI-93（オーナーの FB 2026-10-04「もっと棚の種類を増やせ」）で だいを 5しゅ たした（ぜんぶで 7しゅ）: `figstand_cube` キューブの たな（1680・3 × 3・キューブの なかは 1こずつ パステル）／`figstand_house` おうちの たな（1980・3だん × 3・やね・えんとつ・まるい まど・ミントに ハートの かべがみ）／`figstand_acryl` アクリルの ひなだん（1480・2だん × 3・すきとおる・LED）／`figstand_turn` まわる ターンテーブル（2880・6・`ring` の まるい さらの うえで いつも ゆっくり まわる〔`ringAt(S, t)`・`speed` 0.45 rad/秒〕・ばしょの なまえは `names`「1ばん」〜「6ばん」・描く じゅんは まいかい おくゆき）／`figstand_tower` コレクション タワー（3680・ガラスの 4だん × 3 = 12・よるは あかり・まえと みぎの ガラスは ケースと おなじく フィギュアの あとに 描く）。`figureStand` は ばしょの かず（6・9・12）。
+  - まえに いたが ある たな（キューブ・おうち。`win`）: この 斜め上の 見え方では おくの フィギュアの あたまが うえの いたに かくれる ので、ばしょを まえから 6（`win.y`）に して x を その ぶん ひだりへ（画面で しきりの まんなか）。`scaleOf` は `winScale` で、画面で フィギュアの 絵が しきりの まえの めん（`win.cols`）と うえの いたの まえの ふち（`ceil`）に かからない 大きさに する（FurnLive は いたを 描きなおさない）。
+- 検査は `tools/check-figure-stand.mjs`（7しゅ・ばしょ・なまえ・ねだん・ターンテーブル・すべての フィギュア × すべての だいの 大きさ・まえの いたに かからない・立体・live・よるの あかり）、スモークは `figure-stand-390 / 375` と `figure-stand-more-390 / 375`。
 
 ## ネリカスタウンの実寸アセット
 
@@ -1530,10 +1542,11 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 - データ（`HouseExt.CATS`・`PAINTS`）: パーツは しゅるい（roof・siding・window・door・chimney・top・lamp・post・yard）ごとに `{ id, name, price, key: しゅるい + ":" + id }`。さいしょの ものは ただ（はじめの おうち）。ペンキは `{ id, name, hex, price }`、ぬる ところ `TARGETS`（roof・wall・door・trim）。
 - セーブ（`Save.d.exterior`）: `{ parts, paint, owned: { "roof:steep": true }, paints: { sora: true } }`。`view()` は しらべる だけ（ない ときは はじめの おうち）、`st()` が つくって なおす（へんな id・ただの ものの もちもの・もって いない ものを つけて いる → はじめの もの）。`buy`・`buyPaint`（コインが たりない ときは false・2どめは ただ）・`apply(d)`（もって いる もの だけ）。
-- 絵（`HouseExtArt`）: `model(p, night)` は `HeiwadaiArt.model` と おなじ かたち（bbox [-10,-49,207,140]・6×4 マス）。p は `HouseExt.resolve()`（パーツの id と いろの #rrggbb）。`picture(p, night, zoom)` は がめん よう（そら・じめん つき）、`icon(p, しゅるい)` は `ZOOM` で その ところを 大きく。
-- 町: `WorldArt.house_ext({ ext: キー, night })`。`HeiwadaiTown.canvas` を つつんで、`nerikasu.bld_home` は `HouseExt.custom()` の ときだけ `scene.objCanvas("house_ext", { ext })`（よみこみは ひる・よるの 2まい）。キーは `HouseExt.key()`（パーツ 9つ と いろ 4つ の id。`parse` で もどせる・有限）。
+- 絵（`HouseExtArt`）: `model(p, night)` は `HeiwadaiArt.model` と おなじ かたち（bbox [-10,-49,207,140]・6×4 マス。UI-91 から うえは `box(p)`）。p は `HouseExt.resolve()`（パーツの id と いろの #rrggbb）。`picture(p, night, zoom)` は がめん よう（そら・じめん つき）、`icon(p, しゅるい)` は `ZOOM` で その ところを 大きく。
+- 町: `WorldArt.house_ext({ ext: キー, night })`。`HeiwadaiTown.canvas` を つつんで、`nerikasu.bld_home` は `HouseExt.custom()` の ときだけ `scene.objCanvas("house_ext", { ext })`（よみこみは ひる・よるの 2まい）。キーは `HouseExt.key()`（パーツ 10こ と いろ 4つ の id。`parse` で もどせる・有限）。
 - 工務店（`Koumuten`）: `VenueHalls.defs.koumuten`（iso・16×12・1かい）。什器 `paintshelf`・`doorsamples`・`roofsamples`・`windowstand`・`modelhouse`（キーに `HouseExt.key()`）・`workbench`・`lumber`・`ladder`・`buckets`・`kcounter`。`action`: `koumuten`（とうりょうさん・うけつけ → えらぶ）・`hx`（みほん → `HouseExtUI.open({ tab })`）・`model`・`talk`（でし）・`sit`・`leave`。町の 建物は `nerikasu_home7` を かえる（`NerikasuLayout.install` の あと。`house` の しるしで「まちの おうち」に なった ところを `label`・`act: { type: "venue", venue: "koumuten" }` に）。
 - PokaDebug: `exterior()`（パーツ・いろ・もちもの・キー・町で 描いた か `drawn`・がめん `ui`）・`exteriorSet(parts, paint)`。検査は `tools/check-house-ext.mjs`、スモークは `tests/house-ext-smoke.mjs`（`house-ext-390/375`）。
+- たてものの かたち（UI-91）: `CATS[0]` が `form`（basic・three・castle・mushroom・cake・tree・ufo）。絵は `HouseExtArt` の `FORM`（`draw`・`top`）で、`body(p)` が `p.form` で えらぶ（ない ときは basic ＝ まえの 絵）。わくは `box(p)`（[-10, min(-49, top − 4), 207, 140]）で、`model`・`picture`・工務店の `houseImg` は これを つかう（町の 絵の w は 217 の まま・h だけ かわる。`HeiwadaiTown.draw` は model の originY・h を そのまま つかう）。ちいさな 絵の ばしょは `zoomOf(p, しゅるい)`（`FORM_ZOOM`・3かいだては やねの ところを 112 うえ）。つかう パーツは `HouseExt.FORM_USES`・`uses(form, しゅるい)`、ペンキの よびかたは `targetName(form, ところ)`。キーは パーツ 10こ（form が さいしょ）と いろ 4つ。スモークは `tests/house-forms-smoke.mjs`（`house-forms-390/375`）。
 
 ## おうちの みち（UI-73・`js/home-nav.js`・`HomeNav`）
 

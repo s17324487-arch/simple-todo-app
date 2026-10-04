@@ -277,6 +277,11 @@ html, body {
 /* かぐやの ひがわり（js/furniture-collection.js）: カードの ひだり うえの ふだ */
 .card.daily { box-shadow: 0 3px 0 var(--ink), inset 0 0 0 3px #F5C76E; }
 .card .daily-tag { position: absolute; top: 3px; left: 5px; background: var(--orange); color: #fff; font-size: 10px; font-weight: 800; line-height: 1; border-radius: 8px; padding: 3px 5px; pointer-events: none; }
+/* かべがみ・ゆかの なかまの ふだ（js/room-styles.js・UI-90） */
+.card .rs-tag { position: absolute; top: 3px; left: 5px; color: #fff; font-size: 10px; font-weight: 800; line-height: 1; border-radius: 8px; padding: 3px 5px; pointer-events: none; white-space: nowrap; }
+.card .rs-tag.rs-cute { background: #E8739C; }
+.card .rs-tag.rs-cool { background: #3D4F72; }
+.card .rs-tag.rs-concept { background: #3B9466; }
 /* フィギュア台（js/figure-stand.js）: 3×3 の ばしょ・えらぶ リスト */
 .figst-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
 .figst-slot { min-height: 72px; border: 3px solid var(--ink); border-radius: 14px; background: #FFF8EC; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 0 var(--ink); font: inherit; padding: 4px; }
@@ -1653,7 +1658,10 @@ html, body {
 .hx-preview svg { display: block; width: 100%; height: 100%; }
 .hx-night { position: absolute; right: 6px; top: 6px; min-height: 36px; }
 .hx-coins { font-weight: 800; font-size: 13px; text-align: right; }
-.hx-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; flex: none; }
+.hx-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; flex: none; }
+.hx-tab[data-tab="form"] { grid-column: span 2; }
+.hx-preview.tall { height: clamp(190px, 34vh, 290px); }
+.hx-note { font-size: 12px; font-weight: 800; line-height: 1.35; color: #6c5b48; background: #FFF6E0; border: 2px dashed #d9c9a8; border-radius: 10px; padding: 6px 8px; }
 .hx-tab { min-height: 44px; padding: 3px 2px; font-size: 13px; line-height: 1.1; white-space: normal; word-break: keep-all; }
 .hx-tab.on, .hx-target.on { background: var(--yellow); }
 .hx-targets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }

@@ -4447,6 +4447,8 @@ await (await import("./home-toilet-smoke.mjs")).homeToiletSmoke({scenario,expect
 await (await import("./home-nav-smoke.mjs")).homeNavSmoke({scenario,expect});
 // おうちの そと（UI-74）: 工務店で ためして かう・みほんから その タブ・町の おうち（ひる・よる）・さいかい
 await (await import("./house-ext-smoke.mjs")).houseExtSmoke({scenario,expect});
+// たてものの かたち（UI-91。3かいだて・おしろ・きのこ・ケーキ・ツリーハウス・ユーフォー。くわしくは tests/house-forms-smoke.mjs）
+await (await import("./house-forms-smoke.mjs")).houseFormsSmoke({scenario,expect});
 await (await import("./hand-items-smoke.mjs")).handItemsSmoke({scenario,expect});
 await (await import("./pet-walk-smoke.mjs")).petWalkSmoke({scenario,expect});
 await (await import("./rare-calm-smoke.mjs")).rareCalmSmoke({scenario,expect});
@@ -4486,6 +4488,10 @@ await (await import("./food-balance-smoke.mjs")).foodBalanceSmoke({scenario,expe
 await (await import("./fashion-show-smoke.mjs")).fashionShowSmoke({scenario,expect});
 // もようがえの 一覧を ひろげる・さがす（UI-37・js/furn-tray.js）
 await (await import("./furn-tray-smoke.mjs")).furnTraySmoke({scenario,expect});
+// かべがみ・ゆか 15しゅずつ（UI-90。くわしくは tests/room-styles-smoke.mjs）
+await (await import("./room-styles-smoke.mjs")).roomStylesSmoke({scenario,expect});
+// フィギュア だいの あたらしい 5しゅ（UI-93。くわしくは tests/figure-stand-more-smoke.mjs）
+await (await import("./figure-stand-more-smoke.mjs")).figureStandMoreSmoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 
