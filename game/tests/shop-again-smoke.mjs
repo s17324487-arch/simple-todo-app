@@ -1,7 +1,7 @@
-// おてつだいの「もういちど」と 1つの おみせで 1にち 20000コイン まで（UI-67。オーナーの FB 2026-10-03）
-// ① クレープやさん（Lv1・3にん）を ただしく つくる → けっか: 「もういちど」と きょう もらった コイン → もういちど で すぐ つぎの シフト
-// ② のこり 10コイン: はじめに「あと 10コイン」→ 1にんめ（ふつうは 28コイン）で 10コイン だけ・「きょうの コインは ここまで」→ けっかに もういちど が ない
-// ③ もう いちど くると おみせの 人が「また あした」と いって まちへ もどる・お店の カウンターでも はじめない・つぎの 日は また できる
+// おてつだいの「もういちど」（UI-67。オーナーの FB 2026-10-03）と、1にちの コインの じょうげんが ない こと（UI-83。オーナーの FB 2026-10-04「お手伝いの上限金額について、やっぱりなしにして」）
+// ① クレープやさん（Lv1・4にん）を ただしく つくる → けっか: 「もういちど」と きょう もらった コイン → もういちど で すぐ つぎの シフト
+// ② きょう もう 19990コイン もらって いても（まえの じょうげんの 20000 の ちかく）: 「あと 10コイン」と いわない → 1にんめの コインを ぜんぶ もらえる → けっかに もういちど
+// ③ お店の カウンターからも いつもどおり はじまる（「また あした」と いわない）・つぎの 日は きろくが 0 から
 export async function shopAgainSmoke({ scenario, expect }) {
   for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario('shop-again-' + viewport.width, async (H) => {
     const page = H.page;
@@ -50,9 +50,9 @@ export async function shopAgainSmoke({ scenario, expect }) {
     }
     const r1 = await resultModal(), cap1 = await H.dbg('shopCap', 'crepe'), mg1 = await H.dbg('mg');
     const got = mg1.earn + mg1.tips;
-    expect(mg1.ranks.length === 4 && got > 0 && cap1.earn.crepe === got && cap1.left === 20000 - got, 'きょう もらった コインが かぞえられない ' + JSON.stringify({ ranks: mg1.ranks, got, cap1 }));
+    expect(mg1.ranks.length === 4 && got > 0 && cap1.earn.crepe === got && cap1.earned === got && !('left' in cap1) && !('max' in cap1), 'きょう もらった コインが かぞえられない ' + JSON.stringify({ ranks: mg1.ranks, got, cap1 }));
     expect(r1.btns.map((b) => b.text).join('/') === 'もういちど/まちに もどる' && fits(r1), '「もういちど」と「まちに もどる」が ならばない／はみ出す ' + JSON.stringify(r1));
-    expect(r1.line === `この おみせで きょう もらった コイン ${got.toLocaleString('ja-JP')} / 20,000`, 'きょうの コインの ぎょうが ない ' + r1.line);
+    expect(r1.line === `きょう この おみせで もらった コイン ${got.toLocaleString('ja-JP')}`, 'きょうの コインの ぎょうが ない／じょうげんが のこって いる ' + r1.line);
     await H.shot('result');
     await page.getByRole('button', { name: 'もういちど', exact: true }).click();
     await H.until(() => PokaDebug.state().scene === 'shop' && !PokaDebug.state().transitioning && PokaDebug.mg()?.phase !== 'result', 10000);
@@ -65,34 +65,32 @@ export async function shopAgainSmoke({ scenario, expect }) {
     await page.getByRole('button', { name: 'まちに もどる', exact: true }).click();
     await H.until(() => PokaDebug.state().scene === 'world' && PokaDebug.idle(), 15000);
 
-    // ② のこり 10コイン → 1にんめで おしまい
+    // ② まえの じょうげん（20000）の ちかくでも ぜんぶ もらえる
     await H.dbg('shopCap', 'crepe', 19990);
     const coins0 = (await H.dbg('state')).coins;
     await enter();
-    expect(await readLines('あと 10コイン', 'left'), 'はじめに「あと 10コイン」と いわない');
+    expect(!(await readLines('あと 10コイン')), '「あと 10コイン」と いった（じょうげんが のこって いる）');
     await H.until(() => PokaDebug.mg()?.phase === 'work', 15000);
     await crepe();
-    await H.until(() => !!document.querySelector('.dlg-shade:not(.ask)') || !!document.querySelector('.again-foot'), 15000);
-    expect(await readLines('きょうの コインは ここまで', 'stop'), '「きょうの コインは ここまで」と いわない');
-    const r2 = await resultModal(), mg2 = await H.dbg('mg'), cap2 = await H.dbg('shopCap', 'crepe');
-    expect(mg2.ranks.length === 1 && mg2.earn + mg2.tips === 10 && mg2.capHit && cap2.left === 0 && (await H.dbg('state')).coins === coins0 + 10, 'のこり 10コイン だけに ならない ' + JSON.stringify({ mg2, cap2 }));
-    expect(r2.btns.map((b) => b.text).join('/') === 'まちに もどる' && r2.notes.some((t) => t.includes('きょうの コインは ここまで')) && fits(r2), 'いっぱいの ときに もういちど が でる／はみ出す ' + JSON.stringify(r2));
-    await H.shot('capped');
+    await H.until(() => PokaDebug.mg()?.phase === 'work' && PokaDebug.mg().n === 1, 15000);
+    const mid = await H.dbg('mg'), got2 = mid.earn + mid.tips;
+    expect(mid.ranks.length === 1 && got2 > 10 && !('capHit' in mid) && !('capLeft' in mid), '1にんめの コインが へった ' + JSON.stringify({ ranks: mid.ranks, earn: mid.earn, tips: mid.tips }));
+    await page.getByRole('button', { name: 'おてつだいを やめる', exact: true }).click(); await page.getByRole('button', { name: 'ここで やめる', exact: true }).click();
+    const r2 = await resultModal(), cap2 = await H.dbg('shopCap', 'crepe');
+    expect(cap2.earned === 19990 + got2 && cap2.earned > 20000 && (await H.dbg('state')).coins === coins0 + got2, 'じょうげんを こえて もらえない ' + JSON.stringify({ cap2, got2 }));
+    expect(r2.btns.map((b) => b.text).join('/') === 'もういちど/まちに もどる' && !r2.notes.some((t) => t.includes('ここまで')) && r2.line === `きょう この おみせで もらった コイン ${(19990 + got2).toLocaleString('ja-JP')}` && fits(r2), 'けっかに もういちど が ない／「ここまで」が でる ' + JSON.stringify(r2));
+    await H.shot('over');
     await page.getByRole('button', { name: 'まちに もどる', exact: true }).click();
     await H.until(() => PokaDebug.state().scene === 'world' && PokaDebug.idle(), 15000);
 
-    // ③ いっぱいの 日は はじめない（おてつだいの がめん・お店の カウンター）→ つぎの 日は また できる
-    await enter();
-    expect(await readLines('また あした', 'full'), 'いっぱいの 日に「また あした」と いわない');
-    await H.until(() => PokaDebug.state().scene === 'world' && PokaDebug.idle(), 15000);
-    expect((await H.dbg('state')).coins === coins0 + 10, 'いっぱいの 日に コインが ふえた');
+    // ③ お店の カウンターからも はじまる → つぎの 日は 0 から
     await H.dbg('store', 'crepe', 'town'); await H.idle();
     await page.getByRole('button', { name: 'てんいんと はなす', exact: true }).click();
     await page.getByRole('button', { name: 'おてつだいする', exact: true }).click();
-    expect(await readLines('また あした', 'full-store'), 'お店の カウンターでも「また あした」と いわない');
-    await H.wait(300);
-    expect((await H.dbg('state')).scene === 'store', 'いっぱいの 日に お店から おてつだいが はじまった');
+    await H.until(() => PokaDebug.state().scene === 'shop' && !PokaDebug.state().transitioning, 15000);
+    expect(!(await readLines('また あした')), 'お店の カウンターで「また あした」と いった');
+    await H.until(() => PokaDebug.mg()?.phase === 'work', 15000);
     const next = await H.dbg('shopCap', null, null, '2000-1-1');
-    expect(next.day === '2000-1-1' && (await H.dbg('shopCap', 'crepe')).left === 20000, 'つぎの 日に 0 から に ならない');
+    expect(next.day === '2000-1-1' && (await H.dbg('shopCap', 'crepe')).earned === 0, 'つぎの 日に 0 から に ならない');
   }, { full: true, viewport, timeout: 150000 });
 }
