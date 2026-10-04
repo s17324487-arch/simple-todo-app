@@ -358,11 +358,11 @@ const PokaDebug = {
   homeTalkLog() {return G.sceneName==='house'?G.scene.life.log.map(x=>({...x})):[];},
   // かけあいを 1つ 流す（HOME_TALK_DATA.talks の id）
   homeTalk(id) {if(G.sceneName!=='house')return false;return HomeLife.playTalk(G.scene,HomeLife.talkById(id));},
-  // ごわがの おねがい（js/gowaga-wish.js・UI-46）: いまの おねがい・かなえた かず・きろく・きいて いる か・あまえる のこり・いる ばしょ
+  // ごわがの おねがい（js/gowaga-wish.js・UI-46）: いまの おねがい・かなえた かず・きろく・きいて いる か・あまえる のこり・いる ばしょ・おねだり（UI-88: begs・beg〔館の この かいの ようす〕・begHere）
   wish() {
     if(typeof GowagaWish==='undefined')return null;
     const w=GowagaWish.st(),x=w.cur&&GowagaWish.INDEX[w.cur.id],h=G.sceneName==='house'&&G.scene?G.scene.wishFx:null;
-    return {cur:w.cur?{...w.cur,kind:x.kind,who:x.who}:null,n:w.n||0,log:w.log.map(l=>l.id),how:w.log.map(l=>l.how),asking:GowagaWish.asking,busy:!!(h&&h.busy),amae:h?Math.max(0,Math.round(h.amae*10)/10):0,ids:GowagaWish.WISHES.map(x=>x.id),place:GowagaWish.place()};
+    return {cur:w.cur?{...w.cur,kind:x.kind,who:x.who}:null,n:w.n||0,log:w.log.map(l=>l.id),how:w.log.map(l=>l.how),asking:GowagaWish.asking,busy:!!(h&&h.busy),amae:h?Math.max(0,Math.round(h.amae*10)/10):0,ids:GowagaWish.WISHES.map(x=>x.id),place:GowagaWish.place(),begs:GowagaWish.WISHES.filter(x=>x.beg).map(x=>x.id),beg:G.sceneName==='venue'&&G.scene&&G.scene.begFx?{...G.scene.begFx}:null,begHere:G.sceneName==='venue'&&G.scene?GowagaWish.begList({venue:G.scene.id,floor:G.scene.floor}).map(x=>x.id):[]};
   },
   // おねがいの おれいの しな（js/wish-gifts.js・UI-70）: mode "none"（でない）・しゅるい（letter／stone／acc／hand）・id（つぎ だけ）・null（ふつう）
   wishGift(mode=null) {if(typeof WishGifts==='undefined')return null;WishGifts.force=mode===null?undefined:mode;return WishGifts.state();},
@@ -372,6 +372,9 @@ const PokaDebug = {
   recordsAdd(id,key,n=1) {return typeof PlayRecords==='undefined'?null:PlayRecords.add(id,key,n);},
   wishGiftGive(id) {return !!(typeof WishGifts!=='undefined'&&WishGifts.give(id));},
   wishLetter(id) {if(typeof WishGifts==='undefined'||!WishGifts.INDEX[id])return false;WishGifts.openLetter(id);return true;},
+  // 館の おねだり（UI-88）: wishBeg(id) その おねがいを いま おねだり（まどが ひらく）・wishBegArm(びょう) まえの おねがいから 5ふん たった ことに して、この かいで その びょうすう あとに じぶんから おねだり する
+  wishBeg(id) {if(G.sceneName!=='venue'||typeof GowagaWish==='undefined'||!GowagaWish.INDEX[id])return false;GowagaWish.beg(G.scene,id);return true;},
+  wishBegArm(sec=1) {if(G.sceneName!=='venue'||typeof GowagaWish==='undefined')return false;GowagaWish.st().last=0;G.scene.begFx={venue:G.scene.id,floor:G.scene.floor,t:0,at:sec};return true;},
   // おうちで その おねがいを きく（まどが ひらく。こたえは テストの がわで おす）
   wishAsk(id) {if(G.sceneName!=='house'||typeof GowagaWish==='undefined'||!GowagaWish.INDEX[id])return false;GowagaWish.ask(G.scene,id);return true;},
   // もちもの（UI-48）: 7しゅ・ようふくやさんの たな・3人が もって いる もの・絵に でて いるか

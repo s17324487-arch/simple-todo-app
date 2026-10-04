@@ -1,12 +1,13 @@
 // ごわがの おねがい（js/gowaga-wish.js・UI-46。オーナーの FB 2026-10-02「お家で、ごわがからのお願いというイベントを追加して。…お願いを実現できたら、たくさん感謝して甘えて。」）の 検査。
 // ブラウザ なしで: おねがい 20しゅ（しゅるい・3人・ことばは ひらがな・たべもの・ばしょ）・えらびかた・うける／やめる・かなう（たべさせる・ついた ばしょ・あそびの おわり）・
-// おうちで きく じかん（12ふん・ことわったら 6ふん）・おれいを まつ・あまえる あいだ・セーブ（Save.d.wish は つかう ときに できる）・すまほの アプリ・とうろく・PokaDebug
+// おうちで きく じかん（12ふん・ことわったら 6ふん）・おれいを まつ・あまえる あいだ・セーブ（Save.d.wish は つかう ときに できる）・すまほの アプリ・とうろく・PokaDebug・
+// おねだり（UI-88: 家電・シール・ガチャ・クレーンの 9しゅ・ガチャと クレーンは でやすい・館の その かいで おねだり・クレーン／シール／マッサージ／ためしの だいで かなう）
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
-const { GowagaWish: W, Save: S, BAG_INDEX, MAP_DEFS, VenueHalls, Smaho, PokaDebug, Care, Purikura, Gacha, UI, Game, SCENES, VenueScene, WorldScene } = R;
+const { GowagaWish: W, Save: S, BAG_INDEX, MAP_DEFS, VenueHalls, Smaho, PokaDebug, Care, Purikura, Gacha, UI, Game, SCENES, VenueScene, WorldScene, PrizeArcade: PA, StickerBook, KadenHall, PlayRecords, G } = R;
 R.UI.updateHud = () => {}; R.UI.toast = () => {};
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
@@ -14,10 +15,10 @@ const kanji = /[一-鿿]/;
 const fresh = () => { S.d = S.fresh(); return S.d; };
 const read = (f) => readFileSync(new URL("../" + f, import.meta.url), "utf8");
 
-// ---- 1. おねがい 20しゅ ----
+// ---- 1. おねがい 29しゅ（UI-88 で 9しゅ ふえた）----
 const L = W.WISHES, by = (k) => L.filter((x) => x.kind === k);
-ok(L.length === 20 && new Set(L.map((x) => x.id)).size === 20, "おねがい 20しゅ・id が かさならない");
-ok(by("go").length === 7 && by("eat").length === 8 && by("do").length === 5, "つれてって 7・たべたい 8・あそびたい 5");
+ok(L.length === 29 && new Set(L.map((x) => x.id)).size === 29, "おねがい 29しゅ・id が かさならない");
+ok(by("go").length === 8 && by("eat").length === 8 && by("do").length === 13, "つれてって 8・たべたい 8・あそびたい 13");
 ok(["do_purikura", "do_fashion"].every((id) => W.INDEX[id]) && by("go").length && by("eat").length, "オーナーの れい（つれてって・たべたい・ぷりくら・ファッションショー）");
 for (const who of ["wanko", "gachan", "goji"]) ok(L.filter((x) => x.who === who).length >= 6, `${who} の おねがいが 6つ いじょう`);
 for (const x of L) {
@@ -28,7 +29,8 @@ for (const x of L) {
     if (a.venue) { const d = VenueHalls.defs[a.venue]; ok(!!d, `${x.id}: 館 ${a.venue}`); for (const fl of a.floors || []) ok(d && d.floors[fl], `${x.id}: ${a.venue} の ${fl}かい`); }
     else ok(a.map && MAP_DEFS[a.map], `${x.id}: ちず ${a.map}`);
   }
-  if (x.kind === "do") ok(["purikura", "fashion", "fishing", "gacha", "harvest"].includes(x.act), `${x.id}: あそび ${x.act}`);
+  if (x.kind === "do") ok(["purikura", "fashion", "fishing", "gacha", "harvest", "crane", "sticker", "massage", "demo"].includes(x.act), `${x.id}: あそび ${x.act}`);
+  if (x.begAsk !== undefined) ok(typeof x.begAsk === "string" && x.begAsk.length >= 2 && !kanji.test(x.begAsk) && [...x.begAsk].length <= 44 && x.begAsk.split("\n").length === 2 && x.begAsk.split("\n").every((t) => t.length >= 4 && [...t].length <= 14) && Array.isArray(x.beg) && x.beg.length, `${x.id}.begAsk: ひらがなで 2ぎょう（1ぎょう 14もじ まで）「${x.begAsk}」`);
 }
 for (const id of ["wanko", "gachan", "goji"]) for (const T of [W.OTHER[id], [W.AMAE_ASK[id]], [W.HUG[id]], [W.PAT[id]], W.AMAE_LINES[id]]) for (const t of T) ok(t && !kanji.test(t), `${id}: ことば「${t}」`);
 
@@ -131,7 +133,74 @@ for (const id of ["wanko", "gachan", "goji"]) for (const T of [W.OTHER[id], [W.A
   ok(at("gowaga-wish.js") > 0 && ["scene-house.js", "scene-world.js", "venue-hall.js", "iso-venue.js", "save.js", "purikura.js", "fashion-show.js", "fishing.js", "gacha.js", "farm.js", "smaho.js"].every((f) => at(f) > 0 && at(f) < at("gowaga-wish.js")) && at("gowaga-wish.js") < at("debug.js") && sw.includes('"./js/gowaga-wish.js"'), "index.html と sw.js に とうろく（くみこむ ものの あと・debug.js の まえ）");
   fresh(); W.start("go_museum");
   const p = PokaDebug.wish();
-  ok(p && p.cur && p.cur.id === "go_museum" && p.cur.kind === "go" && p.cur.who === "goji" && p.ids.length === 20 && p.n === 0, "PokaDebug.wish " + JSON.stringify(p));
+  ok(p && p.cur && p.cur.id === "go_museum" && p.cur.kind === "go" && p.cur.who === "goji" && p.ids.length === 29 && p.n === 0 && p.begs.length === 10 && Array.isArray(p.begHere), "PokaDebug.wish " + JSON.stringify(p));
 }
 
-console.log(`✓ gowaga wish: ${n} checks（おねがい 20・つれてって 7・たべたい 8・あそびたい 5）`);
+// ---- 8. おねだり（UI-88。オーナーの 指示 2026-10-04「おねだりは家電やシール、ガチャガチャ、クレーンゲームも対象にして。とくにガチャガチャとクレーンゲームはよくやりたくなるようだ」）----
+{
+  const act = (a) => L.filter((x) => x.act === a);
+  ok(act("crane").length === 3 && act("gacha").length === 3 && new Set([...act("crane"), ...act("gacha")].map((x) => x.who)).size === 3, "クレーン 3・ガチャ 3（3にん それぞれ）");
+  ok(W.INDEX.go_kaden && W.INDEX.go_kaden.at[0].venue === "electronics" && act("massage").length === 1 && act("demo").length === 1 && act("sticker").length === 1, "家電（ネリカス でんきへ・マッサージチェア・ためしの だい）・シール");
+  ok(L.every((x) => (x.act === "crane" || x.act === "gacha" ? x.w === 3 : !x.w)), "ガチャと クレーンは でやすさ 3（ほかは 1）");
+  // でやすさ: まえが つれてって・たべたい の とき、ガチャと クレーンが はんぶん いじょう
+  const share = (logId) => { fresh(); W.st().log = logId ? [{ id: logId, t: 1 }] : []; const N = 600, n = Array.from({ length: N }, (_, i) => W.pick(() => (i + 0.5) / N)).filter((x) => x.act === "crane" || x.act === "gacha").length; return n / N; };
+  const s0 = share(null), sGo = share("go_beach"), sEat = share("eat_cake"), sDo = share("do_fishing");
+  ok(s0 > 0.38 && sGo > 0.5 && sEat > 0.5 && sDo === 0, `ガチャと クレーンが でやすい（ぜんぶ ${s0.toFixed(2)}・つれてっての あと ${sGo.toFixed(2)}・たべたいの あと ${sEat.toFixed(2)}・あそびたいの あとは ${sDo}）`);
+  // おねだりの ばしょ: 館・かいが ある・その かいで できる
+  const fix = (v, f) => VenueHalls.defs[v].floors[f].fixtures;
+  const can = { crane: (v, f) => fix(v, f).some((x) => x.action === "crane" && PA.machines[x.machine] && PA.machines[x.machine].type !== "pusher"), gacha: (v, f) => fix(v, f).some((x) => x.action === "gacha"), purikura: (v, f) => fix(v, f).some((x) => x.action === "photo"), massage: (v, f) => fix(v, f).some((x) => x.action === "massage"), demo: (v, f) => fix(v, f).some((x) => x.action === "demo"),
+    sticker: (v, f) => fix(v, f).some((x) => x.action === "stickers" || (x.action === "gacha" && Gacha.SERIES[x.series] && Gacha.SERIES[x.series].list.every((it) => it.kind === "sticker"))) };
+  for (const x of L.filter((y) => y.beg)) for (const a of x.beg) for (const f of a.floors) ok(VenueHalls.defs[a.venue] && VenueHalls.defs[a.venue].floors[f] && can[x.act] && can[x.act](a.venue, f), `${x.id}: ${a.venue} ${f}かいで ${x.act} が できる`);
+  ok(L.filter((x) => x.beg).map((x) => x.id).sort().join() === ["do_crane", "do_crane_goji", "do_crane_snack", "do_gacha", "do_gacha_forest", "do_gacha_goji", "do_kaden_try", "do_massage", "do_purikura", "do_sticker"].sort().join(), "おねだり する おねがい 10");
+  ok(W.begList({ venue: "arcade", floor: 2 }).map((x) => x.id).join() === "do_gacha,do_gacha_forest,do_gacha_goji,do_crane,do_crane_snack,do_crane_goji" && W.begList({ venue: "electronics", floor: 10 }).map((x) => x.id).join() === "do_massage" && !W.begList({ venue: "electronics", floor: 2 }).length && !W.begList({ venue: "mall", floor: 1 }).length && !W.begList(null).length, "その かいで できる おねだり");
+  // 館の まいフレーム（W.beg を すりかえて よばれた か だけ みる）
+  const calls = [], realBeg = W.beg;
+  W.beg = (sc, id) => { calls.push([sc.id, sc.floor, id]); return Promise.resolve(false); };
+  const mk = (id, floor) => ({ id, floor, busy: false, closed: false, lift: 0 }), run = (sc, n, r = () => 0) => { for (let i = 0; i < n; i++) W.venue(sc, 0.1, r); };
+  UI.layers = 0; Game.trans = null;
+  ok(!Game.inputLocked, "（けんさ）にゅうりょくを とめて いない");
+  fresh(); let sc = mk("arcade", 1); run(sc, 120);
+  ok(!calls.length && sc.begFx.at === null, "はじめて つかってから 5ふんは おねだり しない");
+  W.st().last = Date.now() - W.BEG_COOL - 1000; sc = mk("arcade", 1); run(sc, 39);
+  ok(!calls.length, "4びょう までは おねだり しない");
+  run(sc, 3); ok(calls.length === 1 && calls[0].join() === "arcade,1,", "4びょうで おねだり（その かい）");
+  run(sc, 200); ok(calls.length === 1, "おなじ かいでは 1かい だけ");
+  sc.floor = 2; run(sc, 50); ok(calls.length === 2 && calls[1][1] === 2, "かいを かえると また おねだり できる");
+  calls.length = 0; sc = mk("arcade", 1); run(sc, 120, () => 0.7); ok(!calls.length, "はんぶんの かくりつ（はずれ）");
+  sc = mk("arcade", 1); sc.busy = true; run(sc, 80); ok(!calls.length, "しらべて いる あいだは まつ"); sc.busy = false; run(sc, 2); ok(calls.length === 1, "おわったら おねだり");
+  calls.length = 0; W.start("eat_cake"); sc = mk("arcade", 1); run(sc, 80); ok(!calls.length, "おねがいが ある ときは おねだり しない"); W.st().cur = null; W.st().last = Date.now() - W.BEG_COOL - 1000;
+  sc = mk("mall", 1); run(sc, 80); sc = mk("electronics", 2); run(sc, 80); ok(!calls.length, "おねだりの ない 館・かいでは しない");
+  sc = mk("electronics", 10); run(sc, 80); ok(calls.length === 1 && calls[0].join() === "electronics,10,", "ネリカス でんき 10かい（マッサージチェア）");
+  W.beg = realBeg;
+  // おねだりの まど（UI.ask を すりかえる）: いいよ → おねがいに なる・きろく／また こんどね → 5ふん まつ
+  const realAsk = UI.ask, asked = [];
+  for (const [ans, id] of [[0, "do_crane"], [1, "do_gacha_goji"]]) {
+    fresh(); W.st().last = 0; sc = mk("arcade", 2); G.scene = sc;
+    UI.ask = (text, btns, o) => { asked.push([text, btns.join(), o.name, o.who]); return Promise.resolve(ans); };
+    const before = (S.d.records && S.d.records.kids && S.d.records.kids[W.INDEX[id].who]) ? { ...S.d.records.kids[W.INDEX[id].who] } : {};
+    const r = await W.beg(sc, id), after = PlayRecords.st().kids[W.INDEX[id].who];
+    if (ans === 0) ok(r === true && W.st().cur && W.st().cur.id === id && !W.st().cur.done && !sc.busy && !W.asking && (after.ask || 0) === (before.ask || 0) + 1 && (after.yes || 0) === (before.yes || 0) + 1, "いいよ！ → おねがいに なる・きろく");
+    else ok(r === false && !W.st().cur && Date.now() - W.st().last < 2000 && !sc.busy, "また こんどね → おねがいに ならない・5ふん まつ");
+  }
+  ok(asked[0][0] === W.INDEX.do_crane.begAsk && asked[0][1] === "いいよ！,また こんどね" && asked[0][2] === "わんこの おねだり" && asked[0][3] === "wanko" && asked[1][2] === "ごじの おねだり", "おねだりの まど（ことば・ボタン・なまえ・かお）");
+  UI.ask = realAsk;
+  // かなう: クレーン（プッシャーは のぞく）・シール（うりば・シールの ガチャ）・マッサージチェア・ためしの だい
+  const back = { venue: "arcade", floor: 1, back: { map: "city", x: 1, y: 1, dir: "down" } }, push = PA.machines.findIndex((m) => m.type === "pusher");
+  fresh(); S.d.coins = 1000; W.start("do_crane");
+  let rn = PA.start(push, back); ok(rn && PA.finish(rn, { got: [] }) && !W.st().cur.done, "コイン プッシャーでは かなわない");
+  rn = PA.start(0, back); ok(rn && PA.finish(rn, { got: [] }) && W.st().cur.done, "クレーンを 1かい あそぶと かなう（とれなくても）");
+  fresh(); W.start("do_sticker"); ok(StickerBook.add(StickerBook.IDX ? Object.keys(StickerBook.INDEX)[0] : Object.keys(StickerBook.INDEX)[0], 1) && W.st().cur.done, "シールを もらうと かなう（うりば）");
+  fresh(); S.d.coins = 1000; W.start("do_sticker"); const ss = Gacha.SERIES.findIndex((x) => x.list.every((it) => it.kind === "sticker"));
+  ok(ss >= 0 && Gacha.spin(ss, 0.5) && W.st().cur.done, "シールの ガチャで かなう");
+  fresh(); S.d.coins = 1000; W.start("do_gacha_goji"); ok(Gacha.spin(ss, 0.5) && W.st().cur.done, "シールの ガチャも ガチャ");
+  const realSay = UI.say; UI.say = () => Promise.resolve();
+  const ksc = { busy: false };
+  fresh(); W.start("do_massage"); await KadenHall.interact(ksc, { action: "demo", demo: "game" }); ok(!W.st().cur.done, "ためしの だいでは マッサージは かなわない");
+  await KadenHall.interact(ksc, { action: "massage" }); ok(W.st().cur.done && !ksc.busy, "マッサージチェアで かなう");
+  fresh(); W.start("do_kaden_try"); await KadenHall.interact(ksc, { action: "demo", demo: "camera" }); ok(W.st().cur.done, "ためしの だいで かなう");
+  UI.say = realSay;
+  const src = read("js/gowaga-wish.js");
+  ok(src.includes("VP.update = function (dt) { vup.call(this, dt); if (G.sceneName === \"venue\" && G.scene === this) GowagaWish.venue(this, dt); };"), "館の まいフレームで おねだり");
+}
+
+console.log(`✓ gowaga wish: ${n} checks（おねがい 29・つれてって 8・たべたい 8・あそびたい 13〔ガチャ 3・クレーン 3 は でやすさ 3〕・館の おねだり 10）`);

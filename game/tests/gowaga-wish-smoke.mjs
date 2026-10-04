@@ -14,7 +14,7 @@ export async function gowagaWishSmoke({ scenario, expect }) {
     await H.newGameFast(); await H.dbg('hour', 20); await H.dbg('weather', 'clear'); await H.wait(800);
     await H.dbg('wishGift', 'none'); // おれいの しな（UI-70）は wish-gifts の スモークで みる
     let w = await H.dbg('wish');
-    expect(w && w.ids.length === 20 && !w.cur && w.n === 0, 'PokaDebug.wish ' + JSON.stringify(w));
+    expect(w && w.ids.length === 29 && !w.cur && w.n === 0, 'PokaDebug.wish ' + JSON.stringify(w));
     // 1. ショートケーキ
     expect(await H.dbg('wishAsk', 'eat_cake'), 'おうちで おねがいを きけない');
     await waitAsk(H, 8000); await H.wait(250);

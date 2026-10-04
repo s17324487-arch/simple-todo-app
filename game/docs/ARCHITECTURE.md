@@ -1485,16 +1485,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 町の はしの そとは `def.edgeColor`（scene-world.js の 背景。ほかの 町は いままでの 草の 色）。
 - 検査: `tools/check-ikebukuro.mjs`（配置イメージの ならび・駅から すべての 入口へ・絵の 登録）・`tools/town-check.mjs`（入口 2つの 建物は `doors` の それぞれを しらべる）・`node tools/build-ikebukuro-town.mjs --check`。
 
-## ごわがの おねがい（UI-46・`js/gowaga-wish.js`・`GowagaWish`）
+## ごわがの おねがい（UI-46・UI-88・`js/gowaga-wish.js`・`GowagaWish`）
 
 オーナーの FB 2026-10-02「お家で、ごわがからのお願いというイベントを追加して。…お願いを実現できたら、たくさん感謝して甘えて。」。
 
-- `WISHES`（20）: { id, kind: go|eat|do, who, short, ask, hint, thanks, at | foods | act }。`INDEX`。
-- `st()`（`Save.d.wish` を つくる）・`pick()`（さいきん 8つ と まえと おなじ しゅるいを さける）・`start(id)`・`cancel()`・`signal(kind, what)`・`arrive(place)`・`place()`。
-- くみこみ（ファイルの さいご）: `Care.feed`・`Purikura.finish`・`FashionShow.finish`・`Fishing.record`・`Gacha.spin`・`Farm.harvest` の あとに `signal`。`VenueScene.prototype.loadFloor`・`WorldScene.prototype.enter` の あとに `arrive`。`SCENES.house.prototype.update` の あとに `house(sc, dt)`（きく じかん・おれい・あまえる）。タイマーは つかわない（検査の VM が おわらなく なる ため）。
+- `WISHES`（29。UI-88 で 9しゅ: ネリカス でんきへ `go_kaden`・マッサージチェア `do_massage`〔act `massage`〕・ためしの だい `do_kaden_try`〔`demo`〕・シール `do_sticker`〔`sticker`〕・ガチャ `do_gacha_forest`／`do_gacha_goji`・クレーン `do_crane`／`do_crane_snack`／`do_crane_goji`〔`crane`〕）: { id, kind: go|eat|do, who, short, ask, hint, thanks, at | foods | act, w?, beg?, begAsk? }。`INDEX`。`w` は でやすさ（ない ときは 1。ガチャと クレーンは 3）。
+- `st()`（`Save.d.wish` を つくる）・`pick(r, from, kinds)`（さいきん 8つ と まえと おなじ しゅるいを さけて `weighted(list, v)` で えらぶ）・`start(id)`・`cancel()`・`signal(kind, what)`・`arrive(place)`・`place()`。
+- くみこみ（ファイルの さいご）: `Care.feed`・`Purikura.finish`・`FashionShow.finish`・`Fishing.record`・`Gacha.spin`（シールの ガチャは `sticker` も）・`Farm.harvest`・`PrizeArcade.finish`（`crane`。メダルの コイン プッシャーは のぞく）・`StickerBook.add`（`sticker`）・`KadenHall.interact`（`massage`・`demo`）の あとに `signal`。`VenueScene.prototype.loadFloor`・`WorldScene.prototype.enter` の あとに `arrive`。`SCENES.house.prototype.update` の あとに `house(sc, dt)`（きく じかん・おれい・あまえる）。タイマーは つかわない（検査の VM が おわらなく なる ため）。
 - おうち: `sc.wishFx` = { t, ask, busy, amae, beat }。`ask(sc, id)`・`thank(sc)`・`amaeTick(sc, h, dt)`（state "amae" で ぶらぶら しない・`sc.life.next` を のばす）。
+- 館の おねだり（UI-88）: `beg: [{ venue, floors }]` の ある おねがい 10（ガチャ・クレーン・ぷりくら・シール・マッサージ・ためしの だい）。`VenueScene.prototype.update` の あとに `venue(sc, dt, r)`: `sc.begFx` = { venue, floor, t, at }（かいに はいる たびに `BEG_CHANCE` 0.5 で 4〜8びょう あと・かいごとに 1かい）→ おねがいが なく、まえの おねがいから `BEG_COOL` 5ふん → `beg(sc, id)`（その かいの `begList({ venue, floor })` から `pick`・まどの なまえは「○○の おねだり」・`begAsk`）。「いいよ！」で `start(id)`（かなえかたは おうちと おなじ）・「また こんどね」で `last` を いまに。きろく（`PlayRecords` の ask・yes）も かぞえる。
 - すまほ: `Smaho.APPS` の `wish`（`phoneView(el, ph)`）と `Smaho.ICON.wish`。
-- PokaDebug: `wish()`・`wishAsk(id)`。検査は `tools/check-gowaga-wish.mjs`、スモークは `tests/gowaga-wish-smoke.mjs`（`gowaga-wish-390/375`）。
+- PokaDebug: `wish()`（UI-88: `begs`・`beg`〔館の この かいの `begFx`〕・`begHere`）・`wishAsk(id)`・`wishBeg(id)`（館で その おねがいを おねだり）・`wishBegArm(びょう)`（5ふん たった ことに して、この かいで その びょうすう あとに じぶんから おねだり）。検査は `tools/check-gowaga-wish.mjs`、スモークは `tests/gowaga-wish-smoke.mjs`（`gowaga-wish-390/375`）と `tests/gowaga-beg-smoke.mjs`（`gowaga-beg-390/375`）。
 
 ## おねがいの おれいの しな（UI-70・`js/wish-gifts.js`・`js/wish-gift-art.js`）
 
