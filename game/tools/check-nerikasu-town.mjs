@@ -30,7 +30,8 @@ for(const [id,word] of [['neri_lawson','ローリソン'],['neri_sevenbun','せ�
 assert(d.buildings.filter(b=>b.x>=68&&b.label==='まちの おうち').length>=7,'houses east of the right road');
 // 他の家は なるべく 使いまわさない（ぜんぶ ちがう 絵）
 // まちの おうち 8けん（nerikasu_home6 は あたまの たいそう〔のうトレの おてつだい・UI-64〕、nerikasu_home2 は パズル こうぼう〔パズルの おてつだい・UI-65〕に なった）
-const houses=d.buildings.filter(b=>b.label==='まちの おうち');assert(houses.length>=8,'houses '+houses.length);assert.equal(new Set(houses.map(b=>b.asset)).size,houses.length,'reused house art');
+// 大通りの 北の にしの はしの 家（nerikasu_home7）は 2026-10-03 から 工務店「ぽかぽか こうむてん」（UI-74・js/koumuten.js）。右の 道の 東の 家の 列 7けんは そのまま
+const houses=d.buildings.filter(b=>b.label==='まちの おうち');assert(houses.length>=7,'houses '+houses.length);assert(d.buildings.find(b=>b.id==='nerikasu_home7')?.label==='ぽかぽか こうむてん','koumuten');assert.equal(new Set(houses.map(b=>b.asset)).size,houses.length,'reused house art');
 // 前の 町の 建物の ID と はたらき（お店・おてつだい・会場・おうち）は のこす。消したのは オーナーが「なくても よい」と した もの だけ
 const prev=L.previous;assert.equal(prev.rows.length,68);
 for(const old of prev.buildings){

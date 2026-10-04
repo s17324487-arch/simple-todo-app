@@ -211,6 +211,40 @@ function kobo(w,h,d,n){
   s+=door(d,h-2,n)+drain(w,h)+lamp(d+24,68,n)+planter(w-44,h-12,28);
   return s;
 }
+// ---- ぽかぽか こうむてん（O9・UI-74。おうちの そとの パーツと ペンキ。nerikasu_home7 を かえる。js/koumuten.js）----
+function koumuten(w,h,d,n){
+  const col='#6E8B5E',roofc='#7F9C97';let s=wall(w,h,'#EFE3CF');
+  // ひろい 切妻の トタン屋根（たての すじ）と 棟の「いえと かなづち」の 丸看板
+  s+=Pth(`M14,-14 H${w-14} L${w+5},33 H-5Z`,roofc,{sw:1.3});
+  for(let x=20;x<w-10;x+=11){const t=(x-14)/(w-28);s+=L(x,-13,-5+t*(w+10),31,shade(roofc,-.2),.8)+L(x+1.6,-13,-3.4+t*(w+10),31,shade(roofc,.25),.5);}
+  s+=R(-6,32,w+12,4,shade(roofc,-.34),{sw:.9})+Rn(0,36,w,4,'#332B20',{op:.16});
+  s+=C(w/2,-24,17,'#FFF4DE',{sw:1})+C(w/2,-24,14,'none',{sw:.6,stroke:'#E3CFA4'})+Pth(`M${w/2-9},-20 V-27 L${w/2},-34 L${w/2+9},-27 V-20Z`,'#F2C14E',{sw:.8})+R(w/2-2.5,-25,5,5,'#B5654F',{sw:.5})+L(w/2+4,-14,w/2+12,-30,'#8C6A4A',1.6)+R(w/2+8,-34,9,4,'#8C959C',{sw:.6});
+  // かんばん
+  s+=sign(10,35,w-20,'ぽかぽか こうむてん','HOME PAINT & PARTS',col);
+  // ひだり: はんぶん あいた シャッターの 作業場（ペンキの たなと ざいもく）
+  const bx=14,by=64,bw=d-30-bx,bh=h-6-by;
+  s+=R(bx-3,by-3,bw+6,bh+3,'#8C959C',{sw:.9})+R(bx,by,bw,bh,n?'#4E4636':'#3F3A33',{sw:.6});
+  if(n)s+=Rn(bx+2,by+16,bw-4,bh-18,'#F7D589',{op:.25});
+  // たなと ペンキの かん（3だん）
+  const cans=['#F3CDD3','#F4E3A1','#CDE7D2','#C7DDEF','#DCD0EC','#B5654F','#6E9278','#5D84A8','#E3AE4A'];
+  for(let r=0;r<3;r++){const y=by+30+r*20;s+=R(bx+4,y,bw*.55,2.6,'#B98A5E',{sw:.4});for(let i=0;i<5;i++){const x=bx+8+i*(bw*.55-8)/4.6,c=cans[(r*5+i)%cans.length];s+=R(x-4,y-9,8,9,'#DDE2E6',{sw:.5})+Rn(x-4,y-6,8,3.4,c)+E(x,y-9,4,1.4,'#EEF1F4',{sw:.4});}}
+  // ざいもく（たてかけた いた）
+  for(let i=0;i<5;i++){const x=bx+bw*.64+i*5.4;s+=Pth(`M${x},${by+bh-2} L${x+7},${by+22} l4,1 L${x+5},${by+bh-2}Z`,i%2?'#E2C08E':'#D3AE78',{sw:.5});}
+  // シャッター（うえ はんぶん）
+  s+=R(bx,by,bw,20,'#C9CFD4',{sw:.7});for(let y=by+4;y<by+20;y+=4)s+=L(bx+1,y,bx+bw-1,y,'#9EA6AD',.6);s+=R(bx+bw/2-6,by+17,12,3,'#7E868C',{sw:.4});
+  // みぎ: じむしょの まど（いろみほんが 見える）と はなばこ
+  const rx=d+26,rw=w-rx-14;s+=pane(rx,70,rw,36,n);
+  for(let i=0;i<6;i++)s+=R(rx+6+i*(rw-12)/6,84,(rw-12)/6-2,8,cans[i],{sw:.35});
+  s+=R(rx-3,106,rw+6,8,'#C59A76',{sw:.7});for(let x=rx+4;x<rx+rw;x+=9)s+=C(x,103,2.6,['#E59AAE','#F2CF6A','#B6A1D6'][((x-rx)/9|0)%3],{sw:.4});
+  // はしご（みぎの かべに たてかけ）
+  s+=L(w-30,h-2,w-20,62,'#C2574E',2.2)+L(w-18,h-2,w-8,62,'#C2574E',2.2);for(let k=1;k<6;k++){const t=k/6;s+=L(w-30+10*t,h-2-(h-64)*t,w-18+10*t,h-2-(h-64)*t,'#E8E2D6',1.4);}
+  // いりぐちの よこの ペンキかんの つりかんばん
+  s+=L(d+22,62,d+36,62,'#4E5A55',1.2)+L(d+34,62,d+34,68,'#4E5A55',.8)+R(d+27,68,14,13,'#DDE2E6',{sw:.7})+Rn(d+27,72,14,5,'#F3A6B8')+E(d+34,68,7,2,'#EEF1F4',{sw:.5})+Pth(`M${d+30},81 q1,4 2,0`,'#F3A6B8',{sw:.4});
+  // そとの いたの やま
+  for(let k=0;k<3;k++)s+=R(bx+2,h-6-k*4,bw*.5,4,k%2?'#E2C08E':'#D3AE78',{sw:.5});
+  s+=door(d,h-2,n)+drain(w,h)+lamp(d-24,68,n);
+  return s;
+}
 // ---- 2026-09-29 配置イメージの 新しい 建物（コンビニ 2つ・ファミレス・ガソリンスタンド・アパート・郵便局・お届けセンター・サロン・中華料理屋・家 3つ） ----
 // ガラスの 店さき: たなの しなもの（夜は 店内が あかるい）
 function glassFront(x0,x1,y0,y1,n,goods=['#E27A6E','#F2C45E','#8FC39A','#7FA8D8','#F3F0E4']){
@@ -419,7 +453,7 @@ const specs=[
  ['nerikasu_home4','テラスの家',7,5,3,'terrace','時計切妻と異なる高窓・縁側の格子'],
  ['nerikasu_home5','ころころフルーツ（パズルの おてつだい）',6,5,3,'korokoro','りんごの 丸看板・棟に すわる 3人の かお・玉が つみかさなる ガラスの 箱・しまの 日よけ・くだものの 木箱'],
  ['nerikasu_home6','あたまの たいそう（のうトレの おてつだい）',7,5,3,'brain','ふくろうの 丸看板・ひらめきの でんきゅうと ほし・こくばんの まど・まちがい さがしの え・しまの 日よけ'],
- ['nerikasu_home7','画家の家',8,5,4,'studio','大きな仕事窓・片側の屋上・窓辺の花'],
+ ['nerikasu_home7','ぽかぽか こうむてん（おうちの そとの パーツと ペンキ）',8,5,4,'koumuten','トタンの 切妻屋根・いえと かなづちの 丸看板・はんぶん あいた シャッターの 作業場（ペンキの たなと ざいもく）・いろみほんの まど・はしご・ペンキかんの つりかんばん'],
  ['neri_lawson','コンビニ ローリソン',8,4,4,'lawson','あおい 看板の 帯・ミルクの びんの マーク・ガラスの 店さき・たなの しなもの・自動ドア・屋上の 室外機'],
  ['neri_sevenbun','コンビニ せぶんぶん',7,4,3,'sevenbun','だいだい・みどり・あかの 3本の 帯・しろい 看板・ガラスの 店さき・自動ドア'],
  ['neri_bikkupo','レストラン びっくぽ',9,5,4,'bikkupo','かわらの 屋根・屋根の 上の 看板と マスコット・赤い ボックスせきが みえる 大きな まど・入口の ひさし'],
@@ -433,4 +467,4 @@ const specs=[
  ['neri_house_b','しろい モダンな 家',7,5,3,'house_b','陸屋根・木の たて格子・大きな まど・ガラスの バルコニー'],
  ['neri_house_c','かわら屋根の 和の 家',7,5,3,'house_c','かわらの 屋根・しっくいと 木の はしら・えんがわと しょうじ・こうしの 引き戸']
 ];
-export const NERIKASU_BUILDINGS=specs.map(([buildingId,name,w,h,d,kind,detail])=>({id:'nerikasu.bld_'+buildingId,buildingId,name,category:'住宅・お店・学校',w,h,door:d,bbox:[-10,-49,w*32+15,h*32+12],details:detail.split('・'),states:['day','night'],draw:o=>{const args=[w*32,h*32,(d+.5)*32,!!o?.night];return ['lawson','sevenbun'].includes(kind)?conbini(kind,...args):kind==='bikkupo'?bikkupo(...args):kind==='gas'?gasStation(...args):kind==='apartment'?apartment(...args):kind==='post'?postOffice(...args):kind==='delivery'?deliveryCenter(...args):kind==='salon'?salon(...args):kind==='chuka'?chuka(...args):kind.startsWith('house_')?newHouse(kind,...args):kind==='korokoro'?korokoro(...args):kind==='brain'?brain(...args):kind==='kobo'?kobo(...args):kind==='school'?school(...args):kind==='nursery'?nursery(...args):kind==='gazebo'?gazebo(...args):['home','row','modern','tile','terrace','courtyard','studio'].includes(kind)?home(kind,...args):shop(kind,...args);}}));
+export const NERIKASU_BUILDINGS=specs.map(([buildingId,name,w,h,d,kind,detail])=>({id:'nerikasu.bld_'+buildingId,buildingId,name,category:'住宅・お店・学校',w,h,door:d,bbox:[-10,-49,w*32+15,h*32+12],details:detail.split('・'),states:['day','night'],draw:o=>{const args=[w*32,h*32,(d+.5)*32,!!o?.night];return ['lawson','sevenbun'].includes(kind)?conbini(kind,...args):kind==='bikkupo'?bikkupo(...args):kind==='gas'?gasStation(...args):kind==='apartment'?apartment(...args):kind==='post'?postOffice(...args):kind==='delivery'?deliveryCenter(...args):kind==='salon'?salon(...args):kind==='chuka'?chuka(...args):kind.startsWith('house_')?newHouse(kind,...args):kind==='korokoro'?korokoro(...args):kind==='brain'?brain(...args):kind==='kobo'?kobo(...args):kind==='koumuten'?koumuten(...args):kind==='school'?school(...args):kind==='nursery'?nursery(...args):kind==='gazebo'?gazebo(...args):['home','row','modern','tile','terrace','courtyard','studio'].includes(kind)?home(kind,...args):shop(kind,...args);}}));
