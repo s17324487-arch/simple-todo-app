@@ -54,15 +54,22 @@ class VenueScene {
       if(f.action==='eat'){await this.eat(f);return;}
       if(f.action==='crane'){if(typeof PrizeArcade!=='undefined')await PrizeArcade.open(f.machine,{venue:this.id,floor:this.floor,back:this.back});return;}
       if(f.action==='parent'){if(!MamaSchedule.working()){UI.toast('ままは おうちに いるよ');return;}await UI.say([{who:Save.d.order[0],emo:'love',text:'あいにきたよー♡'},{name:'まま',face:ParentCare.svg('mama',ParentCare.look('mama'),'wave'),text:'きてくれて ありがとう♡ おしごと がんばるね。'}]);return;}
-      if(f.action==='sit'){this.sitting=4;Sound.se('good');for(const id of Save.d.order)Save.care(id,{mood:1});Save.write();}
-      await UI.say([{name:f.label,text:f.text||'ゆっくり ながめて たのしもう。'}]);
+      // テーブルの ひとやすみは 3人が いすに すわる（O7・js/dine-seats.js）。ベンチ などは まえの まま
+      const D=f.action==='sit'&&this.iso&&typeof DineSeats!=='undefined'&&DineSeats.can(this,f)?DineSeats:null,seated=D?await D.sit(this,f):false;
+      if(f.action==='sit'){if(!seated)this.sitting=4;Sound.se('good');for(const id of Save.d.order)Save.care(id,{mood:1});Save.write();}
+      try{await UI.say([{name:f.label,text:f.text||'ゆっくり ながめて たのしもう。'}]);}finally{if(seated)await D.stand(this);}
     }finally{this.busy=false;}
   }
+  // たべる（O7: 斜めの 館では 3人が テーブルの いすに すわってから メニューを ひらく・たのむと おさらが でる。カウンターは あいている テーブルへ。js/dine-seats.js）
   async eat(f){
-    const ids=f.menu,i=await UI.ask(f.label+'\nテーブルで 3にん いっしょに たべよう。',[...ids.map(id=>BAG_INDEX[id].name+'（'+BAG_INDEX[id].price+'コイン／3にん）'),'やめておく']);if(i<0||i>=ids.length)return;
-    const food=BAG_INDEX[ids[i]];if(Save.d.coins<food.price){UI.toast('コインが たりないよ');return;}Save.d.coins-=food.price;
-    for(const id of Save.d.order)Save.care(id,{hunger:food.hunger,mood:food.mood});Save.write();UI.updateHud();this.sitting=6;
-    await UI.say(Save.d.order.map(id=>({who:id,emo:'happy',text:id==='goji'?'ガゥー♡ おいしい！':food.deza?'デザ、だいすき♡':'おいしいね！ あとで デザも たべたいな♪'})));
+    const D=this.iso&&typeof DineSeats!=='undefined'?DineSeats:null;if(D&&D.counter(this,f))return;
+    const seated=D&&D.can(this,f)?await D.sit(this,f):false;
+    try{
+      const ids=f.menu,i=await UI.ask(f.label+'\nテーブルで 3にん いっしょに たべよう。',[...ids.map(id=>BAG_INDEX[id].name+'（'+BAG_INDEX[id].price+'コイン／3にん）'),'やめておく']);if(i<0||i>=ids.length)return;
+      const food=BAG_INDEX[ids[i]];if(Save.d.coins<food.price){UI.toast('コインが たりないよ');return;}Save.d.coins-=food.price;
+      for(const id of Save.d.order)Save.care(id,{hunger:food.hunger,mood:food.mood});Save.write();UI.updateHud();if(seated)await D.serve(this,food.id);else this.sitting=6;
+      await UI.say(Save.d.order.map(id=>({who:id,emo:'happy',text:id==='goji'?'ガゥー♡ おいしい！':food.deza?'デザ、だいすき♡':'おいしいね！ あとで デザも たべたいな♪'})));
+    }finally{if(seated)await D.stand(this);}
   }
   changeFloor(floor,spawn){if(floor===this.floor)return;this.previous={floor:this.floor,room:this.room,fixtures:this.fixtures,party:this.party,cam:{...this.cam}};this.liftDirection=floor>this.floor?1:-1;this.loadFloor(floor,spawn);this.lift=1.2;Sound.se('door');UI.showHud(true,this.def.name+' '+floor+'F');}
   async guideMenu(){

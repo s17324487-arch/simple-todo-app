@@ -184,15 +184,17 @@ class IsoVenueScene extends VenueScene {
   }
   // 描く もの の 一覧（奥行きの はこ つき）
   drawables(room, fixtures, party, floor) {
-    const art = this.def.art, out = [];
+    const art = this.def.art, out = [], dine = this.dine && this.dine.room === room && typeof DineSeats !== "undefined" ? this.dine : null;
     for (const f of fixtures) {
       if (f.hidden) continue;
       const hit = art.hit ? art.hit(f) : null;
-      out.push({ f, layer: f.over ? 1 : 0, x0: f.x, y0: f.y, x1: f.x + f.w, y1: f.y + f.h, ...(hit ? { hit } : {}), draw: (ctx, o) => art.fixture(ctx, this, f, o) });
+      // 3人が すわって いる テーブルは そうに わけて あいだに 3人を 描く（O7・js/dine-seats.js）
+      out.push({ f, layer: f.over ? 1 : 0, x0: f.x, y0: f.y, x1: f.x + f.w, y1: f.y + f.h, ...(hit ? { hit } : {}), draw: dine && dine.f === f ? (ctx, o) => DineSeats.draw(ctx, this, f, o) : (ctx, o) => art.fixture(ctx, this, f, o) });
     }
     party.forEach((p, i) => {
-      const x = p.x + 0.5, y = p.y + 0.5, id = Save.d.order[i];
-      out.push({ who: id, layer: 0, x0: x - 0.3, y0: y - 0.3, x1: x + 0.3, y1: y + 0.3, draw: (ctx, o) => this.drawMember(ctx, p, id, o) });
+      const w = dine ? DineSeats.walker(this, i) : p, x = w.x + 0.5, y = w.y + 0.5, id = Save.d.order[i];
+      // いすの うえの 子は テーブルと いっしょに 描く（ghost は まえの 大きな ものを すかす ため だけ）
+      out.push({ who: id, p: w, ghost: !!w.ghost, layer: 0, x0: x - 0.3, y0: y - 0.3, x1: x + 0.3, y1: y + 0.3, draw: w.ghost ? () => {} : (ctx, o) => this.drawMember(ctx, w, id, o) });
     });
     if (art.extras) for (const e of art.extras(this, room, floor)) out.push(e);
     return out;
@@ -217,10 +219,10 @@ class IsoVenueScene extends VenueScene {
     });
     const sorted = IsoVenue.order(list);
     // 3人の まえに ある 大きな もの（と 頭の 上の いた fadeOver）は すける（うしろに かくれて 見えなく ならない ように）
-    const members = sorted.filter((o) => o.who).map((o) => ({ o, r: this.memberRect(party[Save.d.order.indexOf(o.who)]) }));
+    const members = sorted.filter((o) => o.who).map((o) => ({ o, r: this.memberRect(o.p || party[Save.d.order.indexOf(o.who)]) }));
     for (const o of sorted) {
       o.offset = offset; o.alpha = 1;
-      if (!o.who && o.f && ((o.f.height ?? 40) > 70 || o.f.fadeOver) && !o.f.noFade) {
+      if (!o.who && o.f && ((o.f.height ?? 40) > 70 || o.f.fadeOver) && !o.f.noFade && !(this.dine && this.dine.f === o.f)) {
         const r = IsoVenue.rectOf(IsoVenue.shape(o)), i = sorted.indexOf(o);
         if (members.some((m) => sorted.indexOf(m.o) < i && m.r.x < r.x + r.w && m.r.x + m.r.w > r.x && m.r.y < r.y + r.h && m.r.y + m.r.h > r.y && this.coversMember(o, m))) o.alpha = 0.42;
       }
@@ -230,7 +232,7 @@ class IsoVenueScene extends VenueScene {
     this.cam = keep;
     return sorted;
   }
-  memberRect(p) { const q = this.feet(p.x, p.y), h = 118; return { x: q.x - 28, y: q.y - h, w: 56, h }; }
+  memberRect(p) { const q = this.feet(p.x, p.y), h = 118, z = p.z || 0; return { x: q.x - 28, y: q.y - z - h, w: 56, h }; }
   // ほんとうに かぶって いるか（足もとが 什器の 投影の 中）
   coversMember(o, m) { const hull = IsoVenue.shape(o), r = m.r; return IsoVenue.inHull(hull, r.x + r.w / 2, r.y + r.h * 0.45) || IsoVenue.inHull(hull, r.x + r.w / 2, r.y + r.h * 0.9); }
   render(ctx) {

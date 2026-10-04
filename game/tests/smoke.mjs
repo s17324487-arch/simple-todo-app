@@ -3138,7 +3138,9 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  v=await H.dbg('venueIso');expect(v.holes>=2,'3Fの ふきぬけ');expect(await bgm()==='mall_3f','3F の BGM '+await bgm());await H.shot('mall-3f');
  // エスカレーターで 2F・エレベーターで 1F
  await H.dbg('venueVisit','2Fへ おりる');await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===2&&!s.changingFloor;},20000);await H.idle();expect(await bgm()==='mall_2f','2F の BGM '+await bgm());await H.shot('mall-2f');
- await H.dbg('venueVisit','すばーたっくすの テーブル');await H.page.getByRole('button',{name:/ふわラテ/}).click();await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();
+ // フロアの はんたいがわの テーブルまで あるいて、3人が せきに すわってから メニュー（UI-72）。chromium でも 15びょう ちかく かかり、
+ // webkit（CI）は 1コマが おそくて ゲームの 時間も ゆっくり すすむ ので まちを ながめに
+ await H.dbg('venueVisit','すばーたっくすの テーブル');await H.page.getByRole('button',{name:/ふわラテ/}).click({timeout:40000});await H.page.locator('.dlg-text').waitFor();await H.dialogs();await H.idle();
  await H.dbg('venueVisit','エレベーター');await H.page.getByRole('button',{name:'1F',exact:true}).click();await H.until(()=>{const s=PokaDebug.venueState();return s?.floor===1&&!s.changingFloor;},20000);await H.idle();
  expect((await H.dbg('venueIso')).leader.join()==='2,12','エレベーターを おりた 場所');
  // でぐちの マットから 外へ（池袋の まち）
@@ -4410,6 +4412,7 @@ await (await import("./shop-again-smoke.mjs")).shopAgainSmoke({scenario,expect})
 await (await import("./fossil-sell-smoke.mjs")).fossilSellSmoke({scenario,expect});
 await (await import("./wish-gifts-smoke.mjs")).wishGiftsSmoke({scenario,expect});
 await (await import("./play-records-smoke.mjs")).playRecordsSmoke({scenario,expect});
+await (await import("./dine-seats-smoke.mjs")).dineSeatsSmoke({scenario,expect});
 await (await import("./nerikasu-quests-smoke.mjs")).nerikasuQuestsSmoke({scenario,expect,folkTalk,folkTapSpot});
 await (await import("./farm-smoke.mjs")).farmSmoke({scenario,expect});
 

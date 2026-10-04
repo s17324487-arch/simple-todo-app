@@ -134,7 +134,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 2 | `chara-data.js` | `CHARA_DATA`（自動生成） |
 | 3 | `util.js` | `U`, `SvgCache` |
 | 4 | `data.js` | `WEAR_ITEMS`, `SLOT_NAMES`, `WEAR_SLOT_KEYS`（outfit の キー。`head2` は あたまの 2つめ・UI-43）, `PERK_TEXT`, `ITEM_INDEX`, `CHARA_STATS`, `CHARA_INFO`, `SKILLS`, `FOODS`, `TOOLS`, `BAG_INDEX`, `FURNITURE`, `FURN_INDEX`, `WALLPAPERS`, `FLOORS`, `WALL_INDEX`, `FLOOR_INDEX`, `ENEMIES`, `AREAS`, `SHOPS`, `SHOP_LV_REP` |
-| 5 | `chara.js` | `INK`, `VB`, `FOOT`, `PROFILE`, `GOJI_COLORS`, `CHARA_IDS`, `EMO`, `WEAR`, `SLOT_ORDER`, `HeadPair`（あたまの アクセサリーは 2つ まで・しゅるいと くみあわせ・描く じゅん。UI-43）, `Chara`, 補助関数 `faceOf` `charaFaceParts`（`CHARA_BLINK`: まばたきの かお・`CHARA_FACE_EXTRA`: ほかの ファイルが たす かお）`CHARA_GESTURES`（うでの ポーズ・まえむき だけ）`charaArmEnds`（うでの かたと 手の さき）`f2` `stroke` `shade` `heartPath` `starPath` `flowerSvg` `hatWrap` `eyeWrap` `neckWrap` `torsoClip` `garment` `sleeves` `t` `backWrap` `buildCharaSvg` `outfitKey` |
+| 5 | `chara.js` | `INK`, `VB`, `FOOT`, `PROFILE`, `GOJI_COLORS`, `CHARA_IDS`, `EMO`, `WEAR`, `SLOT_ORDER`, `HeadPair`（あたまの アクセサリーは 2つ まで・しゅるいと くみあわせ・描く じゅん。UI-43）, `Chara`, 補助関数 `faceOf` `charaFaceParts`（`CHARA_BLINK`: まばたきの かお・`CHARA_FACE_EXTRA`: ほかの ファイルが たす かお）`CHARA_GESTURES`（うでの ポーズ・まえむき だけ）`CHARA_POSE_EXTRA`（ほかの ファイルが たす からだの ポーズ。すわる `sit_01` は dine-seats.js・`feetOver` で あしを からだの まえに）`charaArmEnds`（うでの かたと 手の さき）`f2` `stroke` `shade` `heartPath` `starPath` `flowerSvg` `hatWrap` `eyeWrap` `neckWrap` `torsoClip` `garment` `sleeves` `t` `backWrap` `buildCharaSvg` `outfitKey` |
 | 6 | `art.js` | `Art`, `SK`, `outlineLine`, `vbChar`, `NPC_PROFILE`, `npcEyes`, `SPECIES`, `enemyFace`, `ENEMY_ART`, `FS`, `FURN_ART`, `IS`, `FOOD_ART` |
 | 7 | `tiles.js` | `TS`, `GROUND`, `SOLID_CH`, `OBJ_CH`, `Tiles`, `OS`, `WorldArt`, `SIGN_ICON` |
 | 8 | `maps.js` | `MAP_DEFS`, `FieldGen`, `genMeadow`, `genForest`, `genCave`, `WorldMap` |
@@ -154,6 +154,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 20 | `scene-battle.js` | `ALLY_SIZE`, `FOE_SIZE`, `BOSS_SIZE`, `BattleScene` |
 | 21 | `minigames.js` | `MG_ART`, `CREPE_TOPS`, `BREADS`, `BREAD_TOPS`, `FLOWER_KINDS`, `RIBBONS`, `SHOP_OWNERS`, `HOWTO`, `CUST_*`, `ShopScene`, `TaskBase`, `CrepeTask`, `DentistTask`, `BakeryTask`, `FloristTask`, `MG_TASKS`, 補助関数 `breadSvg` `flowerIconSvg` `mgCanvas` `mgIcon` `topIcon` `mgBtn` `inBtn` `gridBtns` |
 | — | `play-records.js`（pet-walk.js の あと・world-zoom.js の まえ＝Care・HomeToilet・SCENES.house・Fishing・BattleScene・Menu・GowagaWish の あと） | `PlayRecords`（きろく: 3人の きろく 15しゅ・たべものごとの かず・ずかんの「たべもの」・ようすの「きろく」・UI-71） |
+| — | `dine-seats.js`（iso-venue.js の すぐ あと＝chara.js・IsoVenue の あと） | `DineSeats`（ごはんの せき: 館の テーブル・ボックス席で 3人が すわって ちゅうもん。UI-72） |
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
@@ -1435,6 +1436,19 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ずかん: `Menu.dex` の kinds に `["food", "たべもの"]`（6つ なら 3れつ）→ `foodDex(el)`（`.rec-sort`・`.rec-food[data-id]`・`.lock`）→ `foodCard(f)`（`.rec-food-panel`）。
 - セーブ: `Save.fresh().records = { since: "", kids: {}, food: {}, battle: { fled: 0, lost: 0 } }`（SCHEMA は そのまま）。
 - PokaDebug: `records()`・`recordsAdd(id, key, n)`。検査は `tools/check-play-records.mjs`、スモークは `tests/play-records-smoke.mjs`（`play-records-390/375`）。
+
+## ごはんの せき（UI-72・`js/dine-seats.js`・`DineSeats`）
+
+オーナーの FB 2026-10-03「ご飯を食べるショップ系に関して、ちゃんと3人が席に座って注文できるようにして。」
+
+- せき（`KINDS`）: `booth`（びっくぽの ボックス席。まどぎわ dir y は ソファ｜テーブル｜ソファ が x に、かべぞい dir x は y に。おくの ソファに 2人・てまえに 1人）・`fmtable`（びっくぽの 4にんがけ）・`table`（サンシャインいけぶの まるい テーブル。カフェ 3けん × 3 と フードコート 4）・`mucafetable`（はくぶつかんの カフェ ジュラ。いすは `DinoHallArt.CAFE_STOOLS`）。1つの テーブルに せき 3つ（`{ x, y, z, dir, layer, plate }`・テーブルの かどから）。
+- そう（f._layer）: テーブルの 絵を おくから じゅんに 0,1,2,3 に わける（`MallArt.svgBuilder().only(k, str)`・`model()` が `S.layer = f._layer`・キーに `":L" + k`）。0 おくの いす／1 テーブル／2 てまえの ざめん／3 てまえの せもたれ／9 テーブルの かざり（ぜんぶの 絵 だけ。すわって いる ときは 3人の おさら）。どの そうも はんいは ぜんぶの 絵と おなじ。
+- 描く（`draw`）: `IsoVenueScene.drawables` が すわって いる テーブル（`sc.dine.f`）の 絵を `DineSeats.draw` に かえる → そう 0 → おくの 子 → そう 1 → おさら → そう 2 → てまえの 子 → そう 3。いすの うえの 子は いつもの 3人の ところには 描かず `ghost`（まえの 大きな ものを すかす ため だけ・`memberRect` は すわった たかさ `p.z` の ぶん うえ）。すわって いる テーブル じしんは すけない。
+- すわる（`sit(sc, f)`）: `plan` が 3人の せき（おおきい 子ほど おく: ごじ → わんこ → がちゃん・つぎに あるく みちが みじかい くみあわせ）と いりぐち（テーブルの まわりの とおれる マスで その せきに いちばん ちかい ところ）と みち（`path`・たて よこ・とおれる マスだけ）を きめる → そうの 絵と すわる ポーズを つくって から（1.5びょう まで）`sc.dine` → 3人が じゅんに あるいて（4.2マス/びょう）いすへ ぴょんと すべりこむ（0.42びょう・`sit_01`）。
+- たべる（`serve(sc, food)`）: テーブルに おさら（たべものの 絵 `dinefood:` + id・3まい）・にこにこ・もぐもぐ。たつ（`stand(sc)`）: すべりおりて いりぐちの マスに もどる（3人の `Walker` を その マスに）→ `sc.dine = null`。
+- くみこみ: `VenueScene.eat`（すわって から メニュー・たのむと おさら・やめても たつ。カウンター `foodcounter`／`mucafebar` は `counter` で おなじ おみせの あいている テーブルへ）・`VenueScene` の `sit`（フードコートの テーブルで ひとやすみ）・`Bikkupo.order`（ほかの おきゃくさんが いる 席 `taken` は `redirect` で あいている 席へ → すわって メニュー → はいぜん ロボが ついたら おさら）。ななめで ない 館・ベンチ などは まえの まま。
+- すわる ポーズ: `CHARA_POSE_EXTRA.sit_01`（chara.js の いれもの。からだを すこし ちぢめて あしを まえに・まえむき／よこむきは `feetOver` で あしを からだの まえに 描く）。
+- セーブは かえない（館の なかの うごき だけ）。PokaDebug: `dine()`（すわって いる テーブル・3人の いち・ポーズ・そう・おさら）。検査は `tools/check-dine-seats.mjs`、スモークは `tests/dine-seats-smoke.mjs`（`dine-seats-390/375`）。
 
 ## いぬの さんぽ（UI-49・`js/pet-walk.js`・`PetWalk`）
 

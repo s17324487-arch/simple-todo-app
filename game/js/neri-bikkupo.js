@@ -19,34 +19,36 @@ const Bikkupo = (() => {
   const GUESTS = { a: [["rabbit", 1, "right"]], b: [["bear", 0, "right"], ["cat", 2, "right"]], c: [["sheep", 1, "down"]], d: [["panda", 0, "down"], ["duck", 1, "down"]] };
   const M = {
     // ボックス席: dir y は まどぎわ（北の かべ・w3×h2。ソファ｜テーブル｜ソファ が x に ならぶ）、dir x は かべぞい（西の かべ・w2×h3）
+    // そう（O7・js/dine-seats.js）: 0 おくの ソファ（と すわって いる おきゃくさん）／1 テーブル／9 おきゃくさんの たべもの／2 てまえの ざめん／3 てまえの せもたれ
     booth(S, f) {
-      const alongY = f.dir !== "x", g = GUESTS[f.variant] || [];
-      let s = S.ellipse(f.w / 2, f.h / 2, 0, 1.25, "#00000012", 0);
+      const alongY = f.dir !== "x", g = GUESTS[f.variant] || [], L = (k, str) => S.only(k, str);
+      let s = L(0, S.ellipse(f.w / 2, f.h / 2, 0, 1.25, "#00000012", 0));
       const people = (u, v) => g.map(([sp, ci, dir], i) => S.at(alongY ? u : u + (i - (g.length - 1) / 2) * 0.62, alongY ? v + (i - (g.length - 1) / 2) * 0.62 : v, 22, img(guest(sp, ci, dir), -30, -84, 60, 84))).join("");
       if (alongY) {
-        s += S.box(0.06, 0.08, 0.3, 1.84, 0, 104, C.back) + S.box(0.36, 0.08, 0.58, 1.84, 0, 44, C.seat) + people(0.62, 1.0);
-        s += S.box(1.42, 0.72, 0.16, 0.56, 0, 66, C.leg) + S.box(1.02, 0.1, 0.96, 1.8, 66, 6, C.top);
-        s += S.box(1.14, 0.2, 0.18, 0.1, 72, 18, ["#FFFFFF", "#E95F4B", "#C9483A"]) + S.cyl(1.72, 0.32, 0.07, 72, 6, ["#F4B63F", "#D99A2B"]) + S.box(1.12, 1.55, 0.26, 0.2, 72, 12, C.white);
-        if (g.length) s += S.at(1.45, 1.05, 72, food(f.variant === "b" ? "hamburg" : "parfait", 30));
-        s += S.box(2.06, 0.08, 0.58, 1.84, 0, 44, C.seat) + S.box(2.64, 0.08, 0.3, 1.84, 0, 104, C.back);
+        s += L(0, S.box(0.06, 0.08, 0.3, 1.84, 0, 104, C.back) + S.box(0.36, 0.08, 0.58, 1.84, 0, 44, C.seat) + people(0.62, 1.0));
+        s += L(1, S.box(1.42, 0.72, 0.16, 0.56, 0, 66, C.leg) + S.box(1.02, 0.1, 0.96, 1.8, 66, 6, C.top));
+        s += L(1, S.box(1.14, 0.2, 0.18, 0.1, 72, 18, ["#FFFFFF", "#E95F4B", "#C9483A"]) + S.cyl(1.72, 0.32, 0.07, 72, 6, ["#F4B63F", "#D99A2B"]) + S.box(1.12, 1.55, 0.26, 0.2, 72, 12, C.white));
+        if (g.length) s += L(9, S.at(1.45, 1.05, 72, food(f.variant === "b" ? "hamburg" : "parfait", 30)));
+        s += L(2, S.box(2.06, 0.08, 0.58, 1.84, 0, 44, C.seat)) + L(3, S.box(2.64, 0.08, 0.3, 1.84, 0, 104, C.back));
       } else {
-        s += S.box(0.08, 0.06, 1.84, 0.3, 0, 104, C.back) + S.box(0.08, 0.36, 1.84, 0.58, 0, 44, C.seat) + people(1.0, 0.62);
-        s += S.box(0.72, 1.42, 0.56, 0.16, 0, 66, C.leg) + S.box(0.1, 1.02, 1.8, 0.96, 66, 6, C.top);
-        s += S.box(0.2, 1.14, 0.1, 0.18, 72, 18, ["#FFFFFF", "#C9483A", "#E95F4B"]) + S.cyl(0.32, 1.72, 0.07, 72, 6, ["#F4B63F", "#D99A2B"]) + S.box(1.55, 1.12, 0.2, 0.26, 72, 12, C.white);
-        if (g.length) s += S.at(1.05, 1.45, 72, food(f.variant === "d" ? "omurice" : "doria", 30));
-        s += S.box(0.08, 2.06, 1.84, 0.58, 0, 44, C.seat) + S.box(0.08, 2.64, 1.84, 0.3, 0, 104, C.back);
+        s += L(0, S.box(0.08, 0.06, 1.84, 0.3, 0, 104, C.back) + S.box(0.08, 0.36, 1.84, 0.58, 0, 44, C.seat) + people(1.0, 0.62));
+        s += L(1, S.box(0.72, 1.42, 0.56, 0.16, 0, 66, C.leg) + S.box(0.1, 1.02, 1.8, 0.96, 66, 6, C.top));
+        s += L(1, S.box(0.2, 1.14, 0.1, 0.18, 72, 18, ["#FFFFFF", "#C9483A", "#E95F4B"]) + S.cyl(0.32, 1.72, 0.07, 72, 6, ["#F4B63F", "#D99A2B"]) + S.box(1.55, 1.12, 0.2, 0.26, 72, 12, C.white));
+        if (g.length) s += L(9, S.at(1.05, 1.45, 72, food(f.variant === "d" ? "omurice" : "doria", 30)));
+        s += L(2, S.box(0.08, 2.06, 1.84, 0.58, 0, 44, C.seat)) + L(3, S.box(0.08, 2.64, 1.84, 0.3, 0, 104, C.back));
       }
       return s;
     },
     // 4にんがけの テーブル（いすが 4つ。せもたれは テーブルと はんたいがわ）
+    // そう: 0 おくの いす（きた・にし）／1 テーブル／9 テーブルの うえの たべもの／2 てまえの ざめん（ひがし・みなみ）／3 てまえの せもたれ
     fmtable(S, f) {
       const seat = (x, y) => S.box(x + 0.17, y + 0.17, 0.08, 0.08, 0, 36, C.leg) + S.box(x, y, 0.42, 0.42, 36, 6, C.seat);
-      const back = (x, y, w, d) => S.box(x, y, w, d, 42, 40, C.wood);
-      let s = S.ellipse(1, 1, 0, 0.95, "#00000012", 0);
-      s += back(0.79, 0.04, 0.42, 0.07) + seat(0.79, 0.04) + back(0.04, 0.79, 0.07, 0.42) + seat(0.04, 0.79);
-      s += S.cyl(1, 1, 0.07, 0, 64, C.leg) + S.box(0.42, 0.42, 1.16, 1.16, 64, 6, C.top) + S.box(0.62, 0.6, 0.16, 0.1, 70, 16, ["#FFFFFF", "#E95F4B", "#C9483A"]) + S.cyl(1.3, 0.7, 0.06, 70, 5, ["#F4B63F", "#D99A2B"]);
-      if (f.variant) s += S.at(1.05, 1.1, 70, food(f.variant, 28));
-      s += seat(1.54, 0.79) + back(1.89, 0.79, 0.07, 0.42) + seat(0.79, 1.54) + back(0.79, 1.89, 0.42, 0.07);
+      const back = (x, y, w, d) => S.box(x, y, w, d, 42, 40, C.wood), L = (k, str) => S.only(k, str);
+      let s = L(0, S.ellipse(1, 1, 0, 0.95, "#00000012", 0));
+      s += L(0, back(0.79, 0.04, 0.42, 0.07) + seat(0.79, 0.04) + back(0.04, 0.79, 0.07, 0.42) + seat(0.04, 0.79));
+      s += L(1, S.cyl(1, 1, 0.07, 0, 64, C.leg) + S.box(0.42, 0.42, 1.16, 1.16, 64, 6, C.top) + S.box(0.62, 0.6, 0.16, 0.1, 70, 16, ["#FFFFFF", "#E95F4B", "#C9483A"]) + S.cyl(1.3, 0.7, 0.06, 70, 5, ["#F4B63F", "#D99A2B"]));
+      if (f.variant) s += L(9, S.at(1.05, 1.1, 70, food(f.variant, 28)));
+      s += L(2, seat(1.54, 0.79) + seat(0.79, 1.54)) + L(3, back(1.89, 0.79, 0.07, 0.42) + back(0.79, 1.89, 0.42, 0.07));
       return s;
     },
     // ドリンクバー（ジュースの きかい・コーヒー・コップ・こおり）
@@ -178,8 +180,9 @@ const Bikkupo = (() => {
     const F = [], add = (o) => (F.push(o), o);
     const order = (x, y, w, h, extra) => add({ x, y, w, h, action: "order", ...extra });
     // まどぎわの ボックス席（北）・かべぞいの ボックス席（西）
-    [[1, "a"], [4, ""], [7, "b"]].forEach(([x, v], i) => order(x, 0, 3, 2, { kind: "booth", dir: "y", variant: v, height: 104, label: "まどぎわの ボックス席 " + (i + 1), spots: [[x + 1, 2]] }));
-    [[4, "c"], [7, ""], [10, "d"]].forEach(([y, v], i) => order(0, y, 2, 3, { kind: "booth", dir: "x", variant: v, height: 104, label: "かべぞいの ボックス席 " + (i + 1), spots: [[2, y + 1]] }));
+    // ほかの おきゃくさんが すわって いる 席は taken（タップすると あいている 席へ。js/dine-seats.js）
+    [[1, "a"], [4, ""], [7, "b"]].forEach(([x, v], i) => order(x, 0, 3, 2, { kind: "booth", dir: "y", variant: v, taken: !!GUESTS[v], height: 104, label: "まどぎわの ボックス席 " + (i + 1), spots: [[x + 1, 2]] }));
+    [[4, "c"], [7, ""], [10, "d"]].forEach(([y, v], i) => order(0, y, 2, 3, { kind: "booth", dir: "x", variant: v, taken: !!GUESTS[v], height: 104, label: "かべぞいの ボックス席 " + (i + 1), spots: [[2, y + 1]] }));
     // 4にんがけの テーブル
     [[5, 5, ""], [9, 5, "pancake"], [5, 9, ""], [9, 9, ""]].forEach(([x, y, v], i) => order(x, y, 2, 2, { kind: "fmtable", variant: v, height: 84, label: "テーブル " + (i + 1), spots: [[x - 1, y + 1], [x + 2, y], [x, y + 2]] }));
     add({ kind: "drinkbar", x: 11, y: 0, w: 4, h: 1, height: 204, label: "ドリンクバー", action: "drink", spots: [[12, 1], [13, 1]] });
@@ -216,7 +219,7 @@ const Bikkupo = (() => {
   const art = Object.create(MallArt);
   Object.assign(art, {
     M: { ...MallArt.M, ...M }, L: { ...MallArt.L, ...L }, MAT: { ...MallArt.MAT, ...MAT }, models: new Map(),
-    modelKey(f) { return "bikkupo:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.variant || "") + ":" + (f.dir || ""); },
+    modelKey(f) { return "bikkupo:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.variant || "") + ":" + (f.dir || "") + (f._layer != null ? ":L" + f._layer : ""); },
     async prepare(r, sc) {
       const k = Math.min(sc.k, 1.2), jobs = [];
       for (const side of ["north", "west"]) { const w = wallSvg(r, side); jobs.push(SvgCache.ensure("bikkupowall:" + side + ":" + r.w + "x" + r.h, () => w.svg, Math.ceil(w.L * k), Math.ceil(w.H * k)).then((c) => { (r._walls ||= {})[side] = { c, L: w.L, H: w.H }; })); }
@@ -243,16 +246,23 @@ const Bikkupo = (() => {
       } finally { sc.busy = false; }
       return true;
     },
-    // メニュー: ごはん か デザート → しなもの（3人 いっしょに たべる・ねだんは 3人ぶん）
+    // メニュー: ごはん か デザート → しなもの（3人 いっしょに たべる・ねだんは 3人ぶん）。
+    // O7: 3人が ボックス席・テーブルの せきに すわってから メニューを ひらく → はいぜん ロボが きて おさらが でる → たべおわると たつ（js/dine-seats.js）。
+    // ほかの おきゃくさんが いる 席は あいている 席へ
     async order(sc, f) {
-      const k = await UI.ask(f.label + "\nメニューを ひらいた。なにに する？", ["ごはん", "デザート", "やめておく"]); if (k !== 0 && k !== 1) return;
-      const ids = k === 0 ? MENU.meal : MENU.dessert, i = await UI.ask(k === 0 ? "ごはんの メニュー\n3にん いっしょに たべよう。" : "デザートの メニュー\n3にん いっしょに たべよう。", [...ids.map((id) => `${BAG_INDEX[id].name}（${BAG_INDEX[id].price}コイン）`), "やめておく"]);
-      if (i < 0 || i >= ids.length) return;
-      const food = BAG_INDEX[ids[i]]; if (Save.d.coins < food.price) { UI.toast("コインが たりないよ"); return; }
-      Save.d.coins -= food.price; for (const id of Save.d.order) Save.care(id, { hunger: food.hunger, mood: food.mood }); Save.write(); UI.updateHud();
-      this.robotGo(sc, f); sc.sitting = 6; Sound.se("good");
-      await UI.say([{ name: "はいぜん ロボ", text: "おまたせ しました ニャ〜。\n" + food.name + " です。" }, ...Save.d.order.map((id) => ({ who: id, emo: "happy", text: say(id, food) }))]);
-      sc.lastMeal = food.id;
+      const D = typeof DineSeats !== "undefined" ? DineSeats : null; if (D && D.redirect(sc, f)) return;
+      const seated = D && D.can(sc, f) ? await D.sit(sc, f) : false;
+      try {
+        const k = await UI.ask(f.label + "\nメニューを ひらいた。なにに する？", ["ごはん", "デザート", "やめておく"]); if (k !== 0 && k !== 1) return;
+        const ids = k === 0 ? MENU.meal : MENU.dessert, i = await UI.ask(k === 0 ? "ごはんの メニュー\n3にん いっしょに たべよう。" : "デザートの メニュー\n3にん いっしょに たべよう。", [...ids.map((id) => `${BAG_INDEX[id].name}（${BAG_INDEX[id].price}コイン）`), "やめておく"]);
+        if (i < 0 || i >= ids.length) return;
+        const food = BAG_INDEX[ids[i]]; if (Save.d.coins < food.price) { UI.toast("コインが たりないよ"); return; }
+        Save.d.coins -= food.price; for (const id of Save.d.order) Save.care(id, { hunger: food.hunger, mood: food.mood }); Save.write(); UI.updateHud();
+        this.robotGo(sc, f); Sound.se("good");
+        if (seated) { const r = sc.fixtures.find((o) => o.robot); await D.until(() => !r || !r.goal, 5); await D.serve(sc, food.id); } else sc.sitting = 6;
+        await UI.say([{ name: "はいぜん ロボ", text: "おまたせ しました ニャ〜。\n" + food.name + " です。" }, ...Save.d.order.map((id) => ({ who: id, emo: "happy", text: say(id, food) }))]);
+        sc.lastMeal = food.id;
+      } finally { if (seated) await D.stand(sc); }
     },
     async drink(sc) {
       const i = await UI.ask("ドリンクバー\nジュース・ココア・メロンソーダ。3にんで " + MENU.drink + "コイン。", ["のむ（" + MENU.drink + "コイン）", "やめておく"]); if (i !== 0) return;

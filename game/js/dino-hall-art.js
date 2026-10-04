@@ -4,6 +4,8 @@
 // 展示の 説明の 絵（iconSvg）も ここ。かせき・いきもの・どうぐ 30しゅ。
 const DinoHallArt = (() => {
   const art = Object.create(MallArt);
+  // カフェの テーブルの いす 3つ（テーブルの まんなかから。js/dine-seats.js も つかう）
+  art.CAFE_STOOLS = [[-0.75, -0.2], [0.2, -0.78], [0.7, 0.45]];
   const st = (w = 1.6) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
   const BONE = "#EFE2C2", BONE2 = "#D9C7A0", WOOD = ["#C99D6B", "#AD8255", "#956D45"], DARKWOOD = ["#8E6A4A", "#765639", "#63472E"], STONE = ["#D8CBB4", "#BFAE92", "#A99677"], GLASS = "#CFE7EC66", METAL = ["#C9CED3", "#AEB5BC", "#959DA5"];
   // じだいの いろ（台の おび・かんばん）
@@ -197,14 +199,17 @@ const DinoHallArt = (() => {
       s += S.cyl(0.45, f.h - 0.5, 0.12, 100, 16, ["#FFFFFF", "#E3E7EA"]) + S.cyl(0.45, f.h - 0.85, 0.12, 100, 16, ["#FFFFFF", "#E3E7EA"]);
       return s;
     },
-    // カフェの テーブル（まるい テーブル・いす 3つ・たべもの）
+    // カフェの テーブル（まるい テーブル・いす 3つ・たべもの）。
+    // そう（O7・js/dine-seats.js）: 0 おくの いす 2つ／1 テーブル／9 テーブルの うえの かざり（すわって いる ときは 3人の おさら）／2 てまえの いす
     mucafetable(S, f) {
-      const cx = f.w / 2, cy = f.h / 2, cloth = ["#F4D6C8", "#D6E6C6", "#F7E7B6", "#D3E4EE"][f.variant % 4], food = ["curry", "parfait", "cocoa", "sandwich"][f.variant % 4];
-      let s = S.ellipse(cx, cy, 0, 0.95, "#00000012", 0);
-      for (const [x, y] of [[cx - 0.75, cy - 0.2], [cx + 0.2, cy - 0.78], [cx + 0.7, cy + 0.45]]) s += S.cyl(x, y, 0.06, 0, 30, ["#8C8890", "#77737B"], 1.1) + S.cyl(x, y, 0.25, 30, 6, ["#D9B686", "#C39E6E"], 1.2);
-      s += S.cyl(cx, cy, 0.08, 0, 62, ["#8C8890", "#77737B"], 1.2) + S.cyl(cx, cy, 0.62, 62, 6, [cloth, MallArt.shade(cloth, -0.12)], 1.4);
-      if (typeof Art !== "undefined" && BAG_INDEX[food]) s += S.at(cx, cy, 70, img(Art.iconSvg("bag", food), -14, -24, 28, 28));
-      s += S.at(cx + 0.35, cy + 0.15, 68, `<path d="M0,0 L0,-16" ${S.st(1.4)}/><path d="M0,-16 L12,-12 L0,-8 Z" fill="#7FB069" ${S.st(1)}/>`);
+      const cx = f.w / 2, cy = f.h / 2, cloth = ["#F4D6C8", "#D6E6C6", "#F7E7B6", "#D3E4EE"][f.variant % 4], food = ["curry", "parfait", "cocoa", "sandwich"][f.variant % 4], L = (k, str) => S.only(k, str);
+      const stool = ([x, y]) => S.cyl(x, y, 0.06, 0, 30, ["#8C8890", "#77737B"], 1.1) + S.cyl(x, y, 0.25, 30, 6, ["#D9B686", "#C39E6E"], 1.2), ST = this.CAFE_STOOLS.map(([x, y]) => [cx + x, cy + y]);
+      let s = L(0, S.ellipse(cx, cy, 0, 0.95, "#00000012", 0));
+      s += L(0, stool(ST[0]) + stool(ST[1]));
+      s += L(1, S.cyl(cx, cy, 0.08, 0, 62, ["#8C8890", "#77737B"], 1.2) + S.cyl(cx, cy, 0.62, 62, 6, [cloth, MallArt.shade(cloth, -0.12)], 1.4));
+      if (typeof Art !== "undefined" && BAG_INDEX[food]) s += L(9, S.at(cx, cy, 70, img(Art.iconSvg("bag", food), -14, -24, 28, 28)));
+      s += L(9, S.at(cx + 0.35, cy + 0.15, 68, `<path d="M0,0 L0,-16" ${S.st(1.4)}/><path d="M0,-16 L12,-12 L0,-8 Z" fill="#7FB069" ${S.st(1)}/>`));
+      s += L(2, stool(ST[2]));
       return s;
     },
     // いのちの れきしの ケース（だい ＋ ガラス・なかに いきもの）
@@ -543,7 +548,7 @@ const DinoHallArt = (() => {
       mkids: { c: ["#CFE6C0", "#C6DFB6"], line: "#AFCB9C", pat: "carpet" }, mearth: { c: ["#CFDDE6", "#C6D6E0"], line: "#AFC2CE", pat: "carpet" }, mlife: { c: ["#E8E0D2", "#E1D8C8"], line: "#CDBFA8", pat: "plank" },
     },
     models: new Map(),
-    modelKey(f) { return "dinohall:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.variant ?? "") + ":" + (f.dino || "") + ":" + (f.dir || "") + ":" + (f.side || "") + ":" + (f.len || "") + ":" + (f.col || "") + ":" + (f.z || ""); },
+    modelKey(f) { return "dinohall:" + f.kind + ":" + f.w + "x" + f.h + ":" + (f.variant ?? "") + ":" + (f.dino || "") + ":" + (f.dir || "") + ":" + (f.side || "") + ":" + (f.len || "") + ":" + (f.col || "") + ":" + (f.z || "") + (f._layer != null ? ":L" + f._layer : ""); },
     ICON, iconSvg, wallPart, wallText, decal, under,
     // ほねの 台の 寄贈の ようす（部品の じゅんに 1/0）
     bits(d) { return d.art.parts.map((p) => (typeof Museum !== "undefined" && Museum.gaveBone(d.id + "." + p.id) ? "1" : "0")).join(""); },
