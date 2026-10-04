@@ -4437,6 +4437,8 @@ await (await import("./work-exp-smoke.mjs")).workExpSmoke({scenario,expect});
 await (await import("./home-talk-more-smoke.mjs")).homeTalkMoreSmoke({scenario,expect});
 await (await import("./gowaga-wish-smoke.mjs")).gowagaWishSmoke({scenario,expect});
 await (await import("./home-toilet-smoke.mjs")).homeToiletSmoke({scenario,expect});
+// おうちの みち（UI-73）: 3人と ぱぱが 家具を よけて あるく・いきさきが 家具の なか → そばで とまる・家具の うえから でる
+await (await import("./home-nav-smoke.mjs")).homeNavSmoke({scenario,expect});
 await (await import("./hand-items-smoke.mjs")).handItemsSmoke({scenario,expect});
 await (await import("./pet-walk-smoke.mjs")).petWalkSmoke({scenario,expect});
 await (await import("./rare-calm-smoke.mjs")).rareCalmSmoke({scenario,expect});

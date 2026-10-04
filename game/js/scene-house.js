@@ -245,6 +245,7 @@ class HouseScene {
     ids.forEach((id, k) => {
       const c = this.chars.find((x) => x.id === id);
       c.state = "walk"; c.tx = spots[k]; c.ty = ROOM.H - 90;
+      if (typeof HomeNav !== "undefined") { const q = HomeNav.near(this, c.tx, c.ty); c.tx = q.x; c.ty = q.y; } // 家具の うえには ならばない
     });
     await U.wait(900);
     for (const id of ids) {
@@ -409,7 +410,7 @@ class HouseScene {
     this.showBar(false);
     const bed = Room.bestBed();
     const a = bed ? this.anchor(bed) : { x: ROOM.W / 2, y: ROOM.H - 120 }, bx = a.x, by = a.y + 16;
-    this.chars.forEach((c, i) => { c.state = "walk"; c.tx = U.clamp(bx + (i - 1) * 44, 40, ROOM.W - 40); c.ty = U.clamp(by + (i % 2) * 10, ROOM.WALL + 60, ROOM.H - 20); });
+    this.chars.forEach((c, i) => { c.state = "walk"; c.tx = U.clamp(bx + (i - 1) * 44, 40, ROOM.W - 40); c.ty = U.clamp(by + (i % 2) * 10, ROOM.WALL + 60, ROOM.H - 20); if (typeof HomeNav !== "undefined") { const q = HomeNav.near(this, c.tx, c.ty); c.tx = q.x; c.ty = q.y; } });
     this.darkTarget = 0.62;
     await U.wait(1100);
     this.chars.forEach((c) => { c.state = "sleep"; c.dir = "down"; c.x = c.tx; c.y = c.ty; });
@@ -695,9 +696,11 @@ class HouseScene {
     if (c.hidden) return;
     switch (c.state) {
       case "walk": {
+        const sp = this.mode === "ball" ? 120 : 52;
+        // 家具を よけて あるく（js/home-nav.js。つまる ときだけ とおりぬけを ゆるす）
+        if (typeof HomeNav !== "undefined") { if (HomeNav.walk(this, c, sp, dt)) { c.state = "idle"; c.t = U.rand(1.5, 4.5); c.dir = "down"; } break; }
         const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy);
         if (d < 2) { c.state = "idle"; c.t = U.rand(1.5, 4.5); c.dir = "down"; break; }
-        const sp = this.mode === "ball" ? 120 : 52;
         c.x += (dx / d) * Math.min(d, sp * dt); c.y += (dy / d) * Math.min(d, sp * dt);
         c.dir = Math.abs(dx) > Math.abs(dy) * 0.7 ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up";
         break;
