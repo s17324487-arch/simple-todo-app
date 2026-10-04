@@ -370,7 +370,7 @@ class KorokoroTask extends TaskBase {
 }
 MG_TASKS.korokoro = KorokoroTask;
 SHOP_OWNERS.korokoro = { sp: "squirrel", col: "#E7A66A", col2: "#FFF1DD", name: "りすの コロン", look: { eye: "sparkle", cheek: "peach", tuft: "curl" }, outfit: { head: "beret", body: "apron" } };
-// レジでは くだものと ジュースも かえる（もちもの・ねだんは スーパーと おなじ）
+// レジでは くだものと ジュースも かえる（しなぞろえと タブは js/shop-goods.js が あとで かきかえる・UI-76）
 BUY_SHOPS.korokoro = { name: SHOPS.korokoro.name, keeper: SHOP_OWNERS.korokoro, keeperName: SHOP_OWNERS.korokoro.name, hello: ["いらっしゃい！ まんまるの くだもの、ゆっくり みていってね。"], kind: "bag",
   tabs: [["goods", "くだものと ジュース"]], items: () => ["apple", "juice", "candy"].map((k) => BAG_INDEX[k]) };
 // かんばんの しるし: くだもの と かおの 玉が 3つ

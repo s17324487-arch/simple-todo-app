@@ -151,7 +151,7 @@ const BurgerMenu = (() => {
   const CHEST = { wanko: [100, 156], gachan: [100, 160], goji: [102, 146] };
   const HUG = { wanko: [{ rot: -54, front: true }, { rot: 54, front: true }], gachan: [{ rot: -72, front: true }, { rot: 72, front: true }], goji: [{ rot: -150, front: true }, { rot: 150, front: true }] };
   const hold = (art, k) => (id) => { const [x, y] = CHEST[id]; return `<g transform="translate(${f1(x - 32 * k)} ${f1(y - 32 * k)}) scale(${k})">${art}</g>`; };
-  CHARA_GESTURES.bm_hug_burger = { arms: HUG, under: hold(FOOD_ART.burger, 1.7) };
+  CHARA_GESTURES.bm_hug_burger = { arms: HUG, under: (id) => hold(FOOD_ART.burger, 1.7)(id) }; // チーズバーガーの 絵は あとで かきなおす（js/shop-goods-art.js）ので かく ときに よむ
   CHARA_GESTURES.bm_hug_fries = { arms: HUG, under: hold(fries(2, false), 1.55) };
   CHARA_GESTURES.bm_hug_shake = { arms: HUG, under: hold(shake("#A06A48", "#FFFFFF"), 1.75) };
   const HERO_VB = { wanko: "0 -8 200 222", gachan: "30 12 140 202", goji: "-6 -6 212 222" };

@@ -65,7 +65,7 @@ for(const id of ['gasstand','postoffice']){
   assert(R.SHOPS[id]&&R.MG_TASKS[id]&&R.SHOP_OWNERS[id]&&R.HOWTO[id]&&R.SONGS['shop_'+id]&&R.Save.fresh().shops[id],id+' registration');
   const design=R.STORE_INTERIORS[id];assert(design&&design.fixtures.length>=12,id+' interior');for(const f of R.StoreIso.fixtures(id))if(f.kind!=='keeper'&&f.kind!=='npc')assert(R.StoreIsoArt.model(f).svg.length>300,id+' fixture art '+f.kind);
 }
-assert(R.BUY_SHOPS.gasstand.items().length===3,'gas station goods');
+{const S=R.BUY_SHOPS.gasstand,all=S.tabs.flatMap(([k])=>S.items(k));assert(S.tabs.length===2&&all.length===8&&all.every(i=>i&&R.BAG_INDEX[i.id])&&all.some(i=>i.id==='drink'),'gas station goods (UI-76: 2 tabs, 8 goods)');}
 {const v=R.VenueHalls.defs.neri_apart;assert(v.iso&&Object.keys(v.floors).join()==='1,2','apartment floors');
   const keys=new Set();
   for(const [lv,r] of Object.entries(v.floors)){

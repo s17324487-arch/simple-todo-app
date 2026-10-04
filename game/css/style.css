@@ -359,6 +359,9 @@ html, body {
 .bm-panel .panel-foot .btn { min-height: 48px; font-size: 16px; }
 .shop-bm .card > div { word-break: keep-all; overflow-wrap: anywhere; }
 .shop-bm .tab { min-height: 44px; }
+/* たべものの おみせ（js/shop-goods.js・UI-76）: なまえは ことばの きれめ（スペース・「・」）で おりかえす・タブは 44px */
+.shop-goods .card > div { word-break: keep-all; overflow-wrap: anywhere; }
+.shop-goods .tab { min-height: 44px; }
 /* 服は 1こで 1人（js/wear-stock.js）: のこりが ない 服は いろを おとして、つかって いる 人の なまえ */
 .card.busy:not(.on) { background: #f1ede6; }
 .card.busy:not(.on) .ico { opacity: .6; }

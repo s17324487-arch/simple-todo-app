@@ -261,7 +261,7 @@ HOWTO.gasstand = [
   "メーターの みどりの ところで ゆびを はなそう。\nまんたんは カチッと とまるよ。",
   "つぎは せんしゃ。よごれを ゆびで ごしごし！\nぺしゃんこの タイヤには くうきを いれてね。",
 ];
-// レジでは のみものと おやつ（もちもの・ねだんは スーパーと おなじ）
+// レジでは のみものと おやつ（しなぞろえと タブは js/shop-goods.js が あとで かきかえる・UI-76）
 BUY_SHOPS.gasstand = { name: SHOPS.gasstand.name, keeper: SHOP_OWNERS.gasstand, keeperName: SHOP_OWNERS.gasstand.name, hello: ["いらっしゃい！ ドライブの おともに どうぞ。"], kind: "bag",
   tabs: [["goods", "のみものと おやつ"]], items: () => ["drink", "juice", "candy"].map((k) => BAG_INDEX[k]) };
 // かんばんの しるし: きゅうゆき

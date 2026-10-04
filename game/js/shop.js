@@ -73,8 +73,8 @@ const ShopUI = {
     // かべがみ・ゆかは 1つで おしまい。服は 1こで 1人なので WearStock.CAP こ まで かえる
     const single = kind === "wall" || kind === "floor", full = (single && own) || (kind === "wear" && own >= WearStock.CAP);
     const card = U.el("button", { class: "card" + (full ? " on" : "") });
-    const icoSize = kind === "furn" ? 58 : 48;
-    card.innerHTML = `${own && !single ? `<span class="cnt">×${own}</span>` : ""}${UI.icon(kind, it.id, icoSize)}<div>${it.name}</div>` +
+    const icoSize = (BUY_SHOPS[shopId] && BUY_SHOPS[shopId].icoSize) || (kind === "furn" ? 58 : 48); // たべものの おみせは 56（js/shop-goods.js）
+    card.innerHTML = `${own && !single ? `<span class="cnt">×${own}</span>` : ""}${UI.icon(kind, it.id, icoSize)}<div>${String(it.name).replace(/・/g, "・<wbr>")}</div>` +
       (full ? `<div class="price">もってる</div>` : `<div class="price"><i class="coin-ico"></i>${it.price}</div>`);
     card.addEventListener("click", () => { Sound.se("tap"); this.detail(shopId, kind, it, onBuy); });
     return card;

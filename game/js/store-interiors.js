@@ -41,12 +41,12 @@ const STORE_INTERIORS = {
     mats: { ".": { c: ["#FFF9F5", "#F7E0E6"], pat: "check" } },
     counter: { body: "#F2B8C6", top: "#FFFFFF", items: ["dome", "ribbon"] },
     walls: {
-      north: [{ t: "shelf", a: 0.3, b: 2.7, z: 172, goods: "cupcakes" }, { t: "sign", a: 4.0, b: 7.0, z0: 170, z1: 216 }, { t: "poster", a: 7.6, b: 8.8, z0: 182, z1: 226, food: "cake", text: "おたんじょうび" }, { t: "lights", a: 0, b: 10, z: 226 }],
-      west: [{ t: "window", a: 3.0, b: 5.9, z0: 118, z1: 204, curtain: "#F2B8C6" }, { t: "window", a: 7.0, b: 8.9, z0: 118, z1: 204, curtain: "#F2B8C6" }, { t: "menu", a: 9.3, b: 11.7, z0: 120, z1: 196, title: "ケーキ", items: ["cake", "rollcake", "deza_tart", "pudding"], dark: false }, { t: "lights", a: 0, b: 12, z: 226 }],
+      north: [{ t: "shelf", a: 0.3, b: 2.7, z: 172, goods: "cupcakes" }, { t: "sign", a: 4.0, b: 7.0, z0: 170, z1: 216 }, { t: "poster", a: 7.6, b: 8.8, z0: 182, z1: 226, food: "deza_wholecake", text: "おたんじょうび" }, { t: "lights", a: 0, b: 10, z: 226 }],
+      west: [{ t: "window", a: 3.0, b: 5.9, z0: 118, z1: 204, curtain: "#F2B8C6" }, { t: "window", a: 7.0, b: 8.9, z0: 118, z1: 204, curtain: "#F2B8C6" }, { t: "menu", a: 9.3, b: 11.7, z0: 120, z1: 196, title: "ケーキ", items: ["cake", "deza_chococake", "deza_montblanc", "deza_cheese"], dark: false }, { t: "lights", a: 0, b: 12, z: 226 }],
     },
     fixtures: [
       ["wallshelf", 4, 0, 3, 1, "ギフトの はこ", { variant: "boxes", sign: "ギフト", height: 150 }], ["cakestand", 4, 1, 1, 1, "カップケーキの スタンド"], ["giftboxes", 6, 1, 1, 1, "リボンの はこ"],
-      ["wallshelf", 0, 0, 3, 1, "やきがしの たな", { variant: "jars", sign: "やきがし", height: 150 }], ["fridge", 7, 0, 3, 1, "ホールケーキの れいぞうこ", { variant: "cakes", sign: "ホールケーキ", body: "#F6DDE4", glow: "#FFF6F8" }],
+      ["wallshelf", 0, 0, 3, 1, "やきがしの たな", { foods: ["deza_macaron", "deza_creampuff", "deza_cupcake", "pudding"], sign: "やきがし", height: 150 }], ["fridge", 7, 0, 3, 1, "ホールケーキの れいぞうこ", { variant: "cakes", sign: "ホールケーキ", body: "#F6DDE4", glow: "#FFF6F8" }],
       ["showcase", 0, 3, 1, 3, "ケーキの ショーケース", { variant: "cakes", sign: "ケーキ" }], ["showcase", 0, 7, 1, 2, "プチケーキ", { variant: "cupcakes", sign: "プチ" }],
       ["weddingcake", 2, 5, 2, 2, "おいわいの ケーキ", { text: "まっしろな 3だんの ケーキ。いつか たべて みたいな" }],
       ["table", 7, 4, 2, 2, "カフェの せき", { action: "sit", text: "あまい かおり。ケーキ、どれに しようかな。" }], ["table", 7, 7, 2, 2, "カフェの せき", { action: "sit", text: "いちごの ケーキ、だいすき！" }],
@@ -95,7 +95,7 @@ const STORE_INTERIORS = {
     },
     fixtures: [
       ["fishtank", 4, 0, 3, 1, "いけすの さかな"], ["scalestand", 4, 1, 1, 1, "はかりの だい"], ["baskets", 6, 1, 1, 1, null, { col: "#5DA676" }],
-      ["fridge", 0, 0, 3, 1, "ひんやり れいぞうこ", { foods: ["milk", "pudding", "deza_berrymilk", "deza_jelly"], sign: "ひんやり" }], ["fridge", 7, 0, 3, 1, "のみものの たな", { variant: "drinks", sign: "ドリンク" }],
+      ["fridge", 0, 0, 3, 1, "ひんやり れいぞうこ", { foods: ["milk", "pudding", "deza_ice", "deza_jelly"], sign: "ひんやり" }], ["fridge", 7, 0, 3, 1, "のみものの たな", { variant: "drinks", sign: "ドリンク" }],
       ["wallshelf", 0, 3, 1, 4, "たべものの たな", { variant: "cans", sign: "かんづめ" }], ["wallshelf", 0, 8, 1, 2, "パンの たな", { variant: "bread", sign: "パン" }],
       ["produce", 2, 4, 2, 2, "くだもの いちば"], ["produce", 2, 7, 2, 1, "やさいの はこ", { variant: "veg" }],
       ["gondola", 7, 4, 2, 1, "おかしの たな", { variant: "snacks", sign: "おかし" }], ["freezer", 7, 6, 2, 2, "アイスの れいとうこ", { variant: "candy", sign: "アイス" }],
@@ -108,12 +108,12 @@ const STORE_INTERIORS = {
     mats: { ".": { c: ["#FFF7EF", "#F9DFD0"], pat: "check" } },
     counter: { body: "#F4A99A", top: "#FFFFFF", items: ["menu", "candy"] },
     walls: {
-      north: [{ t: "shelf", a: 0.3, b: 2.7, z: 168, foods: ["ike_crepes_0", "ike_crepes_1", "ike_crepes_2"] }, { t: "menu", a: 3.3, b: 7.7, z0: 172, z1: 230, title: "クレープ", items: ["ike_crepes_0", "ike_crepes_1", "ike_crepes_2", "deza_ice"], dark: false, col: "#F09A8A" }, { t: "lights", a: 7.6, b: 10, z: 226 }],
-      west: [{ t: "window", a: 3.0, b: 6.9, z0: 104, z1: 204, awning: "#F09A8A" }, { t: "poster", a: 8.0, b: 9.4, z0: 120, z1: 200, food: "ike_crepes_1", text: "いちご クレープ" }, { t: "clock", a: 10.4, z: 200 }],
+      north: [{ t: "shelf", a: 0.3, b: 2.7, z: 168, foods: ["deza_softcream", "drink_lemonade", "deza_ice"] }, { t: "menu", a: 3.3, b: 7.7, z0: 172, z1: 230, title: "クレープ", items: ["crepe_berry", "crepe_choco", "crepe_custard", "crepe_ice"], dark: false, col: "#F09A8A" }, { t: "lights", a: 7.6, b: 10, z: 226 }],
+      west: [{ t: "window", a: 3.0, b: 6.9, z0: 104, z1: 204, awning: "#F09A8A" }, { t: "poster", a: 8.0, b: 9.4, z0: 120, z1: 200, food: "crepe_berry", text: "いちご クレープ" }, { t: "clock", a: 10.4, z: 200 }],
     },
     fixtures: [
       ["crepekitchen", 4, 0, 3, 1, "クレープの てっぱん"], ["toppingbar", 4, 1, 1, 1, "トッピングの だい"], ["icecase", 6, 1, 1, 1, "アイスの ケース"],
-      ["wallshelf", 0, 0, 3, 1, "クレープの みほん", { foods: ["ike_crepes_0", "ike_crepes_1", "ike_crepes_2", "deza_ice"], sign: "みほん", height: 150 }], ["fridge", 7, 0, 3, 1, "のみものの れいぞうこ", { variant: "drinks", sign: "ドリンク" }],
+      ["wallshelf", 0, 0, 3, 1, "クレープの みほん", { foods: ["crepe_berry", "crepe_choco", "crepe_ice", "crepe_hamcheese"], sign: "みほん", height: 150 }], ["fridge", 7, 0, 3, 1, "のみものの れいぞうこ", { variant: "drinks", sign: "ドリンク" }],
       ["barseat", 0, 3, 1, 4, "まどべの カウンターせき", { seat: "#F4A99A" }], ["plant", 0, 8, 1, 1, null, { variant: "flower" }],
       ["table", 7, 4, 2, 2, "テーブルせき", { action: "sit", text: "クリーム たっぷりの クレープ、たべたいな。" }], ["table", 7, 7, 2, 2, "テーブルせき", { action: "sit", text: "いちごと バナナ、どっちに しよう？" }],
       ["board", 9, 3, 1, 1, "きょうの メニュー", { lines: ["きょうの", "いちご", "クレープ"], col: "#7A4A4A" }], ["plant", 9, 10, 1, 1, null, { variant: "bush" }],
@@ -140,13 +140,13 @@ const STORE_INTERIORS = {
     mats: { ".": { c: ["#E9C9A6", "#E1BE98"], pat: "tile" } },
     counter: { body: "#C98A52", top: "#F6E7CF", items: ["breadbasket", "bags"] },
     walls: {
-      north: [{ t: "chalk", a: 0.3, b: 2.7, z0: 168, z1: 222, lines: ["やきたて", "メロンパン 120"] }, { t: "sign", a: 4.0, b: 7.0, z0: 172, z1: 218 }, { t: "shelf", a: 7.3, b: 9.7, z: 180, goods: "bread" }],
-      west: [{ t: "window", a: 3.1, b: 5.9, z0: 168, z1: 214 }, { t: "window", a: 7.1, b: 8.9, z0: 104, z1: 200, curtain: "#E8C9A0" }, { t: "poster", a: 9.4, b: 11.0, z0: 120, z1: 196, food: "bread", text: "しょくぱん" }],
+      north: [{ t: "chalk", a: 0.3, b: 2.7, z0: 168, z1: 222, lines: ["やきたて", "クロワッサン"] }, { t: "sign", a: 4.0, b: 7.0, z0: 172, z1: 218 }, { t: "shelf", a: 7.3, b: 9.7, z: 180, goods: "bread" }],
+      west: [{ t: "window", a: 3.1, b: 5.9, z0: 168, z1: 214 }, { t: "window", a: 7.1, b: 8.9, z0: 104, z1: 200, curtain: "#E8C9A0" }, { t: "poster", a: 9.4, b: 11.0, z0: 120, z1: 196, food: "bread_shoku", text: "しょくぱん" }],
     },
     fixtures: [
       ["stoneoven", 4, 0, 3, 1, "いしがま オーブン"], ["coolingrack", 4, 1, 1, 1, "やきたての たな"], ["flourbags", 6, 1, 1, 1, "こむぎこの ふくろ"],
       ["wallshelf", 0, 0, 3, 1, "やきたての パン", { variant: "bread", sign: "やきたて", height: 150 }], ["wallshelf", 7, 0, 3, 1, "フランスパンの たな", { variant: "baguettes", sign: "フランスパン", height: 150, levels: 3 }],
-      ["wallshelf", 0, 3, 1, 3, "そうざいパン", { foods: ["sandwich", "bread", "nikuzume", "yakicorn"], sign: "そうざい" }], ["wallshelf", 0, 7, 1, 2, "ジャムの たな", { variant: "jars", sign: "ジャム" }],
+      ["wallshelf", 0, 3, 1, 3, "そうざいパン", { foods: ["bread_curry", "sandwich", "bread_anpan", "bread_cornet"], sign: "そうざい" }], ["wallshelf", 0, 7, 1, 2, "ジャムの たな", { variant: "jars", sign: "ジャム" }],
       ["breadtable", 2, 4, 2, 3, "パンの テーブル"], ["traystand", 7, 4, 1, 1, "トレイと トング"],
       ["table", 7, 6, 2, 2, "イートインの せき", { action: "sit", text: "やきたての パンの におい……おなか すいてきた！", shop: "cafe" }], ["plant", 9, 10, 1, 1, null, { variant: "tall" }],
     ],
@@ -188,7 +188,7 @@ const STORE_INTERIORS = {
     mats: { ".": { c: ["#FFF8EC", "#F6E0C0"], pat: "check" } },
     counter: { body: "#F6B26B", top: "#FFFFFF", items: ["candy", "cup"] },
     walls: {
-      north: [{ t: "poster", a: 0.4, b: 1.6, z0: 176, z1: 222, food: "watermelon", text: "スイカ" }, { t: "poster", a: 1.8, b: 3.0, z0: 176, z1: 222, food: "strawberry", text: "いちご" }, { t: "sign", a: 4.0, b: 7.0, z0: 176, z1: 222 }, { t: "menu", a: 7.2, b: 9.8, z0: 170, z1: 228, title: "ジュース", items: ["juice", "deza_punch", "deza_berrymilk"], dark: false, col: "#F0A04B" }],
+      north: [{ t: "poster", a: 0.4, b: 1.6, z0: 176, z1: 222, food: "watermelon", text: "スイカ" }, { t: "poster", a: 1.8, b: 3.0, z0: 176, z1: 222, food: "strawberry", text: "いちご" }, { t: "sign", a: 4.0, b: 7.0, z0: 176, z1: 222 }, { t: "menu", a: 7.2, b: 9.8, z0: 170, z1: 228, title: "ジュース", items: ["fruit_mixjuice", "juice", "fruit_sando"], dark: false, col: "#F0A04B" }],
       west: [{ t: "window", a: 3.1, b: 5.9, z0: 168, z1: 214 }, { t: "window", a: 7.1, b: 9.9, z0: 104, z1: 200, awning: "#F0A04B" }, { t: "clock", a: 10.4, z: 200 }],
     },
     fixtures: [

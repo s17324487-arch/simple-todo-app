@@ -189,6 +189,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `museum-wear.js`（aqua-gifts.js の あと・item-dex-sources.js の まえ） | `MuseumWear`（きふの ごほうびの 服 8つ・UI-33） |
 | — | `fossil-sell.js`（dino-hall-art.js の あと・neri-bikkupo.js の まえ＝fossils.js・museum.js・furniture-models.js の あと、item-dex-sources.js の まえ） | `FossilSell` ／ `DinoAward`（かせきの ほねを うる・そんちょうさんの ひょうしょう・かざる もの 3つ・UI-69） |
 | — | `burger-menu.js`（scene-store.js・shop.js・puri-pose.js の あと・figure-stand.js の まえ） | `BurgerMenu`（バーガーやさんの メニュー・にこにこ セットの おまけ・UI-34） |
+| — | `shop-goods-art.js` → `shop-goods.js`（farm-cook.js の あと・food-balance.js の まえ） | `ShopGoodsArt`（たべもの・どうぐの 絵 58しゅ: まえからの 26しゅの かきなおし と あたらしい 32しゅ。`FOOD_ART` を 上がき）／ `ShopGoods`（たべものの おみせ 5けんの しなぞろえ・タブ。UI-76） |
 | — | `food-balance.js`（farm-cook.js の あと＝ぜんぶの たべものが そろった あと） | `FoodBalance`（たべものの バランス: そのままの やさい・りょうり・ねだんで ごきげん・「おなか+N ごきげん+M」・UI-35） |
 | — | `fashion-show.js` → `fashion-art.js` → `fashion-hall.js` → `fashion-scene.js`（food-balance.js の あと・item-dex-sources.js の まえ） | `FashionShow`（ファッションショーの きまり・セーブ）／ `FashionArt`（かお・ポーズ・けいひん・しゃしん）／ `FashionHall`（会場・ファッションかん〔まえの ほんの ギャラリー。2026-10-03 に なまえと 外観を かえた〕）／ `FashionScene`（ランウェイ・`SCENES.fashion`）・UI-36 |
 | — | `kaden-sticker-art.js`（kaden-live.js の あと・kaden-hall-art.js の まえ）・`kaden-stickers.js`（kaden-hall.js の あと） | `KadenStickerArt`（シール 46しゅと パックの 絵）／ `KadenStickers`（1F の シール うりば・しなもの 12・UI-57。さいごで `install()`） |
@@ -1226,6 +1227,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - かう: `ShopUI.detail` が かった あと（セーブの まえ）に `BUY_SHOPS.burger.bought(it, qty)` → にこにこ セット なら かずだけ `nextToy()`（まだ もって いない ものから・ぜんぶ あれば どれでも）を `Save.d.furn` に たし、かった あとに おまけの まど（`.bm-reveal`: はじめて！・おもちゃ あつめ N / 6・「やったー！」48px）。せつめいの さいごに `note(it)`（ぜんぶで 6しゅ・もってる なんしゅ）。
 - セーブは `bag`・`furn` だけ（SCHEMA は 2 の まま）。ずかんの ヒントは `BurgerMenu.source(id)`（`ItemDexSources.source`）。
 - PokaDebug: `burgerMenu()`。検査は `tools/check-burger-menu.mjs`、スモークは `tests/burger-menu-smoke.mjs`（`burger-menu-390/375`）。
+
+## たべものの おみせの しなもの（UI-76・`js/shop-goods.js`・`js/shop-goods-art.js`）
+
+オーナーの FB（2026-10-03）「各お店の売っているものが種類が少なく見た目もチープなので、作り直してほしい」。
+
+- しなぞろえ: `ShopGoods.LINEUP[おみせ] = { hello, tabs: [[キー, なまえ, [しなものの id]] × 2] }`。`BUY_SHOPS[おみせ]` の `tabs`・`items(tab)`・`hello` を かきかえる（タブが ない とき・しらない タブは さいしょの タブ）。`cls` に `shop-goods`（なまえは スペースと「・」で おりかえす）・`icoSize: 56`（`ShopUI.card` が よむ）。ケーキ 12・クレープ 9・パン 11・ころころ フルーツ 10・ガソリンスタンド 8。コンビニ 2けん・バーガーは まえの まま。
+- あたらしい 食べ物 32しゅ（`ShopGoods.FOOD`）: `exclusive` は いちばんの おみせ・`shopGoods: true`・デザは なまえが「デザ・」で はじまる。スーパーには ならばない。はたけの やさい・りょうり（`exclusive: "farm"`）は うらない。おなか・ごきげんは あとの `food-balance.js` が ねだんで なおす。セーブは もちもの（`Save.d.bag`）が ふえる だけ。
+- 絵（`ShopGoodsArt.ART`）: 64×64・INK・id なし。まえからの 26しゅ（ショートケーキ・プリン・ぎゅうにゅう・メロンパン・チーズバーガー・りんご・おにぎり・カレー・ばんそうこう・げんきドリンク・きせつの デザ など）は id・なまえ・ねだんを かえずに 絵だけ かきなおす。さきに 読む ところで 絵の もじれつを とって おく もの（おうちの「ごはん」の ボタン `HOUSE_ICONS.food`・にこにこ セットの おもちゃの バーガー `CHARA_GESTURES.bm_hug_burger`）は いまの 絵を つかう。
+- 店内の みほん（`STORE_INTERIORS` の かべの メニュー・ポスター・たなの `foods`）は その おみせで うって いる たべもの だけ（`tools/check-shop-goods.mjs`）。
+- PokaDebug: `shopGoods(おみせ)`（タブ・しなものの id・かず）。スモーク `shop-goods-390 / 375`。
 
 ## たべものの バランス（UI-35・`js/food-balance.js`）
 

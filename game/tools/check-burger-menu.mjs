@@ -64,8 +64,8 @@ for (const t of B.TOYS) {
   const m = R.HomeDesign.model(t.id); ok([m.x, m.y, m.w, m.h].every(Number.isFinite) && m.w > 0 && m.h > 0, `${t.id}: へやの 立体`);
   ok(R.ItemDexSources.source("furn", f) === B.source(t.id) && /にこにこ セット/.test(B.source(t.id)) && !kanji.test(B.source(t.id)), `${t.id}: ずかんの ヒント`);
 }
-// 3人の おもちゃは だいて いる ものが みえる（バーガー・ポテト・シェイクの 絵が はいる）
-ok(B.toySvg("bm_toy_wanko").includes("#9B7357") && B.toySvg("bm_toy_gachan").includes("#F0625A") && B.toySvg("bm_toy_goji").includes("#A06A48"), "3人の おもちゃに バーガー・ポテト・シェイク");
+// 3人の おもちゃは だいて いる ものが みえる（バーガー〔いまの FOOD_ART.burger。js/shop-goods-art.js が かきなおす〕・ポテト・シェイクの 絵が はいる）
+ok(B.toySvg("bm_toy_wanko").includes(R.FOOD_ART.burger) && B.toySvg("bm_toy_gachan").includes("#F0625A") && B.toySvg("bm_toy_goji").includes("#A06A48"), "3人の おもちゃに バーガー・ポテト・シェイク");
 
 // ---- 4. かった とき（おまけ）・たべる ----
 {
