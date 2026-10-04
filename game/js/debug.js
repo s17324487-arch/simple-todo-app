@@ -693,7 +693,7 @@ const PokaDebug = {
   workExp() {
     if (typeof WorkExp === "undefined") return null;
     const l = WorkExp.last;
-    return { kind: l ? l.kind : null, rate: l ? l.rate : 0, rows: l ? l.rows.map((r) => ({ id: r.id, n: r.n, lv0: r.lv0, lv: r.lv, exp: r.exp, need: r.need, ups: r.ups.map((u) => u.lv) })) : [],
+    return { kind: l ? l.kind : null, rate: l ? l.rate : 0, fav: l ? l.fav || null : null, shop: l ? l.shop || null : null, rows: l ? l.rows.map((r) => ({ id: r.id, n: r.n, lv0: r.lv0, lv: r.lv, exp: r.exp, need: r.need, ups: r.ups.map((u) => u.lv), fav: !!r.fav })) : [],
       levels: Save.d.order.map((id) => { const c = Save.d.chars[id]; return { id, lv: c.lv, exp: c.exp, need: Stats.expNeed(c.lv) }; }) };
   },
   // その 子を つぎの レベルの あと left の ところに（テスト用）

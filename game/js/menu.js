@@ -45,7 +45,8 @@ const Menu = {
         <div class="stat-row"><span>ごきげん</span>${UI.meter(c.mood, 100, "mood")}<span>${Math.round(c.mood)}</span></div>
         <div class="stat-row"><span>なかよし</span>${UI.meter(c.bond, 100, "bond")}<span>${Math.round(c.bond)}</span></div>
         <div class="stat-nums"><span>こうげき ${Stats.max(id, "atk")}</span><span>ぼうぎょ ${Stats.max(id, "def")}</span><span>すばやさ ${Stats.max(id, "spd")}</span></div>
-        <div class="muted" style="margin-top:6px">とくぎ: ${Stats.skills(id).map((s) => SKILLS[s].name).join("・")}</div>`;
+        <div class="muted" style="margin-top:6px">とくぎ: ${Stats.skills(id).map((s) => SKILLS[s].name).join("・")}</div>
+        ${typeof WorkExp !== "undefined" && WorkExp.favShops(id).length ? `<div class="muted fav-shops">とくいな おてつだい（けいけんち ${WorkExp.FAV_MUL}ばい）: ${WorkExp.favShops(id).map((s) => SHOPS[s].name).join("・")}</div>` : ""}`;
       const row = U.el("div", { class: "row wrap", style: "margin-top:8px" });
       if (idx > 0) row.append(UI.btn("せんとうに する", () => { Sound.se("ok"); d.order.splice(idx, 1); d.order.unshift(id); Save.mark(); this.refreshScene(); el.innerHTML = ""; this.status(el); }, "small"));
       row.append(UI.btn("なまえ", () => this.rename(id, el), "small"));

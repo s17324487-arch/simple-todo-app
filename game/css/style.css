@@ -465,6 +465,10 @@ html, body {
 .wexp-bar b { background: var(--yellow); }
 .wexp-lvup { grid-column: 1 / -1; background: var(--yellow-l); border: 2.5px dashed #d9b64a; border-radius: 10px; padding: 4px 8px; font-size: 12px; font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; }
 .wexp-st { white-space: nowrap; }
+/* とくいな おてつだい（UI-68）: なまえの よこの ふだ と したの ひとこと */
+.wexp-fav { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 8px; background: #f7c6d9; color: #8a2f55; font-size: 10px; font-style: normal; line-height: 16px; vertical-align: 1px; }
+.wexp-favline { grid-column: 1 / -1; color: #8a2f55; font-size: 12px; font-weight: 800; word-break: keep-all; overflow-wrap: anywhere; }
+.fav-shops { margin-top: 2px; word-break: keep-all; overflow-wrap: anywhere; }
 /* ころころ フルーツの スコア モード（js/korokoro-score.js）: ランキングと 2つの ボタン */
 .koro-rank { margin-top: 8px; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 6px 12px; font-weight: 800; }
 .koro-rank-title { text-align: center; font-size: 13px; color: #8a7d6a; margin-bottom: 2px; }
