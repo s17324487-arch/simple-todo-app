@@ -47,6 +47,8 @@ const PokaDebug = {
   // へいせい じょじ ふうの ガチャ（js/gacha-heisei.js・UI-79）: 4シリーズの ばんごう・くみ・けいひん と、こんしゅう 台に でて いるか
   // 英語（あたまの たいそう・UI-82。js/mg-english.js）: セーブの ようす（さいごの レベル・あそびかた・かず・ベスト・さいきんの 問題の かず）と 問題の かず
   english(){if(typeof EnglishGame==='undefined')return null;const E=EnglishGame.state();return{lv:E.lv,mode:E.mode,plays:{...E.plays},best:{...E.best},recent:Object.fromEntries(Object.entries(E.recent).map(([k,v])=>[k,v.length])),words:{jh:ENG_WORDS.jh.length,hs:ENG_WORDS.hs.length},fill:{jh:ENG_FILL.jh.length,hs:ENG_FILL.hs.length}};},
+  // コンビニの しなぞろえ（UI-84。js/conbini-goods.js）: しなもの・タブ・もとの ねだん・コンビニの ねだん（×1.5）
+  conbini(shop='lawson'){if(typeof ConbiniGoods==='undefined'||!ConbiniGoods.LINEUP[shop])return null;return{shop,mul:ConbiniGoods.MUL,tabs:ConbiniGoods.TABS.map(t=>t[0]),goods:BUY_SHOPS[shop].items().map(it=>({id:it.id,name:it.name,tab:ConbiniGoods.tabOf(shop,it.id),base:it.basePrice,price:it.price}))};},
   // ナンプレ（パズル こうぼう・UI-81。js/mg-numpla.js）: セーブの ようす（さいごの 難しさ・だした かず・クリア・ベスト・とちゅうの 問題）
   numpla(){if(typeof Numpla==='undefined')return null;const N=Numpla.state(),c=N.cont;return{lv:N.lv,n:{...N.n},clear:{...N.clear},best:{...N.best},cont:c?{lv:c.lv,used:c.used,miss:c.miss||0,hint:c.hint||0,filled:[...c.v].filter((ch,i)=>ch!=='.'&&c.p[i]==='.').length,valid:Numpla.validCont(c)}:null,bank:Object.fromEntries(Object.entries(NUMPLA_BANK).map(([k,v])=>[k,v.length]))};},
   // あそんで いる ナンプレの あきマス（まちがいも）を 正しい 数字で うめる。leave マス だけ のこす（テストを みじかく する）。のこした かずを かえす
@@ -196,6 +198,7 @@ const PokaDebug = {
       "PokaDebug.gachaHeisei()             へいせい じょじ ふうの ガチャ 4シリーズ（ばんごう・くみ・けいひん・こんしゅう でて いるか。UI-79）",
       "PokaDebug.gachaHeiseiMore()         4F の へいせい じょじ ふうの ガチャ 5シリーズ（ばんごう・しま・けいひん・こんしゅう でて いるか。UI-80）",
       "PokaDebug.english()                 英語の セーブ（レベル・あそびかた・かず・ベスト・さいきんの 問題）と 問題の かず（UI-82）",
+      "PokaDebug.conbini('lawson')          コンビニの しなぞろえ（16しゅ・タブ・もとの ねだん・コンビニの ねだん ×1.5。UI-84）",
       "PokaDebug.numpla()                  ナンプレの セーブ（さいごの 難しさ・クリア・ベスト・とちゅうの 問題・たばの かず。UI-81）",
       "PokaDebug.numplaFill(leave=1)       あそんで いる ナンプレを leave マス だけ のこして 正しく うめる（0 で クリア）",
       "PokaDebug.arcadeStart(21〜23)       4F の たこやき（arcadeTako(0) で あたりの あなに だま）・バーバーカット（arcadeBarber(1, 0, -2) で まん中の ひもの てまえ）・バウンドボール",

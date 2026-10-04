@@ -164,6 +164,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `koumuten.js`（neri-apart.js の あと＝mall-art.js・nerikasu-layout.js・house-ext*.js の あと） | `Koumuten`（ネリカスタウンの 工務店「ぽかぽか こうむてん」の 館と 町の 建物。UI-74） |
 | — | `nerikasu-layout.js`（nerikasu-town.js の あと） | `NerikasuLayout` |
 | — | `neri-shops.js`（nerikasu-layout.js の あと） | `NeriShops` |
+| — | `conbini-goods.js`（neri-shops.js の あと・food-balance.js の まえ・UI-84） | `ConbiniGoods` |
 | — | `dino-museum.js` / `dino-hall-art.js`（ike-aquarium.js の あと・neri-bikkupo.js の まえ） | `DinoMuseum` ／ `DinoHallArt`（きょうりゅう はくぶつかんの 3かいだての 館・UI-42。`dino-hall-art.js` の さいごで `DinoMuseum.install()`） |
 | — | `neri-bikkupo.js`（ike-aquarium.js の あと） | `Bikkupo` |
 | — | `neri-gas.js`（neri-bikkupo.js の あと） | `GAS_FUELS`, `GAS_AMOUNTS`, `GAS_CARS`, `GAS_COLORS`, `gasCarSvg`, `GasTask`, `GasStand` |
@@ -1382,7 +1383,8 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 - `neri-shops.js`（`NeriShops`）: あたらしい 食べ物 10しゅを `FOODS`・`BAG_INDEX`・`FOOD_ART` に たす（`exclusive: "nerikasu"`。ikebukuro-catalog.js が つつんだ まえの `BUY_SHOPS` ＝ スーパーには ならばない）。店内（`STORE_INTERIORS.lawson` / `sevenbun`）は 斜め上の 館の データで、什器の 絵は `js/store-iso-props.js`（cvsback・opencase・hotdrinks・cocoa・microwave・magrack・atm・kuji_*）。`BUY_SHOPS.lawson` / `sevenbun`（`kind: "bag"`・しなもの 6つずつ・かさならない）・`STORE_INTERIORS`・`SIGN_ICON`・`SONGS.shop_<id>`（ディスクの パブリックドメインの 曲の 楽器を かえた 写し）。町の 建物は `{ type: "buy", shop }`。
 - `neri-bikkupo.js`（`Bikkupo`）: `VenueHalls.defs.bikkupo`（`iso`・22×16・`scale` 0.5）。絵は `Object.create(MallArt)` に 什器の モデル（booth・fmtable・drinkbar・kitchen・pass・dessertcase・fmregister・kidsmat・robot・menuboard・podium・partition。キーは 種類・大きさ・variant・dir だけ）・床の 材質・かべ（まど・ブラインド・ポスター）。しらべる: `order`（ごはん／デザート → 3人で たべる）・`drink`・`kitchen`（`Game.goto("shop", { shop: "burger", returnVenue })`。`ShopScene` は `returnVenue` が あれば 館へ もどる）・`register`（`BUY_SHOPS.bikkupo`）・`kids`。はいぜん ロボは `tick` で たのんだ せきの まえへ いって もどる（`walk: true`）。町の 建物は `{ type: "venue", venue: "bikkupo" }`。
-- テスト: `tools/check-nerikasu-town.mjs`（しなもの・絵・館の 什器と キー）・`tools/check-venues.mjs`（什器に いける）。スモーク「nerikasu-shops-390 / 375」「burger-shop」。
+- `conbini-goods.js`（`ConbiniGoods`・UI-84）: 2つの コンビニの しなぞろえ `LINEUP`（16しゅずつ・[id, タブ]）・あたらしい たべもの 20しゅ（`cv_*`・`FOODS`・`BAG_INDEX`・`FOOD_ART`・`exclusive: "nerikasu"`）・タブ `TABS`（meal・sweet・drink）。`BUY_SHOPS.lawson/sevenbun` の `tabs` と `items(tab)` を かきかえ、`items` は コンビニの ねだん（`ConbiniGoods.price` = もとの ねだん × 1.5・`basePrice` に もとの ねだん）を つけた コピーを かえす（`BAG_INDEX` の ねだんは かえない）。しらない タブ（くじの クーポンの `goods` など）は ぜんぶ。`NeriShops.SHOPS[id].goods` と たなの `foods` も あたらしい しなぞろえに。PokaDebug: `conbini(shop)`。
+- テスト: `tools/check-nerikasu-town.mjs`（しなもの・絵・館の 什器と キー）・`tools/check-conbini-goods.mjs`（16しゅ × 2・タブ・1.5ばい・ほかの おみせ・絵・クーポン）・`tools/check-venues.mjs`（什器に いける）。スモーク「nerikasu-shops-390 / 375」「burger-shop」。
 
 ## ネリカスタウンの ガソリンスタンド・ゆうびんきょく・アパート（TOWN-NERI-03）
 

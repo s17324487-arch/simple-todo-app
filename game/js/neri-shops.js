@@ -3,6 +3,7 @@
 // ・コンビニ「せぶんぶん」: おでん・メロンパン・あったか ココア・アイス・ゼリー・オレンジジュース（おでんの なべ・アイスの れいとうこ・パンの たな）
 // どちらも 歩いて 入る 店（StoreScene・10×12マスの 斜め上の 館。什器の 絵は js/store-iso-props.js の cvsback・opencase・kuji_* など）。あたらしい 食べ物 10しゅ（ファミレス びっくぽの メニューも）の 絵は FOOD_ART（64×64・INK）。
 // 食べ物は exclusive（スーパーの たなには ならばない）。セーブは もちもの（Save.d.bag）に ふえる だけ。
+// しなぞろえ（16しゅずつ・タブ）と コンビニの ねだん（1.5ばい）は js/conbini-goods.js（UI-84）が かきかえる。
 const NeriShops = (() => {
   const S = (w = 3) => IS(w);
   const hi = (x, y, rx, ry, rot = 0) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(${rot} ${x} ${y})" fill="#FFFFFF" fill-opacity=".55"/>`;
