@@ -201,7 +201,8 @@ const Game = {
       if (UI.busy) {
         // 会話中は ok で送る
         if (k === "ok") { const sh = document.querySelector(".dlg-shade:not(.ask)"); if (sh) sh.dispatchEvent(new PointerEvent("pointerup", { bubbles: true })); }
-        if (k === "cancel") { const x = [...document.querySelectorAll(".modal-wrap .close")].pop(); if (x) x.click(); }
+        // とじる アニメの とちゅう（.out・180ms）の まどは えらばない（その したの まどを とじる）
+        if (k === "cancel") { const x = [...document.querySelectorAll(".modal-wrap:not(.out) .close")].pop(); if (x) x.click(); }
         return;
       }
       if (this.trans) return;

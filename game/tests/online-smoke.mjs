@@ -5,7 +5,7 @@
 // 2. クレープの おてつだい → けっかに「てんすう」・「みんなの ランキングに おくったよ」→ サーバーに スコア（なまえ・おみせ Lv・あそびかた・じこく）
 // 3. すまほの「みんな」: じぶんの ぎょう・ほかの 人の きろくが リアルタイムで ふえる（ストリーム）・へんな データは でない・31い いじょうの とき・ボードを かえる・とじると ストリームも とじる
 // 4. なまえを かえる（トークンが きれて いても つなぎなおす）→ サーバーの なまえも かわる
-// 5. とめる → もう おくらない → また はじめる（同意だけ もう いちど）→ たまって いた きろくを おくる
+// 5. とめる → もう おくらない → また はじめる（同意だけ もう いちど。「やめる」の すぐ あとの Esc は すまほを とじる）→ たまって いた きろくを おくる
 // 6. みせた データを けす → サーバーの データと アカウントが きえる・てもとの きろくは のこる・つぎは また 同意から
 export async function onlineSmoke({ scenario, expect }) {
   let fake = null;
@@ -131,6 +131,11 @@ export async function onlineSmoke({ scenario, expect }) {
     expect(r && r.best && !r.sent && fake.log.length === n0 && fake.at(`v1/scores/crepe/${o.uid}`).s === best, "とめたのに おくった " + JSON.stringify([r, fake.log.slice(n0)]));
     await H.phone("みんな");
     expect(await H.page.locator(".smaho-body .onl-start").count() === 1 && fake.log.length === n0, "とめた ときの「みんな」が ちがう");
+    // 同意を「やめる」→ すぐ Esc（同意の まどが とじる アニメの とちゅうでも、Esc は その したの すまほを とじる）
+    await H.page.locator(".smaho-body .onl-start").click(); await H.wait(320);
+    await H.page.locator(".modal-wrap:not(.out) .onl-cancel").click(); await H.page.keyboard.press("Escape"); await H.wait(300);
+    expect(!(await H.dbg("smahoState")).open && !(await H.dbg("online")).on && fake.log.length === n0, "やめた すぐ あとの Esc で すまほが とじない／おくった");
+    await H.phone("みんな");
     await H.page.locator(".smaho-body .onl-start").click(); await H.wait(320);
     await H.page.locator(".modal-wrap:not(.out) .onl-agree").click();
     await H.until(() => PokaDebug.online().on, 8000);
