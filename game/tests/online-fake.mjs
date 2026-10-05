@@ -8,7 +8,7 @@ import { createServer } from "node:http";
 import { randomBytes } from "node:crypto";
 
 export const ONLINE_FAKE_KEY = "test-fake-api-key-0001";
-const BOARD_RE = /^[a-z]+(_[a-z]+)*$/, NICK_RE = /^[0-9]+-[0-9]+$/, MODES = ["easy", "normal", "hard"];
+const BOARD_RE = /^[a-z]+(_[a-z]+)*$/, NICK_RE = /^[0-9]+-[0-9]+$/, ID_RE = /^[a-z0-9_]+$/, MODES = ["easy", "normal", "hard"];
 
 export async function startOnlineFake({ key = ONLINE_FAKE_KEY } = {}) {
   let root = {};
@@ -40,39 +40,67 @@ export async function startOnlineFake({ key = ONLINE_FAKE_KEY } = {}) {
 
   // ---- きまり（database.rules.json と おなじ）----
   const uidOf = (tok) => { const t = tokens.get(tok); return t && t.exp > Date.now() && users.has(t.uid) ? t.uid : null; };
-  const canRead = (keys, uid) => !!uid && keys[0] === "v1" && ((keys[1] === "players" && keys.length >= 3) || (keys[1] === "scores" && keys.length >= 3));
-  // かきこむ ばしょの .write（v1/players/$uid か v1/scores/$board/$uid と その した だけ）
+  // ノードの しゅるい: depth は 1つの ノードの ふかさ（v1/players/$uid → 3）・uidAt は $uid の ばしょ・read は よめる いちばん うえの ふかさ
+  const KINDS = {
+    players: { depth: 3, uidAt: 2, read: 3 },
+    scores: { depth: 4, uidAt: 3, read: 3, ok: (keys) => keys[2].length <= 40 && BOARD_RE.test(keys[2]) },
+    roomlist: { depth: 3, uidAt: 2, read: 2 },
+    rooms: { depth: 3, uidAt: 2, read: 3 },
+  };
+  const kindOf = (keys) => (keys[0] === "v1" && Object.prototype.hasOwnProperty.call(KINDS, keys[1]) ? keys[1] : null);
+  const canRead = (keys, uid) => { const k = kindOf(keys); return !!uid && !!k && keys.length >= KINDS[k].read; };
+  // かきこむ ばしょの .write（じぶんの $uid の ノードと その した だけ）
   const canWrite = (keys, uid) => {
-    if (!uid || keys[0] !== "v1") return false;
-    if (keys[1] === "players") return keys.length >= 3 && keys[2] === uid;
-    if (keys[1] === "scores") return keys.length >= 4 && keys[3] === uid && keys[2].length <= 40 && BOARD_RE.test(keys[2]);
-    return false;
+    const k = kindOf(keys), K = k && KINDS[k];
+    return !!uid && !!K && keys.length >= K.depth && keys[K.uidAt] === uid && (!K.ok || K.ok(keys));
   };
   const nickOk = (v) => typeof v === "string" && v.length <= 5 && NICK_RE.test(v);
   const timeOk = (v, now) => typeof v === "number" && v <= now && v > now - 300000;
+  const id40 = (v) => typeof v === "string" && v.length <= 40 && ID_RE.test(v);
+  const roomKind = (v) => typeof v === "string" && v.length <= 12 && /^[a-z]+$/.test(v);
+  const num = (v, lo, hi) => typeof v === "number" && v >= lo && v <= hi;
+  const only = (v, allow, need) => !!v && typeof v === "object" && Object.keys(v).every((k) => allow.includes(k)) && need.every((k) => k in v);
+  const itemOk = (o) => only(o, ["a", "x", "y", "r", "s", "g"], ["a", "x", "y"]) && id40(o.a) && num(o.x, -100, 1000) && num(o.y, -100, 1000) &&
+    (!("r" in o) || typeof o.r === "boolean") && (!("s" in o) || o.s === "l") && (!("g" in o) || (typeof o.g === "string" && o.g.length <= 600 && /^[a-z0-9_,]*$/.test(o.g)));
   const validNode = (kind, v, now) => {
     if (v === null || v === undefined) return true; // けす ときは .validate を みない
     if (!v || typeof v !== "object" || Array.isArray(v)) return false;
-    const allow = kind === "player" ? ["n", "t"] : ["s", "n", "t", "l", "m"];
-    if (Object.keys(v).some((k) => !allow.includes(k))) return false;
-    if (!nickOk(v.n) || !timeOk(v.t, now)) return false;
-    if (kind === "player") return true;
-    if (typeof v.s !== "number" || v.s < 0 || v.s > 10000000) return false;
-    if ("l" in v && (typeof v.l !== "number" || v.l < 1 || v.l > 99)) return false;
-    if ("m" in v && !MODES.includes(v.m)) return false;
-    return true;
+    if (kind === "players") return only(v, ["n", "t"], ["n", "t"]) && nickOk(v.n) && timeOk(v.t, now);
+    if (kind === "scores") {
+      if (!only(v, ["s", "n", "t", "l", "m"], ["s", "n", "t"]) || !nickOk(v.n) || !timeOk(v.t, now)) return false;
+      if (typeof v.s !== "number" || v.s < 0 || v.s > 10000000) return false;
+      if ("l" in v && (typeof v.l !== "number" || v.l < 1 || v.l > 99)) return false;
+      if ("m" in v && !MODES.includes(v.m)) return false;
+      return true;
+    }
+    if (kind === "roomlist") return only(v, ["n", "t", "c", "k"], ["n", "t", "c", "k"]) && nickOk(v.n) && timeOk(v.t, now) && num(v.c, 0, 100) && roomKind(v.k);
+    if (kind === "rooms") {
+      if (!only(v, ["n", "t", "k", "w", "f", "z", "i"], ["n", "t", "k", "w", "f", "z"]) || !nickOk(v.n) || !timeOk(v.t, now) || !roomKind(v.k) || !id40(v.w) || !id40(v.f) || !["s", "e"].includes(v.z)) return false;
+      if (!("i" in v)) return true;
+      return !!v.i && typeof v.i === "object" && Object.entries(v.i).every(([k, o]) => /^[0-9][0-9]?$/.test(k) && itemOk(o));
+    }
+    return false;
   };
   // writes: [[keys, value]]。ぜんぶ とおれば あたらしい root、だめなら null
   const apply = (writes, uid, now) => {
     if (!writes.every(([k]) => canWrite(k, uid))) return null;
     let next = clone(root);
     for (const [k, v] of writes) next = setIn(next, k, sv(v, now));
-    const touched = new Set(writes.map(([k]) => k.slice(0, k[1] === "players" ? 3 : 4).join("/")));
+    const touched = new Set(writes.map(([k]) => k.slice(0, KINDS[kindOf(k)].depth).join("/")));
     for (const p of touched) {
       const k = split(p), v = (() => { let c = next; for (const x of k) { if (!c || typeof c !== "object") return null; c = c[x]; } return c ?? null; })();
-      if (!validNode(k[1] === "players" ? "player" : "score", v, now)) return null;
+      if (!validNode(kindOf(k), v, now)) return null;
     }
     return next;
+  };
+  // GET の orderBy="子の なまえ"・limitToLast（.indexOn の ある ばしょ だけ）
+  const query = (data, q) => {
+    const by = q.get("orderBy"), last = Number(q.get("limitToLast"));
+    if (!by) return data;
+    const key = JSON.parse(by);
+    let rows = Object.entries(data && typeof data === "object" ? data : {}).sort((a, b) => ((a[1] && a[1][key]) || 0) - ((b[1] && b[1][key]) || 0));
+    if (Number.isInteger(last) && last > 0) rows = rows.slice(-last);
+    return rows.length ? Object.fromEntries(rows) : null;
   };
 
   // ---- ストリーム（SSE）----
@@ -139,7 +167,7 @@ export async function startOnlineFake({ key = ONLINE_FAKE_KEY } = {}) {
         send(s, "put", { path: "/", data: getAt(keys) });
         return;
       }
-      return json(res, 200, getAt(keys));
+      return json(res, 200, query(getAt(keys), u.searchParams));
     }
     let body = null;
     if (req.method !== "DELETE") { try { body = JSON.parse(raw || "null"); } catch (e) { return json(res, 400, { error: "Invalid data; couldn't parse JSON object." }); } }

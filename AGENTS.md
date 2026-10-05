@@ -198,6 +198,7 @@
 | `js/hand-items.js` | もちもの（`HandItems`。きがえの あたらしい しゅるい `outfit.hand`・ふうせん 4しゅ と バッグ 3しゅ・ようふくやさんの「もちもの」・3人だけ） |
 | `js/home-toilet.js` | おうちの おトイレ（`HomeToilet`。おくの かべの ドア・3人の いきたさ〔じかんと たべもの・のみもの〕・タップで いちばん いきたい 子が いく・もじもじ・がまんの げんかい・`Save.d.toilet`） |
 | `js/online-config.js` / `js/online-net.js` / `js/online.js` | オンライン（E5・UI-94。上の 4-10 の 例外）。つなぎさき（`ONLINE_CONFIG`: Firebase の apiKey・databaseURL・projectId。から なら「じゅんびちゅう」）・匿名ログインと Realtime Database の REST・SSE の ストリーム（`OnlineNet`。ネットに つなぐ ゆいいつの ファイル・ログインの きろくは セーブと べつの `pokapoka-town-online-v1`）・18さい いじょうの 同意・なまえ（ことば 24 × 24）・ボード（おみせ・ゲーム・むずかしさ）・きろくと おくる・すまほの「みんな」（ランキング）・≡ の せってい（はじめる・なまえ・とめる・みせた データを けす）（`Online`・`Save.d.online`） |
+| `js/online-rooms.js` | ほかの 人の おうちを 見に いく（見るだけ・UI-95。`OnlineRooms`）。じぶんの おへやを「みせる」と きめた とき だけ かぐの ならびを おくる（`v1/rooms`・`v1/roomlist`）・みんなの おへやの いちらん・おうちと おなじ 絵で 描く 見る まど（さわれない・3人も いっしょ）・よんだ データは しんじない（しらない かぐ・へんな ばしょは すてる）。すまほの「みんな」の「おうち」タブ（`Online.parts`） |
 | `firebase/database.rules.json` / `firebase/README.md` | オンラインの データベースの きまり（Firebase の コンソールに そのまま はる）と オーナーの せっていの てじゅん |
 | `js/debug.js` | テスト・開発用の `PokaDebug`（ゲーム本編からは使わない） |
 | `tools/check.mjs` | 静的チェック（約2400項目: 登録漏れ・名前の重複・データの参照・マップの到達性・SVG・ミニゲームの採点など） |

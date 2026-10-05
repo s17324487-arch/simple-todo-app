@@ -273,6 +273,15 @@ const PokaDebug = {
     return r;
   },
   onlineSync() { return typeof Online === "undefined" ? Promise.resolve(0) : Online.sync(); },
+  // オンラインの おへや（UI-95・js/online-rooms.js）: みせて いるか・みせられる おへや・さいごに よんだ いちらん・ひらいて いる まど（よんだ かぐ・描いた かず・大きさ）
+  onlineRooms() {
+    if (typeof OnlineRooms === "undefined") return null;
+    const v = OnlineRooms.view;
+    return { shown: OnlineRooms.shown(), room: { ...OnlineRooms.st() }, rooms: OnlineRooms.rooms().map((r) => r.id), list: OnlineRooms.list ? OnlineRooms.list.map((r) => ({ ...r, n: r.n && r.n.slice() })) : null,
+      view: v ? { uid: v.entry.uid, loaded: !!v.room, items: v.room ? v.room.items.map((it) => it.id) : [], figs: v.room ? v.room.items.filter((it) => it.figs).map((it) => it.figs) : [], drawn: v.drawn, w: v.vs ? v.vs.cw : 0, h: v.vs ? v.vs.ch : 0 } : null };
+  },
+  // おくる おへやの データ（みせる まえに しらべる）
+  onlineRoomData(id = "main") { return typeof OnlineRooms === "undefined" ? null : OnlineRooms.encode(id); },
   itemDex(kind = "furn") {
     return { kind, ...ItemDex.progress(kind), entries: ItemDex.entries(kind).map(e => ({ id: e.id, name: e.item.name, category: kind === "furn" ? e.item.kind : e.item.slot, seen: e.seen, owned: e.owned, count: e.count, rare: !!e.item.rare })) };
   },
