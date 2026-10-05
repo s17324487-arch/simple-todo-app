@@ -156,6 +156,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 21 | `minigames.js` | `MG_ART`, `CREPE_TOPS`, `BREADS`, `BREAD_TOPS`, `FLOWER_KINDS`, `RIBBONS`, `SHOP_OWNERS`, `HOWTO`, `CUST_*`, `ShopScene`, `TaskBase`, `CrepeTask`, `DentistTask`, `BakeryTask`, `FloristTask`, `MG_TASKS`, 補助関数 `breadSvg` `flowerIconSvg` `mgCanvas` `mgIcon` `topIcon` `mgBtn` `inBtn` `gridBtns` |
 | — | `play-records.js`（pet-walk.js の あと・world-zoom.js の まえ＝Care・HomeToilet・SCENES.house・Fishing・BattleScene・Menu・GowagaWish の あと） | `PlayRecords`（きろく: 3人の きろく 15しゅ・たべものごとの かず・ずかんの「たべもの」・ようすの「きろく」・UI-71） |
 | — | `dine-seats.js`（iso-venue.js の すぐ あと＝chara.js・IsoVenue の あと） | `DineSeats`（ごはんの せき: 館の テーブル・ボックス席で 3人が すわって ちゅうもん。UI-72） |
+| — | `online-config.js` → `online-net.js` → `online.js`（play-records.js の あと・world-zoom.js の まえ＝Smaho・Menu・ShopScene・KorokoroScore・SHOP_GAMES の あと） | `ONLINE_CONFIG`（つなぎさき）, `OnlineNet`（匿名ログイン・Realtime Database の REST と SSE・ネットに つなぐ ゆいいつの ファイル）, `Online`（同意・なまえ・ボード・きろく・すまほの「みんな」・≡ の せってい。E5・UI-94） |
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |

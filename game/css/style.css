@@ -1716,3 +1716,50 @@ html, body {
 .cc-kind-ico { width: 76px; height: 76px; display: flex; align-items: center; justify-content: center; }
 .cc-kind-ico svg { max-width: 100%; max-height: 100%; width: auto; height: 100%; }
 .cc-kind-name { font-size: 13px; font-weight: 800; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
+
+/* ---- オンライン（E5・UI-94・js/online.js）: ≡ の せってい・同意と なまえの まど・すまほの「みんな」（ランキング）---- */
+.onl-settings { margin: 4px 0 10px; }
+.onl-settings .btn { min-height: 44px; margin-bottom: 8px; }
+.onl-state { margin: 4px 0 8px; font-size: 14px; font-weight: 800; word-break: keep-all; overflow-wrap: anywhere; }
+.onl-state.on::before { content: "●"; color: #3FA45B; margin-right: 4px; }
+.onl-soon { margin: 4px 0 8px; }
+.onl-modal .panel-body { word-break: keep-all; overflow-wrap: anywhere; }
+.onl-consent p { margin: 6px 0; }
+.onl-lead { font-size: 14px; font-weight: 800; line-height: 1.5; }
+.onl-box { background: #F1FAF3; border: 2.5px solid #9CCBA8; border-radius: 12px; padding: 8px 10px; margin: 8px 0; font-size: 13px; font-weight: 700; }
+.onl-box.no { background: #FFF1F1; border-color: #E2A3A3; }
+.onl-box ul { margin: 4px 0 0; padding-left: 20px; }
+.onl-box li { margin: 2px 0; line-height: 1.45; }
+.onl-adult { margin: 2px 0 8px !important; padding: 8px 10px; border-radius: 12px; background: #FFE9C2; border: 2.5px solid #E2A24A; font-size: 14px; font-weight: 800; text-align: center; }
+.onl-foot { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.onl-foot .btn { min-height: 48px; font-size: 15px; }
+.onl-foot .onl-agree { min-height: 56px; line-height: 1.35; }
+.onl-nick { text-align: center; }
+.onl-nick-prev { margin: 10px 0; padding: 12px 8px; border: 3px solid var(--ink); border-radius: 14px; background: #FFFDF6; font-size: 20px; font-weight: 800; word-break: keep-all; overflow-wrap: anywhere; }
+.onl-nick-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.onl-nick-sel, .onl-board { box-sizing: border-box; min-width: 0; width: 100%; min-height: 44px; padding: 6px 8px; border: 2px solid #A1B19A; border-radius: 10px; background: #FFFCF0; color: var(--ink); font: inherit; font-size: 15px; font-weight: 700; }
+.onl-nick-row .onl-nick-sel { flex: 1; }
+.onl-nick .onl-dice { min-height: 44px; padding: 6px 16px; }
+.onl-app { display: flex; flex-direction: column; gap: 8px; }
+.onl-app .onl-lead { margin: 4px 0; }
+.onl-me { font-size: 13px; font-weight: 800; word-break: keep-all; overflow-wrap: anywhere; }
+.onl-status { font-size: 12px; font-weight: 800; color: #8a7d6a; }
+.onl-status[data-state="live"] { color: #2F8A49; }
+.onl-status[data-state="poll"] { color: #3A78A8; }
+.onl-status[data-state="denied"] { color: #C0504D; }
+.onl-rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.onl-row { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 6px; align-items: center; min-height: 44px; padding: 5px 8px; background: #FFFDF6; border: 2.5px solid var(--ink); border-radius: 12px; box-sizing: border-box; }
+.onl-row .onl-no { grid-row: 1 / 3; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #EDE6D6; border: 2px solid var(--ink); font-size: 13px; font-weight: 800; }
+.onl-row.top1 .onl-no { background: #FFD54F; }
+.onl-row.top2 .onl-no { background: #D7DDE3; }
+.onl-row.top3 .onl-no { background: #E9B98A; }
+.onl-row .onl-name { min-width: 0; font-size: 13px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.onl-row .onl-score { grid-row: 1 / 3; grid-column: 3; font-size: 16px; font-weight: 800; }
+.onl-row .onl-sub { grid-column: 2; font-size: 11px; font-weight: 700; color: #8a7d6a; }
+.onl-row .onl-sub:empty { display: none; }
+.onl-row.me { background: #E6F4FF; border-color: #2F6FA8; }
+.onl-row.fresh { animation: onlFresh 1.4s ease-out; }
+@keyframes onlFresh { 0% { background: #FFF2A8; transform: scale(1.02); } 100% { transform: none; } }
+.onl-empty { padding: 10px; text-align: center; font-size: 13px; font-weight: 700; color: #8a7d6a; }
+.onl-mine { font-size: 13px; font-weight: 800; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
+.onl-mine:empty { display: none; }

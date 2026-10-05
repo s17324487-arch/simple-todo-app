@@ -71,6 +71,7 @@ const Smaho = {
   close() {
     const v = this.view;
     if (!v) return;
+    this.leave();
     this.view = null;
     clearInterval(v.timer);
     v.wrap.classList.add("out");
@@ -85,8 +86,15 @@ const Smaho = {
     if (c) c.textContent = `${hh}:${mm}`;
   },
   page() { return this.view.screen.querySelector(".smaho-page"); },
+  // ひらいて いる アプリを でる ときの あとしまつ（ph.onLeave で きめる。オンラインの「みんな」の ストリームを とじる など）
+  leave() {
+    const v = this.view, fn = v && v.leave;
+    if (v) v.leave = null;
+    if (typeof fn === "function") { try { fn(); } catch (e) { console.error(e); } }
+  },
   home() {
     const v = this.view; if (!v) return;
+    this.leave();
     v.app = null;
     const page = U.el("div", { class: "smaho-page smaho-home" });
     const d = new Date(), wd = ["にち", "げつ", "か", "すい", "もく", "きん", "ど"][d.getDay()];
@@ -107,6 +115,7 @@ const Smaho = {
   show(id) {
     const v = this.view || this.open(); const a = this.apps().find((x) => x.id === id);
     if (!a) return false;
+    this.leave();
     v.app = id;
     const page = U.el("div", { class: "smaho-page smaho-app-view" });
     const bar = U.el("div", { class: "smaho-bar" });
@@ -121,6 +130,7 @@ const Smaho = {
     v.screen.style.setProperty("--app-color", a.color);
     const ph = {
       close: () => this.close(), home: () => this.home(), body, setTitle: () => {},
+      onLeave: (fn) => { if (this.view === v) v.leave = fn; }, // アプリを でる（ほかの アプリ・ホーム・とじる）ときに 1かい よぶ
       // UI.modal を 1かいだけ かりて、まどの 中みを すまほの 画面に いれる（おまつり・スタンプ・ごほうび）
       embed: (fn) => {
         const real = UI.modal;

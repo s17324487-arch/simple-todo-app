@@ -640,15 +640,15 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(await H.page.locator(".help-row").count()>=5,"あそびかたが ない");
   await H.shot("menu-help");
   await H.page.locator(".modal-wrap:not(.out) .close").click();await H.wait(300);
-  // すまほ: ホーム画面（時計・アプリ 15こ・44px いじょう・はみ出さない）
+  // すまほ: ホーム画面（時計・アプリ 16こ・44px いじょう・はみ出さない）
   await H.phone();await H.shot("home");
   s=await H.dbg("smahoState");
   const home=await H.eval(()=>{const ph=document.querySelector(".smaho").getBoundingClientRect(),apps=[...document.querySelectorAll(".smaho-app")].map(b=>b.getBoundingClientRect());return {ph:[ph.left,ph.top,ph.right,ph.bottom],w:innerWidth,h:innerHeight,apps:apps.length,small:apps.filter(r=>r.width<44||r.height<44).length,clock:document.querySelector(".smaho-clock")?.textContent||"",date:document.querySelector(".smaho-date")?.textContent||""};});
-  expect(s.open&&home.apps===15&&home.small===0&&/^\d\d:\d\d$/.test(home.clock),"すまほの ホームが 不正 "+JSON.stringify(home));
+  expect(s.open&&home.apps===16&&home.small===0&&/^\d\d:\d\d$/.test(home.clock),"すまほの ホームが 不正 "+JSON.stringify(home));
   expect(/^\d+がつ \d+にち（(にち|げつ|か|すい|もく|きん|ど)ようび）$/.test(home.date),"すまほの 日づけが 不正 "+home.date);
   expect(home.ph[0]>=0&&home.ph[1]>=0&&home.ph[2]<=home.w+0.5&&home.ph[3]<=home.h+0.5,"すまほが 画面から はみ出す "+JSON.stringify(home));
   // アプリを ひとつずつ（もどる で ホーム）
-  const checks={"いらい":".neri-quests","ようす":".chara-card","もちもの":".card, .note","ずかん":".dex-kinds","イベント":".annual-hero","スタンプラリー":".festival-target","ひんと":".smaho-hint","うらない":".smaho-draw","ごほうび":"select","おんがく":".smaho-disc","しゃしん":".puri-album, .note","シール":".stk-book .stk-page","たからもの":".wg-app","おねがい":".wish-app","ちず":".area-map .amap-svg"};
+  const checks={"いらい":".neri-quests","ようす":".chara-card","もちもの":".card, .note","ずかん":".dex-kinds","イベント":".annual-hero","スタンプラリー":".festival-target","ひんと":".smaho-hint","うらない":".smaho-draw","ごほうび":"select","おんがく":".smaho-disc","しゃしん":".puri-album, .note","シール":".stk-book .stk-page","たからもの":".wg-app","おねがい":".wish-app","ちず":".area-map .amap-svg","みんな":".onl-app"};
   for(const [app,sel] of Object.entries(checks)){
     await H.page.locator(".smaho").getByRole("button",{name:app,exact:true}).click();await H.wait(300);
     expect(await H.page.locator(".smaho-body").locator(sel).count()>0,app+" の 中みが ない");
@@ -4494,6 +4494,8 @@ await (await import("./room-styles-smoke.mjs")).roomStylesSmoke({scenario,expect
 await (await import("./figure-stand-more-smoke.mjs")).figureStandMoreSmoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
+// オンライン（E5・UI-94。18さい いじょうの 同意・にせの Firebase で スコアの ランキング。くわしくは tests/online-smoke.mjs）
+await (await import("./online-smoke.mjs")).onlineSmoke({scenario,expect});
 
 server.close();
 if(LIST)process.exit(0);

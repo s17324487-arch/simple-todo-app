@@ -1,0 +1,34 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "v1": {
+      "players": {
+        "$uid": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.hasChildren(['n', 't'])",
+          "n": { ".validate": "newData.isString() && newData.val().length <= 5 && newData.val().matches(/^[0-9]+-[0-9]+$/)" },
+          "t": { ".validate": "newData.isNumber() && newData.val() <= now && newData.val() > now - 300000" },
+          "$other": { ".validate": false }
+        }
+      },
+      "scores": {
+        "$board": {
+          ".read": "auth != null",
+          ".indexOn": ["s"],
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && $board.length <= 40 && $board.matches(/^[a-z]+(_[a-z]+)*$/)",
+            ".validate": "newData.hasChildren(['s', 'n', 't'])",
+            "s": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+            "n": { ".validate": "newData.isString() && newData.val().length <= 5 && newData.val().matches(/^[0-9]+-[0-9]+$/)" },
+            "t": { ".validate": "newData.isNumber() && newData.val() <= now && newData.val() > now - 300000" },
+            "l": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 99" },
+            "m": { ".validate": "newData.isString() && newData.val().matches(/^(easy|normal|hard)$/)" },
+            "$other": { ".validate": false }
+          }
+        }
+      }
+    }
+  }
+}

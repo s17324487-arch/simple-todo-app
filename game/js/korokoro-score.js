@@ -276,6 +276,8 @@ class KorokoroScoreScene {
     const collabOn = typeof CollabGoods !== "undefined" && !!CollabGoods.LINES.korokoro;
     if (collabOn) CollabGoods.state("korokoro");
     const rec = KorokoroScore.record(score, U.today(), KorokoroScore.bigTier(this.board.made));
+    // みんなの ランキング（js/online.js・UI-94。オフでも じこベストは のこす・あそびかたで かわらない ので m は なし）
+    const onl = typeof Online !== "undefined" ? Online.record("korokoro_score", score, { m: "" }) : null;
     // ハイスコアの ごほうび: とくべつな かぐ（js/korokoro-prizes.js）
     const gifts = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.claim(score) : [];
     const goods = collabOn ? CollabGoods.add("korokoro", score) : [];
@@ -301,6 +303,7 @@ class KorokoroScoreScene {
     body.append(rows);
     for (const p of gifts) body.append(KorokoroScore.giftEl(p, true));
     body.append(KorokoroScore.rankingEl(st.tops, rec.rank));
+    if (onl && onl.sent) body.append(U.el("div", { class: "note onl-sent", text: "みんなの ランキングに おくったよ（すまほの「みんな」）。" }));
     if (typeof KorokoroPrizes !== "undefined") { const nx = KorokoroPrizes.next(); body.append(U.el("div", { class: "muted koro-next", text: nx ? `つぎの とくべつな かぐは ${U.fmt(nx.score)}てん（あと ${U.fmt(nx.score - rec.hi)}てん）` : "とくべつな かぐを ぜんぶ あつめた！" })); }
     if (collabOn) body.append(CollabGoods.result("korokoro", goods, score));
     body.append(UI.btn("きろくと けいひんを みる", () => { Sound.se("ok"); KorokoroScore.openRecords("rec"); }, "wide koro-more"));

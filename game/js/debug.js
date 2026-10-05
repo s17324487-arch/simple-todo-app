@@ -251,6 +251,28 @@ const PokaDebug = {
   dailyVisit(day) {return DailyPlay.visit(day);},
   dailyState() {return {...Save.d.daily,featured:DailyPlay.featured(),shop:SHOPS[DailyPlay.featured()].name,mul:DailyPlay.mul()};},
   saveData() {return JSON.parse(JSON.stringify(Save.d));},
+  // オンライン（E5・UI-94）: つなぎさきを テストの にせの サーバーに（{ apiKey, databaseURL, authURL, tokenURL }・null で もとの js/online-config.js）。つながる じゅんびが できたか
+  onlineServer(conf = null) {
+    if (typeof Online === "undefined") return null;
+    Online.closeAll(); OnlineNet.over = conf ? { ...conf } : null; OnlineNet.auth = null; OnlineNet.pending = null; Online.reg = "";
+    return OnlineNet.ready();
+  },
+  // オンラインの ようす（ready つなぎさきが ある・on・同意・なまえ・uid・てもとの いちばん よい きろく・おくった スコア・ボード・みて いる ボード）
+  online() {
+    if (typeof Online === "undefined") return null;
+    const s = Online.st(), w = Online.watching;
+    return { ready: OnlineNet.ready(), on: Online.on(), agreed: s.agreed > 0, ver: s.ver, nick: s.nick.slice(), name: Online.nickText(s.nick), code: Online.nickCode(), uid: OnlineNet.uid(),
+      best: JSON.parse(JSON.stringify(s.best)), sent: { ...s.sent }, boards: Online.boards().map((b) => b.id), place: OnlineNet.place(),
+      watching: w ? { board: w.board, state: w.state, loaded: w.loaded } : null };
+  },
+  // おてつだいの けっかと おなじ きろく（オンなら おくりおわるまで まつ）
+  async onlineRecord(board, score, lv = 1) {
+    if (typeof Online === "undefined") return null;
+    const r = Online.record(board, score, { lv });
+    if (r && r.sent) await Online.sync();
+    return r;
+  },
+  onlineSync() { return typeof Online === "undefined" ? Promise.resolve(0) : Online.sync(); },
   itemDex(kind = "furn") {
     return { kind, ...ItemDex.progress(kind), entries: ItemDex.entries(kind).map(e => ({ id: e.id, name: e.item.name, category: kind === "furn" ? e.item.kind : e.item.slot, seen: e.seen, owned: e.owned, count: e.count, rare: !!e.item.rare })) };
   },
