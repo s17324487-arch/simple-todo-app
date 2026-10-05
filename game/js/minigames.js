@@ -86,7 +86,8 @@ class ShopScene {
     this.full = !!TC?.full; this.resultNote = "";
     this.total = TC?.rounds || this.S.rounds || 3 + Math.min(4, this.lv);
     this.difficulty = Save.d.settings.difficulty;
-    this.n = 0; this.earn = 0; this.tips = 0; this.rep = 0; this.ranks = [];
+    this.n = 0; this.earn = 0; this.tips = 0; this.rep = 0; this.ranks = []; this.points = 0; this.boardKey = "";
+    // points: おきゃくさん ひとりずつの てんすう（0〜100）の ごうけい・boardKey: ランキングを むずかしさで わける ゲームの くぎり（ナンプレ・英語）。みんなの ランキング（js/online.js）
     this.phase = "intro";
     this.fxs = []; this.coinsFx = [];
     this.team = Save.d.order.map((id, i) => ({ id, i, turn: 0, jump: -1, emo: "normal" }));
@@ -170,6 +171,7 @@ class ShopScene {
       await this.tween(0.9, (k) => (this.cust.x = U.lerp(-60, this.custX, U.ease.outCubic(k))));
       if (this.closed) return;
       this.task = new (this.variant==="mac"?MacKitchenTask:MG_TASKS[this.shopId])(this, this.workLv);
+      if (this.task.boardKey) this.boardKey = this.task.boardKey;
       this.task.layout(this.R);
       this.timeLimit = this.task.timeLimit * GameEconomy.mode(this.difficulty).time;
       this.timeLeft = Math.max(1, this.timeLimit - (this.task.usedTime || 0)); // ナンプレの 続きは つかった 時間から
@@ -221,7 +223,7 @@ class ShopScene {
     tip += Math.round((pay + tip) * perkMul);
     ({pay,tip}=DailyPlay.payout(pay,tip,this.dailyBoost));
     this.earn += pay; this.tips += tip; this.rep += R.rep;
-    this.ranks.push(rank);
+    this.ranks.push(rank); this.points += score;
     this.cust.emo = R.emo;
     this.stamp = { ...R, score, t: 0, pay, tip };
     Sound.se(R.se);
@@ -242,6 +244,8 @@ class ShopScene {
     st.rep += this.rep;
     const perfect = this.ranks.filter((r) => r === 3).length;
     st.best = Math.max(st.best, total);
+    // てんすうの きろく（さいごまで おてつだいした ときだけ。オンなら みんなの ランキングへ。js/online.js・UI-94）
+    const scoreRec = !interrupted && this.ranks.length && typeof Online !== "undefined" ? Online.record(Online.board(this.shopId, this.variant, this.boardKey), this.points, { lv: this.lv }) : null;
     const boardNote = this.board?.summary ? this.board.summary(st) : this.resultNote || ""; // ナンプレの クリアの きろく
     if (!interrupted) Save.d.stats.shifts++;
     Save.d.stats.perfects += perfect;
@@ -266,9 +270,11 @@ class ShopScene {
       <div class="r"><span>うりあげ</span><span>+${this.earn}</span></div>
       <div class="r"><span>チップ</span><span>+${this.tips}</span></div>
       <div class="r"><span>もらった コイン</span><span><b>+${total}</b></span></div>
+      ${scoreRec ? `<div class="r shop-points"><span>てんすう</span><span>${U.fmt(scoreRec.s)}${scoreRec.best ? "（じこベスト！）" : ""}</span></div>` : ""}
       <div class="r"><span>ひょうばん</span><span>+${this.rep}（${st.rep}${next ? " / " + next : ""}）</span></div>`;
     body.append(rows);
     if (boardNote) body.append(U.el("div", { class: "note", text: boardNote }));
+    if (scoreRec && scoreRec.sent) body.append(U.el("div", { class: "note onl-sent", text: "みんなの ランキングに おくったよ（すまほの「みんな」）。" }));
     if (interrupted) body.append(U.el("div", { class: "note", text: this.task?.stopNote || `おわった ${this.ranks.length}にんぶんを うけとったよ。いまの ちゅうもんは ふくまれないよ。` }));
     body.append(U.el("div", { class: "muted", text: `あそびかた: ${GameEconomy.mode(this.difficulty).name}` }));
     if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！ ${st.lv <= 5 ? "ちゅうもんが むずかしく なって、コインも ふえるよ。" : "つぎの ごほうびを めざそう！"}` }));

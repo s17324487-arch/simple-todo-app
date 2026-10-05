@@ -170,6 +170,8 @@ const Menu = {
       b.style.marginBottom = "8px"; el.append(b);
     }
     el.append(U.el("div", { class: "muted", text: "のんびり: じかん ながめ・てき よわめ。むずかしい: じかん みじかめ・てき つよめ。" }));
+    // オンライン（はじめる・なまえ・とめる・みせた データを けす。js/online.js・UI-94）
+    if (typeof Online !== "undefined") Online.settings(el, () => { el.innerHTML = ""; this.settings(el, menu); });
     el.append(UI.btn("いま セーブする", () => { Save.write(); Sound.se("ok"); UI.toast("セーブしました", "good"); }, "wide green"));
     el.append(U.el("div", { class: "note", html: "セーブは じどうでも されます。<br>ホーム画面に 追加すると アプリのように あそべます。" }));
     el.append(UI.btn("セーブを かきだす",()=>SaveBackup.exportUI(),"wide"));

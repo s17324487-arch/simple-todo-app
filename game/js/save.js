@@ -133,6 +133,9 @@ const Save = {
       conbiniCard: { shops: { lawson: { has: false, pts: 0, carry: 0, total: 0, used: 0, spent: 0, owner: "", got: {} }, sevenbun: { has: false, pts: 0, carry: 0, total: 0, used: 0, spent: 0, owner: "", got: {} } }, tickets: { crane: 0, lv10: 0, lv25: 0 }, bus: { until: "" }, log: [] },
       // きろく（UI-71・js/play-records.js）: 3人の きろく・たべものごとの かず・バトルの にげた／まけ（since から かぞえる）
       records: { since: "", kids: {}, food: {}, battle: { fled: 0, lost: 0 } },
+      // オンライン（E5・UI-94・js/online.js）: on オンか・agreed 18さい いじょうの 同意を した とき（0 は まだ）・ver 同意の ばんごう・nick なまえの ことば [ようす, もの]・
+      // best { ボード: { s いちばん よい スコア, d 日, l おみせ Lv, m あそびかた } }（オフでも のこす）・sent { ボード: おくった スコア }・sentUid おくった ときの ID
+      online: { on: false, agreed: 0, ver: 0, nick: [0, 0], best: {}, sent: {}, sentUid: "" },
       settings: { bgm: true, se: true, difficulty: "normal", worldZoom: 1 },
     };
   },

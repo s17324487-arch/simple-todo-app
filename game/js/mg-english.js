@@ -100,6 +100,7 @@ class BrainEngTask extends TaskBase {
   // ShopScene: 盤は 画面いっぱい・おきゃくさんは 1人
   static get full() { return true; }
   static get rounds() { return 1; }
+  get boardKey() { return `${this.lvId}_${this.mode}`; } // みんなの ランキングは レベル × あそびかた ごと（js/online.js）
   get cur() { return this.qs[this.index] || null; }
   layout(R) {
     this.R = R;
@@ -223,4 +224,4 @@ class BrainEngTask extends TaskBase {
 
 // あたまの たいそうの 4つめの ゲーム（js/mg-brain.js の BrainGames・BRAIN_TASKS）。variant は "eng"・レベルと あそびかたは Save.d.shops.brain.eng
 BRAIN_TASKS.eng = BrainEngTask;
-BrainGames.GAMES.push({ id: "eng", name: "英語", desc: "単語の意味・文の穴うめ", adult: true, howto: ENG_HOWTO, pick: (store) => EnglishGame.pick(store).then((m) => (m ? "eng" : null)), hello: (sc) => EnglishGame.hello(sc) });
+BrainGames.GAMES.push({ id: "eng", name: "英語", desc: "単語の意味・文の穴うめ", adult: true, boards: ENG_LEVELS.flatMap((L) => ENG_MODES.map((M) => ({ id: `${L.id}_${M.id}`, name: `${L.short}・${M.name}` }))), howto: ENG_HOWTO, pick: (store) => EnglishGame.pick(store).then((m) => (m ? "eng" : null)), hello: (sc) => EnglishGame.hello(sc) });

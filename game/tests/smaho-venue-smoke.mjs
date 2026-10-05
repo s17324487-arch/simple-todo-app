@@ -29,7 +29,7 @@ export async function smahoVenueSmoke({ scenario, expect }) {
     await H.page.locator('.smaho-btn:not(.hidden)').click(); await H.wait(320);
     let s = await H.dbg('smahoState');
     expect(s.open && s.phone && s.phone.x >= -0.5 && s.phone.y >= -0.5 && s.phone.x + s.phone.w <= viewport.width + 0.5 && s.phone.y + s.phone.h <= viewport.height + 0.5, 'たてものの 中で すまほが ひらかない／はみ出す ' + JSON.stringify(s));
-    expect(s.apps.length === 15, 'たてものの 中の アプリの かず ' + s.apps.length); // 「たからもの」（UI-70）で 15
+    expect(s.apps.length === 16, 'たてものの 中の アプリの かず ' + s.apps.length); // 「たからもの」（UI-70）で 15・「みんな」（UI-94）で 16
     await H.shot('open');
     // いちばん ながく あるける むきの やじるしキー
     const way = (await H.dbg('indoorState')).directions.sort((a, b) => b.free - a.free)[0], key = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' }[way.key];

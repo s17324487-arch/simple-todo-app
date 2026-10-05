@@ -81,6 +81,7 @@ class NumplaTask extends TaskBase {
   // ShopScene: 盤は 画面いっぱい・おきゃくさんは 1人・続きは つかった 時間から
   static get full() { return true; }
   static get rounds() { return 1; }
+  get boardKey() { return this.lvId; } // みんなの ランキングは 難しさごと（js/online.js）
   get usedTime() { return this.used0; }
   used() { return this.sc.timeLimit ? this.sc.timeLimit - this.sc.timeLeft : this.used0; }
   filled() { let n = 0; for (let i = 0; i < 81; i++) if (!this.given[i] && this.val[i] === this.sol[i]) n++; return n; }
@@ -307,4 +308,4 @@ class NumplaTask extends TaskBase {
 
 // パズル こうぼうの 4つめの ゲーム（js/mg-kobo.js の KoboGames・KOBO_TASKS）
 KOBO_TASKS.numpla = NumplaTask;
-KoboGames.GAMES.push({ id: "numpla", name: "ナンプレ", desc: "9×9の 数字パズル", adult: true, howto: NUMPLA_HOWTO, pick: (store) => Numpla.pick(store), hello: (sc) => Numpla.hello(sc) });
+KoboGames.GAMES.push({ id: "numpla", name: "ナンプレ", desc: "9×9の 数字パズル", adult: true, boards: NumplaRules.LEVELS.map((L) => ({ id: L.id, name: L.name })), howto: NUMPLA_HOWTO, pick: (store) => Numpla.pick(store), hello: (sc) => Numpla.hello(sc) });
