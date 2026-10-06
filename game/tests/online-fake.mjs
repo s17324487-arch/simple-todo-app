@@ -2,7 +2,7 @@
 // - 匿名ログイン（Identity Toolkit・Secure Token の REST と おなじ かたち）: POST /auth/accounts:signUp・POST /auth/accounts:delete・POST /token/token
 // - Realtime Database の REST: /db/<path>.json?auth=<ID トークン> の GET（Accept: text/event-stream なら SSE の ストリーム: put・patch）・
 //   PUT・PATCH（{ "a/b": 1, "c": null } の いくつもの ばしょ）・DELETE・print=silent（204）・{ ".sv": "timestamp" }
-// - きまりは game/firebase/database.rules.json と おなじ ことを JS で する（tools/check-online.mjs が ルールの もじと くらべる）
+// - きまりは game/firebase/database.rules.json と おなじ ことを JS で する（tools/check-online.mjs・check-online-rooms.mjs・check-online-photos.mjs が ルールの もじと くらべる）
 // - テストからは もどりの オブジェクトで しらべる・かえる: data（ぜんぶ）・users・log（とどいた リクエスト）・write（ほかの 人の かきこみ）・reset・close
 import { createServer } from "node:http";
 import { randomBytes } from "node:crypto";
@@ -41,18 +41,25 @@ export async function startOnlineFake({ key = ONLINE_FAKE_KEY } = {}) {
   // ---- きまり（database.rules.json と おなじ）----
   const uidOf = (tok) => { const t = tokens.get(tok); return t && t.exp > Date.now() && users.has(t.uid) ? t.uid : null; };
   // ノードの しゅるい: depth は 1つの ノードの ふかさ（v1/players/$uid → 3）・uidAt は $uid の ばしょ・read は よめる いちばん うえの ふかさ
+  // ぷりくら（PR3）: photos/$key は $key が「じぶんの uid ＋ _ ＋ しゃしんの ばんごう（ランダム）」・reportcount/$key と reportlog/$key/$rid は かきこみの まえと あとを くらべる（cross）・reportlog は だれも よめない
+  const photoOwn = (key, uid) => key.startsWith(uid + "_") && /^[a-z0-9-]+$/.test(key.split(uid + "_").join("")) && key.length <= 180;
   const KINDS = {
     players: { depth: 3, uidAt: 2, read: 3 },
     scores: { depth: 4, uidAt: 3, read: 3, ok: (keys) => keys[2].length <= 40 && BOARD_RE.test(keys[2]) },
     roomlist: { depth: 3, uidAt: 2, read: 2 },
     rooms: { depth: 3, uidAt: 2, read: 3 },
+    photos: { depth: 3, read: 2, own: (keys, uid) => photoOwn(keys[2], uid) },
+    reportcount: { depth: 3, read: 2, exact: true, own: () => true },
+    reportlog: { depth: 4, read: Infinity, exact: true, own: (keys, uid) => keys[3] === uid },
   };
   const kindOf = (keys) => (keys[0] === "v1" && Object.prototype.hasOwnProperty.call(KINDS, keys[1]) ? keys[1] : null);
   const canRead = (keys, uid) => { const k = kindOf(keys); return !!uid && !!k && keys.length >= KINDS[k].read; };
-  // かきこむ ばしょの .write（じぶんの $uid の ノードと その した だけ）
+  // かきこむ ばしょの .write（じぶんの $uid の ノードと その した だけ。exact は その ノード ちょうどだけ）
   const canWrite = (keys, uid) => {
     const k = kindOf(keys), K = k && KINDS[k];
-    return !!uid && !!K && keys.length >= K.depth && keys[K.uidAt] === uid && (!K.ok || K.ok(keys));
+    if (!uid || !K || keys.length < K.depth || (K.exact && keys.length !== K.depth)) return false;
+    if (K.own) return K.own(keys, uid);
+    return keys[K.uidAt] === uid && (!K.ok || K.ok(keys));
   };
   const nickOk = (v) => typeof v === "string" && v.length <= 5 && NICK_RE.test(v);
   const timeOk = (v, now) => typeof v === "number" && v <= now && v > now - 300000;
@@ -62,9 +69,17 @@ export async function startOnlineFake({ key = ONLINE_FAKE_KEY } = {}) {
   const only = (v, allow, need) => !!v && typeof v === "object" && Object.keys(v).every((k) => allow.includes(k)) && need.every((k) => k in v);
   const itemOk = (o) => only(o, ["a", "x", "y", "r", "s", "g"], ["a", "x", "y"]) && id40(o.a) && num(o.x, -100, 1000) && num(o.y, -100, 1000) &&
     (!("r" in o) || typeof o.r === "boolean") && (!("s" in o) || o.s === "l") && (!("g" in o) || (typeof o.g === "string" && o.g.length <= 600 && /^[a-z0-9_,]*$/.test(o.g)));
+  const str = (v, n, re) => typeof v === "string" && v.length <= n && re.test(v);
+  const PHOTO_FIELDS = { b: [16, /^[a-z]+$/], k: [12, /^[a-z]+$/], r: [40, /^[a-z]+,[a-z]+,[a-z]+$/], c: [90, /^[a-z]+[.][a-z]+,[a-z]+[.][a-z]+,[a-z]+[.][a-z]+$/],
+    o: [900, /^[a-z0-9_=;:|]*$/], m: [40, /^[0-9.,-]+$/], p: [6200, /^[A-Za-z0-9_,-]*$/], s: [800, /^[a-z0-9.,-]*$/], x: [140, /^[0-9.,-]*$/], e: [80, /^[a-z,]*$/] };
   const validNode = (kind, v, now) => {
     if (v === null || v === undefined) return true; // けす ときは .validate を みない
+    if (kind === "reportcount" || kind === "reportlog") return true; // .write で しらべる（cross）
     if (!v || typeof v !== "object" || Array.isArray(v)) return false;
+    if (kind === "photos") {
+      if (!only(v, ["n", "t", ...Object.keys(PHOTO_FIELDS), "z"], ["n", "t", "b", "k", "z", "r", "c", "o"]) || !nickOk(v.n) || !timeOk(v.t, now) || !(v.z === 0 || v.z === 1)) return false;
+      return Object.entries(PHOTO_FIELDS).every(([k, [n, re]]) => !(k in v) || str(v[k], n, re));
+    }
     if (kind === "players") return only(v, ["n", "t"], ["n", "t"]) && nickOk(v.n) && timeOk(v.t, now);
     if (kind === "scores") {
       if (!only(v, ["s", "n", "t", "l", "m"], ["s", "n", "t"]) || !nickOk(v.n) || !timeOk(v.t, now)) return false;
@@ -82,23 +97,45 @@ export async function startOnlineFake({ key = ONLINE_FAKE_KEY } = {}) {
     return false;
   };
   // writes: [[keys, value]]。ぜんぶ とおれば あたらしい root、だめなら null
+  const atIn = (tree, k) => { let c = tree; for (const x of k) { if (!c || typeof c !== "object") return null; c = c[x]; } return c ?? null; };
+  // ほうこくの かずと きろく（database.rules.json の reportcount・reportlog の .write と おなじ）: old は まえ・next は あと
+  const cross = (keys, uid, old, next) => {
+    const kind = kindOf(keys), key = keys[2];
+    if (kind === "reportcount") {
+      const was = atIn(old, keys), now = atIn(next, keys), logWas = atIn(old, ["v1", "reportlog", key, uid]) !== null, logNow = atIn(next, ["v1", "reportlog", key, uid]) !== null;
+      if (typeof now !== "number") return false;
+      return (now === (was === null ? 0 : was) + 1 && !logWas && logNow) || (was !== null && now === was - 1 && logWas && !logNow);
+    }
+    if (kind === "reportlog") {
+      const was = atIn(old, keys), now = atIn(next, keys), cWas = atIn(old, ["v1", "reportcount", key]), cNow = atIn(next, ["v1", "reportcount", key]);
+      if (was === null) return typeof now === "string" && /^(bad|spam)$/.test(now) && !key.startsWith(uid + "_") && atIn(old, ["v1", "photos", key]) !== null && cNow === (cWas === null ? 0 : cWas) + 1;
+      return now === null && typeof cWas === "number" && cNow === cWas - 1;
+    }
+    return true;
+  };
   const apply = (writes, uid, now) => {
     if (!writes.every(([k]) => canWrite(k, uid))) return null;
     let next = clone(root);
     for (const [k, v] of writes) next = setIn(next, k, sv(v, now));
+    if (!writes.every(([k]) => cross(k, uid, root, next))) return null;
     const touched = new Set(writes.map(([k]) => k.slice(0, KINDS[kindOf(k)].depth).join("/")));
     for (const p of touched) {
-      const k = split(p), v = (() => { let c = next; for (const x of k) { if (!c || typeof c !== "object") return null; c = c[x]; } return c ?? null; })();
+      const k = split(p), v = atIn(next, k);
       if (!validNode(kindOf(k), v, now)) return null;
     }
     return next;
   };
   // GET の orderBy="子の なまえ"・limitToLast（.indexOn の ある ばしょ だけ）
+  // orderBy="$key" は キーの じゅん（startAt・endAt で しぼる。インデックスは いらない）
   const query = (data, q) => {
     const by = q.get("orderBy"), last = Number(q.get("limitToLast"));
     if (!by) return data;
     const key = JSON.parse(by);
-    let rows = Object.entries(data && typeof data === "object" ? data : {}).sort((a, b) => ((a[1] && a[1][key]) || 0) - ((b[1] && b[1][key]) || 0));
+    let rows = Object.entries(data && typeof data === "object" ? data : {});
+    if (key === "$key") {
+      const a = q.has("startAt") ? JSON.parse(q.get("startAt")) : null, b = q.has("endAt") ? JSON.parse(q.get("endAt")) : null;
+      rows = rows.filter(([k]) => (a === null || k >= a) && (b === null || k <= b)).sort((x, y) => (x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : 0));
+    } else rows.sort((a, b) => ((a[1] && a[1][key]) || 0) - ((b[1] && b[1][key]) || 0));
     if (Number.isInteger(last) && last > 0) rows = rows.slice(-last);
     return rows.length ? Object.fromEntries(rows) : null;
   };

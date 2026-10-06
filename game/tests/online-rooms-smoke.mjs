@@ -22,8 +22,8 @@ export async function onlineRoomsSmoke({ scenario, expect }) {
     await H.page.locator(".modal-wrap:not(.out) .onl-nick-ok").click();
     await H.until(() => PokaDebug.online().on && !!PokaDebug.online().uid, 10000);
     const uid = (await H.dbg("online")).uid, code = (await H.dbg("online")).code;
-    await H.until(() => document.querySelectorAll(".smaho-body .onl-tab").length === 2 && !!document.querySelector(".smaho-body .onl-board"), 8000);
-    expect(JSON.stringify(await H.eval(() => [...document.querySelectorAll(".smaho-body .onl-tab")].map((b) => b.textContent))) === '["ランキング","おうち"]', "「みんな」の タブ");
+    await H.until(() => document.querySelectorAll(".smaho-body .onl-tab").length === 3 && !!document.querySelector(".smaho-body .onl-board"), 8000);
+    expect(JSON.stringify(await H.eval(() => [...document.querySelectorAll(".smaho-body .onl-tab")].map((b) => b.textContent))) === '["ランキング","おうち","ぷりくら"]', "「みんな」の タブ");
     await H.page.locator(".smaho-body .onl-tab", { hasText: "おうち" }).click(); await H.wait(300);
     expect((await H.page.locator(".onl-room-state").textContent()) === "まだ みせて いないよ。" && await H.page.locator(".onl-room-stop").isHidden() && (await H.page.locator(".onl-room-sel").inputValue()) === "main", "おうちの タブの はじめ");
     expect((await H.dbg("online")).watching === null, "おうちの タブでは ランキングを みはらない");

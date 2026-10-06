@@ -282,6 +282,37 @@ const PokaDebug = {
   },
   // おくる おへやの データ（みせる まえに しらべる）
   onlineRoomData(id = "main") { return typeof OnlineRooms === "undefined" ? null : OnlineRooms.encode(id); },
+  // オンラインの ぷりくら（UI-96・js/online-photos.js）: みせて いる しゃしん・サーバーから けす まち・サーバーの キー（keys）と ばんごう（sid）・さいごに よんだ いちらん（みえるか・ほうこくの かず・よんだ ことばと スタンプ）・
+  // かくした もの・ほうこくした もの・ひらいて いる まど
+  onlinePhotos() {
+    if (typeof OnlinePhotos === "undefined") return null;
+    const s = OnlinePhotos.st(), v = OnlinePhotos.view;
+    return { shown: OnlinePhotos.shownIds(), max: OnlinePhotos.MAX, uid: s.uid, pending: Object.keys(s.shown).filter((id) => s.shown[id] < 0),
+      keys: Object.fromEntries(Object.keys(s.shown).map((id) => [id, OnlinePhotos.key(s.uid, id)])), sid: { ...s.sid },
+      list: OnlinePhotos.list ? OnlinePhotos.list.map((it) => ({ key: it.key, uid: it.uid, sid: it.sid, n: it.n && it.n.slice(), t: it.t, hidden: OnlinePhotos.hidden(it), count: OnlinePhotos.counts[it.key] || 0,
+        x: it.photo.d.x.map((t) => t[0]), s: it.photo.d.s.map((q) => q[0]), p: it.photo.d.p.length, e: (it.photo.d.e || []).slice(), c: JSON.parse(JSON.stringify(it.photo.c)), o: JSON.parse(JSON.stringify(it.photo.o)), bg: it.photo.bg, k: it.photo.k })) : null,
+      hide: s.hide.slice(), hideU: s.hideU.slice(), rep: { ...s.rep }, view: v ? { key: v.it.key, drawn: v.drawn } : null };
+  },
+  // おくる ぷりくらの データ（みせる まえに しらべる。しゃしんの id）
+  onlinePhotoData(id) { if (typeof OnlinePhotos === "undefined") return null; const p = Purikura.list().find((x) => x.id === id); return p ? OnlinePhotos.encode(p) : null; },
+  // テストの ぷりくら（さつえい しないで n まい ふやす。ペン・スタンプ・ブースの ことばと みんなの ことば・キラキラ・ふく・うごかした ばしょ いり）。ふえた しゃしんの id
+  photoSeed(n = 1) {
+    Purikura.st();
+    const ids = [], base = Date.now().toString(36), slot = (sl) => Object.keys(ITEM_INDEX).find((k) => ITEM_INDEX[k].slot === sl);
+    for (let i = 0; i < n; i++) {
+      const booth = Purikura.BOOTHS[(i + 1) % Purikura.BOOTHS.length], words = Purikura.wordsOf(booth.id);
+      const stroke = Purikura.packStroke({ c: i % 6, w: 1, pts: [[40, 60], [80, 90], [120, 70], [160, 110 + i]] });
+      const p = Purikura.clean({ id: `t${base}-${i}`, t: Date.now(), bg: booth.bgs[i % booth.bgs.length], k: booth.id, z: i % 2, r: Save.d.order.slice(),
+        c: { wanko: ["peace", "love"], gachan: ["wai", "excited"], goji: ["heart", "happy"] },
+        o: { wanko: [{ head: slot("head") }, "soft"], gachan: [{ body: slot("body") }, "dark"], goji: [{}, "soft"] },
+        d: { p: [stroke], s: [["heart", 60, 80, 1], ["star", 220, 300, 2, -30, 1]], x: [[words[0], 150, 360, 2, 10], [words[words.length - 1], 120, 40, 0]], e: ["kira"] },
+        m: { wanko: [10, -20], gachan: [0, 0], goji: [-15, 5] } });
+      if (p) { Save.d.photos.push(p); ids.push(p.id); }
+    }
+    while (Save.d.photos.length > Purikura.MAX) Save.d.photos.shift();
+    Save.write();
+    return ids;
+  },
   itemDex(kind = "furn") {
     return { kind, ...ItemDex.progress(kind), entries: ItemDex.entries(kind).map(e => ({ id: e.id, name: e.item.name, category: kind === "furn" ? e.item.kind : e.item.slot, seen: e.seen, owned: e.owned, count: e.count, rare: !!e.item.rare })) };
   },

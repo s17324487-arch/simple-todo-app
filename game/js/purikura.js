@@ -141,7 +141,13 @@ const Purikura = (() => {
       for (const id of Chara.IDS) if (Save.care) Save.care(id, { mood: 1 });
       Save.write(); return true;
     },
-    remove(id) { const n = this.list().length; Save.d.photos = Save.d.photos.filter((p) => p.id !== id); if (Save.d.photos.length !== n) { Save.write(); return true; } return false; },
+    // けす（みんなに みせて いた しゃしんは サーバーからも けす。js/online-photos.js）
+    remove(id) {
+      const n = this.list().length; Save.d.photos = Save.d.photos.filter((p) => p.id !== id);
+      if (Save.d.photos.length === n) return false;
+      if (typeof OnlinePhotos !== "undefined") OnlinePhotos.onRemove(id);
+      Save.write(); return true;
+    },
     // いまの 3人の 服（しゃしんに のこす）
     outfits() { const o = {}; for (const id of Chara.IDS) { const c = Save.d.chars[id]; o[id] = [{ ...(c.outfit || {}) }, c.color === "dark" ? "dark" : "soft"]; } return o; },
     // ブースを しらべた とき（館の 什器 photobooth。booth = ブースの id）
@@ -877,8 +883,9 @@ Purikura.phoneOne = function (el, ph, id) {
   el.replaceChildren();
   const list = this.list().slice().reverse(), i = list.findIndex((p) => p.id === id), p = list[i];
   if (!p) return this.phoneView(el, ph);
-  // しゃしんは たても はいる 大きさ（したの ボタン 2だんが スクロール しないで 見える）。日づけは しゃしんの わくに ある
-  const room = el.clientHeight ? el.clientHeight - 130 : 400, w = Math.floor(Math.max(150, Math.min(300, (el.clientWidth || 300) - 24, room * 0.75)));
+  // しゃしんは たても はいる 大きさ（したの ボタン 2だん〔オンラインなら「みんなに みせる」で 3だん〕が スクロール しないで 見える）。日づけは しゃしんの わくに ある
+  const share = typeof OnlinePhotos !== "undefined" && OnlinePhotos.available();
+  const room = el.clientHeight ? el.clientHeight - (share ? 186 : 130) : 400, w = Math.floor(Math.max(150, Math.min(300, (el.clientWidth || 300) - 24, room * 0.75)));
   const box = U.el("div", { class: "puri-viewer" }), cv = U.el("canvas", { class: "puri-big", role: "img", "aria-label": "しゃしん " + this.dateText(p.t) });
   PurikuraArt.paint(cv, this.view(p), w);
   const nav = U.el("div", { class: "puri-nav" });
@@ -892,6 +899,7 @@ Purikura.phoneOne = function (el, ph, id) {
     UI.btn("けす", async () => { if (await UI.confirm("この しゃしんを けす？（もとに もどせないよ）", "けす", "やめる")) { this.remove(p.id); Sound.se("cancel"); const rest = this.list().slice().reverse(); if (rest.length) this.phoneOne(el, ph, (rest[Math.min(i, rest.length - 1)] || rest[0]).id); else this.phoneView(el, ph); } }, "small"),
   );
   box.append(cv, nav, acts);
+  if (share) OnlinePhotos.photoActions(box, p, () => this.phoneOne(el, ph, p.id));
   el.append(box);
 };
 // たんまつに 画像で ほぞん（PNG・この 端末の 中だけ。そとには おくらない）

@@ -135,8 +135,9 @@ const Save = {
       records: { since: "", kids: {}, food: {}, battle: { fled: 0, lost: 0 } },
       // オンライン（E5・UI-94・js/online.js）: on オンか・agreed 18さい いじょうの 同意を した とき（0 は まだ）・ver 同意の ばんごう・nick なまえの ことば [ようす, もの]・
       // best { ボード: { s いちばん よい スコア, d 日, l おみせ Lv, m あそびかた } }（オフでも のこす）・sent { ボード: おくった スコア }・sentUid おくった ときの ID・
-      // room みせて いる おへや（js/online-rooms.js: shown みせた とき〔0 は みせて いない〕・id おへや・uid みせた ときの ID）
-      online: { on: false, agreed: 0, ver: 0, nick: [0, 0], best: {}, sent: {}, sentUid: "", room: { shown: 0, id: "", uid: "" } },
+      // room みせて いる おへや（js/online-rooms.js: shown みせた とき〔0 は みせて いない〕・id おへや・uid みせた ときの ID）・
+      // photo ぷりくら（js/online-photos.js: uid みせた ときの ID・shown { しゃしんの id: みせた とき〔-1 は サーバーから けす まち〕}・sid { しゃしんの id: サーバーの ばんごう〔ランダム〕}・hide かくした しゃしん・hideU かくした 人・rep { ほうこくした しゃしん: りゆう }）
+      online: { on: false, agreed: 0, ver: 0, nick: [0, 0], best: {}, sent: {}, sentUid: "", room: { shown: 0, id: "", uid: "" }, photo: { uid: "", shown: {}, sid: {}, hide: [], hideU: [], rep: {} } },
       settings: { bgm: true, se: true, difficulty: "normal", worldZoom: 1 },
     };
   },

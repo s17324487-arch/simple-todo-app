@@ -118,7 +118,7 @@ const OnlineNet = {
       throw e;
     }
   },
-  get(path, q = "") { return this.req("GET", path, undefined, q); }, // q: orderBy・limitToLast など（エンコードずみ）
+  get(path, q = "", create = true) { return this.req("GET", path, undefined, q, true, create); }, // q: orderBy・limitToLast など（エンコードずみ）。create: false は アカウントを つくらない（けす とき）
   put(path, value) { return this.req("PUT", path, value, "print=silent"); },
   // { "a/b": 1, "c/d": null } の ように いくつもの ばしょを 1かいで（null は けす）。create: false は アカウントを つくらない（けす とき）
   patch(path, value, create = true) { return this.req("PATCH", path, value, "print=silent", true, create); },

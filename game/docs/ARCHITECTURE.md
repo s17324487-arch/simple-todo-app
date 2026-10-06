@@ -158,6 +158,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `dine-seats.js`（iso-venue.js の すぐ あと＝chara.js・IsoVenue の あと） | `DineSeats`（ごはんの せき: 館の テーブル・ボックス席で 3人が すわって ちゅうもん。UI-72） |
 | — | `online-config.js` → `online-net.js` → `online.js`（play-records.js の あと・world-zoom.js の まえ＝Smaho・Menu・ShopScene・KorokoroScore・SHOP_GAMES の あと） | `ONLINE_CONFIG`（つなぎさき）, `OnlineNet`（匿名ログイン・Realtime Database の REST と SSE・ネットに つなぐ ゆいいつの ファイル）, `Online`（同意・なまえ・ボード・きろく・すまほの「みんな」・≡ の せってい。E5・UI-94） |
 | — | `online-rooms.js`（online.js の すぐ あと） | `OnlineRooms`（ほかの 人の おうちを 見る・じぶんの おへやを みせる。`Online.parts` に「おうち」タブ。E5・UI-95） |
+| — | `online-photos.js`（online-rooms.js の すぐ あと・purikura.js より あと） | `OnlinePhotos`（みせると きめた ぷりくらを 見せあう・かくす・ほうこく。`Online.parts` に「ぷりくら」タブ。「しゃしん」アプリの「みんなに みせる」。E5・UI-96） |
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
