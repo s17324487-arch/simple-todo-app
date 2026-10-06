@@ -110,8 +110,9 @@ const Save = {
       // pages [{ bg: かみ, s: [[シール, x, y, まわす, おおきさ], …] }]（6まい。はじめて つかう ときに つくる）。シートは ガチャの けいひん（Save.d.gacha.got）
       stickers: { have: {}, got: {}, pages: [] },
       // いちばんくじ（js/ichiban-kuji.js・UI-55・ネリカスタウンの コンビニ 2つ）: lots { みせ: ロット（のこり・はりつけ ひょう・ほかの おきゃくさん）}・got { けいひん: もらった かず }・
-      // draws ひいた まい数・spent つかった コイン・coupons { クーポン: まい数 }・used・stubs { みせ: はんけん }・dc／dcLast ダブルチャンス・done コンプリート・pending まだ えらんで いない D〜Fしょう
-      kuji: { lots: {}, got: {}, draws: 0, spent: 0, coupons: {}, used: 0, stubs: {}, dc: {}, dcLast: {}, done: {}, pending: [] },
+      // draws ひいた まい数・spent つかった コイン・coupons { クーポン: まい数 }・used・stubs { みせ: はんけん }・dc／dcLast ダブルチャンス・done コンプリート・pending まだ えらんで いない D〜Fしょう・
+      // net みんなの くじ（js/kuji-net.js・UI-100）: on 1 = つかう・since はじめて つかった とき・uid・rec { "みせ_ロット_なんまいめ": もらった しるし }
+      kuji: { lots: {}, got: {}, draws: 0, spent: 0, coupons: {}, used: 0, stubs: {}, dc: {}, dcLast: {}, done: {}, pending: [], net: { on: 0, since: 0, uid: "", rec: {} } },
       // けいば ちゅうけい（js/keiba-corner.js・UI-58・ネリカス でんき 10F）: day いまの ばんぐみの 日・run { レース: true } しめきった レース・
       // tickets [{ id, day, no, t しきべつ, m かいかた, sel, keys くみあわせ, u まいすう, cost, st open／hit／miss／paid, pay }]・hist さいきんの けっか・bets・spent・won・hits・best・races・seq
       keiba: { day: "", run: {}, tickets: [], hist: [], bets: 0, spent: 0, won: 0, hits: 0, best: 0, races: 0, seq: 0 },

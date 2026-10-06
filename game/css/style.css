@@ -1491,6 +1491,23 @@ html, body {
 .kuji-results{row-gap:14px;padding-top:10px}
 .kuji-new{position:absolute;top:-11px;right:2px;z-index:1;font-size:10px;font-weight:900;color:#fff;background:#E0668F;border:2px solid var(--ink);border-radius:999px;padding:0 5px;line-height:1.3} /* 賞の ふだに かさならない よう カードの うえの かど */
 .btn.coupon-use{width:100%;min-height:48px;margin-top:6px;word-break:keep-all;overflow-wrap:anywhere}
+/* みんなの くじ（UI-100・js/kuji-net.js）: ひとり／みんな の きりかえ・つながり・みんなの けっか・まつ がめん */
+.kuji-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;border:2.5px solid var(--ink);border-radius:14px;padding:3px;background:#F4F1EA}
+.kuji-mode{min-height:44px;border:none;border-radius:10px;background:transparent;font:inherit;font-weight:900;font-size:14px;color:#6b604f;cursor:pointer}
+.kuji-mode.on{background:var(--kc);color:#fff;box-shadow:inset 0 0 0 2px var(--ink)}
+.kuji-netstat{font-size:12px;font-weight:800;color:#8a7d6a}
+.kuji-netstat[data-state="live"]{color:#2F8A49}
+.kuji-netstat[data-state="poll"]{color:#3A78A8}
+.kuji-netstat[data-state="denied"]{color:#C0504D}
+.kuji-feed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.kuji-feedrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px;border:1.5px solid #d8cfbd;border-radius:10px;background:#FFFDF8;padding:3px 6px;font-size:12px;font-weight:800;min-height:30px}
+.kuji-feedrow.me{border-color:#FF8FB0;background:#FFF2F6}
+.kuji-feedrow.empty{display:block;text-align:center;color:#8a7d6a}
+.kuji-feedname{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kuji-feedno{color:#8a7d6a;font-size:11px}
+.kuji-feedhead{text-align:left}
+.kuji-wait{text-align:center;font-weight:900;font-size:18px;color:var(--kd);padding:10px 0}
+.kuji-choose.busy{opacity:.6;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.kuji-boxbtn.shake{animation:none}.kuji-ticket .flap{transition:none}}
 /* ---- けいば ちゅうけい（UI-58・js/keiba-ui.js・js/keiba-scene.js）: ちゅうけいの ボタン・しゅつばひょう・ばけん・はらいもどし ---- */
 .kb-ui { position:absolute; inset:0; pointer-events:none; }

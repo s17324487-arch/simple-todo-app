@@ -21,7 +21,7 @@ const scripts = [...read("index.html").matchAll(/<script src="(js\/[^"]+)"><\/sc
 ok(scripts.indexOf("js/online-photos.js") === scripts.indexOf("js/online-rooms.js") + 1 && scripts.indexOf("js/purikura.js") < scripts.indexOf("js/online-photos.js") && read("sw.js").includes('"./js/online-photos.js"'), "online-photos.js は online-rooms.js の すぐ あと（purikura.js より あと）・sw.js にも");
 ok(!/\bfetch\s*\(|EventSource|XMLHttpRequest|sendBeacon|WebSocket/.test(read("js/online-photos.js")), "online-photos.js は じぶんで ネットに つながない（OnlineNet だけ）");
 const part = O.parts.find((p) => p.id === "photos");
-ok(part && part.name === "ぷりくら" && ["render", "leave", "wipe", "renamed", "account"].every((k) => typeof part[k] === "function") && O.parts.map((p) => p.id).join() === "rooms,photos", "「みんな」の「ぷりくら」タブ（Online.parts の 2つめ）");
+ok(part && part.name === "ぷりくら" && ["render", "leave", "wipe", "renamed", "account"].every((k) => typeof part[k] === "function") && O.parts.map((p) => p.id).join() === "rooms,photos,kuji" && O.parts.filter((p) => p.render).map((p) => p.id).join() === "rooms,photos", "「みんな」の「ぷりくら」タブ（Online.parts の 2つめ。3つめの いちばんくじ〔js/kuji-net.js〕は タブ なし）");
 const FRESH = '{"uid":"","shown":{},"sid":{},"hide":[],"hideU":[],"rep":{}}';
 ok(JSON.stringify(S.fresh().online.photo) === FRESH && JSON.stringify(O.fresh().photo) === FRESH, "Save.d.online.photo");
 S.d = S.fresh();

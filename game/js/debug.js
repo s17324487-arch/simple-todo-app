@@ -38,7 +38,13 @@ const PokaDebug = {
   kujiDays(s='lawson',n=1){if(typeof IchibanKuji==='undefined'||!IchibanKuji.has(s)||!(n>0))return false;const K=IchibanKuji,d=K.st(),L=K.lot(s),fmt=no=>{const t=new Date(no*864e5);return t.getUTCFullYear()+'-'+(t.getUTCMonth()+1)+'-'+t.getUTCDate();},back=v=>v?fmt(K.dayNo(v)-n):v;L.seen=back(L.seen);L.sold=back(L.sold);if(L.news)L.news.day=back(L.news.day);if(d.dc[s])d.dc[s].day=back(d.dc[s].day);Save.write();return true;},
   kujiDc(win=true){if(typeof IchibanKuji==='undefined')return false;IchibanKuji.dcNext=!!win;return true;},
   kujiFast(k=1){if(typeof KujiUI==='undefined')return false;KujiUI.ui.speed=Math.max(1,Math.min(20,k));return true;},
-  kujiUi(){if(typeof KujiUI==='undefined')return null;const v=KujiUI.view;return{open:!!(v.open&&document.querySelector('.modal-wrap:not(.out) .kuji')),store:v.store,phase:v.phase,tickets:v.tickets.map(t=>({g:t.g,id:t.id,pick:t.pick,last:t.last,open:t.open})),results:v.results.slice(),dc:v.dc?{...v.dc}:null};},
+  kujiUi(){if(typeof KujiUI==='undefined')return null;const v=KujiUI.view;return{open:!!(v.open&&document.querySelector('.modal-wrap:not(.out) .kuji')),store:v.store,phase:v.phase,mode:v.mode,tickets:v.tickets.map(t=>({g:t.g,id:t.id,pick:t.pick,last:t.last,open:t.open})),results:v.results.slice(),dc:v.dc?{...v.dc}:null};},
+  // みんなの くじ（kuji-net.js・UI-100）: kujiNet ようす（つかって いるか・ロット・ひいた くじ〔賞・じぶんか〕・のこり・みんなの けっか・えらぶ まち・つながり・てもとの rec）・
+  // kujiNetMode みんなの くじ を つかう／やめる・kujiNetT(s, '賞') いまの ロットの つぎの くじが その 賞に なる サーバーの じこく（にせの サーバーの kujiT に わたす）
+  kujiNet(s='lawson'){if(typeof KujiNet==='undefined'||!IchibanKuji.has(s))return null;const v=KujiNet.view(s),n=KujiNet.st(),me=typeof OnlineNet!=='undefined'?OnlineNet.uid():'';return{available:KujiNet.available(),using:KujiNet.using(),on:n.on,since:n.since,uid:n.uid,rec:{...n.rec},cur:KujiNet.cur(s),watching:KujiNet.watching(),state:KujiNet.state(),prev:KujiNet.prev(s),
+    view:v?{no:v.no,n:v.n,total:v.total,sold:v.sold,pc:v.pc,tickets:{...v.tickets},left:{...v.left},draws:v.draws.map(x=>({k:x.k,g:x.g,id:x.id,me:!!x.u&&x.u===me,u:x.u,p:x.p,o:x.o,last:x.last,fixed:x.fixed}))}:null,feed:KujiNet.feed(v),pending:KujiNet.pending(s)};},
+  kujiNetMode(on=true){if(typeof KujiNet==='undefined')return false;KujiNet.setMode(!!on);return KujiNet.using();},
+  kujiNetT(s='lawson',g='A',from=Date.now()){if(typeof KujiNet==='undefined'||!IchibanKuji.has(s)||!IchibanKuji.GRADES.includes(g))return null;const lot=KujiNet.lot(s);return lot?KujiNet.timeFor(s,KujiNet.cur(s),lot,g,from):null;},
   // ガチャガチャの もり（4F）: series は もりの ぜんぶの シリーズ（12〜29 と UI-62 の 33〜38・more）・machines は いまの しゅうに 台に はいって いる 18
   gachaForest(){if(typeof GachaForest==='undefined')return null;if(typeof MeeRotation!=='undefined')MeeRotation.apply();const f4=VenueHalls.defs.arcade.floors[4],all=[...GachaForest.SERIES,...(typeof GachaForestMore!=='undefined'?GachaForestMore.SERIES:[])];return{first:GachaForest.first,series:all.map(S=>({id:S.id,index:S.index,name:S.name,kind:S.kind,hand:!!S.hand,squish:!!S.squish,more:!!S.more,rare:S.list[Gacha.RARE].id})),machines:f4?f4.fixtures.filter(f=>f.kind==='gacha'&&Gacha.SERIES[f.series]&&Gacha.SERIES[f.series].forest).map(f=>f.series):[],squish:[...GachaForest.SQUISH]};},
   // ガチャの しゅうがわり（js/mee-rotation.js・UI-62）: day の しゅうの わごとの 台（slot・シリーズ・fresh・leaving）と やすみ（day なしで きょう。calendar() で かわる）
@@ -215,6 +221,7 @@ const PokaDebug = {
       "PokaDebug.arcadeStart(21〜23)       4F の たこやき（arcadeTako(0) で あたりの あなに だま）・バーバーカット（arcadeBarber(1, 0, -2) で まん中の ひもの てまえ）・バウンドボール",
       "PokaDebug.stickers()                 シールの ガチャ（4F・30〜32）と シールちょう（てもと・ページ）。stickerGive('stk_wanko', 3) で シールを もらう・stickerUi() で ひらいて いる ページ",
       "PokaDebug.kuji('lawson')             ネリカスタウンの コンビニの いちばんくじ（ロット・のこり・はりつけ ひょう・はんけん・クーポン）。kujiOpen で ボード・kujiNext('A') で つぎの 賞・kujiLeft(s, n) で のこり n まい・kujiDays(s, 1) で つぎの 日・kujiDc(true)・kujiUi()",
+      "PokaDebug.kujiNet('lawson')          みんなの くじ（オンラインの みんなで おなじ ロット・UI-100）の ようす。kujiNetMode(true) で つかう・kujiNetT('lawson', 'A') で つぎの くじが Aしょうに なる じこく",
       "PokaDebug.areaMap()                  すまほ の ちず「この エリア」の ようす（めじるし・なまえ・えらんだ もの）。areaMapLayout('town', 4.46) で ならびだけ",
       "PokaDebug.venue('electronics', 2)    ネリカス でんき（池袋の 家電の 館。1F スマホ・カメラ／2F くらしの かでん／3F テレビ・パソコン／10F あかり・シアター・けいば ちゅうけい）。kaden() で 階・うりば・だいの しなもの・ためしの だい",
       "PokaDebug.kadenStickers()           ネリカス でんき 1F の シール うりば（ひらいて いる タブ・しなもの・かった かず）。シールちょうは stickers()・stickerUi()",

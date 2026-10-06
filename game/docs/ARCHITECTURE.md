@@ -164,6 +164,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `online-rooms.js`（online.js の すぐ あと） | `OnlineRooms`（じぶんの おへやを みせる・みんなの おへやの いちらん。`Online.parts` に「おうち」タブ。いちらんの タップで おじゃま〔online-visit.js〕。E5・UI-95） |
 | — | `online-photos.js`（online-rooms.js の すぐ あと・purikura.js より あと） | `OnlinePhotos`（みせると きめた ぷりくらを 見せあう・かくす・ほうこく。`Online.parts` に「ぷりくら」タブ。「しゃしん」アプリの「みんなに みせる」。E5・UI-96） |
 | — | `online-visit.js`（online-photos.js の すぐ あと＝HouseScene を つつむ ファイル〔home-doors・home-floors・home-toilet・pet-walk・play-records・gowaga-wish・mee-fitting〕より あと・debug.js の まえ） | `OnlineVisit`（よんだ おへや → この 画面の へや・ことば・もどる ところ・いく）, `VisitScene`（`SCENES.visit`。ほかの 人の おうちに 3人で おじゃま。HouseScene を うけつぐ。E5・UI-97） |
+| — | `kuji-net.js`（online-visit.js の すぐ あと＝IchibanKuji・KujiUI・Online・OnlineNet の あと・debug.js の まえ） | `KujiNet`（みんなの くじ。いちばんくじを オンラインの みんなで おなじ ロットで ひく。`Online.parts` に `kuji`〔けす・ID〕。E5・UI-100） |
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
@@ -1478,7 +1479,25 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - セーブ `Save.d.kuji`（`Save.fresh()` に たした だけ・`Save.SCHEMA` は 2 の まま）: `lots`（みせごとの ロット: `no`・`left`・`hold`・`seen`・`others`・`mine`・`log`〔さいだい 80〕・`sold`・`news`）・`got`・`draws`・`spent`・`coupons`・`used`・`stubs`・`dc`・`dcLast`・`done`・`pending`。こわれた データは `clean()`（`st()` が 1かいだけ。WeakSet）が なおす（しらない id・ロットの ちがう `pending`・おおすぎる `hold` を すてる）。
 - 絵 `KujiArt`（SVG の 文字列。id は もたない・キャラの 絵は `Chara.svg`）: ビッグ ぬいぐるみ 8（`PLUSH`。A〜C ＋ ラストワン。ぬいめ・タグ・ほっぺ）・`ART`（クッション 6・マグ 3・アクリル スタンド 4・ちび ぬいぐるみ 4・タペストリー 2）・`coupon(id)`・`sticker(id)`（`STK` 12）・`bag(ctx)`（3人 × 4むき）・`blanketFlat`／`blanketModel`（ラグの 立体）・`shelf(store)`（店の たな 220×190）・`box(store)`（くじの はこ）・`pic(id)`（くじの がめん・ずかん）・`furn(id)`（FURN_ART）。`install(API)`: ぬいぐるみと クッションは `FurnModels.register`（かげ ＋ 絵）と `FurnLive.register`（タップで ぎゅっと つぶれて もどる・おと・3人の ひとこと。SvgCache の キーは `kuji:<id>:<はばの px〔8 の ばい〕>`）、ブランケットは `FurnModels` だけ。
 - 画面 `KujiUI.open(s, scene)`（Promise。`UI.modal` の `full kuji-panel`・コンビニの いろは CSS の `--kc`・`--kl`・`--kd`）: ボード（ポスター・のこり・A〜C と ラストワンの カード・D〜I の ならび〔のこり／ぜんぶ〕・あつめた かず・はりつけ ひょう 80ます〔`.on` でた・`.me` じぶん〕・1まい／10まい〔たしかめる まど〕／のこり ぜんぶ・ダブルチャンス・もって いる クーポン）→ `boxStep`（はこから とる）→ `ticketsStep`（くじけんを タップ か うえに 22px スライドで めくる・ぜんぶ めくる。3まい までは 大きい `.few`）→ `handover` → `choose`（D〜F）→ `resultStep`（賞の じゅん・NEW・ラストワン・おなじ せつめいは 1つに・シールは まとめて・3人の ひとこと）。`view`（open・store・phase・tickets・results・dc）を PokaDebug が みる。`ui.speed` で えんしゅつを はやく。こうかおんは `CraneSE` に `kuji_draw`・`kuji_peel`・`kuji_bell`（A〜C・ラストワンを めくった とき）・`kuji_win`・`kuji_last`。キラキラの えんしゅつは ない（UI-50）。
+- オンラインの ときは ボードの うえで「みんなの くじ」（UI-100・`js/kuji-net.js`。つぎの 節）も えらべる。`pay(s, n)`（コイン・まい数・はんけん）と `hash`・`seeded` は みんなの くじも つかう。
 - PokaDebug: `kuji(s)`・`kujiOpen(s)`・`kujiNext('A'〜'I')`・`kujiLeft(s, n)`・`kujiDays(s, n)`・`kujiDc(win)`・`kujiFast(k)`・`kujiUi()`。検査は `tools/check-kuji.mjs`（`check-nerikasu-town.mjs` は コンビニの 什器 7こ・`check-figure-stand.mjs` は フィギュア 11しゅ・`check-stickers.mjs` は シール 30しゅ）、スモーク「kuji-390 / 375」（`tests/kuji-smoke.mjs`）。
+
+## みんなの くじ（UI-100・`js/kuji-net.js`・`KujiNet`）
+
+オーナーの 指示 2026-10-06「一番くじについて、他のユーザーのくじ引き結果を連携するようにして。」 オンライン（E5）の 18さい いじょうの 同意を した 人だけ。ネットは `OnlineNet` だけ（`tools/check-kuji-net.mjs` が しらべる）。
+
+- サーバー（`game/firebase/database.rules.json`）: `v1/kuji/{lawson|sevenbun}/cur`（いまの ロット。ない ときは 1）・`lots/l{ロット}` = `{ n, pc?, d: { k{なんまいめ}: { u, t, p?, o? } } }`・`v1/kujime/{uid}/{みせ}_l{ロット}` = true（じぶんしか よめない）。キーは かず だけに しない（`l`・`k` を つける）ので Firebase が 配列に かえない。
+  - ひく かきこみは 1かいの PATCH: `kuji/{s}/lots/l{cur}/n` = n + 1・`…/d/k{n}` = `{ u: uid, t: {".sv": "timestamp"} }`・`kujime/{uid}/{s}_l{cur}` = true。ルールは「いまの ロット・n は 1 だけ ふえる・80 まで・その ばんごうの くじは まだ ない・じぶんの uid・t === now・p／o は まだ ない・ほかの こうもくは ない」。どれかが だめなら ぜんぶ かかない。
+  - えらぶ かきこみ: `lots/l{lot}` に `pc` = pc + 1・`d/k{k}/p`（0〜2）・`d/k{k}/o` = pc。ルールは「じぶんの くじ・1かいだけ・o は まえの pc・pc は o + 1」。`pc` だけ すすめる ことも できる（すきまが できる だけ）。
+  - `cur` は ロット cur の n が 80 の ときだけ 1 ふやせる。くじの `u` は じぶんで "" に だけ かえられる（けす とき）。くじ・じこく・ロットは けせない・かえられない。
+- `derive(s, no, lot)`: k0 から じゅんに（とちゅうが ない ところで とまる）、`seeded(hash(s, no, k, t))` の 1つめで 賞（のこりの まい数の おもみ）、A〜C・G〜I は 2つめで しゅるい（のこりの おもみ）。D〜F は えらんだ じゅん（o・おなじ なら k）に `ids[p]`、もう ない しゅるいなら のこりの はじめ（`fixed`）。k79 が `last`。かえす: `{ no, n, pc, draws, left, tickets, total, sold }`。`timeFor` は つぎの くじが その 賞に なる じこく（テスト）。
+- `draw(s, n, step)`: `Online.ensure` → 1まいずつ（かさなる → `load` して つぎの ばんごう・80 → `advance`）。ひけたら `IchibanKuji.pay(s, 1)`・`rec["s_lot_k"] = 0`。へんじが こない → その ばんごうを よんで じぶんの くじなら ひけた ことに・よめなければ なげる（コインは へらない）。おわったら ロットを よんで `derive` → `settle`（`grant`・ラストワン）。うりきれたら `advance`。かえす かたちは `IchibanKuji.draw` と おなじ。
+- `pick(s, P, id)`: よむ → もう えらんで いれば `finish`・とられて いれば `{ taken: true }`・`pc` で かく（かさなれば よみなおす）→ よんで たしかめて `settle`。`pending(s)`（rec の えらぶ まち。まえの ロットは `reconcile` が よんで おく）・`choices`・`leftOf`。
+- `reconcile(s)`: いまの ロットの じぶんの くじで rec に ない もの（`since` いこう）を うけとる（`pay`）・rec の まだの ものを `settle`（じぶんの くじで なく なった もの は わすれる）。`watch(s, cb)`（ボードを ひらいて いる あいだ。`load` → `OnlineNet.listen` → `apply` → `derive` → cb。ほかの 人の A〜C・ラストワンは `UI.toast`。うりきれ → 1.5びょう → `advance` → つぎの ロット・`prev`〔ラストワンの 人〕）・`unwatch`。`nameOf(uid)`（`v1/players/{uid}` の なまえ・あなた・だれか）・`feed(view)`（あたらしい 8けん）。
+- `Online.parts` の `kuji`: `wipe(uid, up)`（`v1/kujime` と rec の ロットを よんで じぶんの くじの `u` を ""・`kujime/{uid}` を null。よめなければ なげる）・`account(uid)`（ID が かわったら rec を わすれる）。すまほの タブは ない。
+- がめん（`js/kuji-ui.js`）: `open` の なかで `mode`（"solo" | "net"。`KujiNet.using()`）。ボードの ぶぶんを 関数に わけた（`rowsPart`・`collectPart`・`boardPart`・`actionsPart`・`dcPart`・`couponPart`・`dcResPart`・`posterPart`・`statPart`・`lastPart`。ひとりの くじの DOM は まえと おなじ）。`drawNet`・`netBuy`（`phase` "wait"）・`SRC`（えらぶ もと。みんなの くじは `KujiNet.pick` を まつ）。ボードの うえの `.kuji-modes`（オンラインの とき だけ）。
+- セーブ `Save.d.kuji.net`: `on`（1 = つかう）・`since`・`uid`・`rec { "みせ_ロット_なんまいめ": 1 賞 ＋ 2 ラストワン }`（`IchibanKuji.cleanNet`・400 けん まで・もらい おわった ものから けす）。
+- テスト: `tools/check-kuji-net.mjs`・`tools/rules-emulator.mjs`（本物の エミュレーター。開発者むけ）・スモーク `kuji-net-390/375`。にせの サーバーの `kujiT(t)` で つぎに ひかれる くじの サーバーの じこくを きめる（とおった ときだけ つかう）。PokaDebug: `kujiNet(s)`・`kujiNetMode(on)`・`kujiNetT(s, 賞)`・`kujiUi().mode`。
 
 ## はたけ（おうちの ひだり・FARM-01）
 
