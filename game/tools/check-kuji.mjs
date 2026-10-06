@@ -23,10 +23,10 @@ const sum = (o) => Object.values(o).reduce((a, b) => a + b, 0);
 ok(K.PRICE === 1000 && K.GRADES.join("") === "ABCDEFGHI" && Object.keys(K.PICK).join("") === "DEF", "1かい 1000コイン・賞は A〜I・えらべるのは D〜F");
 ok(JSON.stringify(K.PLAN) === JSON.stringify({ A: [1], B: [1], C: [1], D: [1, 1, 1], E: [2, 2, 2], F: [3, 3, 3], G: [3, 3, 3, 3], H: [5, 5, 5, 5], I: [9, 9, 9] }) && sum(Object.fromEntries(Object.entries(K.PLAN).map(([g, a]) => [g, a.reduce((x, y) => x + y, 0)]))) === 80, "賞の ほんすう（A1 B1 C1 D3 E6 F9 G12 H20 I27 = 80まい）");
 ok(K.KEEP === 10 && K.OTHERS_MAX === 4 && K.CATCHUP === 7 && K.DC_RATE === 0.02, "ほかの おきゃくさん（1にち 0〜4まい・のこり 10まい まで・7にちぶん）・ダブルチャンス 2%");
-ok(K.STORES.join() === "lawson,sevenbun" && K.SERIES.every((x) => x.total === 80) && K.ITEMS.length === 50, "コンビニ 2つ・どちらも 80まい・けいひん 50しゅ（25しゅ ＋ ダブルチャンスしょう × 2）");
-ok(new Set(K.ITEMS.map((it) => it.id)).size === K.ITEMS.length && K.ITEMS.every((it) => K.INDEX[it.id] === it && /^kj_(law|sev)_[a-z0-9]+$/.test(it.id)), "けいひんの id（かさならない・kj_<みせ>_）");
+ok(K.STORES.join() === "lawson,sevenbun" && K.SERIES.every((x) => x.total === 80) && K.ITEMS.filter((it) => !it.net).length === 50 && K.ITEMS.length === 98, "コンビニ 2つ・どちらも 80まい・ひとりの くじの けいひん 50しゅ（25しゅ ＋ ダブルチャンスしょう × 2）・みんなの くじの けいひん 48しゅ（tools/check-kuji-deluxe.mjs）");
+ok(new Set(K.ITEMS.map((it) => it.id)).size === K.ITEMS.length && K.ITEMS.every((it) => K.INDEX[it.id] === it && /^kj_m?(law|sev)_[a-z0-9]+$/.test(it.id) && it.net === it.id.startsWith("kj_m")), "けいひんの id（かさならない・kj_<みせ>_・みんなの くじは kj_m<みせ>_）");
 for (const X of K.SERIES) {
-  const mine = K.ITEMS.filter((it) => it.store === X.id);
+  const mine = K.ITEMS.filter((it) => it.store === X.id && !it.net);
   ok(mine.length === 25 && X.lineup.length === 24 && X.lineup.every((id) => K.INDEX[id].store === X.id) && !X.lineup.includes(X.dcId) && X.lineup.includes(X.lastId), `${X.shop}: 25しゅ（コンプリートは 24しゅ・ダブルチャンスしょうは べつ）`);
   for (const g of K.GRADES) ok(X.ids[g].length === K.PLAN[g].length && X.ids[g].every((id, k) => X.plan[id] === K.PLAN[g][k] && K.INDEX[id].grade === g), `${X.shop} ${g}しょう: しゅるいと ほんすう`);
   ok(["A", "B", "C"].every((g) => K.INDEX[X.ids[g][0]].kind === "plush") && new Set(["A", "B", "C"].map((g) => K.INDEX[X.ids[g][0]].who)).size === 3 && ["goji", "wanko", "gachan"].every((w) => ["A", "B", "C"].some((g) => K.INDEX[X.ids[g][0]].who === w)), `${X.shop}: A〜Cしょうは ごじ・わんこ・がちゃんの ビッグ ぬいぐるみ`);
@@ -46,13 +46,13 @@ ok(K.INDEX[LW.ids.A[0]].who === "goji" && K.INDEX[SV.ids.A[0]].who === "wanko", 
 // ---- 2. ゲームに いれる（家具・もちもの・シール・おみせに ならばない）----
 for (const it of K.ITEMS) {
   if (it.furn) {
-    const f = R.FURN_INDEX[it.id], kind = it.kind === "blanket" ? "rug" : it.kind === "tapestry" ? "wall" : "floor";
+    const f = R.FURN_INDEX[it.id], kind = ["blanket", "brocade"].includes(it.kind) ? "rug" : it.kind === "tapestry" ? "wall" : "floor";
     ok(f && f.kind === kind && f.price === 0 && f.rare && f.exclusive === "kuji" && f.kujiPrize === it.store && f.w > 0 && f.h > 0 && f.comfort > 0 && typeof R.FURN_ART[it.id] === "function" && !R.ITEM_INDEX[it.id], `${it.id}: 家具（${kind}・おみせに ならばない）`);
     ok(!!f.figure === it.fig && R.FigureStand.isFigure(it.id) === it.fig, `${it.id}: フィギュア だいに ${it.fig ? "かざれる" : "かざれない"}`);
     ok(/いちばんくじ/.test(R.ItemDexSources.source("furn", f)) && R.ItemDexSources.source("furn", f).includes(K.BY[it.store].shop), `${it.id}: ずかんの ヒント`);
   } else if (it.kind === "bag") {
     const w = R.ITEM_INDEX[it.id];
-    ok(w && w.slot === "hand" && w.wear === "kuji_bag" && w.col[0] === it.store && w.col[1] === it.who && w.price === 0 && w.exclusive === "kuji" && typeof R.WEAR.kuji_bag === "function" && !R.FURN_INDEX[it.id], `${it.id}: もちもの（エコバッグ）`);
+    ok(w && w.slot === "hand" && w.wear === (it.net ? "kuji_dbag" : "kuji_bag") && w.col[0] === it.store && w.col[1] === it.who && w.price === 0 && w.exclusive === "kuji" && typeof R.WEAR[w.wear] === "function" && !R.FURN_INDEX[it.id], `${it.id}: もちもの（エコバッグ・みんなの くじは ポシェット／がまぐち）`);
     ok(/いちばんくじ/.test(R.ItemDexSources.source("wear", w)), `${it.id}: ずかんの ヒント`);
   } else ok(!R.FURN_INDEX[it.id] && !R.ITEM_INDEX[it.id], `${it.id}: 家具・服に はいらない（${it.kind}）`);
 }
@@ -66,7 +66,7 @@ for (const X of K.SERIES) {
   for (const id of X.ids.I) { const it = K.INDEX[id]; ok(it.stickers.reduce((a, [, k]) => a + k, 0) === 4 && it.stickers.every(([sid]) => X.stickers.some(([x]) => x === sid)), `${id}: シールが 4まい（その みせの シール）`); }
   ok(X.stickers.every(([sid]) => X.ids.I.some((id) => K.INDEX[id].stickers.some(([x]) => x === sid))), `${X.shop}: 6しゅ ぜんぶが どれかの シートに ある`);
 }
-ok(SB.DESIGNS.filter((d) => /^stk_kj/.test(d.id)).length === 12 && SB.DESIGNS.slice(18, 30).every((d) => /^stk_kj(law|sev)_[a-z]+$/.test(d.id)), "シールちょうは 18しゅ ＋ いちばんくじの 12しゅ（ネリカス でんきの シールは その あと）");
+ok(SB.DESIGNS.filter((d) => /^stk_kj/.test(d.id)).length === 24 && SB.DESIGNS.slice(18, 30).every((d) => /^stk_kj(law|sev)_[a-z]+$/.test(d.id)) && SB.DESIGNS.slice(30, 42).every((d) => /^stk_kjm(law|sev)_[a-z]+$/.test(d.id)), "シールちょうは 18しゅ ＋ いちばんくじの 12しゅ ＋ みんなの くじの 12しゅ（ネリカス でんきの シールは その あと）");
 
 // ---- 3. ひく（1000コイン・もどさない・はりつけ ひょう・はんけん）----
 fresh(0);
@@ -188,7 +188,7 @@ for (const it of K.ITEMS) {
   ok(svgOk(s), `${it.id}: 絵の SVG（NaN なし・おなじ 属性が 2かい ない・線は INK）`);
   const a = ids(s); ok(new Set(a).size === a.length && ids(s2).every((x) => !a.includes(x)), `${it.id}: SVG の id（かさならない・よぶ たびに あたらしい）`);
   if (it.kind === "plush") ok(/viewBox="0 0 (1[0-9]{2}) (1[0-9]{2})"/.test(s) && !/<text/.test(s) && /#FFFDF5/.test(s), `${it.id}: ビッグ ぬいぐるみ（タグつき・もじ なし）`);
-  if (it.furn && it.kind !== "blanket") { const fa = R.FURN_ART[it.id](); ok(fa.startsWith("<svg") && !/NaN|undefined/.test(fa) && !dupAttr(fa), `${it.id}: へやの 絵（FURN_ART）`); }
+  if (it.furn && !["blanket", "brocade"].includes(it.kind)) { const fa = R.FURN_ART[it.id](); ok(fa.startsWith("<svg") && !/NaN|undefined/.test(fa) && !dupAttr(fa), `${it.id}: へやの 絵（FURN_ART）`); }
 }
 for (const X of K.SERIES) for (const [id] of X.stickers) {
   const s = R.StickerArt.piece(id);

@@ -261,48 +261,59 @@ const KujiArt = (() => {
   };
 
   // ===================== くじの はこ（がめん）=====================
-  const box = (store) => {
-    const S = store === "lawson", col = S ? LAW.blue : SEV.or, bg = S ? LAW.light : SEV.bg;
+  // deluxe: みんなの くじ（ローリソンは こんいろ・せぶんぶんは あか。きんの おび）
+  const DELUXE_BOX = { lawson: ["#2E4A8C", "#F6ECCB"], sevenbun: ["#C8323A", "#FFF0D2"] };
+  const box = (store, deluxe = false) => {
+    const S = store === "lawson", col = deluxe ? DELUXE_BOX[store][0] : S ? LAW.blue : SEV.or, bg = deluxe ? DELUXE_BOX[store][1] : S ? LAW.light : SEV.bg;
     let s = P("M20,58 L100,58 L106,138 L14,138 Z", col, 3) + P("M20,58 L34,40 L114,40 L100,58 Z", shade(col, 0.18), 3) + P("M100,58 L114,40 L118,120 L106,138 Z", shade(col, -0.18), 3);
+    if (deluxe) s += P("M17.6,124 L107.6,124 L106,138 L14,138 Z", "#E8B83A", 2.4) + P("M107.6,124 L117,108 L118,120 L106,138 Z", "#B8862B", 2.4) + L("M24,131 h76", "#F6D77A", 1.6);
     s += E(67, 49, 22, 6.4, "#3A3A40", 2.4) + [[-12, -6], [-4, -12], [6, -9], [14, -5]].map(([dx, rot], i) => grp(67 + dx, 44, 1, R(-4, -14, 8, 14, 1.4, ["#FFFFFF", "#FFF3D6", "#EAF6FC", "#FFE9F1"][i], 1.6), rot)).join("");
-    s += R(30, 74, 60, 40, 6, "#FFFFFF", 2.4) + R(36, 80, 48, 10, 3, bg, 0) + L("M40,100 h40 M44,107 h32", col, 2.4);
+    s += R(30, 74, 60, 40, 6, deluxe ? "#FFF8E8" : "#FFFFFF", 2.4) + R(36, 80, 48, 10, 3, bg, 0) + L("M40,100 h40 M44,107 h32", col, 2.4);
+    if (deluxe) s += L("M33,77 h54 v34 h-54 Z", "#E8B83A", 1.6, 'stroke-dasharray="3 2.4"');
     return svg(s, 130, 150);
   };
 
   // ===================== おうちの 立体と さわる うごき =====================
+  const since = (st) => G.t - (st.t0 == null ? -99 : st.t0);
+  const mapper = (sc, it, r) => {
+    const m = HomeDesign.model(it.id, it), dm = HomeDesign.dimensions(it.id), s = sc.s, ox = r.x - m.x * s, oy = r.y - m.y * s;
+    const Pm = (x, y, z = 0) => { const q = it.flip ? HomeDesign.project(y + dm.d / 2, x - dm.w / 2, z) : HomeDesign.project(x, y, z); return { x: ox + q.x * s, y: oy + q.y * s }; };
+    Pm.s = s; Pm.d = dm.d; return Pm;
+  };
+  const say = (sc, line) => { const kids = (sc.chars || []).filter((c) => !c.hidden); const who = kids[Math.floor(Math.random() * Math.max(1, kids.length))]; if (who && typeof HomeLife !== "undefined") HomeLife.say(sc, who.id, line, false, "say"); };
+  const tone = (list, step = 0.09, type = "triangle", vol = 0.1) => { if (Sound.ctx && Save.d?.settings?.se) list.forEach((f, i) => Sound.tone(Sound.seGain, { ...(Array.isArray(f) ? { f: f[0], f2: f[1] } : { f }), t: i * step, dur: 0.14, type, vol, a: 0.005, r: 0.25 })); };
+  const hug = (t) => (t >= 0 && t < 1.2 ? Math.exp(-t * 3.6) * Math.cos(t * 13) : 0);
+  // さわると ぎゅっ と ちぢむ（へやに たつ 絵）・ひとこと・おと。o: { lines, notes, type, squish }。みんなの くじの チェア・ざぶとん（js/kuji-deluxe-art.js）も つかう
+  const LIVE = {
+    plush: { lines: ["ふかふか！ ぎゅーって したく なるね", "おおきくて あったかい〜", "いちばんくじの たからもの！", "なかよしの ぬいぐるみ だね"], notes: [392, 523, 659], type: "triangle", squish: 0.12 },
+    royal: { lines: ["とくだいの ぬいぐるみ！ ぎゅー", "ふかふかで ごうか〜", "みんなの くじの たからもの！", "おおきくて あったかい〜"], notes: [392, 523, 659, 784], type: "triangle", squish: 0.1 },
+    cushion: { lines: ["ぽふっ！ やわらかーい", "おいしそうな クッション♪", "すわると ふかふか"], notes: [[330, 180], [260, 420]], type: "sine", squish: 0.22 },
+  };
+  const live = (it, o) => {
+    const f = FURN_INDEX[it.id];
+    const fig = () => place(pic(it.id), -f.w / 2, -f.h, f.w, f.h);
+    FurnModels.register(it.id, (k) => k.shadow(0.12, 4, 14) + k.L(k.at(0, -k.d / 2, 0, fig(), f.w / 2 + 2, f.h + 2)));
+    FurnLive.register(it.id, {
+      tap(sc, item, st) { st.t0 = G.t; st.n = (st.n || 0) + 1; tone(o.notes, 0.11, o.type, 0.1); say(sc, o.lines[st.n % o.lines.length]); },
+      draw(ctx, sc, item, r, st) {
+        const Pm = mapper(sc, item, r), q = Pm(0, -Pm.d / 2, 0), s = Pm.s, k = hug(since(st)) * o.squish, w = f.w * s, h = f.h * s;
+        const px = Math.max(8, Math.ceil((f.w * s * (G.px || 2)) / 8) * 8), py = Math.max(8, Math.round((px * f.h) / f.w));
+        const img = SvgCache.get("kuji:" + it.id + ":" + px, () => pic(it.id), px, py);
+        if (!img) return;
+        ctx.save(); ctx.translate(q.x, q.y); if (item.flip) ctx.scale(-1, 1); ctx.scale(1 + k * 0.6, 1 - k);
+        ctx.drawImage(img, -w / 2, -h, w, h); ctx.restore();
+      },
+    }, true);
+  };
   const install = (API) => {
-    const since = (st) => G.t - (st.t0 == null ? -99 : st.t0);
-    const mapper = (sc, it, r) => {
-      const m = HomeDesign.model(it.id, it), dm = HomeDesign.dimensions(it.id), s = sc.s, ox = r.x - m.x * s, oy = r.y - m.y * s;
-      const Pm = (x, y, z = 0) => { const q = it.flip ? HomeDesign.project(y + dm.d / 2, x - dm.w / 2, z) : HomeDesign.project(x, y, z); return { x: ox + q.x * s, y: oy + q.y * s }; };
-      Pm.s = s; Pm.d = dm.d; return Pm;
-    };
-    const say = (sc, line) => { const kids = (sc.chars || []).filter((c) => !c.hidden); const who = kids[Math.floor(Math.random() * Math.max(1, kids.length))]; if (who && typeof HomeLife !== "undefined") HomeLife.say(sc, who.id, line, false, "say"); };
-    const tone = (list, step = 0.09, type = "triangle", vol = 0.1) => { if (Sound.ctx && Save.d?.settings?.se) list.forEach((f, i) => Sound.tone(Sound.seGain, { ...(Array.isArray(f) ? { f: f[0], f2: f[1] } : { f }), t: i * step, dur: 0.14, type, vol, a: 0.005, r: 0.25 })); };
-    const hug = (t) => (t >= 0 && t < 1.2 ? Math.exp(-t * 3.6) * Math.cos(t * 13) : 0);
-    const LINES = {
-      plush: ["ふかふか！ ぎゅーって したく なるね", "おおきくて あったかい〜", "いちばんくじの たからもの！", "なかよしの ぬいぐるみ だね"],
-      cushion: ["ぽふっ！ やわらかーい", "おいしそうな クッション♪", "すわると ふかふか"],
-    };
     for (const it of API.ITEMS) {
-      if (it.kind !== "plush" && it.kind !== "cushion" && it.kind !== "blanket") continue;
-      const f = FURN_INDEX[it.id];
-      if (it.kind === "blanket") { FurnModels.register(it.id, blanketModel(it.who)); continue; }
-      const fig = () => place(pic(it.id), -f.w / 2, -f.h, f.w, f.h);
-      FurnModels.register(it.id, (k) => k.shadow(0.12, 4, 14) + k.L(k.at(0, -k.d / 2, 0, fig(), f.w / 2 + 2, f.h + 2)));
-      FurnLive.register(it.id, {
-        tap(sc, item, st) { st.t0 = G.t; st.n = (st.n || 0) + 1; tone(it.kind === "plush" ? [392, 523, 659] : [[330, 180], [260, 420]], 0.11, it.kind === "plush" ? "triangle" : "sine", 0.1); say(sc, LINES[it.kind][st.n % LINES[it.kind].length]); },
-        draw(ctx, sc, item, r, st) {
-          const Pm = mapper(sc, item, r), q = Pm(0, -Pm.d / 2, 0), s = Pm.s, k = hug(since(st)) * (it.kind === "plush" ? 0.12 : 0.22), w = f.w * s, h = f.h * s;
-          const px = Math.max(8, Math.ceil((f.w * s * (G.px || 2)) / 8) * 8), py = Math.max(8, Math.round((px * f.h) / f.w));
-          const img = SvgCache.get("kuji:" + it.id + ":" + px, () => pic(it.id), px, py);
-          if (!img) return;
-          ctx.save(); ctx.translate(q.x, q.y); if (item.flip) ctx.scale(-1, 1); ctx.scale(1 + k * 0.6, 1 - k);
-          ctx.drawImage(img, -w / 2, -h, w, h); ctx.restore();
-        },
-      }, true);
+      if (it.kind === "blanket") FurnModels.register(it.id, blanketModel(it.who));
+      else if (it.kind === "plush") live(it, it.net ? LIVE.royal : LIVE.plush);
+      else if (it.kind === "cushion") live(it, LIVE.cushion);
     }
   };
 
-  return { PLUSH, ART, STK, plush, pic, furn, coupon, sticker, bag, box, install, blanketFlat, charImg, smallHead, LAW, SEV };
+  // みんなの くじの 絵（js/kuji-deluxe-art.js）が つかう ぶひん
+  const parts = { f1, sk, P, L, E, C, R, grp, svg, place, shine, stitch, seamE, eye, happyEye, cheek, tag, WAN, GAC, GOJ, wankoEars, wankoFace, wankoHead, wankoTail, wankoBody, paw, foot, gachanFace, gachanHead, gachanBody, wing, gfoot, gojiShape, gojiEars, gojiMouth, gojiArm, gojiTail, gfootGoji, gojiBody, stripes, bow, nug, onigiriBall, spoon, mug, criss, face, smallHead };
+  return { PLUSH, ART, STK, plush, pic, furn, coupon, sticker, bag, box, install, live, LIVE, parts, blanketFlat, charImg, smallHead, LAW, SEV };
 })();
