@@ -1,7 +1,7 @@
 // オンライン（E5・UI-94）。オーナーの 指示（2026-10-02）「E5について。ルール10を無視して良い。ただし、リアルタイム通信無料でできること。さらにその機能をオンにするには、18歳以上であることの同意ボタンを用意すること。」と 2026-10-05 の 許可。
 // みんなと おてつだいの スコアを くらべる: すまほの「みんな」アプリ（おみせごとの ランキング・リアルタイムで かわる）と ≡ の せってい（はじめる・なまえ・とめる・けす）。
 // - おくる もの: 匿名の ID（じどうで できる）・きまった ことばから えらぶ なまえ・おてつだいの スコア（と おみせの Lv・あそびかた）。
-//   あとで ふえる もの: おへやの かぐの ならび・みせると きめた ぷりくら（みせると きめた とき だけ）。
+//   おへやの かぐの ならび（みせると きめた とき だけ。js/online-rooms.js）。あとで ふえる もの: みせると きめた ぷりくら。
 // - おくらない もの: ほんとうの なまえ・メール・いばしょ・カメラの しゃしん。じゆうに うつ もじも ない（なまえは ことばの ばんごう「3-12」）。
 // - 18さい いじょうの 同意を おして オンに した ときだけ つながる（js/online-net.js）。オンに する たびに 同意を きく。つなぎさきは js/online-config.js（から なら「じゅんびちゅう」）。
 // - スコア: 1かいの おてつだいで おきゃくさん ひとりずつの てんすう（0〜100）の ごうけい（ShopScene.results）。ころころ フルーツの スコア モードは その スコア（KorokoroScore.record）。
@@ -21,11 +21,15 @@ const Online = {
   STATE_TEXT: { "": "つないで いるよ…", live: "● リアルタイムで つながって いるよ", poll: "● ときどき あたらしく して いるよ", retry: "つなぎなおして いるよ…", denied: "よめなかったよ（つなぎさきの きまりを たしかめてね）" },
   watching: null,
   last: "",
+  tab: "rank",
   reg: "",
+  // ほかの ファイルが たす ぶぶん（js/online-rooms.js の おうち・つぎの ぷりくら）:
+  // { id, name: すまほの タブ, render(el, ph), leave(), wipe(uid, up) けす ときの null, rename(uid, up, code) なまえを かえる ときの かきかえ }
+  parts: [],
   syncP: null,
   again: false,
 
-  fresh() { return { on: false, agreed: 0, ver: 0, nick: [0, 0], best: {}, sent: {}, sentUid: "" }; },
+  fresh() { return { on: false, agreed: 0, ver: 0, nick: [0, 0], best: {}, sent: {}, sentUid: "", room: { shown: 0, id: "", uid: "" } }; },
   st() {
     const d = Save.d;
     if (!d.online || typeof d.online !== "object" || Array.isArray(d.online)) d.online = this.fresh();
@@ -35,6 +39,10 @@ const Online = {
     if (!Array.isArray(s.nick) || s.nick.length !== 2 || !idx(s.nick[0], this.NICK_A.length) || !idx(s.nick[1], this.NICK_B.length)) s.nick = [0, 0];
     for (const k of ["best", "sent"]) if (!s[k] || typeof s[k] !== "object" || Array.isArray(s[k])) s[k] = {};
     if (typeof s.sentUid !== "string") s.sentUid = "";
+    // みせて いる おへや（js/online-rooms.js）: shown みせた とき（0 は みせて いない）・id おへや・uid みせた ときの ID
+    if (!s.room || typeof s.room !== "object" || Array.isArray(s.room)) s.room = { ...f.room };
+    s.room.shown = Number.isFinite(s.room.shown) && s.room.shown > 0 ? s.room.shown : 0;
+    for (const k of ["id", "uid"]) if (typeof s.room[k] !== "string") s.room[k] = "";
     return s;
   },
   // オンか（同意して オンに して いて、つなぎさきも ある）
@@ -112,6 +120,7 @@ const Online = {
         this.again = false;
         const uid = await this.ensure(), st = this.st(), up = {};
         if (st.sentUid !== uid) { st.sent = {}; st.sentUid = uid; }
+        if (st.room.uid && st.room.uid !== uid) st.room = { shown: 0, id: "", uid: "" }; // まえの ID で みせた おへやは もう かえられない
         for (const [b, e] of Object.entries(st.best)) if (this.isBoard(b) && e && e.s > 0 && e.s > (st.sent[b] || 0)) up[`scores/${b}/${uid}`] = this.entry(e);
         const keys = Object.keys(up);
         if (keys.length) {
@@ -156,6 +165,7 @@ const Online = {
     try {
       const uid = await this.ensure(), up = { [`players/${uid}`]: { n: this.nickCode(), t: { ".sv": "timestamp" } } };
       if (st.sentUid === uid) for (const [b, e] of Object.entries(st.best)) if (this.isBoard(b) && st.sent[b] && e) up[`scores/${b}/${uid}`] = this.entry(e);
+      for (const p of this.parts) if (p.rename) p.rename(uid, up, this.nickCode());
       await OnlineNet.patch("v1", up);
       for (const k of Object.keys(up)) if (k.startsWith("scores/")) st.sent[k.split("/")[1]] = up[k].s;
     } catch (e) { st.sent = {}; this.reg = ""; Save.mark(); throw e; }
@@ -172,10 +182,11 @@ const Online = {
       const up = { [`players/${uid}`]: null }, ids = new Set(this.boards().map((b) => b.id));
       for (const b of [...Object.keys(st.sent), ...Object.keys(st.best)]) if (this.BOARD_RE.test(b)) ids.add(b); // まえの バージョンの ボードも
       for (const b of ids) up[`scores/${b}/${uid}`] = null;
+      for (const p of this.parts) if (p.wipe) p.wipe(uid, up);
       try { await OnlineNet.patch("v1", up, false); await OnlineNet.removeAccount(); }
       catch (e) { if (e.code !== "noaccount") throw e; } // アカウントが もう ない（データも けせない）→ てもとだけ わすれる
     }
-    st.agreed = 0; st.ver = 0; st.sent = {}; st.sentUid = "";
+    st.agreed = 0; st.ver = 0; st.sent = {}; st.sentUid = ""; st.room = { shown: 0, id: "", uid: "" };
     OnlineNet.forget(); this.reg = "";
     Save.mark(); Save.write();
     return true;
@@ -194,7 +205,7 @@ const Online = {
       body.append(
         U.el("p", { class: "onl-adult", text: "この きのうは 18さい いじょうの かただけ つかえます。" }), // スクロール しなくても みえる ように いちばん うえ
         U.el("p", { class: "onl-lead", text: "オンラインに すると、ほかの ひとと おてつだいの スコアを くらべられるよ。ランキングは リアルタイムで かわるよ。" }),
-        list("おくる もの", ["なまえの かわりの ばんごう（じどうで できる）", "えらんだ なまえ（きまった ことばの くみあわせ）", "おてつだいの スコア（おみせの レベル・あそびかた）", "あとで ふえる もの: おへやの かぐの ならび・ぷりくら（みせると きめた とき だけ）"]),
+        list("おくる もの", ["なまえの かわりの ばんごう（じどうで できる）", "えらんだ なまえ（きまった ことばの くみあわせ）", "おてつだいの スコア（おみせの レベル・あそびかた）", "おへやの かぐの ならび（みせると きめた とき だけ）", "あとで ふえる もの: ぷりくら（みせると きめた とき だけ）"]),
         list("おくらない もの", ["ほんとうの なまえ・メール・いばしょ・カメラの しゃしん"], "no"),
         U.el("p", { class: "muted", text: `データの おきばは Google の Firebase（${OnlineNet.place()}）。むりょうの はんいで つかうよ。` }),
         U.el("p", { class: "muted", text: "≡ の せっていで いつでも オフに できるよ。「みせた データを けす」で ぜんぶ けせるよ。" }),
@@ -275,17 +286,40 @@ const Online = {
       box.append(UI.btn("オンラインを はじめる", async () => { if (await this.begin()) { el.innerHTML = ""; this.phoneView(el, ph); } }, "wide yellow onl-start"));
       return;
     }
-    const boards = this.boards();
+    // タブ: ランキング と ほかの ぶぶん（おうち など）
+    const tabs = [{ id: "rank", name: "ランキング", render: (pane) => this.rankView(pane) }, ...this.parts.filter((p) => p.render)];
+    const bar = U.el("div", { class: "tabs smaho-tabs onl-tabs" }), pane = U.el("div", { class: "onl-pane" });
+    const leaveAll = () => { this.closeAll(); for (const p of this.parts) if (p.leave) p.leave(); };
+    const show = (id) => {
+      const t = tabs.find((x) => x.id === id) || tabs[0];
+      this.tab = t.id; leaveAll();
+      bar.querySelectorAll(".tab").forEach((b) => b.classList.toggle("on", b.dataset.k === t.id));
+      pane.replaceChildren(); t.render(pane, ph);
+    };
+    if (tabs.length > 1) for (const t of tabs) {
+      const b = U.el("button", { class: "tab onl-tab", text: t.name });
+      b.dataset.k = t.id;
+      b.addEventListener("click", () => { Sound.se("tap"); show(t.id); });
+      bar.append(b);
+    }
+    box.append(U.el("div", { class: "onl-me" }, [U.el("span", { text: "あなた: " }), U.el("b", { text: this.nickText(st.nick) })]));
+    if (tabs.length > 1) box.append(bar);
+    box.append(pane);
+    if (ph && typeof ph.onLeave === "function") ph.onLeave(leaveAll);
+    show(this.tab);
+    this.sync().catch(() => {});
+  },
+  // ランキングの タブ（おみせを えらぶ・上位 30・リアルタイム）
+  rankView(box) {
+    const st = this.st(), boards = this.boards();
     const sel = U.el("select", { class: "onl-board", "aria-label": "おみせを えらぶ" });
     for (const b of boards) sel.append(U.el("option", { value: b.id, text: b.name + (st.best[b.id] ? `（${U.fmt(st.best[b.id].s)}）` : "") }));
     const pick = boards.find((b) => b.id === this.last) || boards.find((b) => st.best[b.id]) || boards[0];
     sel.value = pick.id;
-    const me = U.el("div", { class: "onl-me" }, [U.el("span", { text: "あなた: " }), U.el("b", { text: this.nickText(st.nick) })]);
     const view = { status: U.el("div", { class: "onl-status", role: "status" }), list: U.el("ol", { class: "onl-rank" }), mine: U.el("div", { class: "onl-mine" }) };
-    box.append(me, sel, view.status, view.list, view.mine);
+    box.append(sel, view.status, view.list, view.mine);
     sel.addEventListener("change", () => { Sound.se("tap"); this.last = sel.value; this.watch(sel.value, view); });
     this.watch(sel.value, view);
-    this.sync().catch(() => {});
   },
   // ボードを みはる（ストリーム）
   watch(board, view) {

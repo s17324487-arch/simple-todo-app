@@ -4496,6 +4496,8 @@ await (await import("./figure-stand-more-smoke.mjs")).figureStandMoreSmoke({scen
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 // オンライン（E5・UI-94。18さい いじょうの 同意・にせの Firebase で スコアの ランキング。くわしくは tests/online-smoke.mjs）
 await (await import("./online-smoke.mjs")).onlineSmoke({scenario,expect});
+// オンラインの おへや（E5・UI-95。見るだけ。くわしくは tests/online-rooms-smoke.mjs）
+await (await import("./online-rooms-smoke.mjs")).onlineRoomsSmoke({scenario,expect});
 
 server.close();
 if(LIST)process.exit(0);
