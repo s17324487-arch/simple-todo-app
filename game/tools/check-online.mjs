@@ -25,6 +25,7 @@ ok(Object.isFrozen(CFG) && JSON.stringify(Object.keys(CFG)) === '["apiKey","data
 const empty = !CFG.apiKey && !CFG.databaseURL && !CFG.projectId;
 ok(empty || (/^AIza[\w-]{35}$/.test(CFG.apiKey) && /^https:\/\/[a-z0-9-]+(\.[a-z0-9-]+)?\.(firebaseio\.com|firebasedatabase\.app)$/.test(CFG.databaseURL) && /^[a-z0-9-]{4,40}$/.test(CFG.projectId)), "ONLINE_CONFIG の かたちが ちがう " + JSON.stringify(CFG));
 ok(N.ready() === !empty, "ONLINE_CONFIG が から なら じゅんびちゅう・あれば つながる");
+ok(empty || !["テストの サーバー", ""].includes(N.place()), "ONLINE_CONFIG の データの おきば（同意の まどに でる）: " + N.place());
 const cfgSrc = read("js/online-config.js");
 ok(!/private_key|client_secret|BEGIN [A-Z ]*PRIVATE|serviceAccount|databaseSecret|password/i.test(cfgSrc), "online-config.js に ひみつの 値を かかない");
 const scripts = [...read("index.html").matchAll(/<script src="(js\/[^"]+)"><\/script>/g)].map((m) => m[1]);

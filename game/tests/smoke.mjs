@@ -63,6 +63,9 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   // SVGの初期描画や負荷のある実行環境でも、操作の待機を早く打ち切らない。
   page.setDefaultTimeout(15000*WAIT_SCALE);
   const problems = [];
+  // オンライン（E5）: テストは 本番の Firebase（js/online-config.js）に つながない。つなぐのは にせの サーバー（tests/online-fake.mjs）だけ。
+  // つなごうと したら とめて、その シナリオを しっぱいに する（同意の まえに つながる ことも ない と わかる）
+  await context.route(/^https:\/\/(?:[a-z0-9-]+\.)*(?:firebasedatabase\.app|firebaseio\.com)\/|^https:\/\/(?:identitytoolkit|securetoken)\.googleapis\.com\//, route => { problems.push("本番の Firebase に つなごうと した: " + route.request().url().split("?")[0]); route.abort(); });
   page.on('crash',()=>problems.push('ブラウザの描画プロセスがクラッシュしました'));
   page.on("pageerror", (e) => problems.push("pageerror: " + e.stack));
   page.on("console", (m) => {

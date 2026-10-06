@@ -1,6 +1,7 @@
 // オンライン（E5・UI-94・js/online.js・js/online-net.js）。オーナーの 指示（2026-10-02）「リアルタイム通信無料でできること。さらにその機能をオンにするには、18歳以上であることの同意ボタンを用意すること。」と 2026-10-05 の 許可
 // （おくるのは 匿名の ID・きまった ことばの なまえ・おてつだいの スコア だけ）。つなぎさきは にせの Firebase（tests/online-fake.mjs・ネット なし）
-// 0. つなぎさきが から（js/online-config.js）→ ≡ と すまほの「みんな」は「じゅんびちゅう」・どこにも つながらない
+// 0. ほんとうの つなぎさき（js/online-config.js）: 同意の まえは どこにも つながらない（本番への つうしんは tests/smoke.mjs の route が とめて しっぱいに する）・同意の まどの データの おきば・「やめる」
+//    つなぎさきが から（PokaDebug.onlineServer で から に する）→ ≡ と すまほの「みんな」は「じゅんびちゅう」・どこにも つながらない
 // 1. ≡ → オンラインを はじめる → 18さい いじょうの 同意（おくる もの・おくらない もの）→「やめる」は なにも おくらない → 同意 → なまえ（きまった ことば 2つ）→ サーバーに なまえ
 // 2. クレープの おてつだい → けっかに「てんすう」・「みんなの ランキングに おくったよ」→ サーバーに スコア（なまえ・おみせ Lv・あそびかた・じこく）
 // 3. すまほの「みんな」: じぶんの ぎょう・ほかの 人の きろくが リアルタイムで ふえる（ストリーム）・へんな データは でない・31い いじょうの とき・ボードを かえる・とじると ストリームも とじる
@@ -27,9 +28,27 @@ export async function onlineSmoke({ scenario, expect }) {
     if (!fake) fake = await (await import("./online-fake.mjs")).startOnlineFake();
     fake.reset();
     await H.newGameFast(); await H.dbg("hour", 12); await H.page.mouse.click(5, 5);
-    // 0. つなぎさきが から → じゅんびちゅう
+    // 0. ほんとうの つなぎさき: 同意の まえは つながらない・データの おきば・「やめる」
     let o = await H.dbg("online");
-    expect(o && !o.ready && !o.on && !o.agreed && !o.uid, "はじめから オンライン " + JSON.stringify(o));
+    expect(o && !o.on && !o.agreed && !o.uid, "はじめから オンライン " + JSON.stringify(o));
+    if (o.ready) {
+      expect(o.place && o.place !== "テストの サーバー", "ほんとうの つなぎさきの データの おきば " + o.place);
+      await H.phone("みんな");
+      expect(await H.page.locator(".smaho-body .onl-start").count() === 1 && await H.page.locator(".smaho-body .onl-app .onl-soon").count() === 0, "すまほの「みんな」に「はじめる」が ない");
+      await H.page.keyboard.press("Escape"); await H.wait(300);
+      await menu(H);
+      await H.page.locator(".onl-settings .onl-begin").click(); await H.wait(320);
+      const c0 = await H.eval(() => [...document.querySelectorAll(".modal-wrap:not(.out) .onl-modal")].pop()?.textContent || "");
+      expect(c0.includes(o.place) && c0.includes("18さい いじょう"), "同意の まどの データの おきば " + c0);
+      await H.page.locator(".modal-wrap:not(.out) .onl-cancel").click(); await H.wait(300);
+      await closeTop(H);
+      o = await H.dbg("online");
+      expect(!o.on && !o.agreed && !o.uid && !(await H.eval(() => localStorage.getItem("pokapoka-town-online-v1"))), "「やめる」で つながった " + JSON.stringify(o));
+    }
+    // つなぎさきが から（js/online-config.js が から の とき と おなじ）→ じゅんびちゅう
+    expect(await H.dbg("onlineServer", { apiKey: "", databaseURL: "", projectId: "" }) === false, "から の つなぎさきで じゅんびちゅう に ならない");
+    o = await H.dbg("online");
+    expect(o && !o.ready && !o.on, "から の つなぎさき " + JSON.stringify(o));
     for (const b of ["crepe", "burger", "burger_mac", "relay", "korokoro", "korokoro_score", "brain_spot", "brain_eng_jh_word", "brain_eng_hs_fill", "kobo_logic", "kobo_numpla_easy", "kobo_numpla_expert", "gasstand", "postoffice"]) expect(o.boards.includes(b), "ボードが ない " + b + " " + o.boards);
     expect(!o.boards.includes("link") && !o.boards.includes("brain_eng") && !o.boards.includes("kobo_numpla"), "ボードが へん " + o.boards);
     await H.phone("みんな");
