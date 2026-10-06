@@ -396,7 +396,7 @@ const PokaDebug = {
     if(G.sceneName!=='house')return null;const sc=G.scene;
     return {next:sc.actions.next,time:sc.actions.time,available:HomeActions.available(sc).map(k=>k.id),kinds:HomeActions.kinds.map(k=>k.id),log:sc.actions.log.map(x=>({...x})),chars:sc.chars.map(c=>({id:c.id,state:c.state,x:c.x,y:c.y,activity:c.activity?{...c.activity}:null})),talkNext:sc.life.next,talkDelay:{normal:HomeLife.nextDelay(false),watching:HomeLife.nextDelay(true)}};
   },
-  homeActionSchedule() {if(G.sceneName!=='house')return false;HomeActions.init(G.scene);return true;},
+  homeActionSchedule() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;HomeActions.init(G.scene);return true;},
   homeAction(id,kind) {
     if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;const sc=G.scene,c=sc.chars.find(c=>c.id===id);if(!c)return false;
     HomeActions.cancel(c);c.state='idle';c.t=100;return HomeActions.start(sc,c,kind);
@@ -506,7 +506,7 @@ const PokaDebug = {
     const byWho={};for(const l of D.lines)byWho[l.who]=(byWho[l.who]||0)+1;
     return {total:D.lines.length+D.talks.length,lines:D.lines.length,talks:D.talks.length,turns:D.talks.reduce((a,t)=>a+t.turns.length,0),byWho};
   },
-  homeBubbleFixture() {if(G.sceneName!=='house')return false;const sc=G.scene;sc.chars.forEach(c=>HomeActions.cancel(c));sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;sc.actions.next=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});return true;},
+  homeBubbleFixture() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;const sc=G.scene;sc.chars.forEach(c=>HomeActions.cancel(c));sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;sc.actions.next=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});return true;},
   homeBubbleState() {if(G.sceneName!=='house')return null;const sc=G.scene;return {heads:HomeLife.heads(sc),boxes:HomeLife.bubbleLayout(sc,G.ctx),area:{...sc.view,left:8,right:G.W-8},watching:sc.watching};},
   family() {
     if(G.sceneName!=="house")return null;

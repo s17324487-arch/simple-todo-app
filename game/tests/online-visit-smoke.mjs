@@ -43,7 +43,8 @@ export async function onlineVisitSmoke({ scenario, expect }) {
     expect((await H.dbg("visit")).zoom > 1.3, "ピンチで ズーム できない");
     await H.pinch(cv.x, cv.y, 220, 40); await H.pinch(cv.x, cv.y, 220, 40);
     expect((await H.dbg("visit")).zoom === 1, "ズームが もどらない");
-    // 3. なでる・さわる（とめて いる あいだは タップを うけつけない ので とめない）
+    // 3. なでる・さわる（とめて いる あいだは タップを うけつけない ので とめない。3人は うごかない ように して〔しぐさ・さんぽ・おしゃべりの タイマーを とめる〕から タップ）
+    expect(await H.dbg("homeBubbleFixture") === true, "おじゃまで 3人を とめられない");
     v = await H.dbg("visit");
     const kid = v.chars.slice().sort((a, b) => b.y - a.y)[0]; // いちばん てまえ（ほかの 子の うしろに かくれない）
     await H.tap(kid.rect.x + kid.rect.w / 2, kid.rect.y + kid.rect.h * 0.55); await H.wait(200);
@@ -84,9 +85,8 @@ export async function onlineVisitSmoke({ scenario, expect }) {
       if (now) { await H.tap(now.rect.x + now.rect.w / 2, now.rect.y + now.rect.h / 2); await H.wait(350); }
     }
     await H.until(() => !PokaDebug.visit().mode && !PokaDebug.visit().hidden && PokaDebug.visit().chars.every((c) => !c.hidden), 15000);
-    // 5. ドア →「かえる？」→ まだ いる（3人は ドアから はなれて もらう）
-    for (const [i, id] of ["wanko", "gachan", "goji"].entries()) await H.dbg("homeWalk", id, 200 + i * 50, 420 + (i % 2) * 40);
-    await H.until(() => PokaDebug.visit().chars.every((c) => c.state !== "walk"), 15000);
+    // 5. ドア →「かえる？」→ まだ いる（3人は ドアから はなれた ところで とめる。あるかせると しぐさの タイマー〔15びょう〕で とちゅうで とまる ことが ある）
+    expect(await H.dbg("homeBubbleFixture") === true, "おじゃまで 3人を とめられない");
     v = await H.dbg("visit");
     expect(v.chars.every((c) => c.x > 120), "3人が ドアから はなれない " + JSON.stringify(v.chars.map((c) => [c.x, c.y])));
     await H.tap(v.door.x + v.door.w * 0.5, v.door.y + v.door.h * 0.45); await H.wait(250);
