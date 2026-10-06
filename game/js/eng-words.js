@@ -3,6 +3,7 @@
 // [英語, 品詞, 意味, 似た 意味の なかま（なくて よい）]。品詞: n 名詞・v 動詞・a 形容詞・d 副詞。
 // 意味は おなじ レベル・品詞の なかで かさならない。なかまが おなじ 語は まちがいの 選択肢に いっしょに ださない（tools/check-english.mjs）。
 // jh 中学: 学習指導要領で 中学までに ならう 語（小学校 600〜700語・中学 1600〜1800語）から。hs 高校: 高校で ふえる 1800〜2500語 から。
+// toeic: TOEIC® L&R 対策の ビジネスの 語（下の toeic の コメント）。TOEIC® is a registered trademark of ETS. This product is not endorsed or approved by ETS.
 // この ゲームの ために えらんで 意味を つけた もの（単語帳の 写しでは ない）。
 const ENG_WORDS = {
   jh: [
@@ -143,5 +144,74 @@ const ENG_WORDS = {
     ["merely", "d", "単に"], ["moreover", "d", "さらに"], ["nevertheless", "d", "それにもかかわらず"], ["occasionally", "d", "時折"], ["otherwise", "d", "さもなければ"],
     ["primarily", "d", "主として"], ["rarely", "d", "めったに〜ない", "rarely"], ["relatively", "d", "比較的"], ["simultaneously", "d", "同時に"], ["thoroughly", "d", "徹底的に"],
     ["ultimately", "d", "結局のところ", "finally"], ["virtually", "d", "事実上"], ["precisely", "d", "まさに"], ["accidentally", "d", "偶然に"], ["somewhat", "d", "いくぶん"],
+  ],
+  // toeic: TOEIC® L&R 対策（UI-98）。会議・出張・採用・経理・物流・店舗・不動産 など ビジネスの 場面で よく 出る 語を この ゲームの ために えらんだ もの
+  // （公式の 語彙表や 問題集の 写しでは ない）。中学・高校の リストと おなじ 語は 入れない（tools/check-english.mjs）。
+  toeic: [
+    // 名詞
+    ["invoice", "n", "請求書"], ["receipt", "n", "領収書"], ["quotation", "n", "見積書"], ["itinerary", "n", "旅程表"], ["agenda", "n", "議題"],
+    ["minutes", "n", "議事録"], ["refund", "n", "返金"], ["inventory", "n", "在庫"], ["warehouse", "n", "倉庫"], ["shipment", "n", "出荷"],
+    ["procurement", "n", "調達"], ["supplier", "n", "供給業者"], ["vendor", "n", "販売業者", "seller"], ["retailer", "n", "小売業者", "seller"], ["wholesaler", "n", "卸売業者"],
+    ["distributor", "n", "販売代理店"], ["client", "n", "顧客", "customer"], ["patron", "n", "常連客", "customer"], ["subsidiary", "n", "子会社"], ["headquarters", "n", "本社"],
+    ["branch", "n", "支店"], ["merger", "n", "合併"], ["acquisition", "n", "買収"], ["shareholder", "n", "株主"], ["revenue", "n", "収益"],
+    ["expenditure", "n", "支出"], ["budget", "n", "予算"], ["quarter", "n", "四半期"], ["dividend", "n", "配当金"], ["asset", "n", "資産"],
+    ["liability", "n", "負債"], ["audit", "n", "監査"], ["tax", "n", "税金"], ["payroll", "n", "給与名簿"], ["wage", "n", "賃金", "pay"],
+    ["salary", "n", "給料", "pay"], ["bonus", "n", "賞与"], ["pension", "n", "年金"], ["applicant", "n", "応募者", "apply"], ["candidate", "n", "候補者", "apply"],
+    ["reference", "n", "推薦状"], ["vacancy", "n", "欠員"], ["personnel", "n", "人事"], ["recruitment", "n", "採用"], ["orientation", "n", "新人研修", "training"],
+    ["workshop", "n", "研修会", "training"], ["seminar", "n", "講習会", "training"], ["conference", "n", "会議", "meeting"], ["convention", "n", "大会", "meeting"], ["venue", "n", "会場"],
+    ["attendee", "n", "出席者"], ["participant", "n", "参加者"], ["registration", "n", "登録"], ["admission", "n", "入場料"], ["reservation", "n", "予約"],
+    ["accommodation", "n", "宿泊施設"], ["fare", "n", "運賃"], ["toll", "n", "通行料"], ["luggage", "n", "手荷物"], ["layover", "n", "乗り継ぎ"],
+    ["arrival", "n", "到着"], ["maintenance", "n", "保守"], ["repair", "n", "修理"], ["warranty", "n", "保証書"], ["defect", "n", "欠陥"],
+    ["complaint", "n", "苦情"], ["feedback", "n", "感想"], ["questionnaire", "n", "質問票"], ["proposal", "n", "提案書"], ["contract", "n", "契約", "deal"],
+    ["agreement", "n", "合意", "deal"], ["clause", "n", "条項"], ["extension", "n", "内線"], ["memo", "n", "社内回覧"], ["bulletin", "n", "会報"],
+    ["announcement", "n", "発表"], ["press", "n", "報道機関"], ["publicity", "n", "広報", "ad"], ["advertisement", "n", "広告", "ad"], ["brochure", "n", "パンフレット"],
+    ["catalog", "n", "商品目録"], ["sample", "n", "見本"], ["prototype", "n", "試作品"], ["specification", "n", "仕様"], ["component", "n", "部品"],
+    ["stationery", "n", "文房具"], ["appliance", "n", "家電製品"], ["merchandise", "n", "商品"], ["competitor", "n", "競合他社"], ["demand", "n", "需要"],
+    ["growth", "n", "成長"], ["forecast", "n", "予測"], ["strategy", "n", "戦略"], ["target", "n", "目標"], ["initiative", "n", "取り組み"],
+    ["outcome", "n", "成果"], ["productivity", "n", "生産性"], ["efficiency", "n", "効率"], ["expertise", "n", "専門知識"], ["credential", "n", "資格", "cert"],
+    ["certificate", "n", "証明書", "cert"], ["license", "n", "免許"], ["permit", "n", "許可証"], ["compliance", "n", "法令順守"], ["inspection", "n", "検査"],
+    ["assessment", "n", "査定"], ["promotion", "n", "昇進"], ["transfer", "n", "異動"], ["retirement", "n", "退職"], ["colleague", "n", "同僚"],
+    ["supervisor", "n", "上司"], ["executive", "n", "重役"], ["representative", "n", "担当者"], ["receptionist", "n", "受付係"], ["accountant", "n", "会計士"],
+    ["architect", "n", "建築家"], ["technician", "n", "技術者"], ["contractor", "n", "請負業者"], ["intern", "n", "研修生"], ["tenant", "n", "入居者"],
+    ["landlord", "n", "家主"], ["property", "n", "不動産"], ["premises", "n", "敷地"], ["cafeteria", "n", "社員食堂"], ["directory", "n", "名簿"],
+    ["lounge", "n", "談話室"], ["pharmacy", "n", "薬局"], ["grocery", "n", "食料品店"], ["cuisine", "n", "料理"], ["catering", "n", "仕出し"],
+    ["beverage", "n", "飲み物"], ["refreshment", "n", "軽食"], ["donation", "n", "寄付"], ["fundraiser", "n", "募金活動"],
+    // 動詞
+    ["reimburse", "v", "払い戻す"], ["renovate", "v", "改装する"], ["relocate", "v", "移転する"], ["postpone", "v", "延期する"], ["reschedule", "v", "予定を変更する"],
+    ["cancel", "v", "取り消す"], ["submit", "v", "提出する"], ["revise", "v", "改訂する"], ["implement", "v", "実施する"], ["negotiate", "v", "交渉する"],
+    ["allocate", "v", "配分する", "allot"], ["assign", "v", "割り当てる", "allot"], ["delegate", "v", "任せる"], ["oversee", "v", "監督する"], ["inspect", "v", "点検する"],
+    ["verify", "v", "検証する"], ["retrieve", "v", "回収する"], ["dispatch", "v", "発送する", "send"], ["ship", "v", "出荷する", "send"], ["purchase", "v", "購入する"],
+    ["lease", "v", "賃貸する"], ["invest", "v", "投資する"], ["merge", "v", "合併する"], ["launch", "v", "発売する"], ["advertise", "v", "宣伝する"],
+    ["endorse", "v", "支持する"], ["sponsor", "v", "後援する"], ["host", "v", "主催する"], ["attend", "v", "出席する"], ["register", "v", "登録する"],
+    ["enroll", "v", "入会する"], ["subscribe", "v", "定期購読する"], ["renew", "v", "更新する"], ["expire", "v", "期限が切れる"], ["accommodate", "v", "収容する"],
+    ["reserve", "v", "予約する"], ["notify", "v", "通知する"], ["remind", "v", "思い出させる"], ["update", "v", "最新にする"], ["install", "v", "設置する"],
+    ["assemble", "v", "組み立てる"], ["manufacture", "v", "製造する"], ["distribute", "v", "配布する"], ["circulate", "v", "回覧する"], ["compile", "v", "編集する"],
+    ["draft", "v", "下書きする"], ["proofread", "v", "校正する"], ["forward", "v", "転送する"], ["enclose", "v", "同封する"], ["specify", "v", "明記する"],
+    ["outline", "v", "概説する"], ["summarize", "v", "要約する"], ["clarify", "v", "明確にする"], ["address", "v", "取り組む"], ["resolve", "v", "解決する"],
+    ["streamline", "v", "効率化する"], ["boost", "v", "高める"], ["exceed", "v", "上回る", "beat"], ["surpass", "v", "しのぐ", "beat"], ["fluctuate", "v", "変動する"],
+    ["hire", "v", "雇う"], ["recruit", "v", "募集する"], ["dismiss", "v", "解雇する"], ["resign", "v", "辞職する"], ["retire", "v", "引退する"],
+    ["commute", "v", "通勤する"], ["greet", "v", "出迎える"], ["waive", "v", "免除する"], ["charge", "v", "請求する"], ["owe", "v", "借金がある"],
+    ["finalize", "v", "仕上げる"], ["coordinate", "v", "調整する"], ["facilitate", "v", "円滑にする"], ["collaborate", "v", "協力する"], ["consult", "v", "相談する"],
+    ["inquire", "v", "問い合わせる"], ["assess", "v", "評価する"], ["comply", "v", "従う"], ["prioritize", "v", "優先する"], ["anticipate", "v", "予想する"],
+    ["vacate", "v", "立ち退く"], ["accelerate", "v", "加速する"], ["undergo", "v", "受ける"], ["excel", "v", "秀でる"], ["thrive", "v", "繁盛する"],
+    // 形容詞
+    ["annual", "a", "年に一度の"], ["quarterly", "a", "四半期の"], ["confidential", "a", "機密の"], ["complimentary", "a", "無料の"], ["mandatory", "a", "義務的な"],
+    ["optional", "a", "任意の"], ["eligible", "a", "資格のある", "able"], ["qualified", "a", "適任の", "able"], ["affordable", "a", "手ごろな"], ["reliable", "a", "信頼できる"],
+    ["durable", "a", "耐久性のある"], ["defective", "a", "欠陥のある"], ["punctual", "a", "時間を守る"], ["preliminary", "a", "予備の", "temp"], ["tentative", "a", "仮の", "temp"],
+    ["interim", "a", "暫定の", "temp"], ["upcoming", "a", "近く行われる"], ["outstanding", "a", "傑出した", "famous"], ["renowned", "a", "名高い", "famous"], ["overdue", "a", "期限切れの"],
+    ["vacant", "a", "空いている"], ["spacious", "a", "広々とした"], ["lucrative", "a", "もうかる"], ["competitive", "a", "競争力のある"], ["comprehensive", "a", "包括的な", "wide"],
+    ["extensive", "a", "広範囲の", "wide"], ["substantial", "a", "相当な", "enough"], ["ample", "a", "十分な", "enough"], ["consecutive", "a", "連続した"], ["adjacent", "a", "隣接した"],
+    ["prospective", "a", "見込みのある"], ["promotional", "a", "販売促進の"], ["financial", "a", "財務の"], ["corporate", "a", "企業の"], ["administrative", "a", "管理上の"],
+    ["technical", "a", "技術的な"], ["versatile", "a", "用途の広い"], ["courteous", "a", "礼儀正しい", "polite"], ["attentive", "a", "気配りのある", "polite"], ["knowledgeable", "a", "知識豊富な", "skill"],
+    ["experienced", "a", "経験豊富な", "skill"], ["innovative", "a", "革新的な"], ["sustainable", "a", "持続可能な"], ["hazardous", "a", "危険な"], ["refundable", "a", "返金可能な"],
+    ["accessible", "a", "利用しやすい", "easy"], ["convenient", "a", "都合のよい", "easy"], ["pending", "a", "保留中の"], ["exclusive", "a", "独占的な"], ["scenic", "a", "景色のよい"],
+    ["tight", "a", "余裕のない"], ["reasonable", "a", "妥当な"],
+    // 副詞
+    ["promptly", "d", "迅速に"], ["temporarily", "d", "一時的に"], ["tentatively", "d", "仮に"], ["subsequently", "d", "その後に"], ["previously", "d", "以前に"],
+    ["currently", "d", "現在は"], ["shortly", "d", "まもなく"], ["punctually", "d", "時間どおりに"], ["significantly", "d", "大幅に", "much"], ["considerably", "d", "かなり", "much"],
+    ["steadily", "d", "着実に"], ["exclusively", "d", "独占的に"], ["mutually", "d", "互いに", "together"], ["unanimously", "d", "満場一致で"], ["regularly", "d", "定期的に"],
+    ["annually", "d", "毎年"], ["separately", "d", "別々に"], ["jointly", "d", "共同で", "together"], ["directly", "d", "直接に"], ["remotely", "d", "遠隔で"],
+    ["efficiently", "d", "効率よく"], ["strictly", "d", "厳しく"], ["originally", "d", "もともと"], ["increasingly", "d", "ますます"], ["roughly", "d", "おおよそ"],
+    ["apparently", "d", "どうやら"], ["consistently", "d", "一貫して"], ["sufficiently", "d", "十分に"], ["conveniently", "d", "便利に"], ["overseas", "d", "海外で"],
   ],
 };

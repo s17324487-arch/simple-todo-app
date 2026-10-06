@@ -2,16 +2,20 @@
 // とうろく・単語（レベル・品詞・意味が かさならない・なかま・レベルを またがない）・穴うめの 文（あなは 1つ・選択肢 4つ・和訳・ポイント）・
 // 問題の えらびかた（10問・さいきんの 問題を さける・まちがいの 選択肢は おなじ 品詞で べつの 意味と なかま）・あそぶ ところ（こたえる・次へ・
 // てんすう・コイン・ひょうばん・ベスト・まちがえた ものの まとめ）・2つの スマホの 画面（390×844・375×667）で はみださない・44px・セーブ。
+// TOEIC対策（UI-98）: 3つめの レベル（ビジネスの 単語・Part 5 形式の 穴うめ・中学／高校と かさならない・コイン・商標の ことわり・ふるい セーブ）。
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
-const { ENG_WORDS: W, ENG_FILL: F, ENG_PLAY: PLAY, ENG_LEVELS, ENG_MODES, ENG_POS, ENG_HOWTO, EnglishGame: EG, BrainEngTask: Eng, BrainGames: BG, BRAIN_TASKS, BrainTask, HOWTO, ShopScene, Save, G, GameEconomy, PokaDebug } = R;
+const { ENG_WORDS: W, ENG_FILL: F, ENG_PLAY: PLAY, ENG_LEVELS, ENG_MODES, ENG_POS, ENG_HOWTO, EnglishGame: EG, UI, BrainEngTask: Eng, BrainGames: BG, BRAIN_TASKS, BrainTask, HOWTO, ShopScene, Save, G, GameEconomy, PokaDebug } = R;
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
 const width = (t) => [...t].reduce((a, c) => a + (c.charCodeAt(0) < 0x2000 ? 0.5 : 1), 0);
+const LV = ["jh", "hs", "toeic"]; // レベル（中学・高校・TOEIC対策）
 const seeded = (a) => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+
+const ENG_NOTICE = EG.NOTICE;
 
 // ---- 1. とうろく ----
 {
@@ -23,18 +27,25 @@ const seeded = (a) => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imu
   const g = BG.game("eng");
   ok(g.id === "eng" && g.name === "英語" && g.adult && typeof g.pick === "function" && typeof g.hello === "function" && g.howto === ENG_HOWTO && BG.GAMES[BG.GAMES.length - 1] === g, "BrainGames の 英語（大人むけ・レベルと あそびかたを きく・ひとこと・せつめい）");
   ok(HOWTO.brain({ variant: "eng" }).slice(1).join() === ENG_HOWTO.join() && ENG_HOWTO.length === 4 && ENG_HOWTO.every((l) => l.split("\n").every((r) => width(r) <= 26)), "はじめての せつめい 4つ（1行 26もじ まで）");
-  ok(ENG_HOWTO.some((l) => /中学/.test(l) && /高校/.test(l)) && ENG_HOWTO.some((l) => /単語の意味/.test(l) && /穴うめ/.test(l)) && ENG_HOWTO.some((l) => /次へ/.test(l)), "せつめいの なかみ（レベル・2つの あそびかた・次へ）");
+  ok(ENG_HOWTO.some((l) => /中学/.test(l) && /高校/.test(l) && /TOEIC®対策/.test(l)) && ENG_HOWTO.some((l) => /単語の意味/.test(l) && /穴うめ/.test(l)) && ENG_HOWTO.some((l) => /次へ/.test(l)), "せつめいの なかみ（レベル 3つ・2つの あそびかた・次へ）");
   ok(typeof PokaDebug.english === "function", "PokaDebug.english");
-  ok(ENG_LEVELS.map((L) => L.id).join() === "jh,hs" && ENG_MODES.map((M) => M.id).join() === "word,fill" && Object.keys(PLAY).join() === "jh,hs", "レベル 2つ・あそびかた 2つ");
+  ok(ENG_LEVELS.map((L) => L.id).join() === LV.join() && ENG_MODES.map((M) => M.id).join() === "word,fill" && Object.keys(PLAY).join() === LV.join(), "レベル 3つ（中学・高校・TOEIC対策）・あそびかた 2つ");
+  ok(ENG_LEVELS.every((L) => /^#[0-9A-F]{6}$/i.test(L.color)) && new Set(ENG_LEVELS.map((L) => L.color)).size === ENG_LEVELS.length, "レベルごとに ちがう ふだの いろ");
+  const T = EG.level("toeic");
+  ok(T.id === "toeic" && T.name === "TOEIC®対策" && T.short === "TOEIC" && /Part 5/.test(T.note), "TOEIC対策の なまえ・Part 5 形式");
+  // 商標の ことわり（ETS の きまり）: えらぶ ところ（日本語）・せってい（英語）・データの ファイル
+  ok(ENG_NOTICE.en === "TOEIC® is a registered trademark of ETS. This product is not endorsed or approved by ETS." && /TOEIC®/.test(ENG_NOTICE.ja) && /ETS/.test(ENG_NOTICE.ja) && /登録商標/.test(ENG_NOTICE.ja) && /承認/.test(ENG_NOTICE.ja), "商標の ことわり（英語・日本語）");
+  const src = (f) => readFileSync(new URL(`../js/${f}`, import.meta.url), "utf8");
+  ok(/EnglishGame\.NOTICE\.en/.test(src("menu.js")) && ["eng-words.js", "eng-sentences.js"].every((f) => src(f).includes(ENG_NOTICE.en)), "せってい に 英語の ことわり・データの ファイルにも");
   for (const L of ENG_LEVELS) ok(width(`・${L.name}：${L.note}`) <= 19.5 && width(L.name) <= 9, `${L.id}: えらぶ ときの ことば（みじかく）`);
   for (const M of ENG_MODES) ok(width(`・${M.name}：${M.note}`) <= 19.5 && width(M.name + "（ベスト 10/10）") <= 14, `${M.id}: えらぶ ときの ことば（みじかく）`);
 }
 
 // ---- 2. 単語 ----
 const ascii = /^[a-z][a-z-]*$/;
-for (const lv of ["jh", "hs"]) {
+for (const lv of LV) {
   const L = W[lv];
-  ok(Array.isArray(L) && L.length >= (lv === "jh" ? 250 : 320), `${lv}: 単語 ${L.length}`);
+  ok(Array.isArray(L) && L.length >= { jh: 250, hs: 320, toeic: 280 }[lv], `${lv}: 単語 ${L.length}`);
   const words = new Set(), means = new Set(), groups = {};
   for (const e of L) {
     const [en, pos, mean, grp] = e, where = `${lv} ${en}`;
@@ -50,11 +61,14 @@ for (const lv of ["jh", "hs"]) {
   for (const pos of Object.keys(ENG_POS)) ok(L.filter((e) => e[1] === pos).length >= 20, `${lv}: ${ENG_POS[pos]}は 20語 いじょう`);
 }
 { const jh = new Set(W.jh.map((e) => e[0])); ok(W.hs.every((e) => !jh.has(e[0])), "中学と 高校で おなじ 単語が ない"); }
+{ const base = new Set([...W.jh, ...W.hs].map((e) => e[0])), dup = W.toeic.filter((e) => base.has(e[0])).map((e) => e[0]); ok(!dup.length, "TOEIC対策の 単語は 中学・高校と かさならない " + dup); }
+// TOEIC対策は ビジネスの 場面の 語（会議・出張・経理・人事・物流・店舗）
+{ const has = (w) => W.toeic.some((e) => e[0] === w); ok(["agenda", "invoice", "itinerary", "reimburse", "applicant", "shipment", "warranty", "quarterly"].every(has), "TOEIC対策の 単語に ビジネスの 語"); }
 
 // ---- 3. 穴うめの 文 ----
-for (const lv of ["jh", "hs"]) {
+for (const lv of LV) {
   const L = F[lv], seen = new Set();
-  ok(Array.isArray(L) && L.length >= 95, `${lv}: 穴うめ ${L.length}もん`);
+  ok(Array.isArray(L) && L.length >= (lv === "toeic" ? 100 : 95), `${lv}: 穴うめ ${L.length}もん`);
   for (const e of L) {
     const [en, ans, wrong, ja, point] = e, where = `${lv}「${en}」`, ch = [ans, ...wrong];
     ok(e.length === 5 && Array.isArray(wrong) && wrong.length === 3, `${where}: かたち [英文, 正解, まちがい 3つ, 和訳, ポイント]`);
@@ -69,10 +83,17 @@ for (const lv of ["jh", "hs"]) {
   }
 }
 
+{ const base = new Set([...F.jh, ...F.hs].map((e) => e[0])); ok(F.toeic.every((e) => !base.has(e[0])), "TOEIC対策の 文は 中学・高校と ちがう"); }
+// TOEIC対策の 文は Part 5 の よくある かたち（品詞・動詞の 形・前置詞と 接続詞・関係詞・語い）を まんべんなく
+{
+  const by = (re) => F.toeic.filter((e) => re.test(e[4])).length;
+  ok(by(/副詞|形容詞|名詞/) >= 25 && by(/完了|受け身|未来|動名詞|不定詞|単数|複数|仮定法|to$|ing/) >= 20 && by(/by|until|during|despite|although|though|while|for|on|at|in|between|among|so that|due to|either|neither|as /i) >= 20 && by(/who|whose|which|that|where|whoever|anyone|代名詞|目的格/) >= 8, "TOEIC対策の 穴うめの かたち（品詞・動詞・前置詞と 接続詞・関係詞）");
+}
+
 // ---- 4. 問題の えらびかた ----
 Save.d = Save.fresh();
 const E = () => Save.d.shops.brain.eng;
-for (const lv of ["jh", "hs"]) for (const mode of ["word", "fill"]) {
+for (const lv of LV) for (const mode of ["word", "fill"]) {
   const rnd = seeded(lv.length * 10 + mode.length), list = mode === "fill" ? F[lv] : W[lv];
   let prev = null;
   for (let r = 0; r < 12; r++) {
@@ -102,10 +123,10 @@ const start = (lv, mode, sc = makeSc(), workLv = 3, P = PHONES[1]) => { E().lv =
 const tap = (t, b) => t.down({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
 const choiceBtn = (t, right) => t.btns.find((b) => b.choice != null && (b.label === t.cur.ans) === right);
 const nextBtn = (t) => t.btns.find((b) => b.next);
-for (const P of PHONES) for (const lv of ["jh", "hs"]) for (const mode of ["word", "fill"]) {
+for (const P of PHONES) for (const lv of LV) for (const mode of ["word", "fill"]) {
   const t = start(lv, mode, makeSc(), 3, P), where = `${P.name} ${lv} ${mode}`, R = P.R, css = P.px;
   const inR = (b) => b.x >= R.x - 0.5 && b.y >= R.y - 0.5 && b.x + b.w <= R.x + R.w + 0.5 && b.y + b.h <= R.y + R.h + 0.5;
-  ok(t.lvId === lv && t.mode === mode && t.nq === 10 && t.qs.length === 10, `${where}: 10問`);
+  ok(t.lvId === lv && t.mode === mode && t.nq === 10 && t.qs.length === 10 && t.L.color === EG.level(lv).color, `${where}: 10問`);
   ok(t.btns.length === 4 && t.btns.every(inR) && t.btns.every((b) => b.h * css >= 44 && b.w * css >= 44), `${where}: 選択肢 4つは 44px いじょう・はみださない`);
   ok(t.cardY >= t.statusY + 24 && t.cardY + t.cardH <= t.choiceY && t.cardH >= 150, `${where}: 問題の カードは 選択肢の うえ（たかさ ${Math.round(t.cardH)}）`);
   tap(t, choiceBtn(t, false));
@@ -132,11 +153,16 @@ for (const P of PHONES) for (const lv of ["jh", "hs"]) for (const mode of ["word
   const v = start("hs", "fill", makeSc(), 1); v.correct = 10; v.think = PLAY.hs.par * 2;
   ok(Math.abs(v.score() - 90) < 1e-9, "めやすの 2ばいの 時間 → −10");
   v.think = PLAY.hs.par * 9; ok(Math.abs(v.score() - 90) < 1e-9, "時間の へりは 10 まで");
+  const x = start("toeic", "fill", makeSc(), 1);
+  for (let k = 0; k < 10; k++) { tap(x, choiceBtn(x, true)); tap(x, nextBtn(x)); }
+  ok(x.done && x.correct === 10 && x.sc.done === 100 && /英語 TOEIC®対策・文の穴うめ 10\/10問 正解（ベスト 10）。全問正解/.test(x.sc.resultNote) && E().best.toeic_fill === 10 && E().plays.toeic_fill === 1, "TOEIC対策の 穴うめ 10問 → 100・ベスト");
+  const y = start("toeic", "word", makeSc(), 1); y.correct = 10; y.think = PLAY.toeic.par * 2;
+  ok(Math.abs(y.score() - 90) < 1e-9, "TOEIC対策: めやすの 2ばいの 時間 → −10");
   const w = start("jh", "fill", makeSc(), 1); tap(w, choiceBtn(w, true)); const think = w.think; w.tick(5); ok(w.think === think, "こたえを よんで いる あいだは 時間を かぞえない");
   ok(w.timeout() <= 40 && w.done, "時間ぎれ → ひくい てん");
 }
 { // コイン・ひょうばん
-  for (const lv of ["jh", "hs"]) {
+  for (const lv of LV) {
     const t = start(lv, "word", makeSc(), 1), pays = [0, 1, 2, 3].map((r) => t.payFor(r));
     ok(pays[0] === 0 && pays[1] < pays[2] && pays[2] < pays[3] && pays[2] === PLAY[lv].pay && pays[3] === Math.round(PLAY[lv].pay * 1.5), `${lv}: ランクで コイン（○ ${pays[2]}・◎ ${pays[3]}）`);
     ok(t.repFor(3, 12) === 12 * PLAY[lv].rep, `${lv}: ひょうばん ${PLAY[lv].rep}ばい`);
@@ -144,20 +170,42 @@ for (const P of PHONES) for (const lv of ["jh", "hs"]) for (const mode of ["word
     ok(t5.payFor(3) === Math.round(PLAY[lv].pay * 1.5 * 1.4 * GameEconomy.mode("hard").reward), `${lv}: Lv5・むずかしい の コイン（1.5ばい × Lv × むずかしさ）`);
   }
   ok(PLAY.hs.pay > PLAY.jh.pay && PLAY.hs.rep >= PLAY.jh.rep && PLAY.hs.par >= PLAY.jh.par, "高校の ほうが コイン・ひょうばんが おおい");
+  ok(PLAY.toeic.pay > PLAY.hs.pay && PLAY.toeic.rep >= PLAY.hs.rep && PLAY.toeic.n === 10 && PLAY.toeic.par === 200, "TOEIC対策は 高校より コイン・ひょうばんが おおい・めやすは Part 5 の 1問 20びょう × 10問");
   // 1ぷん あたりの コイン（めやすの 時間で ◎）は こどもむけ 3しゅ（Lv1・4にん・1にん 40びょう）と おなじ くらい か すこし おおい
   const kids = (GameEconomy.pay("brain", 1, 3) * 4) / ((4 * 40) / 60);
-  for (const lv of ["jh", "hs"]) { const per = (PLAY[lv].pay * 1.5) / (PLAY[lv].par / 60); ok(per >= kids * 0.8 && per <= kids * 3, `${lv}: 1ぷん あたり ${per.toFixed(0)}コイン（こどもむけ ${kids.toFixed(0)}）`); }
+  for (const lv of LV) { const per = (PLAY[lv].pay * 1.5) / (PLAY[lv].par / 60); ok(per >= kids * 0.8 && per <= kids * 3, `${lv}: 1ぷん あたり ${per.toFixed(0)}コイン（こどもむけ ${kids.toFixed(0)}）`); }
 }
 { // ひとこと
   E().lv = "hs"; E().mode = "fill";
   ok(/英語（高校・文の穴うめ）/.test(EG.hello({ lv: 3 })), "2かいめ からの ひとこと（えらんだ レベル・あそびかた）");
+  E().lv = "toeic"; E().mode = "word";
+  ok(/英語（TOEIC・単語の意味）/.test(EG.hello({ lv: 3 })), "TOEIC対策の ひとこと");
+}
+{ // えらぶ ところ（UI.ask を すりかえる）: レベル 3つ → TOEIC対策 → あそびかた（商標の ことわり つき）。中学には ことわりを ださない
+  const realAsk = UI.ask, asked = [], store = { owner: { name: "ホーせんせい" } };
+  let ans = [];
+  UI.ask = (text, btns) => { asked.push([text, btns.join("|")]); return Promise.resolve(ans.shift()); };
+  ans = [2, 1]; const m = await EG.pick(store);
+  ok(m === "fill" && E().lv === "toeic" && E().mode === "fill", "TOEIC対策・文の穴うめ を えらぶ");
+  ok(asked[0][1] === "中学レベル|高校レベル|TOEIC®対策|やめる" && ENG_LEVELS.every((L) => asked[0][0].includes(`・${L.name}：${L.note}`)) && !asked[0][0].includes(ENG_NOTICE.ja), "レベルの まど（3つ・やめる）" + JSON.stringify(asked[0]));
+  ok(/TOEIC®対策だね/.test(asked[1][0]) && asked[1][0].includes(ENG_NOTICE.ja) && /^単語の意味\|文の穴うめ（ベスト 10\/10）\|やめる$/.test(asked[1][1]), "TOEIC対策の あそびかたの まど（ことわり・ベスト）" + JSON.stringify(asked[1]));
+  asked.length = 0; ans = [0, 0]; await EG.pick(store);
+  ok(E().lv === "jh" && E().mode === "word" && !asked[1][0].includes(ENG_NOTICE.ja), "中学では ことわりを ださない");
+  asked.length = 0; ans = [3]; ok((await EG.pick(store)) === null && asked.length === 1 && E().lv === "jh", "やめる → null");
+  UI.ask = realAsk;
 }
 // ---- 6. セーブ ----
 {
   const f = Save.fresh().shops.brain.eng;
-  ok(f && f.lv === "jh" && f.mode === "word" && ["jh_word", "jh_fill", "hs_word", "hs_fill"].every((k) => f.plays[k] === 0 && f.best[k] === 0 && Array.isArray(f.recent[k]) && !f.recent[k].length) && Save.fresh().shops.brain.games.eng === 0, "セーブ: shops.brain.eng（あたらしい ところ だけ）");
+  ok(f && f.lv === "jh" && f.mode === "word" && LV.flatMap((lv) => [lv + "_word", lv + "_fill"]).every((k) => f.plays[k] === 0 && f.best[k] === 0 && Array.isArray(f.recent[k]) && !f.recent[k].length) && Save.fresh().shops.brain.games.eng === 0, "セーブ: shops.brain.eng（あたらしい ところ だけ）");
   const old = Save.fresh(); delete old.shops.brain.eng; delete old.shops.brain.games.eng; old.shops.brain.games.math = 4; old.shops.brain.rep = 30;
   const m = Save.migrate(JSON.parse(JSON.stringify(old)));
   ok(JSON.stringify(m.shops.brain.eng) === JSON.stringify(f) && m.shops.brain.games.eng === 0 && m.shops.brain.games.math === 4 && m.shops.brain.rep === 30 && m.v === Save.SCHEMA && Save.SCHEMA === 2, "ふるい セーブに eng を おぎなう（まえの かずは そのまま・SCHEMA は そのまま）");
+  // TOEIC対策の まえの セーブ（中学・高校 だけ）: toeic の かず・ベスト・さいきんを おぎなう。まえの きろくは そのまま
+  const pre = Save.fresh(), pe = pre.shops.brain.eng;
+  for (const k of ["plays", "best", "recent"]) { delete pe[k].toeic_word; delete pe[k].toeic_fill; }
+  pe.lv = "hs"; pe.mode = "fill"; pe.best.hs_fill = 7; pe.plays.hs_fill = 3; pe.recent.hs_fill = [4, 9];
+  const m2 = Save.migrate(JSON.parse(JSON.stringify(pre))).shops.brain.eng;
+  ok(m2.plays.toeic_word === 0 && m2.best.toeic_fill === 0 && Array.isArray(m2.recent.toeic_fill) && !m2.recent.toeic_fill.length && m2.best.hs_fill === 7 && m2.plays.hs_fill === 3 && m2.recent.hs_fill.join() === "4,9" && m2.lv === "hs" && m2.mode === "fill", "TOEIC対策の まえの セーブに toeic を おぎなう（まえの きろくは そのまま）");
 }
-console.log(`✓ english: ${n} checks（単語 中学 ${W.jh.length}・高校 ${W.hs.length}／穴うめ 中学 ${F.jh.length}・高校 ${F.hs.length}・10問・まちがいの 選択肢・あそぶ ところ・コイン・2つの がめん）`);
+console.log(`✓ english: ${n} checks（単語 中学 ${W.jh.length}・高校 ${W.hs.length}・TOEIC ${W.toeic.length}／穴うめ 中学 ${F.jh.length}・高校 ${F.hs.length}・TOEIC ${F.toeic.length}・10問・まちがいの 選択肢・あそぶ ところ・コイン・2つの がめん）`);

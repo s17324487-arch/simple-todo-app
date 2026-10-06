@@ -199,6 +199,8 @@ const Menu = {
     el.append(version, hidden);
     // おんがくの クレジット（Meeときょれじゃ の 店内 BGM。js/arcade-jpop.js）
     if (typeof ArcadeJpop !== "undefined") el.append(U.el("div", { class: "muted menu-credit", text: ArcadeJpop.credit() }));
+    // 英語の TOEIC対策（js/mg-english.js・UI-98）: 商標の ことわり
+    if (typeof EnglishGame !== "undefined") el.append(U.el("div", { class: "muted menu-tm", text: EnglishGame.NOTICE.en }));
   },
 
   admin(parent) {

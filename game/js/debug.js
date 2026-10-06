@@ -46,7 +46,7 @@ const PokaDebug = {
   // いまの かいの その シリーズの ガチャの 台まで あるいて まわす（id: "machi3" など。台に いなければ false）
   // へいせい じょじ ふうの ガチャ（js/gacha-heisei.js・UI-79）: 4シリーズの ばんごう・くみ・けいひん と、こんしゅう 台に でて いるか
   // 英語（あたまの たいそう・UI-82。js/mg-english.js）: セーブの ようす（さいごの レベル・あそびかた・かず・ベスト・さいきんの 問題の かず）と 問題の かず
-  english(){if(typeof EnglishGame==='undefined')return null;const E=EnglishGame.state();return{lv:E.lv,mode:E.mode,plays:{...E.plays},best:{...E.best},recent:Object.fromEntries(Object.entries(E.recent).map(([k,v])=>[k,v.length])),words:{jh:ENG_WORDS.jh.length,hs:ENG_WORDS.hs.length},fill:{jh:ENG_FILL.jh.length,hs:ENG_FILL.hs.length}};},
+  english(){if(typeof EnglishGame==='undefined')return null;const E=EnglishGame.state();return{lv:E.lv,mode:E.mode,plays:{...E.plays},best:{...E.best},recent:Object.fromEntries(Object.entries(E.recent).map(([k,v])=>[k,v.length])),words:Object.fromEntries(ENG_LEVELS.map(L=>[L.id,ENG_WORDS[L.id].length])),fill:Object.fromEntries(ENG_LEVELS.map(L=>[L.id,ENG_FILL[L.id].length])),levels:ENG_LEVELS.map(L=>L.id)};},
   // コンビニの しなぞろえ（UI-84。js/conbini-goods.js）: しなもの・タブ・もとの ねだん・コンビニの ねだん（×1.5）
   conbini(shop='lawson'){if(typeof ConbiniGoods==='undefined'||!ConbiniGoods.LINEUP[shop])return null;return{shop,mul:ConbiniGoods.MUL,tabs:ConbiniGoods.TABS.map(t=>t[0]),goods:BUY_SHOPS[shop].items().map(it=>({id:it.id,name:it.name,tab:ConbiniGoods.tabOf(shop,it.id),base:it.basePrice,price:it.price}))};},
   // コンビニの ポイントカード（UI-85。js/conbini-card.js）: カード・チケット・ていきけん・オーナーの ようす。
