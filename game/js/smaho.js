@@ -23,7 +23,7 @@ const Smaho = {
   // name は ボタンの なまえ（ひらがな）。render(el, ph) は アプリの 中みを el に 入れる
   APPS: [
     { id: "map", name: "ちず", color: "#9ED9B1", render(el, ph) {
-      if (G.sceneName === "world" || G.sceneName === "store" || G.sceneName === "venue") el.append(UI.btn("おうちへ かえる", async () => { if (await UI.confirm("3にんで おうちに かえる？")) { ph.close(); Game.goto("house", {}, "circle"); } }, "wide yellow smaho-home-go"));
+      if (G.sceneName === "world" || G.sceneName === "store" || G.sceneName === "venue" || G.sceneName === "visit") el.append(UI.btn("おうちへ かえる", async () => { if (await UI.confirm("3にんで おうちに かえる？")) { ph.close(); Game.goto("house", {}, "circle"); } }, "wide yellow smaho-home-go"));
       Smaho.inside(el, ph);
       WorldAtlas.render(el);
     } },
@@ -299,15 +299,15 @@ const Smaho = {
     setInterval(() => this.place(), 250);
     return b;
   },
-  // どの 画面で どこに 出すか（町・フィールド・たてものの 中: おまつりボタンの ばしょ〔たてものの したの「スライド・タップで あるく」の ふだより うえ〕。おうち・おみせ: 下の ボタンの 上）
+  // どの 画面で どこに 出すか（町・フィールド・たてものの 中: おまつりボタンの ばしょ〔たてものの したの「スライド・タップで あるく」の ふだより うえ〕。おうち・おじゃま・おみせ: 下の ボタンの 上）
   place() {
     const b = this.button; if (!b) return;
     const sc = G.scene, name = G.sceneName;
     const hud = UI.hud && !UI.hud.classList.contains("hidden");
-    const ok = hud && (name === "world" || name === "store" || (name === "venue" && !sc?.closed) || (name === "house" && !sc?.mode && !sc?.watching)) && !Game.trans;
+    const ok = hud && (name === "world" || name === "store" || (name === "venue" && !sc?.closed) || ((name === "house" || name === "visit") && !sc?.mode && !sc?.watching)) && !Game.trans;
     b.classList.toggle("hidden", !ok);
     if (!ok) return;
-    const bar = name === "house" ? sc.bar : name === "store" ? sc.bar : null;
+    const bar = name === "house" || name === "visit" || name === "store" ? sc.bar : null;
     const h = bar && bar.isConnected && !bar.classList.contains("hidden") ? bar.getBoundingClientRect().height : 0;
     b.style.bottom = h ? `${Math.round(h + 10)}px` : "";
     b.querySelector(".smaho-dot").classList.toggle("hidden", !["fortune", "rally", "event"].some((id) => this.badge(id)));

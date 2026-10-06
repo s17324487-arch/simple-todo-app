@@ -4,12 +4,12 @@
 // 3. decode: しらない かぐ・__proto__・へんな ばしょ・へんな フィギュア・へんな かべがみ／ゆか は すてる か なおす
 // 4. ルール（database.rules.json の rooms・roomlist）: かたち・正規表現に ぜんぶの かぐ・かべがみ・ゆか・おへやの id が あう・かずの はんい・にせの サーバーも おなじ
 // 5. publish・unpublish・load（orderBy・limitToLast）・fetchRoom・けす・なまえを かえる（にせの fetch）
-// 6. 見るだけ: まどに さわる しくみ（タップ）が ない・stage の ざひょうが おうちと おなじ
+// 6. いちらんの タップで 3人で おじゃま（UI-97・js/online-visit.js。まえの 見るだけの まどは ない。おじゃまの 検査は tools/check-online-visit.mjs）
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
 const R = gameContext();
-const { Online: O, OnlineNet: N, OnlineRooms: OR, Save: S, FURN_INDEX, FURNITURE, WALLPAPERS, FLOORS, WALL_INDEX, FLOOR_INDEX, HomeRooms, FigureStand, HomeDesign, HOUSE_SIZE } = R;
+const { Online: O, OnlineNet: N, OnlineRooms: OR, Save: S, FURN_INDEX, FURNITURE, WALLPAPERS, FLOORS, WALL_INDEX, FLOOR_INDEX, HomeRooms, FigureStand } = R;
 const read = (p) => readFileSync(new URL("../" + p, import.meta.url), "utf8");
 let n = 0;
 const ok = (c, m) => { n++; assert(c, m); };
@@ -139,16 +139,12 @@ await O.sync();
 ok(st.room.shown === 0 && st.room.uid === "", "ID が かわった ときは みせた きろくを わすれる");
 N.over = null; N.fetchFn = null; N.auth = null; N.pending = null;
 
-// ---- 6. 見るだけ・ざひょう ----
-ok(!/addEventListener|onclick|onpointer/.test(OR.open.toString() + OR.draw.toString() + OR.stage.toString()), "見る まどは さわれない（タップの しくみが ない）");
-S.d = S.fresh();
-const vs = OR.stage({ size: "standard", items: [], wall: "wp_cream", floor: "fl_wood" }, 340), b = HomeDesign.bounds(HomeDesign.sizes.standard);
-ok(Math.abs(vs.s - 340 / b.w) < 1e-9 && vs.ch === Math.ceil(b.h * vs.s) && vs.kids.length === 3 && vs.kidSize === HOUSE_SIZE * vs.s, "stage の 大きさ・3人");
-const p0 = vs.toScreen(0, HomeDesign.H), pW = vs.toScreen(HomeDesign.sizes.standard.w, HomeDesign.H);
-ok(Math.abs(p0.x - vs.ox) < 1e-9 && Math.abs(p0.y - vs.oy) < 1e-9 && pW.x > p0.x, "stage の 投影は おうちと おなじ（おくの かど が はじまり）");
-for (const k of vs.kids) ok(k.x > 20 && k.x < 200 && k.y > HomeDesign.H + 20 && k.y < HomeDesign.H + HomeDesign.sizes.standard.d - 20, "3人は ゆかの うえ " + JSON.stringify(k));
-// ことば
+// ---- 6. いちらんの タップで おじゃま ----
 const src = read("js/online-rooms.js");
+ok(!("open" in OR) && !("stage" in OR) && !("draw" in OR) && !("view" in OR) && !src.includes("onl-visit"), "見るだけの まどは もう ない（おじゃまに なった）");
+ok(/b\.addEventListener\("click", \(\) => \{ Sound\.se\("ok"\); OnlineVisit\.go\(r, b\); \}\);/.test(src) && src.includes("タップすると 3人で おじゃま するよ（よその おへやは かわらないよ）"), "いちらんの タップで 3人で おじゃま");
+ok(/leave: \(\) => \{ if \(typeof OnlineVisit !== "undefined"\) OnlineVisit\.cancel\(\); \}/.test(src), "すまほを とじたら よみこみ中の おじゃまを やめる");
+// ことば
 for (const t of [...src.matchAll(/text: "([^"]+)"/g)].map((m) => m[1])) ok(!KANJI.test(t.replace(/3人/g, "")), "ことばは ひらがな中心: " + t);
 ok(src.includes("かべがみ・ゆか・かぐの しゅるいと ばしょ だけ おくるよ") && src.includes("みせるのを やめる"), "みせる まえに おくる ものを いう・やめられる");
 

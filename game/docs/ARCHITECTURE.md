@@ -68,6 +68,7 @@ PokaDebug.drift(time) は現在のカメラと、指定時刻の季節/風の葉
 
 - Save.KEY/SCHEMAは変更しない。保存済みの床家具 `x,y` はそのまま、深さを `y-230` として表示。古い家具が壁を突き抜ける位置の場合、表示だけを床内へ寄せる。プレイヤーが動かすまで保存値を書き換えない。壁の任意項目 `wallSide:"left"` で左壁、未指定・backは右壁。所持数・増築先の家具も従来どおり共有する。
 - HouseScene は投影と逆変換、床/壁それぞれのドラッグ、描画範囲とタップ判定を共用。家具の透明部分を避けて選択し、壁の選択は壁面に逆変換する。ボールの高さとキャラ・親・吹き出しは床座標から別に上へ描く。拡大は 2本ゆびの ピンチ（1〜3倍〔`ZMAX`。2026-10-02 に 2倍から〕・ゆびの まんなかを 中心に・2本ゆびで 移動も。`fingers`・`pinch`・`zoomAt`。1.6倍を こえると かぐと へやの 絵は こまかい 3倍の 絵〔`rasterK`・`bgFine`。できる までは いつもの 2倍の 絵〕、3人の 絵は ピンチの あいだ ピンチ まえの 大きさの 絵を のばして 描く〔`charSprite`・`Chara.ready`〕。ピンチの あとは ゆびを ぜんぶ はなすまで タップ・ドラッグに しない `gesture`）、空いた場所の 1本ゆびの ドラッグで画面移動、いちばん 小さく すると「全体」（倍率 1・移動 0）に復帰。ボタンは ない（オーナーの FB 2026-09-30）。パソコンは ホイール。カメラの状態は保存しない。
+- おじゃま（UI-97・`js/online-visit.js`）: `VisitScene extends HouseScene`。よんだ よその おへやは `sc.guest.room`（セーブには ない）。へやを よむ ところは `Room.of(sc)`（`preloadFurn`・`buildBg`・`drawOrder`・`hideSpots`・`HomeNav`・`HomeActions`・`HomeLife.nearFurn`・`FurnLive.lights`）、ひろさは `HomeDesign.guestSize`（`size()` が みる。`exit` で もどす）。ほかの ファイルが `HouseScene.prototype` を つつんだ うごき（ドア・2かい・トイレ・こいぬ・おねがい・なでなでの きろく・きがえの かえし）は `HOUSE_SCENE_BASE`（scene-house.js の さいごで とった つつむ まえの メソッド）に もどす ので、よその おうちでは うごかない。こいぬ（`PetWalk.houseUpdate`・`houseTap`）と なでなでの きろく（`PlayRecords.add(id, "pat")`）だけ VisitScene が じぶんで よぶ。render は `this.guest` の とき じぶんの おうちの 2かい・ドアの ふだを 描かない。フィギュア だいは `sc.guest` の とき いれかえの まどを ださない。うごく かぐの じょうたい（`FurnLive`）は よその かぐの uid が `"v"` で はじまり、`FurnLive.forget()` で わすれる。
 - SVGキャッシュは家具ID/向き、壁紙/床IDと固定ラスタサイズのみ。座標・時間・カメラ移動をキーに入れない。素材プレビューに部屋3種と全家具を表示。
 - PokaDebug.homeDesign() は部屋サイズ・表示倍率・家具の保存座標/画面矩形・家族/ボール/かくれんぼの表示位置を返す。homeLayout(items,wall,floor) は開発用の家具配置。homePoint(x,y) は従来の床座標をそのまま受け取る。
 - 静的検査で投影の往復、全家具/背景SVGと旧配置・増築・987654コインの保持を検証。ブラウザは390×844/375×667で旧セーブ再開、床ドラッグ、回転、左右壁、拡大移動、動く鳥かご、みまもり、再保存、ボール・かくれんぼ・睡眠を実操作する。
@@ -151,14 +152,15 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 16 | `dressup.js` | `DressUp` |
 | 17 | `scene-title.js` | `TitleScene` |
 | 18 | `scene-world.js` | `DIRS`, `dirOf`, `WALK_DUR`, `RUN_DUR`, `CHAR_SIZE`, `Maps`, `FieldMemory`, `Walker`, `WorldScene`, `DayTint`, `FX` |
-| 19 | `scene-house.js` | `ROOM`, `HOUSE_SIZE`, `Room`, `HOUSE_ICONS`, `HouseScene` |
+| 19 | `scene-house.js` | `ROOM`, `HOUSE_SIZE`, `Room`, `HOUSE_ICONS`, `HouseScene`, `HOUSE_SCENE_BASE`（ほかの ファイルが つつむ まえの HouseScene の メソッド。おじゃま〔online-visit.js〕が つかう） |
 | 20 | `scene-battle.js` | `ALLY_SIZE`, `FOE_SIZE`, `BOSS_SIZE`, `BattleScene` |
 | 21 | `minigames.js` | `MG_ART`, `CREPE_TOPS`, `BREADS`, `BREAD_TOPS`, `FLOWER_KINDS`, `RIBBONS`, `SHOP_OWNERS`, `HOWTO`, `CUST_*`, `ShopScene`, `TaskBase`, `CrepeTask`, `DentistTask`, `BakeryTask`, `FloristTask`, `MG_TASKS`, 補助関数 `breadSvg` `flowerIconSvg` `mgCanvas` `mgIcon` `topIcon` `mgBtn` `inBtn` `gridBtns` |
 | — | `play-records.js`（pet-walk.js の あと・world-zoom.js の まえ＝Care・HomeToilet・SCENES.house・Fishing・BattleScene・Menu・GowagaWish の あと） | `PlayRecords`（きろく: 3人の きろく 15しゅ・たべものごとの かず・ずかんの「たべもの」・ようすの「きろく」・UI-71） |
 | — | `dine-seats.js`（iso-venue.js の すぐ あと＝chara.js・IsoVenue の あと） | `DineSeats`（ごはんの せき: 館の テーブル・ボックス席で 3人が すわって ちゅうもん。UI-72） |
 | — | `online-config.js` → `online-net.js` → `online.js`（play-records.js の あと・world-zoom.js の まえ＝Smaho・Menu・ShopScene・KorokoroScore・SHOP_GAMES の あと） | `ONLINE_CONFIG`（つなぎさき）, `OnlineNet`（匿名ログイン・Realtime Database の REST と SSE・ネットに つなぐ ゆいいつの ファイル）, `Online`（同意・なまえ・ボード・きろく・すまほの「みんな」・≡ の せってい。E5・UI-94） |
-| — | `online-rooms.js`（online.js の すぐ あと） | `OnlineRooms`（ほかの 人の おうちを 見る・じぶんの おへやを みせる。`Online.parts` に「おうち」タブ。E5・UI-95） |
+| — | `online-rooms.js`（online.js の すぐ あと） | `OnlineRooms`（じぶんの おへやを みせる・みんなの おへやの いちらん。`Online.parts` に「おうち」タブ。いちらんの タップで おじゃま〔online-visit.js〕。E5・UI-95） |
 | — | `online-photos.js`（online-rooms.js の すぐ あと・purikura.js より あと） | `OnlinePhotos`（みせると きめた ぷりくらを 見せあう・かくす・ほうこく。`Online.parts` に「ぷりくら」タブ。「しゃしん」アプリの「みんなに みせる」。E5・UI-96） |
+| — | `online-visit.js`（online-photos.js の すぐ あと＝HouseScene を つつむ ファイル〔home-doors・home-floors・home-toilet・pet-walk・play-records・gowaga-wish・mee-fitting〕より あと・debug.js の まえ） | `OnlineVisit`（よんだ おへや → この 画面の へや・ことば・もどる ところ・いく）, `VisitScene`（`SCENES.visit`。ほかの 人の おうちに 3人で おじゃま。HouseScene を うけつぐ。E5・UI-97） |
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |

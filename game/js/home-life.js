@@ -8,9 +8,13 @@ const HomeLife = {
   rare: { wanko: "ゆめで おほしさまを つかまえた！", gachan: "しあわせは 3にんぶんより おおきいね", goji: "ガゥー……おつきさまも かぞくかな？" },
   // time: この シーンで あそんだ 秒（メニュー中などは すすまない）。events: できごと → いつまで 覚えて いるか（time）
   init(sc) {
-    sc.life = { next: 8, bubbles: [], quarrel: false, elapsed: 0, furniture: {}, queue: [], talkWait: 0, log: [],
-      time: 0, events: {}, recent: [], recentTalks: [], sniffs: [], aloneT: 0, aloneAt: -999, lastMode: null };
+    sc.life = this.blank();
     this.enterEvents(sc); ParentCare.init(sc); HomeActions.init(sc);
+  },
+  // シーンの「life」の はじめの かたち（おじゃま〔js/online-visit.js〕も おなじ かたちで ふきだし・しぐさ・うごく かぐを つかう）
+  blank() {
+    return { next: 8, bubbles: [], quarrel: false, elapsed: 0, furniture: {}, queue: [], talkWait: 0, log: [],
+      time: 0, events: {}, recent: [], recentTalks: [], sniffs: [], aloneT: 0, aloneAt: -999, lastMode: null };
   },
   say(sc, id, text, rare = false, kind = "say", meta = null) {
     sc.life.bubbles = sc.life.bubbles.filter(b => b.id !== id);
@@ -107,7 +111,7 @@ const HomeLife = {
   // 話し手から 70 いないの 家具（へやの 座標で。ゆかの 家具は 足もとの 四角、かべの 家具は かべの 足もとの 点まで）
   nearFurn(sc, c) {
     const out = [];
-    for (const it of Save.d.room.items || []) {
+    for (const it of Room.of(sc).items || []) {
       const f = FURN_INDEX[it.id]; if (!f) continue;
       let dx, dy;
       if (f.kind === "wall") { const p = it.wallSide === "left" ? { x: 0, y: ROOM.WALL + it.x } : { x: it.x, y: ROOM.WALL }; dx = c.x - p.x; dy = c.y - p.y; }

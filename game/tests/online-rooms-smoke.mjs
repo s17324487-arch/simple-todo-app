@@ -1,8 +1,8 @@
-// オンライン PR2（E5・UI-95・js/online-rooms.js）: ほかの 人の おうちを 見に いく（見るだけ）。つなぎさきは にせの Firebase（tests/online-fake.mjs）
+// オンライン PR2（E5・UI-95・js/online-rooms.js）: ほかの 人の おうち。つなぎさきは にせの Firebase（tests/online-fake.mjs）
 // 1. オンライン → すまほの「みんな」に タブ（ランキング・おうち）→「おうち」: まだ みせて いない
 // 2. 「この おへやを みせる」→ たしかめ → サーバーに かべがみ・ゆか・ひろさ・かぐの ならび だけ（v1/rooms・v1/roomlist）
-// 3. ほかの 人の おへや（しらない かぐ・__proto__・へんな ばしょ・へんな フィギュア）→「あたらしく する」→ あたらしい じゅん → タップで 見る まど
-//    （おうちと おなじ 絵・3人も いっしょ・見るだけ: さわっても なにも かわらない・はみ出さない）
+// 3. ほかの 人の おへや（しらない かぐ・__proto__・へんな ばしょ・へんな フィギュア）→「あたらしく する」→ あたらしい じゅん → タップで 3人で おじゃま
+//    （UI-97・js/online-visit.js。すまほが とじて おじゃまの 画面・よその おへや・じぶんの おへやは かわらない →「かえる」で おうちへ。くわしくは tests/online-visit-smoke.mjs）
 // 4. なまえを かえる → おへやの なまえも かわる・「みせるのを やめる」→ サーバーから きえる・もう いちど みせて「みせた データを けす」→ おへやも きえる
 export async function onlineRoomsSmoke({ scenario, expect }) {
   let fake = null;
@@ -53,27 +53,19 @@ export async function onlineRoomsSmoke({ scenario, expect }) {
     expect(rows[0].t.includes("わくわく ぺんぎん") && rows[0].t.includes("ひだまりの アトリエ・かぐ 6こ") && rows[1].t.includes("（あなた）") && rows.every((r) => r.h >= 44), "いちらんは あたらしい じゅん・44px " + JSON.stringify(rows));
     const before = await H.dbg("saveData");
     await H.page.locator(".onl-room-row:not(.me)").click();
-    await H.until(() => PokaDebug.onlineRooms().view?.loaded && PokaDebug.onlineRooms().view.drawn > 4, 15000);
-    const v = (await H.dbg("onlineRooms")).view;
-    expect(JSON.stringify(v.items) === JSON.stringify(["sofa", "window", "bookshelf", stand]) && JSON.stringify(v.figs[0].slice(0, 4)) === JSON.stringify([figs[0], null, null, figs[1]]), "しらない かぐ・__proto__・へんな フィギュアは すてる " + JSON.stringify(v));
-    const look = await H.eval(() => {
-      const p = [...document.querySelectorAll(".modal-wrap:not(.out) .panel")].pop(), pr = p.getBoundingClientRect(), c = p.querySelector(".onl-visit-cv"), cr = c.getBoundingClientRect();
-      const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data, set = new Set();
-      for (let i = 0; i < d.length; i += 4 * 97) set.add((d[i] >> 3) + "," + (d[i + 1] >> 3) + "," + (d[i + 2] >> 3));
-      return { title: p.querySelector(".panel-title").textContent, cap: p.querySelector(".onl-visit-cap").textContent, colors: set.size, p: [pr.left, pr.top, pr.right, pr.bottom], c: [cr.left, cr.right, cr.width, cr.height], w: innerWidth, h: innerHeight, over: document.documentElement.scrollWidth > innerWidth };
-    });
-    expect(look.title === "わくわく ぺんぎんさんの おへや" && look.cap.includes("ひだまりの アトリエ") && look.cap.includes("かぐ 4こ"), "見る まどの ことば " + JSON.stringify(look));
-    expect(look.colors > 40, "おへやの 絵が 描けて いない " + look.colors);
-    expect(look.p[0] >= -0.5 && look.p[2] <= look.w + 0.5 && look.c[0] >= look.p[0] - 0.5 && look.c[1] <= look.p[2] + 0.5 && look.c[2] >= 220 && !look.over, "見る まどが はみ出す " + JSON.stringify(look));
-    await H.wait(400); await H.shot("visit");
-    // 見るだけ: さわっても なにも かわらない
-    await H.page.locator(".onl-visit-cv").click({ position: { x: Math.round(look.c[2] * 0.6), y: Math.round(look.c[3] * 0.6) } }); await H.wait(400);
+    await H.until(() => G.sceneName === "visit" && !Game.trans && PokaDebug.visit() && PokaDebug.visit().ready, 20000);
+    const v = await H.dbg("visit");
+    expect(JSON.stringify(v.items.map((it) => it.id)) === JSON.stringify(["sofa", "window", "bookshelf", stand]) && JSON.stringify(v.items[3].figs.slice(0, 4)) === JSON.stringify([figs[0], null, null, figs[1]]), "しらない かぐ・__proto__・へんな フィギュアは すてる " + JSON.stringify(v.items));
+    expect(v.plate === "わくわく ぺんぎんさんの おうちひだまりの アトリエ・かぐ 4こ" && v.size === "expanded" && v.width === 640 && v.uid === "otherC" && v.back.scene === "house", "おじゃまの ひょうさつ・ひろさ・もどる ところ " + JSON.stringify([v.plate, v.size, v.uid, v.back]));
+    expect(await H.eval(() => !Smaho.view), "おじゃまに いく とき すまほが とじない");
+    expect(v.items.every((it) => [it.rect.x, it.rect.y, it.rect.w, it.rect.h].every(Number.isFinite) && it.rect.w > 4) && v.items.find((it) => it.id === "bookshelf").x <= v.width, "へんな ばしょの かぐは へやの なかに おさめる " + JSON.stringify(v.items.map((it) => [it.id, it.x, it.y])));
+    await H.wait(600); await H.shot("visit");
+    // おじゃま しても じぶんの おへやは かわらない →「かえる」で おうちへ
+    await H.houseButton("かえる");
+    await H.until(() => G.sceneName === "house" && !Game.trans, 20000); await H.wait(300);
     const after = await H.dbg("saveData");
-    expect(JSON.stringify(after.room) === JSON.stringify(before.room) && JSON.stringify(after.furn) === JSON.stringify(before.furn) && await H.page.locator(".modal-wrap:not(.out) .panel").count() === 1, "見る まどで なにかが かわった／まどが ひらいた");
-    await closeTop(H);
-    expect((await H.dbg("onlineRooms")).view === null, "見る まどが とじない");
+    expect(JSON.stringify(after.room) === JSON.stringify(before.room) && JSON.stringify(after.furn) === JSON.stringify(before.furn) && JSON.stringify(after.rooms) === JSON.stringify(before.rooms), "おじゃまで じぶんの おへやが かわった");
     // 4. なまえを かえる → おへやの なまえも
-    await H.page.keyboard.press("Escape"); await H.wait(300);
     await menu(H);
     await H.page.locator(".onl-settings .onl-rename").click(); await H.wait(300);
     const sels = H.page.locator(".modal-wrap:not(.out) .onl-nick-sel");

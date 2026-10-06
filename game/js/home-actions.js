@@ -1,4 +1,4 @@
-// 自発的なしぐさ。所持品・能力値は変えず、シーン内だけで進める。
+// 自発的なしぐさ。所持品・能力値は変えず、シーン内だけで進める。家具は その 画面の へや（Room.of。おじゃま〔js/online-visit.js〕では よその おへや）。
 const HomeActions = {
   INTERVAL: 15,
   kinds: [
@@ -12,7 +12,7 @@ const HomeActions = {
   ],
   init(sc) {sc.actions={next:this.INTERVAL,time:0,turn:0,bag:[],log:[]};},
   furniture(sc,k) {
-    return (Save.d.room.items||[]).filter(it=>FURN_INDEX[it.id] && (k.near==='floor'?FURN_INDEX[it.id].kind==='floor':k.near?.includes(it.id)));
+    return (Room.of(sc).items||[]).filter(it=>FURN_INDEX[it.id] && (k.near==='floor'?FURN_INDEX[it.id].kind==='floor':k.near?.includes(it.id)));
   },
   available(sc) {return this.kinds.filter(k=>!k.near||this.furniture(sc,k).length);},
   start(sc,c,id) {
@@ -41,7 +41,7 @@ const HomeActions = {
         if(v.travel>12){this.cancel(c);continue;}
         if(c.state!=='idle')continue;
         v.stage='act';c.state='activity';c.dir='down';
-        if(v.id==='admire'&&FURN_INDEX[Save.d.room.items.find(it=>it.uid===v.uid)?.id]?.interactive)sc.life.furniture[v.uid]=v.duration;
+        if(v.id==='admire'&&FURN_INDEX[Room.of(sc).items.find(it=>it.uid===v.uid)?.id]?.interactive)sc.life.furniture[v.uid]=v.duration;
       }
       v.elapsed+=dt;if(v.elapsed>=v.duration)this.cancel(c);
     }
@@ -85,7 +85,7 @@ const HomeActions = {
       const x=25+Math.sin(t*5)*8;ctx.strokeStyle='#956B44';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x-8,-44);ctx.lineTo(x+5,1);ctx.stroke();ctx.fillStyle='#DDBB79';ctx.beginPath();ctx.moveTo(x-3,-6);ctx.lineTo(x+11,-10);ctx.lineTo(x+20,3);ctx.lineTo(x-4,8);ctx.closePath();ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=1.5;ctx.stroke();
     }
     if(k==='water'){
-      const it=Save.d.room.items.find(it=>it.uid===a.uid);
+      const it=Room.of(sc).items.find(it=>it.uid===a.uid);
       if(it){const r=sc.itemRect(it);ctx.translate((r.x+r.w*.5-p.x)/s+54,(r.y+r.h*.3-p.y)/s+39);}
       ctx.fillStyle='#98C5C9';ctx.beginPath();ctx.roundRect(-42,-45,23,17,4);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-39,-31);ctx.lineTo(-53,-42);ctx.stroke();ctx.strokeStyle='#77ADCD';for(let i=0;i<3;i++){const y=(t*28+i*7)%21;ctx.beginPath();ctx.moveTo(-54-i*3,-39+y);ctx.lineTo(-55-i*3,-35+y);ctx.stroke();}
     }

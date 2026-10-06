@@ -273,13 +273,28 @@ const PokaDebug = {
     return r;
   },
   onlineSync() { return typeof Online === "undefined" ? Promise.resolve(0) : Online.sync(); },
-  // オンラインの おへや（UI-95・js/online-rooms.js）: みせて いるか・みせられる おへや・さいごに よんだ いちらん・ひらいて いる まど（よんだ かぐ・描いた かず・大きさ）
+  // オンラインの おへや（UI-95・js/online-rooms.js）: みせて いるか・みせられる おへや・さいごに よんだ いちらん・よみこみ中の おじゃま（wait）
   onlineRooms() {
     if (typeof OnlineRooms === "undefined") return null;
-    const v = OnlineRooms.view;
     return { shown: OnlineRooms.shown(), room: { ...OnlineRooms.st() }, rooms: OnlineRooms.rooms().map((r) => r.id), list: OnlineRooms.list ? OnlineRooms.list.map((r) => ({ ...r, n: r.n && r.n.slice() })) : null,
-      view: v ? { uid: v.entry.uid, loaded: !!v.room, items: v.room ? v.room.items.map((it) => it.id) : [], figs: v.room ? v.room.items.filter((it) => it.figs).map((it) => it.figs) : [], drawn: v.drawn, w: v.vs ? v.vs.cw : 0, h: v.vs ? v.vs.ch : 0 } : null };
+      wait: typeof OnlineVisit !== "undefined" ? OnlineVisit.wait : 0 };
   },
+  // おじゃま（UI-97・js/online-visit.js）: だれの おうちか・ひょうさつ・ボタン・よその おへや（ひろさ・かぐと 画面の わく）・3人・あそび・もどる ところ
+  visit() {
+    if (G.sceneName !== "visit" || !G.scene || !G.scene.guest) return null;
+    const sc = G.scene, g = sc.guest, c = G.canvas.getBoundingClientRect(), point = (p) => ({ x: c.left + p.x * G.cssPerUnit, y: c.top + p.y * G.cssPerUnit });
+    const rect = (r) => ({ ...point(r), w: r.w * G.cssPerUnit, h: r.h * G.cssPerUnit }), box = (el) => { const r = el && el.getBoundingClientRect(); return r ? { x: r.x, y: r.y, w: r.width, h: r.height } : null; };
+    return { host: g.name, uid: g.uid, mine: g.mine, kind: g.room.k, size: g.room.size, width: ROOM.W, depth: HomeDesign.D, wall: g.room.wall, floor: g.room.floor, back: JSON.parse(JSON.stringify(g.back)),
+      mode: sc.mode, zoom: sc.zoom, ready: !!sc.bgImage(), plate: sc.plate ? sc.plate.textContent : "", plateBox: box(sc.plate), barBox: box(sc.bar), hidden: !!sc.bar && sc.bar.classList.contains("hidden"),
+      buttons: sc.bar ? [...sc.bar.querySelectorAll(".btn")].map((b) => ({ label: b.textContent.trim(), ...box(b) })) : [],
+      items: g.room.items.map((it) => ({ uid: it.uid, id: it.id, x: it.x, y: it.y, flip: !!it.flip, wallSide: it.wallSide || null, figs: it.figs ? it.figs.slice() : null, rect: rect(sc.itemRect(it)) })),
+      chars: sc.chars.map((a) => ({ id: a.id, x: a.x, y: a.y, state: a.state, hidden: !!a.hidden, act: a.activity ? a.activity.id : null, rect: rect(sc.actorRect(a)) })),
+      door: rect(sc.doorRect()), ball: sc.ball ? { ...point(sc.ballPoint(sc.ball)), hits: sc.ball.hits } : null,
+      hide: sc.hide ? { ...sc.hide, spots: sc.chars.filter((a) => a.hidden).map((a) => ({ id: a.id, door: !!a.spot.door, uid: a.spot.it ? a.spot.it.uid : null, rect: rect(a.spot.door ? sc.doorRect() : sc.itemRect(a.spot.it)) })) } : null,
+      log: sc.life.log.map((l) => ({ id: l.id, text: l.text })), bubbles: sc.life.bubbles.map((b) => ({ id: b.id, text: b.text })), music: sc.music ? sc.music.disc : null };
+  },
+  // テスト用: サーバーを とおさず、よんだ ことに して おじゃま する（data は v1/rooms/{uid} と おなじ かたち。decode で しらべる）
+  visitRoom(data, uid = "testHost") { if (typeof OnlineVisit === "undefined") return false; const room = OnlineRooms.decode(data); return !!room && OnlineVisit.start(room, uid); },
   // おくる おへやの データ（みせる まえに しらべる）
   onlineRoomData(id = "main") { return typeof OnlineRooms === "undefined" ? null : OnlineRooms.encode(id); },
   // オンラインの ぷりくら（UI-96・js/online-photos.js）: みせて いる しゃしん・サーバーから けす まち・サーバーの キー（keys）と ばんごう（sid）・さいごに よんだ いちらん（みえるか・ほうこくの かず・よんだ ことばと スタンプ）・
@@ -381,13 +396,13 @@ const PokaDebug = {
     if(G.sceneName!=='house')return null;const sc=G.scene;
     return {next:sc.actions.next,time:sc.actions.time,available:HomeActions.available(sc).map(k=>k.id),kinds:HomeActions.kinds.map(k=>k.id),log:sc.actions.log.map(x=>({...x})),chars:sc.chars.map(c=>({id:c.id,state:c.state,x:c.x,y:c.y,activity:c.activity?{...c.activity}:null})),talkNext:sc.life.next,talkDelay:{normal:HomeLife.nextDelay(false),watching:HomeLife.nextDelay(true)}};
   },
-  homeActionSchedule() {if(G.sceneName!=='house')return false;HomeActions.init(G.scene);return true;},
+  homeActionSchedule() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;HomeActions.init(G.scene);return true;},
   homeAction(id,kind) {
-    if(G.sceneName!=='house')return false;const sc=G.scene,c=sc.chars.find(c=>c.id===id);if(!c)return false;
+    if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;const sc=G.scene,c=sc.chars.find(c=>c.id===id);if(!c)return false;
     HomeActions.cancel(c);c.state='idle';c.t=100;return HomeActions.start(sc,c,kind);
   },
   homeAdvance(seconds) {
-    if(G.sceneName!=='house'||!Game.paused||!Number.isFinite(seconds)||seconds<0||seconds>120)return false;
+    if((G.sceneName!=='house'&&G.sceneName!=='visit')||!Game.paused||!Number.isFinite(seconds)||seconds<0||seconds>120)return false;
     for(let t=0;t<seconds;t+=.05)G.scene.update(Math.min(.05,seconds-t));return true;
   },
   homeLife(event) {
@@ -491,7 +506,7 @@ const PokaDebug = {
     const byWho={};for(const l of D.lines)byWho[l.who]=(byWho[l.who]||0)+1;
     return {total:D.lines.length+D.talks.length,lines:D.lines.length,talks:D.talks.length,turns:D.talks.reduce((a,t)=>a+t.turns.length,0),byWho};
   },
-  homeBubbleFixture() {if(G.sceneName!=='house')return false;const sc=G.scene;sc.chars.forEach(c=>HomeActions.cancel(c));sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;sc.actions.next=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});return true;},
+  homeBubbleFixture() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;const sc=G.scene;sc.chars.forEach(c=>HomeActions.cancel(c));sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;sc.actions.next=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});return true;},
   homeBubbleState() {if(G.sceneName!=='house')return null;const sc=G.scene;return {heads:HomeLife.heads(sc),boxes:HomeLife.bubbleLayout(sc,G.ctx),area:{...sc.view,left:8,right:G.W-8},watching:sc.watching};},
   family() {
     if(G.sceneName!=="house")return null;
@@ -578,7 +593,7 @@ const PokaDebug = {
   },
   // おうちの みち（UI-73・js/home-nav.js）: マス・家具の 足もと（へやの 座標）・3人と ぱぱ ままの いち・いきさき・みち・家具の うえか（inside）・ゆるして いるか（loose）
   homeNav() {
-    if (G.sceneName !== "house" || typeof HomeNav === "undefined") return null;
+    if ((G.sceneName !== "house" && G.sceneName !== "visit") || typeof HomeNav === "undefined") return null;
     const sc = G.scene, I = HomeNav.info(sc), nav = (a) => a._nav && !a._nav.done ? a._nav : null;
     return { ...I, actors: [...sc.chars, ...sc.parents].map((a) => ({ id: a.id, x: a.x, y: a.y, tx: a.tx, ty: a.ty, state: a.state, hidden: !!a.hidden, inside: HomeNav.blockedAt(sc, a.x, a.y), path: nav(a) ? nav(a).pts.map((p) => ({ x: p.x, y: p.y })) : null, loose: !!(nav(a) && nav(a).loose), straight: !!(nav(a) && nav(a).straight) })) };
   },
@@ -601,7 +616,7 @@ const PokaDebug = {
   },
   // 3人の だれか（papa・mama も）を へやの (x, y) へ あるかせる。みちを かえす
   homeWalk(who, x, y) {
-    if (G.sceneName !== "house" || typeof HomeNav === "undefined") return null;
+    if ((G.sceneName !== "house" && G.sceneName !== "visit") || typeof HomeNav === "undefined") return null;
     const sc = G.scene, a = [...sc.chars, ...sc.parents].find((c) => c.id === who);
     if (!a || a.hidden || !Number.isFinite(x) || !Number.isFinite(y)) return null;
     HomeActions.cancel(a); if (sc.parents.includes(a)) a.target = null;
@@ -671,8 +686,8 @@ const PokaDebug = {
   },
   // さわれる 家具の ようす（とけい・ライト・テレビ など）と、その 家具を タップできる 画面の 点
   furnLive(id) {
-    if (G.sceneName !== "house" || typeof FurnLive === "undefined") return null;
-    const sc = G.scene, it = Save.d.room.items.find((x) => x.id === id);
+    if ((G.sceneName !== "house" && G.sceneName !== "visit") || typeof FurnLive === "undefined") return null;
+    const sc = G.scene, it = Room.of(sc).items.find((x) => x.id === id);
     if (!it) return null;
     const r = sc.itemRect(it), c = G.canvas.getBoundingClientRect(), actors = [...sc.chars.map((a) => [a, false]), ...sc.parents.map((a) => [a, true])].filter(([a]) => !a.hidden);
     let tap = null;
