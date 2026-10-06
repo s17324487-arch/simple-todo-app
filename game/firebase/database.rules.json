@@ -102,6 +102,55 @@
             ".write": "auth != null && auth.uid === $rid && ((!data.exists() && newData.isString() && newData.val().matches(/^(bad|spam)$/) && !$key.beginsWith(auth.uid + '_') && root.child('v1/photos').child($key).exists() && newData.parent().parent().parent().child('reportcount').child($key).val() === (root.child('v1/reportcount').child($key).exists() ? root.child('v1/reportcount').child($key).val() : 0) + 1) || (data.exists() && !newData.exists() && newData.parent().parent().parent().child('reportcount').child($key).val() === root.child('v1/reportcount').child($key).val() - 1))"
           }
         }
+      },
+      "kuji": {
+        "$store": {
+          ".read": "auth != null",
+          ".validate": "$store.matches(/^(lawson|sevenbun)$/)",
+          "cur": {
+            ".write": "auth != null && newData.isNumber() && newData.val() === (data.exists() ? data.val() : 1) + 1 && data.parent().child('lots').child('l' + (data.exists() ? data.val() : 1)).child('n').val() === 80"
+          },
+          "lots": {
+            "$lot": {
+              "n": {
+                ".write": "auth != null && $lot === 'l' + (root.child('v1/kuji').child($store).child('cur').exists() ? root.child('v1/kuji').child($store).child('cur').val() : 1) && newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1 && newData.val() <= 80 && !data.parent().child('d').child('k' + (newData.val() - 1)).exists() && newData.parent().child('d').child('k' + (newData.val() - 1)).child('u').val() === auth.uid"
+              },
+              "pc": {
+                ".write": "auth != null && data.parent().child('n').exists() && newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1"
+              },
+              "d": {
+                "$k": {
+                  ".write": "auth != null && !data.exists() && $k === 'k' + (data.parent().parent().child('n').exists() ? data.parent().parent().child('n').val() : 0) && newData.parent().parent().child('n').val() === (data.parent().parent().child('n').exists() ? data.parent().parent().child('n').val() : 0) + 1 && newData.child('u').val() === auth.uid && newData.child('t').val() === now && !newData.child('p').exists() && !newData.child('o').exists()",
+                  ".validate": "newData.hasChildren(['u', 't'])",
+                  "u": {
+                    ".write": "auth != null && data.val() === auth.uid && newData.val() === ''",
+                    ".validate": "newData.isString() && newData.val().length <= 128"
+                  },
+                  "t": { ".validate": "newData.isNumber()" },
+                  "p": {
+                    ".write": "auth != null && !data.exists() && data.parent().child('u').val() === auth.uid",
+                    ".validate": "newData.isNumber() && (newData.val() === 0 || newData.val() === 1 || newData.val() === 2) && newData.parent().child('o').exists()"
+                  },
+                  "o": {
+                    ".write": "auth != null && !data.exists() && data.parent().child('u').val() === auth.uid",
+                    ".validate": "newData.isNumber() && newData.val() === (data.parent().parent().parent().child('pc').exists() ? data.parent().parent().parent().child('pc').val() : 0) && newData.parent().parent().parent().child('pc').val() === newData.val() + 1 && newData.parent().child('p').exists()"
+                  },
+                  "$other": { ".validate": false }
+                }
+              },
+              "$other": { ".validate": false }
+            }
+          },
+          "$other": { ".validate": false }
+        }
+      },
+      "kujime": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.hasChildren()",
+          "$key": { ".validate": "newData.val() === true && $key.matches(/^(lawson|sevenbun)_l[0-9]{1,6}$/)" }
+        }
       }
     }
   }

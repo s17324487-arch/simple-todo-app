@@ -153,6 +153,13 @@ const IchibanKuji = (() => {
     return { no: int(L.no, 1, 99999) || 1, left, hold, seen: dayStr(L.seen) || U.today(), others: int(L.others, 0, LOG_MAX), mine: int(L.mine, 0, LOG_MAX), log, sold: dayStr(L.sold), news: L.news && dayStr(L.news.day) ? { day: L.news.day, n: int(L.news.n, 0, LOG_MAX) } : null };
   };
   const counts = (o, ok, max = 9999) => Object.fromEntries(Object.entries(obj(o)).filter(([id, n]) => ok(id) && int(n, 0, max) > 0).map(([id, n]) => [id, int(n, 0, max)]));
+  // みんなの くじ（js/kuji-net.js・UI-100）: on 1 = つかう・since はじめて つかった とき・uid つかった ID・
+  //   rec { "みせ_ロット_なんまいめ": 1 = 賞を もらった ＋ 2 = ラストワンしょうを もらった（0 は コインを はらって えらぶ まち など）}（あたらしい 400 まで）
+  const NET_REC = /^(lawson|sevenbun)_\d{1,6}_\d{1,2}$/, NET_MAX = 400;
+  const cleanNet = (v) => {
+    const o = obj(v), rec = Object.entries(obj(o.rec)).filter(([k, x]) => NET_REC.test(k) && Number.isInteger(x) && x >= 0 && x <= 3).slice(-NET_MAX);
+    return { on: o.on === 1 ? 1 : 0, since: Number.isFinite(o.since) && o.since > 0 ? Math.floor(o.since) : 0, uid: typeof o.uid === "string" && /^[\w-]{0,128}$/.test(o.uid) ? o.uid : "", rec: Object.fromEntries(rec) };
+  };
   const clean = (d) => {
     d = obj(d);
     const lots = {}; for (const s of STORES) if (d.lots && d.lots[s]) lots[s] = cleanLot(s, d.lots[s]);
@@ -165,7 +172,7 @@ const IchibanKuji = (() => {
     return {
       lots, got: counts(d.got, (id) => !!INDEX[id], 99999), draws: int(d.draws, 0, 1e7), spent: int(d.spent, 0, 1e10),
       coupons: counts(d.coupons, (id) => INDEX[id] && INDEX[id].kind === "coupon", 999), used: int(d.used, 0, 1e7),
-      stubs: counts(d.stubs, (s) => !!BY[s], 99999), dc, dcLast, done, pending: keep,
+      stubs: counts(d.stubs, (s) => !!BY[s], 99999), dc, dcLast, done, pending: keep, net: cleanNet(d.net),
     };
   };
   const okSet = new WeakSet();
@@ -193,7 +200,7 @@ const IchibanKuji = (() => {
     next: null, // PokaDebug.kujiNext（つぎに ひく 賞）
     dcNext: null, // PokaDebug.kujiDc（つぎの ダブルチャンスの けっか true／false）
     rand: () => Math.random(),
-    st, clean, got, lot, tickets, total, dayNo, gradeLabel, pendingOf,
+    st, clean, cleanNet, got, lot, tickets, total, dayNo, gradeLabel, pendingOf, hash, seeded, NET_MAX,
     isPick: (g) => !!PICK[g],
     has: (s) => !!BY[s],
     // ひいた 賞の くじ 1まい（by: "me" じぶん・"other" ほかの おきゃくさん）。D〜Fしょうを じぶんが ひいた ときは あとで えらぶ（hold）
@@ -220,8 +227,8 @@ const IchibanKuji = (() => {
       this.sync(s);
       const L = lot(s), left = total(s); n = Math.max(1, Math.min(Math.floor(n) || 1, left));
       if (!left || Save.d.coins < PRICE * n) return null;
-      const d = st(), cost = PRICE * n, out = [];
-      Save.addCoins(-cost); d.draws += n; d.spent += cost; d.stubs[s] = (d.stubs[s] || 0) + n;
+      const cost = PRICE * n, out = [];
+      this.pay(s, n);
       for (let i = 0; i < n; i++) {
         const t = this.drawOne(s, "me"); if (!t) break;
         t.no = L.log.length; // はりつけ ひょうの なんまいめ
@@ -232,6 +239,8 @@ const IchibanKuji = (() => {
       Save.write(); if (typeof UI !== "undefined" && UI.updateHud) UI.updateHud();
       return { store: s, tickets: out, price: cost, lot: L.no, left: total(s) };
     },
+    // n まいぶん はらう（1まい 1000コイン・ひいた まい数・つかった コイン・はんけん。みんなの くじ〔js/kuji-net.js〕も おなじ）
+    pay(s, n = 1) { const d = st(), cost = PRICE * n; Save.addCoins(-cost); d.draws += n; d.spent += cost; d.stubs[s] = (d.stubs[s] || 0) + n; },
     // えらんで いない D〜Fしょうを えらぶ（いちばん ふるい ものから）。id は その賞の しゅるいで、のこりが ある もの
     choose(s, id) {
       const it = INDEX[id], d = st(); if (!it || it.store !== s || !PICK[it.grade]) return null;

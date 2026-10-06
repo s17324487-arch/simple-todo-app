@@ -151,7 +151,7 @@ ok(K.grant("kj_sev_h2").note && K.st().coupons.kj_sev_h2 === 1, "クーポンけ
 
 // ---- 7. セーブ（たす だけ・こわれた ときも うごく）----
 const F = S.fresh();
-ok(F.kuji && JSON.stringify(F.kuji) === JSON.stringify({ lots: {}, got: {}, draws: 0, spent: 0, coupons: {}, used: 0, stubs: {}, dc: {}, dcLast: {}, done: {}, pending: [] }) && S.SCHEMA === 2 && S.KEY === "pokapoka-town-save-v1", "Save.fresh に kuji・SCHEMA 2・KEY は そのまま");
+ok(F.kuji && JSON.stringify(F.kuji) === JSON.stringify({ lots: {}, got: {}, draws: 0, spent: 0, coupons: {}, used: 0, stubs: {}, dc: {}, dcLast: {}, done: {}, pending: [], net: { on: 0, since: 0, uid: "", rec: {} } }) && S.SCHEMA === 2 && S.KEY === "pokapoka-town-save-v1", "Save.fresh に kuji・SCHEMA 2・KEY は そのまま");
 const old = S.fresh(); delete old.kuji; old.v = 2; const mig = S.migrate(old); ok(mig.kuji && Array.isArray(mig.kuji.pending) && mig.kuji.lots && mig.v === 2, "まえの セーブに migrate が kuji を たす");
 fresh(0); S.d.kuji = { lots: { lawson: { no: "x", left: { kj_law_a: 9, kj_law_d0: -3, kj_nope: 4 }, hold: { D: 5, A: 2 }, seen: "bad", log: [["A", 1], ["Z", 0], "x", ["B", 0]], others: 999, mine: -5, sold: 12 }, nope: {} }, got: { kj_law_a: 2, kj_x: 4, kj_law_b: "3" }, coupons: { kj_law_h0: 2, kj_law_a: 3 }, stubs: { lawson: 4, nope: 3 }, dc: { lawson: { n: 3, day: "bad" } }, pending: [["lawson", "D", 1], ["lawson", "Z", 1], ["nope", "D", 1], "x"], draws: "q" };
 const Q = K.st();

@@ -4508,6 +4508,8 @@ await (await import("./online-rooms-smoke.mjs")).onlineRoomsSmoke({scenario,expe
 await (await import("./online-visit-smoke.mjs")).onlineVisitSmoke({scenario,expect});
 // オンラインの ぷりくら（E5・UI-96。かくす・ほうこく つき。くわしくは tests/online-photos-smoke.mjs）
 await (await import("./online-photos-smoke.mjs")).onlinePhotosSmoke({scenario,expect});
+// みんなの くじ（E5・UI-100。いちばんくじを オンラインの みんなで おなじ ロットで ひく。くわしくは tests/kuji-net-smoke.mjs）
+await (await import("./kuji-net-smoke.mjs")).kujiNetSmoke({scenario,expect});
 
 server.close();
 if(LIST)process.exit(0);
