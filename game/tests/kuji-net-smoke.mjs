@@ -5,7 +5,7 @@
 // 2. ローリソンの たな → ボードの うえに「ひとりの くじ」「みんなの くじ」（ひとりの くじ は いままで どおり・みんなの くじの けいひんの しらせ）
 // 3. 「みんなの くじ」→ たしかめ（おくる もの）→ きんいろの ボード・ごうかな けいひん（UI-101）・のこり 77まい・Aしょうは「でたよ」・みんなの けっか（なまえ）・はりつけ ひょう・はみ出さない
 // 4. ほかの 人が ひくと すぐ ボードが かわる（リアルタイム）・Bしょうの おしらせ
-// 5. じぶんで 1まい（Dしょう）→ はこ → めくる → わたす → のこりから えらぶ → けいひん（サーバーに えらんだ しゅるい）
+// 5. じぶんで 1まい（Dしょう）→ はこ → めくる → わたす → のこりから えらぶ → けいひん（サーバーに えらんだ しゅるい）・ポイントカードに 50ポイント（UI-102）
 // 6. のこり 1まい → じぶんが 80まいめ → ラストワンしょう → つぎの ロット 2（まえの ロットの ラストワンは あなた）
 // 7. 「ひとりの くじ」に もどす → てもとの ロット（80まい）・ひらきなおしても ひとりの くじ
 export async function kujiNetSmoke({ scenario, expect }) {
@@ -96,7 +96,7 @@ export async function kujiNetSmoke({ scenario, expect }) {
     // 5. じぶんで 1まい（Dしょう）→ えらぶ
     lot = fake.at("v1/kuji/lawson/lots/l1");
     fake.kujiT(await tFor(H, lot, "D", Date.now() + 2000));
-    const c0 = (await H.dbg("saveData")).coins;
+    const c0 = (await H.dbg("saveData")).coins, pts0 = (await H.dbg("conbiniCard", "lawson")).pts;
     await btn(H, "1まい ひく（1000コイン）"); await phase(H, "box", 20000);
     u = await H.dbg("kujiUi");
     expect(u.tickets.length === 1 && u.tickets[0].g === "D" && u.tickets[0].pick, "ひいた くじ（Dしょう） " + JSON.stringify(u.tickets));
@@ -112,6 +112,8 @@ export async function kujiNetSmoke({ scenario, expect }) {
     const k4 = fake.at("v1/kuji/lawson/lots/l1/d/k4");
     expect(k4 && k4.u === me && k4.p === 1 && k4.o === 0 && fake.at("v1/kuji/lawson/lots/l1/pc") === 1 && fake.at("v1/kuji/lawson/lots/l1/n") === 5 && d.coins === c0 - 1000 && d.furn.kj_mlaw_d1 === 1 && !d.furn.kj_law_d1 && (await H.dbg("kuji", "lawson")).left === 80, "じぶんの くじ（サーバー・コイン・けいひん・ひとりの くじは そのまま） " + JSON.stringify({ k4, coins: [c0, d.coins] }));
     await H.shot("net-result");
+    expect((await H.dbg("conbiniCard", "lawson")).pts === pts0 + 50, "みんなの くじ 1まいで ポイントカードに 50ポイント");
+    await H.until(() => window.__toasts.some((t) => t.startsWith("ポイント +50（いま ")), 5000);
     await btn(H, "ボードに もどる"); await phase(H, "board");
     await H.until(() => document.querySelectorAll(".kuji-cell.me").length === 1, 8000);
     B = await board(H);

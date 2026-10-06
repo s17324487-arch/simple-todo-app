@@ -71,6 +71,25 @@ const svgOk = (s) => typeof s === "string" && s.startsWith("<svg") && s.trim().e
   const k = K.draw("lawson", 2);
   ok(k && k.price === 2000 && k.points && k.points.pts === 100 && C.card("lawson").pts === 100, "いちばんくじ 2まい（2000コイン）→ 100ポイント");
   S.d.coins = 10; ok(K.draw("sevenbun", 1) === null && C.card("sevenbun").pts === 0, "コインが たりない くじは ポイントなし");
+  // みんなの くじ（js/kuji-net.js）は 1まいずつ IchibanKuji.pay で はらう → おなじ ように ポイント。しらせは つづけて はらった ぶんを まとめて 1かい
+  const toasts = [], toast0 = R.UI.toast; R.UI.toast = (t) => toasts.push(t);
+  fresh(20000);
+  for (let i = 0; i < 10; i++) K.pay("lawson", 1);
+  ok(S.d.coins === 10000 && C.card("lawson").pts === 500 && C.card("lawson").spent === 10000 && C.card("lawson").has && C.card("sevenbun").pts === 0, "みんなの くじ 10まい（1まいずつ はらう）→ 500ポイント（ローリソンの カード だけ）");
+  ok(!toasts.length, "しらせは はらい おわってから");
+  await new Promise((r) => setTimeout(r, 1100));
+  ok(toasts.filter((t) => /^ポイント \+/.test(t)).length === 1 && toasts.includes("ポイント +500（いま 500ポイント）") && toasts.includes("ローリソンの ポイントカードを つくったよ"), "しらせは まとめて 1かい " + JSON.stringify(toasts));
+  toasts.length = 0; K.pay("sevenbun", 2); K.pay("lawson", 1);
+  ok(C.card("sevenbun").pts === 100 && C.card("lawson").pts === 550, "みせが かわると べつの カード");
+  await new Promise((r) => setTimeout(r, 1100));
+  ok(toasts.includes("ポイント +100（いま 100ポイント）") && toasts.includes("ポイント +50（いま 550ポイント）") && toasts.filter((t) => /^ポイント \+/.test(t)).length === 2, "みせごとに しらせる " + JSON.stringify(toasts));
+  // ひとりの くじの draw は pay を とおる けど 2かい かぞえない（すぐ しらせる）
+  toasts.length = 0; fresh(5000); K.next = null;
+  const k2 = K.draw("lawson", 3);
+  ok(k2 && k2.price === 3000 && k2.points && k2.points.pts === 150 && C.card("lawson").pts === 150 && toasts.includes("ポイント +150（いま 150ポイント）"), "ひとりの くじ 3まい → 150ポイント（1かい だけ・すぐ しらせる）");
+  await new Promise((r) => setTimeout(r, 1100));
+  ok(toasts.filter((t) => /^ポイント \+/.test(t)).length === 1 && C.card("lawson").pts === 150, "ひとりの くじは あとから しらせない");
+  R.UI.toast = toast0;
 }
 
 // ---- 4. こうかん ----

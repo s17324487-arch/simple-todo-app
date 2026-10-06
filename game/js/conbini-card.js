@@ -264,12 +264,29 @@ const ConbiniCard = (() => {
   // コンビニの ねだん（1.5ばい）に オーナーの 10%びきを かさねる
   ConbiniGoods.price0 = ConbiniGoods.price;
   ConbiniGoods.price = (shop, it) => API.ownerPrice(shop, ConbiniGoods.price0(shop, it));
-  // 2) いちばんくじ（1かい 1000コイン）も かいもの
+  // 2) いちばんくじ（1かい 1000コイン）も かいもの。コインを はらうのは IchibanKuji.pay（ひとりの くじの draw も みんなの くじ〔js/kuji-net.js〕も）
+  //    なので、pay で ポイントに する（2かい かぞえない）。ひとりの くじは draw の けっかに points（すぐ しらせる）。
+  //    みんなの くじは 1まいずつ はらう ので、つづけて はらった ぶんは まとめて 1かい しらせる（PAY_GAP ミリびょう はらわない あいだに）。
   {
-    const draw0 = IchibanKuji.draw;
+    const pay0 = IchibanKuji.pay, draw0 = IchibanKuji.draw, PAY_GAP = 900;
+    let inDraw = false, last = null, pend = null, timer = 0;
+    const flush = () => { clearTimeout(timer); const p = pend; pend = null; if (p) after(p.shop, p, true); };
+    IchibanKuji.pay = function (s, n = 1) {
+      const out = pay0.call(this, s, n);
+      if (!STORES.includes(s)) return out;
+      const r = API.earn(s, IchibanKuji.PRICE * n);
+      if (inDraw) { last = r; return out; }
+      if (!r) return out;
+      if (pend && pend.shop !== s) flush();
+      pend = pend ? { ...r, first: pend.first || r.first, coins: pend.coins + r.coins, pts: pend.pts + r.pts, opened: [...pend.opened, ...r.opened.filter((p) => !pend.opened.includes(p))] } : r;
+      clearTimeout(timer); timer = setTimeout(flush, PAY_GAP);
+      return out;
+    };
     IchibanKuji.draw = function (s, n) {
-      const r = draw0.call(this, s, n);
-      if (r && STORES.includes(s)) { r.points = API.earn(s, r.price); after(s, r.points, true); }
+      inDraw = true; last = null;
+      let r;
+      try { r = draw0.call(this, s, n); } finally { inDraw = false; }
+      if (r && STORES.includes(s)) { r.points = last; after(s, r.points, true); }
       return r;
     };
   }
