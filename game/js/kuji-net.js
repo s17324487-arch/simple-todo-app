@@ -262,10 +262,11 @@ const KujiNet = (() => {
   // ---- モード・ID・けす ----
   function account(uid) { const net = st(); if (uid && net.uid !== uid) { net.uid = uid; net.rec = {}; Save.mark(); } }
   function setMode(on) { const net = st(); net.on = on ? 1 : 0; if (on && !net.since) net.since = Date.now(); Save.mark(); Save.write(); }
-  // けす ときに じぶんの くじの なまえ（u）を ""（v1/kujime で さがす・てもとの rec も）・v1/kujime を けす。アカウントは つくらない
+  // けす ときに じぶんの くじの なまえ（u）を ""（v1/kujime で さがす・てもとの rec も）・v1/kujime を けす。アカウントは つくらない。
+  // v1/kujime が よめない ＝ くじの きまりを はる まえの ルール（くじは だれも かけない）→ くじの ぶんは なにも たさない（たすと 1かいの PATCH ごと とおらず、ほかの データも けせない）
   async function wipe(uid, up) {
     let mine = null;
-    try { mine = await OnlineNet.get(`v1/kujime/${uid}`, "", false); } catch (e) { if (e.code === "noaccount") return; }
+    try { mine = await OnlineNet.get(`v1/kujime/${uid}`, "", false); } catch (e) { if (e.code === "noaccount" || denied(e)) return; }
     const lots = new Set();
     for (const k of Object.keys(mine && typeof mine === "object" ? mine : {})) { const m = /^(lawson|sevenbun)_l(\d{1,6})$/.exec(k); if (m) lots.add(m[1] + "_" + m[2]); }
     for (const rk of Object.keys(st().rec)) lots.add(rk.split("_").slice(0, 2).join("_"));

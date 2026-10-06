@@ -4,7 +4,8 @@
 //    D〜Fしょうは えらんだ じゅん（o）で さきの 人から・ない しゅるいは のこりの はじめ・へんな えらびかたは つかわない・timeFor
 // 3. ひく・えらぶ（にせの サーバー）: コインは ひけた ときだけ・だれかが さきに ひいた → よみなおして つぎの ばんごう・へんじが こない → たしかめる・つながらない → コインは へらない・
 //    ほかの 人が さきに えらんだ しゅるい・80まいめで ラストワンしょうと つぎの ロット・まえの ロットでも えらべる・へんじが こなかった じぶんの くじを あとで うけとる（since より まえは しない）・
-//    ID が かわる・「みせた データを けす」（じぶんの くじの なまえを けす・ほかの 人の くじは そのまま）
+//    ID が かわる・「みせた データを けす」（じぶんの くじの なまえを けす・ほかの 人の くじは そのまま）・
+//    ルールを はりなおす まえ（みんなの くじは よめない・「けす」は くじの ぶんを たさずに ほかの データを けす）
 // 4. ルール（database.rules.json の kuji・kujime）と にせの サーバーの きまりが おなじ かず・おみせ（くわしくは 本物の エミュレーターで tools/rules-emulator.mjs）
 // 5. ことば（ひらがな中心）・同意の まどの おくる もの
 import assert from "node:assert/strict";
@@ -93,7 +94,10 @@ for (let rep = 0; rep < 6; rep++) {
 // ---- 3. ひく・えらぶ（にせの サーバー）----
 const fake = await startOnlineFake();
 let failNext = null; // (url, opt) → "before" つながらない（とどかない）・"after" とどいた あと へんじが こない
+// oldRules: くじの きまりを はる まえの ルール（main の database.rules.json）。v1/kuji・v1/kujime を よむ／かく と 401・PATCH は どこか 1つでも だめなら ぜんぶ 401（本物の エミュレーターで たしかめた こたえ）
+let oldRules = false;
 N.fetchFn = async (url, opt = {}) => {
+  if (oldRules && (/\/db\/v1\/kuji(me)?\//.test(url) || (/\/db\/v1\.json/.test(url) && /"kuji(me)?\//.test(String(opt.body || ""))))) return new Response('{"error":"Permission denied"}', { status: 401 });
   const f = failNext && failNext(url, opt);
   if (f === "before") throw new Error("offline");
   const r = await fetch(url, opt);
@@ -108,7 +112,7 @@ const other = async (U, s, lotNo, k, g = null) => {
   if (g) { const lot = fake.at(`v1/kuji/${s}/lots/l${lotNo}`) || {}; fake.kujiT(KN.timeFor(s, lotNo, lot, g)); }
   return HTTP("PATCH", "v1", { [`kuji/${s}/lots/l${lotNo}/n`]: k + 1, [`kuji/${s}/lots/l${lotNo}/d/k${k}`]: { u: U.uid, t: SVT }, [`kujime/${U.uid}/${s}_l${lotNo}`]: true }, U.tok);
 };
-const reset = () => { fake.reset(); S.d = S.fresh(); S.d.coins = 200000; N.over = { ...fake.conf }; N.auth = null; N.pending = null; O.reg = ""; O.syncP = null; R.localStorage.removeItem(N.KEY); KN.reset(); failNext = null; const s = O.st(); s.on = true; s.agreed = 1; s.ver = O.VER; s.nick = [3, 4]; };
+const reset = () => { fake.reset(); S.d = S.fresh(); S.d.coins = 200000; N.over = { ...fake.conf }; N.auth = null; N.pending = null; O.reg = ""; O.syncP = null; R.localStorage.removeItem(N.KEY); KN.reset(); failNext = null; oldRules = false; const s = O.st(); s.on = true; s.agreed = 1; s.ver = O.VER; s.nick = [3, 4]; };
 reset();
 ok(KN.available() && !KN.using() && KN.setMode(true) === undefined && KN.using() && KN.st().since > 0, "オンラインで みんなの くじ を つかう（はじめて つかった とき）");
 const since0 = KN.st().since;
@@ -231,6 +235,17 @@ await O.wipe();
 const lw = fake.at("v1/kuji/lawson/lots/l1/d");
 ok(["k0", "k1", "k2"].every((k) => lw[k].u === "" && typeof lw[k].t === "number") && lw.k3.u === W2.uid && fake.at("v1/kuji/sevenbun/lots/l1/d/k0/u") === "" && !fake.at(`v1/kujime/${meW}`) && fake.at("v1/kuji/lawson/lots/l1/n") === 4 && !fake.users.includes(meW), "けす: じぶんの くじは だれか わからなく（はこの なかみは そのまま）・ほかの 人の くじは のこる・アカウントも");
 ok(KN.derive("lawson", 1, fake.at("v1/kuji/lawson/lots/l1")).n === 4, "けした あとも ロットの けいさんは おなじ");
+// ルールを はりなおす まえ（まえの きまり）: みんなの くじは よめない・「けす」は くじの ぶんを たさずに ほかの データを けす（たすと 1かいの PATCH ごと とおらない）
+reset(); KN.setMode(true); oldRules = true;
+KN.watch("lawson", () => {});
+for (let i = 0; i < 100 && KN.state() !== "denied"; i++) await new Promise((ok2) => setTimeout(ok2, 20));
+ok(KN.state() === "denied", "まえの きまり: みんなの くじは よめない（denied）");
+KN.unwatch();
+const meO = await O.ensure(), sent = [], keepFetch = N.fetchFn;
+N.fetchFn = async (url, opt = {}) => { if (opt.method === "PATCH") sent.push(String(opt.body)); return keepFetch(url, opt); };
+let wiped = true; try { await O.wipe(); } catch (e) { wiped = false; }
+N.fetchFn = keepFetch; oldRules = false;
+ok(wiped && fake.at(`v1/players/${meO}`) == null && !fake.users.includes(meO) && sent.length >= 1 && !sent.some((b) => /"kuji(me)?\//.test(b)), "まえの きまり: 「けす」は くじの ぶんを たさずに ほかの データと アカウントを けす " + sent.join(" "));
 
 // ---- 4. ルール ----
 const rules = JSON.parse(read("firebase/database.rules.json")).rules.v1, KR = rules.kuji.$store, KM = rules.kujime.$uid;
