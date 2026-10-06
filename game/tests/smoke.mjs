@@ -2041,9 +2041,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
 for(const viewport of [{width:390,height:844},{width:375,height:667}])await scenario('home-talk-'+viewport.width,async H=>{
   await H.newGameFast();await H.dbg('coins',987504);await H.dbg('hour',7);await H.dbg('weather','rain');await H.wait(600);await H.dbg('homeBubbleFixture');const before=await H.dbg('saveData');
   const n=await H.dbg('homeLines');expect(n.total>=500&&n.lines>=600&&n.talks>=50,'おうちの 会話が 500 より すくない');
-  let start=(await H.dbg('homeTalkLog')).length;
-  for(let i=0;i<8;i++){await H.dbg('homeLife','solo');await H.wait(60);}
-  const said=(await H.dbg('homeTalkLog')).slice(start).filter(x=>x.line);expect(said.length>=4,'ひとりごとが データから 出ない');
+  // ひとりごとの 1わり ちかくは データに ない くせ（かみなり・クンクン・わうーん）。8かい きめうちだと まれに データの セリフが 4つに とどかない ので、4つ でるまで（24かい まで）よぶ
+  let start=(await H.dbg('homeTalkLog')).length,said=[];
+  for(let i=0;i<24&&said.length<4;i++){await H.dbg('homeLife','solo');await H.wait(60);said=(await H.dbg('homeTalkLog')).slice(start).filter(x=>x.line);}
+  expect(said.length>=4,'ひとりごとが データから 出ない '+JSON.stringify((await H.dbg('homeTalkLog')).slice(start).map(x=>[x.id,x.line||x.talk||null,x.text])));
   for(const x of said){const l=await H.dbg('homeLines',x.line);expect(l&&l.who===x.id,'話し手と セリフが あわない');const w=l.when||{};
     expect(!w.time||w.time.includes('morning'),'あさ なのに ほかの 時間の セリフ: '+l.text);expect(!w.weather||w.weather.includes('rain'),'あめ なのに ほかの 天気の セリフ: '+l.text);expect(!w.room||w.room.includes('main'),'ほかの へやの セリフ: '+l.text);}
   // ふだんの かけあい: データから えらび、1.3秒おきに 順番どおり
