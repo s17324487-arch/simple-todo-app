@@ -5,22 +5,32 @@
 //  ・文の穴うめ: 和訳つきの 英文の ___ に 入る 語を 4つから（js/eng-sentences.js。まちがいの 3つは 文ごとに 決めて ある）
 //  ・こたえると 正解・まちがいと 解説（意味・和訳・文法の ポイント）→「次へ」。おわりに まちがえた ものを まとめて 見せる
 // 盤は 画面いっぱい（ShopScene の full）。大人むけ なので 問題・用語は 漢字かな まじり（AGENTS.md の 5）。
+// TOEIC対策（UI-98。オーナーの 依頼 2026-10-06「頭の体操のお手伝いの英語についてTOEIC対策のお手伝いも追加してほしい。」）: 3つめの レベル。
+//  ・単語の意味: ビジネスの 場面で よく 出る 語（js/eng-words.js の toeic）・文の穴うめ: Reading の Part 5（短文穴埋め問題）と おなじ 形（js/eng-sentences.js の toeic）
+//  ・Part 5 は 1問 20びょう くらいで とくのが めやす と いわれる ので、10問の めやすは 200びょう。コイン・ひょうばんは 高校より すこし おおい
+//  ・TOEIC は ETS の 登録商標。この ゲームは ETS の 承認を 受けて いない（EnglishGame.NOTICE を TOEIC を えらぶ ところと せってい に だす）。
+//    ETS の きまり: いちばん はじめに めだつ ところ（レベルの なまえ）に ® を つける・ことわりの 文を 読める 大きさで だす
 const ENG_PLAY = {
   // n: 1回の 問題の かず・pay: ○ の コイン（◎ は 1.5ばい）・rep: ひょうばんの ばいりつ・par: こたえる 時間の めやす（びょう。こえると すこし へる）
   jh: { n: 10, pay: 300, rep: 2, par: 120 },
   hs: { n: 10, pay: 450, rep: 3, par: 150 },
+  toeic: { n: 10, pay: 600, rep: 4, par: 200 },
 };
-const ENG_LEVELS = [{ id: "jh", name: "中学レベル", short: "中学", note: "基本の単語と文法" }, { id: "hs", name: "高校レベル", short: "高校", note: "受験レベルの単語と構文" }];
+// color: 問題の うえの ふだの いろ
+const ENG_LEVELS = [{ id: "jh", name: "中学レベル", short: "中学", note: "基本の単語と文法", color: "#64B5F6" }, { id: "hs", name: "高校レベル", short: "高校", note: "受験レベルの単語と構文", color: "#E5893D" },
+  { id: "toeic", name: "TOEIC®対策", short: "TOEIC", note: "ビジネス英語・Part 5形式", color: "#7E57C2" }];
 const ENG_MODES = [{ id: "word", name: "単語の意味", note: "英単語の意味を4つから選ぶ" }, { id: "fill", name: "文の穴うめ", note: "英文の空所に入る語を選ぶ" }];
 const ENG_POS = { n: "名詞", v: "動詞", a: "形容詞", d: "副詞" };
 const ENG_FONT = "'M PLUS Rounded 1c', sans-serif";
 const ENG_HOWTO = [
-  "英語は、中学レベルと 高校レベルから\n選べるよ ホー。",
+  "英語は、中学レベル・高校レベル・\nTOEIC®対策から 選べるよ ホー。",
   "「単語の意味」は 英単語の意味を、\n「文の穴うめ」は 空所に入る語を選ぶ。",
   "1回 10問。答えると 正解と 解説が出るから、\n「次へ」で 進んでね。",
   "全問正解で ◎。まちがえた ものは\n最後に まとめて 見られるよ。",
 ];
 const EnglishGame = {
+  // 商標の ことわり（ETS の きまり）。TOEIC を えらぶ ところ（日本語）と せってい（英語。js/menu.js）に だす
+  NOTICE: { ja: "※TOEIC®はETSの登録商標です。\nこのゲームはETSの推薦・承認を受けていません。", en: "TOEIC® is a registered trademark of ETS. This product is not endorsed or approved by ETS." },
   state() { return Save.d.shops.brain.eng; },
   key(lv, mode) { return lv + "_" + mode; },
   level(id) { return ENG_LEVELS.find((L) => L.id === id) || ENG_LEVELS[0]; },
@@ -54,7 +64,7 @@ const EnglishGame = {
     const i = await UI.ask(`${name}\n英語の レベルは どうする ホー？\n${ENG_LEVELS.map((L) => `・${L.name}：${L.note}`).join("\n")}`, [...ENG_LEVELS.map((L) => L.name), "やめる"]);
     if (i < 0 || i >= ENG_LEVELS.length) return null;
     const lv = ENG_LEVELS[i].id, best = (M) => E.best[this.key(lv, M.id)];
-    const j = await UI.ask(`${name}\n${ENG_LEVELS[i].name}だね。どちらに する？\n${ENG_MODES.map((M) => `・${M.name}：${M.note}`).join("\n")}`, [...ENG_MODES.map((M) => M.name + (best(M) ? `（ベスト ${best(M)}/10）` : "")), "やめる"]);
+    const j = await UI.ask(`${name}\n${ENG_LEVELS[i].name}だね。どちらに する？\n${ENG_MODES.map((M) => `・${M.name}：${M.note}`).join("\n")}${lv === "toeic" ? "\n" + this.NOTICE.ja : ""}`, [...ENG_MODES.map((M) => M.name + (best(M) ? `（ベスト ${best(M)}/10）` : "")), "やめる"]);
     if (j < 0 || j >= ENG_MODES.length) return null;
     E.lv = lv; E.mode = ENG_MODES[j].id; Save.mark();
     return E.mode;
@@ -164,7 +174,7 @@ class BrainEngTask extends TaskBase {
     ctx.save(); ctx.textBaseline = "middle";
     // うえの 行: レベル・あそびかた・なん問め・正解の かず
     const sy = this.statusY;
-    ctx.fillStyle = this.lvId === "hs" ? "#E5893D" : "#64B5F6"; U.rr(ctx, R.x + 6, sy + 2, 118, 20, 10); ctx.fill();
+    ctx.fillStyle = this.L.color; U.rr(ctx, R.x + 6, sy + 2, 118, 20, 10); ctx.fill();
     ctx.fillStyle = "#FFF"; ctx.font = `900 12px ${ENG_FONT}`; ctx.textAlign = "center"; ctx.fillText(`${this.L.short}・${this.M.name}`, R.x + 65, sy + 12.5, 110);
     ctx.fillStyle = INK; ctx.font = `900 15px ${ENG_FONT}`; ctx.fillText(`${Math.min(this.index + 1, this.nq)} / ${this.nq}`, R.x + R.w / 2 + 20, sy + 12.5);
     ctx.textAlign = "right"; ctx.font = `800 12px ${ENG_FONT}`; ctx.fillText(`正解 ${this.correct}`, R.x + R.w - 8, sy + 12.5);

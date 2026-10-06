@@ -691,6 +691,21 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - 受け入れ条件: 3つの 階が エスカレーター・かいだんで つながる（どの 階からも もどれる・ついた マスに たてる）・タップできる もの ぜんぶに とどく・じめんの 什器が かさならない・ほねの 台は 10しゅ 1つずつ・絵の キーは 有限・ことばは ひらがな・フロアマップに へや 15（`tools/check-dino-museum.mjs`・`check-venues.mjs`）・390×844 と 375×667 で はみ出さない。スモーク `dino-museum-390 / 375`（ぐるっと 一周・ロボット・タップで しらべる・カフェ・フロアマップ・でぐち・まえの 館の セーブ）と `museum-visit`・`museum-donate`・`museum-show`・`museum-wear`。
 - つぎに できる こと: 3F の おみやげの 店（きょうりゅうの フィギュア。すいぞくかんの `AquaGifts` の ように）。
 
+### [x] UI-98 英語に「TOEIC®対策」（あたまの たいそう・オーナーの 依頼 2026-10-06） ✅
+- オーナーの 依頼「頭の体操のお手伝いの英語についてTOEIC対策のお手伝いも追加してほしい。」→ 英語（UI-82）の 3つめの レベル「TOEIC®対策」（`ENG_LEVELS` の `toeic`・「ビジネス英語・Part 5形式」）。あそびかたは いままでと おなじ 2つ。
+- 単語の意味: TOEIC L&R に よく でる ビジネスの 語 301（名詞 134・動詞 85・形容詞 52・副詞 30。会議・出張・採用・経理・物流・店舗・不動産 など）。中学・高校の 語と かさならない。似た 意味の なかま 22くみ（seller／vendor など）は まちがいの 選択肢に いっしょに ださない。
+- 文の穴うめ: Reading の Part 5（短文穴埋め問題）と おなじ 形の 108もん。品詞 30・動詞の 形 23（時制・態・準動詞・主語との 一致・仮定法）・前置詞と 接続詞 24・代名詞と 関係詞 10・語い 21。和訳と ポイントつき。まちがいの 3つは 文法か 意味で はっきり あわない もの（別の 読み方で 正しく なる ものは さけた）。どれも この ゲームの ために 書いた 文（公式問題・問題集の 写しでは ない）。
+- コイン・ひょうばん: ○ 600（◎ 900）・ひょうばん 4ばい（高校より すこし おおい）。めやすの 時間は 10問で 200びょう（Part 5 は 1問 20びょう くらいで とくのが めやす と いわれる。こえると すこし へる）。
+- 商標: TOEIC は ETS の 登録商標。レベルの なまえに ® を つけ、TOEIC®対策の あそびかたの まどに 日本語の ことわり（中学・高校には ださない）、≡ の せってい の したに ETS の きまりの 英語の ことわり（`EnglishGame.NOTICE`）。
+- セーブ: `Save.d.shops.brain.eng` の `plays`・`best`・`recent` に `toeic_word`・`toeic_fill` を たした だけ（SCHEMA は 2 の まま・ふるい セーブは `migrate` が おぎなう）。オンラインの ボード `brain_eng_toeic_word`・`brain_eng_toeic_fill` も ふえる（`ENG_LEVELS` から できる・ルールは かえない）。
+- しらべた こと:
+  - TOEIC L&R は Listening 約45分 100問・Reading 75分 100問（Part 5 短文穴埋め 30問・Part 6 長文穴埋め 16問・Part 7 読解 54問）（[IIBC: TOEIC® Listening & Reading Test](https://www.iibc-global.org/english/toeic/test/lr/about/format.html)・[ETS: TOEIC® Listening and Reading](https://www.ets.org/toeic/about/listening-reading.html)）。
+  - ETS の きまり（第三者が TOEIC を つかう とき）: はじめの めだつ ところに ® を つける・「TOEIC® is a registered trademark of ETS. This product is not endorsed or approved by ETS.」を 読める 大きさで のせる・ETS が すいせん して いる ように 見せない（[ETS: Trademarks](https://www.ets.org/legal/trademarks.html)）。
+  - Part 5 の 1問 20びょうは 対策サイトの めやす で、公式の きまりでは ない（[スタディング: Part 5 の 解き方](https://studying.jp/toeic/about-more/part5-strategy.html)）。
+- 受け入れ条件: レベルの まどに 3つ（＋やめる）・TOEIC®対策の あそびかたの まどに 商標の ことわり・単語と 文は 中学・高校と かさならない・10問を つづけて おなじ 問題が でない・390×844 と 375×667 で 選択肢と「次へ」が 44px いじょうで はみ出さない・ふるい セーブに toeic を おぎなう。
+- テスト: `tools/check-english.mjs`（3つの レベル・TOEIC の 単語と 文〔かたち・ビジネスの 語・Part 5 の かたち〕・コイン・ことわり・えらぶ まど〔UI.ask を すりかえ〕・ふるい セーブ）・スモーク「brain-english-390 / 375」の 4（TOEIC®対策・文の穴うめ → 1問 → やめる → せってい の ことわり）。
+- つぎに できる こと: Part 6（長文穴埋め）・Part 7（読解）ふうの もんだい。聞き取り（Part 1〜4）は 声が ひつよう なので、ブラウザの 読み上げ（speechSynthesis）を つかう かは オーナーと そうだん。
+
 ### [x] UI-97 E5 オンライン: ほかの 人の おうちに 3人で おじゃま（おうちと おなじ ように あるける。オーナーの FB 2026-10-06） ✅
 - オーナーの FB（2026-10-06）「おうちのオンラインイメージは違った。他人のお家も自分のお家みたいに、ごわがが、おじゃまできるようにしろ。」→ UI-95 の 見るだけの まどを やめて、おじゃまの 画面に した。
 - すまほの「みんな」→「おうち」の いちらんを タップ → その おへやを 1けん よむ（`OnlineRooms.fetchRoom`・しんじない `decode`。よむ だけ・あたらしく おくる ものは ない）→ すまほが とじて おじゃまの 画面（`SCENES.visit`・`VisitScene extends HouseScene`。`js/online-visit.js`）。

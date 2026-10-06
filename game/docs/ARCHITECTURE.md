@@ -1175,13 +1175,14 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 オーナーの 依頼（2026-10-04）「脳トレは、英語ゲーム（英語は中学生レベルと高校レベル選べる。また、英単語の日本語の意味を選択するゲームと、文章中に英語を当てはめるゲームがある。）」。前提の かきかえ（対象は 大人）は UI-81。
 
-- 単語 `ENG_WORDS`（`jh` 中学 275・`hs` 高校 359）: [英語, 品詞〔n・v・a・d〕, 意味, なかま]。意味は おなじ レベル・品詞で かさならない。似た 意味の 語（holiday と vacation・refuse と reject・crucial と vital など）は おなじ「なかま」に して、まちがいの 選択肢に いっしょに ださない。中学と 高校で おなじ 単語は ない。
-- 穴うめ `ENG_FILL`（中学 99・高校 107）: [英文〔___ が あな〕, 正解, まちがい 3つ, 和訳, ポイント]。まちがいは 文ごとに 決めた もの（文法か 意味で はっきり あわない・別の 読み方で 正しく なる ものは さけた）。どちらも この ゲームの ために 書いた もの。
+- 単語 `ENG_WORDS`（`jh` 中学 275・`hs` 高校 359・`toeic` TOEIC対策 301）: [英語, 品詞〔n・v・a・d〕, 意味, なかま]。意味は おなじ レベル・品詞で かさならない。似た 意味の 語（holiday と vacation・refuse と reject・crucial と vital など）は おなじ「なかま」に して、まちがいの 選択肢に いっしょに ださない。中学と 高校で おなじ 単語は ない。TOEIC対策は 中学・高校の どちらとも かさならない ビジネスの 語（会議・出張・採用・経理・物流・店舗・不動産 など。なかま 22くみ）。
+- 穴うめ `ENG_FILL`（中学 99・高校 107・TOEIC対策 108）: [英文〔___ が あな〕, 正解, まちがい 3つ, 和訳, ポイント]。まちがいは 文ごとに 決めた もの（文法か 意味で はっきり あわない・別の 読み方で 正しく なる ものは さけた）。どちらも この ゲームの ために 書いた もの。TOEIC対策は Reading の Part 5（短文穴埋め）と おなじ 形: 品詞 30・動詞の 形 23・前置詞と 接続詞 24・代名詞と 関係詞 10・語い 21。
+- TOEIC®対策（UI-98）: `ENG_LEVELS` の 3つめ `toeic`（`name` TOEIC®対策〔ETS の きまりで はじめの めだつ ところに ®〕・`short` TOEIC・`note` ビジネス英語・Part 5形式・ふだの いろ `color`）。`ENG_PLAY.toeic` は ○ 600・ひょうばん 4ばい・めやす 200びょう（Part 5 は 1問 20びょう が めやす と いわれる）。商標の ことわり `EnglishGame.NOTICE`（`ja` は TOEIC対策の あそびかたの まど・`en` は ≡ の せっていの クレジット〔`js/menu.js`〕）。オンラインの ボードは `brain_eng_toeic_word`・`brain_eng_toeic_fill`（`ENG_LEVELS` から できる・ルールは かえない）。
 - `EnglishGame`: `questions(レベル, あそびかた, 10)`（さいきん だした 問題 `recent` を さける・きろくは たばの 6わり まで）・`wordQ`（まちがいは おなじ 品詞・べつの 意味・べつの なかま）・`fillQ`・`pick(store)`（`BrainGames.choose` の `pick`: レベル → あそびかた。ベストつき）・`hello`。
 - `BrainEngTask`（`BRAIN_TASKS.eng`・`BrainGames.GAMES` の 4つめ `adult: true`）: `static full`・`static rounds = 1`（`BrainTask.classOf`）。1回 10問。こたえると 正解は みどり・えらんだ まちがいは あか・カードの したに 解説（単語は「break ＝ 壊す」・穴うめは 正解と ポイント。あなは 正解で うまる）→「次へ」（さいごは「結果へ」）。よんで いる あいだは 時間を かぞえない（`think`）。
 - てんすう: 100 × 正解 ÷ 10 − めやすを こえた 時間（めやすの 2ばいで −10 まで）。全問正解で ◎。`payFor` = ○ で 中学 300・高校 450（◎ は 1.5ばい・おみせ Lv で 1.4ばい まで・あそびかたの reward）。`repFor` は 2・3ばい。けっかの `sc.resultNote` に 正解の かず・ベスト・まちがえた もの（5つ まで）。
-- セーブ: `Save.d.shops.brain.games.eng`・`Save.d.shops.brain.eng`（`lv`・`mode`・`plays`・`best`・`recent`〔「レベル_あそびかた」ごと〕）を `fresh()` に たした だけ（`SCHEMA` は 2 の まま）。
-- PokaDebug: `shop('brain', lv, 'eng')`・`mg().order`（`lv`・`mode`・`index`・`correct`・`missed`・`answered`・`cur`〔`en`・`ans`・`choices`・`right`〕・`choices`〔CSS 座標・たかさ〕・`next`）・`english()`（セーブの ようす・問題の かず）。
+- セーブ: `Save.d.shops.brain.games.eng`・`Save.d.shops.brain.eng`（`lv`・`mode`・`plays`・`best`・`recent`〔「レベル_あそびかた」ごと。`toeic_word`・`toeic_fill` も〕）を `fresh()` に たした だけ（`SCHEMA` は 2 の まま。TOEIC対策の まえの セーブには `migrate` が おぎなう）。
+- PokaDebug: `shop('brain', lv, 'eng')`・`mg().order`（`lv`・`mode`・`index`・`correct`・`missed`・`answered`・`cur`〔`en`・`ans`・`choices`・`right`〕・`choices`〔CSS 座標・たかさ〕・`next`）・`english()`（セーブの ようす・レベルごとの 問題の かず `words`・`fill`・`levels`）。
 - 検査: `tools/check-english.mjs`（とうろく・単語と 文の かたち・意味と なかま・大文字・和訳・ポイント・10問の えらびかた〔12回 つづけて おなじ 問題が でない・まちがいは おなじ 品詞で べつの なかま〕・2つの がめんで 44px・まちがい → 次へ・9問 → 90・全問 → 100・時間・コイン・ひょうばん・セーブ）・`tools/check-brain.mjs`（4しゅ）。スモーク `brain-english-390` / `-375`。
 
 ## パズル こうぼう（ネリカスタウンの パズルの おてつだい・UI-65・`js/kobo-art.js`・`js/mg-kobo.js`）
