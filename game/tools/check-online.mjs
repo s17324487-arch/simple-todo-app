@@ -202,7 +202,7 @@ st.on = true; await O.sync(); srv.calls.length = 0;
 await O.wipe();
 const wp = JSON.parse(srv.calls.find((c) => c.method === "PATCH").body);
 ok(wp[`players/${u2}`] === null && ids.every((b) => wp[`scores/${b}/${u2}`] === null) && wp[`rooms/${u2}`] === null && wp[`roomlist/${u2}`] === null && Object.keys(wp).length === 3 + ids.length, "けす: なまえ・ぜんぶの ボード・おへやに null " + Object.keys(wp).length);
-ok(JSON.stringify(srv.calls.map((c) => c.method + " " + c.path)) === JSON.stringify(["PATCH /db/v1.json", "POST /auth/accounts:delete"]) && !srv.users[u2], "けす じゅんばん（データ → アカウント）");
+ok(JSON.stringify(srv.calls.map((c) => c.method + " " + c.path)) === JSON.stringify(["GET /db/v1/photos.json", "PATCH /db/v1.json", "POST /auth/accounts:delete"]) && !srv.users[u2], "けす じゅんばん（みせた ぷりくらを さがす → データ → アカウント） " + srv.calls.map((c) => c.method + " " + c.path));
 ok(!O.on() && st.agreed === 0 && st.ver === 0 && JSON.stringify(st.sent) === "{}" && st.sentUid === "" && !N.uid() && !R.localStorage.getItem(N.KEY) && st.best.crepe.s === 999, "けした あと（てもとの きろくは のこる・つぎは 同意から）");
 // サーバーで もう きえて いる アカウント → つくらずに てもとだけ
 reset(); st = O.st(); st.on = true; st.agreed = 1; st.ver = O.VER;
@@ -301,7 +301,7 @@ N.ESFn = null; N.over = null; N.fetchFn = null; N.auth = null; N.pending = null;
 const rules = JSON.parse(read("firebase/database.rules.json"));
 ok(rules.rules[".read"] === false && rules.rules[".write"] === false && JSON.stringify(Object.keys(rules.rules).sort()) === '[".read",".write","v1"]', "ルール: ほかの ばしょは よめない・かけない");
 const v1 = rules.rules.v1, P = v1.players.$uid, SB = v1.scores.$board, SU = SB.$uid;
-ok(JSON.stringify(Object.keys(v1).sort()) === '["players","roomlist","rooms","scores"]' && Object.keys(v1.players).join() === "$uid" && Object.keys(v1.scores).join() === "$board", "ルール: v1 は players・scores・rooms・roomlist だけ（rooms は tools/check-online-rooms.mjs）");
+ok(JSON.stringify(Object.keys(v1).sort()) === '["photos","players","reportcount","reportlog","roomlist","rooms","scores"]' && Object.keys(v1.players).join() === "$uid" && Object.keys(v1.scores).join() === "$board", "ルール: v1 は players・scores・rooms・roomlist・photos・reportcount・reportlog だけ（rooms は tools/check-online-rooms.mjs・photos と ほうこくは tools/check-online-photos.mjs）");
 ok(P[".read"] === "auth != null" && P[".write"] === "auth != null && auth.uid === $uid" && SB[".read"] === "auth != null" && !(".write" in SB) && JSON.stringify(SB[".indexOn"]) === '["s"]', "ルール: よむのは ログインした 人・かくのは じぶんの ところ だけ");
 ok(/^auth != null && auth\.uid === \$uid && /.test(SU[".write"]), "ルール: スコアは じぶんの ところ だけ");
 ok(P.$other[".validate"] === false && SU.$other[".validate"] === false && /hasChildren\(\['n', 't'\]\)/.test(P[".validate"]) && /hasChildren\(\['s', 'n', 't'\]\)/.test(SU[".validate"]), "ルール: ほかの こうもくは かけない");

@@ -4498,6 +4498,8 @@ await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect
 await (await import("./online-smoke.mjs")).onlineSmoke({scenario,expect});
 // オンラインの おへや（E5・UI-95。見るだけ。くわしくは tests/online-rooms-smoke.mjs）
 await (await import("./online-rooms-smoke.mjs")).onlineRoomsSmoke({scenario,expect});
+// オンラインの ぷりくら（E5・UI-96。かくす・ほうこく つき。くわしくは tests/online-photos-smoke.mjs）
+await (await import("./online-photos-smoke.mjs")).onlinePhotosSmoke({scenario,expect});
 
 server.close();
 if(LIST)process.exit(0);

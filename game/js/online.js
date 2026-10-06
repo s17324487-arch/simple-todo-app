@@ -1,7 +1,7 @@
 // オンライン（E5・UI-94）。オーナーの 指示（2026-10-02）「E5について。ルール10を無視して良い。ただし、リアルタイム通信無料でできること。さらにその機能をオンにするには、18歳以上であることの同意ボタンを用意すること。」と 2026-10-05 の 許可。
 // みんなと おてつだいの スコアを くらべる: すまほの「みんな」アプリ（おみせごとの ランキング・リアルタイムで かわる）と ≡ の せってい（はじめる・なまえ・とめる・けす）。
 // - おくる もの: 匿名の ID（じどうで できる）・きまった ことばから えらぶ なまえ・おてつだいの スコア（と おみせの Lv・あそびかた）。
-//   おへやの かぐの ならび（みせると きめた とき だけ。js/online-rooms.js）。あとで ふえる もの: みせると きめた ぷりくら。
+//   おへやの かぐの ならび（みせると きめた とき だけ。js/online-rooms.js）・みせると きめた ぷりくら（ゲームの 絵の データ。js/online-photos.js）。
 // - おくらない もの: ほんとうの なまえ・メール・いばしょ・カメラの しゃしん。じゆうに うつ もじも ない（なまえは ことばの ばんごう「3-12」）。
 // - 18さい いじょうの 同意を おして オンに した ときだけ つながる（js/online-net.js）。オンに する たびに 同意を きく。つなぎさきは js/online-config.js（から なら「じゅんびちゅう」）。
 // - スコア: 1かいの おてつだいで おきゃくさん ひとりずつの てんすう（0〜100）の ごうけい（ShopScene.results）。ころころ フルーツの スコア モードは その スコア（KorokoroScore.record）。
@@ -23,13 +23,14 @@ const Online = {
   last: "",
   tab: "rank",
   reg: "",
-  // ほかの ファイルが たす ぶぶん（js/online-rooms.js の おうち・つぎの ぷりくら）:
-  // { id, name: すまほの タブ, render(el, ph), leave(), wipe(uid, up) けす ときの null, rename(uid, up, code) なまえを かえる ときの かきかえ }
+  // ほかの ファイルが たす ぶぶん（js/online-rooms.js の おうち・js/online-photos.js の ぷりくら）:
+  // { id, name: すまほの タブ, render(el, ph), leave(), wipe(uid, up) けす ときの null（Promise でも よい）, rename(uid, up, code) なまえを かえる ときの かきかえ,
+  //   renamed(uid, code) なまえを かえた あと（Promise）, account(uid) いまの ID が わかった とき }
   parts: [],
   syncP: null,
   again: false,
 
-  fresh() { return { on: false, agreed: 0, ver: 0, nick: [0, 0], best: {}, sent: {}, sentUid: "", room: { shown: 0, id: "", uid: "" } }; },
+  fresh() { return { on: false, agreed: 0, ver: 0, nick: [0, 0], best: {}, sent: {}, sentUid: "", room: { shown: 0, id: "", uid: "" }, photo: { uid: "", shown: {}, sid: {}, hide: [], hideU: [], rep: {} } }; },
   st() {
     const d = Save.d;
     if (!d.online || typeof d.online !== "object" || Array.isArray(d.online)) d.online = this.fresh();
@@ -43,6 +44,17 @@ const Online = {
     if (!s.room || typeof s.room !== "object" || Array.isArray(s.room)) s.room = { ...f.room };
     s.room.shown = Number.isFinite(s.room.shown) && s.room.shown > 0 ? s.room.shown : 0;
     for (const k of ["id", "uid"]) if (typeof s.room[k] !== "string") s.room[k] = "";
+    // ぷりくら（js/online-photos.js）: uid みせた ときの ID・shown { しゃしんの id: みせた とき（-1 は サーバーから けす まち）}・sid { しゃしんの id: サーバーの ばんごう（ランダム）}・hide かくした しゃしん・hideU かくした 人・rep { ほうこくした しゃしん: りゆう }
+    const obj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {}), own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+    if (!s.photo || typeof s.photo !== "object" || Array.isArray(s.photo)) s.photo = { ...f.photo };
+    const P = s.photo;
+    if (typeof P.uid !== "string" || !/^[\w-]{0,128}$/.test(P.uid)) P.uid = "";
+    P.shown = Object.fromEntries(Object.entries(obj(P.shown)).filter(([id, t]) => /^[a-z0-9-]{3,40}$/.test(id) && Number.isFinite(t) && (t > 0 || t === -1)));
+    P.hide = (Array.isArray(P.hide) ? P.hide : []).filter((k) => typeof k === "string" && /^[\w-]{1,128}_[a-z0-9-]{3,40}$/.test(k)).slice(-300);
+    P.hideU = (Array.isArray(P.hideU) ? P.hideU : []).filter((u) => typeof u === "string" && /^[\w-]{1,128}$/.test(u)).slice(-100);
+    P.rep = Object.fromEntries(Object.entries(obj(P.rep)).filter(([k, r]) => /^[\w-]{1,128}_[a-z0-9-]{3,40}$/.test(k) && (r === "bad" || r === "spam")).slice(-300));
+    P.sid = Object.fromEntries(Object.entries(obj(P.sid)).filter(([id, v]) => /^[a-z0-9-]{3,40}$/.test(id) && typeof v === "string" && /^[a-z0-9]{8,40}$/.test(v)).slice(-120));
+    for (const k of Object.keys(P)) if (!own(f.photo, k)) delete P[k];
     return s;
   },
   // オンか（同意して オンに して いて、つなぎさきも ある）
@@ -121,6 +133,7 @@ const Online = {
         const uid = await this.ensure(), st = this.st(), up = {};
         if (st.sentUid !== uid) { st.sent = {}; st.sentUid = uid; }
         if (st.room.uid && st.room.uid !== uid) st.room = { shown: 0, id: "", uid: "" }; // まえの ID で みせた おへやは もう かえられない
+        for (const p of this.parts) if (p.account) p.account(uid);
         for (const [b, e] of Object.entries(st.best)) if (this.isBoard(b) && e && e.s > 0 && e.s > (st.sent[b] || 0)) up[`scores/${b}/${uid}`] = this.entry(e);
         const keys = Object.keys(up);
         if (keys.length) {
@@ -168,6 +181,7 @@ const Online = {
       for (const p of this.parts) if (p.rename) p.rename(uid, up, this.nickCode());
       await OnlineNet.patch("v1", up);
       for (const k of Object.keys(up)) if (k.startsWith("scores/")) st.sent[k.split("/")[1]] = up[k].s;
+      for (const p of this.parts) if (p.renamed) await p.renamed(uid, this.nickCode()).catch(() => {}); // ぷりくらは 1まいずつ（なくても とまらない）
     } catch (e) { st.sent = {}; this.reg = ""; Save.mark(); throw e; }
     Save.mark(); Save.write();
     return true;
@@ -182,11 +196,13 @@ const Online = {
       const up = { [`players/${uid}`]: null }, ids = new Set(this.boards().map((b) => b.id));
       for (const b of [...Object.keys(st.sent), ...Object.keys(st.best)]) if (this.BOARD_RE.test(b)) ids.add(b); // まえの バージョンの ボードも
       for (const b of ids) up[`scores/${b}/${uid}`] = null;
-      for (const p of this.parts) if (p.wipe) p.wipe(uid, up);
-      try { await OnlineNet.patch("v1", up, false); await OnlineNet.removeAccount(); }
-      catch (e) { if (e.code !== "noaccount") throw e; } // アカウントが もう ない（データも けせない）→ てもとだけ わすれる
+      try {
+        for (const p of this.parts) if (p.wipe) await p.wipe(uid, up); // ぷりくらは じぶんの ほうこくを とりけして から
+        await OnlineNet.patch("v1", up, false); await OnlineNet.removeAccount();
+      } catch (e) { if (e.code !== "noaccount") throw e; } // アカウントが もう ない（データも けせない）→ てもとだけ わすれる
     }
     st.agreed = 0; st.ver = 0; st.sent = {}; st.sentUid = ""; st.room = { shown: 0, id: "", uid: "" };
+    st.photo.uid = ""; st.photo.shown = {}; st.photo.rep = {}; // かくした ものは てもとの せってい なので のこす
     OnlineNet.forget(); this.reg = "";
     Save.mark(); Save.write();
     return true;
@@ -205,7 +221,7 @@ const Online = {
       body.append(
         U.el("p", { class: "onl-adult", text: "この きのうは 18さい いじょうの かただけ つかえます。" }), // スクロール しなくても みえる ように いちばん うえ
         U.el("p", { class: "onl-lead", text: "オンラインに すると、ほかの ひとと おてつだいの スコアを くらべられるよ。ランキングは リアルタイムで かわるよ。" }),
-        list("おくる もの", ["なまえの かわりの ばんごう（じどうで できる）", "えらんだ なまえ（きまった ことばの くみあわせ）", "おてつだいの スコア（おみせの レベル・あそびかた）", "おへやの かぐの ならび（みせると きめた とき だけ）", "あとで ふえる もの: ぷりくら（みせると きめた とき だけ）"]),
+        list("おくる もの", ["なまえの かわりの ばんごう（じどうで できる）", "えらんだ なまえ（きまった ことばの くみあわせ）", "おてつだいの スコア（おみせの レベル・あそびかた）", "おへやの かぐの ならび（みせると きめた とき だけ）", "ぷりくら（ゲームの 中の え。みせると きめた もの だけ・もじは きまった ことば だけ）"]),
         list("おくらない もの", ["ほんとうの なまえ・メール・いばしょ・カメラの しゃしん"], "no"),
         U.el("p", { class: "muted", text: `データの おきばは Google の Firebase（${OnlineNet.place()}）。むりょうの はんいで つかうよ。` }),
         U.el("p", { class: "muted", text: "≡ の せっていで いつでも オフに できるよ。「みせた データを けす」で ぜんぶ けせるよ。" }),
