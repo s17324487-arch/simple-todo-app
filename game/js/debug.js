@@ -480,6 +480,17 @@ const PokaDebug = {
     Save.mark();return this.pets();
   },
   // おトイレ（UI-47）: 3人の いきたさ・ドアの ばしょ（homeDoors と おなじ）・はいって いる 子・つかった かず・3人の ようす（face は ふだんの かお）
+  // おひるね（UI-99・js/home-doze.js）: ようす（phase gather あつまる／sleep ねて いる・ねた びょう・のこり・つぎまで・ねごと・タップ・おきた かず と わけ・あつまる ばしょ）と 3人（タップする 画面の わく）
+  homeDoze() {
+    if(G.sceneName!=='house'||typeof HomeDoze==='undefined')return null;
+    const sc=G.scene,D=HomeDoze.st(sc),c0=G.canvas.getBoundingClientRect(),rect=(r)=>({x:c0.left+r.x*G.cssPerUnit,y:c0.top+r.y*G.cssPerUnit,w:r.w*G.cssPerUnit,h:r.h*G.cssPerUnit});
+    return {phase:D.phase,t:Math.round(D.t*10)/10,left:D.phase==='sleep'?Math.round((HomeDoze.LEN-D.t)*10)/10:null,len:HomeDoze.LEN,next:Math.round(D.next*10)/10,talks:D.talks,pokes:D.pokes,wakes:D.wakes,last:D.last,spot:D.spot?{...D.spot}:null,can:HomeDoze.can(sc),
+      kids:sc.chars.map(c=>({id:c.id,x:Math.round(c.x),y:Math.round(c.y),state:c.state,doze:HomeDoze.dozing(c),act:c.activity?c.activity.id:null,hidden:!!c.hidden,rect:rect(sc.actorRect(c))})),
+      parents:sc.parents.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y),state:p.state,hidden:!!p.hidden,target:p.target||null})),
+      log:sc.life.log.filter(l=>l.doze).map(l=>({id:l.id,text:l.text,kind:l.kind,doze:l.doze}))};
+  },
+  // いますぐ ねむく なる（へやが しずかな ときだけ。true／false）。next を わたすと つぎに ねむく なるまでの びょうを きめる だけ
+  homeDozeStart(next){if(G.sceneName!=='house'||typeof HomeDoze==='undefined')return false;const sc=G.scene;if(Number.isFinite(next)){HomeDoze.st(sc).next=next;return true;}return HomeDoze.start(sc);},
   toilet() {
     if(typeof HomeToilet==='undefined')return null;
     const t=HomeToilet.st(),sc=G.sceneName==='house'?G.scene:null,W=sc&&sc.wc;
@@ -506,7 +517,7 @@ const PokaDebug = {
     const byWho={};for(const l of D.lines)byWho[l.who]=(byWho[l.who]||0)+1;
     return {total:D.lines.length+D.talks.length,lines:D.lines.length,talks:D.talks.length,turns:D.talks.reduce((a,t)=>a+t.turns.length,0),byWho};
   },
-  homeBubbleFixture() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;const sc=G.scene;sc.chars.forEach(c=>HomeActions.cancel(c));sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;sc.actions.next=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});return true;},
+  homeBubbleFixture() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;const sc=G.scene;sc.chars.forEach(c=>HomeActions.cancel(c));sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;sc.actions.next=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});if(typeof HomeDoze!=='undefined'&&sc.update===HouseScene.prototype.update){const D=HomeDoze.st(sc);if(D.phase)HomeDoze.wake(sc,'stir');D.next=3600;}return true;},
   homeBubbleState() {if(G.sceneName!=='house')return null;const sc=G.scene;return {heads:HomeLife.heads(sc),boxes:HomeLife.bubbleLayout(sc,G.ctx),area:{...sc.view,left:8,right:G.W-8},watching:sc.watching};},
   family() {
     if(G.sceneName!=="house")return null;

@@ -4447,6 +4447,8 @@ await (await import("./gowaga-wish-smoke.mjs")).gowagaWishSmoke({scenario,expect
 // おねだり（UI-88。家電・シール・ガチャ・クレーン・館の その かいで おねだり。くわしくは tests/gowaga-beg-smoke.mjs）
 await (await import("./gowaga-beg-smoke.mjs")).gowagaBegSmoke({scenario,expect});
 await (await import("./home-toilet-smoke.mjs")).homeToiletSmoke({scenario,expect});
+// おひるね（UI-99。ときどき 3人で 2ふん くらい ねむる・ねごと。くわしくは tests/home-doze-smoke.mjs）
+await (await import("./home-doze-smoke.mjs")).homeDozeSmoke({scenario,expect});
 // おうちの みち（UI-73）: 3人と ぱぱが 家具を よけて あるく・いきさきが 家具の なか → そばで とまる・家具の うえから でる
 await (await import("./home-nav-smoke.mjs")).homeNavSmoke({scenario,expect});
 // おうちの そと（UI-74）: 工務店で ためして かう・みほんから その タブ・町の おうち（ひる・よる）・さいかい

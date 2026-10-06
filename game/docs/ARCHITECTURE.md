@@ -2,6 +2,8 @@
 
 HomeActions は15秒ごとに3人のうち1人の動作を選ぶ。15種類を重複しにくい袋から選び、椅子・本棚・植物・おもちゃ等は配置済みの場合だけ家具へ歩いてから動作する。動作中は通常の歩行を止め、撫でる・お世話・遊び・模様替えが優先。画面を隠した時とモーダル中はタイマーを進めない。動作の保存・課金・アイテム消費はない。描画は既存キャラの有限ポーズとCanvasの小物で行う。
 
+おひるね（UI-99・`js/home-doze.js`）の ねがおも HomeActions の しぐさ「doze」で 描く（`kinds` には ない・`HomeDoze` だけが はじめる。ねて いる あいだは しぐさの タイマーを 3びょう いじょうに たもつ）。
+
 自動会話は通常24〜40秒、みまもり14〜22秒（従来の2倍）。親の自動お世話は頻度と効果を保ち、会話だけ2回に1回にする。タップや手動のお世話には毎回反応する。PokaDebug.homeActions / homeAction / homeActionSchedule / homeAdvance は状態確認・動作指定・時計の初期化・停止中の時間送り。home-idle-life のスモークで15秒の間隔、15動作、家具条件、所持金維持を2画面サイズで確認する。
 ## 大人向けスローライフの価格
 
@@ -156,6 +158,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 20 | `scene-battle.js` | `ALLY_SIZE`, `FOE_SIZE`, `BOSS_SIZE`, `BattleScene` |
 | 21 | `minigames.js` | `MG_ART`, `CREPE_TOPS`, `BREADS`, `BREAD_TOPS`, `FLOWER_KINDS`, `RIBBONS`, `SHOP_OWNERS`, `HOWTO`, `CUST_*`, `ShopScene`, `TaskBase`, `CrepeTask`, `DentistTask`, `BakeryTask`, `FloristTask`, `MG_TASKS`, 補助関数 `breadSvg` `flowerIconSvg` `mgCanvas` `mgIcon` `topIcon` `mgBtn` `inBtn` `gridBtns` |
 | — | `play-records.js`（pet-walk.js の あと・world-zoom.js の まえ＝Care・HomeToilet・SCENES.house・Fishing・BattleScene・Menu・GowagaWish の あと） | `PlayRecords`（きろく: 3人の きろく 15しゅ・たべものごとの かず・ずかんの「たべもの」・ようすの「きろく」・UI-71） |
+| — | `home-doze.js`（play-records.js の すぐ あと・online-config.js の まえ＝HouseScene・HomeActions・HomeLife・ParentCare・GowagaWish・HomeToilet・Care・PlayRecords・HomeNav の あと） | `HomeDoze`（おうちの おひるね・UI-99） |
 | — | `dine-seats.js`（iso-venue.js の すぐ あと＝chara.js・IsoVenue の あと） | `DineSeats`（ごはんの せき: 館の テーブル・ボックス席で 3人が すわって ちゅうもん。UI-72） |
 | — | `online-config.js` → `online-net.js` → `online.js`（play-records.js の あと・world-zoom.js の まえ＝Smaho・Menu・ShopScene・KorokoroScore・SHOP_GAMES の あと） | `ONLINE_CONFIG`（つなぎさき）, `OnlineNet`（匿名ログイン・Realtime Database の REST と SSE・ネットに つなぐ ゆいいつの ファイル）, `Online`（同意・なまえ・ボード・きろく・すまほの「みんな」・≡ の せってい。E5・UI-94） |
 | — | `online-rooms.js`（online.js の すぐ あと） | `OnlineRooms`（じぶんの おへやを みせる・みんなの おへやの いちらん。`Online.parts` に「おうち」タブ。いちらんの タップで おじゃま〔online-visit.js〕。E5・UI-95） |
@@ -1529,6 +1532,20 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - フォント: `index.html` の Google Fonts に `Hachi Maru Pop`（てがみ だけ。`font-family` の さいごは いつもの もじ なので よめない ときも だいじょうぶ）。
 - セーブ: `Save.d.wish.gift = { miss, got: { id: かず }, log: [{ id, who, t }], used: { wg_coupon } }`（`WishGifts.st()` が つくって こわれた 形を なおす。`Save.fresh()` には いれない・SCHEMA は そのまま）。
 - PokaDebug: `wishGift(mode)`・`wishGifts()`・`wishGiftGive(id)`・`wishLetter(id)`。検査は `tools/check-wish-gifts.mjs`、スモークは `tests/wish-gifts-smoke.mjs`（`wish-gifts-390/375`）。
+
+## おうちの おひるね（UI-99・`js/home-doze.js`・`HomeDoze`）
+
+オーナーの 依頼 2026-10-06「おうちで、たまに3人寝ていて(2分くらい)、寝言を言っている行動を追加して」。
+
+- シーンの ようす `sc.doze`（`st(sc)`。セーブしない）: `phase`（null → "gather" → "sleep"）・`t`（ねた じかん）・`next`（つぎに ねむく なるまで。`can(sc)` の ときだけ へる・`Game.paused` の ときは へらない）・`talk`・`talks`・`pokes`・`wakes`・`last`（おきた わけ: time／button／poke／stir）・`spot`。
+- `can(sc)`: おじゃま・mode・`UI.busy`・`Game.trans`・ドアへ／かいだん・けんか・かけあいの とちゅう・おトイレ（`sc.wc`）・おねがい（`sc.wishFx`）・ぱぱ ままの でかける／かえる の とき・3人の だれかが かくれて いる／idle でも walk でも ない ときは ねむく ならない。
+- `spot(sc)`: ベッドの まえ（`Room.bestBed`）→ ラグ → へやの まんなか の じゅんに、その まわり（20 きざみ）の ならび `row(c)`（画面で よこ 一列・(x, y) に (+GAP, −GAP)）を `cover` で しらべ、いちばん よい もの（かくれる 子 0 → ちかい ほう）を えらぶ。
+  - `cover(sc, pts)`: へやの そと・`HomeNav.blockedAt(…, PAD)` は 1人 100、あとから 描く 家具（anchor の x + y が おおきい）の 絵の わく（`HomeDesign.model` の x・y・w・h）が ねて いる かおの まわりに かさなると 1人 1。
+- `start` → 3人が `row` へ あるく（`HomeNav.near`）・ぱぱ ままは `CLEAR` の なかなら よける → ついた 子から `lie`（`c.state = "activity"`・`c.activity = { id: "doze" }`。`GATHER` びょうで まだの 子も その ばで）→ 3人そろうと "sleep"・`hush`。
+- "sleep": `LEN` で `wake("time")`（ことば 3つ・`stretch`）。`TALK` ごとに `mumble`（ひとり／ふたり・くもの ふきだし）。だれかが ねて いない（mode で `HomeActions` が とめた など）→ `wake("stir")`。
+- つつむ もの: `HouseScene` の `enter`（`doze` を けす）・`update`（あとに `HomeDoze.update`）・`up`（ねて いる 子の タップ → `poke`）・`buildUI`（したの ボタンの キャプチャ → `wake("button")`）、`HomeActions.visual`／`props`（ねがお・Z）、`HomeLife.say`（ねて いる 子の meta.doze の ない ひとことを すてる）、`ParentCare.update`・`GowagaWish.house`・`HomeToilet.calm`（おやすみ）、`Care.feed`（`ate`）。おじゃまは `HOUSE_SCENE_BASE` なので つつまれない。
+- ことば `LINES`（ひらがな・24もじ まで）。`nap(text)`: `U.dayPart()` が evening・night・late なら「おひるね」→「うたたね」。
+- PokaDebug: `homeDoze()`（ようす・3人と ぱぱ ままの いち・タップの わく・ことばの きろく）・`homeDozeStart(next)`（すぐ ねむく なる／つぎまでの びょう）。`homeBubbleFixture` は おひるねを おこして タイマーを 3600 に。検査は `tools/check-home-doze.mjs`、スモークは `tests/home-doze-smoke.mjs`（`home-doze-390/375`）。
 
 ## きろく（UI-71・`js/play-records.js`・`PlayRecords`）
 
