@@ -4499,8 +4499,10 @@ await (await import("./figure-stand-more-smoke.mjs")).figureStandMoreSmoke({scen
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 // オンライン（E5・UI-94。18さい いじょうの 同意・にせの Firebase で スコアの ランキング。くわしくは tests/online-smoke.mjs）
 await (await import("./online-smoke.mjs")).onlineSmoke({scenario,expect});
-// オンラインの おへや（E5・UI-95。見るだけ。くわしくは tests/online-rooms-smoke.mjs）
+// オンラインの おへや（E5・UI-95。いちらんの タップで おじゃま。くわしくは tests/online-rooms-smoke.mjs）
 await (await import("./online-rooms-smoke.mjs")).onlineRoomsSmoke({scenario,expect});
+// おじゃま（E5・UI-97。ほかの 人の おうちを 3人で あるく。くわしくは tests/online-visit-smoke.mjs）
+await (await import("./online-visit-smoke.mjs")).onlineVisitSmoke({scenario,expect});
 // オンラインの ぷりくら（E5・UI-96。かくす・ほうこく つき。くわしくは tests/online-photos-smoke.mjs）
 await (await import("./online-photos-smoke.mjs")).onlinePhotosSmoke({scenario,expect});
 

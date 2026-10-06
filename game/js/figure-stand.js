@@ -369,7 +369,8 @@ const FigureStand = (() => {
     const tower = id === "figstand_tower";
     FurnLive.register(id, {
       ...(lights(id) ? { isOn: caseOn } : {}),
-      tap(sc, it, st) { st.t0 = G.t; st.n = (st.n || 0) + 1; open(sc, it); },
+      // よその おうち（おじゃま・js/online-visit.js）の だいは 見るだけ（いれかえの まどは ださない）
+      tap(sc, it, st) { st.t0 = G.t; st.n = (st.n || 0) + 1; if (sc.guest) { say(sc, it, figsOf(it).some(Boolean) ? ["すてきな フィギュア！", "いっぱい かざってるね", "どれも かわいい〜"][st.n % 3] : "まだ からっぽの だい だね", "heart"); return; } open(sc, it); },
       draw(ctx, sc, it, r, st) {
         if (id === "figstand_case") drawCaseGlow(ctx, sc, it, r, st); else if (tower) drawTowerGlow(ctx, sc, it, r, st);
         if (STANDS[id].ring) drawRing(ctx, sc, it, r);

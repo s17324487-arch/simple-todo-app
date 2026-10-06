@@ -1763,7 +1763,7 @@ html, body {
 .onl-empty { padding: 10px; text-align: center; font-size: 13px; font-weight: 700; color: #8a7d6a; }
 .onl-mine { font-size: 13px; font-weight: 800; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
 .onl-mine:empty { display: none; }
-/* オンライン PR2（UI-95・js/online-rooms.js）: 「みんな」の タブ・おうちの タブ・おへやを みる まど */
+/* オンライン PR2（UI-95・js/online-rooms.js）: 「みんな」の タブ・おうちの タブ（いちらんの タップで おじゃま。UI-97・js/online-visit.js） */
 .onl-tabs { margin: 0; }
 .onl-tabs .tab { flex: 1 1 0; min-width: 0; min-height: 44px; }
 .onl-pane { display: flex; flex-direction: column; gap: 8px; }
@@ -1779,10 +1779,13 @@ html, body {
 .onl-room-row.me { background: #E6F4FF; border-color: #2F6FA8; }
 .onl-room-row .onl-name { font-size: 14px; font-weight: 800; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .onl-room-row .onl-sub { font-size: 12px; font-weight: 700; color: #8a7d6a; }
-.onl-visit { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.onl-visit-cv { display: block; max-width: 100%; border: 3px solid var(--ink); border-radius: 14px; background: #E7E4D4; }
-.onl-visit-cap { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; font-size: 13px; font-weight: 800; }
-.onl-visit-msg { padding: 4px; }
+.onl-room-row.loading { opacity: 0.6; cursor: progress; }
+.onl-room-visit-note { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
+/* おじゃま（E5・UI-97・js/online-visit.js）: うえの ひょうさつ（だれの おうちか）・したの ボタン 1だん */
+.visit-plate { position: absolute; left: 0; right: 0; margin: 0 auto; width: fit-content; top: calc(54px + var(--safe-t)); box-sizing: border-box; max-width: calc(100% - 24px); padding: 4px 16px 5px; display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; background: #FFF6DE; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink); pointer-events: none; }
+.visit-plate b { font-size: 15px; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; }
+.visit-plate span { font-size: 11px; font-weight: 800; color: #8a7d6a; line-height: 1.2; word-break: keep-all; overflow-wrap: anywhere; }
+.visit-bar .btn { min-height: 56px; }
 /* オンラインの ぷりくら（E5・UI-96・js/online-photos.js） */
 .onl-photos { display: flex; flex-direction: column; gap: 8px; }
 .onl-photos-note { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }

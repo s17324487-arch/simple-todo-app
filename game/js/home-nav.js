@@ -12,27 +12,29 @@ const HomeNav = (() => {
   const C = 16, PAD = 12, EDGE = 16, BACK = 24, FRONT = 8; // マス・からだの はば・へやの ふち（よこ・おく・てまえ）
   const STUCK = 1.2, REPLAN = 0.25;
   let grid = null;
+  // あるく へや（おじゃま〔js/online-visit.js〕の ときは よその おへや・2かいの かいだんは ない）
+  const roomOf = (sc) => (sc && sc.guest && sc.guest.room) || (Save.d && Save.d.room);
+  const stairsOn = (sc) => !(sc && sc.guest) && typeof HomeFloors !== "undefined" && HomeFloors.on() && !HomeFloors.upper();
   // いまの へやの かたち（家具の いち・へやの ひろさ・かいだん）
-  function signature() {
-    const r = Save.d && Save.d.room; if (!r) return "";
-    const stairs = typeof HomeFloors !== "undefined" && HomeFloors.on() && !HomeFloors.upper();
-    return ROOM.W + "x" + ROOM.H + ":" + (stairs ? 1 : 0) + ":" + (r.items || []).map((it) => it.id + "@" + Math.round(it.x) + "," + Math.round(it.y) + (it.flip ? "f" : "")).join("|");
+  function signature(sc) {
+    const r = roomOf(sc); if (!r) return "";
+    return ROOM.W + "x" + ROOM.H + ":" + (stairsOn(sc) ? 1 : 0) + ":" + (r.items || []).map((it) => it.id + "@" + Math.round(it.x) + "," + Math.round(it.y) + (it.flip ? "f" : "")).join("|");
   }
   // ゆかの 家具の 足もと（へやの 座標の 四角）
   function feet(sc) {
-    const out = [];
-    for (const it of (Save.d.room && Save.d.room.items) || []) {
+    const out = [], r = roomOf(sc);
+    for (const it of (r && r.items) || []) {
       const f = FURN_INDEX[it.id]; if (!f || f.kind !== "floor") continue;
       const m = HomeDesign.model(it.id, it), a = typeof sc.anchor === "function" ? sc.anchor(it) : HouseScene.prototype.anchor.call(sc, it); // 検査の かりの へやにも
       out.push({ id: it.id, uid: it.uid, x0: a.x - m.footW / 2, x1: a.x + m.footW / 2, y0: a.y - m.footD, y1: a.y });
     }
-    if (typeof HomeFloors !== "undefined" && HomeFloors.on() && !HomeFloors.upper()) {
+    if (stairsOn(sc)) {
       const S = HomeFloors.STAIR; out.push({ id: "stairs", x0: S.x0, x1: S.x1, y0: ROOM.WALL + S.top, y1: ROOM.H - 6 });
     }
     return out;
   }
   function build(sc) {
-    const sig = signature(); if (grid && grid.sig === sig) return grid;
+    const sig = signature(sc); if (grid && grid.sig === sig) return grid;
     const w = Math.ceil(ROOM.W / C), h = Math.ceil((ROOM.H - ROOM.WALL) / C), blocked = new Uint8Array(w * h), rects = feet(sc);
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
       const x = (i + 0.5) * C, y = ROOM.WALL + (j + 0.5) * C;
@@ -123,7 +125,7 @@ const HomeNav = (() => {
   function walk(sc, a, speed, dt, tx = a.tx, ty = a.ty) {
     if (Math.hypot(tx - a.x, ty - a.y) < 2) { a._nav = null; return true; } // もう ついて いる（ついた あとも よばれる ところ）
     let N = a._nav;
-    const sig = signature();
+    const sig = signature(sc);
     // いきさきが 家具の なかで ちかくに とまった あとも、おなじ いきさきの あいだは そのまま（まいフレーム さがしなおさない）
     if (N && N.done && N.sig === sig && Math.abs(N.tx - tx) <= 1 && Math.abs(N.ty - ty) <= 1 && Math.hypot(a.x - N.ex, a.y - N.ey) < 2) return true;
     if (!N || N.done || Math.abs(N.tx - tx) > 1 || Math.abs(N.ty - ty) > 1 || N.sig !== sig) {

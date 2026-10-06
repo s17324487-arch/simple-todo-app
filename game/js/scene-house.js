@@ -3,6 +3,8 @@ const ROOM = { get W() { return HomeDesign.W; }, get H() { return HomeDesign.H +
 const HOUSE_SIZE = 84; // へやの中のキャラの大きさ
 
 const Room = {
+  // その 画面で 描いて いる へや。おじゃま（js/online-visit.js）の ときは よんだ よその おへや（セーブには ない・かえない）
+  of(sc) { return (sc && sc.guest && sc.guest.room) || Save.d.room; },
   comfort() {
     const r = Save.d.room;
     let c = ((WALL_INDEX[r.wall] || {}).comfort || 0) + ((FLOOR_INDEX[r.floor] || {}).comfort || 0);
@@ -58,11 +60,14 @@ class HouseScene {
     if (this.tools) this.tools.remove();
     UI.showHud(false);
   }
-  layout() {
-    const b = HomeDesign.bounds(), editing = this.mode === "edit";
-    const top = editing || this.watching ? 112 : 194;
+  // へやの 絵の うえと したの あき（うえの HUD・したの ボタンの ぶん）。[うえ, した]
+  insets() {
+    const editing = this.mode === "edit";
     // もようがえの 一覧を ひろげた ときは へやを うえの のこりに おさめる（ほぼ ぜんぶ の ときは したに かくれて よい。js/furn-tray.js）
-    const bottom = editing ? Math.max(174, Math.min(G.H * 0.62, (this.editUI?.getBoundingClientRect().height || 0) / G.cssPerUnit + 8)) : this.watching ? 65 : 142;
+    return [editing || this.watching ? 112 : 194, editing ? Math.max(174, Math.min(G.H * 0.62, (this.editUI?.getBoundingClientRect().height || 0) / G.cssPerUnit + 8)) : this.watching ? 65 : 142];
+  }
+  layout() {
+    const b = HomeDesign.bounds(), [top, bottom] = this.insets();
     this.view = { top, bottom: G.H - bottom };
     this.baseScale = Math.min((G.W - 18) / b.w, Math.max(80, G.H - top - bottom) / b.h);
     this.s = this.baseScale * (this.zoom || 1);
@@ -157,10 +162,10 @@ class HouseScene {
     if (ensure) return SvgCache.ensure(key, fn, pw, ph);
     return SvgCache.get(key, fn, pw, ph) || (k !== 2 ? this.furnCanvas(it, false, 2) : null);
   }
-  preloadFurn() { return Promise.all(Save.d.room.items.map((it) => this.furnCanvas(it, true))); }
+  preloadFurn() { return Promise.all(Room.of(this).items.map((it) => this.furnCanvas(it, true))); }
   buildBg() {
-    const r = Save.d.room, size = HomeDesign.size(), b = HomeDesign.bounds(size);
-    const key = "house-design:" + Save.d.rooms.active + ":" + r.wall + ":" + r.floor + ":" + size.w + "x" + size.d, fn = () => HomeGarden.active() ? HomeGarden.svg(size) : HomeDesign.roomSvg(r.wall, r.floor, size);
+    const r = Room.of(this), size = HomeDesign.size(), b = HomeDesign.bounds(size), yard = !this.guest && HomeGarden.active();
+    const key = "house-design:" + (this.guest ? "guest" : Save.d.rooms.active) + ":" + r.wall + ":" + r.floor + ":" + size.w + "x" + size.d, fn = () => yard ? HomeGarden.svg(size) : HomeDesign.roomSvg(r.wall, r.floor, size);
     this.bgArgs = [key, fn, Math.ceil(b.w * 2), Math.ceil(b.h * 2)];
     // ズームの ときの こまかい 絵（3。ひろい へやは 900まん px まで に おさえる）
     const k = Math.min(3, Math.sqrt(9e6 / (b.w * b.h)));
@@ -285,7 +290,7 @@ class HouseScene {
     else if (i === 1) this.startBall();
   }
   hideSpots() {
-    const items = Save.d.room.items.filter((it) => { const f = FURN_INDEX[it.id]; return f && f.kind === "floor" && f.h >= 40; });
+    const items = Room.of(this).items.filter((it) => { const f = FURN_INDEX[it.id]; return f && f.kind === "floor" && f.h >= 40; });
     const spots = items.map((it) => ({ it, ...this.anchor(it) }));
     spots.push({ door: true, x: 0, y: ROOM.WALL + 62 });
     return U.shuffle(spots);
@@ -550,7 +555,7 @@ class HouseScene {
     return order.find(it => FURN_INDEX[it.id].kind !== "rug" && this.contains(this.itemRect(it), p, Math.max(3, (44-Math.min(this.itemRect(it).w,this.itemRect(it).h))/2))) || null;
   }
   drawOrder() {
-    const items = Save.d.room.items, kind = it => FURN_INDEX[it.id].kind;
+    const items = Room.of(this).items, kind = it => FURN_INDEX[it.id].kind;
     return [...items.filter(i => kind(i) === "wall"), ...items.filter(i => kind(i) === "rug"), ...items.filter(i => kind(i) === "floor").sort((a, b) => this.depth(this.anchor(a)) - this.depth(this.anchor(b)))];
   }
   select(it) {
@@ -740,14 +745,15 @@ class HouseScene {
   // ---- 描画 ----
   render(ctx) {
     ctx.fillStyle = "#E7E4D4"; ctx.fillRect(0, 0, G.W, G.H);
-    if (typeof HomeFloors !== "undefined") HomeFloors.drawUnder(ctx, this); // 2かい: いない ほうの かい（へやの 絵の まえ）
+    const own = !this.guest; // おじゃま（js/online-visit.js）では じぶんの おうちの 2かい・ドアの ふだは 描かない
+    if (own && typeof HomeFloors !== "undefined") HomeFloors.drawUnder(ctx, this); // 2かい: いない ほうの かい（へやの 絵の まえ）
     const bg = this.bgImage(), b = HomeDesign.bounds();
     if (bg) {
       ctx.save(); ctx.shadowColor = "rgba(69,49,29,.22)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 10;
       ctx.drawImage(bg, this.ox + b.x * this.s, this.oy + b.y * this.s, b.w * this.s, b.h * this.s); ctx.restore();
     }
-    if (typeof HomeFloors !== "undefined") HomeFloors.drawAfterBg(ctx, this); // 2かい: かべの かぐ・しきもの・かいだん
-    if (typeof HomeDoors !== "undefined") HomeDoors.drawSigns(ctx, this); // ドアの うえの ふだ（かべに はる）
+    if (own && typeof HomeFloors !== "undefined") HomeFloors.drawAfterBg(ctx, this); // 2かい: かべの かぐ・しきもの・かいだん
+    if (own && typeof HomeDoors !== "undefined") HomeDoors.drawSigns(ctx, this); // ドアの うえの ふだ（かべに はる）
     if (this.mode === "edit") this.drawEditOverlay(ctx);
     const s = this.s;
     const list = [];
@@ -899,3 +905,7 @@ class HouseScene {
   }
 }
 SCENES.house = HouseScene;
+// ほかの ファイルが つつむ まえの おうちの うごき（ドア・2かい・トイレ・おねがい などは じぶんの おうちだけ）。
+// おじゃま（js/online-visit.js の VisitScene）は これを つかって、よその おうちで じぶんの おうちの しくみが うごかない ように する
+const HOUSE_SCENE_BASE = Object.freeze(Object.fromEntries(Object.entries(Object.getOwnPropertyDescriptors(HouseScene.prototype))
+  .filter(([k, d]) => k !== "constructor" && typeof d.value === "function").map(([k, d]) => [k, d.value])));

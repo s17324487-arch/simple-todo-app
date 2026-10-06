@@ -1,7 +1,10 @@
 // 家具の所持ID・配置座標を変えず、床と高さを斜め上から投影する。
 const HomeDesign = {
   sizes:{standard:{w:480,d:360},expanded:{w:640,d:540}},
+  // おじゃま（js/online-visit.js）の あいだは よその おへやの ひろさ（"standard"／"expanded"）。じぶんの セーブは みない
+  guestSize:null,
   size() {
+    if(this.guestSize)return this.sizes[this.guestSize]||this.sizes.standard;
     const rooms=typeof Save!=="undefined"&&Save.d?.rooms;
     return this.sizes[rooms?.expanded?.[rooms.active]===true?"expanded":"standard"];
   },
