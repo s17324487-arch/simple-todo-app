@@ -932,7 +932,7 @@ ShootingRange に見本 RangeRef の rng・gauss・Game・SKILL・bot・view・p
 RangeScene.ro（ready 0.8秒 → areYou 0.8秒 → null）の あいだは game.update を よびつつ standby の 時間を もどす（ねらう・のぞくは できる）。.range-cmd は cmdHtml（ro・phase standby・mode done）。finish は きろく・コイン・TownFolk.signal({ do: "range", stars }) の あと mode "done"（アンロード。ショウ クリア。1.2秒）→ showResult。events が あたり 3かいに 1かい hit・IPSC の A 4れんぞく／スチールの のこしなし combo、hurry は のこり 10秒（シリーズごと）で cheerSay（のこりの 2人の どちらか・.range-bubble 1.8秒・かおは RangeScene.CHEER_FACE）。
 
 ### おうちの会話データ（FEAT-02）
-`home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。
+`home-talk-data.js`（HOME_TALK_DATA・自動生成。元は `tools/feature-design/home-lines.mjs`）を home-life.js の前に読む。HomeLife.talkCtx が時間・天気・季節・おまつり・部屋・近くの家具・state・できごとをまとめ、U.condScore / U.condPick（② と共通）で重み 1＋2×一致数、さいきん40件を避けて選ぶ。くせ（わんこの howl・sniff→sniff-scold、がちゃんの alone→not-alone・rain→thunder、ごじの prefix/suffix）は voice の値で動く。できごとはシーンの時計 life.time で覚え、セーブしない。PokaDebug.homeTalk(id) / homeLines(id) で検査する。かけあいは 171（UI-107。ぱぱ・ままとの からみ 64・3人だけ 107）。`chat` は ぱぱ・ままが でる かけあいを でて くる ぱぱ・ままが へやに いる とき（`sc.parents` で 見えて いる・`sc.work.phase` が home）だけ えらぶ（PokaDebug.homeChat(n)）。
 
 ### おうちの吹き出し（FEAT-01）
 `HomeBubbles` は `tools/feature-design/home-bubble-ref.js` のCanvas描画と候補配置を移植。`HomeLife` が頭の投影・表示寿命・2つまでの制限・かけあいの待ち行列を管理する。会話ログはシーン内だけ、セーブの形は変えない。PokaDebug.homeSay / homeTalkLog / homeBubbleState で全6種類と通常・みまもりの配置を検証する。

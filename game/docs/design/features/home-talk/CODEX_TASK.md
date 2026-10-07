@@ -21,7 +21,7 @@
 | `../../../../tools/feature-design/home-bubble-ref.js` | 吹き出しの 見本の 実装（`HomeBubbleRef`。canvas 2D・classic script） | `js/home-life.js` に 移植する |
 | `../../../../tools/feature-design/home-lines.mjs` | セリフの 元データ | 文を 直すときは ここを 直して `npm run design:features` |
 
-数: **ひとこと 658 ＋ かけあい 60（187 セリフ）＝ 718 種**（わんこ・がちゃん・ごじ 各 まわり 156 ＋ 性格 45 ＋ めずらしい 5、ぱぱ・まま 各 20）。
+数: **ひとこと 658 ＋ かけあい 171（621 セリフ）＝ 829 種**（わんこ・がちゃん・ごじ 各 まわり 156 ＋ 性格 45 ＋ めずらしい 5、ぱぱ・まま 各 20。かけあいは はじめ 60 → UI-45 で 80 → UI-107 で 171〔ぱぱ・ままとの からみ 64・3人だけ 107〕）。
 
 ## 1. 受け入れ条件
 
@@ -88,7 +88,7 @@
 | いまの できごと | これから |
 | --- | --- |
 | `solo` | 1人を えらび、その 子の `context`＋`persona` から 1つ |
-| `chat` | 条件に あう `talks`（`trigger` なし）を 1つ えらび、`turns` を 1.3 秒おきに 順番に 出す |
+| `chat` | 条件に あう `talks`（`trigger` なし）を 1つ えらび、`turns` を 1.3 秒おきに 順番に 出す。ぱぱ・ままが でる ものは その ぱぱ・ままが へやに いる とき〔おしごとでは ない・見えて いる〕だけ（UI-107） |
 | `quarrel` / `settle` | `trigger: "quarrel"`（toy-turn）と `"settle"`（make-up）の かけあいを つかう。`sc.life.quarrel` の しくみは いまの まま |
 | `weather` | `when.weather` が ある セリフを 優先（`Weather.comment` は つかっても よい） |
 | おなか・デザ | `state` の 条件で えらぶ（`Care.fullText` は のこして よい） |
@@ -108,6 +108,7 @@
 - `homeTalk(talkId)` … かけあいを 1つ 流す。
 - `homeTalkLog()` … さいきん しゃべった もの `[{ id, text, kind, t }]`（シーンの 中だけ）。
 - `homeLines()` … `{ total, byWho, talks }`（データの 数）。
+- `homeChat(n)` … ふだんの かけあいを n かい えらぶ（ながさずに けす）。`{ ids, parents, here, phase }`（UI-107）。
 - `family().bubbles` は いまの まま（見えて いる 2つまで）。
 
 ## 5. テスト
