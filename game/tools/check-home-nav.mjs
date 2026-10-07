@@ -88,33 +88,47 @@ fresh();
 }
 
 // ---- 3. みち（よく ある へや・たくさんの 家具の へや）----
-const study = (label, pairs) => {
+// あいた マスどうしが つながって いるか（A* は かどを けずらないので 4ほうこうの つながりと おなじ）
+const connected = (g, s, t) => {
+  if (!N.free(g, s[0], s[1]) || !N.free(g, t[0], t[1])) return false;
+  const seen = new Uint8Array(g.w * g.h), q = [s]; seen[s[1] * g.w + s[0]] = 1;
+  while (q.length) { const [i, j] = q.pop(); if (i === t[0] && j === t[1]) return true; for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ni = i + di, nj = j + dj; if (N.free(g, ni, nj) && !seen[nj * g.w + ni]) { seen[nj * g.w + ni] = 1; q.push([ni, nj]); } } }
+  return false;
+};
+const cellAt = (g, x, y) => [Math.max(0, Math.min(g.w - 1, Math.floor(x / N.C))), Math.max(0, Math.min(g.h - 1, Math.floor((y - ROOM.WALL) / N.C)))];
+// few: ゆるす みちは 5% まで（ふつうの へや）。たくさんの 家具を でたらめに おいた へやは とどかない ところが できる ので、
+// かわりに「あいた マスどうしが つながって いれば ゆるさない」（ゆるすのは とどかない・いまの ところ／いきさきが 家具の そば の ときだけ）を みる
+const study = (label, pairs, few = true) => {
   N.reset();
-  const F = N.feet(sc); let total = 0, loose = 0, bad = 0, end = 0;
+  const F = N.feet(sc), g = N.build(sc); let total = 0, loose = 0, bad = 0, end = 0, reachLoose = 0;
   for (let k = 0; k < pairs; k++) {
     const a = randPt(), t = randPt();
     if (inRaw(F, a.x, a.y, -1) || inRaw(F, t.x, t.y, -1)) continue;
     const p = N.plan(sc, a, t.x, t.y); total++;
     ok(p.pts.length >= 2 && near(p.pts[0].x, a.x) && near(p.pts[0].y, a.y), label + ": みちは いまの ところから");
-    if (p.loose) { loose++; continue; }
+    if (p.loose) { loose++; if (connected(g, cellAt(g, a.x, a.y), cellAt(g, t.x, t.y))) reachLoose++; continue; }
     if (hits(F, p.pts)) bad++;
     const e = p.pts[p.pts.length - 1]; if (Math.hypot(e.x - t.x, e.y - t.y) > 0.5) end++;
   }
   ok(bad === 0, `${label}: 家具の 足もとを とおらない（${bad} / ${total}）`);
   ok(end === 0, `${label}: いきさきに つく（${end}）`);
-  ok(loose <= total * 0.05, `${label}: ゆるす みちは すくない（${loose} / ${total}）`);
+  ok(reachLoose === 0, `${label}: とどく ところへは ゆるさない（${reachLoose} / ${loose}）`);
+  if (few) ok(loose <= total * 0.05, `${label}: ゆるす みちは すくない（${loose} / ${total}）`);
   return { total, loose };
 };
 fresh();
 study("はじめの へや", 1200);
 fresh(); S.d.rooms.expanded[S.d.rooms.active] = true;
 ok(ROOM.W === 640, "ひろい へや（640）");
+let crowdLoose = 0, crowdTotal = 0;
 for (let L = 0; L < 6; L++) {
   const items = [];
   for (let q = 0; q < 14; q++) items.push({ uid: q + 1, id: FLOORS[Math.floor(rnd() * FLOORS.length)], x: 40 + rnd() * (ROOM.W - 80), y: ROOM.WALL + 60 + rnd() * (ROOM.H - ROOM.WALL - 70), flip: rnd() < 0.3 });
   S.d.room.items = items;
-  study(`ひろい へやの 家具 14こ（${L + 1}）`, 500);
+  const r = study(`ひろい へやの 家具 14こ（${L + 1}）`, 500, false);
+  crowdLoose += r.loose; crowdTotal += r.total;
 }
+ok(crowdLoose <= crowdTotal * 0.05, `ひろい へやの 家具 14こ（6へや ぜんぶ）: ゆるす みちは すくない（${crowdLoose} / ${crowdTotal}）`);
 
 // ---- 4. よこぎらずに まわりこむ・あるく ----
 fresh();

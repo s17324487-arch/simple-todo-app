@@ -1,4 +1,5 @@
-// おてつだいの ごほうび 52こ（js/shop-rewards.js・js/shop-reward-art.js・UI-38。あたまの たいそうの 4こは UI-64・パズル こうぼうの 4こは UI-65）の 検査。ブラウザ なしで たしかめる。
+// おてつだいの ごほうび 78こ（js/shop-rewards.js・js/shop-reward-art.js・UI-38。あたまの たいそうの 4こは UI-64・パズル こうぼうの 4こは UI-65・
+// Lv40・50 の 26こは UI-109 で js/shop-reward-art-more.js）の 検査。ブラウザ なしで たしかめる。
 // id は まえの まま（セーブの うけとりの きろく）・なまえと せつめいは ひらがな・おみせごとに ちがう 立体（はんてん・live）・
 // さわる うごき（FurnLive）・live で ぬく ぶぶんが ある ものだけ live・いごこちは レベルで ふえる・ベッド・もようがえの しゅるい・ずかんの ヒント。
 import assert from "node:assert/strict";
@@ -7,7 +8,7 @@ import vm from "node:vm";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
-const { ShopRewards: SR, ShopRewardArt, FURN_INDEX, FURNITURE, FURN_ART, HomeDesign, FurnLive, FurnModels, SHOPS, ItemDexSources, BUY_SHOPS } = R;
+const { ShopRewards: SR, ShopRewardArt, ShopRewardArtMore, FURN_INDEX, FURNITURE, FURN_ART, HomeDesign, FurnLive, FurnModels, SHOPS, ItemDexSources, BUY_SHOPS } = R;
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
@@ -17,9 +18,9 @@ const SHOP_IDS = ["burger", "groom", "cake", "crepe", "dentist", "bakery", "flor
 
 // ---- 1. id・かず（まえの セーブの うけとりの きろくが そのまま つかえる）----
 ok(Object.keys(SR.themes).join() === SHOP_IDS.join() && Object.keys(SR.ITEMS).join() === SHOP_IDS.join(), "おみせ 13");
-const want = SHOP_IDS.flatMap((s) => [5, 10, 15, 30].map((lv) => `shop_${s}_${lv}`));
-ok(SR.prizes.map((p) => p.id).join() === want.join(), "id は shop_<おみせ>_<レベル> の 52こ（まえの 44こは まえの まま）");
-ok(SR.levels.join() === "5,10,15,30" && SR.COMFORT.join() === "5,7,9,12", "レベル と いごこち");
+const want = SHOP_IDS.flatMap((s) => [5, 10, 15, 30, 40, 50].map((lv) => `shop_${s}_${lv}`));
+ok(SR.prizes.map((p) => p.id).join() === want.join(), "id は shop_<おみせ>_<レベル> の 78こ（まえの 52こは まえの まま）");
+ok(SR.levels.join() === "5,10,15,30,40,50" && SR.COMFORT.join() === "5,7,9,12,14,16" && SR.maxLevel === 50, "レベル と いごこち（Lv40・50 は UI-109）");
 const names = new Set();
 for (const p of SR.prizes) {
   const f = FURN_INDEX[p.id], row = SR.ITEMS[p.shop][SR.levels.indexOf(p.level)];
@@ -34,22 +35,23 @@ for (const p of SR.prizes) {
   ok(Array.isArray(f.cat) ? f.cat.length : typeof f.cat === "string", `${p.id}: もようがえの しゅるい（cat）`);
   ok(/おてつだいで レベル \d+に すると もらえるよ/.test(ItemDexSources.source("furn", f)) && ItemDexSources.source("furn", f).startsWith(SHOPS[p.shop].name), `${p.id}: ずかんの ヒント`);
 }
-// レベルが あがるほど 大きく（Lv30 は いちばん 大きい）
+// レベルが あがるほど 大きく（Lv5 が いちばん ちいさく、いちばん 大きいのは Lv30 か Lv50。Lv50 は Lv15 より・Lv40 は Lv5 より 大きい）
 for (const s of SHOP_IDS) {
   const vol = SR.prizes.filter((p) => p.shop === s).map((p) => { const f = FURN_INDEX[p.id]; return f.w * f.depth * f.h; });
-  ok(vol[3] === Math.max(...vol) && vol[0] === Math.min(...vol), `${s}: Lv5 が いちばん ちいさく Lv30 が いちばん 大きい`);
+  ok(vol[0] === Math.min(...vol) && [vol[3], vol[5]].includes(Math.max(...vol)) && vol[5] > vol[2] && vol[4] > vol[0], `${s}: Lv5 が いちばん ちいさく Lv30 か Lv50 が いちばん 大きい ${vol}`);
 }
-// ベッド（ショートケーキ・くるま）は ねられる
-for (const id of ["shop_cake_30", "shop_gasstand_15"]) ok(FURN_INDEX[id].sleep === 2, `${id}: ベッド（sleep 2）`);
-ok(SR.prizes.filter((p) => FURN_INDEX[p.id].sleep).length === 2, "ベッドは 2つ");
-// もようがえの しゅるい: あかりは 6・すわる／ねる も ある
+// ベッド（ショートケーキ・くるま・しんじゅの かいがら）は ねられる
+for (const id of ["shop_cake_30", "shop_gasstand_15", "shop_dentist_50"]) ok(FURN_INDEX[id].sleep === 2, `${id}: ベッド（sleep 2）`);
+ok(SR.prizes.filter((p) => FURN_INDEX[p.id].sleep).length === 3, "ベッドは 3つ");
+// もようがえの しゅるい
 const cats = {};
 for (const p of SR.prizes) for (const c of [].concat(FURN_INDEX[p.id].cat)) cats[c] = (cats[c] || 0) + 1;
-ok(cats.light === 7 && cats.sit === 17 && cats.table === 12 && cats.toy === 6 && cats.plant === 2 && cats.misc === 8, "しゅるい " + JSON.stringify(cats));
+ok(cats.light === 11 && cats.sit === 26 && cats.table === 15 && cats.toy === 14 && cats.plant === 2 && cats.misc === 10, "しゅるい " + JSON.stringify(cats));
 if (R.FurnTray) for (const p of SR.prizes) { const c = R.FurnTray.cats(FURN_INDEX[p.id]); ok(c.has("special") && [].concat(FURN_INDEX[p.id].cat).every((k) => c.has(k)), `${p.id}: もようがえの 一覧で しゅるい と とくべつ`); }
 
 // ---- 2. 立体（FurnModels）: おみせごとに ちがう・はんてん・live・id ----
-ok(ShopRewardArt && ShopRewardArt.ids.join() === want.join(), "ShopRewardArt の 立体 52");
+ok(ShopRewardArt && ShopRewardArt.ids.join() === want.filter((id) => !/_(40|50)$/.test(id)).join(), "ShopRewardArt の 立体 52（Lv5〜30）");
+ok(ShopRewardArtMore && ShopRewardArtMore.ids.join() === want.filter((id) => /_(40|50)$/.test(id)).join(), "ShopRewardArtMore の 立体 26（Lv40・50）");
 const seen = new Map();
 for (const p of SR.prizes) {
   const id = p.id;
@@ -71,7 +73,8 @@ for (const p of SR.prizes) {
   ok(lv.w === a.w && lv.h === a.h && lv.x === a.x && lv.y === a.y, `${id}: live でも 絵の わくは おなじ`);
 }
 const LIVE = SR.prizes.map((p) => p.id).filter((id) => FurnLive.LIVE.has(id));
-ok(LIVE.join() === "shop_burger_30,shop_groom_5,shop_florist_30,shop_relay_30,shop_gasstand_10,shop_gasstand_30,shop_postoffice_30", "live（ネオンの カップ・サインポール・ブランコ・プロペラ・メーター・ミニカー・とけいと かね）: " + LIVE.join());
+ok(LIVE.join() === "shop_burger_30,shop_groom_5,shop_groom_50,shop_crepe_50,shop_bakery_50,shop_florist_30,shop_relay_30,shop_relay_50,shop_gasstand_10,shop_gasstand_30,shop_gasstand_50,shop_postoffice_30,shop_kobo_50",
+  "live（ネオンの カップ・サインポール・メリーゴーランド・かんらんしゃ・ふうしゃ・ブランコ・プロペラ 2・メーター・ミニカー・せんしゃきの ブラシ・とけいと かね・からくり どけい）: " + LIVE.join());
 
 // ---- 3. さわる（FurnLive）: タップの あとの ようす ----
 R.UI.toast = () => {};
@@ -85,12 +88,12 @@ for (const p of SR.prizes) {
   ok(after.t >= 0 && after.t < 1 && (after.on !== before.on || after.n === before.n + 1), `${p.id}: タップで ようすが かわる`);
   if (after.on !== before.on) tapped.on++; else tapped.n++;
 }
-ok(tapped.on === 10 && tapped.n === 42, `あかりが つく・きえる 10（ポテト・ネオン・かがみの ライト・カップケーキ・ショーケース・ききゅう・ぶどう・きゅうゆき・ちきゅうぎ・キューブ）: ${JSON.stringify(tapped)}`);
+ok(tapped.on === 15 && tapped.n === 63, `あかりが つく・きえる 15（ポテト・ネオン・かがみの ライト・カップケーキ・ショーケース・ききゅう・ぶどう・きゅうゆき・ちきゅうぎ・キューブ・ジュークボックス・ケーキの おしろの ろうそく・はの ランプ・ひまわり・でんきゅう）: ${JSON.stringify(tapped)}`);
 
 // ---- 4. がめんの ことば（ひらがな）----
-const src = readFileSync(new URL("../js/shop-reward-art.js", import.meta.url), "utf8").replace(/\/\/.*$/gm, "");
+const src = ["../js/shop-reward-art.js", "../js/shop-reward-art-more.js"].map((f) => readFileSync(new URL(f, import.meta.url), "utf8").replace(/\/\/.*$/gm, "")).join("\n");
 const lines = [...src.matchAll(/"([^"\n]*[ぁ-んァ-ヶ][^"\n]*)"/g)].map((m) => m[1]);
-ok(lines.length >= 120, `さわった ときの ことば ${lines.length}`);
+ok(lines.length >= 190, `さわった ときの ことば ${lines.length}`);
 for (const l of lines) ok(!kanji.test(l) && l.length <= 18, `ことば ${l}`);
 const srs = readFileSync(new URL("../js/shop-rewards.js", import.meta.url), "utf8").replace(/\/\/.*$/gm, "");
 for (const m of srs.matchAll(/(?:text|"aria-label"):\s*["`]([^"`]+)["`]/g)) ok(!kanji.test(m[1].replace(/\$\{[^}]+\}/g, "")), `ごほうびの がめんの ことば ${m[1]}`);
@@ -100,8 +103,13 @@ ok(/さわると うごく/.test(srs), "ごほうびの がめんで さわる�
 // プレビューは index.html の 一部の js だけを よむ。ごほうびの 立体（shop-reward-art.js）を よまないと、
 // かぐの 絵で ShopRewardArt が みつからず ページが とまる（スモーク「落ち葉・背景に固定」が まつ 見出しが でない）。
 const pv = [...readFileSync(new URL("./preview.html", import.meta.url), "utf8").matchAll(/<script src="\.\.\/(js\/[^"]+)"><\/script>/g)].map((m) => m[1]);
-for (const f of ["js/furniture-models.js", "js/furniture-live.js", "js/shop-rewards.js", "js/shop-reward-art.js"]) ok(pv.includes(f), `プレビューが ${f} を よむ`);
+for (const f of ["js/furniture-models.js", "js/furniture-live.js", "js/shop-rewards.js", "js/shop-reward-art.js", "js/shop-reward-art-more.js"]) ok(pv.includes(f), `プレビューが ${f} を よむ`);
 ok(pv.indexOf("js/shop-reward-art.js") > Math.max(pv.indexOf("js/shop-rewards.js"), pv.indexOf("js/furniture-live.js")), "プレビューは shop-rewards.js・furniture-live.js の あとに shop-reward-art.js");
+ok(pv.indexOf("js/shop-reward-art-more.js") === pv.indexOf("js/shop-reward-art.js") + 1, "プレビューは shop-reward-art.js の すぐ あとに shop-reward-art-more.js（liveKit を つかう）");
+{
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8"), sw = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
+  ok(html.indexOf('"js/shop-reward-art-more.js"') > html.indexOf('"js/shop-reward-art.js"') && sw.includes('"./js/shop-reward-art-more.js"'), "index.html と sw.js に shop-reward-art-more.js（shop-reward-art.js の あと）");
+}
 {
   const noop = () => {}, el = () => ({ style: {}, append: noop, addEventListener: noop, getContext: () => null, setAttribute: noop, dataset: {} });
   const P = { console: { log: noop, warn: noop, error: noop, info: noop }, performance, setTimeout, clearTimeout, URL, location: { search: "" }, document: { getElementById: el, createElement: el, addEventListener: noop }, addEventListener: noop };
@@ -110,7 +118,7 @@ ok(pv.indexOf("js/shop-reward-art.js") > Math.max(pv.indexOf("js/shop-rewards.js
   for (const f of pv) vm.runInContext(readFileSync(new URL("../" + f, import.meta.url), "utf8"), P, { filename: f });
   const bad = vm.runInContext("FURNITURE.filter((f) => { try { return !/<svg/.test(Art.furnSvg(f.id)); } catch { return true; } }).map((f) => f.id)", P);
   ok(!bad.length, "プレビューで 描けない かぐ: " + bad.join(" "));
-  ok(vm.runInContext("ShopRewards.prizes.every((p) => /<svg/.test(ShopRewardArt.model(p.id).full))", P), "プレビュー（?shop-rewards）で 52こ とも 描ける");
+  ok(vm.runInContext("ShopRewards.prizes.length === 78 && ShopRewards.prizes.every((p) => /<svg/.test(ShopRewardArt.model(p.id).full))", P), "プレビュー（?shop-rewards）で 78こ とも 描ける");
 }
 
-console.log(`✓ shop rewards: ${n} checks（13 おみせ × 4・live ${LIVE.length}・あかり ${tapped.on}・ことば ${lines.length}）`);
+console.log(`✓ shop rewards: ${n} checks（13 おみせ × 6・live ${LIVE.length}・あかり ${tapped.on}・ことば ${lines.length}）`);

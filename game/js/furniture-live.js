@@ -424,7 +424,7 @@ const FurnLive = (() => {
     register(id, handler, live = false) { H[id] = handler; if (live) LIVE.add(id); if (FURN_INDEX[id]) FURN_INDEX[id].interactive = true; },
     // いま きまって いる うごき（あとから たす がわが まえの うごきと いっしょに つかう。js/table-ware.js）
     get(id) { return H[id] || null; },
-    state(it) { const st = S(it), h = H[it.id]; return { id: it.id, uid: it.uid, t: since(st), on: h && h.isOn ? h.isOn(st) : !!st.on, ch: st.ch, n: st.n, song: st.song ? st.song.name : null, toy: st.toy ? st.toy[1] : null, bird: !!st.bird && since(st) < 1.6, live: LIVE.has(it.id) }; },
+    state(it) { const st = S(it), h = H[it.id]; return { id: it.id, uid: it.uid, t: since(st), on: h && h.isOn ? h.isOn(st) : !!st.on, ch: st.ch, n: st.n, song: st.song ? st.song.name : null, toy: st.toy ? st.toy[1] : null, bird: !!st.bird && since(st) < 1.6, live: LIVE.has(it.id), ang: st.ang == null ? null : st.ang }; },
     reset() { states.clear(); },
     // おじゃま（js/online-visit.js）の おわりに よその おへやの かぐの じょうたいを わすれる（よその かぐの uid は "v" で はじまる）
     forget() { for (const k of [...states.keys()]) if (k.split(":")[1].startsWith("v")) states.delete(k); },
