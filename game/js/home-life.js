@@ -151,10 +151,12 @@ const HomeLife = {
     this.converse(sc, t.turns.map(x => ({ who: x.who, text: x.text, kind: x.kind || "say", meta: { talk: t.id } })));
     return true;
   },
-  // 条件に あう かけあい（trigger なし）を 1つ
+  // 条件に あう かけあい（trigger なし）を 1つ。ぱぱ・ままが でる ものは その ぱぱ・ままが へやに いる ときだけ（おしごとの あいだ・おじゃま では えらばない。UI-107）
   chat(sc) {
     const D = this.data(); if (!D) return false;
-    return this.playTalk(sc, U.condPick(D.talks.filter(t => !t.trigger), this.talkCtx(sc, null), sc.life.recentTalks));
+    const here = new Set((sc.parents || []).filter(p => !p.hidden).map(p => p.id)), away = sc.work && sc.work.phase && sc.work.phase !== "home";
+    const ok = t => !t.trigger && t.turns.every(x => (x.who !== "papa" && x.who !== "mama") || (here.has(x.who) && !away));
+    return this.playTalk(sc, U.condPick(D.talks.filter(ok), this.talkCtx(sc, null), sc.life.recentTalks));
   },
   // がちゃんは あめの 日 10% で かみなりが こわい（かけあい thunder）
   scared(sc) {

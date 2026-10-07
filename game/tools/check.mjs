@@ -612,7 +612,9 @@ if (ok(!!HT, "HOME_TALK_DATA が ない（js/home-talk-data.js）")) {
   const whenOk = (w, where) => { for (const [k, vs] of Object.entries(w || {})) { if (!ok(!!VALUES[k], `${where}: 条件の キー ${k} が ない`)) continue; for (const v of vs) ok(VALUES[k].includes(v), `${where}: ${k} の 値 ${v} が ゲームに ない`); } };
   const turns = HT.talks.reduce((a, t) => a + t.turns.length, 0);
   ok(HT.lines.length + HT.talks.length >= 500, `おうちの 会話が 500 より すくない（${HT.lines.length}＋${HT.talks.length}）`);
-  ok(HT.talks.length >= 80, `おうちの かけあいが 80 より すくない（${HT.talks.length}。UI-45）`);
+  ok(HT.talks.length >= 160, `おうちの かけあいが 160 より すくない（${HT.talks.length}。UI-45 で 80・UI-107 で 倍に）`);
+  const withParents = HT.talks.filter((t) => t.turns.some((x) => x.who === "papa" || x.who === "mama")).length;
+  ok(withParents >= 60 && HT.talks.length - withParents >= 100, `ぱぱ・ままとの かけあい 60・3人の かけあい 100 より すくない（${withParents}・${HT.talks.length - withParents}。UI-107）`);
   const texts = new Set(), ids = new Set();
   for (const l of HT.lines) {
     ok(!ids.has(l.id), `おうちの セリフの id ${l.id} が かさなる`); ids.add(l.id);

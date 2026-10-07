@@ -186,6 +186,7 @@ const PokaDebug = {
       "PokaDebug.displayShelves()            かざりだな（へやの たなと かざった もの・かべの たな・そうの 絵が よめたか・よるの あかり・かざる 画面）",
       "PokaDebug.playGoods()                 あそびどうぐ・ほん・ドリル（しゅるいごとの かず・コンビニと けいひん カウンターの しなぞろえ・3人が もって いる もの・絵に でて いるか）",
       "PokaDebug.playHold('wanko','pg_cards') その 子に もたせる（null で はずす・もって いなければ 1こ たす）",
+      "PokaDebug.homeChat(20)                ふだんの かけあいを 20かい えらぶ（id・ぱぱ ままが でる かず。ふたりが いない ときは でない）",
       "PokaDebug.homePlay()                  おうちで あそぶ・よむ・しゅくだい の ようす（あつまる／あそぶ／おわり・しゅるい・もって いる 子・ならび・うごき・会話・3人）",
       "PokaDebug.homePlayStart('wanko','pg_cards') その 子が もって いる もので はじめる（id で もたせてから・3つめに びょうを わたすと じぶんたちで はじめる まで）",
       "PokaDebug.homePlayNext(5)             あそびを 5びょう すすめる（ゲームを とめた ままでも）",
@@ -454,6 +455,8 @@ const PokaDebug = {
   homeTalkLog() {return G.sceneName==='house'?G.scene.life.log.map(x=>({...x})):[];},
   // かけあいを 1つ 流す（HOME_TALK_DATA.talks の id）
   homeTalk(id) {if(G.sceneName!=='house')return false;return HomeLife.playTalk(G.scene,HomeLife.talkById(id));},
+  // ふだんの かけあいを n かい えらぶ（HomeLife.chat。ながさずに すぐ けす）。えらんだ かけあいの id と、ぱぱ・ままが でる ものの かず（UI-107: ふたりが いない ときは 0）
+  homeChat(n=20) {if(G.sceneName!=='house')return null;const sc=G.scene,ids=[];for(let i=0;i<n;i++){const last=sc.life.log.at(-1);HomeLife.chat(sc);const t=sc.life.log.at(-1);ids.push(t&&t!==last&&t.talk?t.talk:null);Object.assign(sc.life,{queue:[],bubbles:[]});}const D=HomeLife.data(),par=ids.filter(id=>{const t=id&&D.talks.find(x=>x.id===id);return !!t&&t.turns.some(x=>x.who==='papa'||x.who==='mama');}).length;return {ids,parents:par,here:sc.parents.filter(p=>!p.hidden).map(p=>p.id),phase:sc.work?sc.work.phase:null};},
   // ごわがの おねがい（js/gowaga-wish.js・UI-46）: いまの おねがい・かなえた かず・きろく・きいて いる か・あまえる のこり・いる ばしょ・おねだり（UI-88: begs・beg〔館の この かいの ようす〕・begHere）
   wish() {
     if(typeof GowagaWish==='undefined')return null;
