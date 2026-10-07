@@ -669,7 +669,7 @@ const ArcadeArt = (() => {
       if (f.action === "fitting") { sc.busy = true; try { await MeeFitting.open(); } finally { sc.busy = false; } return true; }
       // ガチャガチャ（js/gacha.js）: 200コインで まわす → カプセル → フィギュアか 服
       if (f.action === "gacha") { sc.busy = true; try { await Gacha.open(f.series ?? f.variant ?? 0); } finally { sc.busy = false; } return true; }
-      if (f.action === "counter") { sc.busy = true; try { const i = await UI.ask("けいひん カウンター\nとった けいひんは もちものに はいるよ。\nまえの けいひんも コインで こうかん できるよ。", ["まえの けいひんを みる", "コインの けいひんの きまり", "やめておく"]); if (i === 0) await ShopUI.open("ike_arcade"); else if (i === 1) await UI.say([{ name: "てんいん", text: `コインの けいひんは 1にち ${ArcadePrizes.COIN_DAY_MAX}コイン まで。\nきょうは あと ${ArcadePrizes.coinLeft()}コイン とれるよ。` }]); } finally { sc.busy = false; } return true; }
+      if (f.action === "counter") { sc.busy = true; try { const toy = typeof PlayGoods !== "undefined", opts = [...(toy ? ["おもちゃを みる"] : []), "まえの けいひんを みる", "コインの けいひんの きまり", "やめておく"], i = opts[await UI.ask(toy ? "けいひん カウンター\nとった けいひんは もちものに はいるよ。\nおもちゃや まえの けいひんも コインで こうかん できるよ。" : "けいひん カウンター\nとった けいひんは もちものに はいるよ。\nまえの けいひんも コインで こうかん できるよ。", opts)]; if (i === "おもちゃを みる") await ShopUI.open("ike_arcade", "toy"); else if (i === "まえの けいひんを みる") await ShopUI.open("ike_arcade"); else if (i === "コインの けいひんの きまり") await UI.say([{ name: "てんいん", text: `コインの けいひんは 1にち ${ArcadePrizes.COIN_DAY_MAX}コイン まで。\nきょうは あと ${ArcadePrizes.coinLeft()}コイン とれるよ。` }]); } finally { sc.busy = false; } return true; }
       return false;
     },
     // あるく おきゃくさん（MallArt の crowd。すいぞくかんの しかけは よばない）

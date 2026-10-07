@@ -112,7 +112,9 @@ const ShopUI = {
     if (it.desc) info.push(it.desc);
     if (it.st) info.push(Object.entries(it.st).map(([k, v]) => `${{ atk: "こうげき", def: "ぼうぎょ", spd: "すばやさ", hp: "HP", sp: "SP" }[k]} ${v > 0 ? "+" : ""}${v}`).join(" ／ "));
     if (it.perk) info.push("とくせい: " + PERK_TEXT[it.perk]);
-    if (kind === "wear") info.push(`1こで ひとり きられるよ（もってる: ${WearStock.count(it.id)}こ）`);
+    // ことば: ふくは「きる」。もつ もの（あそびどうぐ・ほん・ドリル。js/play-goods.js）は it.use の「もつ」
+    const use = it.use || { can: "きられる", ask: "きる", yes: "きる！", say: "にあう？" };
+    if (kind === "wear") info.push(`1こで ひとり ${use.can}よ（もってる: ${WearStock.count(it.id)}こ）`);
     if (it.comfort) info.push(`いごこち +${it.comfort}`);
     if (it.hunger) info.push(`おなか +${it.hunger}` + (it.mood ? ` ／ ごきげん ${it.mood > 0 ? "+" : ""}${it.mood}` : ""));
     // おみせの ひとこと（バーガーやさんの おまけの おもちゃ など。js/burger-menu.js）
@@ -160,14 +162,14 @@ const ShopUI = {
       m.close();
       onBuy();
       if (kind === "wear") {
-        if (await UI.confirm(`「${it.name}」を ${qty > 1 ? qty + "こ " : ""}かったよ！\n${Save.d.chars[who].name}が いま きる？`, "きる！", "あとで")) {
+        if (await UI.confirm(`「${it.name}」を ${qty > 1 ? qty + "こ " : ""}かったよ！\n${Save.d.chars[who].name}が いま ${use.ask}？`, use.yes, "あとで")) {
           // あたまは 2つ まで（UI-43）: いま つけて いる ものと あえば 2つめに。あわない ものは とりかえる
           const o = Save.d.chars[who].outfit, p = it.slot === "head" ? HeadPair.plan(o, it.id) : null;
           if (p) for (const s of p.drop) o[s] = null;
           WearStock.put(who, p ? p.slot : it.slot, it.id);
           Save.care(who, { mood: 6, bond: 1 }); Save.write();
           Save.mark();
-          UI.toast(`${Save.d.chars[who].name}「にあう？」`, "good");
+          UI.toast(`${Save.d.chars[who].name}「${use.say}」`, "good");
         }
       } else if (kind === "furn" || kind === "wall" || kind === "floor") UI.toast("おうちの「もようがえ」で つかえるよ", "good");
       else UI.toast(`${it.name}を ${qty}こ かった！`, "good");
