@@ -13,9 +13,9 @@ const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
 const ids = (svg) => [...svg.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
 
-// ---- 1. だい 7しゅ（UI-93 で 5しゅ たした）----
-const STANDS = Object.keys(FS.STANDS), SLOTS = { figstand_step: 9, figstand_case: 9, figstand_cube: 9, figstand_house: 9, figstand_acryl: 6, figstand_turn: 6, figstand_tower: 12 };
-ok(STANDS.join() === Object.keys(SLOTS).join(), "だいは ひなだん・ガラスの ケース・キューブ・おうち・アクリル・ターンテーブル・タワー " + STANDS.join());
+// ---- 1. だい 7しゅ（UI-93 で 5しゅ たした）。UI-104 の かざりだな 8しゅ（js/display-shelves.js）は tools/check-display-shelves.mjs で みる ----
+const ALL = Object.keys(FS.STANDS), STANDS = ALL.filter((id) => !R.DisplayShelves.isShelf(id)), SLOTS = { figstand_step: 9, figstand_case: 9, figstand_cube: 9, figstand_house: 9, figstand_acryl: 6, figstand_turn: 6, figstand_tower: 12 };
+ok(STANDS.join() === Object.keys(SLOTS).join() && ALL.join() === [...STANDS, ...R.DisplayShelves.IDS].join(), "だいは ひなだん・ガラスの ケース・キューブ・おうち・アクリル・ターンテーブル・タワー（＋かざりだな） " + STANDS.join());
 ok(new Set(STANDS.map((id) => FS.STANDS[id].name)).size === STANDS.length, "だいの なまえが かさなる");
 for (const id of STANDS) {
   const S = FS.STANDS[id], f = FURN_INDEX[id], N = SLOTS[id];
