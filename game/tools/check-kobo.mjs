@@ -58,7 +58,7 @@ svgOk(SIGN_ICON.kobo(0, 0), "かんばんの しるし");
   const b = MAP_DEFS.town.buildings.find((x) => x.id === "nerikasu_home2");
   ok(b && b.act.type === "work" && b.act.shop === "kobo" && b.label === "パズル こうぼう" && b.asset === "nerikasu.bld_nerikasu_home2" && b.sign === "kobo", "ネリカスタウンの お店（nerikasu_home2）");
 }
-ok(ShopRewards.prizes.filter((p) => p.shop === "kobo").map((p) => p.id).join() === "shop_kobo_5,shop_kobo_10,shop_kobo_15,shop_kobo_30", "ごほうびの かぐ 4つ");
+ok(ShopRewards.prizes.filter((p) => p.shop === "kobo").map((p) => p.id).join() === "shop_kobo_5,shop_kobo_10,shop_kobo_15,shop_kobo_30,shop_kobo_40,shop_kobo_50", "ごほうびの かぐ 6つ（Lv40・50 は UI-109）");
 
 // ---- 2. えらぶ・せつめい ----
 // 大人むけの ゲーム（adult。ナンプレ）は 漢字かな まじりで よい（AGENTS.md の 5。2026-10-04）。ほかの 3しゅは ひらがな

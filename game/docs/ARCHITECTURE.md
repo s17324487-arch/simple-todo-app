@@ -213,7 +213,8 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `keiba-rules.js` → `keiba-race.js` → `keiba-art.js` → `keiba-ui.js` → `keiba-scene.js` → `keiba-corner.js`（kaden-stickers.js の あと） | `KeibaRules`（ばけんの きまり）／ `KeibaRace`（ばんぐみ・うま・けっか・はしりかた）／ `KeibaArt`（うま・ちゅうけいの 絵）／ `KeibaUI`（まど）／ `KeibaScene`（`SCENES.keiba`・`SONGS.keiba_fanfare`）／ `KeibaCorner`（セーブ・10F の コーナー・UI-58。さいごで `install()`） |
 | — | `kaden-items.js` → `kaden-live.js` → `kaden-hall-art.js` → `kaden-hall.js`（fashion-scene.js の あと・item-dex-sources.js の まえ。mall-art.js・ike-mall.js・shop-reward-art.js・ikebukuro-district.js より あと） | `KadenItems`（家電の 立体・なまえ）／ `KadenLive`（おうちで さわる うごき）／ `KadenHallArt`（内装の 絵）／ `KadenHall`（ネリカス でんきの 4かいの 館・UI-56。さいごで `KadenHall.install()`） |
 | — | `furn-tray.js`（home-floors.js の あと） | `FurnTray`（もようがえの 一覧を ひろげる・さがす・ならびかえ・しゅるい・UI-37） |
-| — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび 44この 立体と さわる うごき・UI-38） |
+| — | `shop-reward-art.js`（shop-rewards.js の あと） | `ShopRewardArt`（おてつだいの ごほうび Lv5〜30 の 52この 立体と さわる うごき・UI-38。`liveKit`） |
+| — | `shop-reward-art-more.js`（shop-reward-art.js の すぐ あと） | `ShopRewardArtMore`（おてつだいの ごほうび Lv40・50 の 26この 立体と さわる うごき・UI-109） |
 | — | `rug-lamp.js`（shop-reward-art.js の あと・slow-life-prices.js の まえ） | `RugLamp`（かぐやの ラグ 8 と ランプ 8・UI-39） |
 | — | `room-styles.js`（shop.js・home-design.js の あと・slow-life-prices.js の まえ） | `RoomStyles`（かべがみ 15・ゆか 15〔かわいい・かっこいい・コンセプト × 5〕と もようの 絵・かぐやの ならびと ふだ・UI-90） |
 | — | `furniture-collection.js`（slow-life-prices.js・quiz-prizes.js の あと） | `FurnCollection`（あき・ふゆの かぐ 4・ひがわり 20・クイズの だんろ・UI-40） |
@@ -941,13 +942,18 @@ CIは両ブラウザの全シナリオを6分割し（4分割では 1ジョブ 2
 テスト専用のPlaywrightを1.63.0へ更新。旧1.56.1のLinux WebKitで描画プロセスのクラッシュが複数発生したため、ブラウザの診断ログも保存する。ゲームの実行時依存や保存データは変わらない。
 
 ### おてつだいのレベル報酬
-`shop-rewards.js` の ShopRewards が 11店舗×Lv5/10/15/30 の非売品家具 44種を登録する（`ITEMS` の [なまえ, せつめい, はば, おくゆき, たかさ, しゅるい, そのほか]。id は `shop_<店>_<Lv>`）。SHOP_LV_REPは旧Lv1〜5の値を保ち、Lv6〜50の必要評判を追加（Lv6 から 前の Lv ＋ 200 ＋ Lv×40。Lv30 は 24600・Lv50 は 61000。UI-108 で 31〜50 を おなじ 式で 追加し、Lv1〜30 は 変えない）。ShopSceneの表示・育成はLv50まで、workLv（注文の むずかしさ）はLv5まで。コインは `GameEconomy.pay(shop, lv, rank, mode)` に ほんとうの Lv を わたし、Lv5 までの のび（+28% ずつ）に Lv6 からの `lvBonus`（1レベル +2%）を かける（チップの もと `GameEconomy.unit` も おなじ）。けっかの まどに「おみせ Lv.N の ボーナス +X%」の ぎょう・レベルが あがった ときの ことばは `ShopRewards.upText(shop, lv)`（Lv6 から コインの ％ と つぎの ごほうび）。
+`shop-rewards.js` の ShopRewards が 13店舗×Lv5/10/15/30/40/50 の非売品家具 78種を登録する（UI-38 で 11店舗×4 の 44種・UI-64・65 で 52種・UI-109 で Lv40・50 を たして 78種）（`ITEMS` の [なまえ, せつめい, はば, おくゆき, たかさ, しゅるい, そのほか]。id は `shop_<店>_<Lv>`）。SHOP_LV_REPは旧Lv1〜5の値を保ち、Lv6〜50の必要評判を追加（Lv6 から 前の Lv ＋ 200 ＋ Lv×40。Lv30 は 24600・Lv50 は 61000。UI-108 で 31〜50 を おなじ 式で 追加し、Lv1〜30 は 変えない）。ShopSceneの表示・育成はLv50まで、workLv（注文の むずかしさ）はLv5まで。コインは `GameEconomy.pay(shop, lv, rank, mode)` に ほんとうの Lv を わたし、Lv5 までの のび（+28% ずつ）に Lv6 からの `lvBonus`（1レベル +2%）を かける（チップの もと `GameEconomy.unit` も おなじ）。けっかの まどに「おみせ Lv.N の ボーナス +X%」の ぎょう・レベルが あがった ときの ことばは `ShopRewards.upText(shop, lv)`（Lv6 から コインの ％ と つぎの ごほうび）。
 Save.fresh().shopRewardsは受け取った家具IDの真偽値。結果画面で到達した節目を自動配布し、すまほの「ごほうび」で既存プレイヤーも過去の評判に応じた報酬を受け取れる。家具と受取記録を同時保存し、コインには触れない。Save.KEY/SCHEMAは維持。PokaDebug.shopRewards(shop)/shopRewardClaim(shop)/shopRewardOpen(shop)とshop(shop,30)、mg().workLvで検証する。
 
 UI-38（2026-10-01）で 44種の絵を 店ごとに ちがう 立体に 作り直した。`shop-reward-art.js` の `ShopRewardArt` が `FurnModels.register` で 44の 立体を、`FurnLive.register` で さわる うごきを 登録する（`HomeDesign.model` は `FurnModels.has(id)` を 先に みるので、`shopPrize` の 古い 描きかたは つかわれない。`scene-house.js` の `ShopRewardArt.draw()` の よびだしは けした）。
 - あかり 8: `lamp()`（`isOn` は `st.on` か よる・`draw` は ひかる ところ・`light()` は くらさの うえに へやを てらす）。ネオンの カウンターも おなじ。
 - live 7: 立体の 中の `L()`（`opts.live` の とき ぬく）を FurnLive が 毎フレーム canvas に 描く（シェイクの カップ・サインポールの しま〔見える はんぶん −45°〜135°〕・ブランコ・プロペラ・メーターの はり・ミニカー・とけいの はりと かね）。
 - ほか: `simple()`（ひとこと・おと・こうか `FXS`）と 店ごとの うごき。よるの まどの あかりは `light()`（くらさの あと）で 描く。SvgCache は つかわない。
+
+UI-109（2026-10-07）で Lv40・50 の 26種を たした。`shop-reward-art-more.js` の `ShopRewardArtMore`（shop-reward-art.js の すぐ あとに よむ）が `FurnModels.register` で 26の 立体を、`ShopRewardArt.liveKit` を つかって `FurnLive.register` で さわる うごきを 登録する。
+- あかり 5: `lamp()` と ジュークボックス（にじいろが まわる）。ケーキの おしろは `lamp()` の `extra` で ろうそくの ほのおを 描く。
+- live 6: メリーゴーランド（`CAROUSEL`。やねの まえの ふちより うえは clip で かかない）・かんらんしゃ（`WHEEL`。見る 人の ほうを むく ななめの 面 `wheelPt`）・ふうしゃ（`MILL`）・ひこうせんの プロペラ（`AIRPROP`）・せんしゃきの ブラシ（`WASH`。みぎの はしらの まえは evenodd の clip で かかない）・からくり どけい（`CLOCK`・`GEARS`）。まわる かくは `st.ang`（`spin`: いつもは ゆっくり・タップの あと 3びょう はやく。`FurnLive.state(it).ang`）。
+- 小さな 絵（かざり 6・ゴンドラ 4）は SvgCache に しゅるいごと 1つ（`srmore:acc0`〜・`srmore:gon0`〜。おおきさ きまり・`init` で さきに よむ）。
 - 検査は `tools/check-shop-rewards.mjs`、スモークは `shop-prize-touch` と `shop-rewards`。
 
 ### ラグと ランプ（UI-39・`js/rug-lamp.js`）

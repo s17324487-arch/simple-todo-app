@@ -43,7 +43,9 @@ export async function furnTraySmoke({ scenario, expect }) {
     // なまえで さがす（ひらがなで カタカナも みつかる・みつからない ときの ことば）
     await pick('ぜんぶ');
     await H.page.fill('.ft-q', 'そふぁ'); await H.wait(250); t = await tray();
-    expect(t.cards >= 3 && t.names.slice(0, t.cards).every((n) => /ソファ/.test(n)) && t.names.includes('ふかふかソファ') && t.names.includes('くもいろ ソファ'), 'なまえで さがす（そふぁ → ソファ） ' + JSON.stringify(t.names));
+    // furnTray の names は さいしょの 12こ だけ。ソファが ふえても いい よう、みつかった カード ぜんぶの なまえで みる（UI-109 で ソファが 4つ ふえた）
+    const sofas = await H.eval(() => [...document.querySelectorAll('.edit-bar .tray .card .nm')].map((n) => n.textContent));
+    expect(t.cards >= 3 && sofas.length === t.cards && sofas.every((n) => /ソファ/.test(n)) && sofas.includes('ふかふかソファ') && sofas.includes('くもいろ ソファ'), 'なまえで さがす（そふぁ → ソファ） ' + JSON.stringify(sofas));
     await H.shot('search');
     await H.page.fill('.ft-q', 'ぞうさんの ろけっと'); await H.wait(250); t = await tray();
     expect(t.cards === 0 && /みつからない/.test(await H.eval(() => document.querySelector('.ft-none')?.textContent || '')), 'みつからない ときの ことば');

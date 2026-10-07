@@ -2736,7 +2736,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   await H.dbg("shopRewardOpen","crepe");const cards=H.page.locator(".shop-prize-card");await cards.last().scrollIntoViewIfNeeded();await H.shot("level30");
   expect(await H.eval(()=>document.documentElement.scrollWidth<=innerWidth),"横にはみ出す");
   await H.page.getByRole("button",{name:"とじる",exact:true}).last().click();
-  const rows=(await H.dbg("shopRewards","crepe")).rows;await H.dbg("homeLayout",rows.map((p,i)=>({id:p.id,x:[80,390,130,360][i],y:[330,360,560,585][i]})));await H.wait(700);await H.shot("rare-room");
+  const rows=(await H.dbg("shopRewards","crepe")).rows;await H.dbg("homeLayout",rows.slice(0,4).map((p,i)=>({id:p.id,x:[80,390,130,360][i],y:[330,360,560,585][i]})));await H.wait(700);await H.shot("rare-room");
   await H.dbg("pause",false);
   if(viewport.width===390){
     const step=await H.dbg("saveData");step.shops.crepe={lv:4,rep:1599,plays:1,best:0};delete step.shopRewards.shop_crepe_5;delete step.furn.shop_crepe_5;
@@ -2782,10 +2782,10 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
     }
     await H.shot("day-"+(i+1));
   }
-  // ごほうびの がめん: 4つの 立体の 絵と「さわると うごく」
+  // ごほうびの がめん: 6つ（Lv5・10・15・30・40・50。Lv40・50 は UI-109）の 立体の 絵と「さわると うごく」
   await H.dbg("shopRewardOpen","gasstand");
   const pics=await H.eval(()=>[...document.querySelectorAll(".shop-prize-picture svg")].map(s=>{const r=s.getBoundingClientRect();return r.width>20&&r.height>20;}));
-  expect(pics.length===4&&pics.every(Boolean),"ごほうびの 絵が 4つ でない "+JSON.stringify(pics));
+  expect(pics.length===6&&pics.every(Boolean),"ごほうびの 絵が 6つ でない "+JSON.stringify(pics));
   expect(await H.eval(()=>/さわると うごく/.test(document.querySelector(".modal-wrap:last-of-type")?.textContent||"")),"ごほうびの がめんに さわると うごく の せつめいが ない");
   expect(await H.eval(()=>document.documentElement.scrollWidth<=innerWidth),"ごほうびの がめんが 横に はみ出す");
   await H.shot("prize-list");
@@ -4510,6 +4510,8 @@ await (await import("./home-play-smoke.mjs")).homePlaySmoke({scenario,expect});
 await (await import("./home-talk-family-smoke.mjs")).homeTalkFamilySmoke({scenario,expect});
 // UI-108: おてつだいの おみせ Lv は 50 まで・Lv.6 から コインが すこしずつ ふえる（tests/shop-lv50-smoke.mjs）
 await (await import("./shop-lv50-smoke.mjs")).shopLv50Smoke({scenario,expect});
+// UI-109: おてつだいの ごほうび Lv40・50 の 26こ（tests/shop-prize-lv50-smoke.mjs）
+await (await import("./shop-prize-lv50-smoke.mjs")).shopPrizeLv50Smoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 // オンライン（E5・UI-94。18さい いじょうの 同意・にせの Firebase で スコアの ランキング。くわしくは tests/online-smoke.mjs）

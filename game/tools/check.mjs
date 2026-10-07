@@ -1179,9 +1179,9 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
     for(const shop of Object.keys(ShopRewards.themes)){
       for(const lv of [4,5,9,10,14,15,29,30,31,39,40,49,50]){
         Save.d.shops[shop]={lv:1,rep:SHOP_LV_REP[lv]};
-        boundaries=boundaries&&ShopRewards.level(Save.d.shops[shop])===lv&&ShopRewards.rows(shop).filter(p=>p.ready).length===[5,10,15,30].filter(n=>n<=lv).length;
+        boundaries=boundaries&&ShopRewards.level(Save.d.shops[shop])===lv&&ShopRewards.rows(shop).filter(p=>p.ready).length===ShopRewards.levels.filter(n=>n<=lv).length;
       }
-      const a=ShopRewards.claim(shop),b=ShopRewards.claim(shop);once=once&&a.length===4&&b.length===0&&a.every(p=>Save.d.furn[p.id]===1);
+      const a=ShopRewards.claim(shop),b=ShopRewards.claim(shop);once=once&&a.length===6&&b.length===0&&a.every(p=>Save.d.furn[p.id]===1);
     }
     // おみせ Lv.50 で とまる（ひょうばんが もっと あっても）
     Save.d.shops.crepe={lv:1,rep:SHOP_LV_REP[50]*3};const top=ShopRewards.level(Save.d.shops.crepe)===50&&ShopRewards.maxLevel===50&&GameEconomy.lvMax===ShopRewards.maxLevel;
@@ -1196,12 +1196,13 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
       &&GameEconomy.lvBonusPct(5)===0&&GameEconomy.lvBonusPct(6)===2&&GameEconomy.lvBonusPct(30)===50&&GameEconomy.lvBonusPct(50)===90
       &&GameEconomy.pay("crepe",5,3)===45&&GameEconomy.pay("crepe",30,3)===67&&GameEconomy.pay("crepe",50,3)===85&&GameEconomy.pay("range",1,3)===90
       &&Math.abs(GameEconomy.unit("crepe",30)-GameEconomy.unit("crepe",5)*1.5)<1e-9;
-    const up=ShopRewards.upText("crepe",3)==="ちゅうもんが むずかしく なって、コインも ふえるよ。"&&ShopRewards.upText("crepe",6)==="もらえる コインが すこし ふえたよ（+2%）。つぎの ごほうびは Lv.10！"&&ShopRewards.upText("crepe",50)==="もらえる コインが すこし ふえたよ（+90%）。さいこうの レベルだよ！";
+    const up=ShopRewards.upText("crepe",3)==="ちゅうもんが むずかしく なって、コインも ふえるよ。"&&ShopRewards.upText("crepe",6)==="もらえる コインが すこし ふえたよ（+2%）。つぎの ごほうびは Lv.10！"&&ShopRewards.upText("crepe",50)==="もらえる コインが すこし ふえたよ（+90%）。さいこうの レベルだよ！"
+      &&ShopRewards.upText("crepe",30)==="もらえる コインが すこし ふえたよ（+50%）。つぎの ごほうびは Lv.40！"&&ShopRewards.upText("crepe",45)==="もらえる コインが すこし ふえたよ（+80%）。つぎの ごほうびは Lv.50！";
     const preserved=Save.d.coins===987654,ledger=Object.keys(Save.d.shopRewards).length;
     Save.d=prior;return {valid,boundaries,once,preserved,ledger,cap,top,up,unique:new Set(ids).size,count:ids.length};
   })()`,ctx);
   for(const k of ["valid","boundaries","once","preserved","cap","top","up"])ok(rewards[k],"お店のレベル報酬: "+k);
-  ok(rewards.count===52&&rewards.unique===52&&rewards.ledger===52,"お店13種×4段階の非売品が一度ずつ");
+  ok(rewards.count===78&&rewards.unique===78&&rewards.ledger===78,"お店13種×6段階（Lv5・10・15・30・40・50）の非売品が一度ずつ");
 }
 
 // ---------- 水の 絵（川・海・湖。js/water-art.js）----------

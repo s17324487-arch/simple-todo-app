@@ -47,7 +47,7 @@ svgOk(SIGN_ICON.brain(0, 0), "かんばんの しるし");
   const b = MAP_DEFS.town.buildings.find((x) => x.id === "nerikasu_home6");
   ok(b && b.act.type === "work" && b.act.shop === "brain" && b.label === "あたまの たいそう" && b.asset === "nerikasu.bld_nerikasu_home6", "ネリカスタウンの お店（nerikasu_home6）");
 }
-ok(ShopRewards.prizes.filter((p) => p.shop === "brain").map((p) => p.id).join() === "shop_brain_5,shop_brain_10,shop_brain_15,shop_brain_30", "ごほうびの かぐ 4つ");
+ok(ShopRewards.prizes.filter((p) => p.shop === "brain").map((p) => p.id).join() === "shop_brain_5,shop_brain_10,shop_brain_15,shop_brain_30,shop_brain_40,shop_brain_50", "ごほうびの かぐ 6つ（Lv40・50 は UI-109）");
 
 // ---- 2. えらぶ・せつめい ----
 // 大人むけの ゲーム（adult。英語）は 漢字かな まじりで よい（AGENTS.md の 5。2026-10-04）。ほかの 3しゅは ひらがな

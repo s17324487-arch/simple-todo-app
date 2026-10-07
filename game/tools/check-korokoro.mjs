@@ -310,7 +310,7 @@ ok(Art.HERO.wanko.crop >= 1.33 && Art.HERO.gachan.crop >= 1.5 && Art.HERO.goji.c
   const song = R.SONGS.shop_korokoro;
   ok(song && song.modern && !kanji.test(song.title) && song.source && /Schumann/.test(song.source.composer) && song.source.license === "Public Domain", "BGM（パブリックドメインの 名曲・出典）");
   ok(R.MusicDiscs.DISCS.some((d) => d.from.shop === "korokoro" && d.song === "shop_korokoro"), "おてつだいの ディスク");
-  ok(R.ShopRewards.prizes.filter((p) => p.shop === "korokoro").length === 4, "おみせの ごほうび 4つ");
+  ok(R.ShopRewards.prizes.filter((p) => p.shop === "korokoro").length === 6, "おみせの ごほうび 6つ（Lv40・50 は UI-109）");
 }
 
 // ---- 8. スコア モード（js/korokoro-score.js）: 本物の スイカゲームと おなじ きまり ----
