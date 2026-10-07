@@ -126,7 +126,7 @@ class StoreScene extends IsoVenueScene {
       const card=typeof ConbiniCard!=="undefined"&&ConbiniCard.talkChoice(this);
       const choices=[...(retail?["かいものを する"]:[]),...(kuji?[kuji.label]:[]),...(card?[card.label]:[]),...(sell?[sell]:[]),...(bones?[bones]:[]),...(pro?[pro]:[]),...(work?["おてつだいする"]:[]),"また あとで"];
       const fav=work&&typeof WorkExp!=="undefined"?WorkExp.favOf(this.shopId):null; // とくいな おてつだい（UI-68）
-      const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${ShopRewards.level(Save.d.shops[this.shopId])}${fav?`\n★ ${Save.d.chars[fav].name}の とくいな おてつだい`:""}`;
+      const text=retail?retail.hello[0]:`${work.desc}。\nおみせ Lv.${ShopRewards.level(Save.d.shops[this.shopId])}${GameEconomy.lvBonusPct(ShopRewards.level(Save.d.shops[this.shopId]))?`・コイン +${GameEconomy.lvBonusPct(ShopRewards.level(Save.d.shops[this.shopId]))}%`:""}${fav?`\n★ ${Save.d.chars[fav].name}の とくいな おてつだい`:""}`;
       const answer=await UI.ask(`${this.owner.name}\n${text}`,choices),picked=choices[answer];
       if(this.closed)return;
       if(retail&&picked==="かいものを する"){await ShopUI.open(this.shopId);Save.write();}

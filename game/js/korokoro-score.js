@@ -42,8 +42,8 @@ const KorokoroScore = {
     for (let i = 0; i < KOROKORO_TIERS.length; i++) if (made[i] > 0) t = i;
     return made.burst > 0 ? KOROKORO_TIERS.length - 1 : t;
   },
-  // コイン: スコアの 1/6（上限 400）× あそびかた（のんびり・ふつう・むずかしい）× きょうの おすすめ
-  pay(score, mode = "normal", boost = 1) { return Math.round(Math.min(KOROKORO_SCORE.coinMax, Math.floor(Math.max(0, score) / KOROKORO_SCORE.coinDiv)) * GameEconomy.mode(mode).reward * boost); },
+  // コイン: スコアの 1/6（上限 400）× あそびかた（のんびり・ふつう・むずかしい）× きょうの おすすめ × おみせ Lv の ボーナス（Lv.6 から。js/economy.js・UI-108）
+  pay(score, mode = "normal", boost = 1, lv = 1) { return Math.round(Math.min(KOROKORO_SCORE.coinMax, Math.floor(Math.max(0, score) / KOROKORO_SCORE.coinDiv)) * GameEconomy.mode(mode).reward * boost * GameEconomy.lvBonus(lv)); },
   rep(score) { return Math.min(KOROKORO_SCORE.repMax, Math.floor(Math.max(0, score) / KOROKORO_SCORE.repDiv)); },
   // 3人の まばたき（ひとりずつ ちがう 間かく・0.14びょう）
   blinkAt(t, i) { const T = 3.1 + i * 0.55; return ((t + i * 1.27) % T) < 0.14; },
@@ -173,7 +173,7 @@ const KorokoroScore = {
 class KorokoroScoreScene {
   async enter(p = {}) {
     this.back = { ...(p.back || { map: "town", x: 12, y: 21, dir: "down" }) };
-    this.st = Save.d.shops.korokoro; this.hi0 = this.st.hi || 0;
+    this.st = Save.d.shops.korokoro; this.hi0 = this.st.hi || 0; this.lv = ShopRewards.level(this.st); // はじめた ときの おみせ Lv（コインの ボーナス）
     this.phase = "intro"; this.closed = false; this.paid = false; this.stopAsked = false; this.recOpen = false; this.overT = 0; this.danger = false;
     this.idleT = 0; this.drops0 = 0; this.beat = false; // おとさない じかん（3人が ねむる）・ハイスコアを こえたか（3人で おおよろこび）
     this.difficulty = Save.d.settings.difficulty; this.dailyBoost = DailyPlay.boost("korokoro");
@@ -281,7 +281,7 @@ class KorokoroScoreScene {
     // ハイスコアの ごほうび: とくべつな かぐ（js/korokoro-prizes.js）
     const gifts = typeof KorokoroPrizes !== "undefined" ? KorokoroPrizes.claim(score) : [];
     const goods = collabOn ? CollabGoods.add("korokoro", score) : [];
-    const earned = KorokoroScore.pay(score, this.difficulty, this.dailyBoost), rep = KorokoroScore.rep(score), grade = KorokoroScore.grade(score);
+    const earned = KorokoroScore.pay(score, this.difficulty, this.dailyBoost, this.lv), rep = KorokoroScore.rep(score), grade = KorokoroScore.grade(score), pct = GameEconomy.lvBonusPct(this.lv);
     // きょう この おみせで もらった コインの きろく（js/shop-day-cap.js。ちゅうもん モードと おなじ おみせ korokoro・1にちの じょうげんは UI-83 で なくした）
     const coins = earned;
     Save.addCoins(coins); ShopDayCap.add("korokoro", coins); st.rep += rep;
@@ -299,6 +299,7 @@ class KorokoroScoreScene {
     rows.innerHTML = `<div class="r"><span>スコア</span><span><b>${U.fmt(score)}</b></span></div>
       <div class="r"><span>ハイスコア</span><span>${U.fmt(rec.hi)}</span></div>
       <div class="r"><span>もらった コイン</span><span><b>+${coins}</b></span></div>
+      ${pct ? `<div class="r shop-lv-bonus"><span>おみせ Lv.${this.lv}の ボーナス</span><span>+${pct}%</span></div>` : ""}
       <div class="r"><span>ひょうばん</span><span>+${rep}（${st.rep}${next ? " / " + next : ""}）</span></div>`;
     body.append(rows);
     for (const p of gifts) body.append(KorokoroScore.giftEl(p, true));
@@ -309,7 +310,7 @@ class KorokoroScoreScene {
     body.append(UI.btn("きろくと けいひんを みる", () => { Sound.se("ok"); KorokoroScore.openRecords("rec"); }, "wide koro-more"));
     const gojis = this.board.made[KOROKORO_TIERS.length - 1] || 0, bursts = this.board.made.burst || 0;
     if (gojis || bursts) body.append(U.el("div", { class: "note", text: `ごじを ${gojis}かい つくったよ${bursts ? `（ごじ どうしで ${bursts}かい きえた）` : ""}！` }));
-    if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！` }));
+    if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！${st.lv > 5 ? " " + ShopRewards.upText("korokoro", st.lv) : ""}` }));
     for (const p of prizes) body.append(U.el("div", { class: "note", text: `Lv.${p.level}の ごほうび！ 「${p.name}」を もらったよ。` }));
     for (const t of discs) body.append(U.el("div", { class: "note", text: t }));
     body.append(U.el("div", { class: "muted", text: `あそびかた: ${GameEconomy.mode(this.difficulty).name}` }));

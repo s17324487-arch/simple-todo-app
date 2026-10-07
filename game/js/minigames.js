@@ -81,6 +81,7 @@ class ShopScene {
     this.S = this.variant==='mac'?{...SHOPS[p.shop],name:'マックさん'}:SHOPS[p.shop]; this.st = Save.d.shops[p.shop];
     this.capKey = ShopDayCap.key(p.shop, p.variant, p.returnVenue && p.returnVenue.venue); // きょう この おみせで もらった コインの きろく（js/shop-day-cap.js）
     this.lv = ShopRewards.level(this.st); this.workLv = Math.min(5, this.lv); this.dailyBoost = DailyPlay.boost(this.shopId);
+    this.bonusPct = GameEconomy.lvBonusPct(this.lv); // おみせ Lv.6 から コインが すこしずつ ふえる（js/economy.js・UI-108）
     // えらんだ ゲームの クラス（パズル こうぼうの ナンプレ: full = 盤を 画面いっぱい・rounds = おきゃくさんの かず。js/mg-numpla.js）
     const TC = this.variant !== "mac" && typeof MG_TASKS[p.shop]?.classOf === "function" ? MG_TASKS[p.shop].classOf(p.variant) : null;
     this.full = !!TC?.full; this.resultNote = "";
@@ -156,7 +157,7 @@ class ShopScene {
     const first = !this.st.plays;
     const how = typeof HOWTO[this.shopId] === "function" ? HOWTO[this.shopId](this) : HOWTO[this.shopId]; // あたまの たいそう・パズル こうぼうは えらんだ ゲームの せつめい（js/mg-brain.js・js/mg-kobo.js）
     const game = typeof SHOP_GAMES !== "undefined" && SHOP_GAMES[this.shopId] && this.variant ? SHOP_GAMES[this.shopId].game(this.variant) : null; // えらんだ ゲームの ひとこと（ナンプレ）
-    const lines = this.variant==='mac' ? [...MacShop.howto] : first ? [...how] : [game?.hello ? game.hello(this) : `きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}）`];
+    const lines = this.variant==='mac' ? [...MacShop.howto] : first ? [...how] : [game?.hello ? game.hello(this) : `きょうも よろしくね！ おきゃくさんは ${this.total}にん。\n（おみせ Lv.${this.lv}${this.bonusPct ? `・コイン +${this.bonusPct}%` : ""}）`];
     if(this.dailyBoost>1)lines.push('きょうの おすすめ！ コインが '+DailyPlay.label(this.dailyBoost)+'だよ。');
     await UI.say(lines.map((text) => ({ name: this.owner.name, face, text })));
     if (this.closed) return;
@@ -206,8 +207,9 @@ class ShopScene {
     if (this.shopId === "florist") R.line = ["ちゅうもんと ちがう……", "うーん、まあまあかな", "きれい！ ありがとう！", "すてき！ さいこうの はなたば！"][rank];
     if (["link", "relay"].includes(this.shopId)) R.line = ["つぎは いっしょに がんばろう！", "もうすこし！", "たくさん あつまったね！", "すごい！ だいせいこう！"][rank];
     if (this.S.lines) R.line = this.S.lines[rank];
-    const base = GameEconomy.shopBase[this.shopId] * (1 + 0.28 * (this.workLv - 1)) * GameEconomy.mode(this.difficulty).reward;
-    let pay = GameEconomy.pay(this.shopId, this.workLv, rank, this.difficulty);
+    // おみせ Lv の ボーナス（Lv.6 から）は うりあげにも チップにも かかる（js/economy.js）
+    const base = GameEconomy.unit(this.shopId, this.lv, this.difficulty);
+    let pay = GameEconomy.pay(this.shopId, this.lv, rank, this.difficulty);
     if(this.variant==='mac'&&rank>=2)pay=Math.round(pay*1.4);
     // 1問が ながい ゲーム（ナンプレ）は じぶんで コインと ひょうばんを きめる（js/mg-numpla.js）
     if (this.task?.payFor) pay = this.task.payFor(rank);
@@ -269,6 +271,7 @@ class ShopScene {
     rows.innerHTML = `<div class="r"><span>◎ ${cnt[0]}　○ ${cnt[1]}　△ ${cnt[2]}　× ${cnt[3]}</span></div>
       <div class="r"><span>うりあげ</span><span>+${this.earn}</span></div>
       <div class="r"><span>チップ</span><span>+${this.tips}</span></div>
+      ${this.bonusPct ? `<div class="r shop-lv-bonus"><span>おみせ Lv.${this.lv}の ボーナス</span><span>+${this.bonusPct}%</span></div>` : ""}
       <div class="r"><span>もらった コイン</span><span><b>+${total}</b></span></div>
       ${scoreRec ? `<div class="r shop-points"><span>てんすう</span><span>${U.fmt(scoreRec.s)}${scoreRec.best ? "（じこベスト！）" : ""}</span></div>` : ""}
       <div class="r"><span>ひょうばん</span><span>+${this.rep}（${st.rep}${next ? " / " + next : ""}）</span></div>`;
@@ -277,7 +280,7 @@ class ShopScene {
     if (scoreRec && scoreRec.sent) body.append(U.el("div", { class: "note onl-sent", text: "みんなの ランキングに おくったよ（すまほの「みんな」）。" }));
     if (interrupted) body.append(U.el("div", { class: "note", text: this.task?.stopNote || `おわった ${this.ranks.length}にんぶんを うけとったよ。いまの ちゅうもんは ふくまれないよ。` }));
     body.append(U.el("div", { class: "muted", text: `あそびかた: ${GameEconomy.mode(this.difficulty).name}` }));
-    if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！ ${st.lv <= 5 ? "ちゅうもんが むずかしく なって、コインも ふえるよ。" : "つぎの ごほうびを めざそう！"}` }));
+    if (lvUp) body.append(U.el("div", { class: "note", text: `おみせが レベル${st.lv}に なった！ ${ShopRewards.upText(this.shopId, st.lv)}` }));
     for (const p of prizes) body.append(U.el("div", { class: "note", text: `Lv.${p.level}の ごほうび！ 「${p.name}」を もらったよ。` }));
     if (xp.some((r) => r.n)) body.append(U.el("div", { class: "wexp-box", html: `<div class="wexp-ttl">けいけんち</div>${WorkExp.html(xp)}` }));
     if (fraction) body.append(U.el("div", { class: "muted", style: "margin-top:8px", text: "はたらいたので おなかが すこし へった。" }));

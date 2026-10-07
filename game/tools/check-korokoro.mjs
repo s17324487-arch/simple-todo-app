@@ -379,6 +379,7 @@ let collabPlays = 0;
     ok(empty0 && empty1 && empty0 !== empty1 && Score.records().rows[0][1] === "ー" && [...texts, empty0, empty1].every((t) => typeof t === "string" && t && !kanji.test(t)), "きろくと けいひんの ことば（漢字なし）・まだ きろくが ない とき");
   } finally { R.Save.d = save0; }
   ok(Score.pay(0) === 0 && Score.pay(600) === 100 && Score.pay(10000) === SCORE.coinMax && Score.pay(600, "easy") < Score.pay(600) && Score.pay(600, "hard") > Score.pay(600) && Score.pay(600, "normal", 1.2) === 120, "スコア モードの コイン");
+  ok(Score.pay(600, "normal", 1, 5) === 100 && Score.pay(600, "normal", 1, 30) === 150 && Score.pay(10000, "normal", 1, 50) === Math.round(SCORE.coinMax * 1.9), "スコア モードも おみせ Lv の ボーナス（Lv.6 から +2%・上限の あと・UI-108）");
   ok(Score.rep(0) === 0 && Score.rep(550) === 5 && Score.rep(99999) === SCORE.repMax && Score.grade(0) === 0 && Score.grade(400) === 2 && Score.grade(5000) === 3, "ひょうばん・めやす（×△○◎）");
   // ボット: どれも いつかは おしまいに なる・かんがえて おとす ほど 点が たかい（こどもの はやさ）
   const scoreGame = (seed, { every, noise, silly }, o = Score.board()) => {

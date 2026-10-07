@@ -2,9 +2,11 @@
 // UI-38（オーナーの FB 2026-10-01「ごほうびの景品の品質が低い。全面的に差し替えて」）: 11の おみせ × 4だん（Lv5・10・15・30）＝ 44こを（UI-64・65 で あたまの たいそう・パズル こうぼうの 4こずつを たして 52こ）、
 // おみせごとに ちがう 家具に 作りなおした（まえは 4つの 形に しるしを かえた だけ）。id（shop_<おみせ>_<レベル>）・うけとりの きろく（Save.d.shopRewards）・
 // もらいかたは そのまま。立体の 絵と さわった ときの うごき（あかりが つく・ゆれる・まわる など）は js/shop-reward-art.js（ShopRewardArt）。
+// UI-108（オーナーの 指示 2026-10-07「お店のお手伝いのレベル上限をあげて。50くらいまで。」）: おみせ Lv は 50 まで（まえは 30）。
+// ひょうばんの しきいは まえと おなじ しきで 31〜50 を たす（Lv.1〜30 の しきいは かわらない）。Lv.6 からの コインの ふえかたは js/economy.js（GameEconomy.lvBonus）。
 const ShopRewards = {
   levels: [5, 10, 15, 30],
-  maxLevel: 30,
+  maxLevel: 50,
   themes: {
     burger: { name: "バーガー", color: "#EDB56F" },
     groom: { name: "びようしつ", color: "#C7B3DD" },
@@ -116,6 +118,12 @@ const ShopRewards = {
     const lv = this.level(st), claimed = Save.d.shopRewards;
     return this.prizes.filter(p => p.shop === shop).map(p => ({ ...p, ready: lv >= p.level, claimed: !!claimed[p.id] }));
   },
+  // レベルが あがった ときの ひとこと（けっかの まど）: Lv.5 までは むずかしさと コイン・Lv.6 からは コインの ボーナスと つぎの ごほうび（UI-108）
+  upText(shop, lv) {
+    if (lv <= 5) return "ちゅうもんが むずかしく なって、コインも ふえるよ。";
+    const pct = typeof GameEconomy !== "undefined" ? GameEconomy.lvBonusPct(lv) : 0, next = this.prizes.find((p) => p.shop === shop && p.level > lv);
+    return `もらえる コインが すこし ふえたよ（+${pct}%）。` + (next ? `つぎの ごほうびは Lv.${next.level}！` : lv >= this.maxLevel ? "さいこうの レベルだよ！" : "");
+  },
   claim(shop) {
     const rows = this.rows(shop).filter(p => p.ready && !p.claimed);
     for (const p of rows) {
@@ -134,7 +142,9 @@ const ShopRewards = {
     const render = () => {
       const shop = select.value, rows = this.rows(shop), lv = this.level(Save.d.shops[shop]);
       content.replaceChildren();
-      content.append(U.el("div", { class: "note", text: `おみせ Lv.${lv} ／ 30　ひょうばん ${Save.d.shops[shop].rep}${lv < 30 ? " / " + SHOP_LV_REP[lv + 1] : ""}` }));
+      const pct = typeof GameEconomy !== "undefined" ? GameEconomy.lvBonusPct(lv) : 0;
+      content.append(U.el("div", { class: "note", text: `おみせ Lv.${lv} ／ ${this.maxLevel}　ひょうばん ${Save.d.shops[shop].rep}${lv < this.maxLevel ? " / " + SHOP_LV_REP[lv + 1] : ""}` }));
+      if (pct > 0) content.append(U.el("div", { class: "note shop-lv-bonus", text: `おみせ Lv.${lv}の ボーナス: もらえる コインが +${pct}%` }));
       const claim = UI.btn("ごほうびを うけとる", () => { const got = this.claim(shop); if (got.length) { Sound.se("fanfare"); UI.toast(`${got.length}こ の かぐを もらったよ！`); } render(); }, "wide yellow");
       claim.disabled = !rows.some(p => p.ready && !p.claimed); content.append(claim);
       for (const p of rows) {
@@ -151,7 +161,7 @@ const ShopRewards = {
   },
 };
 
-// 5以降は収入・注文の難しさを据え置き、評判による長期目標を増やす。
+// 5以降は注文の難しさを据え置き、評判による長期目標を増やす（コインは Lv.6 から すこしずつ ふえる: GameEconomy.lvBonus）。
 for (let lv = SHOP_LV_REP.length; lv <= ShopRewards.maxLevel; lv++) SHOP_LV_REP[lv] = SHOP_LV_REP[lv - 1] + 200 + lv * 40;
 for (const shop of Object.keys(ShopRewards.themes)) {
   ShopRewards.ITEMS[shop].forEach(([name, desc, w, d, h, cat, extra = {}], i) => {

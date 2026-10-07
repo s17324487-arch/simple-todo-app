@@ -168,6 +168,8 @@ for (const P of PHONES) for (const lv of LV) for (const mode of ["word", "fill"]
     ok(t.repFor(3, 12) === 12 * PLAY[lv].rep, `${lv}: ひょうばん ${PLAY[lv].rep}ばい`);
     const t5 = start(lv, "word", makeSc("hard"), 5);
     ok(t5.payFor(3) === Math.round(PLAY[lv].pay * 1.5 * 1.4 * GameEconomy.mode("hard").reward), `${lv}: Lv5・むずかしい の コイン（1.5ばい × Lv × むずかしさ）`);
+    const t30 = start(lv, "word", Object.assign(makeSc("hard"), { lv: 30 }), 5); // おみせ Lv.30（Lv.6 から 1レベル +2%・UI-108）
+    ok(t30.payFor(3) === Math.round(PLAY[lv].pay * 1.5 * 1.4 * GameEconomy.mode("hard").reward * 1.5), `${lv}: おみせ Lv.30 は コイン +50% （${t30.payFor(3)}）`);
   }
   ok(PLAY.hs.pay > PLAY.jh.pay && PLAY.hs.rep >= PLAY.jh.rep && PLAY.hs.par >= PLAY.jh.par, "高校の ほうが コイン・ひょうばんが おおい");
   ok(PLAY.toeic.pay > PLAY.hs.pay && PLAY.toeic.rep >= PLAY.hs.rep && PLAY.toeic.n === 10 && PLAY.toeic.par === 200, "TOEIC対策は 高校より コイン・ひょうばんが おおい・めやすは Part 5 の 1問 20びょう × 10問");

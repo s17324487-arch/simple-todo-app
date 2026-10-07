@@ -136,7 +136,11 @@ ok(Object.keys(R.SHOP_OWNERS).sort().join(",") === shopKeys, "SHOPS と SHOP_OWN
 ok(Object.keys(R.HOWTO).sort().join(",") === shopKeys, "SHOPS と HOWTO の お店が一致しない");
 ok(Object.keys(R.Save.fresh().shops).sort().join(",") === shopKeys, "SHOPS と Save.fresh().shops の お店が一致しない");
 for (const [k, s] of Object.entries(R.SHOPS)) ok(R.PERK_TEXT[s.perk], `お店 ${k}: perk "${s.perk}" が不明`);
-ok(R.SHOP_LV_REP.length === 31 && R.SHOP_LV_REP.slice(0,6).join() === "0,0,120,360,800,1600", "お店Lv30までと旧Lv1〜5の評判を維持");
+{
+  // おみせ Lv は 50 まで（UI-108）。Lv.1〜30 の しきいは まえと おなじ（6 から +200 + Lv×40）・31〜50 も おなじ しき
+  const want=[0,0,120,360,800,1600];for(let lv=6;lv<=50;lv++)want[lv]=want[lv-1]+200+lv*40;
+  ok(R.SHOP_LV_REP.length === 51 && R.SHOP_LV_REP.join() === want.join() && R.SHOP_LV_REP[30] === 24600 && R.SHOP_LV_REP[50] === 61000, "お店Lv50まで・旧Lv1〜30の評判を維持");
+}
 for (const [k, s] of Object.entries(R.BUY_SHOPS)) for (const [tab] of s.tabs) ok(s.items(tab).length > 0, `買い物 ${k} のタブ ${tab} が空`);
 
 // ---------- 5. セーブの初期値 ----------
@@ -1173,16 +1177,30 @@ if (ok(!!RD, "RANGE_DATA が ない（js/range-data.js）")) {
     });
     let boundaries=true,once=true;
     for(const shop of Object.keys(ShopRewards.themes)){
-      for(const lv of [4,5,9,10,14,15,29,30]){
+      for(const lv of [4,5,9,10,14,15,29,30,31,39,40,49,50]){
         Save.d.shops[shop]={lv:1,rep:SHOP_LV_REP[lv]};
         boundaries=boundaries&&ShopRewards.level(Save.d.shops[shop])===lv&&ShopRewards.rows(shop).filter(p=>p.ready).length===[5,10,15,30].filter(n=>n<=lv).length;
       }
       const a=ShopRewards.claim(shop),b=ShopRewards.claim(shop);once=once&&a.length===4&&b.length===0&&a.every(p=>Save.d.furn[p.id]===1);
     }
-    const preserved=Save.d.coins===987654,ledger=Object.keys(Save.d.shopRewards).length,cap=GameEconomy.pay("crepe",30,3)===GameEconomy.pay("crepe",5,3);
-    Save.d=prior;return {valid,boundaries,once,preserved,ledger,cap,unique:new Set(ids).size,count:ids.length};
+    // おみせ Lv.50 で とまる（ひょうばんが もっと あっても）
+    Save.d.shops.crepe={lv:1,rep:SHOP_LV_REP[50]*3};const top=ShopRewards.level(Save.d.shops.crepe)===50&&ShopRewards.maxLevel===50&&GameEconomy.lvMax===ShopRewards.maxLevel;
+    // コイン: Lv.5 までは まえと おなじ・Lv.6 から 1レベル +2%（Lv.30 +50%・Lv.50 +90%・それより うえは ふえない）・へらない
+    const B=GameEconomy.lvBonus.bind(GameEconomy),old=(shop,lv,rank,mode="normal")=>Math.round(GameEconomy.shopBase[shop]*(1+.28*(Math.min(5,lv)-1))*[0,.45,1,1.5][rank]*GameEconomy.mode(mode).reward);
+    let same=true,mono=true;
+    for(const shop of Object.keys(GameEconomy.shopBase))for(const mode of Object.keys(GameEconomy.modes))for(let rank=0;rank<4;rank++){
+      for(let lv=1;lv<=5;lv++)same=same&&GameEconomy.pay(shop,lv,rank,mode)===old(shop,lv,rank,mode);
+      for(let lv=2;lv<=60;lv++)mono=mono&&GameEconomy.pay(shop,lv,rank,mode)>=GameEconomy.pay(shop,lv-1,rank,mode);
+    }
+    const cap=same&&mono&&[1,2,3,4,5,undefined,0,"x"].every(l=>B(l)===1)&&Math.abs(B(6)-1.02)<1e-9&&Math.abs(B(30)-1.5)<1e-9&&Math.abs(B(50)-1.9)<1e-9&&B(99)===B(50)
+      &&GameEconomy.lvBonusPct(5)===0&&GameEconomy.lvBonusPct(6)===2&&GameEconomy.lvBonusPct(30)===50&&GameEconomy.lvBonusPct(50)===90
+      &&GameEconomy.pay("crepe",5,3)===45&&GameEconomy.pay("crepe",30,3)===67&&GameEconomy.pay("crepe",50,3)===85&&GameEconomy.pay("range",1,3)===90
+      &&Math.abs(GameEconomy.unit("crepe",30)-GameEconomy.unit("crepe",5)*1.5)<1e-9;
+    const up=ShopRewards.upText("crepe",3)==="ちゅうもんが むずかしく なって、コインも ふえるよ。"&&ShopRewards.upText("crepe",6)==="もらえる コインが すこし ふえたよ（+2%）。つぎの ごほうびは Lv.10！"&&ShopRewards.upText("crepe",50)==="もらえる コインが すこし ふえたよ（+90%）。さいこうの レベルだよ！";
+    const preserved=Save.d.coins===987654,ledger=Object.keys(Save.d.shopRewards).length;
+    Save.d=prior;return {valid,boundaries,once,preserved,ledger,cap,top,up,unique:new Set(ids).size,count:ids.length};
   })()`,ctx);
-  for(const k of ["valid","boundaries","once","preserved","cap"])ok(rewards[k],"お店のレベル報酬: "+k);
+  for(const k of ["valid","boundaries","once","preserved","cap","top","up"])ok(rewards[k],"お店のレベル報酬: "+k);
   ok(rewards.count===52&&rewards.unique===52&&rewards.ledger===52,"お店13種×4段階の非売品が一度ずつ");
 }
 
