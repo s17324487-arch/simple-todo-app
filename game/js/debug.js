@@ -186,6 +186,11 @@ const PokaDebug = {
       "PokaDebug.displayShelves()            かざりだな（へやの たなと かざった もの・かべの たな・そうの 絵が よめたか・よるの あかり・かざる 画面）",
       "PokaDebug.playGoods()                 あそびどうぐ・ほん・ドリル（しゅるいごとの かず・コンビニと けいひん カウンターの しなぞろえ・3人が もって いる もの・絵に でて いるか）",
       "PokaDebug.playHold('wanko','pg_cards') その 子に もたせる（null で はずす・もって いなければ 1こ たす）",
+      "PokaDebug.homePlay()                  おうちで あそぶ・よむ・しゅくだい の ようす（あつまる／あそぶ／おわり・しゅるい・もって いる 子・ならび・うごき・会話・3人）",
+      "PokaDebug.homePlayStart('wanko','pg_cards') その 子が もって いる もので はじめる（id で もたせてから・3つめに びょうを わたすと じぶんたちで はじめる まで）",
+      "PokaDebug.homePlayNext(5)             あそびを 5びょう すすめる（ゲームを とめた ままでも）",
+      "PokaDebug.homePlayHouse('bk_dino')    おうちに ある（だれも もって いない）もので はじめる（なければ 1こ たす・とりだす 子は 3人の すきで きまる）",
+      "PokaDebug.playStock('pg_cards', 0)    おうちに ある かずを きめる（0 で なくす・もって いる 子は はずす）",
       "PokaDebug.burgerMenu()                バーガーやさんの メニュー（4つの タブ）・にこにこ セットの おまけの おもちゃ（6しゅ・もって いる かず）",
       "PokaDebug.shopGoods('cake')           おみせの しなぞろえ（タブ・しなものの id・かず。'crepe'・'bakery'・'korokoro'・'gasstand'・'groom'・'florist'・'mall'〔サンシャインいけぶの メニュー〕）",
       "PokaDebug.foodBalance()               たべものの バランス（そのままの やさい・りょうりと ざいりょうの ごうけい・ねだんで ごきげんを あげた もの）",
@@ -491,6 +496,38 @@ const PokaDebug = {
     else if(PlayGoods.INDEX[Save.d.chars[who].outfit.hand])WearStock.put(who,HandItems.SLOT,null);
     Save.mark();return this.playGoods();
   },
+  // おうちで あそぶ・よむ・しゅくだい（UI-106・js/home-play.js）: ようす（phase gather あつまる／play／end・しゅるい・もって いる 子・ならび・うごき・会話の きろく・3人〔手の もちものを 描くか・ごきげん〕）と 3人を タップする 画面の わく
+  homePlay() {
+    if(G.sceneName!=='house'||typeof HomePlay==='undefined')return null;
+    const sc=G.scene,c0=G.canvas.getBoundingClientRect(),u=G.cssPerUnit,o=HomePlay.state(sc);
+    o.kids=o.kids.map(k=>{const c=sc.chars.find(x=>x.id===k.id),r=sc.actorRect(c);return {...k,handShown:!!sc.charOpts(c,'idle_01',c.dir||'down','happy').outfit.hand,mood:Save.d.chars[k.id].mood,rect:{x:c0.left+r.x*u,y:c0.top+r.y*u,w:r.w*u,h:r.h*u}};});
+    return o;
+  },
+  // その 子が もって いる もので はじめる（id を わたすと さきに もたせる）。next を わたすと じぶんたちで はじめる までの びょうを きめる だけ
+  homePlayStart(who,id,next) {
+    if(G.sceneName!=='house'||typeof HomePlay==='undefined')return false;const sc=G.scene;
+    if(Number.isFinite(next)){HomePlay.st(sc).next=next;return true;}
+    if(id&&(!PlayGoods.heldBy(who)||PlayGoods.heldBy(who).id!==id))this.playHold(who,id);
+    const it=PlayGoods.heldBy(who);return !!it&&HomePlay.start(sc,who,it.id,'debug');
+  },
+  // おうちに ある もの（だれも もって いない のこり）で はじめる。のこりが なければ 1こ たす。とりだす 子は HomePlay.taker（3人の すき）
+  homePlayHouse(id) {
+    if(G.sceneName!=='house'||typeof HomePlay==='undefined'||!PlayGoods.INDEX[id])return false;const sc=G.scene;
+    if(!HomePlay.spare(id))WearStock.add(id,1);
+    return HomePlay.start(sc,HomePlay.taker(sc,PlayGoods.INDEX[id]),id,'debug');
+  },
+  // おうちに ある あそびどうぐ・ほん・ドリルの かずを きめる（0 で なくす。かずより おおい 子が もって いれば はずす）
+  playStock(id,n=0) {
+    if(typeof PlayGoods==='undefined'||!PlayGoods.INDEX[id])return null;
+    for(const who of WearStock.wearers(id).slice(n))WearStock.put(who,HandItems.SLOT,null);
+    WearStock.set(id,n);Save.mark();return {id,count:WearStock.count(id),wearers:WearStock.wearers(id)};
+  },
+  // あつまる → すわる → うごき を その びょうだけ すすめる（ゲームを とめた まま でも すすむ。1/30 びょう ずつ）
+  homePlayNext(sec=1) {
+    if(G.sceneName!=='house'||typeof HomePlay==='undefined')return null;const sc=G.scene;
+    for(let t=0;t<sec;t+=1/30)sc.update(1/30);
+    return this.homePlay();
+  },
   // いぬの さんぽ（UI-49）: リードを もった 子・いまの シーンの こいぬ（ばしょ・もった 子からの きょり・おうちでは どちらの よこか side と タップ できる 点 cx, cy〔見えて いなければ null〕）
   pets() {
     if(typeof PetWalk==='undefined')return null;
@@ -547,7 +584,7 @@ const PokaDebug = {
     const byWho={};for(const l of D.lines)byWho[l.who]=(byWho[l.who]||0)+1;
     return {total:D.lines.length+D.talks.length,lines:D.lines.length,talks:D.talks.length,turns:D.talks.reduce((a,t)=>a+t.turns.length,0),byWho};
   },
-  homeBubbleFixture() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;const sc=G.scene;sc.chars.forEach(c=>HomeActions.cancel(c));sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;sc.actions.next=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});if(typeof HomeDoze!=='undefined'&&sc.update===HouseScene.prototype.update){const D=HomeDoze.st(sc);if(D.phase)HomeDoze.wake(sc,'stir');D.next=3600;}return true;},
+  homeBubbleFixture() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;const sc=G.scene;sc.chars.forEach(c=>HomeActions.cancel(c));sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;sc.actions.next=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});if(typeof HomeDoze!=='undefined'&&sc.update===HouseScene.prototype.update){const D=HomeDoze.st(sc);if(D.phase)HomeDoze.wake(sc,'stir');D.next=3600;}if(typeof HomePlay!=='undefined'&&sc.update===HouseScene.prototype.update){const P=HomePlay.st(sc);if(P.phase)HomePlay.stop(sc,'stir');P.next=3600;}return true;},
   homeBubbleState() {if(G.sceneName!=='house')return null;const sc=G.scene;return {heads:HomeLife.heads(sc),boxes:HomeLife.bubbleLayout(sc,G.ctx),area:{...sc.view,left:8,right:G.W-8},watching:sc.watching};},
   family() {
     if(G.sceneName!=="house")return null;

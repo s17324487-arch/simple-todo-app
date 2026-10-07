@@ -769,6 +769,7 @@ class HouseScene {
       list.push({ z: this.depth(c) + 0.5, draw: () => this.drawChar(ctx, c) });
     }
     if (typeof PetWalk !== "undefined") PetWalk.houseDrawables(this, list, ctx); // いぬの さんぽ（UI-49・js/pet-walk.js）
+    if (typeof HomePlay !== "undefined" && HomePlay.drawables) HomePlay.drawables(this, list, ctx); // あそぶ・よむ・しゅくだいの ゆかの ばん（UI-106・js/home-play.js）
     list.sort((a, b) => a.z - b.z);
     for (const x of list) x.draw();
     if (this.ball) this.drawBall(ctx);

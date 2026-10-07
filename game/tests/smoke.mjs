@@ -4504,6 +4504,8 @@ await (await import("./table-ware-smoke.mjs")).tableWareSmoke({scenario,expect})
 await (await import("./display-shelves-smoke.mjs")).displayShelvesSmoke({scenario,expect});
 // あそびどうぐ・ほん・ドリル 30しゅ（UI-105。くわしくは tests/play-goods-smoke.mjs）
 await (await import("./play-goods-smoke.mjs")).playGoodsSmoke({scenario,expect});
+// おうちで あそぶ・よむ・しゅくだい（UI-106・js/home-play.js）
+await (await import("./home-play-smoke.mjs")).homePlaySmoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 // オンライン（E5・UI-94。18さい いじょうの 同意・にせの Firebase で スコアの ランキング。くわしくは tests/online-smoke.mjs）
