@@ -184,6 +184,8 @@ const PokaDebug = {
       "PokaDebug.figStand()                  フィギュア台（へやの だいと かざった フィギュア・のこりの かず・いごこち・かざる 画面が ひらいて いるか）",
       "PokaDebug.tableWare()                 テーブルの しょっき（へやの テーブルと ならべた しょっき・かざりを かたづけた 絵・のこりの かず・ならべる 画面）",
       "PokaDebug.displayShelves()            かざりだな（へやの たなと かざった もの・かべの たな・そうの 絵が よめたか・よるの あかり・かざる 画面）",
+      "PokaDebug.playGoods()                 あそびどうぐ・ほん・ドリル（しゅるいごとの かず・コンビニと けいひん カウンターの しなぞろえ・3人が もって いる もの・絵に でて いるか）",
+      "PokaDebug.playHold('wanko','pg_cards') その 子に もたせる（null で はずす・もって いなければ 1こ たす）",
       "PokaDebug.burgerMenu()                バーガーやさんの メニュー（4つの タブ）・にこにこ セットの おまけの おもちゃ（6しゅ・もって いる かず）",
       "PokaDebug.shopGoods('cake')           おみせの しなぞろえ（タブ・しなものの id・かず。'crepe'・'bakery'・'korokoro'・'gasstand'・'groom'・'florist'・'mall'〔サンシャインいけぶの メニュー〕）",
       "PokaDebug.foodBalance()               たべものの バランス（そのままの やさい・りょうりと ざいりょうの ごうけい・ねだんで ごきげんを あげた もの）",
@@ -472,6 +474,22 @@ const PokaDebug = {
     const held=Object.fromEntries(Chara.IDS.map(id=>[id,HandItems.held(id)]));
     return {items:HandItems.ITEMS.map(x=>x.id),shopTab:BUY_SHOPS.clothes.tabs.some(t=>t[0]===HandItems.SLOT),held,
       drawn:Object.fromEntries(Chara.IDS.map(id=>{const it=held[id]&&ITEM_INDEX[held[id]],c=Save.d.chars[id];return [id,!!it&&Chara.svg(id,{outfit:c.outfit,color:c.color}).includes(it.col[0])];}))};
+  },
+  // あそびどうぐ・ほん・ドリル（UI-105・js/play-goods.js）: しゅるいごとの かず・みせの しなぞろえ（ねだん）・3人が もって いる もの・絵に でて いるか（その いろ）
+  playGoods() {
+    if(typeof PlayGoods==='undefined')return null;
+    const held=Object.fromEntries(Chara.IDS.map(id=>{const it=PlayGoods.heldBy(id);return [id,it?it.id:null];}));
+    return {cats:Object.fromEntries(Object.keys(PlayGoods.CATS).map(c=>[c,PlayGoods.of(c).length])),ids:PlayGoods.IDS.slice(),
+      shops:Object.fromEntries(Object.keys(PlayGoods.LINEUP).map(s=>[s,Object.fromEntries(Object.keys(PlayGoods.LINEUP[s]).map(t=>[t,BUY_SHOPS[s].items(t).map(x=>({id:x.id,name:x.name,price:x.price,base:PlayGoods.INDEX[x.id].price}))]))])),
+      tabs:Object.fromEntries(Object.keys(PlayGoods.LINEUP).map(s=>[s,BUY_SHOPS[s].tabs.map(t=>t[0])])),held,
+      drawn:Object.fromEntries(Chara.IDS.map(id=>{const it=held[id]&&ITEM_INDEX[held[id]],c=Save.d.chars[id];return [id,!!it&&Chara.svg(id,{outfit:c.outfit,color:c.color}).includes(it.col[0])];}))};
+  },
+  // その 子に もたせる（id=null で はずす）。もって いなければ 1こ たす
+  playHold(who,id) {
+    if(typeof PlayGoods==='undefined'||!Save.d.chars[who]||(id&&!PlayGoods.INDEX[id]))return null;
+    if(id){if(!WearStock.can(id,who))WearStock.add(id,1);WearStock.put(who,HandItems.SLOT,id);}
+    else if(PlayGoods.INDEX[Save.d.chars[who].outfit.hand])WearStock.put(who,HandItems.SLOT,null);
+    Save.mark();return this.playGoods();
   },
   // いぬの さんぽ（UI-49）: リードを もった 子・いまの シーンの こいぬ（ばしょ・もった 子からの きょり・おうちでは どちらの よこか side と タップ できる 点 cx, cy〔見えて いなければ null〕）
   pets() {

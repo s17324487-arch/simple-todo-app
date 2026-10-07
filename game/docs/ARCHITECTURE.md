@@ -223,6 +223,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `pet-walk.js`（home-toilet.js の あと・world-zoom.js の まえ） | `PetWalk`（いぬの さんぽ: おさんぽ リードと こいぬ 3びき・UI-49） |
 | — | `table-ware.js`（pet-walk.js の あと・play-records.js の まえ。figure-stand.js・ichiban-kuji.js・conbini-collab.js・kaden-live.js より あと） | `TableWare`（しょっきを テーブルに ならべる: しょっき 30しゅ・テーブル 9しゅ・UI-103） |
 | — | `display-shelves.js`（table-ware.js の つぎ） | `DisplayShelves`（かざりだな 8しゅ: ゆか 6・かべ 2・UI-104） |
+| — | `play-goods-art.js` → `play-goods.js`（display-shelves.js の つぎ） | `PlayGoodsArt`・`PlayGoods`（あそびどうぐ・ほん・ドリル 30しゅ・UI-105） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1414,6 +1415,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - のせられる もの: `S.accept`（フィギュア か `TableWare.isDish`。ステージは なし ＝ フィギュア だけ）・`S.pool`（しょっきから／フィギュアから。かさならない）・`S.words`（「たなに かざる」。ステージは フィギュア だいの ことば）。`FigureStand.heldable` は `STANDS` の `accept` も みる。
 - あかり: しょっきだな・まるい ガラスの たな・ステージは `isOn: caseOn`（よるは じぶんで つく）。ステージは よる スポットライトの ひかりの すじ・ぶたいの まるい ひかり・あしもとの ライト。
 - セーブ: `Save.d.room.items[].figs`（ふえる だけ・`SCHEMA` 2）。PokaDebug: `displayShelves()`。検査は `tools/check-display-shelves.mjs`、スモークは `display-shelves-390 / 375`。
+
+## あそびどうぐ・ほん・ドリル（UI-105・`js/play-goods.js`・`PlayGoods`）
+
+オーナーの 指示 2026-10-07「…誰かが遊び道具(トランプや縄跳び、ゲーム機など)や本、国語や数学のドリル、のアイテムを持っている必要があるようにしろ。これらのアイテムは、景品やコンビニなどであるようにしろ。…それぞれ8種類以上あると良い。」。読み込みは `play-goods-art.js`（絵）→ `play-goods.js`（しくみ）。display-shelves.js の つぎ（hand-items.js・shop.js・conbini-goods.js・conbini-card.js・ike-arcade.js・item-dex-sources.js の あと）。
+
+- アイテム: 30しゅ（あそびどうぐ 10・ほん 10・ドリル 10）。もちもの（`slot: "hand"`・`WEAR_ITEMS`／`ITEM_INDEX` に はいる）なので きがえの「もちもの」で もたせて、1こで ひとり（`WearStock`・1こ だけ なら「わたす」）。`playCat`（toy／book／drill）・`play`（あそびかた。おうちの うごき〔UI-106〕が みる）・`subject`（ドリルの kokugo／sansu）。だれが もって いるかは `PlayGoods.heldBy(who)`・`holders(cat)`（3人 だけ）。
+- 絵（`PlayGoodsArt.held(ctx, key)`）: `HandItems.hand(ctx)` の 手を (0, 0)・そとがわを +x に 描いた 絵を `translate(手) scale(±1.25, 1.25)` で おく（うしろむきは かがみ・うらがわの 絵で もじを つかわない）。`ART[key].box`（[x0, x1, y0, y1]）で キャラの 絵の わく（x −8〜208・y −38〜218）に おさまる ように 手の ばしょを よせる。WEAR は 1しゅに 1つ（`pg_<あそびかた>`・`pg_<ほん／ドリルの id>`。Chara は どの アイテムかを わたさない ため）。
+- みせ: `PlayGoods.LINEUP`（`lawson`／`sevenbun` の `play`・`book` と `ike_arcade` の `toy`）。`BUY_SHOPS[shop].tabs` に タブを たし、`items(tab)` を つつむ（その タブ だけ この しなもの・タブ なしは まえの たべもの〔いちばんくじの クーポンの しらべ〕）。`ShopUI.kindOf` は この タブを `"wear"` に。コンビニの ねだんは `ConbiniGoods.price`（1.5ばい・オーナー 10%びき）で、`note` は オーナーの「いつもは」を この しなものの ねだんで。ポイントは `bought`（js/conbini-card.js）が そのまま かぞえる。`BUY_SHOPS.clothes.items` から のぞく。けいひん カウンターの まど（js/arcade-art.js の `counter`）に「おもちゃを みる」。
+- ことば: `ShopUI.detail` は `it.use`（`{ can, ask, yes, say }`）が あれば ふくの「きる」の かわりに つかう（ほかの もちものは まえの まま「きる！」）。
+- ずかん: `ItemDexSources.source` を つつんで その みせ（「ネリカスタウンの コンビニ「…」で かえるよ。」・「Meeときょれじゃ の けいひん カウンターで こうかん できるよ。」）。
+- セーブ: ふくと おなじ（`Save.d.wardrobe`・`outfit.hand`。`SCHEMA` 2）。PokaDebug: `playGoods()`・`playHold(who, id)`。検査は `tools/check-play-goods.mjs`、スモークは `play-goods-390 / 375`。
 
 ## ネリカスタウンの実寸アセット
 

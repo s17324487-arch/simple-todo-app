@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
-const { ConbiniGoods: CG, BUY_SHOPS, BAG_INDEX, FOODS, FOOD_ART, NeriShops, PokaDebug, FoodBalance, IchibanKuji, Save } = R;
+const { ConbiniGoods: CG, BUY_SHOPS, BAG_INDEX, FOODS, FOOD_ART, NeriShops, PokaDebug, FoodBalance, IchibanKuji, Save, ShopUI } = R;
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
 const kanji = /[一-鿿]/;
@@ -29,9 +29,10 @@ const SHOPS = ["lawson", "sevenbun"];
     all[shop] = items.map((i) => i.id);
     ok(items.length === 16 && new Set(all[shop]).size === 16, `${shop}: しなものは 16しゅ（${items.length}）`);
     ok(JSON.stringify(NeriShops.SHOPS[shop].goods) === JSON.stringify(CG.goods(shop)), `${shop}: NeriShops の goods も おなじ`);
-    ok(JSON.stringify(B.tabs) === JSON.stringify([["meal", "ごはん"], ["sweet", "おやつ"], ["drink", "のみもの"]]), `${shop}: タブは ごはん・おやつ・のみもの`);
+    // たべものの タブは さいしょの 3つ（そのあとは あそびどうぐ・ほん・ドリルの タブ。js/play-goods.js・UI-105）
+    ok(JSON.stringify(B.tabs.slice(0, 3)) === JSON.stringify([["meal", "ごはん"], ["sweet", "おやつ"], ["drink", "のみもの"]]) && B.tabs.slice(3).every(([t]) => ShopUI.kindOf(shop, t) === "wear"), `${shop}: タブは ごはん・おやつ・のみもの（＋ もちものの タブ）`);
     ok(B.cls.split(" ").filter((c) => c === "shop-goods").length === 1, `${shop}: まどは shop-goods（なまえは ことばの きれめで おりかえす・タブは 44px）`);
-    const byTab = B.tabs.map(([t]) => B.items(t).map((i) => i.id));
+    const byTab = B.tabs.slice(0, 3).map(([t]) => B.items(t).map((i) => i.id));
     ok(byTab.flat().length === 16 && byTab.flat().every((id) => all[shop].includes(id)), `${shop}: タブで わけると ぜんぶに なる`);
     ok(byTab[0].length >= 8 && byTab[1].length >= 4 && byTab[2].length >= 3, `${shop}: ごはん ${byTab[0].length}・おやつ ${byTab[1].length}・のみもの ${byTab[2].length}`);
     for (const it of items) {
