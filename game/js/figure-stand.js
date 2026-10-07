@@ -7,6 +7,8 @@
 // おいた フィギュアは へやの 家具と おなじに かぞえる（Room.placed・いごこち）。だいを しまうと フィギュアは もちものに もどる。
 // セーブ: だいの へやの アイテムに figs（ばしょの かず ぶんの フィギュアの id か null）を たす だけ（Save.SCHEMA は そのまま）。
 // プリセット（RoomPresets）も figs を おぼえる（よびだす ときは ほかの へやで つかって いる かずも かぞえる）。
+// UI-104（かざりだな）: ほかの ファイルから だいを たせる（addStand。js/display-shelves.js）。かべに つける だい（wall）・
+// フィギュアの あとに かさねる いた・とびら（layers・front。だいの 立体の そうの 絵）・フィギュア いがい（しょっき）も のせる だい（accept）。
 const FigureStand = (() => {
   const TAU = Math.PI * 2, Sh = FurnModels.shapes;
   // ---- だいの しゅるい（ばしょは [x, y, z]・左から右・うしろ／うえの だんから）----
@@ -45,7 +47,6 @@ const FigureStand = (() => {
   const isHolder = (id) => !!holderOf(id);
   const COLS = ["ひだり", "まんなか", "みぎ"];
   const slotName = (S, i) => (S.names ? S.names[i] : `${S.rows[Math.floor(i / 3)]}の ${COLS[i % 3]}`);
-  const lights = (id) => id === "figstand_case" || id === "figstand_tower"; // よるは あかりが つく だい
 
   // ---- かざれる フィギュア（ガチャガチャの へやに かざる もの・はしわたしの フィギュア・すいぞくかんの フィギュア・にこにこ セットの おもちゃ）----
   const isFigure = (id) => {
@@ -63,7 +64,7 @@ const FigureStand = (() => {
   // その だいに のせられるか（フィギュア だいは フィギュア・テーブルは S.accept〔しょっき〕）
   const accepts = (sid, x) => { const S = holderOf(sid); return !!S && typeof x === "string" && !!FURN_INDEX[x] && !isHolder(x) && (S.accept ? S.accept(x) : isFigure(x)); };
   // どこかの だいに のせられる もの（おいた かず に だいの うえの ぶんも いれる）
-  const heldable = (id) => isFigure(id) || Object.values(TABLES).some((S) => S.accept && S.accept(id));
+  const heldable = (id) => isFigure(id) || [...Object.values(STANDS), ...Object.values(TABLES)].some((S) => S.accept && S.accept(id));
   // だいの figs を ばしょの かず に そろえる（しらない id・のせられない ものは からっぽ）
   const figsOf = (it) => { const S = holderOf(it && it.id); if (!S) return []; const a = Array.isArray(it.figs) ? it.figs : []; return S.slots.map((_, i) => (accepts(it.id, a[i]) ? a[i] : null)); };
   // へやの アイテムの ならびの なかで、だい（テーブルも）に のせて いる かず
@@ -252,17 +253,54 @@ const FigureStand = (() => {
   };
   // ターンテーブルの いまの ばしょ（G.t で まわる。ばしょ i は 60どずつ）
   const ringAt = (S, t = G.t) => S.slots.map((_, i) => { const a = (i / S.slots.length) * TAU + Math.PI / 2 + t * S.ring.speed; return [Math.cos(a) * S.ring.r, S.ring.y + Math.sin(a) * S.ring.r, S.ring.z]; });
-  const drawFigs = (ctx, sc, it, r) => {
-    const S = holderOf(it.id), P = mapper(sc, it, r), a = figsOf(it);
+  // only: その ばしょ だけ 描く（そうの ある だい。したの だんから じゅんに 描く）
+  const drawFigs = (ctx, sc, it, r, only = null) => {
+    const S = holderOf(it.id), a = figsOf(it), wall = !!S.wall, P = wall ? null : mapper(sc, it, r), s0 = wall ? sc.s : P.s;
     // うしろの だんから（ならびが うしろ → まえ）・おなじ だんは ひだりから。ターンテーブルと テーブル（sorted）は 画面の おくゆきの じゅん
-    const at = S.ring ? ringAt(S) : S.slots, order = a.map((_, i) => i);
-    if (S.ring || S.sorted) order.sort((i, j) => P(...at[i]).y - P(...at[j]).y);
+    // かべの だいは 絵の ざひょう（u, v）の ばしょ（はんてんでは ならびが かわる）
+    const at = wall ? S.wall.at(!!it.flip) : S.ring ? ringAt(S) : S.slots, pos = (p) => (wall ? wallAt(sc, it, p) : P(...p)), order = (only || a.map((_, i) => i)).slice();
+    if (S.ring || S.sorted) order.sort((i, j) => pos(at[i]).y - pos(at[j]).y);
     for (const i of order) {
       const id = a[i]; if (!id) continue;
-      const k = scaleOf(S, id), sp = sprite(id, k, P.s); if (!sp) continue;
-      const q = P(...at[i]), ft = foot(id), s = P.s * k;
+      const k = scaleOf(S, id), sp = sprite(id, k, s0); if (!sp) continue;
+      const q = pos(at[i]), ft = foot(id), s = s0 * k;
       ctx.drawImage(sp.c, q.x + (sp.m.x - ft.x) * s, q.y + (sp.m.y - ft.y) * s, sp.m.w * s, sp.m.h * s);
     }
+  };
+  // かべの だい: 絵の ざひょう（u, v。かべの 絵の ひだり うえが 0, 0）→ 画面（scene-house の かべの 家具と おなじ かたむき）
+  const wallAt = (sc, it, [u, v]) => {
+    const f = FURN_INDEX[it.id], sign = it.wallSide === "left" ? -1 : 1, s = sc.s, p = sc.wallPoint(it, it.x - f.w / 2, it.y - f.h / 2);
+    return { x: p.x + u * sign * HomeDesign.A * s, y: p.y + u * HomeDesign.B * s + v * s };
+  };
+  // ---- そう（UI-104）: フィギュアの あとに かさねる だいの 絵（うえの いた・まえの とびらや ガラス）----
+  // だいの 立体（かべの だいは 2D の 絵）を layer を えらんで もう いちど 描いた もの。へやの 家具の 絵（furnCanvas）と おなじ 大きさ・ばしょ。
+  // キーは id・はんてん・そうの なまえ・こまかさ（2 か 3）だけ（ズームでは ふえない）
+  // ensure: よみおわるのを まつ（Promise）。ズームの こまかい 絵（3）が まだ なら いつもの 絵（2）で 描く
+  const layerImg = (sc, it, name, ensure = false, k = ensure ? 2 : sc.rasterK ? sc.rasterK() : 2) => {
+    const f = FURN_INDEX[it.id], flip = !!it.flip, key = `figst-layer:${it.id}:${flip}:${name}:${k}`, wall = f.kind === "wall";
+    const m = wall ? { w: f.w + 24, h: f.h + 24 } : HomeDesign.model(it.id, it), fn = wall ? () => Art.furnSvg(it.id, { flip, live: true, layer: name }) : () => FurnModels.build(it.id, { flip, live: true, layer: name }).full;
+    if (ensure) return SvgCache.ensure(key, fn, Math.ceil(m.w * k), Math.ceil(m.h * k));
+    return SvgCache.get(key, fn, Math.ceil(m.w * k), Math.ceil(m.h * k)) || (k !== 2 ? layerImg(sc, it, name, false, 2) : null);
+  };
+  const layerNames = (S) => [...(S.layers || []).map((L) => L.over).filter(Boolean), ...(S.front ? ["front"] : [])];
+  // へやを よむ ときに そうの 絵も さきに よむ（さいしょの こまで とびら・うえの いたが ぬけない）
+  const pre0 = HouseScene.prototype.preloadFurn;
+  HouseScene.prototype.preloadFurn = function () {
+    const more = Room.of(this).items.flatMap((it) => (STANDS[it.id] ? layerNames(STANDS[it.id]).map((n) => layerImg(this, it, n, true)) : []));
+    return Promise.all([pre0.call(this), ...more]);
+  };
+  const drawLayer = (ctx, sc, it, r, name) => {
+    const img = layerImg(sc, it, name); if (!img) return;
+    const f = FURN_INDEX[it.id];
+    if (f.kind !== "wall") { ctx.drawImage(img, r.x, r.y, r.w, r.h); return; }
+    const p = sc.wallPoint(it, it.x - f.w / 2, it.y - f.h / 2), sign = it.wallSide === "left" ? -1 : 1, s = sc.s, pad = Art.FURN_PAD;
+    ctx.save(); ctx.transform(sign * HomeDesign.A * s, HomeDesign.B * s, 0, s, p.x, p.y); ctx.drawImage(img, -pad, -pad, f.w + pad * 2, f.h + pad * 2); ctx.restore();
+  };
+  // したの だんの フィギュア → その うえの いた → … → いちばん うえ → まえの ぶぶん（front）
+  const drawLayered = (ctx, sc, it, r) => {
+    const S = STANDS[it.id];
+    for (const L of S.layers || [{ slots: null }]) { drawFigs(ctx, sc, it, r, L.slots); if (L.over) drawLayer(ctx, sc, it, r, L.over); }
+    if (S.front) drawLayer(ctx, sc, it, r, "front");
   };
   // ターンテーブルの さらの ふちの しるし（まわって いるのが わかる）
   const drawRing = (ctx, sc, it, r) => {
@@ -334,6 +372,8 @@ const FigureStand = (() => {
     have: (n) => `もって いる フィギュア ${n}しゅ。だいを しまうと フィギュアは もちものに もどるよ。`,
     none: "フィギュアが まだ ないよ。ガチャガチャ・はしわたし・すいぞくかんの おみやげで てに いれよう。",
     noPick: "かざれる フィギュアが ないよ。ほかの だいや へやに おいて いないか みてね。", put: ["かざったよ！", "いい ばしょ だね", "にあう〜！"],
+    // よその おうち（おじゃま）で さわった とき
+    seen: ["すてきな フィギュア！", "いっぱい かざってるね", "どれも かわいい〜"], empty: "まだ からっぽの だい だね",
   };
   const wordsOf = (S) => ({ ...WORDS, ...(S.words || {}) });
   // その だいに のせられる ものの id（フィギュア だいは フィギュア・テーブルは S.pool）
@@ -385,23 +425,41 @@ const FigureStand = (() => {
     return m;
   }
 
-  for (const id of Object.keys(STANDS)) {
-    const tower = id === "figstand_tower";
-    FurnLive.register(id, {
-      ...(lights(id) ? { isOn: caseOn } : {}),
-      // よその おうち（おじゃま・js/online-visit.js）の だいは 見るだけ（いれかえの まどは ださない）
-      tap(sc, it, st) { st.t0 = G.t; st.n = (st.n || 0) + 1; if (sc.guest) { say(sc, it, figsOf(it).some(Boolean) ? ["すてきな フィギュア！", "いっぱい かざってるね", "どれも かわいい〜"][st.n % 3] : "まだ からっぽの だい だね", "heart"); return; } open(sc, it); },
-      draw(ctx, sc, it, r, st) {
-        if (id === "figstand_case") drawCaseGlow(ctx, sc, it, r, st); else if (tower) drawTowerGlow(ctx, sc, it, r, st);
-        if (STANDS[id].ring) drawRing(ctx, sc, it, r);
-        drawFigs(ctx, sc, it, r);
-        if (id === "figstand_case") drawGlass(ctx, sc, it, r); else if (tower) drawTowerGlass(ctx, sc, it, r);
-      },
-      ...(lights(id) ? { light(ctx, sc, it, r, st) { if (!caseOn(st)) return; const P = mapper(sc, it, r), p = P(0, tower ? -26 : -23, tower ? 100 : 80); glow(ctx, p.x, p.y, (tower ? 110 : 100) * P.s, "255,214,140", 0.22); } } : {}),
-    }, lights(id));
-  }
+  // ---- さわる・描く（FurnLive）----
+  // hk: under（フィギュアの まえに 描く: あかり）・over（あとに 描く: canvas の ガラス）・light（よるの ひかり）・isOn・live（絵から ぬく ぶぶんが ある）
+  const shine = (y, z, rad) => (ctx, sc, it, r, st) => { if (!caseOn(st)) return; const P = mapper(sc, it, r), p = P(0, y, z); glow(ctx, p.x, p.y, rad * P.s, "255,214,140", 0.22); };
+  const HOOKS = {
+    figstand_case: { isOn: caseOn, under: drawCaseGlow, over: drawGlass, light: shine(-23, 80, 100), live: true },
+    figstand_tower: { isOn: caseOn, under: drawTowerGlow, over: drawTowerGlass, light: shine(-26, 100, 110), live: true },
+  };
+  const guestLine = (S, it, st) => { const W = wordsOf(S); return figsOf(it).some(Boolean) ? W.seen[st.n % W.seen.length] : W.empty; };
+  const registerLive = (id, hk = {}) => FurnLive.register(id, {
+    ...(hk.isOn ? { isOn: hk.isOn } : {}),
+    // よその おうち（おじゃま・js/online-visit.js）の だいは 見るだけ（いれかえの まどは ださない）
+    tap(sc, it, st) { st.t0 = G.t; st.n = (st.n || 0) + 1; if (sc.guest) { say(sc, it, guestLine(STANDS[id], it, st), "heart"); return; } open(sc, it); },
+    draw(ctx, sc, it, r, st) {
+      const S = STANDS[id];
+      if (hk.under) hk.under(ctx, sc, it, r, st);
+      if (S.ring) drawRing(ctx, sc, it, r);
+      if (S.layers || S.front) drawLayered(ctx, sc, it, r); else drawFigs(ctx, sc, it, r);
+      if (hk.over) hk.over(ctx, sc, it, r, st);
+    },
+    ...(hk.light ? { light: hk.light } : {}),
+  }, !!hk.live);
+  for (const id of Object.keys(STANDS)) registerLive(id, HOOKS[id]);
   // ---- UI-103: テーブルなど ほかの だいを たす（js/table-ware.js）----
   // spec: { name, slots: [[x, y, z]…], names: [ばしょの なまえ…], cap, capW, accept(id), pool(), words }。絵と タップは つかう がわが FurnLive に いれる
   const addHolder = (id, spec) => { if (!FURN_INDEX[id] || STANDS[id]) return null; TABLES[id] = spec; return spec; };
-  return { STANDS, TABLES, isStand, isHolder, holderOf, accepts, heldable, addHolder, isFigure, addFigures, figures, figsOf, onStands, slotName, scaleOf, foot, ringAt, drawFigs, say, open, get view() { return view; } };
+  // ---- UI-104: かざりだなを たす（js/display-shelves.js）----
+  // S: { name, price, w, depth, h, comfort, cap, capW, desc, slots, names, accept?, pool?, words?, layers?: [{ slots, over? }…], front?, wall?: { art(o), at(flip) } }。
+  // ゆかの だいの 立体は つかう がわが FurnModels に いれる（layer を みて そうを わける）。かべの だいは wall.art が 2D の 絵（FURN_ART）
+  const addStand = (id, S, hk = {}) => {
+    if (FURN_INDEX[id] || STANDS[id] || TABLES[id]) return null;
+    STANDS[id] = S;
+    const f = { id, name: S.name, price: S.price, kind: S.wall ? "wall" : "floor", w: S.w, h: S.h, ...(S.wall ? {} : { depth: S.depth }), comfort: S.comfort, interactive: true, figureStand: S.slots.length, desc: S.desc };
+    FURNITURE.push(f); FURN_INDEX[id] = f; FURN_ART[id] = S.wall ? S.wall.art : () => HomeDesign.model(id).full;
+    registerLive(id, { live: !!(S.layers || S.front), ...hk });
+    return f;
+  };
+  return { STANDS, TABLES, isStand, isHolder, holderOf, accepts, heldable, addHolder, addStand, isFigure, addFigures, figures, figsOf, onStands, slotName, scaleOf, foot, ringAt, drawFigs, wallAt, mapper, glow, caseOn, say, open, WORDS, get view() { return view; } };
 })();

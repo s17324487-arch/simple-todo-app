@@ -222,6 +222,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `hand-items.js`（dressup.js の あと・slow-life-prices.js の まえ） | `HandItems`（もちもの: ふうせん・バッグ・`outfit.hand`・UI-48） |
 | — | `pet-walk.js`（home-toilet.js の あと・world-zoom.js の まえ） | `PetWalk`（いぬの さんぽ: おさんぽ リードと こいぬ 3びき・UI-49） |
 | — | `table-ware.js`（pet-walk.js の あと・play-records.js の まえ。figure-stand.js・ichiban-kuji.js・conbini-collab.js・kaden-live.js より あと） | `TableWare`（しょっきを テーブルに ならべる: しょっき 30しゅ・テーブル 9しゅ・UI-103） |
+| — | `display-shelves.js`（table-ware.js の つぎ） | `DisplayShelves`（かざりだな 8しゅ: ゆか 6・かべ 2・UI-104） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1402,6 +1403,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - かぐやさん: `BUY_SHOPS.furniture.tabs` に `["dish", "しょっき"]`（2ばんめ）・`items("dish")` は あたらしい 8しゅ（「かぐ」から のぞく）・`cls` に `shop-tabs-wrap`（css: タブを 2だんに おりかえす）。`ItemDexSources.source` を つつんで「かぐやさんの「しょっき」で かえるよ。」。
 - オンライン: `OnlineRooms.encode` は `isHolder` の だいの `figs` を `g` に・`decode` は `accepts(o.a, x)` の もの だけ のこす（ルールは かわらない）。
 - セーブ: `Save.d.room.items[].figs` に しょっき（ふえる だけ・`SCHEMA` 2）。PokaDebug: `tableWare()`。検査は `tools/check-table-ware.mjs`、スモークは `table-ware-390 / 375`。
+
+## かざりだな（UI-104・`js/display-shelves.js`・`DisplayShelves`）
+
+オーナーの 指示 2026-10-07「また、飾り棚系の家具を増やしてほしい。」。読み込みは table-ware.js の つぎ（しょっきを のせる）。トップレベル名は `DisplayShelves` だけ。
+
+- だいを たす: `FigureStand.addStand(id, S, hooks)`。`STANDS` に いれ、`FURNITURE`（かべの たなは `kind: "wall"`・`depth` なし）・`FURN_ART`（ゆかは 立体の `full`・かべは `S.wall.art`）・`FurnLive`（`registerLive`: タップで かざる まど・おじゃまは ことば・`hooks.under`／`over`／`light`／`isOn`）を とうろく。まえからの 7しゅも おなじ `registerLive`（ケースと タワーの あかり・ガラスは `HOOKS`）。
+- そう（`S.layers: [{ slots, over }]`・`S.front`）: したの だんから じゅんに `drawFigs(…, slots)` → `over` の そう → … → `front`。そうの 絵は `FurnModels.build(id, { flip, live: true, layer })`（かべは `Art.furnSvg(id, { flip, live: true, layer })`）を `SvgCache` に（キー `figst-layer:<id>:<flip>:<そう>:<2|3>`）。モデルの がわは `lay(k.opts)` の `base(s)`（そうを えらんだ ときは かかない）と `on(name)(s)`（live では かかない・その そうの ときだけ かく）。文字列を つくってから えらぶ ので 点は ぜんぶ かぞえ、どの そうも 絵の はんいが おなじ。`HouseScene.prototype.preloadFurn` を つつんで そうの 絵も さきに よむ。
+- かべの たな（`S.wall: { art(o), at(flip) }`）: 絵の ざひょう（u: よこ・v: した）で、かべから dd でる いたの まえの ふちを（−dd, 2B·dd）ずらして 描く（scene-house の かべの 家具の かたむき〔`(±A·s, B·s, 0, s)`〕で ほんとうの おくゆきに なる。おくの かべも ひだりの かべも おなじ ずれ）。フィギュアの あしもとは `at(flip)` の（u, v）→ `FigureStand.wallAt(sc, it, p)`。はんてんは `unflip`（`Art.furnSvg` の かがみを さきに かえす）で おくゆきの むきを たもち、ならびだけ かがみに（ハニカム）。ハニカムは とつの かたちの かさなり（Sutherland–Hodgman）で なかの かべ・ゆか・おくの いたを まえの あなに おさめ、まえの ふちは `front`。
+- のせられる もの: `S.accept`（フィギュア か `TableWare.isDish`。ステージは なし ＝ フィギュア だけ）・`S.pool`（しょっきから／フィギュアから。かさならない）・`S.words`（「たなに かざる」。ステージは フィギュア だいの ことば）。`FigureStand.heldable` は `STANDS` の `accept` も みる。
+- あかり: しょっきだな・まるい ガラスの たな・ステージは `isOn: caseOn`（よるは じぶんで つく）。ステージは よる スポットライトの ひかりの すじ・ぶたいの まるい ひかり・あしもとの ライト。
+- セーブ: `Save.d.room.items[].figs`（ふえる だけ・`SCHEMA` 2）。PokaDebug: `displayShelves()`。検査は `tools/check-display-shelves.mjs`、スモークは `display-shelves-390 / 375`。
 
 ## ネリカスタウンの実寸アセット
 
