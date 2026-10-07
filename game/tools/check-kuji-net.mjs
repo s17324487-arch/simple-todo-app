@@ -123,7 +123,7 @@ O.st().on = false; ok(!KN.available() && !KN.using(), "オンラインを とめ
 let L = await KN.load("lawson");
 ok(L.cur === 1 && L.view.n === 0 && L.view.total === 80, "はじめの ロット 1（サーバーに まだ ない）");
 fake.kujiT(KN.timeFor("lawson", 1, {}, "A"));
-const c0 = S.d.coins;
+const c0 = S.d.coins, CC = R.ConbiniCard, p0 = CC.card("lawson").pts;
 let r = await KN.draw("lawson", 1);
 const me = N.uid();
 ok(r && r.tickets.length === 1 && r.tickets[0].g === "A" && r.tickets[0].id === "kj_mlaw_a" && r.tickets[0].first && S.d.coins === c0 - 1000 && S.d.furn.kj_mlaw_a === 1 && K.got("kj_mlaw_a") === 1 && r.left === 79, "1まい ひく → Aしょう（コイン 1000・家具）" + JSON.stringify(r && r.tickets));
@@ -131,6 +131,7 @@ ok(fake.at("v1/kuji/lawson/lots/l1/n") === 1 && fake.at("v1/kuji/lawson/lots/l1/
 ok(JSON.stringify(Object.keys(fake.at("v1/kuji/lawson/lots/l1/d/k0")).sort()) === '["t","u"]', "おくるのは ID と じこく だけ（なまえは v1/players）");
 ok(K.st().net.rec.lawson_1_0 === 1 && K.st().net.uid === me && K.st().draws === 1 && K.st().spent === 1000 && K.st().stubs.lawson === 1, "てもとの きろく（もらった・ひいた まい数・はんけん）");
 ok(K.lot("lawson").log.length === 0 && K.total("lawson") === 80, "ひとりの くじの ロットは かわらない");
+ok(CC.card("lawson").pts === p0 + 50 && CC.card("lawson").has && CC.card("sevenbun").pts === 0, "ローリソンの ポイントカードに 50ポイント（1000コインの かいもの・js/conbini-card.js）");
 // ほかの 人
 const B = await sign(), C = await sign();
 await HTTP("PUT", `v1/players/${B.uid}`, { n: "5-7", t: SVT }, B.tok);
@@ -163,16 +164,16 @@ ok(r && r.id === "kj_mlaw_d2" && !r.fixed && S.d.furn.kj_mlaw_d2 === 1 && fake.a
 ok(await KN.pick("lawson", P, "kj_mlaw_d0") && fake.at("v1/kuji/lawson/lots/l1/d/k3/p") === 2 && S.d.furn.kj_mlaw_d0 === undefined, "えらんだ あとは かわらない（おなじ ものを かえす）");
 // へんじが こない（とどいて いる）→ たしかめて ひけた ことに
 failNext = (url, opt) => (opt.method === "PATCH" && /\/db\/v1\.json/.test(url) ? "after" : null);
-const b2 = S.d.coins; r = await KN.draw("lawson", 1); failNext = null;
-ok(r.tickets.length === 1 && r.tickets[0].k === 5 && S.d.coins === b2 - 1000 && fake.at("v1/kuji/lawson/lots/l1/n") === 6, "へんじが こなくても とどいて いれば ひけた ことに（コイン 1かい）");
+const b2 = S.d.coins, p2 = CC.card("lawson").pts; r = await KN.draw("lawson", 1); failNext = null;
+ok(r.tickets.length === 1 && r.tickets[0].k === 5 && S.d.coins === b2 - 1000 && CC.card("lawson").pts === p2 + 50 && fake.at("v1/kuji/lawson/lots/l1/n") === 6, "へんじが こなくても とどいて いれば ひけた ことに（コイン・ポイント 1かい）");
 // つながらない → コインは へらない・あとで
 failNext = () => "before";
-const b3 = S.d.coins; let threw = false; try { await KN.draw("lawson", 1); } catch (e) { threw = true; } failNext = null;
-ok(threw && S.d.coins === b3 && fake.at("v1/kuji/lawson/lots/l1/n") === 6 && !Object.keys(K.st().net.rec).some((k) => k === "lawson_1_6"), "つながらない → コインは へらない");
+const b3 = S.d.coins, p3 = CC.card("lawson").pts; let threw = false; try { await KN.draw("lawson", 1); } catch (e) { threw = true; } failNext = null;
+ok(threw && S.d.coins === b3 && CC.card("lawson").pts === p3 && fake.at("v1/kuji/lawson/lots/l1/n") === 6 && !Object.keys(K.st().net.rec).some((k) => k === "lawson_1_6"), "つながらない → コインは へらない（ポイントも ふえない）");
 // 10まい
-const b4 = S.d.coins, steps = [];
+const b4 = S.d.coins, steps = [], p4 = CC.card("lawson").pts;
 r = await KN.draw("lawson", 10, (i, m) => steps.push(`${i}/${m}`));
-ok(r.tickets.length === 10 && S.d.coins === b4 - 10000 && steps.join() === "1/10,2/10,3/10,4/10,5/10,6/10,7/10,8/10,9/10,10/10" && fake.at("v1/kuji/lawson/lots/l1/n") === 16 && r.tickets.every((t, i) => t.k === 6 + i), "10まい（1まいずつ・すすみぐあい）");
+ok(r.tickets.length === 10 && CC.card("lawson").pts === p4 + 500 && S.d.coins === b4 - 10000 && steps.join() === "1/10,2/10,3/10,4/10,5/10,6/10,7/10,8/10,9/10,10/10" && fake.at("v1/kuji/lawson/lots/l1/n") === 16 && r.tickets.every((t, i) => t.k === 6 + i), "10まい（1まいずつ・すすみぐあい・ポイント +500）");
 for (const p of KN.pending("lawson")) { const ch = KN.choices("lawson", p); const got = await KN.pick("lawson", p, ch[0]); ok(got && got.id === ch[0], "10まいの なかの D〜F を えらぶ " + p.k); }
 ok(!KN.pending("lawson").length, "ぜんぶ えらんだ");
 // のこり 1まいまで ほかの 人 → 80まいめ（ラストワン）を じぶんで
@@ -212,12 +213,12 @@ const oldT = KN.st().since - 60000;
 ok((await HTTP("PATCH", "v1", { "kuji/lawson/lots/l1/n": 1, "kuji/lawson/lots/l1/d/k0": { u: meA, t: SVT } }, tokA)).status === 200, "じぶんの ID で かいた くじ（へんじが こなかった）");
 fake.write("v1/kuji/lawson/lots/l1/d/k0/t", oldT);
 await KN.load("lawson");
-const b6 = S.d.coins; let rc = await KN.reconcile("lawson");
+const b6 = S.d.coins, p6 = CC.card("lawson").pts; let rc = await KN.reconcile("lawson");
 ok(rc.adopted === 0 && S.d.coins === b6, "since より まえの じぶんの くじは うけとらない（あたらしく はじめた セーブ）");
 await HTTP("PATCH", "v1", { "kuji/lawson/lots/l1/n": 2, "kuji/lawson/lots/l1/d/k1": { u: meA, t: SVT } }, tokA);
 await KN.load("lawson"); rc = await KN.reconcile("lawson");
 const x1 = KN.view("lawson").draws[1];
-ok(rc.adopted === 1 && S.d.coins === b6 - 1000 && "lawson_1_1" in K.st().net.rec && (x1.pick ? KN.pending("lawson").length === 1 : K.got(x1.id) >= 1 && rc.got.length === 1), "へんじが こなかった じぶんの くじを あとで うけとる（コイン 1000）" + JSON.stringify(rc));
+ok(rc.adopted === 1 && S.d.coins === b6 - 1000 && CC.card("lawson").pts === p6 + 50 && "lawson_1_1" in K.st().net.rec && (x1.pick ? KN.pending("lawson").length === 1 : K.got(x1.id) >= 1 && rc.got.length === 1), "へんじが こなかった じぶんの くじを あとで うけとる（コイン 1000・ポイント 50）" + JSON.stringify(rc));
 rc = await KN.reconcile("lawson");
 ok(rc.adopted === 0 && S.d.coins === b6 - 1000, "2かい うけとらない");
 // ID が かわる
