@@ -15,7 +15,18 @@ export async function onlineSmoke({ scenario, expect }) {
   const menu = async (H) => { await H.page.getByRole("button", { name: "メニュー", exact: true }).click(); await H.page.getByRole("button", { name: "せってい", exact: true }).click(); await H.wait(250); };
   const closeTop = async (H) => { await H.page.locator(".modal-wrap:not(.out)").last().locator(".panel-head .close").click(); await H.wait(260); };
   // いちばん うえの まどが 画面に はいって いて、よこに はみ出さない・ボタンは 44px いじょう
+  // まどは ひらく とき したから すこし うごく（.panel の slideUp 0.22びょう）。うごきが おわってから はかる（おそい WebKit では おわる まえに はかって
+  // 1px はみ出した: main の CI 519 の webkit 5「なまえの まど」）。おわりは play-records・korokoro-records の fit と おなじ 3つで みる:
+  // getAnimations が running でない・まどの transform が none・まどの 位置が 2かい つづけて おなじ
   const fits = async (H, sel, what) => {
+    await H.eval(() => { window.__onlFitLast = null; });
+    await H.until(() => {
+      const p = [...document.querySelectorAll(".modal-wrap:not(.out) .panel")].pop();
+      if (!p) return false;
+      const w = p.closest(".modal-wrap"), r = p.getBoundingClientRect(), k = [r.left, r.top, r.right, r.bottom].join(), same = window.__onlFitLast === k;
+      window.__onlFitLast = k;
+      return same && getComputedStyle(p).transform === "none" && getComputedStyle(w).opacity === "1" && [w, p].every((e) => typeof e.getAnimations !== "function" || e.getAnimations().every((a) => a.playState !== "running"));
+    }, 5000);
     const r = await H.eval((sel) => {
       const p = [...document.querySelectorAll(".modal-wrap:not(.out) .panel")].pop(), pr = p.getBoundingClientRect();
       const small = [...p.querySelectorAll(sel)].map((e) => e.getBoundingClientRect()).filter((b) => b.height < 44 || b.width < 44 || b.left < pr.left - 1 || b.right > pr.right + 1);
