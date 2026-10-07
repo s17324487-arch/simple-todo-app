@@ -159,6 +159,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | 21 | `minigames.js` | `MG_ART`, `CREPE_TOPS`, `BREADS`, `BREAD_TOPS`, `FLOWER_KINDS`, `RIBBONS`, `SHOP_OWNERS`, `HOWTO`, `CUST_*`, `ShopScene`, `TaskBase`, `CrepeTask`, `DentistTask`, `BakeryTask`, `FloristTask`, `MG_TASKS`, 補助関数 `breadSvg` `flowerIconSvg` `mgCanvas` `mgIcon` `topIcon` `mgBtn` `inBtn` `gridBtns` |
 | — | `play-records.js`（pet-walk.js の あと・world-zoom.js の まえ＝Care・HomeToilet・SCENES.house・Fishing・BattleScene・Menu・GowagaWish の あと） | `PlayRecords`（きろく: 3人の きろく 15しゅ・たべものごとの かず・ずかんの「たべもの」・ようすの「きろく」・UI-71） |
 | — | `home-doze.js`（play-records.js の すぐ あと・online-config.js の まえ＝HouseScene・HomeActions・HomeLife・ParentCare・GowagaWish・HomeToilet・Care・PlayRecords・HomeNav の あと） | `HomeDoze`（おうちの おひるね・UI-99） |
+| — | `home-play-data.js` → `home-play.js`（home-doze.js の すぐ あと＝PlayGoods・HomeDoze の あと） | `HOME_PLAY_DATA`・`HomePlay`（おうちで あそぶ・よむ・しゅくだい・UI-106） |
 | — | `dine-seats.js`（iso-venue.js の すぐ あと＝chara.js・IsoVenue の あと） | `DineSeats`（ごはんの せき: 館の テーブル・ボックス席で 3人が すわって ちゅうもん。UI-72） |
 | — | `online-config.js` → `online-net.js` → `online.js`（play-records.js の あと・world-zoom.js の まえ＝Smaho・Menu・ShopScene・KorokoroScore・SHOP_GAMES の あと） | `ONLINE_CONFIG`（つなぎさき）, `OnlineNet`（匿名ログイン・Realtime Database の REST と SSE・ネットに つなぐ ゆいいつの ファイル）, `Online`（同意・なまえ・ボード・きろく・すまほの「みんな」・≡ の せってい。E5・UI-94） |
 | — | `online-rooms.js`（online.js の すぐ あと） | `OnlineRooms`（じぶんの おへやを みせる・みんなの おへやの いちらん。`Online.parts` に「おうち」タブ。いちらんの タップで おじゃま〔online-visit.js〕。E5・UI-95） |
@@ -1426,6 +1427,18 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ことば: `ShopUI.detail` は `it.use`（`{ can, ask, yes, say }`）が あれば ふくの「きる」の かわりに つかう（ほかの もちものは まえの まま「きる！」）。
 - ずかん: `ItemDexSources.source` を つつんで その みせ（「ネリカスタウンの コンビニ「…」で かえるよ。」・「Meeときょれじゃ の けいひん カウンターで こうかん できるよ。」）。
 - セーブ: ふくと おなじ（`Save.d.wardrobe`・`outfit.hand`。`SCHEMA` 2）。PokaDebug: `playGoods()`・`playHold(who, id)`。検査は `tools/check-play-goods.mjs`、スモークは `play-goods-390 / 375`。
+
+## おうちで あそぶ・よむ・しゅくだい（UI-106・`js/home-play.js`・`HomePlay`）
+
+オーナーの 指示 2026-10-07「3人で遊んだり、本を読んだり、宿題をしたりさせてくれ。…誰かが…アイテムを持っている必要があるようにしろ。…種類によっても行動・会話パターンを変えよう」。読み込みは `home-play-data.js`（`HOME_PLAY_DATA`・ことば）→ `home-play.js`（しくみと 絵）。home-doze.js の つぎ。セーブしない（`sc.play`）。
+
+- データ: `HOME_PLAY_DATA[あそびかた]`（`PlayGoods` の `play`。30しゅ）= `{ form, len, book?, drill?, start, agree, beats[5]: { ev?, t: [[だれ, ことば, ふきだし?]] }, end, parent: { papa, mama } }`。だれは `H`（もって いる 子）・`A`／`B`（ほかの ふたり。じゅんばんは まいかい まぜる）・`P`（いまの じゅんばん。`ev: "pass"` で つぎ）・`W`（かった 子）・`L`・`ALL`（3人）・なまえ・`not:goji`。ことばは 文字列 か 子ごとの `{ wanko, gachan, goji }`（「ぼく」「わたし」「ガゥ」は 子ごと）。`reply`（ぱぱ ままへの へんじ）・`cheer`（なでた とき）・`stop`（やめる とき）・`think`（じぶんたちで はじめる まえの こころの こえ。しゅるい × 3人）。
+- あそべる もの（`options`）: 3人が もって いる もの（`house: false`・`who` は もって いる 子）と おうちに ある もの（`house: true`。`spare(id)` = かって ある かず > もって いる 人の かず・`who` は `taker`: ふうせん・バッグ・リードを もって いない 子 → `likes`〔`LIKE` の とくに すきな あそびかた 2・すきな しゅるい 1〕→ 手が あいて いる → ならびの じゅん）。おうちに ある ものは `S.house`（あつまる あいだ `charOpts` で とりだした 子の 手に 絵だけ・もちものは かえない・`WearStock.count` が 0 に なったら やめる）。
+- ならび（`layout(form, c)`・へやの ざひょう。画面の よこ u = x − y・おく v = x + y）: `circle` うしろ（したむき）・ひだり まえ（みぎむき）・みぎ まえ（ひだりむき）に すわる／`row` よこ 一列（まんなかが もって いる 子）／`show` もって いる 子が まえで たつ・ふたりが ななめ うしろで すわる。ばしょは ラグ → へやの まんなかの まわりで `HomeDoze.cover` が 0 の ところ（家具の なか・家具の かげに ならない）。ぱぱ・ままは `inWay`（ちかい・まえで よこが ちかい）なら `aside` へ よける。
+- ながれ（`update`）: しずかな じかん（`can`・`Game.paused` の あいだは かぞえない）で `next`（`FIRST` 45〜100びょう・`AGAIN` 150〜300びょう）を へらし 0 で じぶんたちで（`choose`: `weight(o, last, h, wx)` の おもみで えらぶ。ドリル 15〜19じ 3ばい／よる 0.3ばい・ほん 19じ〜と よる 2.5ばい・あめ／ゆき 2ばい・あそびどうぐ 9〜18じ 1.5ばい／よる 0.3ばい・もって いる もの 1.5ばい・とくに すきな もの 2ばい・まえと おなじ 0.15ばい。`start(…, "self")` は さきに `think` の こころの こえ）。「あそぶ」の しゅるい（`CAT_ASK`）も `choose` で どれかを きめる。`start` → `gather`（あるく・`GATHER` 10びょうで その ばに）→ `play`（`BEAT` = len ÷ 6 を 4.6〜6.4びょうに。かたまりごとに `event` と かけあい・`parentAt` の かたまりで ぱぱ ままの ひとこと）→ `finish`（`end`・ごきげん・ゲームは `winner`・ドリルは `stamp`）→ `END` 4.2びょうで `stop("done")`。あそんで いる あいだは `sc.life.next`・`sc.actions.next` を まつ。
+- つつむ もの: HouseScene の `enter`（`play` を リセット）・`update`・`menuPlay`（かくれんぼ・ボールあそびの つぎに もって いる もの）・`up`（あそんで いる 子を なでる）・`buildUI`（したの ボタンで `stop("button")`）・`charOpts`（あそびどうぐ・ほん・ドリルを 手から けす）、`HomeActions.visual`／`props`（すわる `sit_01`・たつ・とぶ と 手に もつ もの）、`HouseScene.render` の `HomePlay.drawables`（ゆかの ばん・こま・シャボンだま）、`ParentCare.update`（おせわを まつ）・`GowagaWish.house`・`HomeToilet.calm`・`HomeDoze.can`。
+- 絵: canvas に その ばで 描く（SvgCache を つかわない）。手に もつ ものの たかさは 3人の すわった からだ（かおに かからない）に あわせる。なわとびの なわは `rope()`（ph 0 で あたまの うえ・π で あしの した。あしの した の まえ と あとで とぶ・うしろを とおる ときは うすく）。ドリルの ページは `DRILL_PAGE`（ます・しき・とけい）、ほんの ひょうしは `BOOK_COVER`。
+- PokaDebug: `homePlay()`（ようす・3人の タップの わく・手の もちものを 描くか・ごきげん・`house`）・`homePlayStart(who, id, next)`・`homePlayNext(sec)`・`homePlayHouse(id)`・`playStock(id, n)`。`homeBubbleFixture` は あそびを やめて `next` を 3600 に。検査は `tools/check-home-play.mjs`、スモークは `tests/home-play-smoke.mjs`（`home-play-390/375`）。
 
 ## ネリカスタウンの実寸アセット
 
