@@ -4498,6 +4498,8 @@ await (await import("./furn-tray-smoke.mjs")).furnTraySmoke({scenario,expect});
 await (await import("./room-styles-smoke.mjs")).roomStylesSmoke({scenario,expect});
 // フィギュア だいの あたらしい 5しゅ（UI-93。くわしくは tests/figure-stand-more-smoke.mjs）
 await (await import("./figure-stand-more-smoke.mjs")).figureStandMoreSmoke({scenario,expect});
+// しょっきを テーブルに ならべる（UI-103。くわしくは tests/table-ware-smoke.mjs）
+await (await import("./table-ware-smoke.mjs")).tableWareSmoke({scenario,expect});
 
 await (await import("./home-garden-smoke.mjs")).homeGardenSmoke({scenario,expect});
 // オンライン（E5・UI-94。18さい いじょうの 同意・にせの Firebase で スコアの ランキング。くわしくは tests/online-smoke.mjs）

@@ -221,6 +221,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `home-toilet.js`（gowaga-wish.js の あと・world-zoom.js の まえ） | `HomeToilet`（おうちの おトイレ・3人の いきたさ・UI-47） |
 | — | `hand-items.js`（dressup.js の あと・slow-life-prices.js の まえ） | `HandItems`（もちもの: ふうせん・バッグ・`outfit.hand`・UI-48） |
 | — | `pet-walk.js`（home-toilet.js の あと・world-zoom.js の まえ） | `PetWalk`（いぬの さんぽ: おさんぽ リードと こいぬ 3びき・UI-49） |
+| — | `table-ware.js`（pet-walk.js の あと・play-records.js の まえ。figure-stand.js・ichiban-kuji.js・conbini-collab.js・kaden-live.js より あと） | `TableWare`（しょっきを テーブルに ならべる: しょっき 30しゅ・テーブル 9しゅ・UI-103） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
 注意:
@@ -1387,6 +1388,20 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - UI-93（オーナーの FB 2026-10-04「もっと棚の種類を増やせ」）で だいを 5しゅ たした（ぜんぶで 7しゅ）: `figstand_cube` キューブの たな（1680・3 × 3・キューブの なかは 1こずつ パステル）／`figstand_house` おうちの たな（1980・3だん × 3・やね・えんとつ・まるい まど・ミントに ハートの かべがみ）／`figstand_acryl` アクリルの ひなだん（1480・2だん × 3・すきとおる・LED）／`figstand_turn` まわる ターンテーブル（2880・6・`ring` の まるい さらの うえで いつも ゆっくり まわる〔`ringAt(S, t)`・`speed` 0.45 rad/秒〕・ばしょの なまえは `names`「1ばん」〜「6ばん」・描く じゅんは まいかい おくゆき）／`figstand_tower` コレクション タワー（3680・ガラスの 4だん × 3 = 12・よるは あかり・まえと みぎの ガラスは ケースと おなじく フィギュアの あとに 描く）。`figureStand` は ばしょの かず（6・9・12）。
   - まえに いたが ある たな（キューブ・おうち。`win`）: この 斜め上の 見え方では おくの フィギュアの あたまが うえの いたに かくれる ので、ばしょを まえから 6（`win.y`）に して x を その ぶん ひだりへ（画面で しきりの まんなか）。`scaleOf` は `winScale` で、画面で フィギュアの 絵が しきりの まえの めん（`win.cols`）と うえの いたの まえの ふち（`ceil`）に かからない 大きさに する（FurnLive は いたを 描きなおさない）。
 - 検査は `tools/check-figure-stand.mjs`（7しゅ・ばしょ・なまえ・ねだん・ターンテーブル・すべての フィギュア × すべての だいの 大きさ・まえの いたに かからない・立体・live・よるの あかり）、スモークは `figure-stand-390 / 375` と `figure-stand-more-390 / 375`。
+
+## しょっきを テーブルに ならべる（UI-103・`js/table-ware.js`・`TableWare`）
+
+オーナーの 指示 2026-10-07「食器系のアイテムについて、テーブルに置けるようにせよ。既存のテーブルでも良いが、新たに4,5種類がくわわると望ましい。」。
+読み込みは pet-walk.js の あと（figure-stand.js・ichiban-kuji.js・conbini-collab.js〔しょっきの id〕と、さわる うごきの ある テーブル〔furniture-live.js の こたつ・furniture-collection.js の だいりせき〕の あと）。トップレベル名は `TableWare` だけ。
+
+- のせる しくみは フィギュア台を ひろげた もの: `FigureStand.addHolder(id, { name, slots, names, cap, capW, sorted, accept, pool, words })`（`TABLES`）。`isStand` は フィギュア だい だけ。`isHolder`／`holderOf`／`accepts(sid, x)`／`heldable(x)` が テーブルも みる。`figsOf`・`onStands`・`Room.placed`／`Room.comfort` の つつみ・`RoomPresets` の つつみ・`drawFigs`（`sorted` は 画面の y の じゅん）・`open`（ことばは `words`・いちらんは `pool`）は どちらにも つかう。
+- しょっき（`DISHES` 30・`isDish`・`FURN_INDEX[id].dish`）: あたらしい 8しゅ `tw_*`（ゆかの 家具・`cat: ["misc"]`・`FURN_ART` は 立体の `full`）＋ いちばんくじの `mug`／`teacup` 6 ＋ コンビニ コラボの `cup`／`plate` 16。かべの おさら（`PLATES`）は その id に おさらたての 立体を `FurnModels.register`（`Art.furnSvg` は かべの 絵の まま。`HomeDesign.model` だけ が おさらたて）。
+- テーブル（`TABLES` 9・`SPOTS`: ばしょ `xy`・いたの たかさ `z`・`cap`／`capW`・ばしょの なまえ）: まえからの きのテーブル・こたつ・おちゃの ワゴン・だいりせきの テーブル と あたらしい `tbl_*` 5しゅ（立体は この ファイル。まんなかの かざりは `L()`）。`FURN_INDEX[id].dishTable` は ばしょの かず。
+- かざりを かたづける: `FurnLive.opts` を つつみ、しょっきの ある テーブルだけ `o.live = true`（`furn:<id>:{"flip":…,"live":true}`）。table_wood・kotatsu・teacart（furniture-models.js）と hq_marble_table（furniture-collection.js）の うえの かざりは `k.L()` に いれた（はんいの 点は かぞえる ので 絵の 大きさは おなじ）。
+- さわる: どの テーブルも `FurnLive.register`（`FurnLive.get(id)` で まえの うごきを とって、`draw` は まえの うごき → しょっき、`isOn`／`light`／`init` は そのまま）。タップは まえの うごきが あれば それ（こたつの あたたかさ など・まどは でない）、なければ `FigureStand.open`。よその おうちは ことば だけ。もようがえは `HouseScene.prototype.select` を つつんで「しょっき」の ボタン。
+- かぐやさん: `BUY_SHOPS.furniture.tabs` に `["dish", "しょっき"]`（2ばんめ）・`items("dish")` は あたらしい 8しゅ（「かぐ」から のぞく）・`cls` に `shop-tabs-wrap`（css: タブを 2だんに おりかえす）。`ItemDexSources.source` を つつんで「かぐやさんの「しょっき」で かえるよ。」。
+- オンライン: `OnlineRooms.encode` は `isHolder` の だいの `figs` を `g` に・`decode` は `accepts(o.a, x)` の もの だけ のこす（ルールは かわらない）。
+- セーブ: `Save.d.room.items[].figs` に しょっき（ふえる だけ・`SCHEMA` 2）。PokaDebug: `tableWare()`。検査は `tools/check-table-ware.mjs`、スモークは `table-ware-390 / 375`。
 
 ## ネリカスタウンの実寸アセット
 

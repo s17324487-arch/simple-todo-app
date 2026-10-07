@@ -324,10 +324,10 @@ const FurnCollection = (() => {
     const vein = (pts) => lineOn(TP(58.45), pts, "#B8B4AE", 0.9);
     s += vein([[-30, cy - 12], [-16, cy - 8], [-8, cy - 16], [6, cy - 12]]) + vein([[-6, cy + 22], [6, cy + 14], [20, cy + 18], [30, cy + 8]]) + vein([[12, cy - 30], [18, cy - 20], [30, cy - 18]]);
     s += lineOn(TP(58.45), [[-24, cy + 6], [-12, cy + 10]], "#C9C5BF", 0.7);
-    // はなびん
-    s += lathe(-14, cy - 12, [[4, 58.4], [6.4, 64], [5, 72], [3, 76], [4.2, 79]], "#9CC7E6", 1.2) + at(-14, cy - 12, 79, FurnModels.SPR.blooms(), 12, 16);
-    s += at(14, cy + 2, 58.4, SPR.teapot("#FFFFFF", "#9CC7E6"), 18, 22);
-    s += cyl(-6, cy + 16, 58.4, 6.4, 1.2, "#FFFFFF", "#FFFFFF", 1) + cyl(-6, cy + 16, 59.6, 3.4, 4, "#FFFFFF", "#F2A7B8", 1);
+    // はなびん・ティーポット・カップ（しょっきを ならべた ときは live で かたづける。js/table-ware.js）
+    s += k.L(lathe(-14, cy - 12, [[4, 58.4], [6.4, 64], [5, 72], [3, 76], [4.2, 79]], "#9CC7E6", 1.2) + at(-14, cy - 12, 79, FurnModels.SPR.blooms(), 12, 16));
+    s += k.L(at(14, cy + 2, 58.4, SPR.teapot("#FFFFFF", "#9CC7E6"), 18, 22));
+    s += k.L(cyl(-6, cy + 16, 58.4, 6.4, 1.2, "#FFFFFF", "#FFFFFF", 1) + cyl(-6, cy + 16, 59.6, 3.4, 4, "#FFFFFF", "#F2A7B8", 1));
     return s;
   };
 

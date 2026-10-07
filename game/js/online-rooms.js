@@ -1,7 +1,7 @@
 // オンライン PR2（E5・UI-95）: ほかの 人の おうち。すまほの「みんな」の「おうち」タブ。
 // オーナーの 許可（2026-10-05）「Firebase に送るのは、…・おへやの家具の並び・…だけ」。
 // - じぶんの おへや（おにわ いがいの もって いる おへや）を「みせる」と きめた とき だけ おくる: かべがみ・ゆか・ひろさ・おへやの しゅるい・
-//   かぐの しゅるいと ばしょ・むき・かべの がわ・フィギュア だいの フィギュア・なまえの コード・サーバーの じこく。「みせるのを やめる」で けす。
+//   かぐの しゅるいと ばしょ・むき・かべの がわ・フィギュア だいの フィギュア・テーブルの しょっき（UI-103）・なまえの コード・サーバーの じこく。「みせるのを やめる」で けす。
 // - みんなの おへや: あたらしい じゅんに LIST けん（v1/roomlist）→ タップで その おへや（v1/rooms/{uid}）を よんで、3人で おじゃまする
 //   （おうちと おなじ 画面で あるける・UI-97・js/online-visit.js。まえは 見るだけの まど）。よその おへやは かわらない・じぶんの セーブにも はいらない。
 // - よんだ データは しんじない: しらない かぐ・へんな ばしょ・へんな フィギュアは すてる（あたらしい バージョンの かぐは 見えない だけ）。
@@ -32,7 +32,7 @@ const OnlineRooms = {
       const o = { a: it.id, x: this.num(it.x), y: this.num(it.y) };
       if (it.flip) o.r = true;
       if (it.wallSide === "left") o.s = "l";
-      if (typeof FigureStand !== "undefined" && FigureStand.isStand(it.id)) { const g = FigureStand.figsOf(it); if (g.some(Boolean)) o.g = g.map((x) => x || "").join(","); }
+      if (typeof FigureStand !== "undefined" && FigureStand.isHolder(it.id)) { const g = FigureStand.figsOf(it); if (g.some(Boolean)) o.g = g.map((x) => x || "").join(","); } // フィギュア だいの フィギュア・テーブルの しょっき（UI-103）
       items.push(o);
     }
     return { n: Online.nickCode(), t: { ".sv": "timestamp" }, k: id, w: r.wall, f: r.floor, z: Save.d.rooms.expanded[id] ? "e" : "s", ...(items.length ? { i: items } : {}) };
@@ -51,7 +51,7 @@ const OnlineRooms = {
       if (!o || typeof o !== "object" || !this.ID_RE.test(o.a) || !this.own(FURN_INDEX, o.a) || !Number.isFinite(o.x) || !Number.isFinite(o.y)) continue;
       const it = { uid: "v" + room.items.length, id: o.a, x: this.num(o.x), y: this.num(o.y), flip: o.r === true };
       if (o.s === "l") it.wallSide = "left";
-      if (typeof FigureStand !== "undefined" && FigureStand.isStand(o.a) && typeof o.g === "string") it.figs = o.g.slice(0, 600).split(",").slice(0, 12).map((x) => (this.ID_RE.test(x) && this.own(FURN_INDEX, x) && FigureStand.isFigure(x) ? x : null));
+      if (typeof FigureStand !== "undefined" && FigureStand.isHolder(o.a) && typeof o.g === "string") it.figs = o.g.slice(0, 600).split(",").slice(0, 12).map((x) => (this.ID_RE.test(x) && this.own(FURN_INDEX, x) && FigureStand.accepts(o.a, x) ? x : null));
       room.items.push(it);
     }
     return room;
