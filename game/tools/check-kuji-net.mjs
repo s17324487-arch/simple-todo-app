@@ -44,7 +44,7 @@ let seed = 12345;
 const rnd = () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296);
 const mkLot = (count, t0 = 1700000000000, gap = () => 1 + Math.floor(rnd() * 900)) => { const d = {}; let t = t0; for (let k = 0; k < count; k++) { t += gap(); d["k" + k] = { u: k % 2 ? "uB" : "uA", t }; } return { n: count, d }; };
 for (const s of STORES) {
-  const S0 = K.BY[s], v0 = KN.derive(s, 1, {});
+  const S0 = K.NET_BY[s], v0 = KN.derive(s, 1, {});
   ok(v0.n === 0 && v0.total === 80 && JSON.stringify(v0.tickets) === JSON.stringify(Object.fromEntries(K.GRADES.map((g) => [g, sum(K.PLAN[g])]))) && JSON.stringify(v0.left) === JSON.stringify(S0.plan) && !v0.sold, `${s}: から の ロット（80まい）`);
   for (let rep = 0; rep < 40; rep++) {
     const lot = mkLot(80, 1700000000000 + rep * 99991), v = KN.derive(s, 7, lot), g = {};
@@ -80,7 +80,7 @@ const pickLot = (want) => { // want: [[k, 賞]] に なる ロット
 const PL = pickLot([[0, "D"], [1, "D"], [2, "D"], [3, "H"]]);
 let V = KN.derive("lawson", 3, PL);
 ok(V.draws.slice(0, 3).every((x) => x.g === "D" && x.pick && !x.id) && V.draws[3].g === "H", "timeFor で 賞を きめた ロット（D・D・D・H）" + JSON.stringify(V.draws.map((x) => x.g)));
-const D0 = K.BY.lawson.ids.D;
+const D0 = K.NET_BY.lawson.ids.D;
 PL.d.k1.p = 2; PL.d.k1.o = 0; PL.d.k0.p = 2; PL.d.k0.o = 1; PL.d.k2.p = 3; PL.d.k2.o = 2; PL.pc = 3;
 V = KN.derive("lawson", 3, PL);
 ok(V.draws[1].id === D0[2] && !V.draws[1].fixed && V.draws[0].id === D0[0] && V.draws[0].fixed && V.draws[2].id === null && V.draws[2].p === null && V.left[D0[1]] === 1 && V.left[D0[2]] === 0 && V.left[D0[0]] === 0, "D〜F: えらんだ じゅん（o）の さきの 人から・ない しゅるいは のこりの はじめ（fixed）・へんな しゅるいの ばんごう（3）は つかわない " + JSON.stringify(V.draws.slice(0, 3)));
@@ -126,7 +126,7 @@ fake.kujiT(KN.timeFor("lawson", 1, {}, "A"));
 const c0 = S.d.coins;
 let r = await KN.draw("lawson", 1);
 const me = N.uid();
-ok(r && r.tickets.length === 1 && r.tickets[0].g === "A" && r.tickets[0].id === "kj_law_a" && r.tickets[0].first && S.d.coins === c0 - 1000 && S.d.furn.kj_law_a === 1 && K.got("kj_law_a") === 1 && r.left === 79, "1まい ひく → Aしょう（コイン 1000・家具）" + JSON.stringify(r && r.tickets));
+ok(r && r.tickets.length === 1 && r.tickets[0].g === "A" && r.tickets[0].id === "kj_mlaw_a" && r.tickets[0].first && S.d.coins === c0 - 1000 && S.d.furn.kj_mlaw_a === 1 && K.got("kj_mlaw_a") === 1 && r.left === 79, "1まい ひく → Aしょう（コイン 1000・家具）" + JSON.stringify(r && r.tickets));
 ok(fake.at("v1/kuji/lawson/lots/l1/n") === 1 && fake.at("v1/kuji/lawson/lots/l1/d/k0/u") === me && typeof fake.at("v1/kuji/lawson/lots/l1/d/k0/t") === "number" && fake.at(`v1/kujime/${me}/lawson_l1`) === true && fake.at(`v1/players/${me}`).n === "3-4", "サーバー: 1まいめ・じぶんの ID・サーバーの じこく・じぶんの きろく・なまえ");
 ok(JSON.stringify(Object.keys(fake.at("v1/kuji/lawson/lots/l1/d/k0")).sort()) === '["t","u"]', "おくるのは ID と じこく だけ（なまえは v1/players）");
 ok(K.st().net.rec.lawson_1_0 === 1 && K.st().net.uid === me && K.st().draws === 1 && K.st().spent === 1000 && K.st().stubs.lawson === 1, "てもとの きろく（もらった・ひいた まい数・はんけん）");
@@ -136,8 +136,8 @@ const B = await sign(), C = await sign();
 await HTTP("PUT", `v1/players/${B.uid}`, { n: "5-7", t: SVT }, B.tok);
 ok((await other(B, "lawson", 1, 1, "B")).status === 200, "ほかの 人（B）が 2まいめ（Bしょう）");
 L = await KN.load("lawson");
-ok(L.view.n === 2 && L.view.draws[1].u === B.uid && L.view.draws[1].g === "B" && L.view.left.kj_law_b === 0 && L.view.total === 78, "ほかの 人の くじで のこりが へる・Bしょうが でた");
-ok(!K.got("kj_law_b"), "ほかの 人の けいひんは もらわない");
+ok(L.view.n === 2 && L.view.draws[1].u === B.uid && L.view.draws[1].g === "B" && L.view.left.kj_mlaw_b === 0 && L.view.total === 78, "ほかの 人の くじで のこりが へる・Bしょうが でた");
+ok(!K.got("kj_mlaw_b"), "ほかの 人の けいひんは もらわない");
 // みんなの けっか（なまえ）
 ok(KN.nameOf(me) === "あなた" && KN.nameOf("") === "だれか" && KN.nameOf(B.uid) === "…", "なまえ（あなた・だれか・よみこみ中）");
 for (let i = 0; i < 100 && KN.nameOf(B.uid) === "…"; i++) await new Promise((ok2) => setTimeout(ok2, 20)); // なまえを よむ まで
@@ -150,17 +150,17 @@ r = await KN.draw("lawson", 1);
 ok(r.tickets.length === 1 && r.tickets[0].k === 3 && fake.at("v1/kuji/lawson/lots/l1/d/k3/u") === me && fake.at("v1/kuji/lawson/lots/l1/d/k2/u") === C.uid && S.d.coins === before - 1000, "だれかが さきに ひいた → 4まいめを ひく（コインは 1かい ぶん）");
 ok(r.tickets[0].g === "D" && r.tickets[0].pick && !r.tickets[0].id && KN.pending("lawson").length === 1 && K.st().net.rec.lawson_1_3 === 0, "Dしょう → えらぶ まち");
 let P = KN.pending("lawson")[0];
-ok(P.lot === 1 && P.k === 3 && P.g === "D" && JSON.stringify(KN.choices("lawson", P)) === JSON.stringify(K.BY.lawson.ids.D) && KN.leftOf("lawson", P, "kj_law_d1") === 1, "えらべる しゅるい（のこり）");
+ok(P.lot === 1 && P.k === 3 && P.g === "D" && JSON.stringify(KN.choices("lawson", P)) === JSON.stringify(K.NET_BY.lawson.ids.D) && KN.leftOf("lawson", P, "kj_mlaw_d1") === 1, "えらべる しゅるい（のこり）");
 // ほかの 人が さきに おなじ しゅるいを えらぶ
 fake.kujiT(KN.timeFor("lawson", 1, fake.at("v1/kuji/lawson/lots/l1"), "D"));
 await other(B, "lawson", 1, 4);
 ok((await HTTP("PATCH", "v1/kuji/lawson/lots/l1", { pc: 1, "d/k4/p": 1, "d/k4/o": 0 }, B.tok)).status === 200, "B が さきに d1 を えらぶ");
-r = await KN.pick("lawson", P, "kj_law_d1");
-ok(r && r.taken && !S.d.furn.kj_law_d1, "おなじ しゅるいは とれない（taken）");
-ok(JSON.stringify(KN.choices("lawson", P)) === JSON.stringify(["kj_law_d0", "kj_law_d2"]), "のこりの しゅるいだけ えらべる");
-r = await KN.pick("lawson", P, "kj_law_d2");
-ok(r && r.id === "kj_law_d2" && !r.fixed && S.d.furn.kj_law_d2 === 1 && fake.at("v1/kuji/lawson/lots/l1/d/k3/p") === 2 && fake.at("v1/kuji/lawson/lots/l1/d/k3/o") === 1 && fake.at("v1/kuji/lawson/lots/l1/pc") === 2 && K.st().net.rec.lawson_1_3 === 1 && !KN.pending("lawson").length, "えらぶ → もらう（えらんだ じゅん 2ばんめ）");
-ok(await KN.pick("lawson", P, "kj_law_d0") && fake.at("v1/kuji/lawson/lots/l1/d/k3/p") === 2 && S.d.furn.kj_law_d0 === undefined, "えらんだ あとは かわらない（おなじ ものを かえす）");
+r = await KN.pick("lawson", P, "kj_mlaw_d1");
+ok(r && r.taken && !S.d.furn.kj_mlaw_d1, "おなじ しゅるいは とれない（taken）");
+ok(JSON.stringify(KN.choices("lawson", P)) === JSON.stringify(["kj_mlaw_d0", "kj_mlaw_d2"]), "のこりの しゅるいだけ えらべる");
+r = await KN.pick("lawson", P, "kj_mlaw_d2");
+ok(r && r.id === "kj_mlaw_d2" && !r.fixed && S.d.furn.kj_mlaw_d2 === 1 && fake.at("v1/kuji/lawson/lots/l1/d/k3/p") === 2 && fake.at("v1/kuji/lawson/lots/l1/d/k3/o") === 1 && fake.at("v1/kuji/lawson/lots/l1/pc") === 2 && K.st().net.rec.lawson_1_3 === 1 && !KN.pending("lawson").length, "えらぶ → もらう（えらんだ じゅん 2ばんめ）");
+ok(await KN.pick("lawson", P, "kj_mlaw_d0") && fake.at("v1/kuji/lawson/lots/l1/d/k3/p") === 2 && S.d.furn.kj_mlaw_d0 === undefined, "えらんだ あとは かわらない（おなじ ものを かえす）");
 // へんじが こない（とどいて いる）→ たしかめて ひけた ことに
 failNext = (url, opt) => (opt.method === "PATCH" && /\/db\/v1\.json/.test(url) ? "after" : null);
 const b2 = S.d.coins; r = await KN.draw("lawson", 1); failNext = null;
@@ -181,7 +181,7 @@ L = await KN.load("lawson");
 ok(L.view.n === 79 && L.view.total === 1 && !L.view.sold, "のこり 1まい");
 fake.kujiT(KN.timeFor("lawson", 1, fake.at("v1/kuji/lawson/lots/l1"), K.GRADES.find((g) => L.view.tickets[g] > 0)));
 const b5 = S.d.coins; r = await KN.draw("lawson", 3);
-ok(r.tickets.length >= 1 && r.tickets[0].k === 79 && r.tickets[0].last && r.tickets[0].lastPrize && r.tickets[0].lastPrize.item.id === "kj_law_l" && S.d.furn.kj_law_l === 1 && (K.st().net.rec.lawson_1_79 & 2), "80まいめで ラストワンしょう " + JSON.stringify(r.tickets.map((t) => [t.lot, t.k])));
+ok(r.tickets.length >= 1 && r.tickets[0].k === 79 && r.tickets[0].last && r.tickets[0].lastPrize && r.tickets[0].lastPrize.item.id === "kj_mlaw_l" && S.d.furn.kj_mlaw_l === 1 && (K.st().net.rec.lawson_1_79 & 2), "80まいめで ラストワンしょう " + JSON.stringify(r.tickets.map((t) => [t.lot, t.k])));
 ok(r.tickets.length === 3 && r.tickets[1].lot === 2 && r.tickets[1].k === 0 && r.tickets[2].lot === 2 && r.tickets[2].k === 1 && S.d.coins === b5 - 3000, "うりきれたら つぎの ロット 2 で のこりを ひく");
 ok(fake.at("v1/kuji/lawson/cur") === 2 && fake.at("v1/kuji/lawson/lots/l1/n") === 80 && KN.cur("lawson") === 2 && KN.view("lawson").n === 2, "サーバーの いまの ロットは 2");
 ok((await other(B, "lawson", 1, 80)).status === 401 && (await other(B, "lawson", 2, 0)).status === 401, "まえの ロット・おなじ ばんごうには かけない");
@@ -196,7 +196,7 @@ const SL = KN.derive("sevenbun", 1, fake.at("v1/kuji/sevenbun/lots/l1"));
 ok(SL.n === 79 && SL.total === 1 && SL.tickets.E === 1, "のこりの 1まいは Eしょう");
 await KN.load("sevenbun"); r = await KN.draw("sevenbun", 1);
 for (let i = 0; i < 50 && fake.at("v1/kuji/sevenbun/cur") !== 2; i++) await new Promise((ok2) => setTimeout(ok2, 20)); // うりきれた あとの つぎの ロット（またない）
-ok(r.tickets[0].k === 79 && r.tickets[0].g === "E" && r.tickets[0].pick && r.tickets[0].lastPrize && r.tickets[0].lastPrize.item.id === "kj_sev_l" && fake.at("v1/kuji/sevenbun/cur") === 2, "80まいめが D〜F（ラストワンは すぐ・しゅるいは あとで）・つぎの ロットへ");
+ok(r.tickets[0].k === 79 && r.tickets[0].g === "E" && r.tickets[0].pick && r.tickets[0].lastPrize && r.tickets[0].lastPrize.item.id === "kj_msev_l" && fake.at("v1/kuji/sevenbun/cur") === 2, "80まいめが D〜F（ラストワンは すぐ・しゅるいは あとで）・つぎの ロットへ");
 await KN.load("sevenbun");
 P = KN.pending("sevenbun")[0];
 ok(KN.cur("sevenbun") === 2 && P && P.lot === 1 && P.k === 79 && P.g === "E", "つぎの ロットを よんでも まえの ロットの えらぶ まちは のこる");

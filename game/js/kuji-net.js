@@ -6,6 +6,7 @@
 //   D〜Fしょうを えらぶと p（しゅるいの ばんごう 0〜2）と o（えらんだ じゅん。pc を 1 ずつ ふやす）。v1/kujime/{uid}/{みせ}_l{ロット} = true（けす ときに じぶんの くじを さがす）。
 // - なんまいめは ルールが きめる（n を 1 ふやす ときだけ その ばんごうの くじを かける）ので、2人が おなじ くじを ひく ことは ない。だれかと かさなったら よみなおして もう いちど。
 //   うりきれた（n が 80）ロットは だれでも つぎへ すすめられる（cur を 1 ふやす）。
+// - けいひんは ひとりの くじ より ごうかな みんなの くじ だけの もの（IchibanKuji.NET_BY・UI-101。賞の ほんすうは おなじ）。
 // - でた 賞は みんなが おなじ けいさんで きめる（derive）: その くじの サーバーの じこく と なんまいめ の たね（IchibanKuji.hash・seeded）で、のこりの まい数の おもみ（ひとりの くじと おなじ）。
 //   じこくは サーバーが きめる（ルールで t === now）ので、ひく 人は どの 賞が でるか えらべない。A〜C・G〜Iしょうの しゅるいも おなじ たねで きまる。
 //   D〜Fしょうは ひいた 人が のこりから えらぶ（えらんだ じゅん o の さきの 人から。もう ない しゅるいなら のこりの はじめの もの）。80まいめを ひいた 人に ラストワンしょう。
@@ -31,7 +32,7 @@ const KujiNet = (() => {
   // ---- でた 賞（みんな おなじ けいさん）----
   // lot: サーバーの ロット（{ n, pc, d: { k0: { u, t, p?, o? }, … } }）→ { no, n, draws: [{ k, u, t, g, id, pick, p, o, last, fixed }], left しゅるいごとの のこり, tickets 賞ごとの のこり, total, sold }
   function derive(s, no, lot) {
-    const S = K.BY[s], d = lot && lot.d && typeof lot.d === "object" ? lot.d : {}, T = {}, left = { ...S.plan }, draws = [];
+    const S = K.NET_BY[s], d = lot && lot.d && typeof lot.d === "object" ? lot.d : {}, T = {}, left = { ...S.plan }, draws = [];
     for (const g of K.GRADES) T[g] = sum(K.PLAN[g]);
     for (let k = 0; k < MAX; k++) {
       const r = d["k" + k];
@@ -90,7 +91,7 @@ const KujiNet = (() => {
   // ---- じぶんの くじ（コイン・けいひん）----
   // rec に ある じぶんの くじ k の けいひんを もらう（まだの ぶんだけ）。もらった ものを かえす
   function settle(s, view, k) {
-    const x = view.draws[k], net = st(), rk = key(s, view.no, k), S = K.BY[s];
+    const x = view.draws[k], net = st(), rk = key(s, view.no, k), S = K.NET_BY[s];
     if (!x || !(rk in net.rec)) return null;
     let flag = net.rec[rk];
     const t = { g: x.g, id: x.id, pick: x.pick && !x.id, no: k + 1, lot: view.no, k, last: x.last };
@@ -135,7 +136,7 @@ const KujiNet = (() => {
   }
   const viewOf = (s, no) => (live[s] && live[s].cur === no ? live[s].view : views[s + "_" + no]);
   // えらべる しゅるい（のこりが ある もの）
-  function choices(s, P) { const v = viewOf(s, P.lot); return v ? K.BY[s].ids[P.g].filter((id) => v.left[id] > 0) : []; }
+  function choices(s, P) { const v = viewOf(s, P.lot); return v ? K.NET_BY[s].ids[P.g].filter((id) => v.left[id] > 0) : []; }
   function leftOf(s, P, id) { const v = viewOf(s, P.lot); return v ? v.left[id] || 0 : 0; }
 
   // ---- ひく ----
@@ -183,7 +184,7 @@ const KujiNet = (() => {
   }
   // D〜Fしょうを えらぶ（のこりの しゅるいから。えらんだ じゅんは pc を 1 ずつ）。かえす: もらった もの・{ taken: true }（だれかが さきに えらんだ）・null
   async function pick(s, P, id) {
-    const S = K.BY[s], uid = OnlineNet.uid(), ix = S.ids[P.g] ? S.ids[P.g].indexOf(id) : -1;
+    const S = K.NET_BY[s], uid = OnlineNet.uid(), ix = S.ids[P.g] ? S.ids[P.g].indexOf(id) : -1;
     if (ix < 0 || !uid) return null;
     for (let tries = 0; tries < TRIES; tries++) {
       const lot = await fetchLot(s, P.lot), v = derive(s, P.lot, lot), x = v.draws[P.k];

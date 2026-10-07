@@ -39,10 +39,10 @@ const PokaDebug = {
   kujiDc(win=true){if(typeof IchibanKuji==='undefined')return false;IchibanKuji.dcNext=!!win;return true;},
   kujiFast(k=1){if(typeof KujiUI==='undefined')return false;KujiUI.ui.speed=Math.max(1,Math.min(20,k));return true;},
   kujiUi(){if(typeof KujiUI==='undefined')return null;const v=KujiUI.view;return{open:!!(v.open&&document.querySelector('.modal-wrap:not(.out) .kuji')),store:v.store,phase:v.phase,mode:v.mode,tickets:v.tickets.map(t=>({g:t.g,id:t.id,pick:t.pick,last:t.last,open:t.open})),results:v.results.slice(),dc:v.dc?{...v.dc}:null};},
-  // みんなの くじ（kuji-net.js・UI-100）: kujiNet ようす（つかって いるか・ロット・ひいた くじ〔賞・じぶんか〕・のこり・みんなの けっか・えらぶ まち・つながり・てもとの rec）・
+  // みんなの くじ（kuji-net.js・UI-100）: kujiNet ようす（つかって いるか・ロット・ひいた くじ〔賞・じぶんか〕・のこり・みんなの けっか・えらぶ まち・つながり・てもとの rec・deluxe みんなの くじの けいひん〔いちらん・もって いる もの・コンプリート〕）・
   // kujiNetMode みんなの くじ を つかう／やめる・kujiNetT(s, '賞') いまの ロットの つぎの くじが その 賞に なる サーバーの じこく（にせの サーバーの kujiT に わたす）
   kujiNet(s='lawson'){if(typeof KujiNet==='undefined'||!IchibanKuji.has(s))return null;const v=KujiNet.view(s),n=KujiNet.st(),me=typeof OnlineNet!=='undefined'?OnlineNet.uid():'';return{available:KujiNet.available(),using:KujiNet.using(),on:n.on,since:n.since,uid:n.uid,rec:{...n.rec},cur:KujiNet.cur(s),watching:KujiNet.watching(),state:KujiNet.state(),prev:KujiNet.prev(s),
-    view:v?{no:v.no,n:v.n,total:v.total,sold:v.sold,pc:v.pc,tickets:{...v.tickets},left:{...v.left},draws:v.draws.map(x=>({k:x.k,g:x.g,id:x.id,me:!!x.u&&x.u===me,u:x.u,p:x.p,o:x.o,last:x.last,fixed:x.fixed}))}:null,feed:KujiNet.feed(v),pending:KujiNet.pending(s)};},
+    view:v?{no:v.no,n:v.n,total:v.total,sold:v.sold,pc:v.pc,tickets:{...v.tickets},left:{...v.left},draws:v.draws.map(x=>({k:x.k,g:x.g,id:x.id,me:!!x.u&&x.u===me,u:x.u,p:x.p,o:x.o,last:x.last,fixed:x.fixed}))}:null,feed:KujiNet.feed(v),pending:KujiNet.pending(s),deluxe:(()=>{const X=IchibanKuji.NET_BY[s];return{title:X.title,lineup:X.lineup.slice(),ids:Object.fromEntries(IchibanKuji.GRADES.map(g=>[g,X.ids[g].slice()])),lastId:X.lastId,got:X.lineup.filter(id=>IchibanKuji.got(id)>0),complete:IchibanKuji.complete(s,true),done:IchibanKuji.st().done['net_'+s]||null};})()};},
   kujiNetMode(on=true){if(typeof KujiNet==='undefined')return false;KujiNet.setMode(!!on);return KujiNet.using();},
   kujiNetT(s='lawson',g='A',from=Date.now()){if(typeof KujiNet==='undefined'||!IchibanKuji.has(s)||!IchibanKuji.GRADES.includes(g))return null;const lot=KujiNet.lot(s);return lot?KujiNet.timeFor(s,KujiNet.cur(s),lot,g,from):null;},
   // ガチャガチャの もり（4F）: series は もりの ぜんぶの シリーズ（12〜29 と UI-62 の 33〜38・more）・machines は いまの しゅうに 台に はいって いる 18
@@ -221,7 +221,7 @@ const PokaDebug = {
       "PokaDebug.arcadeStart(21〜23)       4F の たこやき（arcadeTako(0) で あたりの あなに だま）・バーバーカット（arcadeBarber(1, 0, -2) で まん中の ひもの てまえ）・バウンドボール",
       "PokaDebug.stickers()                 シールの ガチャ（4F・30〜32）と シールちょう（てもと・ページ）。stickerGive('stk_wanko', 3) で シールを もらう・stickerUi() で ひらいて いる ページ",
       "PokaDebug.kuji('lawson')             ネリカスタウンの コンビニの いちばんくじ（ロット・のこり・はりつけ ひょう・はんけん・クーポン）。kujiOpen で ボード・kujiNext('A') で つぎの 賞・kujiLeft(s, n) で のこり n まい・kujiDays(s, 1) で つぎの 日・kujiDc(true)・kujiUi()",
-      "PokaDebug.kujiNet('lawson')          みんなの くじ（オンラインの みんなで おなじ ロット・UI-100）の ようす。kujiNetMode(true) で つかう・kujiNetT('lawson', 'A') で つぎの くじが Aしょうに なる じこく",
+      "PokaDebug.kujiNet('lawson')          みんなの くじ（オンラインの みんなで おなじ ロット・UI-100）の ようす（deluxe は みんなの くじの ごうかな けいひん・UI-101）。kujiNetMode(true) で つかう・kujiNetT('lawson', 'A') で つぎの くじが Aしょうに なる じこく",
       "PokaDebug.areaMap()                  すまほ の ちず「この エリア」の ようす（めじるし・なまえ・えらんだ もの）。areaMapLayout('town', 4.46) で ならびだけ",
       "PokaDebug.venue('electronics', 2)    ネリカス でんき（池袋の 家電の 館。1F スマホ・カメラ／2F くらしの かでん／3F テレビ・パソコン／10F あかり・シアター・けいば ちゅうけい）。kaden() で 階・うりば・だいの しなもの・ためしの だい",
       "PokaDebug.kadenStickers()           ネリカス でんき 1F の シール うりば（ひらいて いる タブ・しなもの・かった かず）。シールちょうは stickers()・stickerUi()",

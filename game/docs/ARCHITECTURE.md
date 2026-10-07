@@ -182,7 +182,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `neri-post.js`（neri-gas.js の あと） | `POST_DESTS`, `POST_ICONS`, `postIcon`, `PostTask`, `PostOffice` |
 | — | `neri-apart.js`（neri-post.js の あと） | `NeriApart` |
 | — | `neri-quests.js`（neri-apart.js の あと） | `NeriQuests` |
-| — | `kuji-art.js` → `ichiban-kuji.js` → `kuji-ui.js`（neri-quests.js の あと。neri-shops.js・sticker-book.js・figure-stand.js・hand-items.js より あと） | `KujiArt` ／ `IchibanKuji` ／ `KujiUI`（ネリカスタウンの コンビニの いちばんくじ・UI-55） |
+| — | `kuji-art.js` → `kuji-deluxe-art.js` → `ichiban-kuji.js` → `kuji-ui.js`（neri-quests.js の あと。neri-shops.js・sticker-book.js・figure-stand.js・hand-items.js より あと） | `KujiArt` ／ `KujiDeluxeArt` ／ `IchibanKuji` ／ `KujiUI`（ネリカスタウンの コンビニの いちばんくじ・UI-55。`KujiDeluxeArt` は みんなの くじの ごうかな けいひんの 絵・UI-101） |
 | — | `store-iso-art.js` → `store-iso-props.js` → `store-iso.js`（kuji-ui.js の あと。iso-venue.js・mall-art.js・neri-bikkupo.js〔ボックスせきの 絵〕・dine-seats.js より あと） | `StoreIsoArt` ／ ― ／ `StoreIso`・`StoreScene`（歩いて 入る お店の 斜め上の 館・UI-75。`SCENES.store`） |
 | — | `korokoro-physics.js` / `korokoro-art.js` / `mg-korokoro.js` / `korokoro-town.js` | `KOROKORO_TIERS`, `KOROKORO_RULES`, `KorokoroWorld` ／ `KorokoroArt` ／ `KOROKORO_ORDERS`, `KOROKORO_BONUS`, `KorokoroSound`, `KOROKORO_FACE`, `KorokoroBoard`, `KorokoroTask` ／ `KorokoroTown` |
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
@@ -1468,7 +1468,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 
 ## いちばんくじ（ネリカスタウンの コンビニ・UI-55・`js/ichiban-kuji.js`・`js/kuji-art.js`・`js/kuji-ui.js`）
 
-- 読み込みは `js/kuji-art.js` → `js/ichiban-kuji.js` → `js/kuji-ui.js`（neri-quests.js の あと）。トップレベル名は `KujiArt`・`IchibanKuji`・`KujiUI`。`KujiArt` の 中の 絵の 関数は `IchibanKuji` を よぶ ときに だけ つかう（`KujiArt.install(API)` は ichiban-kuji.js の さいごに よぶ）。
+- 読み込みは `js/kuji-art.js` → `js/kuji-deluxe-art.js` → `js/ichiban-kuji.js` → `js/kuji-ui.js`（neri-quests.js の あと）。トップレベル名は `KujiArt`・`KujiDeluxeArt`（UI-101・つぎの つぎの 節）・`IchibanKuji`・`KujiUI`。`KujiArt` の 中の 絵の 関数は `IchibanKuji` を よぶ ときに だけ つかう（`KujiArt.install(API)` は ichiban-kuji.js の さいごに よぶ）。
 - きまり `IchibanKuji`: `PRICE` 1000・`PLAN`（賞ごとの ほんすう。A1 B1 C1 D3 E6 F9 G12 H20 I27 ＝ 80まい。2つの コンビニで おなじ）・`PICK`（D〜F は のこりから えらぶ）・`SERIES`（`lawson`〔key law〕・`sevenbun`〔key sev〕。`cats`・`items`〔[しっぽ, なまえ, せつめい, { kind, who, w, d, h, comfort, … }]〕・`last`・`dc`・`stickers`）。けいひんの id は `kj_<law|sev>_<しっぽ>`（`ITEMS`・`INDEX`。`S.lineup` は A〜I の 24しゅ ＋ ラストワン）。
   - `drawOne(s, by, rnd)`: のこりの まいすう（`tickets(s)`。えらんで いない `hold` を のぞく）の おもみで 賞を えらぶ → `L.log` に [賞, じぶん=1]。じぶんの D〜F は `hold` と `pending`（あとで `choose`）、ほかは のこりの かずの おもみで しゅるいを えらんで `L.left` を へらす。
   - `draw(s, n)`: `sync` → コインと のこりを たしかめて `Save.addCoins(-1000n)`・`draws`・`spent`・はんけん `stubs` → n かい `drawOne(s, "me")` と `grant`。さいごの 1まいで `last: true` と `lastPrize`（`grant(lastId)`）・`L.sold`。
@@ -1498,6 +1498,20 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - がめん（`js/kuji-ui.js`）: `open` の なかで `mode`（"solo" | "net"。`KujiNet.using()`）。ボードの ぶぶんを 関数に わけた（`rowsPart`・`collectPart`・`boardPart`・`actionsPart`・`dcPart`・`couponPart`・`dcResPart`・`posterPart`・`statPart`・`lastPart`。ひとりの くじの DOM は まえと おなじ）。`drawNet`・`netBuy`（`phase` "wait"）・`SRC`（えらぶ もと。みんなの くじは `KujiNet.pick` を まつ）。ボードの うえの `.kuji-modes`（オンラインの とき だけ）。
 - セーブ `Save.d.kuji.net`: `on`（1 = つかう）・`since`・`uid`・`rec { "みせ_ロット_なんまいめ": 1 賞 ＋ 2 ラストワン }`（`IchibanKuji.cleanNet`・400 けん まで・もらい おわった ものから けす）。
 - テスト: `tools/check-kuji-net.mjs`・`tools/rules-emulator.mjs`（本物の エミュレーター。開発者むけ）・スモーク `kuji-net-390/375`。にせの サーバーの `kujiT(t)` で つぎに ひかれる くじの サーバーの じこくを きめる（とおった ときだけ つかう）。PokaDebug: `kujiNet(s)`・`kujiNetMode(on)`・`kujiNetT(s, 賞)`・`kujiUi().mode`。
+
+## みんなの くじの ごうかな けいひん（UI-101・`IchibanKuji.DELUXE`・`js/kuji-deluxe-art.js`・`KujiDeluxeArt`）
+
+オーナーの 指示 2026-10-06「ひとりのくじとみんなのくじの景品を変えて。みんなのくじの方が、豪華にしたい。」 ひとりの くじ（`SERIES`・`BY`）の けいひんは そのまま、みんなの くじ（`js/kuji-net.js`）だけ べつの けいひん。
+
+- データ（`js/ichiban-kuji.js`）: `DELUXE`（`lawson`〔key `mlaw`・「ローリソンの ロイヤル パーティー」〕・`sevenbun`〔key `msev`・「せぶんぶんの ごうか おしょうがつ」〕。`SERIES` と おなじ 形・`dc` は ない）→ `NET_BY`。`build(S, net)` で `ITEMS`・`INDEX` に いれる（id `kj_m<みせ>_<しっぽ>`・`net: true`・`S.net`）。`S.dcId` は ひとりの くじの もの（はんけんは どちらも おなじ）。`seriesOf(it)`（`it.net` で `NET_BY` か `BY`）。
+  - あたらしい kind: `chair`（ゆか）・`zabuton`（ゆか）・`teacup`／`frame`／`maneki`（ゆか・フィギュア だい。`FIG_KINDS`）・`brocade`（ラグ。`RUG`）。ぬいぐるみは `plush`（`who: "trio"` は ラストワン）・もちものは `bag`（`wear: "kuji_dbag"`・`WEAR.kuji_dbag`）・クーポンは `uses: 3`・シートは 6まい。
+  - `grant`: クーポンは `uses` まい（`note`「…で 3かい つかえるよ」）・コンプリートは `done[doneKey(S)]`（`net_<みせ>`。ダブルチャンスしょうは どちらの そろいにも いれない）。`complete(s, net)`・`gotCount(s, net)`・`coupons(s)`（2つの くじの H）・`source(id)`（「「みんなの くじ」」が はいる）。`clean` は `done` の `net_<みせ>` を のこす。
+  - シール 12しゅ（`stk_kjm<みせ>_*`）は `StickerBook.addDesigns`（`series` は みせ・`hint`「…いちばんくじ「みんなの くじ」（Iしょう）で でるよ」・まとまりは くじ）。
+- 絵 `KujiDeluxeArt`（kuji-art.js の あと・ichiban-kuji.js の まえ。SVG の 文字列。グラデーション・clipPath・id・キラキラは つかわない）: `PLUSH`（とくだい ぬいぐるみ 8。`KujiArt.parts` の 3人の ぶひん・タグ）・`ART`（チェア・ざぶとん・ティーカップ・がくぶち・ふくまねき・クーポン・シート）・`STK`（シール 12）・`bag(ctx)`・`brocadeFlat`／`rugModel(who)`（ラグの 立体）・`LIVE`（`chair`・`zabuton` の ひとこと）。よみこみの ときに `KujiArt` の `PLUSH`・`ART`・`STK` に たす（`pic`・`furn`・`sticker` は いままでの まま つかえる）。`install(API)`（ichiban-kuji.js の さいごで `KujiArt.install` の あと）: きんらんの ラグの 立体・チェアと ざぶとんの さわる うごき（`KujiArt.live`）。
+  - `KujiArt`: `box(store, deluxe)`（きんの おびの はこ）・`live(it, o)`（ぬいぐるみの ぎゅっ。`LIVE.royal` は みんなの くじの ぬいぐるみの ひとこと）・`parts`（ほかの ファイルが つかう ぶひん）。
+- `KujiNet`（`derive`・`settle`・えらぶ）は `K.NET_BY[s]` の `plan`・`ids`・`lastId` を つかう。サーバーの データと ルールは かわらない（`p` は しゅるいの ばんごう）。
+- がめん `KujiUI`: `X()`（`mode === "net"` なら `NET_BY[s]`・ほかは `SO`＝`BY[s]`）で ポスター・カード・D〜I・えらぶ・けっか・あつめた かずを かく。`paint()`（`--kc`・`--kl`・`--kd` と `.kuji.deluxe`）・ポスターの `.kuji-ribbon`・ひとりの くじの `.kuji-modehint`（オンラインの とき だけ）・`boxUrl(s, mode === "net")`。ダブルチャンス・クーポン・はんけんは `SO`（てもとの もの）。
+- PokaDebug: `kujiNet(s).deluxe`（title・lineup・ids・lastId・got・complete・done）。検査は `tools/check-kuji-deluxe.mjs`（ひとりの くじと 賞ごとに くらべる「ごうか」の きまり など）・スモーク `kuji-net-390/375`。
 
 ## はたけ（おうちの ひだり・FARM-01）
 

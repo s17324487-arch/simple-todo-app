@@ -10,6 +10,7 @@
 // ・けいひん: A〜Cしょう ビッグ ぬいぐるみ（ごじ・わんこ・がちゃん）・Dしょう クッション・Eしょう マグカップ（ローリソン）／ブランケット（せぶんぶん）・Fしょう エコバッグ（もちもの）・
 //   Gしょう アクリル スタンド（ローリソン）／ちび ぬいぐるみ（せぶんぶん。どちらも フィギュア だいに かざれる）・Hしょう クーポンけん（その コンビニで 1こ むりょう）・
 //   Iしょう シール シート（シールちょうに はれる）・ラストワンしょう 3にんの ビッグ ぬいぐるみ・ダブルチャンスしょう タペストリー（かべ）。絵は js/kuji-art.js、がめんは js/kuji-ui.js。
+// ・「みんなの くじ」（js/kuji-net.js）は べつの ごうかな けいひん（DELUXE・UI-101）: ローリソン「ロイヤル パーティー」・せぶんぶん「ごうか おしょうがつ」。絵は js/kuji-deluxe-art.js。
 // ・セーブ: Save.d.kuji（くわしくは st() の うえ）。Save.SCHEMA は 2 の まま。
 const IchibanKuji = (() => {
   const PRICE = 1000, KEEP = 10, CATCHUP = 7, OTHERS_MAX = 4, DC_RATE = 0.02, BAG_REFUND = 100, LOG_MAX = 80;
@@ -111,33 +112,132 @@ const IchibanKuji = (() => {
       stickers: [["stk_kjsev_wanko", "はちまき わんこ"], ["stk_kjsev_gachan", "はちまき がちゃん"], ["stk_kjsev_goji", "はちまき ごじ"], ["stk_kjsev_oden", "おでん"], ["stk_kjsev_melon", "メロンパン"], ["stk_kjsev_cocoa", "ココア"]],
     },
   ];
+  // ---- みんなの くじ（js/kuji-net.js）の けいひん。ひとりの くじ より ごうか（UI-101。オーナーの 指示 2026-10-06「ひとりのくじとみんなのくじの景品を変えて。みんなのくじの方が、豪華にしたい。」）----
+  // 賞の ほんすうは おなじ（80まい）。id は kj_m<みせ>_。どの 賞も ひとりの くじ より おおきい・いごこちが よい・もちものは つよい・クーポンは 3まい・シールは 6まい。絵は js/kuji-deluxe-art.js。
+  // kind: plush（とくだい ぬいぐるみ）・chair（ベルベットの いす）・zabuton（きんらんの ざぶとん）・teacup（ティーカップ）・frame（がくぶち スタンド）・maneki（ふくまねき。この 3つは フィギュア だい）・
+  //   brocade（きんらんの ラグ）・bag（もちもの: ポシェット・がまぐち）・coupon（uses まい つづり）・sheet（シール 6まい）
+  const DELUXE = [
+    {
+      id: "lawson", key: "mlaw", shop: "ローリソン", title: "ローリソンの ロイヤル パーティー", color: "#2E4A8C", light: "#F6ECCB", dark: "#B8862B",
+      cats: { A: "とくだい ぬいぐるみ", B: "とくだい ぬいぐるみ", C: "とくだい ぬいぐるみ", D: "ベルベット チェア", E: "ゴールド ティーカップ", F: "ロイヤル ポシェット", G: "がくぶち スタンド", H: "ゴールド クーポン", I: "ゴールド シール" },
+      items: {
+        A: [["a", "おうかん ごじ とくだい ぬいぐるみ", "きんの おうかんと あかい マントの ごじ。きんいろの からあげを だいて ベルベットの だいに すわる。", { kind: "plush", who: "goji", w: 132, d: 96, h: 150, comfort: 22 }]],
+        B: [["b", "タキシード わんこ とくだい ぬいぐるみ", "シルクハットと タキシードの わんこ。きんぱくの おにぎりを そっと もって いる。", { kind: "plush", who: "wanko", w: 124, d: 92, h: 144, comfort: 21 }]],
+        C: [["c", "ティアラ がちゃん とくだい ぬいぐるみ", "ティアラと しんじゅの がちゃん。クリスタルの グラスの プリン アラモードを もつ。", { kind: "plush", who: "gachan", w: 120, d: 90, h: 134, comfort: 20 }]],
+        D: [
+          ["d0", "ベルベット チェア わんこ", "きんの あしの ふかふかの ひとりがけ チェア。せもたれに わんこの ししゅう。", { kind: "chair", who: "wanko", w: 76, d: 66, h: 92, comfort: 10 }],
+          ["d1", "ベルベット チェア がちゃん", "きんの あしの ふかふかの ひとりがけ チェア。せもたれに がちゃんの ししゅう。", { kind: "chair", who: "gachan", w: 76, d: 66, h: 92, comfort: 10 }],
+          ["d2", "ベルベット チェア ごじ", "きんの あしの ふかふかの ひとりがけ チェア。せもたれに ごじの ししゅう。", { kind: "chair", who: "goji", w: 76, d: 66, h: 92, comfort: 10 }],
+        ],
+        E: [
+          ["e0", "ゴールド ティーカップ わんこ", "きんの ふちの ティーカップと ソーサー。わんこの かおの えつけ。", { kind: "teacup", who: "wanko", w: 46, d: 36, h: 34, comfort: 3 }],
+          ["e1", "ゴールド ティーカップ がちゃん", "きんの ふちの ティーカップと ソーサー。がちゃんの かおの えつけ。", { kind: "teacup", who: "gachan", w: 46, d: 36, h: 34, comfort: 3 }],
+          ["e2", "ゴールド ティーカップ ごじ", "きんの ふちの ティーカップと ソーサー。ごじの かおの えつけ。", { kind: "teacup", who: "goji", w: 46, d: 36, h: 34, comfort: 3 }],
+        ],
+        F: [
+          ["f0", "ロイヤル ポシェット わんこ", "きんの かなぐの ベルベットの ポシェット。わんこの エンブレム つき。", { kind: "bag", who: "wanko", st: { def: 2 } }],
+          ["f1", "ロイヤル ポシェット がちゃん", "きんの かなぐの ベルベットの ポシェット。がちゃんの エンブレム つき。", { kind: "bag", who: "gachan", st: { spd: 2 } }],
+          ["f2", "ロイヤル ポシェット ごじ", "きんの かなぐの ベルベットの ポシェット。ごじの エンブレム つき。", { kind: "bag", who: "goji", st: { hp: 6 } }],
+        ],
+        G: [
+          ["g0", "がくぶち スタンド わんこ", "きんの がくぶちに シルクハットの わんこ。フィギュア だいに かざれる。", { kind: "frame", who: "wanko", w: 46, d: 22, h: 62, comfort: 3 }],
+          ["g1", "がくぶち スタンド がちゃん", "きんの がくぶちに ティアラの がちゃん。フィギュア だいに かざれる。", { kind: "frame", who: "gachan", w: 46, d: 22, h: 62, comfort: 3 }],
+          ["g2", "がくぶち スタンド ごじ", "きんの がくぶちに おうかんの ごじ。フィギュア だいに かざれる。", { kind: "frame", who: "goji", w: 46, d: 22, h: 62, comfort: 3 }],
+          ["g3", "がくぶち スタンド アオ", "きんの がくぶちに てんいん くまの アオ。フィギュア だいに かざれる。", { kind: "frame", who: "keeper", w: 46, d: 22, h: 62, comfort: 3 }],
+        ],
+        H: [
+          ["h0", "からあげ むりょう けん 3まい", "ローリソンで からあげが 3こ むりょう。きんいろの 3まい つづり。", { kind: "coupon", item: "karaage", uses: 3 }],
+          ["h1", "プリン むりょう けん 3まい", "ローリソンで プリンが 3こ むりょう。きんいろの 3まい つづり。", { kind: "coupon", item: "pudding", uses: 3 }],
+          ["h2", "おにぎり むりょう けん 3まい", "ローリソンで おにぎりが 3こ むりょう。きんいろの 3まい つづり。", { kind: "coupon", item: "onigiri", uses: 3 }],
+          ["h3", "なんでも むりょう けん 3まい", "ローリソンの しなものが どれでも 3こ むりょう。きんいろの 3まい つづり。", { kind: "coupon", item: null, uses: 3 }],
+        ],
+        I: [
+          ["i0", "ロイヤル わんこの シール", "シルクハットの わんこ 2まいと おうかん・からあげ・ケーキの シール 6まい。", { kind: "sheet", stickers: [["stk_kjmlaw_wanko", 2], ["stk_kjmlaw_crown", 2], ["stk_kjmlaw_karaage", 1], ["stk_kjmlaw_cake", 1]] }],
+          ["i1", "ロイヤル がちゃんの シール", "ティアラの がちゃん 2まいと ケーキ・おうかん・からあげの シール 6まい。", { kind: "sheet", stickers: [["stk_kjmlaw_gachan", 2], ["stk_kjmlaw_cake", 2], ["stk_kjmlaw_crown", 1], ["stk_kjmlaw_karaage", 1]] }],
+          ["i2", "ロイヤル ごじの シール", "おうかんの ごじ 2まいと からあげ・ケーキ・おうかんの シール 6まい。", { kind: "sheet", stickers: [["stk_kjmlaw_goji", 2], ["stk_kjmlaw_karaage", 2], ["stk_kjmlaw_cake", 1], ["stk_kjmlaw_crown", 1]] }],
+        ],
+      },
+      last: ["l", "ロイヤル ソファ 3にん ぬいぐるみ", "ラストワンしょう。きんの ソファに おめかしの 3にんが ならぶ とくだいの ぬいぐるみ。", { kind: "plush", who: "trio", w: 170, d: 98, h: 134, comfort: 28 }],
+      stickers: [["stk_kjmlaw_wanko", "ハット わんこ"], ["stk_kjmlaw_gachan", "ティアラ がちゃん"], ["stk_kjmlaw_goji", "おうかん ごじ"], ["stk_kjmlaw_crown", "おうかん"], ["stk_kjmlaw_karaage", "きんの からあげ"], ["stk_kjmlaw_cake", "ロイヤル ケーキ"]],
+    },
+    {
+      id: "sevenbun", key: "msev", shop: "せぶんぶん", title: "せぶんぶんの ごうか おしょうがつ", color: "#C8323A", light: "#FFF0D2", dark: "#B8862B",
+      cats: { A: "とくだい ぬいぐるみ", B: "とくだい ぬいぐるみ", C: "とくだい ぬいぐるみ", D: "きんらん ざぶとん", E: "きんらん ラグ", F: "がまぐち ポーチ", G: "ふくまねき", H: "ぽちぶくろ クーポン", I: "おしょうがつ シール" },
+      items: {
+        A: [["a", "だるま ごじ とくだい ぬいぐるみ", "あかい だるまの ずきんの ごじ。きんの こばんを だいじに かかえて いる。", { kind: "plush", who: "goji", w: 130, d: 98, h: 146, comfort: 22 }]],
+        B: [["b", "はれぎ わんこ とくだい ぬいぐるみ", "きんの もようの はれぎの わんこ。はごいたを もって にっこり。", { kind: "plush", who: "wanko", w: 126, d: 92, h: 142, comfort: 21 }]],
+        C: [["c", "おもち がちゃん とくだい ぬいぐるみ", "かがみもちの うえに ちょこんと のった がちゃん。きんの だいで ぽかぽか。", { kind: "plush", who: "gachan", w: 118, d: 92, h: 140, comfort: 20 }]],
+        D: [
+          ["d0", "きんらん ざぶとん わんこ", "きんいろの ふさが ついた あかい ざぶとん。まんなかに わんこの ししゅう。", { kind: "zabuton", who: "wanko", w: 80, d: 76, h: 40, comfort: 9 }],
+          ["d1", "きんらん ざぶとん がちゃん", "きんいろの ふさが ついた あかい ざぶとん。まんなかに がちゃんの ししゅう。", { kind: "zabuton", who: "gachan", w: 80, d: 76, h: 40, comfort: 9 }],
+          ["d2", "きんらん ざぶとん ごじ", "きんいろの ふさが ついた あかい ざぶとん。まんなかに ごじの ししゅう。", { kind: "zabuton", who: "goji", w: 80, d: 76, h: 40, comfort: 9 }],
+        ],
+        E: [
+          ["e0", "きんらん ラグ わんこ", "あかと きんの きんらんの ラグ。まんなかに わんこの まるい もん。", { kind: "brocade", who: "wanko", w: 172, d: 118, h: 6, comfort: 6 }],
+          ["e1", "きんらん ラグ がちゃん", "あかと きんの きんらんの ラグ。まんなかに がちゃんの まるい もん。", { kind: "brocade", who: "gachan", w: 172, d: 118, h: 6, comfort: 6 }],
+          ["e2", "きんらん ラグ ごじ", "あかと きんの きんらんの ラグ。まんなかに ごじの まるい もん。", { kind: "brocade", who: "goji", w: 172, d: 118, h: 6, comfort: 6 }],
+        ],
+        F: [
+          ["f0", "がまぐち ポーチ わんこ", "きんの くちがねの きんらんの がまぐち。わんこの ししゅう いり。", { kind: "bag", who: "wanko", st: { def: 2 } }],
+          ["f1", "がまぐち ポーチ がちゃん", "きんの くちがねの きんらんの がまぐち。がちゃんの ししゅう いり。", { kind: "bag", who: "gachan", st: { spd: 2 } }],
+          ["f2", "がまぐち ポーチ ごじ", "きんの くちがねの きんらんの がまぐち。ごじの ししゅう いり。", { kind: "bag", who: "goji", st: { hp: 6 } }],
+        ],
+        G: [
+          ["g0", "ふくまねき わんこ", "すずの くびわで ねこの ての ポーズの ちいさな わんこ。きんの こばん つき。", { kind: "maneki", who: "wanko", w: 48, d: 36, h: 58, comfort: 4 }],
+          ["g1", "ふくまねき がちゃん", "すずの くびわで ねこの ての ポーズの ちいさな がちゃん。きんの こばん つき。", { kind: "maneki", who: "gachan", w: 48, d: 36, h: 58, comfort: 4 }],
+          ["g2", "ふくまねき ごじ", "すずの くびわで ねこの ての ポーズの ちいさな ごじ。きんの こばん つき。", { kind: "maneki", who: "goji", w: 48, d: 36, h: 58, comfort: 4 }],
+          ["g3", "ふくまねき ナナ", "てを あげた てんいん きつねの ナナ。きんの こばんと ざぶとん つき。", { kind: "maneki", who: "keeper", w: 48, d: 36, h: 58, comfort: 4 }],
+        ],
+        H: [
+          ["h0", "おでん むりょう けん 3まい", "せぶんぶんで おでんが 3こ むりょう。ぽちぶくろに 3まい いり。", { kind: "coupon", item: "oden", uses: 3 }],
+          ["h1", "メロンパン むりょう けん 3まい", "せぶんぶんで メロンパンが 3こ むりょう。ぽちぶくろに 3まい いり。", { kind: "coupon", item: "bread", uses: 3 }],
+          ["h2", "ココア むりょう けん 3まい", "せぶんぶんで ココアが 3ばい むりょう。ぽちぶくろに 3まい いり。", { kind: "coupon", item: "cocoa", uses: 3 }],
+          ["h3", "なんでも むりょう けん 3まい", "せぶんぶんの しなものが どれでも 3こ むりょう。ぽちぶくろに 3まい いり。", { kind: "coupon", item: null, uses: 3 }],
+        ],
+        I: [
+          ["i0", "はれぎ わんこの シール", "はれぎの わんこ 2まいと かがみもち・たい・こばんの シール 6まい。", { kind: "sheet", stickers: [["stk_kjmsev_wanko", 2], ["stk_kjmsev_kagami", 2], ["stk_kjmsev_tai", 1], ["stk_kjmsev_koban", 1]] }],
+          ["i1", "おもち がちゃんの シール", "おもちの がちゃん 2まいと たい・かがみもち・こばんの シール 6まい。", { kind: "sheet", stickers: [["stk_kjmsev_gachan", 2], ["stk_kjmsev_tai", 2], ["stk_kjmsev_kagami", 1], ["stk_kjmsev_koban", 1]] }],
+          ["i2", "だるま ごじの シール", "だるまの ごじ 2まいと こばん・かがみもち・たいの シール 6まい。", { kind: "sheet", stickers: [["stk_kjmsev_goji", 2], ["stk_kjmsev_koban", 2], ["stk_kjmsev_kagami", 1], ["stk_kjmsev_tai", 1]] }],
+        ],
+      },
+      last: ["l", "おせち じゅうばこ 3にん ぬいぐるみ", "ラストワンしょう。きんの もんの じゅうばこから 3にんが かおを だす とくだいの ぬいぐるみ。", { kind: "plush", who: "trio", w: 168, d: 100, h: 136, comfort: 28 }],
+      stickers: [["stk_kjmsev_wanko", "はれぎ わんこ"], ["stk_kjmsev_gachan", "おもち がちゃん"], ["stk_kjmsev_goji", "だるま ごじ"], ["stk_kjmsev_kagami", "かがみもち"], ["stk_kjmsev_tai", "めでたい たい"], ["stk_kjmsev_koban", "こばん"]],
+    },
+  ];
   const STORES = SERIES.map((S) => S.id);
   const BY = Object.fromEntries(SERIES.map((S) => [S.id, S]));
+  const NET_BY = Object.fromEntries(DELUXE.map((S) => [S.id, S]));
 
-  // ---- けいひんの いちらん（id: kj_<みせ>_<しっぽ>）----
+  // ---- けいひんの いちらん（id: kj_<みせ>_<しっぽ>・みんなの くじは kj_m<みせ>_<しっぽ>）----
   const ITEMS = [], INDEX = {};
-  const add = (S, grade, [tail, name, desc, o], k = 0) => {
-    const it = { id: `kj_${S.key}_${tail}`, store: S.id, grade, k, name, desc, ...o };
-    it.fig = it.kind === "mug" || it.kind === "acsta" || it.kind === "chibi"; // フィギュア だいに かざれる
+  const FIG_KINDS = ["mug", "acsta", "chibi", "teacup", "frame", "maneki"]; // フィギュア だいに かざれる
+  const add = (S, grade, [tail, name, desc, o], k = 0, net = false) => {
+    const it = { id: `kj_${S.key}_${tail}`, store: S.id, grade, k, name, desc, ...o, net };
+    it.fig = FIG_KINDS.includes(it.kind);
     it.furn = !["bag", "coupon", "sheet"].includes(it.kind);
     ITEMS.push(it); INDEX[it.id] = it; return it;
   };
-  for (const S of SERIES) {
+  const build = (S, net) => {
     S.ids = {}; S.plan = {};
     for (const g of GRADES) {
-      S.ids[g] = S.items[g].map((row, k) => add(S, g, row, k).id);
+      S.ids[g] = S.items[g].map((row, k) => add(S, g, row, k, net).id);
       S.ids[g].forEach((id, k) => (S.plan[id] = PLAN[g][k]));
     }
-    S.lastId = add(S, "L", S.last).id;
-    S.dcId = add(S, "DC", S.dc).id;
+    S.lastId = add(S, "L", S.last, 0, net).id;
+    if (S.dc) S.dcId = add(S, "DC", S.dc).id; // ダブルチャンスしょうは ひとりの くじ だけ（はんけんは どちらの くじでも おなじ）
     S.lineup = [...GRADES.flatMap((g) => S.ids[g]), S.lastId]; // コンプリートに いる もの（ダブルチャンスしょうは べつ）
     S.total = Object.values(S.plan).reduce((a, b) => a + b, 0);
-  }
+    S.net = net;
+  };
+  for (const S of SERIES) build(S, false);
+  for (const S of DELUXE) { build(S, true); S.dcId = BY[S.id].dcId; }
+  const seriesOf = (it) => (it.net ? NET_BY : BY)[it.store];
+  const doneKey = (S) => (S.net ? "net_" : "") + S.id; // Save.d.kuji.done の キー（みんなの くじは net_<みせ>）
   const gradeLabel = (g) => (g === "L" ? "ラストワンしょう" : g === "DC" ? "ダブルチャンスしょう" : `${g}しょう`);
 
   // ---- セーブ ----
   // Save.d.kuji: lots { みせ: ロット }・got { けいひん: もらった かず }・draws ひいた まい数・spent つかった コイン・coupons { クーポン: まい数 }・used クーポンを つかった かず・
-  //   stubs { みせ: はんけん }・dc { みせ: { n: おうぼ した まい数, day: おうぼ した 日 } }・dcLast { みせ: { day, n, win, seen } }・done { みせ: コンプリートした 日 }・
+  //   stubs { みせ: はんけん }・dc { みせ: { n: おうぼ した まい数, day: おうぼ した 日 } }・dcLast { みせ: { day, n, win, seen } }・done { みせ: コンプリートした 日・net_みせ: みんなの くじの けいひんを そろえた 日 }・
   //   pending [[みせ, 賞, ロット], …]（ひいたけど まだ えらんで いない D〜Fしょう）
   // ロット: no ばんごう・left { けいひん: のこり }・hold { 賞: えらんで いない まい数 }・seen ほかの おきゃくさんを すすめた 日・others／mine ひいた まい数・
   //   log [[賞, 1=じぶん／0=ほかの おきゃくさん], …]（はりつけ ひょう）・sold うりきれた 日・news { day, n }（きょう しった ほかの おきゃくさんの まい数）
@@ -168,7 +268,7 @@ const IchibanKuji = (() => {
     const keep = []; for (const s of STORES) for (const g of Object.keys(PICK)) { const L = lots[s], n = L ? L.hold[g] || 0 : 0; keep.push(...pending.filter((p) => p[0] === s && p[1] === g && L && p[2] === L.no).slice(0, n)); if (L) { const m = keep.filter((p) => p[0] === s && p[1] === g).length; if (m) L.hold[g] = m; else delete L.hold[g]; } }
     const dc = {}; for (const s of STORES) { const e = obj(d.dc)[s]; if (e && dayStr(e.day) && int(e.n, 0, 9999) > 0) dc[s] = { n: int(e.n, 0, 9999), day: e.day }; }
     const dcLast = {}; for (const s of STORES) { const e = obj(d.dcLast)[s]; if (e && dayStr(e.day)) dcLast[s] = { day: e.day, n: int(e.n, 0, 9999), win: !!e.win, seen: !!e.seen }; }
-    const done = {}; for (const s of STORES) if (dayStr(obj(d.done)[s])) done[s] = d.done[s];
+    const done = {}; for (const s of STORES) for (const k of [s, "net_" + s]) if (dayStr(obj(d.done)[k])) done[k] = d.done[k];
     return {
       lots, got: counts(d.got, (id) => !!INDEX[id], 99999), draws: int(d.draws, 0, 1e7), spent: int(d.spent, 0, 1e10),
       coupons: counts(d.coupons, (id) => INDEX[id] && INDEX[id].kind === "coupon", 999), used: int(d.used, 0, 1e7),
@@ -196,7 +296,8 @@ const IchibanKuji = (() => {
   const total = (s) => Object.values(tickets(s)).reduce((a, b) => a + b, 0);
   const pendingOf = (s) => st().pending.filter((p) => p[0] === s);
   const API = {
-    PRICE, KEEP, CATCHUP, OTHERS_MAX, DC_RATE, BAG_REFUND, GRADES, PLAN, PICK, GRADE_COL, SERIES, STORES, BY, ITEMS, INDEX,
+    PRICE, KEEP, CATCHUP, OTHERS_MAX, DC_RATE, BAG_REFUND, GRADES, PLAN, PICK, GRADE_COL, SERIES, STORES, BY, ITEMS, INDEX, FIG_KINDS,
+    DELUXE, NET_BY, seriesOf, // みんなの くじの けいひん（KujiNet・KujiUI の みんなの くじ）
     next: null, // PokaDebug.kujiNext（つぎに ひく 賞）
     dcNext: null, // PokaDebug.kujiDc（つぎの ダブルチャンスの けっか true／false）
     rand: () => Math.random(),
@@ -258,7 +359,7 @@ const IchibanKuji = (() => {
       let note = "", refund = 0, sheet = null;
       if (it.furn) Save.d.furn[id] = (Save.d.furn[id] || 0) + 1;
       else if (it.kind === "bag") { if (!WearStock.add(id, 1)) { refund = BAG_REFUND; Save.addCoins(BAG_REFUND); note = `もう ${WearStock.CAP}こ もって いる ので ${BAG_REFUND}コイン もどったよ`; } else note = "きがえの「もちもの」で もてるよ"; }
-      else if (it.kind === "coupon") { d.coupons[id] = Math.min(999, (d.coupons[id] || 0) + 1); note = `${BY[it.store].shop}の かいもので つかえるよ`; }
+      else if (it.kind === "coupon") { const n = it.uses || 1; d.coupons[id] = Math.min(999, (d.coupons[id] || 0) + n); note = `${BY[it.store].shop}の かいもので ${n > 1 ? n + "かい " : ""}つかえるよ`; }
       else if (it.kind === "sheet") {
         // シール: なんまい・はじめての シール（10まい ひいた ときに がめんで まとめる）
         const g0 = StickerBook.st().got;
@@ -266,12 +367,14 @@ const IchibanKuji = (() => {
         note = StickerBook.give(it);
       }
       if (it.furn) note = it.fig ? "もようがえで おけるよ。フィギュア だいにも かざれるよ" : "おうちの「もようがえ」で おけるよ";
-      const S = BY[it.store], done = !d.done[it.store] && S.lineup.every((x) => d.got[x] > 0);
-      if (done) d.done[it.store] = U.today();
+      // コンプリート: ひとりの くじ と みんなの くじ で べつべつ（ダブルチャンスしょうは ひとりの くじの ほうに いれない）
+      const S = it.grade === "DC" ? null : seriesOf(it), done = !!S && !d.done[doneKey(S)] && S.lineup.every((x) => d.got[x] > 0);
+      if (done) d.done[doneKey(S)] = U.today();
       return { item: it, first, note, refund, complete: done, sheet };
     },
-    complete(s) { const S = BY[s]; return !!S && S.lineup.every((id) => got(id) > 0); },
-    gotCount(s) { const S = BY[s]; return S ? S.lineup.filter((id) => got(id) > 0).length : 0; },
+    // net: みんなの くじの けいひん
+    complete(s, net = false) { const S = (net ? NET_BY : BY)[s]; return !!S && S.lineup.every((id) => got(id) > 0); },
+    gotCount(s, net = false) { const S = (net ? NET_BY : BY)[s]; return S ? S.lineup.filter((id) => got(id) > 0).length : 0; },
     // ひにちを すすめる: うりきれた つぎの 日に あたらしい ロット・ほかの おきゃくさん（さいごに みた 日から さいだい 7にちぶん）・ダブルチャンスの けっか
     sync(s) {
       if (!BY[s]) return null;
@@ -305,8 +408,8 @@ const IchibanKuji = (() => {
       const e = d.dc[s]; d.dc[s] = { n: (e ? e.n : 0) + n, day: U.today() }; delete d.stubs[s];
       Save.write(); return n;
     },
-    // ---- クーポン（その コンビニの かいもので 1こ むりょう）----
-    coupons(s) { const d = st(); return BY[s] ? BY[s].ids.H.map((id) => ({ id, item: INDEX[id], n: d.coupons[id] || 0 })).filter((c) => c.n > 0) : []; },
+    // ---- クーポン（その コンビニの かいもので 1こ むりょう。みんなの くじの クーポンは 3まい つづり）----
+    coupons(s) { const d = st(); return BY[s] ? [...BY[s].ids.H, ...NET_BY[s].ids.H].map((id) => ({ id, item: INDEX[id], n: d.coupons[id] || 0 })).filter((c) => c.n > 0) : []; },
     couponFor(s, it) {
       if (!BY[s] || !it) return null;
       const sold = BUY_SHOPS[s] && BUY_SHOPS[s].items ? BUY_SHOPS[s].items().some((x) => x && x.id === it.id) : false; // タブ（ごはん・おやつ・のみもの。js/conbini-goods.js）を まとめて
@@ -322,29 +425,33 @@ const IchibanKuji = (() => {
       Save.addBag(itemId, 1); Save.write(); return true;
     },
     // どこで でるか（ずかんの ヒント）
-    source(id) { const it = INDEX[id]; if (!it) return ""; const S = BY[it.store]; return `ネリカスタウンの ${S.shop}の いちばんくじ（${gradeLabel(it.grade)}）で でるよ。`; },
+    source(id) { const it = INDEX[id]; if (!it) return ""; const S = BY[it.store]; return `ネリカスタウンの ${S.shop}の いちばんくじ${it.net ? "「みんなの くじ」" : ""}（${gradeLabel(it.grade)}）で でるよ。`; },
   };
 
   // ---- ゲームに いれる ----
-  // 家具（ビッグ ぬいぐるみ・クッション・マグ・ブランケット・アクリル スタンド・ちび ぬいぐるみ・タペストリー）
+  // 家具（ビッグ ぬいぐるみ・クッション・マグ・ブランケット・アクリル スタンド・ちび ぬいぐるみ・タペストリー。みんなの くじの とくだい ぬいぐるみ・チェア・ざぶとん・ティーカップ・がくぶち・ふくまねき・きんらんの ラグ）
+  const RUG = ["blanket", "brocade"];
   for (const it of ITEMS) {
     if (it.furn) {
-      const kind = it.kind === "blanket" ? "rug" : it.kind === "tapestry" ? "wall" : "floor";
+      const kind = RUG.includes(it.kind) ? "rug" : it.kind === "tapestry" ? "wall" : "floor";
       const f = { id: it.id, name: it.name, price: 0, kind, w: it.w, h: it.h, ...(kind === "floor" ? { depth: it.d } : {}), comfort: it.comfort, rare: true, exclusive: "kuji", kujiPrize: it.store, desc: it.desc };
       if (it.fig) f.figure = true;
-      if (it.kind === "blanket") f.depth = it.d;
+      if (RUG.includes(it.kind)) f.depth = it.d;
       FURNITURE.push(f); FURN_INDEX[it.id] = f;
-      FURN_ART[it.id] = it.kind === "blanket" ? (opts = {}) => HomeDesign.model(it.id, opts).full : () => KujiArt.furn(it.id);
+      FURN_ART[it.id] = RUG.includes(it.kind) ? (opts = {}) => HomeDesign.model(it.id, opts).full : () => KujiArt.furn(it.id);
     } else if (it.kind === "bag") {
-      const w = { id: it.id, name: it.name, slot: HandItems.SLOT, wear: "kuji_bag", col: [it.store, it.who], price: 0, rare: true, exclusive: "kuji", kujiPrize: it.store, st: it.st, desc: it.desc };
+      const w = { id: it.id, name: it.name, slot: HandItems.SLOT, wear: it.net ? "kuji_dbag" : "kuji_bag", col: [it.store, it.who], price: 0, rare: true, exclusive: "kuji", kujiPrize: it.store, st: it.st, desc: it.desc };
       WEAR_ITEMS.push(w); ITEM_INDEX[it.id] = w;
     }
   }
   WEAR.kuji_bag = (ctx) => KujiArt.bag(ctx);
-  // シール（シールちょう）: コンビニごとに 6しゅ。I しょうの シートは StickerBook.give で てもとに
+  WEAR.kuji_dbag = (ctx) => KujiDeluxeArt.bag(ctx); // みんなの くじの ポシェット・がまぐち
+  // シール（シールちょう）: コンビニごとに 6しゅ（みんなの くじは べつの 6しゅ）。I しょうの シートは StickerBook.give で てもとに
   for (const S of SERIES) StickerBook.addDesigns(S.stickers.map(([id, name]) => ({ id, name, series: S.id, hint: `まだ でて いない シールだよ。${S.shop}の いちばんくじ（Iしょう）で でるよ`, art: () => KujiArt.sticker(id) })));
-  // へやの 立体と さわる うごき（ビッグ ぬいぐるみ: ぎゅっ・クッション: ぽふっ・ブランケット: ラグの かたち）
+  for (const S of DELUXE) StickerBook.addDesigns(S.stickers.map(([id, name]) => ({ id, name, series: S.id, hint: `まだ でて いない シールだよ。${S.shop}の いちばんくじ「みんなの くじ」（Iしょう）で でるよ`, art: () => KujiArt.sticker(id) })));
+  // へやの 立体と さわる うごき（ビッグ ぬいぐるみ: ぎゅっ・クッション: ぽふっ・ブランケット: ラグの かたち。みんなの くじの チェア・ざぶとん・きんらんの ラグは js/kuji-deluxe-art.js）
   KujiArt.install(API);
+  KujiDeluxeArt.install(API);
   // フィギュア だいに かざれる もの（マグ・アクリル スタンド・ちび ぬいぐるみ）。ずかんの ヒントは js/item-dex-sources.js が API.source を よぶ
   FigureStand.addFigures(ITEMS.filter((it) => it.fig).map((it) => it.id));
 

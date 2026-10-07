@@ -3,13 +3,14 @@
 // はこから くじを とる → くじけんを めくる（タップ か うえに スライド。めくる まで なにしょうか わからない）→ てんいんさんに わたす →
 // D〜Fしょうは のこりから えらぶ → けいひん。さいごの 1まいを ひくと ラストワンしょうも。キラキラの えんしゅつは つけない（UI-50）。
 // オンラインの とき（UI-100）は ボードの うえで「ひとりの くじ」と「みんなの くじ」（js/kuji-net.js。オンラインの みんなで おなじ ロット・ほかの 人の けっかが リアルタイムで ならぶ）を えらべる。
+// みんなの くじは けいひんが ごうか（IchibanKuji.NET_BY・UI-101）: きんいろの ボード・みんなの くじ だけの けいひん・きんの おびの はこ。
 const KujiUI = (() => {
   const K = IchibanKuji;
   // けいひんの 絵（1しゅ 1つ・かずが ふえない）
   const URLS = {};
   const url = (id) => URLS[id] || (URLS[id] = U.svgUrl(KujiArt.pic(id)));
   const BOX = {};
-  const boxUrl = (s) => BOX[s] || (BOX[s] = U.svgUrl(KujiArt.box(s)));
+  const boxUrl = (s, deluxe = false) => BOX[s + deluxe] || (BOX[s + deluxe] = U.svgUrl(KujiArt.box(s, deluxe)));
   const ui = { speed: 1 }; // PokaDebug.kujiFast（えんしゅつの はやさ）
   const wait = (ms) => new Promise((r) => setTimeout(r, ms / Math.max(1, ui.speed)));
   // PokaDebug.kujiUi が みる ようす
@@ -19,18 +20,21 @@ const KujiUI = (() => {
     gachan: ["ピヨ！ うれしい！", "だいじに するね！", "ピヨピヨ♪ あたった！"],
     goji: ["ガゥ！ すごい！", "これ ほしかったんだ！", "ガゥガゥ♪ ラッキー！"],
   };
-  const short = (it) => it.name.replace(/ ビッグ ぬいぐるみ$/, "");
+  const short = (it) => it.name.replace(/ (?:ビッグ |とくだい )?ぬいぐるみ$/, "");
 
   function open(s, scene) {
     if (!K.has(s)) return Promise.resolve();
-    const S = K.BY[s];
+    const SO = K.BY[s]; // みせ（ひとりの くじの けいひん・ダブルチャンス）
     K.sync(s); Save.write();
     return new Promise((resolve) => {
-      const body = U.el("div", { class: "kuji", style: `--kc:${S.color};--kl:${S.light};--kd:${S.dark}` });
-      // みんなの くじ（js/kuji-net.js）: オンラインの ときだけ えらべる
+      const body = U.el("div", { class: "kuji" });
+      // みんなの くじ（js/kuji-net.js）: オンラインの ときだけ えらべる。けいひんは ごうかな べつの もの（X()）
       const netOk = () => typeof KujiNet !== "undefined" && KujiNet.available();
       let mode = netOk() && KujiNet.using() ? "net" : "solo", soonT = 0;
-      const modal = UI.modal({ title: `${S.shop}の いちばんくじ`, body, cls: "full kuji-panel", onClose: () => { view.open = false; view.phase = null; clearTimeout(soonT); if (typeof KujiNet !== "undefined") KujiNet.unwatch(); if (scene && scene.closed !== true && typeof UI !== "undefined") UI.updateHud(); resolve(); } });
+      const X = () => (mode === "net" ? K.NET_BY[s] : SO);
+      const paint = () => { const S = X(); body.style.cssText = `--kc:${S.color};--kl:${S.light};--kd:${S.dark}`; body.classList.toggle("deluxe", mode === "net"); };
+      paint();
+      const modal = UI.modal({ title: `${SO.shop}の いちばんくじ`, body, cls: "full kuji-panel", onClose: () => { view.open = false; view.phase = null; clearTimeout(soonT); if (typeof KujiNet !== "undefined") KujiNet.unwatch(); if (scene && scene.closed !== true && typeof UI !== "undefined") UI.updateHud(); resolve(); } });
       Object.assign(view, { open: true, store: s, phase: "board", mode, tickets: [], results: [], last: null });
       const board = U.el("div", { class: "kuji-boardview" }), stage = U.el("div", { class: "kuji-stage hidden" });
       body.append(board, stage);
@@ -48,11 +52,11 @@ const KujiUI = (() => {
         if (m === mode || view.phase !== "board") return;
         if (m === "net") {
           if (!netOk()) return;
-          if (!KujiNet.st().since && !(await UI.confirm("みんなの くじ に する？\nオンラインの みんなと おなじ くじの はこを ひくよ。ひいた くじ（なんまいめ・じこく・えらんだ しゅるい）を おくるよ。なまえは「みんな」の なまえで でるよ", "みんなの くじ に する", "やめる"))) return;
+          if (!KujiNet.st().since && !(await UI.confirm("みんなの くじ に する？\nオンラインの みんなと おなじ くじの はこを ひくよ。けいひんは みんなの くじ だけの ごうかな もの！ ひいた くじ（なんまいめ・じこく・えらんだ しゅるい）を おくるよ。なまえは「みんな」の なまえで でるよ", "みんなの くじ に する", "やめる"))) return;
           if (!view.open || view.phase !== "board") return;
           KujiNet.setMode(true); mode = view.mode = "net"; netWatch();
         } else { KujiNet.setMode(false); KujiNet.unwatch(); mode = view.mode = "solo"; }
-        Sound.se("tap"); redraw();
+        paint(); Sound.se("tap"); redraw();
       };
       const modeBar = () => {
         if (!netOk()) return null;
@@ -63,10 +67,12 @@ const KujiUI = (() => {
         }
         return bar;
       };
+      // ひとりの くじの とき: みんなの くじの けいひんの しらせ
+      const modeHint = () => (netOk() && mode === "solo" ? U.el("div", { class: "kuji-modehint", text: `「みんなの くじ」は けいひんが ごうか！ ${short(K.INDEX[K.NET_BY[s].ids.A[0]])} など` }) : null);
 
       // ---------- ボード ----------
       const card = (id, cls = "", lefts = K.lot(s).left) => {
-        const it = K.INDEX[id], left = lefts[id] || 0, all = S.plan[id] || 0;
+        const it = K.INDEX[id], left = lefts[id] || 0, all = X().plan[id] || 0;
         const c = U.el("div", { class: `kuji-card ${cls}` + (left <= 0 && all ? " gone" : "") + (K.got(id) ? " got" : "") });
         c.dataset.id = id;
         c.append(U.el("span", { class: "kuji-g", style: `--g:${K.GRADE_COL[it.grade]}`, text: K.gradeLabel(it.grade) }), U.el("img", { src: url(id), alt: it.name }), U.el("div", { class: "kuji-name", text: short(it) }));
@@ -76,7 +82,7 @@ const KujiUI = (() => {
       // ボードの ぶぶん（ひとりの くじ と みんなの くじ で おなじ）
       // D〜Iしょう（T: 賞ごとの のこり・lefts: しゅるいごとの のこり）
       const rowsPart = (T, lefts) => {
-        const rows = U.el("div", { class: "kuji-rows" });
+        const rows = U.el("div", { class: "kuji-rows" }), S = X();
         for (const g of K.GRADES.slice(3)) {
           const row = U.el("div", { class: "kuji-row" }), all = K.PLAN[g].reduce((a, b) => a + b, 0);
           const head = U.el("div", { class: "kuji-rowhead" });
@@ -88,11 +94,11 @@ const KujiUI = (() => {
         return rows;
       };
       // あつめた かず
-      const collectPart = () => { const n = K.gotCount(s), full = S.lineup.length; return U.el("div", { class: "kuji-collect" + (K.complete(s) ? " done" : ""), text: K.complete(s) ? `コンプリート！ ${full}しゅ ぜんぶ そろったよ` : `あつめた けいひん ${n}／${full}しゅ（ラストワンしょうも いれて）` }); };
+      const collectPart = () => { const net = mode === "net", n = K.gotCount(s, net), full = X().lineup.length, done = K.complete(s, net); return U.el("div", { class: "kuji-collect" + (done ? " done" : ""), text: done ? `コンプリート！ ${full}しゅ ぜんぶ そろったよ` : `${net ? "みんなの くじの " : ""}あつめた けいひん ${n}／${full}しゅ（ラストワンしょうも いれて）` }); };
       // はりつけ ひょう（ひいた じゅんに 賞の もじ。ピンクの わくは じぶん）。log: [[賞, じぶんなら 1], …]
       const boardPart = (log, label) => {
         const bd = U.el("div", { class: "kuji-board", role: "img", "aria-label": `くじけんの はりつけ ひょう ${log.length}まい` });
-        for (let i = 0; i < S.total; i++) { const e = log[i], c = U.el("div", { class: "kuji-cell" + (e ? " on" + (e[1] ? " me" : "") : ""), style: e ? `--g:${K.GRADE_COL[e[0]]}` : "", text: e ? e[0] : "" }); bd.append(c); }
+        for (let i = 0; i < X().total; i++) { const e = log[i], c = U.el("div", { class: "kuji-cell" + (e ? " on" + (e[1] ? " me" : "") : ""), style: e ? `--g:${K.GRADE_COL[e[0]]}` : "", text: e ? e[0] : "" }); bd.append(c); }
         return [U.el("div", { class: "kuji-sub", text: label }), bd];
       };
       // ひく ボタン（left: のこり・stop: えらぶ まちが ある など）
@@ -108,7 +114,7 @@ const KujiUI = (() => {
       // ダブルチャンス・クーポン（どちらの くじでも てもとの もの）
       const dcPart = () => {
         const d = K.st(), dc = U.el("div", { class: "kuji-dc" }), stubs = d.stubs[s] || 0, e = d.dc[s];
-        dc.append(U.el("b", { text: "ダブルチャンス" }), U.el("div", { class: "kuji-left", text: `くじけんの はんけんで おうぼ できるよ。けっかは つぎの ひ。あたると「${K.INDEX[S.dcId].name}」` }));
+        dc.append(U.el("b", { text: "ダブルチャンス" }), U.el("div", { class: "kuji-left", text: `くじけんの はんけんで おうぼ できるよ。けっかは つぎの ひ。あたると「${K.INDEX[SO.dcId].name}」` }));
         const row = U.el("div", { class: "kuji-dcrow" });
         row.append(U.el("span", { text: `はんけん ${stubs}まい` + (e ? `・おうぼ ちゅう ${e.n}まい` : "") }));
         const enter = UI.btn("おうぼ する", () => { const m = K.enter(s); if (m) { Sound.se("ok"); UI.toast(`はんけん ${m}まいで おうぼ したよ。けっかは あした！`, "good"); } redraw(); }, "small kuji-enter");
@@ -129,21 +135,23 @@ const KujiUI = (() => {
         const r = K.st().dcLast[s];
         if (!r || r.seen) return null;
         r.seen = true; Save.write(); view.dc = r;
-        return U.el("div", { class: "kuji-dcres" + (r.win ? " win" : ""), text: r.win ? `ダブルチャンスの けっか: あたり！「${K.INDEX[S.dcId].name}」が とどいたよ。もようがえで かべに かざれるよ` : `ダブルチャンスの けっか: ${r.n}まい おうぼ → こんかいは はずれ。また おうぼ してね` });
+        return U.el("div", { class: "kuji-dcres" + (r.win ? " win" : ""), text: r.win ? `ダブルチャンスの けっか: あたり！「${K.INDEX[SO.dcId].name}」が とどいたよ。もようがえで かべに かざれるよ` : `ダブルチャンスの けっか: ${r.n}まい おうぼ → こんかいは はずれ。また おうぼ してね` });
       };
       const posterPart = (text) => {
         const poster = U.el("div", { class: "kuji-poster" });
-        poster.append(U.el("div", { class: "kuji-logo", text: "いちばんくじ" }), U.el("div", { class: "kuji-title", text: `「${S.title}」` }), U.el("div", { class: "kuji-price", text }));
+        poster.append(U.el("div", { class: "kuji-logo", text: "いちばんくじ" }), U.el("div", { class: "kuji-title", text: `「${X().title}」` }));
+        if (mode === "net") poster.append(U.el("div", { class: "kuji-ribbon", text: "みんなの くじ だけの ごうかな けいひん" }));
+        poster.append(U.el("div", { class: "kuji-price", text }));
         return poster;
       };
       const statPart = (left) => {
         const stat = U.el("div", { class: "kuji-stat" });
-        stat.append(U.el("div", { html: `のこり <b>${left}</b>まい（ぜんぶで ${S.total}まい）` }), U.el("div", { class: "pill coins", html: `<i class="coin-ico"></i>${U.fmt(Save.d.coins)}` }));
+        stat.append(U.el("div", { html: `のこり <b>${left}</b>まい（ぜんぶで ${X().total}まい）` }), U.el("div", { class: "pill coins", html: `<i class="coin-ico"></i>${U.fmt(Save.d.coins)}` }));
         return stat;
       };
       const lastPart = (gone, text) => {
-        const last = U.el("div", { class: "kuji-last" + (gone ? " gone" : "") }), lit = K.INDEX[S.lastId];
-        last.append(U.el("img", { src: url(S.lastId), alt: lit.name }), U.el("div", { class: "kuji-lasttext" }, [U.el("span", { class: "kuji-g", style: `--g:${K.GRADE_COL.L}`, text: "ラストワンしょう" }), U.el("b", { text: short(lit) }), U.el("div", { class: "kuji-left", text })]));
+        const last = U.el("div", { class: "kuji-last" + (gone ? " gone" : "") }), lid = X().lastId, lit = K.INDEX[lid];
+        last.append(U.el("img", { src: url(lid), alt: lit.name }), U.el("div", { class: "kuji-lasttext" }, [U.el("span", { class: "kuji-g", style: `--g:${K.GRADE_COL.L}`, text: "ラストワンしょう" }), U.el("b", { text: short(lit) }), U.el("div", { class: "kuji-left", text })]));
         return last;
       };
       const showBoard = (parts) => { board.replaceChildren(...parts.filter(Boolean)); board.classList.remove("hidden"); stage.classList.add("hidden"); view.phase = "board"; view.mode = mode; };
@@ -152,14 +160,14 @@ const KujiUI = (() => {
       const drawBoard = (note = "") => {
         K.sync(s);
         const L = K.lot(s), T = K.tickets(s), left = K.total(s), today = U.today();
-        const parts = [modeBar(), posterPart(`1かい ${K.PRICE}コイン・ハズレ なし・ロット ${L.no}`), statPart(left)];
+        const parts = [modeBar(), modeHint(), posterPart(`1かい ${K.PRICE}コイン・ハズレ なし・ロット ${L.no}`), statPart(left)];
         if (note) parts.push(U.el("div", { class: "kuji-note", text: note }));
         if (L.news && L.news.day === today && L.news.n > 0) parts.push(U.el("div", { class: "kuji-news", text: `ほかの おきゃくさんも ひいたよ（きのう までに ${L.news.n}まい）` }));
         if (!left) parts.push(U.el("div", { class: "kuji-sold", text: K.pendingOf(s).length ? "うりきれ！ えらんで いない けいひんを えらんでね" : "うりきれ！ あした あたらしい くじが はいるよ" }));
         parts.push(dcResPart());
         // A〜Cしょう・ラストワン
         const top = U.el("div", { class: "kuji-top" });
-        for (const g of ["A", "B", "C"]) top.append(card(S.ids[g][0]));
+        for (const g of ["A", "B", "C"]) top.append(card(SO.ids[g][0]));
         parts.push(top, lastPart(L.sold || !left, left ? "さいごの 1まいを ひいた ひとに プレゼント" : "でたよ"));
         parts.push(rowsPart(T, L.left), collectPart(), ...boardPart(L.log, "くじけんの はりつけ ひょう（ピンクの わくは じぶんが ひいた くじ）"));
         parts.push(actionsPart(left, K.pendingOf(s).length > 0), dcPart(), couponPart());
@@ -183,7 +191,7 @@ const KujiUI = (() => {
         if (pend) parts.push(U.el("div", { class: "kuji-sold", text: "えらんで いない けいひんが あるよ。さきに えらんでね" }));
         parts.push(dcResPart());
         const top = U.el("div", { class: "kuji-top" });
-        for (const g of ["A", "B", "C"]) top.append(card(S.ids[g][0], "", V.left));
+        for (const g of ["A", "B", "C"]) top.append(card(X().ids[g][0], "", V.left));
         const lo = V.draws[KujiNet.MAX - 1];
         parts.push(top, lastPart(V.sold, lo ? `${KujiNet.nameOf(lo.u)}が ひいたよ` : "さいごの 1まいを ひいた ひとに プレゼント"));
         parts.push(rowsPart(V.tickets, V.left), collectPart());
@@ -239,7 +247,7 @@ const KujiUI = (() => {
       const boxStep = (r) => {
         view.phase = "box"; board.classList.add("hidden"); stage.classList.remove("hidden");
         const btn = U.el("button", { class: "kuji-boxbtn", "aria-label": "はこから くじを とる" });
-        btn.append(U.el("img", { src: boxUrl(s), alt: "" }));
+        btn.append(U.el("img", { src: boxUrl(s, mode === "net"), alt: "" }));
         const say = U.el("div", { class: "kuji-say" });
         say.innerHTML = `<div class="kuji-keeper">${keeper()}</div><div>${NeriShops.SHOPS[s].keeperName}「はこから くじを ${r.tickets.length}まい とってね！」</div>`;
         const go = UI.btn(`くじを とる（${r.tickets.length}まい）`, () => take(r), "yellow kuji-take");
@@ -300,7 +308,7 @@ const KujiUI = (() => {
         if (!p) { resultStep(res, lo); return; }
         view.phase = "choose"; board.classList.add("hidden"); stage.classList.remove("hidden");
         const g = p.g, ids = src.opts(p);
-        const head = U.el("div", { class: "kuji-tap" }); head.append(U.el("span", { class: "kuji-g", style: `--g:${K.GRADE_COL[g]}`, text: K.gradeLabel(g) }), document.createTextNode(` すきな ものを えらんでね（${S.cats[g]}）`));
+        const head = U.el("div", { class: "kuji-tap" }); head.append(U.el("span", { class: "kuji-g", style: `--g:${K.GRADE_COL[g]}`, text: K.gradeLabel(g) }), document.createTextNode(` すきな ものを えらんでね（${X().cats[g]}）`));
         const grid = U.el("div", { class: "kuji-choose" });
         for (const id of ids) {
           const it = K.INDEX[id], b = U.el("button", { class: "kuji-card pickable", "aria-label": `${it.name}を えらぶ` });
@@ -352,7 +360,7 @@ const KujiUI = (() => {
           notes.unshift(`シールが ${n}まい ふえたよ。` + (fresh.length ? `あたらしい シール: ${fresh.map((id) => StickerBook.INDEX[id].name).join("・")}。` : "") + "すまほの「シール」で はれるよ");
         }
         if (notes.length) parts.push(U.el("div", { class: "kuji-sub", text: notes.join("　") }));
-        if (res.some((x) => x.complete) || (lo && lo.complete)) parts.push(U.el("div", { class: "kuji-collect done big", text: `「${S.title}」 コンプリート！ ぜんぶ そろったよ` }));
+        if (res.some((x) => x.complete) || (lo && lo.complete)) parts.push(U.el("div", { class: "kuji-collect done big", text: `「${X().title}」 コンプリート！ ぜんぶ そろったよ` }));
         const who = Save.d.order[(K.st().draws - 1 + 3) % 3], line = REACT[who][K.st().draws % REACT[who].length];
         parts.push(U.el("div", { class: "kuji-say2", text: `${Save.d.chars[who].name}「${line}」` }));
         parts.push(UI.btn("ボードに もどる", () => redraw(), "yellow kuji-back"));
