@@ -309,9 +309,10 @@ const FurnModels = (() => {
     s += prism(TP(53), rr(-44, -68, 88, 68, 6), [0, 0, -6], "#DDBD8A", "#B08A5A");
     for (const [y, b] of [[-58, 2], [-44, -2], [-22, 1.5], [-10, -1]]) s += lineOn(TP(53.1), [[-38, y], [-14, y + b], [12, y - b], [38, y + b * 0.6]], "#C9A673", 1, 'stroke-opacity=".7"');
     s += shape(TP(53.1), ov(0, -34, 21, 15, 40), "#FFF8EA", 1.1) + lineOn(TP(53.2), close(ov(0, -34, 17.5, 11.5, 40)), "#E8D9BE", 1, 'stroke-dasharray="2 2"');
-    s += cyl(20, -54, 53, 3, 9, "#9DC3D6", "#BFD9E6", 1.1) + at(20, -54, 62, SPR.sprig(), 7, 16);
-    s += at(-8, -40, 53.2, SPR.teapot(), 17, 18);
-    s += shape(TP(53.3), ov(16, -24, 6.2, 6.2, 22), "#FFFFFF", 1.1) + cyl(16, -24, 53.5, 3.6, 4.5, "#F4C7CF", "#8C5A3C", 1.1);
+    // かびん・ティーポット・カップ（しょっきを ならべた ときは live で かたづける。js/table-ware.js）
+    s += k.L(cyl(20, -54, 53, 3, 9, "#9DC3D6", "#BFD9E6", 1.1) + at(20, -54, 62, SPR.sprig(), 7, 16));
+    s += k.L(at(-8, -40, 53.2, SPR.teapot(), 17, 18));
+    s += k.L(shape(TP(53.3), ov(16, -24, 6.2, 6.2, 22), "#FFFFFF", 1.1) + cyl(16, -24, 53.5, 3.6, 4.5, "#F4C7CF", "#8C5A3C", 1.1));
     return s;
   };
   M.desk = (k) => {
@@ -371,10 +372,12 @@ const FurnModels = (() => {
     s += cyl(12, -26, 17, 5, 9, "#E0706A", "#EA8F88", 1.2) + cyl(12, -26, 26, 5.4, 2.4, "#F4F0E8", "#FFFFFF", 1) + shape(k.FR(-20.95), rect(9.2, 19.5, 5.6, 4), "#FFF6E0", 0.8);
     s += rim(17, ["f", "r"]);
     s += box(-39, -46, 78, 43, 50, 3, TRAY) + rim(53, ["b", "l"]);
-    s += at(-18, -26, 53, SPR.teapot("#FFFFFF", "#8FC3A8"), 17, 18);
-    for (const [x, y] of [[2, -14], [6, -36]]) s += shape(TP(53.2), ov(x, y, 5.6, 5.6, 20), "#FFFFFF", 1) + cyl(x, y, 53.4, 3.3, 4.2, "#A8D3C0", "#8C5A3C", 1);
-    s += cyl(25, -24, 53, 1, 16, GOLDD, GOLD, 0.9, 10) + shape(TP(55), ov(25, -24, 11, 11, 28), "#FFFFFF", 1.1) + shape(TP(63), ov(25, -24, 7.5, 7.5, 24), "#FFFFFF", 1.1) + ball(25, -24, 70.4, 1.4, GOLD, 0.9, 0);
-    s += at(20, -22, 55.2, SPR.cupcake(), 5, 12) + at(30, -26, 55.2, SPR.macaron("#F2B8C6"), 4, 6) + at(28, -18, 55.2, SPR.macaron("#A8D3C0"), 4, 6) + at(25, -24, 63.2, SPR.macaron("#F3D98A"), 4, 6);
+    // うえの トレーの ティーポット・カップ・ケーキスタンド（しょっきを ならべた ときは live で かたづける。js/table-ware.js）
+    let top = at(-18, -26, 53, SPR.teapot("#FFFFFF", "#8FC3A8"), 17, 18);
+    for (const [x, y] of [[2, -14], [6, -36]]) top += shape(TP(53.2), ov(x, y, 5.6, 5.6, 20), "#FFFFFF", 1) + cyl(x, y, 53.4, 3.3, 4.2, "#A8D3C0", "#8C5A3C", 1);
+    top += cyl(25, -24, 53, 1, 16, GOLDD, GOLD, 0.9, 10) + shape(TP(55), ov(25, -24, 11, 11, 28), "#FFFFFF", 1.1) + shape(TP(63), ov(25, -24, 7.5, 7.5, 24), "#FFFFFF", 1.1) + ball(25, -24, 70.4, 1.4, GOLD, 0.9, 0);
+    top += at(20, -22, 55.2, SPR.cupcake(), 5, 12) + at(30, -26, 55.2, SPR.macaron("#F2B8C6"), 4, 6) + at(28, -18, 55.2, SPR.macaron("#A8D3C0"), 4, 6) + at(25, -24, 63.2, SPR.macaron("#F3D98A"), 4, 6);
+    s += k.L(top);
     s += rim(53, ["f", "r"]);
     s += box(-39, -6.5, 3.5, 3.5, 7, 62, FRM) + box(35.5, -6.5, 3.5, 3.5, 7, 62, FRM);
     s += wheel(-37, -5) + wheel(37, -5);
@@ -731,10 +734,12 @@ const FurnModels = (() => {
     s += face(fr, 24, "none") + sface(10, "none");
     { const ps = []; for (let i = 0; i <= 24; i++) ps.push(fr(-1 + i / 12, 0.02)); s += line(ps, "#B9614C", 1.6); }
     s += prism(TP(50), rr(-44, -48, 88, 46, 3), [0, 0, -6], "#D9AB7C", "#9C7248") + lineOn(TP(50.1), close(rr(-40, -44, 80, 38, 2)), "#C99867", 1);
-    s += cyl(-8, -26, 50, 12.5, 4.5, "#C9A064", "#E6C995", 1.2) + lineOn(TP(52), arc(-8, -26, 12.6, 12.6, -0.8, 2.35, 18), "#B48C52", 1, 'stroke-dasharray="1.8 1.6"');
-    for (const [x, y, z] of [[-13, -30, 58], [-4, -31, 58], [-12, -21, 58], [-3, -22, 58.5], [-8, -26, 63]]) s += ball(x, y, z, 4.4, "#F29A3B", 1.2, 0.45) + at(x + 0.6, y, z + 4.4, `<path d="M0,0 q2,-3 5,-2 q-2,2 -5,2 Z" fill="#7FB06A" stroke="${INK}" stroke-width="0.8"/>`, 5, 4);
-    for (const [x, y] of [[18, -14], [26, -30]]) s += cyl(x, y, 50, 3, 4.6, "#8FB3A4", "#6B5040", 1.1);
-    s += at(28, -18, 50.2, SPR.kyusu(), 17, 14);
+    // みかんの かご・ゆのみ・きゅうす（しょっきを ならべた ときは live で かたづける。js/table-ware.js）
+    let top = cyl(-8, -26, 50, 12.5, 4.5, "#C9A064", "#E6C995", 1.2) + lineOn(TP(52), arc(-8, -26, 12.6, 12.6, -0.8, 2.35, 18), "#B48C52", 1, 'stroke-dasharray="1.8 1.6"');
+    for (const [x, y, z] of [[-13, -30, 58], [-4, -31, 58], [-12, -21, 58], [-3, -22, 58.5], [-8, -26, 63]]) top += ball(x, y, z, 4.4, "#F29A3B", 1.2, 0.45) + at(x + 0.6, y, z + 4.4, `<path d="M0,0 q2,-3 5,-2 q-2,2 -5,2 Z" fill="#7FB06A" stroke="${INK}" stroke-width="0.8"/>`, 5, 4);
+    for (const [x, y] of [[18, -14], [26, -30]]) top += cyl(x, y, 50, 3, 4.6, "#8FB3A4", "#6B5040", 1.1);
+    top += at(28, -18, 50.2, SPR.kyusu(), 17, 14);
+    s += k.L(top);
     return s;
   };
   M.lamp = (k) => {

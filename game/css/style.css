@@ -256,6 +256,8 @@ html, body {
 .tabs::-webkit-scrollbar { display: none; }
 /* ふくの タブ（ようふくやさん・きがえ）は もちもの（UI-48）で 6〜7こ: 2だんに おりかえす（375 でも ぜんぶ 見える） */
 .shop-wear .tabs, .tabs.wear-tabs { flex-wrap: wrap; overflow-x: visible; row-gap: 8px; }
+/* かぐやさんの タブ 5こ（UI-103。js/table-ware.js）も せまい がめんでは 2だんに */
+.shop-tabs-wrap .tabs { flex-wrap: wrap; overflow-x: visible; row-gap: 8px; }
 .tab { flex: 0 0 auto; font: inherit; font-weight: 800; font-size: 14px; border: 3px solid var(--ink); background: var(--paper); border-radius: 12px; padding: 6px 12px; box-shadow: 0 3px 0 var(--ink); color: var(--ink); }
 .tab.on { background: var(--yellow); transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
 .menu-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

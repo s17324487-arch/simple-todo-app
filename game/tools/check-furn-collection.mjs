@@ -91,7 +91,8 @@ for (const id of [...C.ROWS.map((r) => r[0]), C.QUIZ]) {
   ok(a.full.length > (wall ? 2000 : 4000) && a.full.length < 60000 && a.full !== b.full, `${id}: 絵の こまかさ・はんてん`);
   ok(wall ? FURN_ART[id]({}).length > 1000 && !/<svg/.test(FURN_ART[id]({})) && norm(a.full).includes(norm(FURN_ART[id]({})).slice(0, 80)) : FURN_ART[id]() === a.full, `${id}: アイコン`);
   ok(!art.has(norm(a.full)), `${id}: ほかと おなじ 絵`); art.add(norm(a.full));
-  ok(FurnLive.LIVE.has(id) === LIVE.includes(id) && (norm(lv.full) !== norm(a.full)) === LIVE.includes(id), `${id}: live の とうろく と 絵の ぬきかた`);
+  // だいりせきの テーブルは しょっきを ならべた とき だけ うえの かざりを ぬいた live の 絵（UI-103・js/table-ware.js。LIVE には いれない）
+  ok(FurnLive.LIVE.has(id) === LIVE.includes(id) && (norm(lv.full) !== norm(a.full)) === (LIVE.includes(id) || id === "hq_marble_table"), `${id}: live の とうろく と 絵の ぬきかた`);
 }
 // ---- 4. さわる ----
 R.UI.toast = () => {};

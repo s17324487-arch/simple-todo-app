@@ -38,6 +38,11 @@ const FigureStand = (() => {
       slots: [128.6, 90.6, 52.6, 10.4].flatMap((z) => [-20, 0, 20].map((x) => [x, -22, z])) },
   };
   const isStand = (id) => !!STANDS[id];
+  // UI-103: ほかの ものを のせる 家具（テーブルに しょっき。js/table-ware.js の addHolder）。ばしょ・のせられる もの（accept）・ことばは その だい ごと。
+  // isStand は フィギュア だい だけ（PokaDebug.figStand の かず を かえない）。セーブ・プリセット・おいた かず・オンラインは isHolder で ぜんぶ
+  const TABLES = {};
+  const holderOf = (id) => STANDS[id] || TABLES[id] || null;
+  const isHolder = (id) => !!holderOf(id);
   const COLS = ["ひだり", "まんなか", "みぎ"];
   const slotName = (S, i) => (S.names ? S.names[i] : `${S.rows[Math.floor(i / 3)]}の ${COLS[i % 3]}`);
   const lights = (id) => id === "figstand_case" || id === "figstand_tower"; // よるは あかりが つく だい
@@ -55,10 +60,14 @@ const FigureStand = (() => {
   const EXTRA = new Set();
   const addFigures = (list) => { for (const id of list) if (FURN_INDEX[id] && !isStand(id)) { EXTRA.add(id); FURN_INDEX[id].figure = true; } };
   const figures = () => FURNITURE.filter((f) => isFigure(f.id)).map((f) => f.id);
-  // だいの figs を ばしょの かず に そろえる（しらない id・フィギュアで ない ものは からっぽ）
-  const figsOf = (it) => { const S = STANDS[it && it.id]; if (!S) return []; const a = Array.isArray(it.figs) ? it.figs : []; return S.slots.map((_, i) => (typeof a[i] === "string" && isFigure(a[i]) ? a[i] : null)); };
-  // へやの アイテムの ならびの なかで、だいに かざって いる かず
-  const onStands = (items, id) => (items || []).reduce((n, it) => n + (isStand(it.id) ? figsOf(it).filter((x) => x === id).length : 0), 0);
+  // その だいに のせられるか（フィギュア だいは フィギュア・テーブルは S.accept〔しょっき〕）
+  const accepts = (sid, x) => { const S = holderOf(sid); return !!S && typeof x === "string" && !!FURN_INDEX[x] && !isHolder(x) && (S.accept ? S.accept(x) : isFigure(x)); };
+  // どこかの だいに のせられる もの（おいた かず に だいの うえの ぶんも いれる）
+  const heldable = (id) => isFigure(id) || Object.values(TABLES).some((S) => S.accept && S.accept(id));
+  // だいの figs を ばしょの かず に そろえる（しらない id・のせられない ものは からっぽ）
+  const figsOf = (it) => { const S = holderOf(it && it.id); if (!S) return []; const a = Array.isArray(it.figs) ? it.figs : []; return S.slots.map((_, i) => (accepts(it.id, a[i]) ? a[i] : null)); };
+  // へやの アイテムの ならびの なかで、だい（テーブルも）に のせて いる かず
+  const onStands = (items, id) => (items || []).reduce((n, it) => n + (isHolder(it.id) ? figsOf(it).filter((x) => x === id).length : 0), 0);
 
   // ---- 家具に いれる ----
   for (const [id, S] of Object.entries(STANDS)) {
@@ -66,20 +75,20 @@ const FigureStand = (() => {
     FURNITURE.push(f); FURN_INDEX[id] = f; FURN_ART[id] = () => HomeDesign.model(id).full;
   }
   for (const id of figures()) FURN_INDEX[id].figure = true;
-  // おいた かず に だいの うえの フィギュアも いれる（もようがえで 2こめを おけない・だいを しまうと もどる）
+  // おいた かず に だいの うえの フィギュア（テーブルの しょっき）も いれる（もようがえで 2こめを おけない・だいを しまうと もどる）
   const placed0 = Room.placed;
-  Room.placed = function (id) { return placed0.call(this, id) + (isFigure(id) ? HomeRooms.all().reduce((n, r) => n + onStands(r.items, id), 0) : 0); };
-  // いごこち: かざった フィギュアも その へやの いごこちに なる
+  Room.placed = function (id) { return placed0.call(this, id) + (heldable(id) ? HomeRooms.all().reduce((n, r) => n + onStands(r.items, id), 0) : 0); };
+  // いごこち: かざった フィギュア（ならべた しょっき）も その へやの いごこちに なる
   const comfort0 = Room.comfort;
-  Room.comfort = function () { return comfort0.call(this) + (Save.d.room.items || []).reduce((n, it) => n + (isStand(it.id) ? figsOf(it).reduce((m, x) => m + (x ? FURN_INDEX[x].comfort || 0 : 0), 0) : 0), 0); };
+  Room.comfort = function () { return comfort0.call(this) + (Save.d.room.items || []).reduce((n, it) => n + (isHolder(it.id) ? figsOf(it).reduce((m, x) => m + (x ? FURN_INDEX[x].comfort || 0 : 0), 0) : 0), 0); };
   // プリセット: figs も おぼえる・よびだす ときは ほかの へやで つかって いる かずも かぞえる
   const snap0 = RoomPresets.snapshot;
-  RoomPresets.snapshot = function (name) { const p = snap0.call(this, name); Save.d.room.items.forEach((it, i) => { if (isStand(it.id) && p.items[i] && p.items[i].id === it.id) { const a = figsOf(it); if (a.some(Boolean)) p.items[i].figs = a; } }); return p; };
+  RoomPresets.snapshot = function (name) { const p = snap0.call(this, name); Save.d.room.items.forEach((it, i) => { if (isHolder(it.id) && p.items[i] && p.items[i].id === it.id) { const a = figsOf(it); if (a.some(Boolean)) p.items[i].figs = a; } }); return p; };
   const problem0 = RoomPresets.problem;
   RoomPresets.problem = function (p) {
     const why = problem0.call(this, p); if (why) return why;
     const need = {};
-    for (const it of p.items) if (isStand(it.id)) for (const x of figsOf(it)) if (x) need[x] = (need[x] || 0) + 1;
+    for (const it of p.items) if (isHolder(it.id)) for (const x of figsOf(it)) if (x) need[x] = (need[x] || 0) + 1;
     for (const [id, n] of Object.entries(need)) {
       const used = Object.values(Save.d.rooms.stored).reduce((a, r) => a + r.items.filter((it) => it.id === id).length + onStands(r.items, id), 0);
       const inPreset = p.items.filter((it) => it.id === id).length;
@@ -244,10 +253,10 @@ const FigureStand = (() => {
   // ターンテーブルの いまの ばしょ（G.t で まわる。ばしょ i は 60どずつ）
   const ringAt = (S, t = G.t) => S.slots.map((_, i) => { const a = (i / S.slots.length) * TAU + Math.PI / 2 + t * S.ring.speed; return [Math.cos(a) * S.ring.r, S.ring.y + Math.sin(a) * S.ring.r, S.ring.z]; });
   const drawFigs = (ctx, sc, it, r) => {
-    const S = STANDS[it.id], P = mapper(sc, it, r), a = figsOf(it);
-    // うしろの だんから（ならびが うしろ → まえ）・おなじ だんは ひだりから。ターンテーブルは そのときの おくゆきの じゅん
+    const S = holderOf(it.id), P = mapper(sc, it, r), a = figsOf(it);
+    // うしろの だんから（ならびが うしろ → まえ）・おなじ だんは ひだりから。ターンテーブルと テーブル（sorted）は 画面の おくゆきの じゅん
     const at = S.ring ? ringAt(S) : S.slots, order = a.map((_, i) => i);
-    if (S.ring) order.sort((i, j) => P(...at[i]).y - P(...at[j]).y);
+    if (S.ring || S.sorted) order.sort((i, j) => P(...at[i]).y - P(...at[j]).y);
     for (const i of order) {
       const id = a[i]; if (!id) continue;
       const k = scaleOf(S, id), sp = sprite(id, k, P.s); if (!sp) continue;
@@ -319,13 +328,24 @@ const FigureStand = (() => {
   const icon = (id, size = 46) => `<span class="figst-ico" style="width:${size}px;height:${size}px">${Art.furnSvg(id)}</span>`;
   let view = null;
   const save = () => { Save.mark(); Save.write(); };
+  // かざる 画面の ことば（フィギュア だい）。テーブル（js/table-ware.js）は S.words で しょっきの ことばに かえる
+  const WORDS = {
+    title: "フィギュアを かざる", lead: "かざる ばしょを タップしてね", fillLine: "ずらっと ならんだ！", full: "もう ぜんぶ かざって いるよ", noFill: "かざれる フィギュアが ないよ",
+    have: (n) => `もって いる フィギュア ${n}しゅ。だいを しまうと フィギュアは もちものに もどるよ。`,
+    none: "フィギュアが まだ ないよ。ガチャガチャ・はしわたし・すいぞくかんの おみやげで てに いれよう。",
+    noPick: "かざれる フィギュアが ないよ。ほかの だいや へやに おいて いないか みてね。", put: ["かざったよ！", "いい ばしょ だね", "にあう〜！"],
+  };
+  const wordsOf = (S) => ({ ...WORDS, ...(S.words || {}) });
+  // その だいに のせられる ものの id（フィギュア だいは フィギュア・テーブルは S.pool）
+  const poolOf = (S) => (S.pool ? S.pool() : figures());
   function open(sc, it) {
-    const S = STANDS[it.id]; if (!S) return null;
-    const body = U.el("div", { class: "figst" }), m = UI.modal({ title: "フィギュアを かざる", body, cls: "full figst-panel", onClose: () => { view = null; } });
+    const S = holderOf(it.id); if (!S) return null;
+    const W = wordsOf(S), pool = () => poolOf(S);
+    const body = U.el("div", { class: "figst" }), m = UI.modal({ title: W.title, body, cls: "full figst-panel", onClose: () => { view = null; } });
     view = { sc, it, m, body, pick: null };
     const render = () => {
-      const a = figsOf(it), have = figures().filter((id) => (Save.d.furn[id] || 0) > 0);
-      body.replaceChildren(U.el("p", { class: "note figst-lead", text: `${S.name}。かざる ばしょを タップしてね（${a.filter(Boolean).length} / ${a.length}）。` }));
+      const a = figsOf(it), have = pool().filter((id) => (Save.d.furn[id] || 0) > 0);
+      body.replaceChildren(U.el("p", { class: "note figst-lead", text: `${S.name}。${W.lead}（${a.filter(Boolean).length} / ${a.length}）。` }));
       const grid = U.el("div", { class: "figst-grid" });
       a.forEach((id, i) => {
         const b = U.el("button", { class: "figst-slot" + (id ? " on" : ""), "aria-label": slotName(S, i) + (id ? "・" + FURN_INDEX[id].name : "・あいて いる"), "data-slot": i, html: id ? icon(id, 60) : `<span class="figst-plus">＋</span>` });
@@ -335,24 +355,24 @@ const FigureStand = (() => {
       body.append(grid);
       const row = U.el("div", { class: "row wrap figst-acts" });
       row.append(UI.btn("ぜんぶ ならべる", () => fill(), "yellow"), UI.btn("ぜんぶ もどす", () => clear(), "pink"));
-      body.append(row, U.el("p", { class: "note", text: have.length ? `もって いる フィギュア ${have.length}しゅ。だいを しまうと フィギュアは もちものに もどるよ。` : "フィギュアが まだ ないよ。ガチャガチャ・はしわたし・すいぞくかんの おみやげで てに いれよう。" }));
+      body.append(row, U.el("p", { class: "note", text: have.length ? W.have(have.length) : W.none }));
     };
     const set = (i, id) => { const a = figsOf(it); a[i] = id; it.figs = a; save(); };
     const fill = () => {
       const a = figsOf(it); let n = 0;
-      for (const id of figures()) { let k = free(id); while (k-- > 0) { const i = a.indexOf(null); if (i < 0) break; a[i] = id; n++; } }
-      if (!n) { Sound.se("bad"); UI.toast(a.indexOf(null) < 0 ? "もう ぜんぶ かざって いるよ" : "かざれる フィギュアが ないよ"); return; }
-      it.figs = a; save(); Sound.se("ok"); say(sc, it, "ずらっと ならんだ！", "heart"); render();
+      for (const id of pool()) { let k = free(id); while (k-- > 0) { const i = a.indexOf(null); if (i < 0) break; a[i] = id; n++; } }
+      if (!n) { Sound.se("bad"); UI.toast(a.indexOf(null) < 0 ? W.full : W.noFill); return; }
+      it.figs = a; save(); Sound.se("ok"); say(sc, it, W.fillLine, "heart"); render();
     };
     const clear = () => { if (!figsOf(it).some(Boolean)) return; it.figs = figsOf(it).map(() => null); save(); Sound.se("cancel"); render(); };
     // ばしょ i に かざる フィギュアを えらぶ
     const choose = (i) => {
-      const cur = figsOf(it)[i], list = figures().filter((id) => free(id) > 0 || id === cur), pb = U.el("div", { class: "figst-pick" });
-      if (!list.length) pb.append(U.el("p", { class: "note", text: "かざれる フィギュアが ないよ。ほかの だいや へやに おいて いないか みてね。" }));
+      const cur = figsOf(it)[i], list = pool().filter((id) => free(id) > 0 || id === cur), pb = U.el("div", { class: "figst-pick" });
+      if (!list.length) pb.append(U.el("p", { class: "note", text: W.noPick }));
       const g = U.el("div", { class: "grid figst-list" });
       for (const id of list) {
         const n = free(id), c = U.el("button", { class: "card" + (id === cur ? " on" : ""), "aria-label": FURN_INDEX[id].name, html: `${n > 0 ? `<span class="cnt">×${n}</span>` : ""}${icon(id, 52)}<div>${FURN_INDEX[id].name}</div>` });
-        c.addEventListener("click", () => { Sound.se("ok"); set(i, id); pm.close(); render(); say(sc, it, ["かざったよ！", "いい ばしょ だね", "にあう〜！"][i % 3], "heart"); });
+        c.addEventListener("click", () => { Sound.se("ok"); set(i, id); pm.close(); render(); say(sc, it, W.put[i % W.put.length], "heart"); });
         g.append(c);
       }
       pb.append(g);
@@ -380,5 +400,8 @@ const FigureStand = (() => {
       ...(lights(id) ? { light(ctx, sc, it, r, st) { if (!caseOn(st)) return; const P = mapper(sc, it, r), p = P(0, tower ? -26 : -23, tower ? 100 : 80); glow(ctx, p.x, p.y, (tower ? 110 : 100) * P.s, "255,214,140", 0.22); } } : {}),
     }, lights(id));
   }
-  return { STANDS, isStand, isFigure, addFigures, figures, figsOf, onStands, slotName, scaleOf, foot, ringAt, open, get view() { return view; } };
+  // ---- UI-103: テーブルなど ほかの だいを たす（js/table-ware.js）----
+  // spec: { name, slots: [[x, y, z]…], names: [ばしょの なまえ…], cap, capW, accept(id), pool(), words }。絵と タップは つかう がわが FurnLive に いれる
+  const addHolder = (id, spec) => { if (!FURN_INDEX[id] || STANDS[id]) return null; TABLES[id] = spec; return spec; };
+  return { STANDS, TABLES, isStand, isHolder, holderOf, accepts, heldable, addHolder, isFigure, addFigures, figures, figsOf, onStands, slotName, scaleOf, foot, ringAt, drawFigs, say, open, get view() { return view; } };
 })();
