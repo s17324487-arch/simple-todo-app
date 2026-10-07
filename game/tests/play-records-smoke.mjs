@@ -52,6 +52,11 @@ export async function playRecordsSmoke({ scenario, expect }) {
     await H.shot('food-dex');
     await page.locator('.smaho-body .rec-food[data-id="apple"]').click();
     await page.locator('.modal-wrap:not(.out) .rec-food-card').waitFor({ timeout: 5000 }); await H.wait(300);
+    // まどは ひらく とき したから すこし うごく（.panel の slideUp 0.22びょう）。うごきが おわってから はかる（おそい WebKit では 300ms で おわらない ことが ある）。
+    // おわりは korokoro-records の fit と おなじ 3つで みる: getAnimations が running でない・まどの transform が none・まどの 位置が 2かい つづけて おなじ
+    await H.eval(() => { window.__recFoodLast = null; });
+    await H.until(() => { const m = document.querySelector('.modal-wrap:not(.out) .rec-food-panel'); if (!m) return false; const w = m.closest('.modal-wrap'), r = m.getBoundingClientRect(), k = [r.left, r.top, r.right, r.bottom].join(), same = window.__recFoodLast === k; window.__recFoodLast = k;
+      return same && getComputedStyle(m).transform === 'none' && getComputedStyle(w).opacity === '1' && [w, m].every((e) => typeof e.getAnimations !== 'function' || e.getAnimations().every((a) => a.playState !== 'running')); }, 5000);
     v = await H.eval(() => { const m = document.querySelector('.modal-wrap:not(.out) .rec-food-panel'), r = m.getBoundingClientRect(); return { total: m.querySelector('.rec-food-total').textContent, kids: [...m.querySelectorAll('.rec-food-kid')].map((e) => e.textContent.replace(/\s+/g, '')), inside: r.left >= 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1 }; });
     expect(v.total === '3にんで 3かい たべたよ' && v.kids.some((k) => /わんこ2かい/.test(k)) && v.kids.some((k) => /がちゃん1かい/.test(k)) && v.kids.some((k) => /ごじ0かい/.test(k)) && v.inside, 'りんごの カードが ちがう ' + JSON.stringify(v));
     await H.shot('food-card');
