@@ -167,12 +167,17 @@ const svgOk = (s) => typeof s === "string" && s.startsWith("<svg") && s.trim().e
   ok(r && r.from === 1 && r.to === 11 && ShopRewards.level(S.d.shops.crepe) === 11 && S.d.shops.crepe.rep === SHOP_LV_REP[11] && C.tickets("lv10") === 1, "+10: Lv.1 → Lv.11・ひょうばんも そろえる");
   ok(r.prizes.map((p) => p.level).join() === "5,10" && S.d.shopRewards.shop_crepe_5 && S.d.furn.shop_crepe_10 === 1, "とどいた レベルの ごほうび（Lv5・10）も もらえる");
   r = C.useLv("lv25", "crepe");
-  ok(r && r.from === 11 && r.to === 30 && r.prizes.map((p) => p.level).join() === "15,30" && C.tickets("lv25") === 0, "+25: Lv.11 → 30（30 まで）・Lv15・30 の ごほうび");
-  ok(C.useLv("lv10", "crepe") === null && C.tickets("lv10") === 1, "Lv.30 の おみせには つかえない（けんは のこる）");
+  ok(r && r.from === 11 && r.to === 36 && ShopRewards.level(S.d.shops.crepe) === 36 && r.prizes.map((p) => p.level).join() === "15,30" && C.tickets("lv25") === 0, "+25: Lv.11 → 36（50 まで・UI-108）・Lv15・30 の ごほうび");
+  S.d.shops.crepe.rep = SHOP_LV_REP[50]; S.d.shops.crepe.lv = 50;
+  ok(C.useLv("lv10", "crepe") === null && C.tickets("lv10") === 1, "Lv.50 の おみせには つかえない（けんは のこる）");
+  S.d.shops.cake.rep = SHOP_LV_REP[45]; S.d.shops.cake.lv = 45; C.giveTicket("lv10", 1);
+  r = C.useLv("lv10", "cake");
+  ok(r && r.from === 45 && r.to === 50 && ShopRewards.level(S.d.shops.cake) === 50 && S.d.shops.cake.rep === SHOP_LV_REP[50] && C.tickets("lv10") === 1, "Lv.45 + 10 → 50 で とまる");
   S.d.shops.bakery.rep = SHOP_LV_REP[8]; S.d.shops.bakery.lv = 8;
   r = C.useLv("lv10", "bakery");
   ok(r && r.from === 8 && r.to === 18 && C.tickets("lv10") === 0, "とちゅうの レベルからも +10");
   ok(C.useLv("lv10", "nope") === null && C.useLv("lv99", "cake") === null, "しらない おみせ・しらない けん");
+  ok(["lv10", "lv25"].every((k) => C.PRIZES.find((e) => e.id === k).desc.includes(`（${ShopRewards.maxLevel} まで）`)), "けんの せつめいは おみせ Lv の じょうげん（" + ShopRewards.maxLevel + "）");
 }
 
 // ---- 8. バスの ていきけん ----

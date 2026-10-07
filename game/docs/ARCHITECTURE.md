@@ -7,7 +7,7 @@ HomeActions は15秒ごとに3人のうち1人の動作を選ぶ。15種類を�
 自動会話は通常24〜40秒、みまもり14〜22秒（従来の2倍）。親の自動お世話は頻度と効果を保ち、会話だけ2回に1回にする。タップや手動のお世話には毎回反応する。PokaDebug.homeActions / homeAction / homeActionSchedule / homeAdvance は状態確認・動作指定・時計の初期化・停止中の時間送り。home-idle-life のスモークで15秒の間隔、15動作、家具条件、所持金維持を2画面サイズで確認する。
 ## 大人向けスローライフの価格
 
-slow-life-prices.js は全カタログ登録後、debug.js の前に一度だけ実行する。販売価格は家具4倍、服2.5倍、壁紙・床3倍（10コイン単位で切り上げ）。0コインの初期品・非売品・rare は変更しない。食事・道具・部屋増築・収入の式は維持。カタログと索引は同じオブジェクトを参照しているため、買い物・確認・差し引きの価格が揃う。セーブのキー・値・形式の変換は行わない。tools/balance.mjs はチップ・気分加算と概算食費を含め、各店Lv1/Lv5・難易度別の収入と家具を買う回数を表示する。
+slow-life-prices.js は全カタログ登録後、debug.js の前に一度だけ実行する。販売価格は家具4倍、服2.5倍、壁紙・床3倍（10コイン単位で切り上げ）。0コインの初期品・非売品・rare は変更しない。食事・道具・部屋増築・収入の式は維持。カタログと索引は同じオブジェクトを参照しているため、買い物・確認・差し引きの価格が揃う。セーブのキー・値・形式の変換は行わない。tools/balance.mjs はチップ・気分加算と概算食費を含め、各店Lv1/Lv5/Lv30/Lv50・難易度別の収入と家具を買う回数を表示する（Lv30 は Lv5 の 約1.5ばい・Lv50 は 約1.9ばい を `--check` で たしかめる。UI-108）。
 
 # ぽかぽかタウン 設計書（ARCHITECTURE）
 
@@ -572,7 +572,7 @@ intro（店主の説明）→ お客さん × total 人 { enter → work（Task�
 - お客さんの数 `total = 3 + min(4, お店のLv)`。
 - 採点（0〜100）→ ランク: **92以上 ◎ / 72以上 ○ / 45以上 △ / それ未満 ×**。
 - 代金 = お店の基本額 ×（1 + 0.28 ×（Lv−1））× ランクの倍率（×0.2 / ×0.6 / ×1 / ×1.5）。◎ で時間に余裕があればチップ。服の perk・ごきげんでチップが増える。
-- 評判がたまると お店のレベルが上がる（`SHOP_LV_REP`、最大 Lv5）。レベルが上がると 注文が難しくなり、報酬も増える。
+- 評判がたまると お店のレベルが上がる（`SHOP_LV_REP`、最大 Lv50。UI-108 で 30 から）。Lv5 までは 注文が難しくなり、報酬も増える（+28% ずつ）。Lv6 からは 注文は そのままで、コインが 1レベル ごとに +2%（`GameEconomy.lvBonus`。Lv30 で +50%・Lv50 で +90%。チップ・ころころの スコア モード・英語・ナンプレも おなじ）。
 
 ### Task（1人のお客さんの作業）の約束
 
@@ -941,7 +941,7 @@ CIは両ブラウザの全シナリオを6分割し（4分割では 1ジョブ 2
 テスト専用のPlaywrightを1.63.0へ更新。旧1.56.1のLinux WebKitで描画プロセスのクラッシュが複数発生したため、ブラウザの診断ログも保存する。ゲームの実行時依存や保存データは変わらない。
 
 ### おてつだいのレベル報酬
-`shop-rewards.js` の ShopRewards が 11店舗×Lv5/10/15/30 の非売品家具 44種を登録する（`ITEMS` の [なまえ, せつめい, はば, おくゆき, たかさ, しゅるい, そのほか]。id は `shop_<店>_<Lv>`）。SHOP_LV_REPは旧Lv1〜5の値を保ち、Lv6〜30の必要評判を追加。ShopSceneの表示・育成はLv30まで、workLv（注文と報酬）はLv5まで。
+`shop-rewards.js` の ShopRewards が 11店舗×Lv5/10/15/30 の非売品家具 44種を登録する（`ITEMS` の [なまえ, せつめい, はば, おくゆき, たかさ, しゅるい, そのほか]。id は `shop_<店>_<Lv>`）。SHOP_LV_REPは旧Lv1〜5の値を保ち、Lv6〜50の必要評判を追加（Lv6 から 前の Lv ＋ 200 ＋ Lv×40。Lv30 は 24600・Lv50 は 61000。UI-108 で 31〜50 を おなじ 式で 追加し、Lv1〜30 は 変えない）。ShopSceneの表示・育成はLv50まで、workLv（注文の むずかしさ）はLv5まで。コインは `GameEconomy.pay(shop, lv, rank, mode)` に ほんとうの Lv を わたし、Lv5 までの のび（+28% ずつ）に Lv6 からの `lvBonus`（1レベル +2%）を かける（チップの もと `GameEconomy.unit` も おなじ）。けっかの まどに「おみせ Lv.N の ボーナス +X%」の ぎょう・レベルが あがった ときの ことばは `ShopRewards.upText(shop, lv)`（Lv6 から コインの ％ と つぎの ごほうび）。
 Save.fresh().shopRewardsは受け取った家具IDの真偽値。結果画面で到達した節目を自動配布し、すまほの「ごほうび」で既存プレイヤーも過去の評判に応じた報酬を受け取れる。家具と受取記録を同時保存し、コインには触れない。Save.KEY/SCHEMAは維持。PokaDebug.shopRewards(shop)/shopRewardClaim(shop)/shopRewardOpen(shop)とshop(shop,30)、mg().workLvで検証する。
 
 UI-38（2026-10-01）で 44種の絵を 店ごとに ちがう 立体に 作り直した。`shop-reward-art.js` の `ShopRewardArt` が `FurnModels.register` で 44の 立体を、`FurnLive.register` で さわる うごきを 登録する（`HomeDesign.model` は `FurnModels.has(id)` を 先に みるので、`shopPrize` の 古い 描きかたは つかわれない。`scene-house.js` の `ShopRewardArt.draw()` の よびだしは けした）。
@@ -1464,7 +1464,7 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
   - ポイント: `earn(shop, coins)`（`PER` 200 ごとに `PTS` 10・あまりは carry に もちこし・はじめての かいもので カードを つくる）。くみこみは `BUY_SHOPS.lawson/sevenbun.bought`（おみせの まどで かった `it.price × qty`・クーポンは よばれない）と `IchibanKuji.pay` を つつむ（1まい 1000コイン。ひとりの くじの `draw` も みんなの くじ〔`KujiNet.draw`・`reconcile`〕も pay で はらう ので 2かい かぞえない・UI-102）。ひとりの くじは `draw` の けっかに `points`（すぐ しらせる）、みんなの くじは 1まいずつ はらう ので つづけて はらった ぶんを まとめて 1かい しらせる（`PAY_GAP` 900ミリびょう）。
   - こうかん: `prizes(shop)`（`PRIZES`: crane 100・lv10 1000・lv25 2000・bus 5000・owner 10000〔`secret`〕と、みせごとの `add(shop, p)`〔ごわが コラボ・UI-86〕）・`exchange(shop, id)`（ポイントを へらして わたす・オーナーは 1かい）。てんいんさんの「ポイントカード」（`talkChoice`・js/store-iso.js の talk）で カードの まど（`open`）。
   - クレーン チケット: `PrizeArcade.ticketsFor(machine)`（コイン プッシャー いがい）・`PrizeArcade.start(machine, back, "ticket")`（コインの かわりに `takeTicket`・`run.ticket`）・台が いれかわった とちゅうの 1かいは `giveTicket`（`arcade.refundedTicket`）。台の まどは `UI.ask`（○コイン／チケット／やめる）・けっかに「チケットで もういちど」。
-  - おてつだい レベル けん: `lvTargets(kind)`・`useLv(kind, shop)`（`SHOP_LV_REP[to]` まで ひょうばんを あげて `st.lv`・30 まで・`ShopRewards.claim`）。こうかんの あと すぐ か、もちものの「つかう」（`chooseLv`）。
+  - おてつだい レベル けん: `lvTargets(kind)`・`useLv(kind, shop)`（`SHOP_LV_REP[to]` まで ひょうばんを あげて `st.lv`・`ShopRewards.maxLevel`〔50。UI-108 で 30 から〕まで・`ShopRewards.claim`）。こうかんの あと すぐ か、もちものの「つかう」（`chooseLv`）。
   - バスの ていきけん: `extendBus()`（きょう〔もって いれば つぎの 日〕から `BUS_MONTHS` 6かげつ・`lastDay`）・`busFree()`・`busText()`。`Transit.busPass()` が あれば `Transit.bus` は はらわない。
   - オーナー: `owner(shop)`。`ConbiniGoods.price` を つつんで 10%びき（もとの 1.5ばいの ねだんは `ConbiniGoods.price0`）・`BUY_SHOPS[shop].hello` は getter（オーナーには `POLITE`）・`note` に 10%びき・`StoreScene.prototype.enter` を つつんで はいった ときの あいさつ・かった あとの おれい。
   - もちもの: `Menu.bag` を つつんで「だいじな もの」（カード 4しゅの 絵・チケット・ていきけん・レベル けんの「つかう」）。

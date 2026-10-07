@@ -168,6 +168,8 @@ for (const P of PHONES) for (const lv of IDS) {
     ok(t.repFor(3, 12) === 12 * PLAY[lv].rep, `${lv}: ひょうばん ${PLAY[lv].rep}ばい`);
     const t5 = start(lv, makeSc("hard"), 5);
     ok(t5.payFor(3) === Math.round(PLAY[lv].pay * 1.5 * 1.4 * GameEconomy.mode("hard").reward), `${lv}: Lv5・むずかしい の コイン（1.5ばい × Lv × むずかしさ）`);
+    const t30 = start(lv, Object.assign(makeSc("hard"), { lv: 30 }), 5); // おみせ Lv.30（Lv.6 から 1レベル +2%・UI-108）
+    ok(t30.payFor(3) === Math.round(PLAY[lv].pay * 1.5 * 1.4 * GameEconomy.mode("hard").reward * 1.5), `${lv}: おみせ Lv.30 は コイン +50% （${t30.payFor(3)}）`);
   }
   for (let k = 1; k < 4; k++) { const a = PLAY[IDS[k - 1]], b = PLAY[IDS[k]]; ok(b.pay > a.pay && b.rep >= a.rep && b.limit > a.limit && b.par > a.par, `${IDS[k]}: むずかしい ほど コイン・時間が おおい`); }
   for (const lv of IDS) ok(PLAY[lv].par < PLAY[lv].limit && PLAY[lv].limit <= 3600, `${lv}: めやす < 上限（60ぷん まで）`);

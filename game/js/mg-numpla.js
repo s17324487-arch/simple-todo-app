@@ -216,7 +216,7 @@ class NumplaTask extends TaskBase {
     return (60 * this.filled()) / Math.max(1, this.blank) - pen - 20;
   }
   timeout() { const s = Math.min(40, this.score()); this.done = true; Numpla.state().cont = null; Save.mark(); return s; }
-  payFor(rank) { return Math.round(this.P.pay * [0, 0.45, 1, 1.5][rank] * (1 + 0.1 * (Math.min(5, this.lv) - 1)) * GameEconomy.mode(this.sc.difficulty).reward); }
+  payFor(rank) { return Math.round(this.P.pay * [0, 0.45, 1, 1.5][rank] * (1 + 0.1 * (Math.min(5, this.lv) - 1)) * GameEconomy.mode(this.sc.difficulty).reward * GameEconomy.lvBonus(this.sc.lv)); } // おみせ Lv の ボーナス（Lv.6 から・UI-108）
   repFor(rank, rep) { return rep * this.P.rep; }
   get stopText() { return `ナンプレを ここで やめる？\n続きは つぎに ナンプレを えらぶと できるよ（${Numpla.mmss(this.used())}・ミス ${this.mistakes}）。`; }
   get stopNote() { this.save(); return "とちゅうの ナンプレは のこして あるよ。つぎに ナンプレを えらぶと 続きから できるよ。"; }

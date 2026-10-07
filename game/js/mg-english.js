@@ -166,7 +166,7 @@ class BrainEngTask extends TaskBase {
   // てんすう: 正解の わりあい − めやすを こえた 時間（10 まで）。全問正解で ◎（92 いじょう）
   score() { const pen = Math.min(10, (Math.max(0, this.think - this.P.par) / this.P.par) * 10); return (100 * this.correct) / this.nq - pen; }
   timeout() { const s = Math.min(40, this.score()); this.done = true; return s; }
-  payFor(rank) { return Math.round(this.P.pay * [0, 0.45, 1, 1.5][rank] * (1 + 0.1 * (Math.min(5, this.lv) - 1)) * GameEconomy.mode(this.sc.difficulty).reward); }
+  payFor(rank) { return Math.round(this.P.pay * [0, 0.45, 1, 1.5][rank] * (1 + 0.1 * (Math.min(5, this.lv) - 1)) * GameEconomy.mode(this.sc.difficulty).reward * GameEconomy.lvBonus(this.sc.lv)); } // おみせ Lv の ボーナス（Lv.6 から・UI-108）
   repFor(rank, rep) { return rep * this.P.rep; }
   // ---- 絵 ----
   draw(ctx) {

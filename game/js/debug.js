@@ -352,7 +352,7 @@ const PokaDebug = {
     return { kind, ...ItemDex.progress(kind), entries: ItemDex.entries(kind).map(e => ({ id: e.id, name: e.item.name, category: kind === "furn" ? e.item.kind : e.item.slot, seen: e.seen, owned: e.owned, count: e.count, rare: !!e.item.rare })) };
   },
   itemDexClaim(kind, threshold) { return ItemDex.claim(kind, threshold); },
-  shopRewards(shop) {return { rows:ShopRewards.rows(shop), levels:[...SHOP_LV_REP], cap:ShopRewards.maxLevel };},
+  shopRewards(shop) {return { rows:ShopRewards.rows(shop), levels:[...SHOP_LV_REP], cap:ShopRewards.maxLevel, lv:SHOPS[shop]?ShopRewards.level(Save.d.shops[shop]):null, bonusPct:SHOPS[shop]?GameEconomy.lvBonusPct(ShopRewards.level(Save.d.shops[shop])):null };},
   shopRewardClaim(shop) {return ShopRewards.claim(shop).map(p=>p.id);},
   shopRewardOpen(shop) {ShopRewards.open(shop);},
   persistedSave() { try { return JSON.parse(localStorage.getItem(Save.KEY)); } catch { return null; } },
@@ -1216,7 +1216,7 @@ const PokaDebug = {
     if (!SHOPS[id]) throw new Error("unknown shop: " + id);
     if (id === "link") return this.store("link", "city");
     if (variant && !(SHOP_GAMES[id] && SHOP_GAMES[id].tasks[variant])) throw new Error("unknown variant: " + variant);
-    if (lv) Save.d.shops[id].lv = U.clamp(lv, 1, 30);
+    if (lv) Save.d.shops[id].lv = U.clamp(lv, 1, ShopRewards.maxLevel);
     Game.trans = null;
     Game.goto("shop", { shop: id, back: { map: "town", x: 12, y: 21, dir: "down" }, variant }, "none");
   },

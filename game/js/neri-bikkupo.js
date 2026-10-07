@@ -274,7 +274,7 @@ const Bikkupo = (() => {
     },
     // キッチンの おてつだい（バーガー）。おわると 店の 中の カウンターの まえに もどる
     async kitchen(sc) {
-      const lv = ShopRewards.level(Save.d.shops.burger), i = await UI.ask("コックの バンズさん\n" + SHOPS.burger.desc + "。\nおみせ Lv." + lv, ["おてつだいする", "また あとで"]); if (i !== 0) return;
+      const lv = ShopRewards.level(Save.d.shops.burger), i = await UI.ask("コックの バンズさん\n" + SHOPS.burger.desc + "。\nおみせ Lv." + lv + (GameEconomy.lvBonusPct(lv) ? "・コイン +" + GameEconomy.lvBonusPct(lv) + "%" : ""), ["おてつだいする", "また あとで"]); if (i !== 0) return;
       if (Chara.IDS.some((id) => Save.d.chars[id].hunger < 8)) { await UI.say([{ who: "wanko", emo: "sad", text: "おなかが ぺこぺこだよ〜。\nごはんを たべてから おてつだい しよう。" }]); return; }
       Game.goto("shop", { shop: "burger", back: sc.back, returnVenue: { venue: "bikkupo", floor: 1, back: sc.back, at: [18, 4] } });
     },
