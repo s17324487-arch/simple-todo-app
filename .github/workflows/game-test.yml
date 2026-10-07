@@ -33,7 +33,11 @@ jobs:
     runs-on: ubuntu-latest
     # シナリオが ふえて 4分割では 1ジョブ 21〜25分に なった（2026-09-30）ので 6分割に。1ジョブ 15分 くらい
     # ブラウザを入れる ステップが おそい ときの ぶん（下）、上限は 60分（2026-10-01）
-    timeout-minutes: 60
+    # いまは ふだんでも 1ジョブ 30〜48分（静的チェック 7〜13分・webkit の スモーク 30分 いじょう）で、apt が 24〜35分 おそいと
+    # テストの とちゅうで 60分に とどいて とめられた（2026-10-07 main の run 521 の webkit 2・6。テストは ぜんぶ ✓ だった）。
+    # インストールの いちばん ながい とき（25分 → まつ 5分 → 25分）でも テストまで おわる ように 120分。
+    # シナリオごとの 時間切れは tests/smoke.mjs に ある ので、とまった テストが 120分 のこる ことは ない
+    timeout-minutes: 120
     defaults:
       run:
         working-directory: game
@@ -55,13 +59,20 @@ jobs:
       # apt の ミラーが おそい ときに 上限まで とまって しまわない ように（2026-10-01 PR #135 の webkit 1・5 が 2かい とまった）:
       # apt に 再試行と タイムアウトを つけ、インストールが 25分を こえたら 1どだけ やりなおす。
       # timeout が とめるのは npx だけで、うしろの apt-get は のこって ダウンロードを つづける（webkit 3 で 10分で くぎったら、
-      # やりなおしが その apt の ロックで すぐ おちた）。なので やりなおしの apt は ロックが あくまで まつ（DPkg::Lock::Timeout）
+      # やりなおしが その apt の ロックで すぐ おちた）。なので やりなおしの apt は ロックが あくまで まつ（DPkg::Lock::Timeout）。
+      # ただし DPkg::Lock::Timeout が まつのは dpkg の ロック だけで、apt-get update の ロック（/var/lib/apt/lists/lock）では
+      # すぐ おちた（2026-10-07 main の run 521 の chromium 4・webkit 6）。なので やりなおす まえに、のこった apt-get が
+      # おわるのを 5分まで まつ。おわらなければ とめて、とちゅうで とまった dpkg を なおして から やりなおす
       - name: ブラウザを入れる
         run: |
           echo 'Acquire::Retries "5"; Acquire::http::Timeout "30"; Acquire::https::Timeout "30"; DPkg::Lock::Timeout "1200";' | sudo tee /etc/apt/apt.conf.d/80-retries
           for i in 1 2; do
             if timeout 1500 npx playwright install --with-deps ${{ matrix.browser }}; then exit 0; fi
-            echo "ブラウザの インストールを やりなおす（$i）"
+            if [ "$i" = 2 ]; then break; fi
+            echo "ブラウザの インストールを やりなおす（のこった apt-get を まつ）"
+            for t in $(seq 30); do pgrep -x apt-get > /dev/null || break; sleep 10; done
+            sudo pkill -x apt-get || true
+            sudo dpkg --configure -a || true
           done
           exit 1
 
