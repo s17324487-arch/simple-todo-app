@@ -7,29 +7,43 @@
 //   いない ほうの かいは かぐごと 1まいの 絵に して 描く（うごかない）。いる ほうの かいは いつもの ように うごく。
 //   その 1まいの 絵には フィギュア だいの フィギュアなど うごく かぐの 絵も はいる（よみこみを まってから 描く・UI-92）。
 // ・かいだん・もう ひとつの かいを タップすると、3人が かいだんを のぼって（おりて）いく（ふだは 出さない）。
+// ・3かい（UI-115。オーナーの 指示 2026-10-09「80万円で3階を増やして」）: 800000 コイン（2かいを かってから）。2かいの うえに おなじ ように のる。
+//   2かいの ひだりの かべにも 木の かいだん（3かいへ）。いっしょに 見えるのは 2つの かい: 1かい・2かいに いる ときは 1かいと 2かい、
+//   3かいに いる ときは 2かいと 3かい（pair）。かいだんが ある かいは うえの かいを もって いる かい（stairsAt）。
 // HouseScene を 外から つつむ。scene-house.js は へやの 絵の まえと あとに よぶ 2行だけ。セーブの 形は かえない（rooms の 1へや）。
 const HomeFloors = {
   ID: "upstairs", BASE: "main", PRICE: 3000,
+  TOP: "third", TOP_PRICE: 800000, // 3かい（UI-115）
+  CHAIN: ["main", "upstairs", "third"], // したから じゅんに
   GIFT: { wall: "wp_cloud", floor: "fl_wood" }, // 2かいの はじめの かべがみ（あおぞら）
+  GIFT3: { wall: "wp_star", floor: "fl_wood" }, // 3かいの はじめの かべがみ（ほしぞら）
   // かいだん（1かいの ゆかの 座標。y は おくの かべから）: x0〜x1 の はば、まえ（D−6）から おく（top）へ n だん。
   // top から おくの かべ（y=0）までは おどりば（たかさ H・あつみ LT）
   STAIR: { x0: 6, x1: 58, top: 150, n: 13, LT: 12 },
   LIFT: 22, // 2かいの ゆかの あつみ（HomeDesign.roomSvg の ゆかの ふちと おなじ）
   SPEED: 120, R: 2, // あるく はやさ ／ いない かいの 絵の 1たんいの 画素
-  owned() { return !!(Save.d && Save.d.rooms.owned[this.ID]); },
-  on() { const a = Save.d.rooms.active; return this.owned() && (a === this.BASE || a === this.ID); },
-  upper() { return Save.d.rooms.active === this.ID; },
+  owned(id = this.ID) { return !!(Save.d && Save.d.rooms.owned[id]); },
+  idx(id = Save.d.rooms.active) { return this.CHAIN.indexOf(id); },
+  // いっしょに 見える 2つの かい [した, うえ]
+  pair() { const i = this.idx(); return i >= 2 ? [this.CHAIN[i - 1], this.CHAIN[i]] : [this.BASE, this.ID]; },
+  lo() { return this.pair()[0]; },
+  hi() { return this.pair()[1]; },
+  on() { return this.owned() && this.idx() >= 0; },
+  upper() { return Save.d.rooms.active === this.hi(); },
+  // その かいに うえへの かいだんが ある（うえの かいを もって いる）
+  stairsAt(id) { const i = this.CHAIN.indexOf(id); return i >= 0 && i < this.CHAIN.length - 1 && this.owned(this.CHAIN[i + 1]); },
+  stairsHere() { return this.on() && this.stairsAt(Save.d.rooms.active); },
   size(id) { return HomeDesign.sizes[HomeDesign.sizeKey(id, Save.d.rooms)]; },
-  // 2かいの 原点（1かいの ゆかの 座標）: おくの かべの うしろ。2かいの ゆかの まえの ふち（y=D2）が かべの うえ（y=0・z=H）に のる
-  origin() { const s2 = this.size(this.ID); return { x: 0, y: -s2.d, z: HomeDesign.H + this.LIFT }; },
+  // うえの かいの 原点（したの かいの ゆかの 座標）: おくの かべの うしろ。うえの ゆかの まえの ふち（y=D2）が かべの うえ（y=0・z=H）に のる
+  origin() { const s2 = this.size(this.hi()); return { x: 0, y: -s2.d, z: HomeDesign.H + this.LIFT }; },
   off2() { const o = this.origin(); return HomeDesign.project(o.x, o.y, o.z); },
-  // 2かいに ついた ところ（2かいの へやの 座標）: まえの ふちの ひだり（おどりばの うしろ）
-  landing() { const S = this.STAIR; return { x: (S.x0 + S.x1) / 2 + 30, y: ROOM.WALL + this.size(this.ID).d - 40 }; },
+  // うえの かいに ついた ところ（いる かいの へやの 座標）: まえの ふちの ひだり（おどりばの うしろ）
+  landing() { const S = this.STAIR; return { x: (S.x0 + S.x1) / 2 + 30, y: ROOM.WALL + this.size(Save.d.rooms.active).d - 40 }; },
   // 1かいの ゆかの 点 → 2かいの へやの 座標（2かいに いる ときの みち）
   to2(x, y, z) { const o = this.origin(); return { x: x - o.x, y: ROOM.WALL + y - o.y, z: z - o.z }; },
   // 2つの かいを あわせた わく（1かいの 原点で）
   union() {
-    const b1 = HomeDesign.bounds(this.size(this.BASE)), b2 = HomeDesign.bounds(this.size(this.ID)), o = this.off2();
+    const b1 = HomeDesign.bounds(this.size(this.lo())), b2 = HomeDesign.bounds(this.size(this.hi())), o = this.off2();
     const x0 = Math.min(b1.x, b2.x + o.x), y0 = Math.min(b1.y, b2.y + o.y), x1 = Math.max(b1.x + b1.w, b2.x + o.x + b2.w), y1 = Math.max(b1.y + b1.h, b2.y + o.y + b2.h);
     return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
   },
@@ -83,23 +97,25 @@ const HomeFloors = {
     const x0 = Math.min(...ps.map((p) => p.x)) - 6, y0 = Math.min(...ps.map((p) => p.y)) - 6;
     return { x: x0, y: y0, w: Math.max(...ps.map((p) => p.x)) + 6 - x0, h: Math.max(...ps.map((p) => p.y)) + 6 - y0 };
   },
-  stairsCanvas(ensure) {
-    const D1 = this.size(this.BASE).d, b = this.stairsBox(D1), key = "house-stairs:" + D1;
+  stairsCanvas(ensure, id = Save.d.rooms.active) {
+    const D1 = this.size(id).d, b = this.stairsBox(D1), key = "house-stairs:" + D1;
     const fn = () => this.stairsSvg(D1), pw = Math.ceil(b.w * this.R), ph = Math.ceil(b.h * this.R);
     return ensure ? SvgCache.ensure(key, fn, pw, ph) : SvgCache.get(key, fn, pw, ph);
   },
-  // かいだんの 画面の かたち（タップの はんい）。o は 1かいの 原点の 画面の 位置
-  stairsPoly(sc, o) {
-    const S = this.STAIR, D1 = this.size(this.BASE).d, H = HomeDesign.H, s = sc.s;
+  // かいだんの 画面の かたち（タップの はんい）。o は かいだんの ある かい（id）の 原点の 画面の 位置
+  stairsPoly(sc, o, id = this.lo()) {
+    const S = this.STAIR, D1 = this.size(id).d, H = HomeDesign.H, s = sc.s;
     const P = (x, y, z) => { const q = HomeDesign.project(x, y, z); return { x: o.x + q.x * s, y: o.y + q.y * s }; };
     // かいだん と おどりば（おどりばは かべの うえより したに とどめる。2かいの ゆかの タップと かさならない）
     return [P(S.x1 + 6, D1, 0), P(S.x0 - 6, D1, 0), P(S.x0 - 6, S.top - 10, H + 70), P(S.x0 - 6, this.RAIL0, H + 64), P(S.x0 - 6, 2, H), P(S.x1 + 6, 2, H - 2), P(S.x1 + 6, 2, H - 30), P(S.x1 + 6, S.top - 10, H - 30), P(S.x1 + 6, D1, -4)];
   },
-  // 1かいの 原点の 画面の 位置（いる かいが 2かいなら ずらして もどす）
+  // したの かいの 原点の 画面の 位置（いる かいが うえなら ずらして もどす）
   base(sc) { if (!this.upper()) return { x: sc.ox, y: sc.oy }; const o = this.off2(); return { x: sc.ox - o.x * sc.s, y: sc.oy - o.y * sc.s }; },
+  // id の かいの 原点の 画面の 位置
+  floorAt(sc, id) { const b = this.base(sc); if (id !== this.hi()) return b; const o = this.off2(); return { x: b.x + o.x * sc.s, y: b.y + o.y * sc.s }; },
   // へやの ゆかの 座標 → 画面（id の かいの 原点から）
   roomAt(sc, id) {
-    const b = this.base(sc), o = id === this.ID ? this.origin() : { x: 0, y: 0, z: 0 }, s = sc.s;
+    const b = this.base(sc), o = id === this.hi() ? this.origin() : { x: 0, y: 0, z: 0 }, s = sc.s;
     return (x, y, z) => { const q = HomeDesign.project(o.x + x, o.y + y, o.z + z); return { x: b.x + q.x * s, y: b.y + q.y * s }; };
   },
   // へやの りんかく（ゆかと おくの かべ）の 画面の かたち
@@ -140,7 +156,7 @@ const HomeFloors = {
     try { return fn(); }
     finally { rs.active = active; Save.d.room = room; delete rs.stored[active]; rs.stored[id] = other; Object.assign(sc, { ox: keep.ox, oy: keep.oy, s: keep.s, mode: keep.mode, sel: keep.sel }); sc.life.furniture = keep.furn; }
   },
-  otherId() { return this.upper() ? this.BASE : this.ID; },
+  otherId() { return this.upper() ? this.lo() : this.hi(); },
   async prepare(sc) {
     sc.floorImage = null;
     const seq = sc.floorSeq = (sc.floorSeq || 0) + 1; // あとから よんだ ほうが かち（よみこみの とちゅうで かいを うつったら まえの ぶんは やめる）
@@ -151,7 +167,7 @@ const HomeFloors = {
     const bgKey = "house-design:" + id + ":" + room.wall + ":" + room.floor + ":" + size.w + "x" + size.d + ":" + HomeDoorColors.sig();
     const k0 = Math.min(2, Math.sqrt(4.5e6 / (b.w * b.h))); // 3ばい・4ばいの へやは ちいさめの 絵（scene-house.js の buildBg と おなじ）
     const jobs = [SvgCache.ensure(bgKey, () => HomeDesign.roomSvg(room.wall, room.floor, size), Math.ceil(b.w * k0), Math.ceil(b.h * k0)), ...room.items.map((it) => sc.furnCanvas(it, true))];
-    if (id === this.BASE) jobs.push(this.stairsCanvas(true));
+    if (this.stairsAt(id)) jobs.push(this.stairsCanvas(true, id));
     const [bg] = await Promise.all(jobs);
     if (stale()) return;
     const R = this.R, cv = document.createElement("canvas"); cv.width = Math.ceil(b.w * R); cv.height = Math.ceil(b.h * R);
@@ -160,7 +176,7 @@ const HomeFloors = {
       Object.assign(sc, { ox: -b.x * R, oy: -b.y * R, s: R, mode: null, sel: null }); sc.life.furniture = {};
       const items = sc.drawOrder(), flat = (it) => ["wall", "rug"].includes(FURN_INDEX[it.id].kind);
       for (const it of items) if (flat(it)) sc.drawFurn(ctx, it);
-      if (id === this.BASE) this.drawStairs(ctx, sc, { x: sc.ox, y: sc.oy }, R);
+      if (this.stairsAt(id)) this.drawStairs(ctx, sc, { x: sc.ox, y: sc.oy }, R, id);
       for (const it of items) if (!flat(it)) sc.drawFurn(ctx, it);
     });
     // うごく かぐの 絵（フィギュア だいの フィギュア・もくば・おふろ グッズ など）は 描く ときに はじめて よみこむ（SvgCache.get）。
@@ -172,21 +188,21 @@ const HomeFloors = {
     draw(g);
     sc.floorImage = { id, cv, b };
   },
-  drawStairs(ctx, sc, o, s = sc.s) {
-    const img = this.stairsCanvas(false); if (!img) return;
-    const b = this.stairsBox(this.size(this.BASE).d);
+  drawStairs(ctx, sc, o, s = sc.s, id = Save.d.rooms.active) {
+    const img = this.stairsCanvas(false, id); if (!img) return;
+    const b = this.stairsBox(this.size(id).d);
     ctx.drawImage(img, o.x + b.x * s, o.y + b.y * s, b.w * s, b.h * s);
   },
   // へやの 絵の まえ: いない かいの 絵
   drawUnder(ctx, sc) {
     const F = sc.floorImage; if (!F || !this.on()) return;
-    const b0 = this.base(sc), o = F.id === this.ID ? this.off2() : { x: 0, y: 0 }, s = sc.s;
+    const b0 = this.base(sc), o = F.id === this.hi() ? this.off2() : { x: 0, y: 0 }, s = sc.s;
     ctx.drawImage(F.cv, b0.x + (o.x + F.b.x) * s, b0.y + (o.y + F.b.y) * s, F.b.w * s, F.b.h * s);
   },
-  // へやの 絵の あと（1かいに いる とき）: かべの かぐ・しきもの → かいだん（どちらも かいだんより おく・した）
+  // へやの 絵の あと（かいだんの ある かいに いる とき）: かべの かぐ・しきもの → かいだん（どちらも かいだんより おく・した）
   drawAfterBg(ctx, sc) {
     sc.floorSkip = null;
-    if (!this.on() || this.upper()) return;
+    if (!this.stairsHere()) return;
     const flat = sc.drawOrder().filter((it) => ["wall", "rug"].includes(FURN_INDEX[it.id].kind));
     for (const it of flat) sc.drawFurn(ctx, it);
     this.drawStairs(ctx, sc, { x: sc.ox, y: sc.oy });
@@ -198,15 +214,18 @@ const HomeFloors = {
     if (sc.chars.some((c) => !c.hidden && sc.contains(sc.actorRect(c), p))) return null;
     const r = sc.toRoom(p.x, p.y), it = sc.hitItem(r.x, r.y);
     if (it && FURN_INDEX[it.id].interactive) return null;
-    if (this.inside(this.stairsPoly(sc, this.base(sc)), p)) return this.upper() ? "down" : "up";
+    // いる かいの かいだん → うえへ。うえの かいに いる ときの したの かいの かいだん → したへ
+    const cur = Save.d.rooms.active;
+    if (this.stairsAt(cur) && this.inside(this.stairsPoly(sc, this.floorAt(sc, cur), cur), p)) return "up";
+    if (this.upper() && this.inside(this.stairsPoly(sc, this.base(sc), this.lo()), p)) return "down";
     if (typeof HomeDoors !== "undefined" && HomeDoors.list().some((d) => HomeDoors.hit(sc, d, p))) return null;
     // もう ひとつの かいの へや
     if (this.inside(this.roomPoly(sc, this.otherId()), p) && !this.inside(this.roomPoly(sc, Save.d.rooms.active), p)) return this.upper() ? "down" : "up";
     return null;
   },
-  // 3人の みち（いる かいの へやの 座標・z は ゆかからの たかさ）: かいだん → おどりば → おくの かど → 2かいの ゆか
+  // 3人の みち（いる かいの へやの 座標・z は ゆかからの たかさ）: かいだん → おどりば → おくの かど → うえの かいの ゆか
   path(sc, dir) {
-    const S = this.STAIR, H = HomeDesign.H, mid = (S.x0 + S.x1) / 2, D1 = this.size(this.BASE).d, yb = D1 - 6, W = ROOM.WALL;
+    const S = this.STAIR, H = HomeDesign.H, mid = (S.x0 + S.x1) / 2, D1 = this.size(dir === "up" ? Save.d.rooms.active : this.lo()).d, yb = D1 - 6, W = ROOM.WALL;
     if (dir === "up") return [{ x: mid + 42, y: W + yb - 16, z: 0 }, { x: mid, y: W + yb + 4, z: 0 }, { x: mid, y: W + yb - 2, z: 0 }, { x: mid, y: W + S.top + 2, z: H }, { x: mid, y: W + 14, z: H }, { x: mid + 18, y: W - 30, z: H + this.LIFT }];
     const L = this.landing(), t = (x, y, z) => this.to2(x, y, z);
     return [{ x: L.x, y: L.y, z: 0 }, t(mid + 18, -30, H + this.LIFT), t(mid, 14, H), t(mid, S.top + 2, H), t(mid, yb - 2, 0), t(mid + 20, yb - 8, 0)];
@@ -239,13 +258,13 @@ const HomeFloors = {
     }
     if (done || C.t > 9) {
       sc.climb = null;
-      const to = C.dir === "up" ? this.ID : this.BASE;
+      const to = this.CHAIN[this.idx() + (C.dir === "up" ? 1 : -1)];
       if (HomeRooms.switchTo(to)) Game.goto("house", { floor: C.dir });
     }
   },
   // あたらしい かいに ついた: かいだんの はしから 中へ あるく
   arrive(sc, dir) {
-    const S = this.STAIR, mid = (S.x0 + S.x1) / 2, D1 = this.size(this.BASE).d;
+    const S = this.STAIR, mid = (S.x0 + S.x1) / 2, D1 = this.size(Save.d.rooms.active).d; // おりた ときは いる かいの かいだんの した
     sc.chars.forEach((c, i) => {
       c.z = 0;
       if (dir === "up") { const L = this.landing(); c.x = L.x - 12 + i * 12; c.y = L.y + 8 - (i % 2) * 12; c.tx = U.clamp(L.x + 50 + i * 46, 40, ROOM.W - 40); c.ty = U.clamp(L.y - 50 - (i % 2) * 40, ROOM.WALL + 40, ROOM.H - 30); }
@@ -256,7 +275,7 @@ const HomeFloors = {
 
   // ---- かいだんの ところに かぐを おかない（ゆかの かぐ・ひだりの かべの かぐ）----
   keepOut(sc, it) {
-    if (!this.on() || this.upper() || !it) return;
+    if (!this.stairsHere() || !it) return;
     const f = FURN_INDEX[it.id], S = this.STAIR, D1 = ROOM.H - ROOM.WALL;
     if (f.kind === "wall") { if (it.wallSide === "left") { if (it.x + f.w / 2 > S.top - 6) it.x = Math.max(f.w / 2 + 6, S.top - 6 - f.w / 2); it.y = Math.max(it.y, f.h / 2 + S.LT + 6); } return; } // おどりばの した
     if (f.kind === "rug") return;
@@ -264,7 +283,7 @@ const HomeFloors = {
     if (left < S.x1 + 8 && a.y - ROOM.WALL > S.top - 4 && back < D1) it.x = S.x1 + 10 + m.footW / 2;
   },
   tidy(sc) {
-    if (!this.on() || this.upper()) return false;
+    if (!this.stairsHere()) return false;
     let moved = false;
     for (const it of Save.d.room.items) { const k = JSON.stringify([it.x, it.y, it.wallSide]); this.keepOut(sc, it); if (k !== JSON.stringify([it.x, it.y, it.wallSide])) moved = true; }
     if (moved) Save.mark();
@@ -276,32 +295,34 @@ const HomeFloors = {
     const cv = G.canvas.getBoundingClientRect(), u = G.cssPerUnit, pt = (p) => ({ x: cv.left + p.x * u, y: cv.top + p.y * u });
     const box = (ps) => { const xs = ps.map((p) => p.x), ys = ps.map((p) => p.y), a = pt({ x: Math.min(...xs), y: Math.min(...ys) }), b = pt({ x: Math.max(...xs), y: Math.max(...ys) }); return { x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 }; };
     const on = this.on();
-    const other = this.otherId(), so = on ? this.size(other) : null;
-    return { owned: this.owned(), on, room: Save.d.rooms.active, upper: this.upper(), price: this.PRICE, ready: !!sc.floorImage, climbing: sc.climb ? sc.climb.dir : null, scale: sc.s,
-      stairs: on ? box(this.stairsPoly(sc, this.base(sc))) : null, stairsTap: on ? pt(this.stairsTap(sc)) : null,
-      rooms: on ? { main: box(this.roomPoly(sc, this.BASE)), upstairs: box(this.roomPoly(sc, this.ID)) } : null,
-      // かさならない・くっつく の 検査用（画面の 位置）: 1かいの りんかく・2かいの りんかくと ゆか・1かいの おくの かべの うえの ふち
-      polys: on ? { main: this.roomPoly(sc, this.BASE).map(pt), upstairs: this.roomPoly(sc, this.ID).map(pt), floor2: this.floorPoly(sc, this.ID).map(pt), stairs: this.stairsPoly(sc, this.base(sc)).map(pt),
-        wallTop: [this.roomAt(sc, this.BASE)(0, 0, HomeDesign.H), this.roomAt(sc, this.BASE)(this.size(this.BASE).w, 0, HomeDesign.H)].map(pt) } : null,
+    const other = this.otherId(), so = on ? this.size(other) : null, lo = this.lo(), hi = this.hi(), cur = Save.d.rooms.active, up = this.stairsHere() && this.upper();
+    return { owned: this.owned(), third: this.owned(this.TOP), on, room: cur, lo, hi, upper: this.upper(), price: this.PRICE, price3: this.TOP_PRICE, ready: !!sc.floorImage, climbing: sc.climb ? sc.climb.dir : null, scale: sc.s,
+      // stairs・stairsTap は したの かいの かいだん（2つの かいを つなぐ）。upTap は うえの かいに いて その うえにも かいが ある とき（2かい → 3かい）
+      stairs: on ? box(this.stairsPoly(sc, this.base(sc), lo)) : null, stairsTap: on ? pt(this.stairsTap(sc, lo)) : null, upTap: on && up ? pt(this.stairsTap(sc, cur)) : null,
+      rooms: on ? { [lo]: box(this.roomPoly(sc, lo)), [hi]: box(this.roomPoly(sc, hi)) } : null,
+      // かさならない・くっつく の 検査用（画面の 位置）: したの かいの りんかく（main）・うえの かいの りんかく（upstairs）と ゆか・したの かいの おくの かべの うえの ふち
+      polys: on ? { main: this.roomPoly(sc, lo).map(pt), upstairs: this.roomPoly(sc, hi).map(pt), floor2: this.floorPoly(sc, hi).map(pt), stairs: this.stairsPoly(sc, this.base(sc), lo).map(pt),
+        wallTop: [this.roomAt(sc, lo)(0, 0, HomeDesign.H), this.roomAt(sc, lo)(this.size(lo).w, 0, HomeDesign.H)].map(pt) } : null,
       roomTap: on ? pt(this.roomAt(sc, other)(so.w / 2, so.d / 2, 0)) : null,
       chars: sc.chars.map((c) => ({ id: c.id, x: c.x, y: c.y, z: c.z || 0, state: c.state })) };
   },
   // かいだんの まんなかあたり（タップの テスト用）
-  stairsTap(sc) {
-    const S = this.STAIR, D1 = this.size(this.BASE).d, b = this.base(sc), q = HomeDesign.project((S.x0 + S.x1) / 2, (D1 + S.top) / 2, HomeDesign.H * 0.5);
+  stairsTap(sc, id = this.lo()) {
+    const S = this.STAIR, D1 = this.size(id).d, b = this.floorAt(sc, id), q = HomeDesign.project((S.x0 + S.x1) / 2, (D1 + S.top) / 2, HomeDesign.H * 0.5);
     return { x: b.x + q.x * sc.s, y: b.y + q.y * sc.s };
   },
 };
 
 // ---- つなぎ ----
 (() => {
-  HomeRooms.catalog.push({ id: HomeFloors.ID, name: "2かいの おへや", price: HomeFloors.PRICE, wins: 0 });
-  // 2かいを かったら: あおぞらの かべがみ・かいだんの ところの かぐを よける
+  HomeRooms.catalog.push({ id: HomeFloors.ID, name: "2かいの おへや", price: HomeFloors.PRICE, wins: 0 }, { id: HomeFloors.TOP, name: "3かいの おへや", price: HomeFloors.TOP_PRICE, wins: 0 });
+  // 2かい・3かいを かったら: あおぞら（3かいは ほしぞら）の かべがみ・かいだんの ところの かぐを よける。3かいは 2かいを かってから
   const purchase = HomeRooms.purchase;
   HomeRooms.purchase = function (id) {
+    if (id === HomeFloors.TOP && !HomeFloors.owned(HomeFloors.ID)) return false;
     const ok = purchase.call(this, id);
-    if (ok && id === HomeFloors.ID) {
-      const rs = Save.d.rooms, g = HomeFloors.GIFT;
+    if (ok && (id === HomeFloors.ID || id === HomeFloors.TOP)) {
+      const rs = Save.d.rooms, g = id === HomeFloors.TOP ? HomeFloors.GIFT3 : HomeFloors.GIFT;
       rs.stored[id] = { wall: g.wall, floor: g.floor, items: [], wallpapers: { ...Save.d.room.wallpapers, [g.wall]: true }, floors: { ...Save.d.room.floors, [g.floor]: true }, nextUid: 1 };
       Save.d.room.wallpapers[g.wall] = true;
       Save.mark(); Save.write();
@@ -314,10 +335,16 @@ const HomeFloors = {
     const r = open.call(this, sc);
     const card = document.querySelector(`.modal-wrap [data-room="${HomeFloors.ID}"]`);
     if (card) card.insertBefore(U.el("div", { text: "かいだんで のぼる 2かい。1かいの みぎ うえに いっしょに みえるよ。あおぞらの かべがみ つき。" }), card.lastChild);
+    const c3 = document.querySelector(`.modal-wrap [data-room="${HomeFloors.TOP}"]`);
+    if (c3) {
+      const need = !HomeFloors.owned(HomeFloors.ID) && !HomeFloors.owned(HomeFloors.TOP);
+      c3.insertBefore(U.el("div", { text: "2かいの かいだんで のぼる 3かい。2かいの みぎ うえに いっしょに みえるよ。ほしぞらの かべがみ つき。" + (need ? "\n2かいを かってから かえるよ。" : "") }), c3.lastChild);
+      if (need) c3.lastChild.disabled = true;
+    }
     return r;
   };
-  // ドアの「おへや」では 2かいに いかない（かいだんで いく）
-  if (typeof HomeDoors !== "undefined") { const rooms = HomeDoors.rooms; HomeDoors.rooms = function () { return rooms.call(this).filter((r) => r.id !== HomeFloors.ID); }; }
+  // ドアの「おへや」では 2かい・3かいに いかない（かいだんで いく）
+  if (typeof HomeDoors !== "undefined") { const rooms = HomeDoors.rooms; HomeDoors.rooms = function () { return rooms.call(this).filter((r) => r.id !== HomeFloors.ID && r.id !== HomeFloors.TOP); }; }
 
   const P = HouseScene.prototype, wrap = (name, fn) => { const orig = P[name]; P[name] = function (...a) { return fn.call(this, orig, ...a); }; };
   wrap("layout", function (orig) { const r = orig.call(this); HomeFloors.layout(this); return r; });

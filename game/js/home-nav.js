@@ -14,7 +14,7 @@ const HomeNav = (() => {
   let grid = null;
   // あるく へや（おじゃま〔js/online-visit.js〕の ときは よその おへや・2かいの かいだんは ない）
   const roomOf = (sc) => (sc && sc.guest && sc.guest.room) || (Save.d && Save.d.room);
-  const stairsOn = (sc) => !(sc && sc.guest) && typeof HomeFloors !== "undefined" && HomeFloors.on() && !HomeFloors.upper();
+  const stairsOn = (sc) => !(sc && sc.guest) && typeof HomeFloors !== "undefined" && HomeFloors.stairsHere(); // かいだんの ある かい（1かい・3かいの ある 2かい）
   // いまの へやの かたち（家具の いち・へやの ひろさ・かいだん）
   function signature(sc) {
     const r = roomOf(sc); if (!r) return "";

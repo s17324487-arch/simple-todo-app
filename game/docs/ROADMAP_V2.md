@@ -691,6 +691,14 @@ ver1（v1.0.0）のあとに作るものの一覧。**上から順に優先度�
 - 受け入れ条件: 3つの 階が エスカレーター・かいだんで つながる（どの 階からも もどれる・ついた マスに たてる）・タップできる もの ぜんぶに とどく・じめんの 什器が かさならない・ほねの 台は 10しゅ 1つずつ・絵の キーは 有限・ことばは ひらがな・フロアマップに へや 15（`tools/check-dino-museum.mjs`・`check-venues.mjs`）・390×844 と 375×667 で はみ出さない。スモーク `dino-museum-390 / 375`（ぐるっと 一周・ロボット・タップで しらべる・カフェ・フロアマップ・でぐち・まえの 館の セーブ）と `museum-visit`・`museum-donate`・`museum-show`・`museum-wear`。
 - つぎに できる こと: 3F の おみやげの 店（きょうりゅうの フィギュア。すいぞくかんの `AquaGifts` の ように）。
 
+### [x] UI-115 おうちの 3かい（オーナーの 指示 2026-10-09） ✅
+- オーナーの 指示（2026-10-09）「80万円で3階を増やして。」
+- `js/home-floors.js`: かいの ならび `CHAIN`（main・upstairs・third）。3かい `TOP`（`third`・800000 コイン・`HomeRooms.catalog` の 2かいの つぎ・2かいを かってから・ほしぞら `GIFT3`）。
+- いっしょに 見える 2つの かい `pair()`（1かい・2かい → [main, upstairs]、3かい → [upstairs, third]）と `lo()`・`hi()`。かいだんは うえの かいを もって いる かいに ある（`stairsAt`・`stairsHere`）: 2かいの ひだりの かべにも おなじ かいだん（3かいへ）。まえは BASE／ID で きめて いた ところ（origin・union・base・roomAt・prepare・drawUnder・drawAfterBg・at・path・update・arrive・keepOut・tidy）を ぜんぶ pair と かいだんの ある かいで きめる。`floorAt(sc, id)`。`HomeNav` は かいだんの ある かいで かいだんを よける。ドアの「おへや」は 2かい・3かいを えらばない。
+- `PokaDebug.homeFloor()` に `lo`・`hi`・`third`・`price3`・`upTap`（2かいの 3かいへの かいだん）。`stairs`・`stairsTap` は したの かいの かいだん（まえと おなじ）。
+- セーブ: `rooms.owned.third`・`rooms.stored.third`（へやの ひとつ。SCHEMA は 2 の まま）。
+- 受け入れ条件: `tools/check-home-floor3.mjs`（かう・2かいの まえは だめ・いっしょに 見える かい・かいだん・3かいの かたち〔ひろさ 4とおり × いる かい 2〕・みち・かぐ・ドア・オンライン・いく さき）。スモーク `home-3f-390 / 375`（2かいの まえ・かう・2かいと 3かいが 画面の 中・3かい → 2かい → 3かい・さいかい）。`home-2f`・`home-2f-figs` は そのまま とおる。
+
 ### [x] UI-114 おへやを 3ばい・4ばいに ひろげる（オーナーの 指示 2026-10-09） ✅
 - オーナーの 指示（2026-10-09）「部屋を10万円で3倍、50万円で4倍、80万円で3階を増やして。」（3かいは UI-115）
 - `HomeDesign.sizes` に `x3`（800×648）・`x4`（960×720）。めんせきが ちょうど 3・4ばい。`SIZE_KEYS`・`level(id)`（2ばいは まえからの `rooms.expanded`・3／4ばいは `rooms.grow[id]`）・`sizeKey(id)`。
