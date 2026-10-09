@@ -31,7 +31,7 @@ const HomeDesign = {
       if(p.pat==="panel")s+=`<rect y="${h-70}" width="${w}" height="70" fill="${p.c2}"/>`+Array.from({length:Math.ceil(w/32)},(_,i)=>`<path d="M${i*32+7},${h-61} h20 v52 h-20 Z" fill="none" stroke="${p.base}" stroke-opacity=".55" stroke-width="1.5"/>`).join("");
     }return s;
   },
-  roomSvg(wall,floor,size=this.size()) {
+  roomSvg(wall,floor,size=this.size(),doors=typeof HomeDoorColors!=="undefined"?HomeDoorColors.cur():null) {
     const b=this.bounds(size),wp=WALL_INDEX[wall]||WALLPAPERS[0],fl=FLOOR_INDEX[floor]||FLOORS[0],uid="room-design-"+(++this.uid),p=(x,y,z=0)=>this.project(x,y,z),W=size.w,D=size.d,H=this.H;
     let s=`<defs><clipPath id="${uid}-left"><rect width="${D}" height="${H}"/></clipPath><clipPath id="${uid}-right"><rect width="${W}" height="${H}"/></clipPath></defs>`;
     s+=this.poly([p(0,D),p(W,D),p(W,D,-22),p(0,D,-22)],"#6B4934")+this.poly([p(W,0),p(W,D),p(W,D,-22),p(W,0,-22)],"#8A6140");
@@ -40,9 +40,10 @@ const HomeDesign = {
       s+=`<g transform="matrix(${sign*this.A} ${this.B} 0 1 0 ${-H})"><g clip-path="url(#${uid}-${side})">${this.texture(wp,L,H)}<rect width="${L}" height="${H}" fill="${side==="left"?"#716845":"#FFF9D1"}" opacity="${side==="left"?.13:.07}"/>`;
       s+=`<path d="M0,4 H${L} M0,${H-10} H${L}" stroke="#9C8058" stroke-width="8"/><path d="M0,12 H${L} M0,${H-17} H${L}" stroke="#F1DDB4" stroke-width="2"/>`;
       // 木枠のドアと真鍮の金具。左はおでかけ、右はおへや選択。
-      const u=side==="left"?62:W-92;
-      s+=`<g transform="translate(${u-32} ${H-145})"><path d="M0,145 V22 Q0,0 32,0 Q64,0 64,22 V145 Z" fill="#75543D" stroke="${INK}" stroke-width="3"/><path d="M7,145 V24 Q7,8 32,8 Q57,8 57,24 V145" fill="#A68252" stroke="#CFB681" stroke-width="2"/>${[18,32,46].map(x=>`<path d="M${x},19 V143" stroke="#775731" stroke-width="1.5"/>`).join("")}<path d="M8,38 H56 M8,108 H56" stroke="#645044" stroke-width="5"/><circle cx="48" cy="79" r="4" fill="#E0BD66" stroke="#5E4937" stroke-width="1.5"/><rect x="22" y="17" width="20" height="13" rx="3" fill="#D4B980"/><text x="32" y="27" text-anchor="middle" fill="#5F4B31" font-size="9">${side==="left"?"I":"II"}</text></g>`;
-      if(side==="right"&&typeof HomeToilet!=="undefined")s+=HomeToilet.doorSvg(H); // おトイレの ドア（js/home-toilet.js・UI-47）
+      // とびらの いろは HomeDoorColors（UI-111。き の いろが まえと おなじ）
+      const u=side==="left"?62:W-92,dc=doors?HomeDoorColors.color(doors[side==="left"?"out":"room"]):{base:"#A68252",light:"#CFB681",dark:"#775731"},bar=dc.id&&dc.id!=="wood"?dc.dark:"#645044";
+      s+=`<g transform="translate(${u-32} ${H-145})"><path d="M0,145 V22 Q0,0 32,0 Q64,0 64,22 V145 Z" fill="#75543D" stroke="${INK}" stroke-width="3"/><path d="M7,145 V24 Q7,8 32,8 Q57,8 57,24 V145" fill="${dc.base}" stroke="${dc.light}" stroke-width="2"/>${[18,32,46].map(x=>`<path d="M${x},19 V143" stroke="${dc.dark}" stroke-width="1.5"/>`).join("")}<path d="M8,38 H56 M8,108 H56" stroke="${bar}" stroke-width="5"/><circle cx="48" cy="79" r="4" fill="#E0BD66" stroke="#5E4937" stroke-width="1.5"/><rect x="22" y="17" width="20" height="13" rx="3" fill="#D4B980"/><text x="32" y="27" text-anchor="middle" fill="#5F4B31" font-size="9">${side==="left"?"I":"II"}</text></g>`;
+      if(side==="right"&&typeof HomeToilet!=="undefined")s+=HomeToilet.doorSvg(H,doors&&doors.toilet); // おトイレの ドア（js/home-toilet.js・UI-47）
       s+=`</g></g>`;
     }
     s+=`<g transform="matrix(${this.A} ${this.B} ${-this.A} ${this.B} 0 0)">${this.texture(fl,W,D)}<rect width="${W}" height="${D}" fill="none" stroke="#D9BC8A" stroke-width="6"/><rect x="8" y="8" width="${W-16}" height="${D-16}" fill="none" stroke="#65492F" stroke-opacity=".35" stroke-width="1.3"/></g>`;

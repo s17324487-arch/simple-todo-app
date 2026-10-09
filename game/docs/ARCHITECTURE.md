@@ -221,6 +221,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `gowaga-wish.js`（くみこむ ものの あと・world-zoom.js の まえ） | `GowagaWish`（おうちで ごわがの おねがい・かなえて おれいと あまえる・UI-46） |
 | — | `wish-gift-art.js` → `wish-gifts.js`（gowaga-wish.js の すぐ あと・smaho.js・figure-stand.js・chara.js の あと） | `WishGiftArt`（ふうとう・らくがき・いし・つる・え・けん・アクセサリーの `WEAR.wg_*`）／ `WishGifts`（おねがいの おれいの しな・すまほの「たからもの」・UI-70） |
 | — | `home-toilet.js`（gowaga-wish.js の あと・world-zoom.js の まえ） | `HomeToilet`（おうちの おトイレ・3人の いきたさ・UI-47） |
+| — | `home-door-colors.js`（home-doors.js の すぐ あと） | `HomeDoorColors`（おうちの ドアの いろ 12・`Save.d.doorColors`・へやの 絵の キーに `sig()`。UI-111） |
 | — | `hand-items.js`（dressup.js の あと・slow-life-prices.js の まえ） | `HandItems`（もちもの: ふうせん・バッグ・`outfit.hand`・UI-48） |
 | — | `pet-walk.js`（home-toilet.js の あと・world-zoom.js の まえ） | `PetWalk`（いぬの さんぽ: おさんぽ リードと こいぬ 3びき・UI-49） |
 | — | `table-ware.js`（pet-walk.js の あと・play-records.js の まえ。figure-stand.js・ichiban-kuji.js・conbini-collab.js・kaden-live.js より あと） | `TableWare`（しょっきを テーブルに ならべる: しょっき 30しゅ・テーブル 9しゅ・UI-103） |

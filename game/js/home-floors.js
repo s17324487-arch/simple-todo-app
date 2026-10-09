@@ -148,7 +148,7 @@ const HomeFloors = {
     const id = this.otherId(), room = Save.d.rooms.stored[id], stale = () => seq !== sc.floorSeq || this.otherId() !== id;
     if (!room) return;
     const size = this.size(id), b = HomeDesign.bounds(size);
-    const bgKey = "house-design:" + id + ":" + room.wall + ":" + room.floor + ":" + size.w + "x" + size.d;
+    const bgKey = "house-design:" + id + ":" + room.wall + ":" + room.floor + ":" + size.w + "x" + size.d + ":" + HomeDoorColors.sig();
     const jobs = [SvgCache.ensure(bgKey, () => HomeDesign.roomSvg(room.wall, room.floor, size), Math.ceil(b.w * 2), Math.ceil(b.h * 2)), ...room.items.map((it) => sc.furnCanvas(it, true))];
     if (id === this.BASE) jobs.push(this.stairsCanvas(true));
     const [bg] = await Promise.all(jobs);

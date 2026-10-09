@@ -165,7 +165,7 @@ UI.layers = 0; Game.trans = null; G.W = 390; G.H = 844;
   const idx = read("index.html"), sw = read("sw.js"), at = (f) => idx.indexOf(`js/${f}`);
   ok(at("home-toilet.js") > 0 && ["scene-house.js", "home-life.js", "home-doors.js", "home-floors.js", "home-design.js", "parent-care.js", "save.js", "sound.js", "fashion-art.js", "gowaga-wish.js"].every((f) => at(f) > 0 && at(f) < at("home-toilet.js")) && at("home-toilet.js") < at("world-zoom.js") && at("world-zoom.js") < at("debug.js"), "index.html: くみこむ ものの あと・world-zoom.js の まえ");
   ok(sw.includes('"./js/home-toilet.js"') && sw.indexOf('"./js/home-toilet.js"') < sw.indexOf('"./js/world-zoom.js"'), "sw.js の FILES");
-  const hd = read("js/home-design.js"); ok(/typeof HomeToilet!=="undefined"\)s\+=HomeToilet\.doorSvg\(H\)/.test(hd), "へやの 絵から doorSvg を よぶ（HomeToilet が ない ときは よばない）");
+  const hd = read("js/home-design.js"); ok(/typeof HomeToilet!=="undefined"\)s\+=HomeToilet\.doorSvg\(H,doors&&doors\.toilet\)/.test(hd), "へやの 絵から doorSvg を よぶ（HomeToilet が ない ときは よばない・ドアの いろ UI-111）");
   fresh(); T.set("goji", 80);
   const pt = PokaDebug.toilet();
   ok(pt && near(pt.need.goji, 80) && pt.n === 0 && pt.who === null && Array.isArray(pt.kids), "PokaDebug.toilet " + JSON.stringify(pt));

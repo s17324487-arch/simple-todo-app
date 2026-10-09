@@ -165,7 +165,9 @@ class HouseScene {
   preloadFurn() { return Promise.all(Room.of(this).items.map((it) => this.furnCanvas(it, true))); }
   buildBg() {
     const r = Room.of(this), size = HomeDesign.size(), b = HomeDesign.bounds(size), yard = !this.guest && HomeGarden.active();
-    const key = "house-design:" + (this.guest ? "guest" : Save.d.rooms.active) + ":" + r.wall + ":" + r.floor + ":" + size.w + "x" + size.d, fn = () => yard ? HomeGarden.svg(size) : HomeDesign.roomSvg(r.wall, r.floor, size);
+    // ドアの いろ（UI-111）も キーに（よその おへやは はじめの いろ）
+    const doors = this.guest ? HomeDoorColors.DEFAULT : HomeDoorColors.cur();
+    const key = "house-design:" + (this.guest ? "guest" : Save.d.rooms.active) + ":" + r.wall + ":" + r.floor + ":" + size.w + "x" + size.d + ":" + HomeDoorColors.sig(doors), fn = () => yard ? HomeGarden.svg(size) : HomeDesign.roomSvg(r.wall, r.floor, size, doors);
     this.bgArgs = [key, fn, Math.ceil(b.w * 2), Math.ceil(b.h * 2)];
     // ズームの ときの こまかい 絵（3。ひろい へやは 900まん px まで に おさえる）
     const k = Math.min(3, Math.sqrt(9e6 / (b.w * b.h)));
@@ -456,8 +458,8 @@ class HouseScene {
     const e = this.editUI;
     e.innerHTML = "";
     const head = U.el("div", { class: "row", style: "margin-bottom:6px" });
-    const tabs = U.el("div", { class: "tabs", style: "margin:0;flex:1" });
-    for (const [k, label] of (HomeGarden.active()?[["furn", "かぐ"]]:[["furn", "かぐ"], ["wall", "かべがみ"], ["floor", "ゆか"]])) {
+    const tabs = U.el("div", { class: "tabs edit-tabs", style: "margin:0;flex:1" });
+    for (const [k, label] of (HomeGarden.active()?[["furn", "かぐ"]]:[["furn", "かぐ"], ["wall", "かべがみ"], ["floor", "ゆか"], ["door", "ドア"]])) {
       const b = U.el("button", { class: "tab" + (this.editTab === k ? " on" : ""), text: label });
       b.addEventListener("click", () => { this.editTab = k; Sound.se("tap"); this.renderEditBar(); });
       tabs.append(b);
@@ -467,7 +469,27 @@ class HouseScene {
     const tray = U.el("div", { class: "tray" });
     // かぐの カード・ひろげる つまみ・さがす／ならびかえ／しゅるい（js/furn-tray.js）
     const extra = FurnTray.build(this, { head, info, tray, furn: this.editTab === "furn" });
-    if (this.editTab !== "furn") {
+    let doorRow = null;
+    if (this.editTab === "door") {
+      // ドアの いろ（UI-111）: どの ドアか えらんで から いろの カード
+      this.doorPick = this.doorPick || "toilet";
+      const cur = HomeDoorColors.cur(), pick = U.el("div", { class: "row door-pick", style: "gap:6px;margin:0 0 6px" });
+      for (const [k, label] of HomeDoorColors.DOORS) {
+        const b = U.el("button", { class: "tab" + (this.doorPick === k ? " on" : ""), text: label, "data-door": k, style: "min-height:44px" });
+        b.addEventListener("click", () => { this.doorPick = k; Sound.se("tap"); this.renderEditBar(); });
+        pick.append(b);
+      }
+      doorRow = pick;
+      for (const c of HomeDoorColors.PALETTE) {
+        const card = U.el("button", { class: "card" + (cur[this.doorPick] === c.id ? " on" : ""), html: `${HomeDoorColors.icon(c.id, 50)}<div class="nm">${c.name}</div>`, "data-color": c.id });
+        card.addEventListener("click", async () => {
+          if (!HomeDoorColors.set(this.doorPick, c.id)) return;
+          Sound.se("pop"); await this.buildBg(); if (typeof HomeFloors !== "undefined") HomeFloors.prepare(this);
+          this.renderEditBar();
+        });
+        tray.append(card);
+      }
+    } else if (this.editTab !== "furn") {
       const own = this.editTab === "wall" ? WALLPAPERS.filter((w) => Save.d.room.wallpapers[w.id]) : FLOORS.filter((w) => Save.d.room.floors[w.id]);
       for (const w of own) {
         const on = this.editTab === "wall" ? Save.d.room.wall === w.id : Save.d.room.floor === w.id;
@@ -482,7 +504,7 @@ class HouseScene {
       }
       if (own.length <= 1) tray.append(U.el("div", { class: "note", text: "かぐやさんで あたらしい もようが かえるよ！" }));
     }
-    e.append(head, info, ...extra, tray);
+    e.append(head, info, ...(doorRow ? [doorRow] : []), ...extra, tray);
     FurnTray.apply(this);
   }
   async placeNew(id) {
