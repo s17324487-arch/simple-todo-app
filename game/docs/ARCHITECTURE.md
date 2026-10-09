@@ -166,6 +166,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `online-photos.js`（online-rooms.js の すぐ あと・purikura.js より あと） | `OnlinePhotos`（みせると きめた ぷりくらを 見せあう・かくす・ほうこく。`Online.parts` に「ぷりくら」タブ。「しゃしん」アプリの「みんなに みせる」。E5・UI-96） |
 | — | `online-visit.js`（online-photos.js の すぐ あと＝HouseScene を つつむ ファイル〔home-doors・home-floors・home-toilet・pet-walk・play-records・gowaga-wish・mee-fitting〕より あと・debug.js の まえ） | `OnlineVisit`（よんだ おへや → この 画面の へや・ことば・もどる ところ・いく）, `VisitScene`（`SCENES.visit`。ほかの 人の おうちに 3人で おじゃま。HouseScene を うけつぐ。E5・UI-97） |
 | — | `kuji-net.js`（online-visit.js の すぐ あと＝IchibanKuji・KujiUI・Online・OnlineNet の あと・debug.js の まえ） | `KujiNet`（みんなの くじ。いちばんくじを オンラインの みんなで おなじ ロットで ひく。`Online.parts` に `kuji`〔けす・ID〕。E5・UI-100） |
+| — | `hold-plush.js`（kuji-net.js の あと・world-zoom.js の まえ＝家具〔くじ・クレーン・ガチャ・figure-stand.js〕と hand-items.js・dressup.js の あと） | `HoldPlush`（ぬいぐるみ・フィギュアを もつ: `ITEM_INDEX` の `hold_<家具>`・`WEAR.hold_plush`・UI-113） |
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |
@@ -1712,6 +1713,16 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - 絵: `WEAR.hi_balloon`（`col[1]` が かたち: round・heart・star・bear）・`WEAR.hi_tote`・`WEAR.hi_basket`・`WEAR.hi_pochette`。`hand(ctx)` は `charaArmEnds(ctx.p, k)` の 手（うしろむきは k=0）。
 - `SLOT_NAMES` には いれない（ぱぱ・ままの きがえ `ParentWardrobe` は かわらない）。きがえの タブは `dressup.js` が `HandItems.TAB` を たす。ずかんは `ItemDex.categories.wear` に「もちもの」。
 - PokaDebug: `handItems()`。検査は `tools/check-hand-items.mjs`、スモークは `tests/hand-items-smoke.mjs`（`hand-items-390/375`）。
+
+## ぬいぐるみ・フィギュアを もつ（UI-113・`js/hold-plush.js`・`HoldPlush`）
+
+オーナーの 指示 2026-10-09「ぬいぐるみなどを持てるようにして。」
+
+- もてる もの: なまえに「ぬいぐるみ」が ある 家具と フィギュア だいに かざれる もの（`FigureStand.isFigure`）。かべ・ラグは のぞく。`ITEM_INDEX["hold_<家具の id>"]`（`slot: "hand"`・`wear: "hold_plush"`・`col: [家具の id]`・`hold: true`・`price: 0`）。`WEAR_ITEMS` には いれない（おみせ・ずかん・`WearStock` に でない）。`HoldPlush.ids` は ぬいぐるみが さき。
+- かず: `Save.d.furn[id]`（へやに おいて いても もてる）。`owned()`・`free(wid)`・`badge(wid, who)`（`{ n, from, text }`）・`take(who, wid)`（のこりが なければ はじめに もった 子から わたす・トースト）・`fix()`（きがえを ひらく とき。もって いない・おおすぎる ぶんを はずす。ふつうの もちものは さわらない）。
+- 絵: `WEAR.hold_plush(ctx)` → `HoldPlush.draw`。`HandItems.hand(ctx)` の 手の まえに 家具の アイコンを たかさ 76（`preserveAspectRatio="xMidYMax meet"`）。
+- きがえ（`DressUp.open`）: `fix()` → もちものの タブに `owned()`・ふだは `badge`・えらぶと `take`・「みんな おそろい」は `free` の ぶん だけ。
+- PokaDebug: `holdPlush()`（しゅるい・もって いる もの・3人が もつ もの・絵）・`furnSet(id, n)`。検査は `tools/check-hold-plush.mjs`、スモークは `tests/hold-plush-smoke.mjs`（`hold-plush-390/375`）。
 
 ## おうちの おトイレ（UI-47・`js/home-toilet.js`・`HomeToilet`）
 

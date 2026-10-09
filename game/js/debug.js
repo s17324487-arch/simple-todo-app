@@ -479,6 +479,11 @@ const PokaDebug = {
   // おうちで その おねがいを きく（まどが ひらく。こたえは テストの がわで おす）
   wishAsk(id) {if(G.sceneName!=='house'||typeof GowagaWish==='undefined'||!GowagaWish.INDEX[id])return false;GowagaWish.ask(G.scene,id);return true;},
   // もちもの（UI-48）: 7しゅ・ようふくやさんの たな・3人が もって いる もの・絵に でて いるか
+  // ぬいぐるみ・フィギュアを もつ（UI-113）: もてる しゅるい・もって いる もの・3人が もって いる もの・絵に でて いるか
+  holdPlush(){if(typeof HoldPlush==='undefined')return null;const held=Object.fromEntries(Chara.IDS.map(id=>{const w=Save.d.chars[id].outfit.hand;return [id,HoldPlush.isHold(w)?w:null];}));
+    return{kinds:HoldPlush.ids.length,owned:HoldPlush.owned().map(x=>x.id),held,drawn:Object.fromEntries(Chara.IDS.map(id=>{const c=Save.d.chars[id];return [id,!!held[id]&&Chara.svg(id,{outfit:c.outfit,color:c.color}).includes('preserveAspectRatio="xMidYMax meet"')];}))};},
+  // 家具の かずを きめる（テスト用）
+  furnSet(id,n=1){if(!FURN_INDEX[id])return false;Save.d.furn[id]=Math.max(0,n|0);Save.mark();return true;},
   handItems() {
     if(typeof HandItems==='undefined')return null;
     const held=Object.fromEntries(Chara.IDS.map(id=>[id,HandItems.held(id)]));
