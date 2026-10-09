@@ -653,17 +653,32 @@ if (ok(!!HT, "HOME_TALK_DATA が ない（js/home-talk-data.js）")) {
     Save.d.room.items=[{uid:1,id:'piano',x:200,y:425}];const near=HomeLife.nearFurn(sc,sc.chars[0]).map(n=>n.key).join();const far=HomeLife.nearFurn(sc,sc.chars[2]).length;
     const v=HOME_TALK_DATA.voice.wanko.sniff;sc.life.queue=[];HomeLife.sniff(sc,{key:'piano',name:'ピアノ'},v);HomeLife.sniff(sc,{key:'piano',name:'ピアノ'},v);const two=sc.life.queue.length===0&&sc.life.log.at(-1).text.includes('ピアノ');
     HomeLife.sniff(sc,{key:'piano',name:'ピアノ'},v);const scold=sc.life.log.at(-1).talk==='sniff-scold'&&sc.life.queue.some(x=>x.who==='mama');
-    sc.life.queue=[];sc.life.time=100;sc.chars[1].y=760;HomeLife.alone(sc,5);const notYet=sc.life.log.at(-1).talk!=='not-alone';HomeLife.alone(sc,4);const alone=sc.life.log.at(-1).talk==='not-alone';sc.chars[1].y=465;
+    sc.life.queue=[];sc.life.time=1000;sc.chars[1].y=760;sc.chars[1].state='idle';Math.random=()=>0;HomeLife.alone(sc,20);const notYet=sc.life.log.at(-1).talk!=='not-alone';HomeLife.alone(sc,6);const alone=sc.life.log.at(-1).talk==='not-alone';
+    const walks=sc.chars[1].state==='walk'&&Math.abs(sc.chars[1].tx-sc.chars[0].x)<60;const n0=sc.life.log.length;sc.life.queue=[];sc.life.time=1300;sc.chars[1].state='idle';HomeLife.alone(sc,30);const cool=sc.life.log.length===n0;
+    Math.random=()=>0.99;sc.life.time=2000;HomeLife.alone(sc,30);const miss=sc.life.log.length===n0&&sc.life.aloneAt===2000;
+    Math.random=()=>0.5;sc.life.recent=[];let lonely=0;for(let i=0;i<40;i++){const l=HomeLife.pickLine(sc,'gachan',['persona']);if(l){if(l.tag==='alone')lonely++;HomeLife.sayLine(sc,l);}}Math.random=rnd;sc.chars[1].y=465;sc.life.queue=[];
     sc.life.time=0;const ctxEv=HomeLife.talkCtx(sc,null).event.includes('return');sc.life.time=25;const ctxEnd=!HomeLife.talkCtx(sc,null).event.includes('return');
     const unchanged=Save.d.coins===money;Save.d=old;U.hourNow=oldHour;Weather.override=oldW;G.t=oldT;
-    return {morning,rain,noRepeat,pre,keep,suf,near,far,two,scold,notYet,alone,ctxEv,ctxEnd,unchanged};})()`, ctx);
+    return {morning,rain,noRepeat,pre,keep,suf,near,far,two,scold,notYet,alone,walks,cool,miss,lonely,ctxEv,ctxEnd,unchanged};})()`, ctx);
   ok(talkFlow.morning, "あさ（7時）なのに あさ いがいの 時間の セリフを えらんだ");
   ok(talkFlow.rain, "あめの 日に 天気の セリフを えらばない");
   ok(talkFlow.noRepeat, "さいきん 40この セリフを くりかえした");
   ok(talkFlow.pre === "ガウっ！ あそぼう" && talkFlow.keep === "ガウー！ あそぼう" && talkFlow.suf === "あそぼう …ガゥ", `ごじの くせが 不正（${talkFlow.pre} / ${talkFlow.keep} / ${talkFlow.suf}）`);
   ok(talkFlow.near === "piano" && talkFlow.far === 0, `近くの 家具の 判定が 不正（${talkFlow.near} / ${talkFlow.far}）`);
   ok(talkFlow.two && talkFlow.scold, "わんこの クンクン（3回で ままに おこられる）が 不正");
-  ok(talkFlow.notYet && talkFlow.alone, "がちゃんの ひとりは いや（120 はなれて 8秒）が 不正");
+  ok(talkFlow.notYet && talkFlow.alone, "がちゃんの ひとりの ときの かけあい（120 はなれて 25秒）が 不正");
+  ok(talkFlow.walks && talkFlow.cool && talkFlow.miss, `がちゃんの ひとりの ときが 不正（そばへ あるく ${talkFlow.walks}・10分に 1回 ${talkFlow.cool}・35% ${talkFlow.miss}。UI-110）`);
+  ok(talkFlow.lonely === 0, `がちゃんの「ひとりは いや」の セリフが tagChance を こえて でた（${talkFlow.lonely}。UI-110）`);
+  {
+    // UI-110: がちゃんの さみしがりは すくなく、ほかの いろいろな がちゃんを ふやす
+    const ga = HT.lines.filter((l) => l.who === "gachan" && l.group === "persona"), tags = new Set(ga.map((l) => l.tag)), lonely = ga.filter((l) => l.tag === "alone").length;
+    ok(ga.length >= 80 && lonely / ga.length <= 0.1 && ["craft", "song", "flower", "tidy", "curious", "cook"].every((t) => ga.filter((l) => l.tag === t).length >= 6), `がちゃんの 性格の セリフ（${ga.length}・ひとりは いや ${lonely}・しるし ${[...tags]}）`);
+    const al = HT.voice.gachan.alone;
+    ok(al.sec >= 20 && al.cooldownSec >= 600 && al.chance <= 0.5 && al.talks.length >= 4 && al.talks.every((id) => HT.talks.some((t) => t.id === id && t.trigger === "alone")) && HT.voice.gachan.tagChance.alone <= 0.3, "がちゃんの ひとりの ときの きまり（25びょう・10ぷん・35%・4しゅ・tagChance）");
+    ok(HT.talks.filter((t) => t.id.startsWith("ga-") && t.turns[0].who !== "papa").length >= 12, "がちゃんが はじめる あたらしい かけあいが 12 より すくない");
+    const GA = vm.runInContext(`HomeActions.gachanKinds.map(k=>({id:k.id,tag:k.tag,lines:HOME_TALK_DATA.lines.filter(l=>l.who==='gachan'&&l.tag===k.tag).length}))`, ctx);
+    ok(GA.length >= 4 && GA.every((k) => k.lines >= 6), "がちゃんだけの しぐさと その ひとこと " + JSON.stringify(GA));
+  }
   ok(talkFlow.ctxEv && talkFlow.ctxEnd, "帰って 20秒の できごと（return）が 不正");
   ok(talkFlow.unchanged, "会話で おかねが 変わった");
 }

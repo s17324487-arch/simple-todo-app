@@ -18,8 +18,24 @@
   "gachan": {
    "alone": {
     "distPx": 120,
-    "sec": 8,
-    "talk": "not-alone"
+    "sec": 25,
+    "cooldownSec": 600,
+    "chance": 0.35,
+    "talk": "not-alone",
+    "talks": [
+     "not-alone",
+     "alone-come",
+     "alone-ok",
+     "alone-call"
+    ],
+    "come": [
+     "not-alone",
+     "alone-come",
+     "alone-call"
+    ]
+   },
+   "tagChance": {
+    "alone": 0.25
    },
    "scared": {
     "weather": [
@@ -3720,7 +3736,190 @@
    "when": {}
   },
   {
-   "id": "go0313",
+   "id": "ga0313",
+   "who": "gachan",
+   "group": "context",
+   "text": "まどの そと、ちょうちょ みつけた",
+   "kind": "say",
+   "when": {
+    "time": [
+     "day"
+    ]
+   }
+  },
+  {
+   "id": "ga0314",
+   "who": "gachan",
+   "group": "context",
+   "text": "ゆうやけで おそらが ピンク♪",
+   "kind": "say",
+   "when": {
+    "time": [
+     "evening"
+    ]
+   }
+  },
+  {
+   "id": "ga0315",
+   "who": "gachan",
+   "group": "context",
+   "text": "おふとん ふかふか… えへへ",
+   "kind": "say",
+   "when": {
+    "near": [
+     "bed"
+    ]
+   }
+  },
+  {
+   "id": "ga0316",
+   "who": "gachan",
+   "group": "context",
+   "text": "ピアノで ぴよぴよの うた ひくね",
+   "kind": "say",
+   "when": {
+    "near": [
+     "piano"
+    ]
+   }
+  },
+  {
+   "id": "ga0317",
+   "who": "gachan",
+   "group": "context",
+   "text": "ほんの えに、ことりが いたよ",
+   "kind": "say",
+   "when": {
+    "near": [
+     "bookshelf"
+    ]
+   }
+  },
+  {
+   "id": "ga0318",
+   "who": "gachan",
+   "group": "context",
+   "text": "きんぎょさん、きょうも げんき？",
+   "kind": "say",
+   "when": {
+    "near": [
+     "fishbowl"
+    ]
+   }
+  },
+  {
+   "id": "ga0319",
+   "who": "gachan",
+   "group": "context",
+   "text": "こたつで みかん、しあわせ♪",
+   "kind": "say",
+   "when": {
+    "near": [
+     "kotatsu"
+    ],
+    "season": [
+     "winter"
+    ]
+   }
+  },
+  {
+   "id": "ga0320",
+   "who": "gachan",
+   "group": "context",
+   "text": "あめの おと、リズム みたい♪",
+   "kind": "say",
+   "when": {
+    "weather": [
+     "rain"
+    ]
+   }
+  },
+  {
+   "id": "ga0321",
+   "who": "gachan",
+   "group": "context",
+   "text": "ゆきの けっしょう、ほしの かたち",
+   "kind": "say",
+   "when": {
+    "weather": [
+     "snow"
+    ]
+   }
+  },
+  {
+   "id": "ga0322",
+   "who": "gachan",
+   "group": "context",
+   "text": "かぜさん、ぴゅーって うたってる",
+   "kind": "say",
+   "when": {
+    "weather": [
+     "wind"
+    ]
+   }
+  },
+  {
+   "id": "ga0323",
+   "who": "gachan",
+   "group": "context",
+   "text": "さくら、ひらひら おどってる♪",
+   "kind": "say",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   }
+  },
+  {
+   "id": "ga0324",
+   "who": "gachan",
+   "group": "context",
+   "text": "せみさんの がっしょう、にぎやか",
+   "kind": "say",
+   "when": {
+    "season": [
+     "summer"
+    ]
+   }
+  },
+  {
+   "id": "ga0325",
+   "who": "gachan",
+   "group": "context",
+   "text": "おちば、きいろと あかの じゅうたん",
+   "kind": "say",
+   "when": {
+    "season": [
+     "autumn"
+    ]
+   }
+  },
+  {
+   "id": "ga0326",
+   "who": "gachan",
+   "group": "context",
+   "text": "おにわの くさ、いい におい",
+   "kind": "say",
+   "when": {
+    "room": [
+     "garden"
+    ]
+   }
+  },
+  {
+   "id": "ga0327",
+   "who": "gachan",
+   "group": "context",
+   "text": "きょう いちばん わらったの、だれ？",
+   "kind": "say",
+   "when": {
+    "time": [
+     "night"
+    ]
+   }
+  },
+  {
+   "id": "go0328",
    "who": "goji",
    "group": "context",
    "text": "ガウっ！ おはよう！",
@@ -3732,7 +3931,7 @@
    }
   },
   {
-   "id": "go0314",
+   "id": "go0329",
    "who": "goji",
    "group": "context",
    "text": "あさだ ガゥ… ふわぁ",
@@ -3744,7 +3943,7 @@
    }
   },
   {
-   "id": "go0315",
+   "id": "go0330",
    "who": "goji",
    "group": "context",
    "text": "あさごはん、ひとりで よそえるよ",
@@ -3756,7 +3955,7 @@
    }
   },
   {
-   "id": "go0316",
+   "id": "go0331",
    "who": "goji",
    "group": "context",
    "text": "おひさまに ガウっ！ きょうも げんき",
@@ -3768,7 +3967,7 @@
    }
   },
   {
-   "id": "go0317",
+   "id": "go0332",
    "who": "goji",
    "group": "context",
    "text": "ねぐせ、じぶんで なおした！",
@@ -3780,7 +3979,7 @@
    }
   },
   {
-   "id": "go0318",
+   "id": "go0333",
    "who": "goji",
    "group": "context",
    "text": "はみがき、しゃかしゃか ガウっ",
@@ -3792,7 +3991,7 @@
    }
   },
   {
-   "id": "go0319",
+   "id": "go0334",
    "who": "goji",
    "group": "context",
    "text": "きょうは なにする？ ガウっ！",
@@ -3804,7 +4003,7 @@
    }
   },
   {
-   "id": "go0320",
+   "id": "go0335",
    "who": "goji",
    "group": "context",
    "text": "あさの たいそう、いち、に、ガウっ！",
@@ -3816,7 +4015,7 @@
    }
   },
   {
-   "id": "go0321",
+   "id": "go0336",
    "who": "goji",
    "group": "context",
    "text": "おひるね… ガゥ… すやすや…",
@@ -3828,7 +4027,7 @@
    }
   },
   {
-   "id": "go0322",
+   "id": "go0337",
    "who": "goji",
    "group": "context",
    "text": "おでかけ しようよ！ ガウっ！",
@@ -3840,7 +4039,7 @@
    }
   },
   {
-   "id": "go0323",
+   "id": "go0338",
    "who": "goji",
    "group": "context",
    "text": "ぽかぽかで、しっぽが ぬくぬく",
@@ -3852,7 +4051,7 @@
    }
   },
   {
-   "id": "go0324",
+   "id": "go0339",
    "who": "goji",
    "group": "context",
    "text": "おひるごはん、ぼくが つくる！",
@@ -3864,7 +4063,7 @@
    }
   },
   {
-   "id": "go0325",
+   "id": "go0340",
    "who": "goji",
    "group": "context",
    "text": "なにか つくりたい きぶん！",
@@ -3876,7 +4075,7 @@
    }
   },
   {
-   "id": "go0326",
+   "id": "go0341",
    "who": "goji",
    "group": "context",
    "text": "ゆうやけ、ぼくの しっぽも オレンジ！",
@@ -3888,7 +4087,7 @@
    }
   },
   {
-   "id": "go0327",
+   "id": "go0342",
    "who": "goji",
    "group": "context",
    "text": "きょうも いっぱい ガウっ！ した",
@@ -3900,7 +4099,7 @@
    }
   },
   {
-   "id": "go0328",
+   "id": "go0343",
    "who": "goji",
    "group": "context",
    "text": "ゆうごはんの じゅんび、てつだうよ",
@@ -3912,7 +4111,7 @@
    }
   },
   {
-   "id": "go0329",
+   "id": "go0344",
    "who": "goji",
    "group": "context",
    "text": "そとが オレンジいろ… きれい ガゥ",
@@ -3924,7 +4123,7 @@
    }
   },
   {
-   "id": "go0330",
+   "id": "go0345",
    "who": "goji",
    "group": "context",
    "text": "おなか ぐーって ガウっ！",
@@ -3936,7 +4135,7 @@
    }
   },
   {
-   "id": "go0331",
+   "id": "go0346",
    "who": "goji",
    "group": "context",
    "text": "もう かえる じかん だね",
@@ -3948,7 +4147,7 @@
    }
   },
   {
-   "id": "go0332",
+   "id": "go0347",
    "who": "goji",
    "group": "context",
    "text": "よるは ねむい… ガゥ…",
@@ -3960,7 +4159,7 @@
    }
   },
   {
-   "id": "go0333",
+   "id": "go0348",
    "who": "goji",
    "group": "context",
    "text": "おふとん、じぶんで しいたよ！",
@@ -3972,7 +4171,7 @@
    }
   },
   {
-   "id": "go0334",
+   "id": "go0349",
    "who": "goji",
    "group": "context",
    "text": "ねる まえに はを みがく！ えらい？",
@@ -3984,7 +4183,7 @@
    }
   },
   {
-   "id": "go0335",
+   "id": "go0350",
    "who": "goji",
    "group": "context",
    "text": "おつきさま、ぼくより おおきい",
@@ -3996,7 +4195,7 @@
    }
   },
   {
-   "id": "go0336",
+   "id": "go0351",
    "who": "goji",
    "group": "context",
    "text": "ゆめで おっきく なるんだ",
@@ -4008,7 +4207,7 @@
    }
   },
   {
-   "id": "go0337",
+   "id": "go0352",
    "who": "goji",
    "group": "context",
    "text": "おやすみ ガウっ… むにゃ",
@@ -4020,7 +4219,7 @@
    }
   },
   {
-   "id": "go0338",
+   "id": "go0353",
    "who": "goji",
    "group": "context",
    "text": "よるの おへや、たんけん！",
@@ -4032,7 +4231,7 @@
    }
   },
   {
-   "id": "go0339",
+   "id": "go0354",
    "who": "goji",
    "group": "context",
    "text": "くらくても こわく ないよ ガウっ",
@@ -4044,7 +4243,7 @@
    }
   },
   {
-   "id": "go0340",
+   "id": "go0355",
    "who": "goji",
    "group": "context",
    "text": "……ガゥ？ まだ よる？",
@@ -4056,7 +4255,7 @@
    }
   },
   {
-   "id": "go0341",
+   "id": "go0356",
    "who": "goji",
    "group": "context",
    "text": "むにゃ… ビルより おっきく… ガゥ…",
@@ -4068,7 +4267,7 @@
    }
   },
   {
-   "id": "go0342",
+   "id": "go0357",
    "who": "goji",
    "group": "context",
    "text": "よなかの おやつ… だめ？",
@@ -4080,7 +4279,7 @@
    }
   },
   {
-   "id": "go0343",
+   "id": "go0358",
    "who": "goji",
    "group": "context",
    "text": "しずかに… ガウっ… しーっ",
@@ -4092,7 +4291,7 @@
    }
   },
   {
-   "id": "go0344",
+   "id": "go0359",
    "who": "goji",
    "group": "context",
    "text": "ねむねむ ガゥ…",
@@ -4104,7 +4303,7 @@
    }
   },
   {
-   "id": "go0345",
+   "id": "go0360",
    "who": "goji",
    "group": "context",
    "text": "はれた！ そとで ガウっ！",
@@ -4116,7 +4315,7 @@
    }
   },
   {
-   "id": "go0346",
+   "id": "go0361",
    "who": "goji",
    "group": "context",
    "text": "おひさま だいすき！",
@@ -4128,7 +4327,7 @@
    }
   },
   {
-   "id": "go0347",
+   "id": "go0362",
    "who": "goji",
    "group": "context",
    "text": "せんたくもの、たたむの てつだう！",
@@ -4140,7 +4339,7 @@
    }
   },
   {
-   "id": "go0348",
+   "id": "go0363",
    "who": "goji",
    "group": "context",
    "text": "いい てんき ガゥ♪",
@@ -4152,7 +4351,7 @@
    }
   },
   {
-   "id": "go0349",
+   "id": "go0364",
    "who": "goji",
    "group": "context",
    "text": "くもって きた… ガゥ？",
@@ -4164,7 +4363,7 @@
    }
   },
   {
-   "id": "go0350",
+   "id": "go0365",
    "who": "goji",
    "group": "context",
    "text": "くもに ガウっ！ …うごかない",
@@ -4176,7 +4375,7 @@
    }
   },
   {
-   "id": "go0351",
+   "id": "go0366",
    "who": "goji",
    "group": "context",
    "text": "くもりは おうちで こうさく！",
@@ -4188,7 +4387,7 @@
    }
   },
   {
-   "id": "go0352",
+   "id": "go0367",
    "who": "goji",
    "group": "context",
    "text": "あめ… ガウっ！ …やまない",
@@ -4200,7 +4399,7 @@
    }
   },
   {
-   "id": "go0353",
+   "id": "go0368",
    "who": "goji",
    "group": "context",
    "text": "かさ、ひとりで ひらけるよ",
@@ -4212,7 +4411,7 @@
    }
   },
   {
-   "id": "go0354",
+   "id": "go0369",
    "who": "goji",
    "group": "context",
    "text": "みずたまりに ガウっ！ ばしゃーん",
@@ -4224,7 +4423,7 @@
    }
   },
   {
-   "id": "go0355",
+   "id": "go0370",
    "who": "goji",
    "group": "context",
    "text": "あめの ひは つみき しよう",
@@ -4236,7 +4435,7 @@
    }
   },
   {
-   "id": "go0356",
+   "id": "go0371",
    "who": "goji",
    "group": "context",
    "text": "かみなりに まけない ガウっ！",
@@ -4248,7 +4447,7 @@
    }
   },
   {
-   "id": "go0357",
+   "id": "go0372",
    "who": "goji",
    "group": "context",
    "text": "しずくの おと、たのしい ガゥ",
@@ -4260,7 +4459,7 @@
    }
   },
   {
-   "id": "go0358",
+   "id": "go0373",
    "who": "goji",
    "group": "context",
    "text": "ゆきに ガウっ！ つめたーい！",
@@ -4272,7 +4471,7 @@
    }
   },
   {
-   "id": "go0359",
+   "id": "go0374",
    "who": "goji",
    "group": "context",
    "text": "ゆきだるま、ひとりで つくれた！",
@@ -4284,7 +4483,7 @@
    }
   },
   {
-   "id": "go0360",
+   "id": "go0375",
    "who": "goji",
    "group": "context",
    "text": "ゆきの おしろ つくろう！",
@@ -4296,7 +4495,7 @@
    }
   },
   {
-   "id": "go0361",
+   "id": "go0376",
    "who": "goji",
    "group": "context",
    "text": "しっぽで ゆき、ならしたよ",
@@ -4308,7 +4507,7 @@
    }
   },
   {
-   "id": "go0362",
+   "id": "go0377",
    "who": "goji",
    "group": "context",
    "text": "さむいけど へいき ガゥ",
@@ -4320,7 +4519,7 @@
    }
   },
   {
-   "id": "go0363",
+   "id": "go0378",
    "who": "goji",
    "group": "context",
    "text": "かぜに ガウっ！ まけないぞ！",
@@ -4332,7 +4531,7 @@
    }
   },
   {
-   "id": "go0364",
+   "id": "go0379",
    "who": "goji",
    "group": "context",
    "text": "しっぽが ゆらゆら〜",
@@ -4344,7 +4543,7 @@
    }
   },
   {
-   "id": "go0365",
+   "id": "go0380",
    "who": "goji",
    "group": "context",
    "text": "かぜで たこあげ したい！",
@@ -4356,7 +4555,7 @@
    }
   },
   {
-   "id": "go0366",
+   "id": "go0381",
    "who": "goji",
    "group": "context",
    "text": "びゅーびゅー… ガゥ",
@@ -4368,7 +4567,7 @@
    }
   },
   {
-   "id": "go0367",
+   "id": "go0382",
    "who": "goji",
    "group": "context",
    "text": "さくらの はなびら、キャッチ！",
@@ -4380,7 +4579,7 @@
    }
   },
   {
-   "id": "go0368",
+   "id": "go0383",
    "who": "goji",
    "group": "context",
    "text": "はるは ぽかぽか ガゥ♪",
@@ -4392,7 +4591,7 @@
    }
   },
   {
-   "id": "go0369",
+   "id": "go0384",
    "who": "goji",
    "group": "context",
    "text": "たねを まいたら、おっきく なるかな",
@@ -4404,7 +4603,7 @@
    }
   },
   {
-   "id": "go0370",
+   "id": "go0385",
    "who": "goji",
    "group": "context",
    "text": "つくし、みつけた！",
@@ -4416,7 +4615,7 @@
    }
   },
   {
-   "id": "go0371",
+   "id": "go0386",
    "who": "goji",
    "group": "context",
    "text": "あつい… とける ガゥ…",
@@ -4428,7 +4627,7 @@
    }
   },
   {
-   "id": "go0372",
+   "id": "go0387",
    "who": "goji",
    "group": "context",
    "text": "みずでっぽう、じぶんで つくった！",
@@ -4440,7 +4639,7 @@
    }
   },
   {
-   "id": "go0373",
+   "id": "go0388",
    "who": "goji",
    "group": "context",
    "text": "すいか、ぼくが きる！",
@@ -4452,7 +4651,7 @@
    }
   },
   {
-   "id": "go0374",
+   "id": "go0389",
    "who": "goji",
    "group": "context",
    "text": "かぶとむし、つかまえたい！",
@@ -4464,7 +4663,7 @@
    }
   },
   {
-   "id": "go0375",
+   "id": "go0390",
    "who": "goji",
    "group": "context",
    "text": "なつは せが のびる きせつ？",
@@ -4476,7 +4675,7 @@
    }
   },
   {
-   "id": "go0376",
+   "id": "go0391",
    "who": "goji",
    "group": "context",
    "text": "どんぐり、ひとりで いっぱい ひろった！",
@@ -4488,7 +4687,7 @@
    }
   },
   {
-   "id": "go0377",
+   "id": "go0392",
    "who": "goji",
    "group": "context",
    "text": "おちばに ガウっ！ ざくざく",
@@ -4500,7 +4699,7 @@
    }
   },
   {
-   "id": "go0378",
+   "id": "go0393",
    "who": "goji",
    "group": "context",
    "text": "あきは おいしい もの いっぱい",
@@ -4512,7 +4711,7 @@
    }
   },
   {
-   "id": "go0379",
+   "id": "go0394",
    "who": "goji",
    "group": "context",
    "text": "まつぼっくり、かざろう！",
@@ -4524,7 +4723,7 @@
    }
   },
   {
-   "id": "go0380",
+   "id": "go0395",
    "who": "goji",
    "group": "context",
    "text": "さむい… でも ガウっ！",
@@ -4536,7 +4735,7 @@
    }
   },
   {
-   "id": "go0381",
+   "id": "go0396",
    "who": "goji",
    "group": "context",
    "text": "こたつ、スイッチ いれて おいたよ",
@@ -4548,7 +4747,7 @@
    }
   },
   {
-   "id": "go0382",
+   "id": "go0397",
    "who": "goji",
    "group": "context",
    "text": "てぶくろ、じぶんで はめられる",
@@ -4560,7 +4759,7 @@
    }
   },
   {
-   "id": "go0383",
+   "id": "go0398",
    "who": "goji",
    "group": "context",
    "text": "ふゆは ほかほか ごはんが いい",
@@ -4572,7 +4771,7 @@
    }
   },
   {
-   "id": "go0384",
+   "id": "go0399",
    "who": "goji",
    "group": "context",
    "text": "しろい いき、かいじゅうの けむり みたい！",
@@ -4584,7 +4783,7 @@
    }
   },
   {
-   "id": "go0385",
+   "id": "go0400",
    "who": "goji",
    "group": "context",
    "text": "ことしの めあては、おっきく なること！",
@@ -4596,7 +4795,7 @@
    }
   },
   {
-   "id": "go0386",
+   "id": "go0401",
    "who": "goji",
    "group": "context",
    "text": "おにに ガウっ！ にげて いった！",
@@ -4608,7 +4807,7 @@
    }
   },
   {
-   "id": "go0387",
+   "id": "go0402",
    "who": "goji",
    "group": "context",
    "text": "おだいりさま、ぼくも すわりたい",
@@ -4620,7 +4819,7 @@
    }
   },
   {
-   "id": "go0388",
+   "id": "go0403",
    "who": "goji",
    "group": "context",
    "text": "おべんとうばこ、じぶんで つめたよ",
@@ -4632,7 +4831,7 @@
    }
   },
   {
-   "id": "go0389",
+   "id": "go0404",
    "who": "goji",
    "group": "context",
    "text": "こいのぼりより おおきく なるぞ！",
@@ -4644,7 +4843,7 @@
    }
   },
   {
-   "id": "go0390",
+   "id": "go0405",
    "who": "goji",
    "group": "context",
    "text": "かたつむりさん、ゆっくり ガゥ",
@@ -4656,7 +4855,7 @@
    }
   },
   {
-   "id": "go0391",
+   "id": "go0406",
    "who": "goji",
    "group": "context",
    "text": "たんざく、『おっきく なれますように』",
@@ -4668,7 +4867,7 @@
    }
   },
   {
-   "id": "go0392",
+   "id": "go0407",
    "who": "goji",
    "group": "context",
    "text": "はなびに ガウっ！ どどーん！",
@@ -4680,7 +4879,7 @@
    }
   },
   {
-   "id": "go0393",
+   "id": "go0408",
    "who": "goji",
    "group": "context",
    "text": "おだんご、じぶんで まるめた！",
@@ -4692,7 +4891,7 @@
    }
   },
   {
-   "id": "go0394",
+   "id": "go0409",
    "who": "goji",
    "group": "context",
    "text": "かいじゅうの かそう… いつもと おなじ？",
@@ -4704,7 +4903,7 @@
    }
   },
   {
-   "id": "go0395",
+   "id": "go0410",
    "who": "goji",
    "group": "context",
    "text": "おいも、ひとりで ほれたよ！",
@@ -4716,7 +4915,7 @@
    }
   },
   {
-   "id": "go0396",
+   "id": "go0411",
    "who": "goji",
    "group": "context",
    "text": "サンタさんに、おっきく なる くすり おねがい！",
@@ -4728,7 +4927,7 @@
    }
   },
   {
-   "id": "go0397",
+   "id": "go0412",
    "who": "goji",
    "group": "context",
    "text": "この おへや、ぼくの おしろ！",
@@ -4740,7 +4939,7 @@
    }
   },
   {
-   "id": "go0398",
+   "id": "go0413",
    "who": "goji",
    "group": "context",
    "text": "いつもの ばしょ、おちつく ガゥ",
@@ -4752,7 +4951,7 @@
    }
   },
   {
-   "id": "go0399",
+   "id": "go0414",
    "who": "goji",
    "group": "context",
    "text": "アトリエで こうさく する！",
@@ -4764,7 +4963,7 @@
    }
   },
   {
-   "id": "go0400",
+   "id": "go0415",
    "who": "goji",
    "group": "context",
    "text": "ねんどで ビルを つくった！",
@@ -4776,7 +4975,7 @@
    }
   },
   {
-   "id": "go0401",
+   "id": "go0416",
    "who": "goji",
    "group": "context",
    "text": "えのぐ、ひとりで まぜられるよ",
@@ -4788,7 +4987,7 @@
    }
   },
   {
-   "id": "go0402",
+   "id": "go0417",
    "who": "goji",
    "group": "context",
    "text": "たかい ところ、おっきく なった きぶん",
@@ -4800,7 +4999,7 @@
    }
   },
   {
-   "id": "go0403",
+   "id": "go0418",
    "who": "goji",
    "group": "context",
    "text": "おはなに ガウっ… やさしく ね",
@@ -4812,7 +5011,7 @@
    }
   },
   {
-   "id": "go0404",
+   "id": "go0419",
    "who": "goji",
    "group": "context",
    "text": "サンルーム、きもち いい ガゥ",
@@ -4824,7 +5023,7 @@
    }
   },
   {
-   "id": "go0405",
+   "id": "go0420",
    "who": "goji",
    "group": "context",
    "text": "ベッドメイク、じぶんで できる！",
@@ -4836,7 +5035,7 @@
    }
   },
   {
-   "id": "go0406",
+   "id": "go0421",
    "who": "goji",
    "group": "context",
    "text": "ソファの すきま、たんけん！",
@@ -4848,7 +5047,7 @@
    }
   },
   {
-   "id": "go0407",
+   "id": "go0422",
    "who": "goji",
    "group": "context",
    "text": "テレビの かいじゅう、ぼくの なかま？",
@@ -4860,7 +5059,7 @@
    }
   },
   {
-   "id": "go0408",
+   "id": "go0423",
    "who": "goji",
    "group": "context",
    "text": "ピアノ、ガウっ！の おとが する",
@@ -4872,7 +5071,7 @@
    }
   },
   {
-   "id": "go0409",
+   "id": "go0424",
    "who": "goji",
    "group": "context",
    "text": "ほんだな、ひとりで せいりした！",
@@ -4884,7 +5083,7 @@
    }
   },
   {
-   "id": "go0410",
+   "id": "go0425",
    "who": "goji",
    "group": "context",
    "text": "おもちゃの おかたづけ、とくい！",
@@ -4896,7 +5095,7 @@
    }
   },
   {
-   "id": "go0411",
+   "id": "go0426",
    "who": "goji",
    "group": "context",
    "text": "こたつの なか、あったか ガゥ",
@@ -4908,7 +5107,7 @@
    }
   },
   {
-   "id": "go0412",
+   "id": "go0427",
    "who": "goji",
    "group": "context",
    "text": "きんぎょに ガウっ… びっくり させちゃった",
@@ -4920,7 +5119,7 @@
    }
   },
   {
-   "id": "go0413",
+   "id": "go0428",
    "who": "goji",
    "group": "context",
    "text": "おさかなの おうち、そうじ できるよ",
@@ -4932,7 +5131,7 @@
    }
   },
   {
-   "id": "go0414",
+   "id": "go0429",
    "who": "goji",
    "group": "context",
    "text": "だんろの まき、くべて いい？",
@@ -4944,7 +5143,7 @@
    }
   },
   {
-   "id": "go0415",
+   "id": "go0430",
    "who": "goji",
    "group": "context",
    "text": "おままごと、ほんものの コックさん みたいに！",
@@ -4956,7 +5155,7 @@
    }
   },
   {
-   "id": "go0416",
+   "id": "go0431",
    "who": "goji",
    "group": "context",
    "text": "おえかき、ビルと ぼく！",
@@ -4968,7 +5167,7 @@
    }
   },
   {
-   "id": "go0417",
+   "id": "go0432",
    "who": "goji",
    "group": "context",
    "text": "テント、ひとりで たてたよ！",
@@ -4980,7 +5179,7 @@
    }
   },
   {
-   "id": "go0418",
+   "id": "go0433",
    "who": "goji",
    "group": "context",
    "text": "まどから まちを みはり ガウっ",
@@ -4992,7 +5191,7 @@
    }
   },
   {
-   "id": "go0419",
+   "id": "go0434",
    "who": "goji",
    "group": "context",
    "text": "はとどけい、なおせるよ",
@@ -5004,7 +5203,7 @@
    }
   },
   {
-   "id": "go0420",
+   "id": "go0435",
    "who": "goji",
    "group": "context",
    "text": "かんようしょくぶつ、ぼくより おおきい…",
@@ -5016,7 +5215,7 @@
    }
   },
   {
-   "id": "go0421",
+   "id": "go0436",
    "who": "goji",
    "group": "context",
    "text": "くまさんと せくらべ… まけた",
@@ -5028,7 +5227,7 @@
    }
   },
   {
-   "id": "go0422",
+   "id": "go0437",
    "who": "goji",
    "group": "context",
    "text": "トロフィー、みがいて おいた！",
@@ -5040,7 +5239,7 @@
    }
   },
   {
-   "id": "go0423",
+   "id": "go0438",
    "who": "goji",
    "group": "context",
    "text": "きしゃの レール、つなげた！",
@@ -5052,7 +5251,7 @@
    }
   },
   {
-   "id": "go0424",
+   "id": "go0439",
    "who": "goji",
    "group": "context",
    "text": "もくば、ガウっ！と はしれ！",
@@ -5064,7 +5263,7 @@
    }
   },
   {
-   "id": "go0425",
+   "id": "go0440",
    "who": "goji",
    "group": "context",
    "text": "オルゴール、ねじまき とくい",
@@ -5076,7 +5275,7 @@
    }
   },
   {
-   "id": "go0426",
+   "id": "go0441",
    "who": "goji",
    "group": "context",
    "text": "ふると ゆきが ふる… ガゥ",
@@ -5088,7 +5287,7 @@
    }
   },
   {
-   "id": "go0427",
+   "id": "go0442",
    "who": "goji",
    "group": "context",
    "text": "やまより おおきく なりたいな",
@@ -5100,7 +5299,7 @@
    }
   },
   {
-   "id": "go0428",
+   "id": "go0443",
    "who": "goji",
    "group": "context",
    "text": "ポスターの ぼく、もっと おおきく かいて",
@@ -5112,7 +5311,7 @@
    }
   },
   {
-   "id": "go0429",
+   "id": "go0444",
    "who": "goji",
    "group": "context",
    "text": "どんぐりの デザ、ひとつ ちょうだい",
@@ -5124,7 +5323,7 @@
    }
   },
   {
-   "id": "go0430",
+   "id": "go0445",
    "who": "goji",
    "group": "context",
    "text": "おなか すいた ガゥ…",
@@ -5136,7 +5335,7 @@
    }
   },
   {
-   "id": "go0431",
+   "id": "go0446",
    "who": "goji",
    "group": "context",
    "text": "ぐぅー… ガウっ… ちからが でない",
@@ -5148,7 +5347,7 @@
    }
   },
   {
-   "id": "go0432",
+   "id": "go0447",
    "who": "goji",
    "group": "context",
    "text": "ごはん、じぶんで よそっちゃ だめ？",
@@ -5160,7 +5359,7 @@
    }
   },
   {
-   "id": "go0433",
+   "id": "go0448",
    "who": "goji",
    "group": "context",
    "text": "おにく… たべたい ガゥ",
@@ -5172,7 +5371,7 @@
    }
   },
   {
-   "id": "go0434",
+   "id": "go0449",
    "who": "goji",
    "group": "context",
    "text": "はらぱん！ ガウっ… ねむい",
@@ -5184,7 +5383,7 @@
    }
   },
   {
-   "id": "go0435",
+   "id": "go0450",
    "who": "goji",
    "group": "context",
    "text": "もう たべられない ガゥ…",
@@ -5196,7 +5395,7 @@
    }
   },
   {
-   "id": "go0436",
+   "id": "go0451",
    "who": "goji",
    "group": "context",
    "text": "いっぱい たべたら おっきく なる？",
@@ -5208,7 +5407,7 @@
    }
   },
   {
-   "id": "go0437",
+   "id": "go0452",
    "who": "goji",
    "group": "context",
    "text": "ガゥー、デザ たべたい！",
@@ -5220,7 +5419,7 @@
    }
   },
   {
-   "id": "go0438",
+   "id": "go0453",
    "who": "goji",
    "group": "context",
    "text": "プリン、ぷるぷる ガウっ！",
@@ -5232,7 +5431,7 @@
    }
   },
   {
-   "id": "go0439",
+   "id": "go0454",
    "who": "goji",
    "group": "context",
    "text": "デザは、べつの おなか ガゥ",
@@ -5244,7 +5443,7 @@
    }
   },
   {
-   "id": "go0440",
+   "id": "go0455",
    "who": "goji",
    "group": "context",
    "text": "ガウっ！ たのしい！",
@@ -5256,7 +5455,7 @@
    }
   },
   {
-   "id": "go0441",
+   "id": "go0456",
    "who": "goji",
    "group": "context",
    "text": "うれしくて しっぽ ぶんぶん",
@@ -5268,7 +5467,7 @@
    }
   },
   {
-   "id": "go0442",
+   "id": "go0457",
    "who": "goji",
    "group": "context",
    "text": "みんな だいすき ガゥ♪",
@@ -5280,7 +5479,7 @@
    }
   },
   {
-   "id": "go0443",
+   "id": "go0458",
    "who": "goji",
    "group": "context",
    "text": "しょんぼり… ガゥ…",
@@ -5292,7 +5491,7 @@
    }
   },
   {
-   "id": "go0444",
+   "id": "go0459",
    "who": "goji",
    "group": "context",
    "text": "なでて ほしい ガゥ…",
@@ -5304,7 +5503,7 @@
    }
   },
   {
-   "id": "go0445",
+   "id": "go0460",
    "who": "goji",
    "group": "context",
    "text": "ガウっ… げんき、でない",
@@ -5316,7 +5515,7 @@
    }
   },
   {
-   "id": "go0446",
+   "id": "go0461",
    "who": "goji",
    "group": "context",
    "text": "ただいま ガウっ！",
@@ -5328,7 +5527,7 @@
    }
   },
   {
-   "id": "go0447",
+   "id": "go0462",
    "who": "goji",
    "group": "context",
    "text": "おうちに ついた！ くつ、そろえたよ",
@@ -5340,7 +5539,7 @@
    }
   },
   {
-   "id": "go0448",
+   "id": "go0463",
    "who": "goji",
    "group": "context",
    "text": "おかえりって いって〜",
@@ -5352,7 +5551,7 @@
    }
   },
   {
-   "id": "go0449",
+   "id": "go0464",
    "who": "goji",
    "group": "context",
    "text": "ガウっ！ ぼくたち つよい！",
@@ -5364,7 +5563,7 @@
    }
   },
   {
-   "id": "go0450",
+   "id": "go0465",
    "who": "goji",
    "group": "context",
    "text": "おっきく なった きぶん！",
@@ -5376,7 +5575,7 @@
    }
   },
   {
-   "id": "go0451",
+   "id": "go0466",
    "who": "goji",
    "group": "context",
    "text": "おてつだい、ひとりで できたよ！",
@@ -5388,7 +5587,7 @@
    }
   },
   {
-   "id": "go0452",
+   "id": "go0467",
    "who": "goji",
    "group": "context",
    "text": "コイン、ちゃんと かぞえた！",
@@ -5400,7 +5599,7 @@
    }
   },
   {
-   "id": "go0453",
+   "id": "go0468",
    "who": "goji",
    "group": "context",
    "text": "この ふく、つよそう？",
@@ -5412,7 +5611,7 @@
    }
   },
   {
-   "id": "go0454",
+   "id": "go0469",
    "who": "goji",
    "group": "context",
    "text": "ボタン、じぶんで とめたよ",
@@ -5424,7 +5623,7 @@
    }
   },
   {
-   "id": "go0455",
+   "id": "go0470",
    "who": "goji",
    "group": "context",
    "text": "かぐ、はこぶの てつだう！",
@@ -5436,7 +5635,7 @@
    }
   },
   {
-   "id": "go0456",
+   "id": "go0471",
    "who": "goji",
    "group": "context",
    "text": "もようがえ、ぼく とくい！",
@@ -5448,7 +5647,7 @@
    }
   },
   {
-   "id": "go0457",
+   "id": "go0472",
    "who": "goji",
    "group": "context",
    "text": "ぱぱ、みて！ ガウっ！",
@@ -5460,7 +5659,7 @@
    }
   },
   {
-   "id": "go0458",
+   "id": "go0473",
    "who": "goji",
    "group": "context",
    "text": "まま、ひとりで できたよ！",
@@ -5472,7 +5671,7 @@
    }
   },
   {
-   "id": "go0459",
+   "id": "go0474",
    "who": "goji",
    "group": "context",
    "text": "ガウっ！",
@@ -5480,7 +5679,7 @@
    "when": {}
   },
   {
-   "id": "go0460",
+   "id": "go0475",
    "who": "goji",
    "group": "context",
    "text": "なんでも ガウっ！ しちゃう",
@@ -5488,7 +5687,7 @@
    "when": {}
   },
   {
-   "id": "go0461",
+   "id": "go0476",
    "who": "goji",
    "group": "context",
    "text": "きょうも ガウっと いこう！",
@@ -5496,7 +5695,7 @@
    "when": {}
   },
   {
-   "id": "go0462",
+   "id": "go0477",
    "who": "goji",
    "group": "context",
    "text": "ぼく、なんでも できるよ",
@@ -5504,7 +5703,7 @@
    "when": {}
   },
   {
-   "id": "go0463",
+   "id": "go0478",
    "who": "goji",
    "group": "context",
    "text": "わんこ、がちゃん、あそぼ ガゥ",
@@ -5512,7 +5711,7 @@
    "when": {}
   },
   {
-   "id": "go0464",
+   "id": "go0479",
    "who": "goji",
    "group": "context",
    "text": "つみき、たかく つめた！",
@@ -5520,7 +5719,7 @@
    "when": {}
   },
   {
-   "id": "go0465",
+   "id": "go0480",
    "who": "goji",
    "group": "context",
    "text": "おっきく なったら、みんなを のせて あげる",
@@ -5528,7 +5727,7 @@
    "when": {}
   },
   {
-   "id": "go0466",
+   "id": "go0481",
    "who": "goji",
    "group": "context",
    "text": "しっぽ、ふりふり ガゥ",
@@ -5536,7 +5735,7 @@
    "when": {}
   },
   {
-   "id": "go0467",
+   "id": "go0482",
    "who": "goji",
    "group": "context",
    "text": "ぼくの しっぽ、かっこいい？",
@@ -5544,7 +5743,7 @@
    "when": {}
   },
   {
-   "id": "go0468",
+   "id": "go0483",
    "who": "goji",
    "group": "context",
    "text": "ねえ、せくらべ しよう！",
@@ -5552,7 +5751,7 @@
    "when": {}
   },
   {
-   "id": "wa0469",
+   "id": "wa0484",
    "who": "wanko",
    "group": "persona",
    "text": "こまってる ひとは、ぼくが たすける！",
@@ -5561,7 +5760,7 @@
    "tag": "justice"
   },
   {
-   "id": "wa0470",
+   "id": "wa0485",
    "who": "wanko",
    "group": "persona",
    "text": "ずるは だめ！ じゅんばんこ だよ",
@@ -5570,7 +5769,7 @@
    "tag": "justice"
   },
   {
-   "id": "wa0471",
+   "id": "wa0486",
    "who": "wanko",
    "group": "persona",
    "text": "せいぎの みかた、わんこ さんじょう！",
@@ -5579,7 +5778,7 @@
    "tag": "justice"
   },
   {
-   "id": "wa0472",
+   "id": "wa0487",
    "who": "wanko",
    "group": "persona",
    "text": "いじわるは ゆるさないぞ！",
@@ -5588,7 +5787,7 @@
    "tag": "justice"
   },
   {
-   "id": "wa0473",
+   "id": "wa0488",
    "who": "wanko",
    "group": "persona",
    "text": "がちゃんを なかせたら、ぼくが おこるよ！",
@@ -5597,7 +5796,7 @@
    "tag": "justice"
   },
   {
-   "id": "wa0474",
+   "id": "wa0489",
    "who": "wanko",
    "group": "persona",
    "text": "おもちゃは みんなの ものだよ",
@@ -5606,7 +5805,7 @@
    "tag": "justice"
   },
   {
-   "id": "wa0475",
+   "id": "wa0490",
    "who": "wanko",
    "group": "persona",
    "text": "ごみは ごみばこへ！ まちを きれいに",
@@ -5615,7 +5814,7 @@
    "tag": "justice"
   },
   {
-   "id": "wa0476",
+   "id": "wa0491",
    "who": "wanko",
    "group": "persona",
    "text": "やくそくは まもるもん！",
@@ -5624,7 +5823,7 @@
    "tag": "justice"
   },
   {
-   "id": "wa0477",
+   "id": "wa0492",
    "who": "wanko",
    "group": "persona",
    "text": "ないしょで おやつ… ひとつ だけ…",
@@ -5633,7 +5832,7 @@
    "tag": "sly"
   },
   {
-   "id": "wa0478",
+   "id": "wa0493",
    "who": "wanko",
    "group": "persona",
    "text": "ばれなきゃ へいき… かな？",
@@ -5642,7 +5841,7 @@
    "tag": "sly"
   },
   {
-   "id": "wa0479",
+   "id": "wa0494",
    "who": "wanko",
    "group": "persona",
    "text": "ごじの プリン、たべて いい？ いいよね？",
@@ -5651,7 +5850,7 @@
    "tag": "sly"
   },
   {
-   "id": "wa0480",
+   "id": "wa0495",
    "who": "wanko",
    "group": "persona",
    "text": "ぼくが かったら、デザ ふたつね！",
@@ -5660,7 +5859,7 @@
    "tag": "sly"
   },
   {
-   "id": "wa0481",
+   "id": "wa0496",
    "who": "wanko",
    "group": "persona",
    "text": "しーっ！ ままには ひみつ だよ",
@@ -5669,7 +5868,7 @@
    "tag": "sly"
   },
   {
-   "id": "wa0482",
+   "id": "wa0497",
    "who": "wanko",
    "group": "persona",
    "text": "じゃんけん、あとだし… なんでも ないよ",
@@ -5678,7 +5877,7 @@
    "tag": "sly"
   },
   {
-   "id": "wa0483",
+   "id": "wa0498",
    "who": "wanko",
    "group": "persona",
    "text": "かくれんぼ、こっそり みちゃった",
@@ -5687,7 +5886,7 @@
    "tag": "sly"
   },
   {
-   "id": "wa0484",
+   "id": "wa0499",
    "who": "wanko",
    "group": "persona",
    "text": "ぼくの おかし、ちょっと おおきい ほうね",
@@ -5696,7 +5895,7 @@
    "tag": "sly"
   },
   {
-   "id": "wa0485",
+   "id": "wa0500",
    "who": "wanko",
    "group": "persona",
    "text": "クンクン… これ なんの におい？",
@@ -5705,7 +5904,7 @@
    "tag": "sniff"
   },
   {
-   "id": "wa0486",
+   "id": "wa0501",
    "who": "wanko",
    "group": "persona",
    "text": "クンクン… ここ、ごじの におい！",
@@ -5714,7 +5913,7 @@
    "tag": "sniff"
   },
   {
-   "id": "wa0487",
+   "id": "wa0502",
    "who": "wanko",
    "group": "persona",
    "text": "クンクン… ソファの したに なにか ある！",
@@ -5723,7 +5922,7 @@
    "tag": "sniff"
   },
   {
-   "id": "wa0488",
+   "id": "wa0503",
    "who": "wanko",
    "group": "persona",
    "text": "クンクン… がちゃん、おやつ たべた？",
@@ -5732,7 +5931,7 @@
    "tag": "sniff"
   },
   {
-   "id": "wa0489",
+   "id": "wa0504",
    "who": "wanko",
    "group": "persona",
    "text": "クンクン、クンクン… とまらない！",
@@ -5741,7 +5940,7 @@
    "tag": "sniff"
   },
   {
-   "id": "wa0490",
+   "id": "wa0505",
    "who": "wanko",
    "group": "persona",
    "text": "においで だれか わかっちゃう",
@@ -5750,7 +5949,7 @@
    "tag": "sniff"
   },
   {
-   "id": "wa0491",
+   "id": "wa0506",
    "who": "wanko",
    "group": "persona",
    "text": "クンクン… ぱぱの くつした！ うっ",
@@ -5759,7 +5958,7 @@
    "tag": "sniff"
   },
   {
-   "id": "wa0492",
+   "id": "wa0507",
    "who": "wanko",
    "group": "persona",
    "text": "クンクン… きょうの ごはんは カレーだ！",
@@ -5768,7 +5967,7 @@
    "tag": "sniff"
   },
   {
-   "id": "wa0493",
+   "id": "wa0508",
    "who": "wanko",
    "group": "persona",
    "text": "くんくん たんてい、しゅつどう！",
@@ -5777,7 +5976,7 @@
    "tag": "sniff"
   },
   {
-   "id": "wa0494",
+   "id": "wa0509",
    "who": "wanko",
    "group": "persona",
    "text": "においを たどって、たからさがし！",
@@ -5786,7 +5985,7 @@
    "tag": "sniff"
   },
   {
-   "id": "wa0495",
+   "id": "wa0510",
    "who": "wanko",
    "group": "persona",
    "text": "あっ… また クンクン しすぎた？",
@@ -5795,7 +5994,7 @@
    "tag": "scolded"
   },
   {
-   "id": "wa0496",
+   "id": "wa0511",
    "who": "wanko",
    "group": "persona",
    "text": "ままに おこられちゃった… くぅん",
@@ -5804,7 +6003,7 @@
    "tag": "scolded"
   },
   {
-   "id": "wa0497",
+   "id": "wa0512",
    "who": "wanko",
    "group": "persona",
    "text": "もう クンクン しない… たぶん",
@@ -5813,7 +6012,7 @@
    "tag": "scolded"
   },
   {
-   "id": "wa0498",
+   "id": "wa0513",
    "who": "wanko",
    "group": "persona",
    "text": "おふろ はいりたい！ いま すぐ！",
@@ -5822,7 +6021,7 @@
    "tag": "bath"
   },
   {
-   "id": "wa0499",
+   "id": "wa0514",
    "who": "wanko",
    "group": "persona",
    "text": "あわあわ おふろ、だいすき！",
@@ -5831,7 +6030,7 @@
    "tag": "bath"
   },
   {
-   "id": "wa0500",
+   "id": "wa0515",
    "who": "wanko",
    "group": "persona",
    "text": "おふろで うた うたおうよ",
@@ -5840,7 +6039,7 @@
    "tag": "bath"
   },
   {
-   "id": "wa0501",
+   "id": "wa0516",
    "who": "wanko",
    "group": "persona",
    "text": "シャンプーの におい、いい におい",
@@ -5849,7 +6048,7 @@
    "tag": "bath"
   },
   {
-   "id": "wa0502",
+   "id": "wa0517",
    "who": "wanko",
    "group": "persona",
    "text": "おふろ あがりは ぽかぽか〜",
@@ -5858,7 +6057,7 @@
    "tag": "bath"
   },
   {
-   "id": "wa0503",
+   "id": "wa0518",
    "who": "wanko",
    "group": "persona",
    "text": "おゆに ぷかぷか… しあわせ",
@@ -5867,7 +6066,7 @@
    "tag": "bath"
   },
   {
-   "id": "wa0504",
+   "id": "wa0519",
    "who": "wanko",
    "group": "persona",
    "text": "ぱぱ、いっしょに おふろ はいろ！",
@@ -5876,7 +6075,7 @@
    "tag": "bath"
   },
   {
-   "id": "wa0505",
+   "id": "wa0520",
    "who": "wanko",
    "group": "persona",
    "text": "どろんこに なったら、おふろ だよね！",
@@ -5885,7 +6084,7 @@
    "tag": "bath"
   },
   {
-   "id": "wa0506",
+   "id": "wa0521",
    "who": "wanko",
    "group": "persona",
    "text": "わうーん！",
@@ -5894,7 +6093,7 @@
    "tag": "howl"
   },
   {
-   "id": "wa0507",
+   "id": "wa0522",
    "who": "wanko",
    "group": "persona",
    "text": "わうーん！ きこえたかな？",
@@ -5903,7 +6102,7 @@
    "tag": "howl"
   },
   {
-   "id": "wa0508",
+   "id": "wa0523",
    "who": "wanko",
    "group": "persona",
    "text": "おつきさまに むかって… わうーん！",
@@ -5912,7 +6111,7 @@
    "tag": "howl"
   },
   {
-   "id": "wa0509",
+   "id": "wa0524",
    "who": "wanko",
    "group": "persona",
    "text": "うれしくて、わうーん！",
@@ -5921,7 +6120,7 @@
    "tag": "howl"
   },
   {
-   "id": "wa0510",
+   "id": "wa0525",
    "who": "wanko",
    "group": "persona",
    "text": "とおくの だれかに、わうーん！",
@@ -5930,7 +6129,7 @@
    "tag": "howl"
   },
   {
-   "id": "wa0511",
+   "id": "wa0526",
    "who": "wanko",
    "group": "persona",
    "text": "わうーん！ …あ、ちょっと おおきすぎた",
@@ -5939,7 +6138,7 @@
    "tag": "howl"
   },
   {
-   "id": "wa0512",
+   "id": "wa0527",
    "who": "wanko",
    "group": "persona",
    "text": "サイレンに あわせて… わうーん",
@@ -5948,7 +6147,7 @@
    "tag": "howl"
   },
   {
-   "id": "wa0513",
+   "id": "wa0528",
    "who": "wanko",
    "group": "persona",
    "text": "わうーん！ みんなも いっしょに！",
@@ -5957,7 +6156,7 @@
    "tag": "howl"
   },
   {
-   "id": "ga0514",
+   "id": "ga0529",
    "who": "gachan",
    "group": "persona",
    "text": "こわいよぉ… ままー たすけてー",
@@ -5966,7 +6165,7 @@
    "tag": "scared"
   },
   {
-   "id": "ga0515",
+   "id": "ga0530",
    "who": "gachan",
    "group": "persona",
    "text": "ままー！ たすけてー！",
@@ -5975,7 +6174,7 @@
    "tag": "scared"
   },
   {
-   "id": "ga0516",
+   "id": "ga0531",
    "who": "gachan",
    "group": "persona",
    "text": "ふぇぇ… なみだ でちゃう",
@@ -5984,7 +6183,7 @@
    "tag": "scared"
   },
   {
-   "id": "ga0517",
+   "id": "ga0532",
    "who": "gachan",
    "group": "persona",
    "text": "ぐすん… でも、なかないもん",
@@ -5993,7 +6192,7 @@
    "tag": "scared"
   },
   {
-   "id": "ga0518",
+   "id": "ga0533",
    "who": "gachan",
    "group": "persona",
    "text": "おばけ… いない？ ほんとに？",
@@ -6002,7 +6201,7 @@
    "tag": "scared"
   },
   {
-   "id": "ga0519",
+   "id": "ga0534",
    "who": "gachan",
    "group": "persona",
    "text": "くらい ところは ちょっと にがて",
@@ -6011,7 +6210,7 @@
    "tag": "scared"
   },
   {
-   "id": "ga0520",
+   "id": "ga0535",
    "who": "gachan",
    "group": "persona",
    "text": "おおきな おと、びっくり した…",
@@ -6020,7 +6219,7 @@
    "tag": "scared"
   },
   {
-   "id": "ga0521",
+   "id": "ga0536",
    "who": "gachan",
    "group": "persona",
    "text": "むしさん… こっち こないで〜",
@@ -6029,7 +6228,7 @@
    "tag": "scared"
   },
   {
-   "id": "ga0522",
+   "id": "ga0537",
    "who": "gachan",
    "group": "persona",
    "text": "ないちゃった… ないしょに してね",
@@ -6038,7 +6237,7 @@
    "tag": "scared"
   },
   {
-   "id": "ga0523",
+   "id": "ga0538",
    "who": "gachan",
    "group": "persona",
    "text": "こわく ないよ… たぶん…",
@@ -6047,7 +6246,7 @@
    "tag": "scared"
   },
   {
-   "id": "ga0524",
+   "id": "ga0539",
    "who": "gachan",
    "group": "persona",
    "text": "ひとりに しないで〜",
@@ -6056,7 +6255,7 @@
    "tag": "alone"
   },
   {
-   "id": "ga0525",
+   "id": "ga0540",
    "who": "gachan",
    "group": "persona",
    "text": "まって〜！ おいて いかないで〜",
@@ -6065,7 +6264,7 @@
    "tag": "alone"
   },
   {
-   "id": "ga0526",
+   "id": "ga0541",
    "who": "gachan",
    "group": "persona",
    "text": "みんな、どこ？ …いた！ よかった",
@@ -6074,7 +6273,7 @@
    "tag": "alone"
   },
   {
-   "id": "ga0527",
+   "id": "ga0542",
    "who": "gachan",
    "group": "persona",
    "text": "ひとりで おるすばん、できないよぉ",
@@ -6083,7 +6282,7 @@
    "tag": "alone"
   },
   {
-   "id": "ga0528",
+   "id": "ga0543",
    "who": "gachan",
    "group": "persona",
    "text": "ずっと いっしょに いてね",
@@ -6092,7 +6291,7 @@
    "tag": "alone"
   },
   {
-   "id": "ga0529",
+   "id": "ga0544",
    "who": "gachan",
    "group": "persona",
    "text": "となりに いて くれる？",
@@ -6101,7 +6300,7 @@
    "tag": "alone"
   },
   {
-   "id": "ga0530",
+   "id": "ga0545",
    "who": "gachan",
    "group": "persona",
    "text": "さきに ねちゃ いやだよ",
@@ -6110,7 +6309,7 @@
    "tag": "alone"
   },
   {
-   "id": "ga0531",
+   "id": "ga0546",
    "who": "gachan",
    "group": "persona",
    "text": "トイレの まえで まってて ね",
@@ -6119,7 +6318,7 @@
    "tag": "alone"
   },
   {
-   "id": "ga0532",
+   "id": "ga0547",
    "who": "gachan",
    "group": "persona",
    "text": "まま、だっこ〜",
@@ -6128,7 +6327,7 @@
    "tag": "amae"
   },
   {
-   "id": "ga0533",
+   "id": "ga0548",
    "who": "gachan",
    "group": "persona",
    "text": "ぱぱの おひざ、がちゃんの せき！",
@@ -6137,7 +6336,7 @@
    "tag": "amae"
   },
   {
-   "id": "ga0534",
+   "id": "ga0549",
    "who": "gachan",
    "group": "persona",
    "text": "なでなで して〜",
@@ -6146,7 +6345,7 @@
    "tag": "amae"
   },
   {
-   "id": "ga0535",
+   "id": "ga0550",
    "who": "gachan",
    "group": "persona",
    "text": "あーん して ほしいな",
@@ -6155,7 +6354,7 @@
    "tag": "amae"
   },
   {
-   "id": "ga0536",
+   "id": "ga0551",
    "who": "gachan",
    "group": "persona",
    "text": "もっと ぎゅー して〜",
@@ -6164,7 +6363,7 @@
    "tag": "amae"
   },
   {
-   "id": "ga0537",
+   "id": "ga0552",
    "who": "gachan",
    "group": "persona",
    "text": "いっしょに ねよ？ おねがい",
@@ -6173,7 +6372,7 @@
    "tag": "amae"
   },
   {
-   "id": "ga0538",
+   "id": "ga0553",
    "who": "gachan",
    "group": "persona",
    "text": "ままの て、あったかい",
@@ -6182,7 +6381,7 @@
    "tag": "amae"
   },
   {
-   "id": "ga0539",
+   "id": "ga0554",
    "who": "gachan",
    "group": "persona",
    "text": "ぱぱ、おんぶ〜",
@@ -6191,7 +6390,7 @@
    "tag": "amae"
   },
   {
-   "id": "ga0540",
+   "id": "ga0555",
    "who": "gachan",
    "group": "persona",
    "text": "だいじょうぶ？ いたいの とんでけー",
@@ -6200,7 +6399,7 @@
    "tag": "kind"
   },
   {
-   "id": "ga0541",
+   "id": "ga0556",
    "who": "gachan",
    "group": "persona",
    "text": "はんぶんこ しようね",
@@ -6209,7 +6408,7 @@
    "tag": "kind"
   },
   {
-   "id": "ga0542",
+   "id": "ga0557",
    "who": "gachan",
    "group": "persona",
    "text": "ごじ、ないてるの？ よしよし",
@@ -6218,7 +6417,7 @@
    "tag": "kind"
   },
   {
-   "id": "ga0543",
+   "id": "ga0558",
    "who": "gachan",
    "group": "persona",
    "text": "わんこ、ありがとう♪",
@@ -6227,7 +6426,7 @@
    "tag": "kind"
   },
   {
-   "id": "ga0544",
+   "id": "ga0559",
    "who": "gachan",
    "group": "persona",
    "text": "おはなさんにも おみず あげよ",
@@ -6236,7 +6435,7 @@
    "tag": "kind"
   },
   {
-   "id": "ga0545",
+   "id": "ga0560",
    "who": "gachan",
    "group": "persona",
    "text": "みんなが わらうと うれしい",
@@ -6245,7 +6444,7 @@
    "tag": "kind"
   },
   {
-   "id": "ga0546",
+   "id": "ga0561",
    "who": "gachan",
    "group": "persona",
    "text": "けんかは やめて、なかよく しよ",
@@ -6254,7 +6453,7 @@
    "tag": "kind"
   },
   {
-   "id": "ga0547",
+   "id": "ga0562",
    "who": "gachan",
    "group": "persona",
    "text": "ちいさい むしさんも、なかま だね",
@@ -6263,7 +6462,7 @@
    "tag": "kind"
   },
   {
-   "id": "ga0548",
+   "id": "ga0563",
    "who": "gachan",
    "group": "persona",
    "text": "つかれた？ ここ すわって いいよ",
@@ -6272,7 +6471,7 @@
    "tag": "kind"
   },
   {
-   "id": "ga0549",
+   "id": "ga0564",
    "who": "gachan",
    "group": "persona",
    "text": "こわいけど… がんばって みる！",
@@ -6281,7 +6480,7 @@
    "tag": "brave"
   },
   {
-   "id": "ga0550",
+   "id": "ga0565",
    "who": "gachan",
    "group": "persona",
    "text": "きょうは なかなかった！ えらい？",
@@ -6290,7 +6489,7 @@
    "tag": "brave"
   },
   {
-   "id": "ga0551",
+   "id": "ga0566",
    "who": "gachan",
    "group": "persona",
    "text": "わんこと いっしょなら、へいき",
@@ -6299,7 +6498,7 @@
    "tag": "brave"
   },
   {
-   "id": "ga0552",
+   "id": "ga0567",
    "who": "gachan",
    "group": "persona",
    "text": "ごじが いれば、こわく ないよ",
@@ -6308,7 +6507,7 @@
    "tag": "brave"
   },
   {
-   "id": "ga0553",
+   "id": "ga0568",
    "who": "gachan",
    "group": "persona",
    "text": "ひとりで できた… ちょっと だけ",
@@ -6317,7 +6516,7 @@
    "tag": "brave"
   },
   {
-   "id": "ga0554",
+   "id": "ga0569",
    "who": "gachan",
    "group": "persona",
    "text": "がちゃんも、みんなを まもる！",
@@ -6326,7 +6525,7 @@
    "tag": "brave"
   },
   {
-   "id": "ga0555",
+   "id": "ga0570",
    "who": "gachan",
    "group": "persona",
    "text": "ままー… じゃなくて、じぶんで やる！",
@@ -6335,7 +6534,7 @@
    "tag": "brave"
   },
   {
-   "id": "ga0556",
+   "id": "ga0571",
    "who": "gachan",
    "group": "persona",
    "text": "ゆうき、だしたよ！ ほめて？",
@@ -6344,7 +6543,7 @@
    "tag": "brave"
   },
   {
-   "id": "ga0557",
+   "id": "ga0572",
    "who": "gachan",
    "group": "persona",
    "text": "こわかったけど、たのしかった！",
@@ -6353,7 +6552,7 @@
    "tag": "brave"
   },
   {
-   "id": "ga0558",
+   "id": "ga0573",
    "who": "gachan",
    "group": "persona",
    "text": "つぎは なかないで いられるかも",
@@ -6362,7 +6561,331 @@
    "tag": "brave"
   },
   {
-   "id": "go0559",
+   "id": "ga0574",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おえかき したよ。みんなの かお！",
+   "kind": "say",
+   "when": {},
+   "tag": "craft"
+  },
+  {
+   "id": "ga0575",
+   "who": "gachan",
+   "group": "persona",
+   "text": "クレヨンの いろ、ぜんぶ つかいたい",
+   "kind": "say",
+   "when": {},
+   "tag": "craft"
+  },
+  {
+   "id": "ga0576",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おりがみで ことり おったよ♪",
+   "kind": "say",
+   "when": {},
+   "tag": "craft"
+  },
+  {
+   "id": "ga0577",
+   "who": "gachan",
+   "group": "persona",
+   "text": "ビーズで ブレスレット つくるの",
+   "kind": "say",
+   "when": {},
+   "tag": "craft"
+  },
+  {
+   "id": "ga0578",
+   "who": "gachan",
+   "group": "persona",
+   "text": "この え、ままに プレゼント する",
+   "kind": "say",
+   "when": {},
+   "tag": "craft"
+  },
+  {
+   "id": "ga0579",
+   "who": "gachan",
+   "group": "persona",
+   "text": "はさみは ゆっくり、ちょきちょき",
+   "kind": "say",
+   "when": {},
+   "tag": "craft"
+  },
+  {
+   "id": "ga0580",
+   "who": "gachan",
+   "group": "persona",
+   "text": "♪ ぽかぽか〜 ぴよぴよ〜",
+   "kind": "say",
+   "when": {},
+   "tag": "song"
+  },
+  {
+   "id": "ga0581",
+   "who": "gachan",
+   "group": "persona",
+   "text": "あたらしい うた、つくっちゃった♪",
+   "kind": "say",
+   "when": {},
+   "tag": "song"
+  },
+  {
+   "id": "ga0582",
+   "who": "gachan",
+   "group": "persona",
+   "text": "ハミング… ふんふふーん♪",
+   "kind": "say",
+   "when": {},
+   "tag": "song"
+  },
+  {
+   "id": "ga0583",
+   "who": "gachan",
+   "group": "persona",
+   "text": "うたうと こころが かるく なるね",
+   "kind": "say",
+   "when": {},
+   "tag": "song"
+  },
+  {
+   "id": "ga0584",
+   "who": "gachan",
+   "group": "persona",
+   "text": "ことりさんと いっしょに うたお♪",
+   "kind": "say",
+   "when": {},
+   "tag": "song"
+  },
+  {
+   "id": "ga0585",
+   "who": "gachan",
+   "group": "persona",
+   "text": "こんどの うたで、みんなで おどろうね",
+   "kind": "say",
+   "when": {},
+   "tag": "song"
+  },
+  {
+   "id": "ga0586",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おはなの なまえ、いっぱい いえるよ",
+   "kind": "say",
+   "when": {},
+   "tag": "flower"
+  },
+  {
+   "id": "ga0587",
+   "who": "gachan",
+   "group": "persona",
+   "text": "つぼみ、あしたには ひらくかな",
+   "kind": "say",
+   "when": {},
+   "tag": "flower"
+  },
+  {
+   "id": "ga0588",
+   "who": "gachan",
+   "group": "persona",
+   "text": "はっぱの みどり、きれいだね",
+   "kind": "say",
+   "when": {},
+   "tag": "flower"
+  },
+  {
+   "id": "ga0589",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おはなの かんむり、つくって みたい",
+   "kind": "say",
+   "when": {},
+   "tag": "flower"
+  },
+  {
+   "id": "ga0590",
+   "who": "gachan",
+   "group": "persona",
+   "text": "たねを まいたら、なにが さくかな",
+   "kind": "say",
+   "when": {},
+   "tag": "flower"
+  },
+  {
+   "id": "ga0591",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おはなに『きょうも かわいいね』",
+   "kind": "say",
+   "when": {},
+   "tag": "flower"
+  },
+  {
+   "id": "ga0592",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おもちゃ、なかまごとに ならべたよ",
+   "kind": "say",
+   "when": {},
+   "tag": "tidy"
+  },
+  {
+   "id": "ga0593",
+   "who": "gachan",
+   "group": "persona",
+   "text": "ぴかぴかに すると きもちいい♪",
+   "kind": "say",
+   "when": {},
+   "tag": "tidy"
+  },
+  {
+   "id": "ga0594",
+   "who": "gachan",
+   "group": "persona",
+   "text": "ほんだな、いろの じゅんに したの",
+   "kind": "say",
+   "when": {},
+   "tag": "tidy"
+  },
+  {
+   "id": "ga0595",
+   "who": "gachan",
+   "group": "persona",
+   "text": "くつしたの かたほう、みーつけた",
+   "kind": "say",
+   "when": {},
+   "tag": "tidy"
+  },
+  {
+   "id": "ga0596",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おかたづけ、きょうそう しよっ",
+   "kind": "say",
+   "when": {},
+   "tag": "tidy"
+  },
+  {
+   "id": "ga0597",
+   "who": "gachan",
+   "group": "persona",
+   "text": "ごみは ごみばこへ、ぽいっ♪",
+   "kind": "say",
+   "when": {},
+   "tag": "tidy"
+  },
+  {
+   "id": "ga0598",
+   "who": "gachan",
+   "group": "persona",
+   "text": "ねえねえ、くもって なんで うくの？",
+   "kind": "say",
+   "when": {},
+   "tag": "curious"
+  },
+  {
+   "id": "ga0599",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おほしさまって、いくつ あるの？",
+   "kind": "say",
+   "when": {},
+   "tag": "curious"
+  },
+  {
+   "id": "ga0600",
+   "who": "gachan",
+   "group": "persona",
+   "text": "あれ なあに？ しりたい！",
+   "kind": "say",
+   "when": {},
+   "tag": "curious"
+  },
+  {
+   "id": "ga0601",
+   "who": "gachan",
+   "group": "persona",
+   "text": "ずかんで しらべて みよっと",
+   "kind": "say",
+   "when": {},
+   "tag": "curious"
+  },
+  {
+   "id": "ga0602",
+   "who": "gachan",
+   "group": "persona",
+   "text": "ありさんの おうち、どこかな",
+   "kind": "say",
+   "when": {},
+   "tag": "curious"
+  },
+  {
+   "id": "ga0603",
+   "who": "gachan",
+   "group": "persona",
+   "text": "どうして おそらは あおいの？",
+   "kind": "say",
+   "when": {},
+   "tag": "curious"
+  },
+  {
+   "id": "ga0604",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おままごと、がちゃんは コックさん",
+   "kind": "say",
+   "when": {},
+   "tag": "cook"
+  },
+  {
+   "id": "ga0605",
+   "who": "gachan",
+   "group": "persona",
+   "text": "ホットケーキ、ふわふわに やけるかな",
+   "kind": "say",
+   "when": {},
+   "tag": "cook"
+  },
+  {
+   "id": "ga0606",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おにぎり、ハートの かたち♪",
+   "kind": "say",
+   "when": {},
+   "tag": "cook"
+  },
+  {
+   "id": "ga0607",
+   "who": "gachan",
+   "group": "persona",
+   "text": "あじみ… うん、おいしい！",
+   "kind": "say",
+   "when": {},
+   "tag": "cook"
+  },
+  {
+   "id": "ga0608",
+   "who": "gachan",
+   "group": "persona",
+   "text": "エプロン、にあう？",
+   "kind": "say",
+   "when": {},
+   "tag": "cook"
+  },
+  {
+   "id": "ga0609",
+   "who": "gachan",
+   "group": "persona",
+   "text": "おやつに クッキー やこうかな",
+   "kind": "say",
+   "when": {},
+   "tag": "cook"
+  },
+  {
+   "id": "go0610",
    "who": "goji",
    "group": "persona",
    "text": "ガウっ！ …あっ、つい でちゃった",
@@ -6371,7 +6894,7 @@
    "tag": "gau"
   },
   {
-   "id": "go0560",
+   "id": "go0611",
    "who": "goji",
    "group": "persona",
    "text": "ごはんにも ガウっ！",
@@ -6380,7 +6903,7 @@
    "tag": "gau"
   },
   {
-   "id": "go0561",
+   "id": "go0612",
    "who": "goji",
    "group": "persona",
    "text": "おはなにも ガウっ… やさしく ね",
@@ -6389,7 +6912,7 @@
    "tag": "gau"
   },
   {
-   "id": "go0562",
+   "id": "go0613",
    "who": "goji",
    "group": "persona",
    "text": "ありがとうの ガウっ！",
@@ -6398,7 +6921,7 @@
    "tag": "gau"
   },
   {
-   "id": "go0563",
+   "id": "go0614",
    "who": "goji",
    "group": "persona",
    "text": "くしゃみも ガウっ！ ぶえっくしょん",
@@ -6407,7 +6930,7 @@
    "tag": "gau"
   },
   {
-   "id": "go0564",
+   "id": "go0615",
    "who": "goji",
    "group": "persona",
    "text": "おやすみの ガウっ…",
@@ -6416,7 +6939,7 @@
    "tag": "gau"
   },
   {
-   "id": "go0565",
+   "id": "go0616",
    "who": "goji",
    "group": "persona",
    "text": "うれしい ときも ガウっ！",
@@ -6425,7 +6948,7 @@
    "tag": "gau"
   },
   {
-   "id": "go0566",
+   "id": "go0617",
    "who": "goji",
    "group": "persona",
    "text": "びっくり しても ガウっ！",
@@ -6434,7 +6957,7 @@
    "tag": "gau"
   },
   {
-   "id": "go0567",
+   "id": "go0618",
    "who": "goji",
    "group": "persona",
    "text": "ガウっ、ガウっ、ガウっ！ リズム♪",
@@ -6443,7 +6966,7 @@
    "tag": "gau"
   },
   {
-   "id": "go0568",
+   "id": "go0619",
    "who": "goji",
    "group": "persona",
    "text": "きょうも いい ひ …ガゥ",
@@ -6452,7 +6975,7 @@
    "tag": "gau-end"
   },
   {
-   "id": "go0569",
+   "id": "go0620",
    "who": "goji",
    "group": "persona",
    "text": "それ、ぼくも やりたい …ガゥ",
@@ -6461,7 +6984,7 @@
    "tag": "gau-end"
   },
   {
-   "id": "go0570",
+   "id": "go0621",
    "who": "goji",
    "group": "persona",
    "text": "ちょっと ねむい …ガゥ",
@@ -6470,7 +6993,7 @@
    "tag": "gau-end"
   },
   {
-   "id": "go0571",
+   "id": "go0622",
    "who": "goji",
    "group": "persona",
    "text": "がちゃん、なかないで …ガゥ",
@@ -6479,7 +7002,7 @@
    "tag": "gau-end"
   },
   {
-   "id": "go0572",
+   "id": "go0623",
    "who": "goji",
    "group": "persona",
    "text": "わんこ、はやい …ガゥ",
@@ -6488,7 +7011,7 @@
    "tag": "gau-end"
   },
   {
-   "id": "go0573",
+   "id": "go0624",
    "who": "goji",
    "group": "persona",
    "text": "ままの ごはん、せかいいち …ガゥ",
@@ -6497,7 +7020,7 @@
    "tag": "gau-end"
   },
   {
-   "id": "go0574",
+   "id": "go0625",
    "who": "goji",
    "group": "persona",
    "text": "ぱぱ、ひげ じょりじょり …ガゥ",
@@ -6506,7 +7029,7 @@
    "tag": "gau-end"
   },
   {
-   "id": "go0575",
+   "id": "go0626",
    "who": "goji",
    "group": "persona",
    "text": "いっしょが いちばん …ガゥ",
@@ -6515,7 +7038,7 @@
    "tag": "gau-end"
   },
   {
-   "id": "go0576",
+   "id": "go0627",
    "who": "goji",
    "group": "persona",
    "text": "ひとりで おきがえ できた！",
@@ -6524,7 +7047,7 @@
    "tag": "handy"
   },
   {
-   "id": "go0577",
+   "id": "go0628",
    "who": "goji",
    "group": "persona",
    "text": "くつひも、じぶんで むすべるよ",
@@ -6533,7 +7056,7 @@
    "tag": "handy"
   },
   {
-   "id": "go0578",
+   "id": "go0629",
    "who": "goji",
    "group": "persona",
    "text": "おかたづけ、もう おわったよ",
@@ -6542,7 +7065,7 @@
    "tag": "handy"
   },
   {
-   "id": "go0579",
+   "id": "go0630",
    "who": "goji",
    "group": "persona",
    "text": "こわれた おもちゃ、なおした！",
@@ -6551,7 +7074,7 @@
    "tag": "handy"
   },
   {
-   "id": "go0580",
+   "id": "go0631",
    "who": "goji",
    "group": "persona",
    "text": "おりがみで かぶと、おった！",
@@ -6560,7 +7083,7 @@
    "tag": "handy"
   },
   {
-   "id": "go0581",
+   "id": "go0632",
    "who": "goji",
    "group": "persona",
    "text": "ぼうし、じぶんで あんだ ガゥ",
@@ -6569,7 +7092,7 @@
    "tag": "handy"
   },
   {
-   "id": "go0582",
+   "id": "go0633",
    "who": "goji",
    "group": "persona",
    "text": "ひとりで おるすばん、へっちゃら",
@@ -6578,7 +7101,7 @@
    "tag": "handy"
   },
   {
-   "id": "go0583",
+   "id": "go0634",
    "who": "goji",
    "group": "persona",
    "text": "じゃぐちの しめかた、しってるよ",
@@ -6587,7 +7110,7 @@
    "tag": "handy"
   },
   {
-   "id": "go0584",
+   "id": "go0635",
    "who": "goji",
    "group": "persona",
    "text": "ボタン、ぜんぶ とめられた！",
@@ -6596,7 +7119,7 @@
    "tag": "handy"
   },
   {
-   "id": "go0585",
+   "id": "go0636",
    "who": "goji",
    "group": "persona",
    "text": "おさらあらい、ピカピカ ガウっ",
@@ -6605,7 +7128,7 @@
    "tag": "handy"
   },
   {
-   "id": "go0586",
+   "id": "go0637",
    "who": "goji",
    "group": "persona",
    "text": "しょうらいの ゆめは、おっきく なること！",
@@ -6614,7 +7137,7 @@
    "tag": "dream"
   },
   {
-   "id": "go0587",
+   "id": "go0638",
    "who": "goji",
    "group": "persona",
    "text": "おっきく なったら、ビルより おおきく なる",
@@ -6623,7 +7146,7 @@
    "tag": "dream"
   },
   {
-   "id": "go0588",
+   "id": "go0639",
    "who": "goji",
    "group": "persona",
    "text": "おっきく なったら、みんなを まもる",
@@ -6632,7 +7155,7 @@
    "tag": "dream"
   },
   {
-   "id": "go0589",
+   "id": "go0640",
    "who": "goji",
    "group": "persona",
    "text": "ぎゅうにゅう のんで、おっきく なる！",
@@ -6641,7 +7164,7 @@
    "tag": "dream"
   },
   {
-   "id": "go0590",
+   "id": "go0641",
    "who": "goji",
    "group": "persona",
    "text": "きのうより ちょっと おっきく なった？",
@@ -6650,7 +7173,7 @@
    "tag": "dream"
   },
   {
-   "id": "go0591",
+   "id": "go0642",
    "who": "goji",
    "group": "persona",
    "text": "せが のびたか はかって！",
@@ -6659,7 +7182,7 @@
    "tag": "dream"
   },
   {
-   "id": "go0592",
+   "id": "go0643",
    "who": "goji",
    "group": "persona",
    "text": "おっきく なったら、おそらに てが とどく",
@@ -6668,7 +7191,7 @@
    "tag": "dream"
   },
   {
-   "id": "go0593",
+   "id": "go0644",
    "who": "goji",
    "group": "persona",
    "text": "ゆめは おっきく、ぼくも おっきく！",
@@ -6677,7 +7200,7 @@
    "tag": "dream"
   },
   {
-   "id": "go0594",
+   "id": "go0645",
    "who": "goji",
    "group": "persona",
    "text": "おっきく なっても、みんなと いっしょ",
@@ -6686,7 +7209,7 @@
    "tag": "dream"
   },
   {
-   "id": "go0595",
+   "id": "go0646",
    "who": "goji",
    "group": "persona",
    "text": "しっぽも おっきく なるかな",
@@ -6695,7 +7218,7 @@
    "tag": "dream"
   },
   {
-   "id": "go0596",
+   "id": "go0647",
    "who": "goji",
    "group": "persona",
    "text": "ぎゅー して いいよ？",
@@ -6704,7 +7227,7 @@
    "tag": "charm"
   },
   {
-   "id": "go0597",
+   "id": "go0648",
    "who": "goji",
    "group": "persona",
    "text": "えへへ、ぼく かわいい？",
@@ -6713,7 +7236,7 @@
    "tag": "charm"
   },
   {
-   "id": "go0598",
+   "id": "go0649",
    "who": "goji",
    "group": "persona",
    "text": "しっぽ、さわって いいよ",
@@ -6722,7 +7245,7 @@
    "tag": "charm"
   },
   {
-   "id": "go0599",
+   "id": "go0650",
    "who": "goji",
    "group": "persona",
    "text": "ぼくの ほっぺ、ぷにぷに？",
@@ -6731,7 +7254,7 @@
    "tag": "charm"
   },
   {
-   "id": "go0600",
+   "id": "go0651",
    "who": "goji",
    "group": "persona",
    "text": "みんなが わらうと、ぼくも うれしい",
@@ -6740,7 +7263,7 @@
    "tag": "charm"
   },
   {
-   "id": "go0601",
+   "id": "go0652",
    "who": "goji",
    "group": "persona",
    "text": "ないしょの だいすき、ガウっ",
@@ -6749,7 +7272,7 @@
    "tag": "charm"
   },
   {
-   "id": "go0602",
+   "id": "go0653",
    "who": "goji",
    "group": "persona",
    "text": "ぼくの ガウっで げんき だして！",
@@ -6758,7 +7281,7 @@
    "tag": "charm"
   },
   {
-   "id": "go0603",
+   "id": "go0654",
    "who": "goji",
    "group": "persona",
    "text": "いつも ありがとう ガゥ",
@@ -6767,7 +7290,7 @@
    "tag": "charm"
   },
   {
-   "id": "pa0604",
+   "id": "pa0655",
    "who": "papa",
    "group": "parent",
    "text": "おかえり！ きょうは どうだった？",
@@ -6779,7 +7302,7 @@
    }
   },
   {
-   "id": "pa0605",
+   "id": "pa0656",
    "who": "papa",
    "group": "parent",
    "text": "ぱぱと キャッチボール しようか",
@@ -6791,7 +7314,7 @@
    }
   },
   {
-   "id": "pa0606",
+   "id": "pa0657",
    "who": "papa",
    "group": "parent",
    "text": "おっと、ぱぱの ひざは まんいん だな",
@@ -6799,7 +7322,7 @@
    "when": {}
   },
   {
-   "id": "pa0607",
+   "id": "pa0658",
    "who": "papa",
    "group": "parent",
    "text": "みんな、げんき いっぱい だね",
@@ -6807,7 +7330,7 @@
    "when": {}
   },
   {
-   "id": "pa0608",
+   "id": "pa0659",
    "who": "papa",
    "group": "parent",
    "text": "よし、たかい たかーい！",
@@ -6819,7 +7342,7 @@
    }
   },
   {
-   "id": "pa0609",
+   "id": "pa0660",
    "who": "papa",
    "group": "parent",
    "text": "ねる まえに、えほんを よもうか",
@@ -6831,7 +7354,7 @@
    }
   },
   {
-   "id": "pa0610",
+   "id": "pa0661",
    "who": "papa",
    "group": "parent",
    "text": "あめの ひは、おうちで ゲーム だ",
@@ -6843,7 +7366,7 @@
    }
   },
   {
-   "id": "pa0611",
+   "id": "pa0662",
    "who": "papa",
    "group": "parent",
    "text": "ぱぱの ひげ、じょりじょり だぞ〜",
@@ -6851,7 +7374,7 @@
    "when": {}
   },
   {
-   "id": "pa0612",
+   "id": "pa0663",
    "who": "papa",
    "group": "parent",
    "text": "ごじ、また せが のびたんじゃ ないか？",
@@ -6859,7 +7382,7 @@
    "when": {}
   },
   {
-   "id": "pa0613",
+   "id": "pa0664",
    "who": "papa",
    "group": "parent",
    "text": "わんこ、おふろ わかしたぞ！",
@@ -6871,7 +7394,7 @@
    }
   },
   {
-   "id": "pa0614",
+   "id": "pa0665",
    "who": "papa",
    "group": "parent",
    "text": "がちゃん、だいじょうぶ。ぱぱが いるよ",
@@ -6879,7 +7402,7 @@
    "when": {}
   },
   {
-   "id": "pa0615",
+   "id": "pa0666",
    "who": "papa",
    "group": "parent",
    "text": "きょうの ごはん、ぱぱが つくろうか",
@@ -6891,7 +7414,7 @@
    }
   },
   {
-   "id": "pa0616",
+   "id": "pa0667",
    "who": "papa",
    "group": "parent",
    "text": "はなびの よる、かたぐるま しよう",
@@ -6903,7 +7426,7 @@
    }
   },
   {
-   "id": "pa0617",
+   "id": "pa0668",
    "who": "papa",
    "group": "parent",
    "text": "ゆきかき、ぱぱに まかせろ",
@@ -6915,7 +7438,7 @@
    }
   },
   {
-   "id": "pa0618",
+   "id": "pa0669",
    "who": "papa",
    "group": "parent",
    "text": "みんなで ねると、ベッドが せまいな",
@@ -6927,7 +7450,7 @@
    }
   },
   {
-   "id": "pa0619",
+   "id": "pa0670",
    "who": "papa",
    "group": "parent",
    "text": "きょうも いちにち、おつかれさま",
@@ -6939,7 +7462,7 @@
    }
   },
   {
-   "id": "pa0620",
+   "id": "pa0671",
    "who": "papa",
    "group": "parent",
    "text": "わすれものは ないかい？",
@@ -6951,7 +7474,7 @@
    }
   },
   {
-   "id": "pa0621",
+   "id": "pa0672",
    "who": "papa",
    "group": "parent",
    "text": "さあ、おやすみの じかん だよ",
@@ -6963,7 +7486,7 @@
    }
   },
   {
-   "id": "pa0622",
+   "id": "pa0673",
    "who": "papa",
    "group": "parent",
    "text": "ぱぱも むかし、どんぐり ひろったなあ",
@@ -6975,7 +7498,7 @@
    }
   },
   {
-   "id": "pa0623",
+   "id": "pa0674",
    "who": "papa",
    "group": "parent",
    "text": "3にんが なかよしで、ぱぱは うれしいよ",
@@ -6987,7 +7510,7 @@
    }
   },
   {
-   "id": "ma0624",
+   "id": "ma0675",
    "who": "mama",
    "group": "parent",
    "text": "おかえりなさい。てを あらおうね",
@@ -6999,7 +7522,7 @@
    }
   },
   {
-   "id": "ma0625",
+   "id": "ma0676",
    "who": "mama",
    "group": "parent",
    "text": "わんこ、クンクン しすぎ！ めっ",
@@ -7007,7 +7530,7 @@
    "when": {}
   },
   {
-   "id": "ma0626",
+   "id": "ma0677",
    "who": "mama",
    "group": "parent",
    "text": "わんこ、また クンクン？ ほどほどに ね",
@@ -7015,7 +7538,7 @@
    "when": {}
   },
   {
-   "id": "ma0627",
+   "id": "ma0678",
    "who": "mama",
    "group": "parent",
    "text": "がちゃん、ままは ここに いるよ",
@@ -7023,7 +7546,7 @@
    "when": {}
   },
   {
-   "id": "ma0628",
+   "id": "ma0679",
    "who": "mama",
    "group": "parent",
    "text": "ごじ、ひとりで できて えらいね",
@@ -7031,7 +7554,7 @@
    "when": {}
   },
   {
-   "id": "ma0629",
+   "id": "ma0680",
    "who": "mama",
    "group": "parent",
    "text": "ごはん できたよ〜",
@@ -7043,7 +7566,7 @@
    }
   },
   {
-   "id": "ma0630",
+   "id": "ma0681",
    "who": "mama",
    "group": "parent",
    "text": "デザは ごはんの あとで ね",
@@ -7055,7 +7578,7 @@
    }
   },
   {
-   "id": "ma0631",
+   "id": "ma0682",
    "who": "mama",
    "group": "parent",
    "text": "はやく ねないと、ゆめの ばすに のりおくれるよ",
@@ -7067,7 +7590,7 @@
    }
   },
   {
-   "id": "ma0632",
+   "id": "ma0683",
    "who": "mama",
    "group": "parent",
    "text": "あら、ねぐせ ついてる",
@@ -7079,7 +7602,7 @@
    }
   },
   {
-   "id": "ma0633",
+   "id": "ma0684",
    "who": "mama",
    "group": "parent",
    "text": "みんな、ぎゅー してあげる",
@@ -7087,7 +7610,7 @@
    "when": {}
   },
   {
-   "id": "ma0634",
+   "id": "ma0685",
    "who": "mama",
    "group": "parent",
    "text": "さむいから マフラー してね",
@@ -7099,7 +7622,7 @@
    }
   },
   {
-   "id": "ma0635",
+   "id": "ma0686",
    "who": "mama",
    "group": "parent",
    "text": "あめだから、ながぐつ はこうね",
@@ -7111,7 +7634,7 @@
    }
   },
   {
-   "id": "ma0636",
+   "id": "ma0687",
    "who": "mama",
    "group": "parent",
    "text": "きょうの ふく、とっても にあうよ",
@@ -7123,7 +7646,7 @@
    }
   },
   {
-   "id": "ma0637",
+   "id": "ma0688",
    "who": "mama",
    "group": "parent",
    "text": "おへや、きれいに なったね",
@@ -7135,7 +7658,7 @@
    }
   },
   {
-   "id": "ma0638",
+   "id": "ma0689",
    "who": "mama",
    "group": "parent",
    "text": "けんかは おしまい。なかなおり しよ",
@@ -7143,7 +7666,7 @@
    "when": {}
   },
   {
-   "id": "ma0639",
+   "id": "ma0690",
    "who": "mama",
    "group": "parent",
    "text": "しーっ、ぱぱが ねてるよ",
@@ -7155,7 +7678,7 @@
    }
   },
   {
-   "id": "ma0640",
+   "id": "ma0691",
    "who": "mama",
    "group": "parent",
    "text": "かぜ ひかないように ね",
@@ -7167,7 +7690,7 @@
    }
   },
   {
-   "id": "ma0641",
+   "id": "ma0692",
    "who": "mama",
    "group": "parent",
    "text": "おやすみ。いい ゆめ みてね",
@@ -7179,7 +7702,7 @@
    }
   },
   {
-   "id": "ma0642",
+   "id": "ma0693",
    "who": "mama",
    "group": "parent",
    "text": "3にんとも、だいすきよ",
@@ -7191,7 +7714,7 @@
    }
   },
   {
-   "id": "ma0643",
+   "id": "ma0694",
    "who": "mama",
    "group": "parent",
    "text": "おてつだい、ありがとう",
@@ -7203,7 +7726,7 @@
    }
   },
   {
-   "id": "wa0644",
+   "id": "wa0695",
    "who": "wanko",
    "group": "rare",
    "text": "ゆめで おほしさまを つかまえた！",
@@ -7212,7 +7735,7 @@
    "rare": true
   },
   {
-   "id": "wa0645",
+   "id": "wa0696",
    "who": "wanko",
    "group": "rare",
    "text": "しっぽで ハートが かけた！",
@@ -7221,7 +7744,7 @@
    "rare": true
   },
   {
-   "id": "wa0646",
+   "id": "wa0697",
    "who": "wanko",
    "group": "rare",
    "text": "くもの かたちが、ぼくと そっくり！",
@@ -7230,7 +7753,7 @@
    "rare": true
   },
   {
-   "id": "wa0647",
+   "id": "wa0698",
    "who": "wanko",
    "group": "rare",
    "text": "ぼくの におい、しあわせの におい？",
@@ -7239,7 +7762,7 @@
    "rare": true
   },
   {
-   "id": "wa0648",
+   "id": "wa0699",
    "who": "wanko",
    "group": "rare",
    "text": "よつばの クローバー、みつけた！",
@@ -7248,7 +7771,7 @@
    "rare": true
   },
   {
-   "id": "ga0649",
+   "id": "ga0700",
    "who": "gachan",
    "group": "rare",
    "text": "しあわせは 3にんぶんより おおきいね",
@@ -7257,7 +7780,7 @@
    "rare": true
   },
   {
-   "id": "ga0650",
+   "id": "ga0701",
    "who": "gachan",
    "group": "rare",
    "text": "ままの ゆめ みたの。ぽかぽかだった",
@@ -7266,7 +7789,7 @@
    "rare": true
   },
   {
-   "id": "ga0651",
+   "id": "ga0702",
    "who": "gachan",
    "group": "rare",
    "text": "ないても、みんなが いるから へいき",
@@ -7275,7 +7798,7 @@
    "rare": true
   },
   {
-   "id": "ga0652",
+   "id": "ga0703",
    "who": "gachan",
    "group": "rare",
    "text": "おはなが『ありがとう』って いった きが する",
@@ -7284,7 +7807,7 @@
    "rare": true
   },
   {
-   "id": "ga0653",
+   "id": "ga0704",
    "who": "gachan",
    "group": "rare",
    "text": "にじの はし、わたって みたいな",
@@ -7293,7 +7816,7 @@
    "rare": true
   },
   {
-   "id": "go0654",
+   "id": "go0705",
    "who": "goji",
    "group": "rare",
    "text": "ガゥー……おつきさまも かぞくかな？",
@@ -7302,7 +7825,7 @@
    "rare": true
   },
   {
-   "id": "go0655",
+   "id": "go0706",
    "who": "goji",
    "group": "rare",
    "text": "きょう、ちょっとだけ おっきく なった！",
@@ -7311,7 +7834,7 @@
    "rare": true
   },
   {
-   "id": "go0656",
+   "id": "go0707",
    "who": "goji",
    "group": "rare",
    "text": "おっきく なっても、ぎゅー して くれる？",
@@ -7320,7 +7843,7 @@
    "rare": true
   },
   {
-   "id": "go0657",
+   "id": "go0708",
    "who": "goji",
    "group": "rare",
    "text": "ほしを つないだら、かいじゅうの かたち！",
@@ -7329,7 +7852,7 @@
    "rare": true
   },
   {
-   "id": "go0658",
+   "id": "go0709",
    "who": "goji",
    "group": "rare",
    "text": "ぼくの ガウっ、にじいろ だった きが する",
@@ -7533,6 +8056,386 @@
     {
      "who": "goji",
      "text": "ガウっ！ ずっと いっしょ",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "alone-come",
+   "trigger": "alone",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "ねえねえ、そっちで なに してるの？",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "いっしょに やる？ おいでー！",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "やったー♪ いま いくね",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "alone-ok",
+   "trigger": "alone",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "ひとり じかんも ちょっと すてき♪",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "がちゃん、なに してるの？",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "ないしょの おえかき！ あとで みせるね",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "alone-call",
+   "trigger": "alone",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "わんこー、ごじー、あとで あそぼうね！",
+     "kind": "shout"
+    },
+    {
+     "who": "goji",
+     "text": "ガウっ！ いいよー",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "うん！ やくそくだよ",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-drawing",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "みんなの にがおえ、かいたよ♪",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "ぼくの しっぽ、ながすぎない？",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ぼく、かっこいい！ ガウっ",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "えへへ、かべに はろうね",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-song",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "あたらしい うた、きいて くれる？",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ききたい！",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "♪ みんな なかよし ぽかぽか〜",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "いい うた！ もう いっかい！",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-riddle",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "なぞなぞ！ たべられない パンは？",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "…フライパン！ ガウっ",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "せいかーい♪ つぎは わんこの ばん",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "うーん、むずかしいのに する！",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-crown",
+   "when": {
+    "season": [
+     "spring"
+    ]
+   },
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "おはなの かんむり、できたよ",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "がちゃん、おひめさま みたい！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ぼくにも つくって ガウ",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "いいよ♪ ごじは きいろ ね",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-restaurant",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "おままごとの レストラン、かいてん♪",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "おすすめは なんですか？",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "ぴよぴよ オムライス です！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ふたつ ください ガウっ",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-tidy-shelf",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "ほんを いろの じゅんに ならべたの",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "にじ みたい！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "…ぼくの えほん、どこ？ ガゥ",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "あおの ところ だよ♪",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-moon",
+   "when": {
+    "time": [
+     "night"
+    ]
+   },
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "どうして おつきさまは ついて くるの？",
+     "kind": "say"
+    },
+    {
+     "who": "papa",
+     "text": "とおくに あるから、そう みえるんだよ",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "へえー！ ものしり ぱぱ♪",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-origami",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "ごじ、おりがみ おしえて あげる",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ここを おって… ガゥ？",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "そうそう！ じょうず♪",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "できた！ かいじゅうの つる！",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-bird-dance",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "ことりの ダンス、みててね♪",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "ぱたぱた かわいい！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "ぼくも やる！ ドスドス…",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "ごじのは かいじゅう ダンス だね",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-stars",
+   "when": {
+    "time": [
+     "night"
+    ]
+   },
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "まどから おほしさま、みつけた",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "あれは ぼくの ほし！",
+     "kind": "say"
+    },
+    {
+     "who": "goji",
+     "text": "じゃあ あれは ぼくの！",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "がちゃんは まんなかの ちいさい ほし♪",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-letter",
+   "when": {},
+   "turns": [
+    {
+     "who": "gachan",
+     "text": "ぱぱと ままに おてがみ かくの",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "ぼくも かく！ なんて かこう？",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "『いつも ありがとう』って♪",
+     "kind": "say"
+    }
+   ]
+  },
+  {
+   "id": "ga-brave-bug",
+   "when": {},
+   "turns": [
+    {
+     "who": "goji",
+     "text": "がちゃん、むしさん だよ！",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "…こわく ない。こんにちは、むしさん",
+     "kind": "say"
+    },
+    {
+     "who": "wanko",
+     "text": "がちゃん、すごい！",
+     "kind": "say"
+    },
+    {
+     "who": "gachan",
+     "text": "えへへ、ちょっと どきどき した",
      "kind": "say"
     }
    ]

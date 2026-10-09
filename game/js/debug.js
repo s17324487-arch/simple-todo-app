@@ -414,7 +414,7 @@ const PokaDebug = {
   },
   homeActions() {
     if(G.sceneName!=='house')return null;const sc=G.scene;
-    return {next:sc.actions.next,time:sc.actions.time,available:HomeActions.available(sc).map(k=>k.id),kinds:HomeActions.kinds.map(k=>k.id),log:sc.actions.log.map(x=>({...x})),chars:sc.chars.map(c=>({id:c.id,state:c.state,x:c.x,y:c.y,activity:c.activity?{...c.activity}:null})),talkNext:sc.life.next,talkDelay:{normal:HomeLife.nextDelay(false),watching:HomeLife.nextDelay(true)}};
+    return {next:sc.actions.next,time:sc.actions.time,available:HomeActions.available(sc).map(k=>k.id),kinds:HomeActions.kinds.map(k=>k.id),gachanKinds:HomeActions.available(sc,{id:'gachan'}).filter(k=>HomeActions.gachanKinds.includes(k)).map(k=>k.id),log:sc.actions.log.map(x=>({...x})),chars:sc.chars.map(c=>({id:c.id,state:c.state,x:c.x,y:c.y,activity:c.activity?{...c.activity}:null})),talkNext:sc.life.next,talkDelay:{normal:HomeLife.nextDelay(false),watching:HomeLife.nextDelay(true)}};
   },
   homeActionSchedule() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;HomeActions.init(G.scene);return true;},
   homeAction(id,kind) {

@@ -10,13 +10,19 @@ const HomeActions = {
     {id:'admire',name:'かぐを ながめる',duration:5,near:'floor'}, {id:'toy',name:'おもちゃで あそぶ',duration:6,near:['toybox','teddy']},
     {id:'exercise',name:'たいそう',duration:5}, {id:'spin',name:'くるり',duration:4}, {id:'wave',name:'てを ふる',duration:4},
   ],
+  // がちゃんだけの しぐさ（UI-110）。がちゃんの ばんの はんぶんは ここから。はじめに その しるし（tag）の ひとこと（js/home-life.js の pickTag）
+  gachanKinds: [
+    {id:'draw',name:'おえかき',duration:7,tag:'craft'}, {id:'cook',name:'おままごと',duration:7,tag:'cook'},
+    {id:'tidy',name:'おかたづけ',duration:6,near:['toybox','bookshelf'],tag:'tidy'}, {id:'flower',name:'おはなを ながめる',duration:6,near:['plant','flowerpot','planter'],tag:'flower'},
+  ],
+  GACHAN_SHARE: .5,
   init(sc) {sc.actions={next:this.INTERVAL,time:0,turn:0,bag:[],log:[]};},
   furniture(sc,k) {
     return (Room.of(sc).items||[]).filter(it=>FURN_INDEX[it.id] && (k.near==='floor'?FURN_INDEX[it.id].kind==='floor':k.near?.includes(it.id)));
   },
-  available(sc) {return this.kinds.filter(k=>!k.near||this.furniture(sc,k).length);},
+  available(sc,c) {return (c&&c.id==='gachan'?[...this.kinds,...this.gachanKinds]:this.kinds).filter(k=>!k.near||this.furniture(sc,k).length);},
   start(sc,c,id) {
-    const k=this.available(sc).find(k=>k.id===id);
+    const k=this.available(sc,c).find(k=>k.id===id);
     if(!k||!c||c.hidden||sc.mode||sc.life.quarrel||sc.parents.some(p=>p.target===c.id)||!['idle','walk'].includes(c.state))return false;
     const items=k.near?this.furniture(sc,k):[];
     const it=items.sort((a,b)=>{const p=sc.anchor(a),q=sc.anchor(b);return Math.hypot(p.x-c.x,p.y-c.y)-Math.hypot(q.x-c.x,q.y-c.y);})[0];
@@ -26,6 +32,7 @@ const HomeActions = {
     if(it){const p=sc.anchor(it),m=HomeDesign.model(it.id,it);c.state='walk';c.tx=U.clamp(p.x+30,40,ROOM.W-40);c.ty=U.clamp(id==='peek'?Math.min(p.y-60,p.y-m.footD-16):p.y+24,ROOM.WALL+65,ROOM.H-30);}
     else c.state='activity';
     sc.actions.log.push({id,who:c.id,time:sc.actions.time,uid:a.uid});if(sc.actions.log.length>40)sc.actions.log.shift();
+    if(k.tag&&typeof HomeLife!=='undefined'&&sc.life&&!sc.life.queue.length)HomeLife.sayLine(sc,HomeLife.pickTag(sc,c.id,k.tag));
     return true;
   },
   cancel(c) {if(!c.activity)return;delete c.activity;if(c.state==='activity'){c.state='idle';c.t=2;c.emo=null;}},
@@ -49,9 +56,11 @@ const HomeActions = {
     a.next=this.INTERVAL;
     const kids=sc.chars.filter(c=>!c.activity&&!c.hidden&&['idle','walk'].includes(c.state)&&!sc.parents.some(p=>p.target===c.id));
     if(!kids.length)return;
+    const c=kids[a.turn++%kids.length];
+    if(c.id==='gachan'&&U.chance(this.GACHAN_SHARE)){const own=this.available(sc,c).filter(k=>this.gachanKinds.includes(k));if(own.length&&this.start(sc,c,U.pick(own).id))return;}
     const allowed=this.available(sc).map(k=>k.id);a.bag=a.bag.filter(id=>allowed.includes(id));
     if(!a.bag.length)a.bag=U.shuffle([...allowed]);
-    this.start(sc,kids[a.turn++%kids.length],a.bag.pop());
+    this.start(sc,c,a.bag.pop());
   },
   visual(c) {
     const a=c.activity;if(!a||a.stage!=='act')return null;
@@ -71,6 +80,10 @@ const HomeActions = {
     if(k==='exercise'){v.sy=1-.15*Math.max(0,osc);v.pose=osc>0?'land_01':'idle_02';}
     if(k==='spin'){v.dir=['down','left','up','right'][Math.floor(t*4)%4];v.y=-Math.abs(osc)*4;}
     if(k==='wave'){v.pose=osc>0?'jump_01':'idle_01';v.angle=osc*.05;}
+    if(k==='draw'){v.pose='land_01';v.sy=.86;v.face='happy';v.y=-6;v.angle=.04*Math.sin(t*3);}
+    if(k==='cook'){v.face='happy';v.dir='right';v.angle=.06*Math.sin(t*4);v.y=-Math.abs(Math.sin(t*4))*2;}
+    if(k==='tidy'){v.pose=osc>0?'land_01':'idle_02';v.sy=osc>0?.9:1;v.dir='left';}
+    if(k==='flower'){v.face='love';v.pose='land_01';v.sy=.88;v.angle=.05*Math.sin(t*1.5);}
     return v;
   },
   props(sc,ctx,c,p,s) {
@@ -93,6 +106,26 @@ const HomeActions = {
       ctx.fillStyle='#F1B3B4';ctx.beginPath();ctx.arc(25+Math.sin(t*4)*15,-9-Math.abs(Math.sin(t*4))*16,9,0,Math.PI*2);ctx.fill();ctx.stroke();
     }
     if(k==='admire'){FX.star(ctx,-26,-68,5,'#FFE066');FX.star(ctx,30,-90,6,'#FFE066');}
+    if(k==='draw'){
+      // スケッチブックと クレヨン（いろが かわる）
+      ctx.fillStyle='#FFFDF6';ctx.beginPath();ctx.roundRect(8,-20,40,28,3);ctx.fill();ctx.stroke();
+      ctx.strokeStyle='#E98AA6';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(22,-6,6,0,Math.PI*2*Math.min(1,t/3));ctx.stroke();
+      ctx.strokeStyle='#7CC4E8';ctx.beginPath();ctx.moveTo(32,0);ctx.lineTo(32+Math.min(10,t*2),-8);ctx.stroke();
+      const cx=28+Math.sin(t*6)*9,cy=-10+Math.cos(t*5)*5,col=['#E98AA6','#7CC4E8','#F2C24E'][Math.floor(t/2.4)%3];
+      ctx.fillStyle=col;ctx.strokeStyle=INK;ctx.lineWidth=1.5;ctx.save();ctx.translate(cx,cy);ctx.rotate(-.6);ctx.beginPath();ctx.roundRect(-3,-14,6,14,2);ctx.fill();ctx.stroke();ctx.restore();
+    }
+    if(k==='cook'){
+      // おままごとの フライパンと ホットケーキ（ときどき ぽんっと はねる）
+      ctx.fillStyle='#5C5754';ctx.beginPath();ctx.ellipse(34,-34,15,5,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.strokeStyle='#8A6A4A';ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(20,-33);ctx.lineTo(4,-29);ctx.stroke();
+      const hop=Math.max(0,Math.sin(t*2.2))*14;ctx.fillStyle='#F2C77E';ctx.strokeStyle=INK;ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(34,-38-hop,10,3.5,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    }
+    if(k==='tidy'){
+      // おもちゃばこへ ブロックを しまう
+      ctx.fillStyle='#F5D08A';ctx.beginPath();ctx.roundRect(-52,-16,26,18,3);ctx.fill();ctx.stroke();
+      const u=(t*1.2)%1,bx=-14-u*26,by=-30+Math.sin(u*Math.PI)*-14+u*16;ctx.fillStyle=['#9BD3A6','#F3A3B5','#9CC6EE'][Math.floor(t*1.2)%3];ctx.beginPath();ctx.roundRect(bx-5,by-5,10,10,2);ctx.fill();ctx.stroke();
+    }
+    if(k==='flower'){for(let i=0;i<2;i++)FX.heart(ctx,-22+i*44,-78-((t*10+i*9)%22),5);}
     if(k==='stumble'&&t<1.7){ctx.strokeStyle='#D69D53';ctx.beginPath();ctx.moveTo(28,-66);ctx.lineTo(37,-72);ctx.moveTo(28,-57);ctx.lineTo(39,-58);ctx.stroke();}
     ctx.restore();
   },

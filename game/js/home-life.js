@@ -125,8 +125,16 @@ const HomeLife = {
   pickLine(sc, who, groups, need) {
     const D = this.data(); if (!D) return null;
     const c = sc.chars.find(x => x.id === who) || (sc.parents || []).find(x => x.id === who);
-    const list = D.lines.filter(l => l.who === who && groups.includes(l.group) && (!need || (l.when && l.when[need])));
+    // tagChance: その しるしの セリフは この わりあいで だけ こうほに いれる（がちゃんの「ひとりは いや」は 4かいに 1かい。UI-110）
+    const tc = D.voice?.[who]?.tagChance || {};
+    const list = D.lines.filter(l => l.who === who && groups.includes(l.group) && (!need || (l.when && l.when[need])) && (!l.tag || tc[l.tag] == null || Math.random() < tc[l.tag]));
     return U.condPick(list, this.talkCtx(sc, c), sc.life.recent);
+  },
+  // しるし（home-lines.mjs の PERSONA の tag）の セリフを 1つ（がちゃんの しぐさの はじめの ひとこと。js/home-actions.js）
+  pickTag(sc, who, tag) {
+    const D = this.data(); if (!D) return null;
+    const c = sc.chars.find(x => x.id === who);
+    return U.condPick(D.lines.filter(l => l.who === who && l.tag === tag), this.talkCtx(sc, c), sc.life.recent);
   },
   sayLine(sc, l) {
     if (!l) return false;
@@ -184,13 +192,25 @@ const HomeLife = {
     if (l.sniffs.length >= (v.scoldAfter || 3)) { l.sniffs = []; if (this.playTalk(sc, this.talkById(v.talk))) return; }
     this.say(sc, "wanko", v.template.replace("{furn}", near.name), false, "say", { sniff: near.key });
   },
-  // がちゃんが ほかの 2人から 120 いじょう はなれて 8秒 → かけあい not-alone（60秒に 1回まで）
+  // がちゃんが ほかの 2人から 120 いじょう はなれて 25秒 → ひとりの ときの かけあい（UI-110: 10分に 1回まで・そのうち 35%。
+  // 「ひとりに しないで」だけで なく 4しゅるいから えらぶ。come の かけあいの あとは いちばん ちかい 子の そばへ あるいて いく）
   alone(sc, dt) {
     const v = this.data()?.voice?.gachan?.alone, l = sc.life; if (!v) return;
     const g = sc.chars.find(c => c.id === "gachan"), others = sc.chars.filter(c => c.id !== "gachan" && !c.hidden);
     const far = !!g && !g.hidden && others.length > 0 && others.every(o => Math.hypot(o.x - g.x, o.y - g.y) > v.distPx);
     l.aloneT = far ? l.aloneT + dt : 0;
-    if (l.aloneT > v.sec && !l.queue.length && !l.quarrel && l.time - l.aloneAt > 120) { l.aloneT = 0; l.aloneAt = l.time; this.playTalk(sc, this.talkById(v.talk)); }
+    if (l.aloneT > v.sec && !l.queue.length && !l.quarrel && l.time - l.aloneAt > (v.cooldownSec || 120)) {
+      l.aloneT = 0; l.aloneAt = l.time;
+      if (!U.chance(v.chance == null ? 1 : v.chance)) return;
+      const id = U.pick(v.talks || [v.talk]);
+      if (this.playTalk(sc, this.talkById(id)) && (v.come || []).includes(id)) this.joinFriends(sc, g, others);
+    }
+  },
+  joinFriends(sc, g, others) {
+    const o = others.slice().sort((a, b) => Math.hypot(a.x - g.x, a.y - g.y) - Math.hypot(b.x - g.x, b.y - g.y))[0];
+    if (!o || g.activity || !["idle", "walk"].includes(g.state)) return false;
+    g.state = "walk"; g.tx = U.clamp(o.x + (g.x < o.x ? -36 : 36), 40, ROOM.W - 40); g.ty = U.clamp(o.y + 8, ROOM.WALL + 65, ROOM.H - 30);
+    return true;
   },
   nextDelay(watching) { return watching ? U.rand(14, 22) : U.rand(24, 40); },
   update(sc, dt) {

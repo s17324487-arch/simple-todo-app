@@ -1,8 +1,8 @@
 # おうちの 会話 一覧（自動生成）
 
-- ひとこと **658** 種 ＋ かけあい **171** 種（621 セリフ）＝ **829** 種
-- 内訳: わんこ／context 156、がちゃん／context 156、ごじ／context 156、わんこ／persona 45、がちゃん／persona 45、ごじ／persona 45、ぱぱ／parent 20、まま／parent 20、わんこ／rare 5、がちゃん／rare 5、ごじ／rare 5
-- 条件ごとの 数: time 109、weather 72、season 56、festival 37、room 24、near 75、state 51、event 45
+- ひとこと **709** 種 ＋ かけあい **186** 種（676 セリフ）＝ **895** 種
+- 内訳: わんこ／context 156、がちゃん／context 171、ごじ／context 156、わんこ／persona 45、がちゃん／persona 81、ごじ／persona 45、ぱぱ／parent 20、まま／parent 20、わんこ／rare 5、がちゃん／rare 5、ごじ／rare 5
+- 条件ごとの 数: time 112、weather 75、season 60、festival 37、room 25、near 80、state 51、event 45
 - 条件の 書きかたは [CODEX_TASK.md](CODEX_TASK.md) の「条件」を 見る。
 
 ## わんこ
@@ -11,51 +11,51 @@
 
 | id | 文 | 条件 | 形 |
 | --- | --- | --- | --- |
-| wa0469 | こまってる ひとは、ぼくが たすける！ | 〔justice〕 いつでも | say |
-| wa0470 | ずるは だめ！ じゅんばんこ だよ | 〔justice〕 いつでも | say |
-| wa0471 | せいぎの みかた、わんこ さんじょう！ | 〔justice〕 いつでも | shout |
-| wa0472 | いじわるは ゆるさないぞ！ | 〔justice〕 いつでも | say |
-| wa0473 | がちゃんを なかせたら、ぼくが おこるよ！ | 〔justice〕 いつでも | say |
-| wa0474 | おもちゃは みんなの ものだよ | 〔justice〕 いつでも | say |
-| wa0475 | ごみは ごみばこへ！ まちを きれいに | 〔justice〕 いつでも | say |
-| wa0476 | やくそくは まもるもん！ | 〔justice〕 いつでも | say |
-| wa0477 | ないしょで おやつ… ひとつ だけ… | 〔sly〕 いつでも | whisper |
-| wa0478 | ばれなきゃ へいき… かな？ | 〔sly〕 いつでも | whisper |
-| wa0479 | ごじの プリン、たべて いい？ いいよね？ | 〔sly〕 いつでも | say |
-| wa0480 | ぼくが かったら、デザ ふたつね！ | 〔sly〕 いつでも | say |
-| wa0481 | しーっ！ ままには ひみつ だよ | 〔sly〕 いつでも | whisper |
-| wa0482 | じゃんけん、あとだし… なんでも ないよ | 〔sly〕 いつでも | say |
-| wa0483 | かくれんぼ、こっそり みちゃった | 〔sly〕 いつでも | say |
-| wa0484 | ぼくの おかし、ちょっと おおきい ほうね | 〔sly〕 いつでも | say |
-| wa0485 | クンクン… これ なんの におい？ | 〔sniff〕 いつでも | say |
-| wa0486 | クンクン… ここ、ごじの におい！ | 〔sniff〕 いつでも | say |
-| wa0487 | クンクン… ソファの したに なにか ある！ | 〔sniff〕 いつでも | say |
-| wa0488 | クンクン… がちゃん、おやつ たべた？ | 〔sniff〕 いつでも | say |
-| wa0489 | クンクン、クンクン… とまらない！ | 〔sniff〕 いつでも | say |
-| wa0490 | においで だれか わかっちゃう | 〔sniff〕 いつでも | say |
-| wa0491 | クンクン… ぱぱの くつした！ うっ | 〔sniff〕 いつでも | say |
-| wa0492 | クンクン… きょうの ごはんは カレーだ！ | 〔sniff〕 いつでも | say |
-| wa0493 | くんくん たんてい、しゅつどう！ | 〔sniff〕 いつでも | shout |
-| wa0494 | においを たどって、たからさがし！ | 〔sniff〕 いつでも | say |
-| wa0495 | あっ… また クンクン しすぎた？ | 〔scolded〕 いつでも | say |
-| wa0496 | ままに おこられちゃった… くぅん | 〔scolded〕 いつでも | cry |
-| wa0497 | もう クンクン しない… たぶん | 〔scolded〕 いつでも | say |
-| wa0498 | おふろ はいりたい！ いま すぐ！ | 〔bath〕 いつでも | shout |
-| wa0499 | あわあわ おふろ、だいすき！ | 〔bath〕 いつでも | say |
-| wa0500 | おふろで うた うたおうよ | 〔bath〕 いつでも | say |
-| wa0501 | シャンプーの におい、いい におい | 〔bath〕 いつでも | say |
-| wa0502 | おふろ あがりは ぽかぽか〜 | 〔bath〕 いつでも | say |
-| wa0503 | おゆに ぷかぷか… しあわせ | 〔bath〕 いつでも | say |
-| wa0504 | ぱぱ、いっしょに おふろ はいろ！ | 〔bath〕 いつでも | say |
-| wa0505 | どろんこに なったら、おふろ だよね！ | 〔bath〕 いつでも | say |
-| wa0506 | わうーん！ | 〔howl〕 いつでも | shout |
-| wa0507 | わうーん！ きこえたかな？ | 〔howl〕 いつでも | shout |
-| wa0508 | おつきさまに むかって… わうーん！ | 〔howl〕 いつでも | shout |
-| wa0509 | うれしくて、わうーん！ | 〔howl〕 いつでも | shout |
-| wa0510 | とおくの だれかに、わうーん！ | 〔howl〕 いつでも | shout |
-| wa0511 | わうーん！ …あ、ちょっと おおきすぎた | 〔howl〕 いつでも | say |
-| wa0512 | サイレンに あわせて… わうーん | 〔howl〕 いつでも | say |
-| wa0513 | わうーん！ みんなも いっしょに！ | 〔howl〕 いつでも | shout |
+| wa0484 | こまってる ひとは、ぼくが たすける！ | 〔justice〕 いつでも | say |
+| wa0485 | ずるは だめ！ じゅんばんこ だよ | 〔justice〕 いつでも | say |
+| wa0486 | せいぎの みかた、わんこ さんじょう！ | 〔justice〕 いつでも | shout |
+| wa0487 | いじわるは ゆるさないぞ！ | 〔justice〕 いつでも | say |
+| wa0488 | がちゃんを なかせたら、ぼくが おこるよ！ | 〔justice〕 いつでも | say |
+| wa0489 | おもちゃは みんなの ものだよ | 〔justice〕 いつでも | say |
+| wa0490 | ごみは ごみばこへ！ まちを きれいに | 〔justice〕 いつでも | say |
+| wa0491 | やくそくは まもるもん！ | 〔justice〕 いつでも | say |
+| wa0492 | ないしょで おやつ… ひとつ だけ… | 〔sly〕 いつでも | whisper |
+| wa0493 | ばれなきゃ へいき… かな？ | 〔sly〕 いつでも | whisper |
+| wa0494 | ごじの プリン、たべて いい？ いいよね？ | 〔sly〕 いつでも | say |
+| wa0495 | ぼくが かったら、デザ ふたつね！ | 〔sly〕 いつでも | say |
+| wa0496 | しーっ！ ままには ひみつ だよ | 〔sly〕 いつでも | whisper |
+| wa0497 | じゃんけん、あとだし… なんでも ないよ | 〔sly〕 いつでも | say |
+| wa0498 | かくれんぼ、こっそり みちゃった | 〔sly〕 いつでも | say |
+| wa0499 | ぼくの おかし、ちょっと おおきい ほうね | 〔sly〕 いつでも | say |
+| wa0500 | クンクン… これ なんの におい？ | 〔sniff〕 いつでも | say |
+| wa0501 | クンクン… ここ、ごじの におい！ | 〔sniff〕 いつでも | say |
+| wa0502 | クンクン… ソファの したに なにか ある！ | 〔sniff〕 いつでも | say |
+| wa0503 | クンクン… がちゃん、おやつ たべた？ | 〔sniff〕 いつでも | say |
+| wa0504 | クンクン、クンクン… とまらない！ | 〔sniff〕 いつでも | say |
+| wa0505 | においで だれか わかっちゃう | 〔sniff〕 いつでも | say |
+| wa0506 | クンクン… ぱぱの くつした！ うっ | 〔sniff〕 いつでも | say |
+| wa0507 | クンクン… きょうの ごはんは カレーだ！ | 〔sniff〕 いつでも | say |
+| wa0508 | くんくん たんてい、しゅつどう！ | 〔sniff〕 いつでも | shout |
+| wa0509 | においを たどって、たからさがし！ | 〔sniff〕 いつでも | say |
+| wa0510 | あっ… また クンクン しすぎた？ | 〔scolded〕 いつでも | say |
+| wa0511 | ままに おこられちゃった… くぅん | 〔scolded〕 いつでも | cry |
+| wa0512 | もう クンクン しない… たぶん | 〔scolded〕 いつでも | say |
+| wa0513 | おふろ はいりたい！ いま すぐ！ | 〔bath〕 いつでも | shout |
+| wa0514 | あわあわ おふろ、だいすき！ | 〔bath〕 いつでも | say |
+| wa0515 | おふろで うた うたおうよ | 〔bath〕 いつでも | say |
+| wa0516 | シャンプーの におい、いい におい | 〔bath〕 いつでも | say |
+| wa0517 | おふろ あがりは ぽかぽか〜 | 〔bath〕 いつでも | say |
+| wa0518 | おゆに ぷかぷか… しあわせ | 〔bath〕 いつでも | say |
+| wa0519 | ぱぱ、いっしょに おふろ はいろ！ | 〔bath〕 いつでも | say |
+| wa0520 | どろんこに なったら、おふろ だよね！ | 〔bath〕 いつでも | say |
+| wa0521 | わうーん！ | 〔howl〕 いつでも | shout |
+| wa0522 | わうーん！ きこえたかな？ | 〔howl〕 いつでも | shout |
+| wa0523 | おつきさまに むかって… わうーん！ | 〔howl〕 いつでも | shout |
+| wa0524 | うれしくて、わうーん！ | 〔howl〕 いつでも | shout |
+| wa0525 | とおくの だれかに、わうーん！ | 〔howl〕 いつでも | shout |
+| wa0526 | わうーん！ …あ、ちょっと おおきすぎた | 〔howl〕 いつでも | say |
+| wa0527 | サイレンに あわせて… わうーん | 〔howl〕 いつでも | say |
+| wa0528 | わうーん！ みんなも いっしょに！ | 〔howl〕 いつでも | shout |
 
 ### まわりに あわせた ひとこと（156）
 
@@ -222,65 +222,101 @@
 
 | id | 文 | 条件 | 形 |
 | --- | --- | --- | --- |
-| wa0644 | ゆめで おほしさまを つかまえた！ | いつでも | say |
-| wa0645 | しっぽで ハートが かけた！ | いつでも | say |
-| wa0646 | くもの かたちが、ぼくと そっくり！ | いつでも | say |
-| wa0647 | ぼくの におい、しあわせの におい？ | いつでも | say |
-| wa0648 | よつばの クローバー、みつけた！ | いつでも | say |
+| wa0695 | ゆめで おほしさまを つかまえた！ | いつでも | say |
+| wa0696 | しっぽで ハートが かけた！ | いつでも | say |
+| wa0697 | くもの かたちが、ぼくと そっくり！ | いつでも | say |
+| wa0698 | ぼくの におい、しあわせの におい？ | いつでも | say |
+| wa0699 | よつばの クローバー、みつけた！ | いつでも | say |
 
 ## がちゃん
 
-### 性格の セリフ（45）
+### 性格の セリフ（81）
 
 | id | 文 | 条件 | 形 |
 | --- | --- | --- | --- |
-| ga0514 | こわいよぉ… ままー たすけてー | 〔scared〕 いつでも | cry |
-| ga0515 | ままー！ たすけてー！ | 〔scared〕 いつでも | cry |
-| ga0516 | ふぇぇ… なみだ でちゃう | 〔scared〕 いつでも | cry |
-| ga0517 | ぐすん… でも、なかないもん | 〔scared〕 いつでも | cry |
-| ga0518 | おばけ… いない？ ほんとに？ | 〔scared〕 いつでも | say |
-| ga0519 | くらい ところは ちょっと にがて | 〔scared〕 いつでも | say |
-| ga0520 | おおきな おと、びっくり した… | 〔scared〕 いつでも | say |
-| ga0521 | むしさん… こっち こないで〜 | 〔scared〕 いつでも | say |
-| ga0522 | ないちゃった… ないしょに してね | 〔scared〕 いつでも | whisper |
-| ga0523 | こわく ないよ… たぶん… | 〔scared〕 いつでも | say |
-| ga0524 | ひとりに しないで〜 | 〔alone〕 いつでも | cry |
-| ga0525 | まって〜！ おいて いかないで〜 | 〔alone〕 いつでも | shout |
-| ga0526 | みんな、どこ？ …いた！ よかった | 〔alone〕 いつでも | say |
-| ga0527 | ひとりで おるすばん、できないよぉ | 〔alone〕 いつでも | say |
-| ga0528 | ずっと いっしょに いてね | 〔alone〕 いつでも | say |
-| ga0529 | となりに いて くれる？ | 〔alone〕 いつでも | say |
-| ga0530 | さきに ねちゃ いやだよ | 〔alone〕 いつでも | say |
-| ga0531 | トイレの まえで まってて ね | 〔alone〕 いつでも | say |
-| ga0532 | まま、だっこ〜 | 〔amae〕 いつでも | say |
-| ga0533 | ぱぱの おひざ、がちゃんの せき！ | 〔amae〕 いつでも | say |
-| ga0534 | なでなで して〜 | 〔amae〕 いつでも | say |
-| ga0535 | あーん して ほしいな | 〔amae〕 いつでも | say |
-| ga0536 | もっと ぎゅー して〜 | 〔amae〕 いつでも | say |
-| ga0537 | いっしょに ねよ？ おねがい | 〔amae〕 いつでも | say |
-| ga0538 | ままの て、あったかい | 〔amae〕 いつでも | say |
-| ga0539 | ぱぱ、おんぶ〜 | 〔amae〕 いつでも | say |
-| ga0540 | だいじょうぶ？ いたいの とんでけー | 〔kind〕 いつでも | say |
-| ga0541 | はんぶんこ しようね | 〔kind〕 いつでも | say |
-| ga0542 | ごじ、ないてるの？ よしよし | 〔kind〕 いつでも | say |
-| ga0543 | わんこ、ありがとう♪ | 〔kind〕 いつでも | say |
-| ga0544 | おはなさんにも おみず あげよ | 〔kind〕 いつでも | say |
-| ga0545 | みんなが わらうと うれしい | 〔kind〕 いつでも | say |
-| ga0546 | けんかは やめて、なかよく しよ | 〔kind〕 いつでも | say |
-| ga0547 | ちいさい むしさんも、なかま だね | 〔kind〕 いつでも | say |
-| ga0548 | つかれた？ ここ すわって いいよ | 〔kind〕 いつでも | say |
-| ga0549 | こわいけど… がんばって みる！ | 〔brave〕 いつでも | say |
-| ga0550 | きょうは なかなかった！ えらい？ | 〔brave〕 いつでも | say |
-| ga0551 | わんこと いっしょなら、へいき | 〔brave〕 いつでも | say |
-| ga0552 | ごじが いれば、こわく ないよ | 〔brave〕 いつでも | say |
-| ga0553 | ひとりで できた… ちょっと だけ | 〔brave〕 いつでも | say |
-| ga0554 | がちゃんも、みんなを まもる！ | 〔brave〕 いつでも | shout |
-| ga0555 | ままー… じゃなくて、じぶんで やる！ | 〔brave〕 いつでも | say |
-| ga0556 | ゆうき、だしたよ！ ほめて？ | 〔brave〕 いつでも | say |
-| ga0557 | こわかったけど、たのしかった！ | 〔brave〕 いつでも | say |
-| ga0558 | つぎは なかないで いられるかも | 〔brave〕 いつでも | say |
+| ga0529 | こわいよぉ… ままー たすけてー | 〔scared〕 いつでも | cry |
+| ga0530 | ままー！ たすけてー！ | 〔scared〕 いつでも | cry |
+| ga0531 | ふぇぇ… なみだ でちゃう | 〔scared〕 いつでも | cry |
+| ga0532 | ぐすん… でも、なかないもん | 〔scared〕 いつでも | cry |
+| ga0533 | おばけ… いない？ ほんとに？ | 〔scared〕 いつでも | say |
+| ga0534 | くらい ところは ちょっと にがて | 〔scared〕 いつでも | say |
+| ga0535 | おおきな おと、びっくり した… | 〔scared〕 いつでも | say |
+| ga0536 | むしさん… こっち こないで〜 | 〔scared〕 いつでも | say |
+| ga0537 | ないちゃった… ないしょに してね | 〔scared〕 いつでも | whisper |
+| ga0538 | こわく ないよ… たぶん… | 〔scared〕 いつでも | say |
+| ga0539 | ひとりに しないで〜 | 〔alone〕 いつでも | cry |
+| ga0540 | まって〜！ おいて いかないで〜 | 〔alone〕 いつでも | shout |
+| ga0541 | みんな、どこ？ …いた！ よかった | 〔alone〕 いつでも | say |
+| ga0542 | ひとりで おるすばん、できないよぉ | 〔alone〕 いつでも | say |
+| ga0543 | ずっと いっしょに いてね | 〔alone〕 いつでも | say |
+| ga0544 | となりに いて くれる？ | 〔alone〕 いつでも | say |
+| ga0545 | さきに ねちゃ いやだよ | 〔alone〕 いつでも | say |
+| ga0546 | トイレの まえで まってて ね | 〔alone〕 いつでも | say |
+| ga0547 | まま、だっこ〜 | 〔amae〕 いつでも | say |
+| ga0548 | ぱぱの おひざ、がちゃんの せき！ | 〔amae〕 いつでも | say |
+| ga0549 | なでなで して〜 | 〔amae〕 いつでも | say |
+| ga0550 | あーん して ほしいな | 〔amae〕 いつでも | say |
+| ga0551 | もっと ぎゅー して〜 | 〔amae〕 いつでも | say |
+| ga0552 | いっしょに ねよ？ おねがい | 〔amae〕 いつでも | say |
+| ga0553 | ままの て、あったかい | 〔amae〕 いつでも | say |
+| ga0554 | ぱぱ、おんぶ〜 | 〔amae〕 いつでも | say |
+| ga0555 | だいじょうぶ？ いたいの とんでけー | 〔kind〕 いつでも | say |
+| ga0556 | はんぶんこ しようね | 〔kind〕 いつでも | say |
+| ga0557 | ごじ、ないてるの？ よしよし | 〔kind〕 いつでも | say |
+| ga0558 | わんこ、ありがとう♪ | 〔kind〕 いつでも | say |
+| ga0559 | おはなさんにも おみず あげよ | 〔kind〕 いつでも | say |
+| ga0560 | みんなが わらうと うれしい | 〔kind〕 いつでも | say |
+| ga0561 | けんかは やめて、なかよく しよ | 〔kind〕 いつでも | say |
+| ga0562 | ちいさい むしさんも、なかま だね | 〔kind〕 いつでも | say |
+| ga0563 | つかれた？ ここ すわって いいよ | 〔kind〕 いつでも | say |
+| ga0564 | こわいけど… がんばって みる！ | 〔brave〕 いつでも | say |
+| ga0565 | きょうは なかなかった！ えらい？ | 〔brave〕 いつでも | say |
+| ga0566 | わんこと いっしょなら、へいき | 〔brave〕 いつでも | say |
+| ga0567 | ごじが いれば、こわく ないよ | 〔brave〕 いつでも | say |
+| ga0568 | ひとりで できた… ちょっと だけ | 〔brave〕 いつでも | say |
+| ga0569 | がちゃんも、みんなを まもる！ | 〔brave〕 いつでも | shout |
+| ga0570 | ままー… じゃなくて、じぶんで やる！ | 〔brave〕 いつでも | say |
+| ga0571 | ゆうき、だしたよ！ ほめて？ | 〔brave〕 いつでも | say |
+| ga0572 | こわかったけど、たのしかった！ | 〔brave〕 いつでも | say |
+| ga0573 | つぎは なかないで いられるかも | 〔brave〕 いつでも | say |
+| ga0574 | おえかき したよ。みんなの かお！ | 〔craft〕 いつでも | say |
+| ga0575 | クレヨンの いろ、ぜんぶ つかいたい | 〔craft〕 いつでも | say |
+| ga0576 | おりがみで ことり おったよ♪ | 〔craft〕 いつでも | say |
+| ga0577 | ビーズで ブレスレット つくるの | 〔craft〕 いつでも | say |
+| ga0578 | この え、ままに プレゼント する | 〔craft〕 いつでも | say |
+| ga0579 | はさみは ゆっくり、ちょきちょき | 〔craft〕 いつでも | say |
+| ga0580 | ♪ ぽかぽか〜 ぴよぴよ〜 | 〔song〕 いつでも | say |
+| ga0581 | あたらしい うた、つくっちゃった♪ | 〔song〕 いつでも | say |
+| ga0582 | ハミング… ふんふふーん♪ | 〔song〕 いつでも | say |
+| ga0583 | うたうと こころが かるく なるね | 〔song〕 いつでも | say |
+| ga0584 | ことりさんと いっしょに うたお♪ | 〔song〕 いつでも | say |
+| ga0585 | こんどの うたで、みんなで おどろうね | 〔song〕 いつでも | say |
+| ga0586 | おはなの なまえ、いっぱい いえるよ | 〔flower〕 いつでも | say |
+| ga0587 | つぼみ、あしたには ひらくかな | 〔flower〕 いつでも | say |
+| ga0588 | はっぱの みどり、きれいだね | 〔flower〕 いつでも | say |
+| ga0589 | おはなの かんむり、つくって みたい | 〔flower〕 いつでも | say |
+| ga0590 | たねを まいたら、なにが さくかな | 〔flower〕 いつでも | say |
+| ga0591 | おはなに『きょうも かわいいね』 | 〔flower〕 いつでも | say |
+| ga0592 | おもちゃ、なかまごとに ならべたよ | 〔tidy〕 いつでも | say |
+| ga0593 | ぴかぴかに すると きもちいい♪ | 〔tidy〕 いつでも | say |
+| ga0594 | ほんだな、いろの じゅんに したの | 〔tidy〕 いつでも | say |
+| ga0595 | くつしたの かたほう、みーつけた | 〔tidy〕 いつでも | say |
+| ga0596 | おかたづけ、きょうそう しよっ | 〔tidy〕 いつでも | say |
+| ga0597 | ごみは ごみばこへ、ぽいっ♪ | 〔tidy〕 いつでも | say |
+| ga0598 | ねえねえ、くもって なんで うくの？ | 〔curious〕 いつでも | say |
+| ga0599 | おほしさまって、いくつ あるの？ | 〔curious〕 いつでも | say |
+| ga0600 | あれ なあに？ しりたい！ | 〔curious〕 いつでも | say |
+| ga0601 | ずかんで しらべて みよっと | 〔curious〕 いつでも | say |
+| ga0602 | ありさんの おうち、どこかな | 〔curious〕 いつでも | say |
+| ga0603 | どうして おそらは あおいの？ | 〔curious〕 いつでも | say |
+| ga0604 | おままごと、がちゃんは コックさん | 〔cook〕 いつでも | say |
+| ga0605 | ホットケーキ、ふわふわに やけるかな | 〔cook〕 いつでも | say |
+| ga0606 | おにぎり、ハートの かたち♪ | 〔cook〕 いつでも | say |
+| ga0607 | あじみ… うん、おいしい！ | 〔cook〕 いつでも | say |
+| ga0608 | エプロン、にあう？ | 〔cook〕 いつでも | say |
+| ga0609 | おやつに クッキー やこうかな | 〔cook〕 いつでも | say |
 
-### まわりに あわせた ひとこと（156）
+### まわりに あわせた ひとこと（171）
 
 | id | 文 | 条件 | 形 |
 | --- | --- | --- | --- |
@@ -440,16 +476,31 @@
 | ga0310 | やさしい きもちに なるね | いつでも | say |
 | ga0311 | きょうは なに する？ いっしょが いいな | いつでも | say |
 | ga0312 | ありがとうって いうと、うれしいね | いつでも | say |
+| ga0313 | まどの そと、ちょうちょ みつけた | time:day | say |
+| ga0314 | ゆうやけで おそらが ピンク♪ | time:evening | say |
+| ga0315 | おふとん ふかふか… えへへ | near:bed | say |
+| ga0316 | ピアノで ぴよぴよの うた ひくね | near:piano | say |
+| ga0317 | ほんの えに、ことりが いたよ | near:bookshelf | say |
+| ga0318 | きんぎょさん、きょうも げんき？ | near:fishbowl | say |
+| ga0319 | こたつで みかん、しあわせ♪ | near:kotatsu season:winter | say |
+| ga0320 | あめの おと、リズム みたい♪ | weather:rain | say |
+| ga0321 | ゆきの けっしょう、ほしの かたち | weather:snow | say |
+| ga0322 | かぜさん、ぴゅーって うたってる | weather:wind | say |
+| ga0323 | さくら、ひらひら おどってる♪ | season:spring | say |
+| ga0324 | せみさんの がっしょう、にぎやか | season:summer | say |
+| ga0325 | おちば、きいろと あかの じゅうたん | season:autumn | say |
+| ga0326 | おにわの くさ、いい におい | room:garden | say |
+| ga0327 | きょう いちばん わらったの、だれ？ | time:night | say |
 
 ### めずらしい ひとこと（金色）（5）
 
 | id | 文 | 条件 | 形 |
 | --- | --- | --- | --- |
-| ga0649 | しあわせは 3にんぶんより おおきいね | いつでも | say |
-| ga0650 | ままの ゆめ みたの。ぽかぽかだった | いつでも | say |
-| ga0651 | ないても、みんなが いるから へいき | いつでも | say |
-| ga0652 | おはなが『ありがとう』って いった きが する | いつでも | say |
-| ga0653 | にじの はし、わたって みたいな | いつでも | say |
+| ga0700 | しあわせは 3にんぶんより おおきいね | いつでも | say |
+| ga0701 | ままの ゆめ みたの。ぽかぽかだった | いつでも | say |
+| ga0702 | ないても、みんなが いるから へいき | いつでも | say |
+| ga0703 | おはなが『ありがとう』って いった きが する | いつでも | say |
+| ga0704 | にじの はし、わたって みたいな | いつでも | say |
 
 ## ごじ
 
@@ -457,222 +508,222 @@
 
 | id | 文 | 条件 | 形 |
 | --- | --- | --- | --- |
-| go0559 | ガウっ！ …あっ、つい でちゃった | 〔gau〕 いつでも | say |
-| go0560 | ごはんにも ガウっ！ | 〔gau〕 いつでも | shout |
-| go0561 | おはなにも ガウっ… やさしく ね | 〔gau〕 いつでも | say |
-| go0562 | ありがとうの ガウっ！ | 〔gau〕 いつでも | say |
-| go0563 | くしゃみも ガウっ！ ぶえっくしょん | 〔gau〕 いつでも | shout |
-| go0564 | おやすみの ガウっ… | 〔gau〕 いつでも | say |
-| go0565 | うれしい ときも ガウっ！ | 〔gau〕 いつでも | shout |
-| go0566 | びっくり しても ガウっ！ | 〔gau〕 いつでも | shout |
-| go0567 | ガウっ、ガウっ、ガウっ！ リズム♪ | 〔gau〕 いつでも | say |
-| go0568 | きょうも いい ひ …ガゥ | 〔gau-end〕 いつでも | say |
-| go0569 | それ、ぼくも やりたい …ガゥ | 〔gau-end〕 いつでも | say |
-| go0570 | ちょっと ねむい …ガゥ | 〔gau-end〕 いつでも | say |
-| go0571 | がちゃん、なかないで …ガゥ | 〔gau-end〕 いつでも | say |
-| go0572 | わんこ、はやい …ガゥ | 〔gau-end〕 いつでも | say |
-| go0573 | ままの ごはん、せかいいち …ガゥ | 〔gau-end〕 いつでも | say |
-| go0574 | ぱぱ、ひげ じょりじょり …ガゥ | 〔gau-end〕 いつでも | say |
-| go0575 | いっしょが いちばん …ガゥ | 〔gau-end〕 いつでも | say |
-| go0576 | ひとりで おきがえ できた！ | 〔handy〕 いつでも | say |
-| go0577 | くつひも、じぶんで むすべるよ | 〔handy〕 いつでも | say |
-| go0578 | おかたづけ、もう おわったよ | 〔handy〕 いつでも | say |
-| go0579 | こわれた おもちゃ、なおした！ | 〔handy〕 いつでも | say |
-| go0580 | おりがみで かぶと、おった！ | 〔handy〕 いつでも | say |
-| go0581 | ぼうし、じぶんで あんだ ガゥ | 〔handy〕 いつでも | say |
-| go0582 | ひとりで おるすばん、へっちゃら | 〔handy〕 いつでも | say |
-| go0583 | じゃぐちの しめかた、しってるよ | 〔handy〕 いつでも | say |
-| go0584 | ボタン、ぜんぶ とめられた！ | 〔handy〕 いつでも | say |
-| go0585 | おさらあらい、ピカピカ ガウっ | 〔handy〕 いつでも | say |
-| go0586 | しょうらいの ゆめは、おっきく なること！ | 〔dream〕 いつでも | shout |
-| go0587 | おっきく なったら、ビルより おおきく なる | 〔dream〕 いつでも | say |
-| go0588 | おっきく なったら、みんなを まもる | 〔dream〕 いつでも | say |
-| go0589 | ぎゅうにゅう のんで、おっきく なる！ | 〔dream〕 いつでも | say |
-| go0590 | きのうより ちょっと おっきく なった？ | 〔dream〕 いつでも | say |
-| go0591 | せが のびたか はかって！ | 〔dream〕 いつでも | say |
-| go0592 | おっきく なったら、おそらに てが とどく | 〔dream〕 いつでも | say |
-| go0593 | ゆめは おっきく、ぼくも おっきく！ | 〔dream〕 いつでも | say |
-| go0594 | おっきく なっても、みんなと いっしょ | 〔dream〕 いつでも | say |
-| go0595 | しっぽも おっきく なるかな | 〔dream〕 いつでも | say |
-| go0596 | ぎゅー して いいよ？ | 〔charm〕 いつでも | say |
-| go0597 | えへへ、ぼく かわいい？ | 〔charm〕 いつでも | say |
-| go0598 | しっぽ、さわって いいよ | 〔charm〕 いつでも | say |
-| go0599 | ぼくの ほっぺ、ぷにぷに？ | 〔charm〕 いつでも | say |
-| go0600 | みんなが わらうと、ぼくも うれしい | 〔charm〕 いつでも | say |
-| go0601 | ないしょの だいすき、ガウっ | 〔charm〕 いつでも | whisper |
-| go0602 | ぼくの ガウっで げんき だして！ | 〔charm〕 いつでも | say |
-| go0603 | いつも ありがとう ガゥ | 〔charm〕 いつでも | say |
+| go0610 | ガウっ！ …あっ、つい でちゃった | 〔gau〕 いつでも | say |
+| go0611 | ごはんにも ガウっ！ | 〔gau〕 いつでも | shout |
+| go0612 | おはなにも ガウっ… やさしく ね | 〔gau〕 いつでも | say |
+| go0613 | ありがとうの ガウっ！ | 〔gau〕 いつでも | say |
+| go0614 | くしゃみも ガウっ！ ぶえっくしょん | 〔gau〕 いつでも | shout |
+| go0615 | おやすみの ガウっ… | 〔gau〕 いつでも | say |
+| go0616 | うれしい ときも ガウっ！ | 〔gau〕 いつでも | shout |
+| go0617 | びっくり しても ガウっ！ | 〔gau〕 いつでも | shout |
+| go0618 | ガウっ、ガウっ、ガウっ！ リズム♪ | 〔gau〕 いつでも | say |
+| go0619 | きょうも いい ひ …ガゥ | 〔gau-end〕 いつでも | say |
+| go0620 | それ、ぼくも やりたい …ガゥ | 〔gau-end〕 いつでも | say |
+| go0621 | ちょっと ねむい …ガゥ | 〔gau-end〕 いつでも | say |
+| go0622 | がちゃん、なかないで …ガゥ | 〔gau-end〕 いつでも | say |
+| go0623 | わんこ、はやい …ガゥ | 〔gau-end〕 いつでも | say |
+| go0624 | ままの ごはん、せかいいち …ガゥ | 〔gau-end〕 いつでも | say |
+| go0625 | ぱぱ、ひげ じょりじょり …ガゥ | 〔gau-end〕 いつでも | say |
+| go0626 | いっしょが いちばん …ガゥ | 〔gau-end〕 いつでも | say |
+| go0627 | ひとりで おきがえ できた！ | 〔handy〕 いつでも | say |
+| go0628 | くつひも、じぶんで むすべるよ | 〔handy〕 いつでも | say |
+| go0629 | おかたづけ、もう おわったよ | 〔handy〕 いつでも | say |
+| go0630 | こわれた おもちゃ、なおした！ | 〔handy〕 いつでも | say |
+| go0631 | おりがみで かぶと、おった！ | 〔handy〕 いつでも | say |
+| go0632 | ぼうし、じぶんで あんだ ガゥ | 〔handy〕 いつでも | say |
+| go0633 | ひとりで おるすばん、へっちゃら | 〔handy〕 いつでも | say |
+| go0634 | じゃぐちの しめかた、しってるよ | 〔handy〕 いつでも | say |
+| go0635 | ボタン、ぜんぶ とめられた！ | 〔handy〕 いつでも | say |
+| go0636 | おさらあらい、ピカピカ ガウっ | 〔handy〕 いつでも | say |
+| go0637 | しょうらいの ゆめは、おっきく なること！ | 〔dream〕 いつでも | shout |
+| go0638 | おっきく なったら、ビルより おおきく なる | 〔dream〕 いつでも | say |
+| go0639 | おっきく なったら、みんなを まもる | 〔dream〕 いつでも | say |
+| go0640 | ぎゅうにゅう のんで、おっきく なる！ | 〔dream〕 いつでも | say |
+| go0641 | きのうより ちょっと おっきく なった？ | 〔dream〕 いつでも | say |
+| go0642 | せが のびたか はかって！ | 〔dream〕 いつでも | say |
+| go0643 | おっきく なったら、おそらに てが とどく | 〔dream〕 いつでも | say |
+| go0644 | ゆめは おっきく、ぼくも おっきく！ | 〔dream〕 いつでも | say |
+| go0645 | おっきく なっても、みんなと いっしょ | 〔dream〕 いつでも | say |
+| go0646 | しっぽも おっきく なるかな | 〔dream〕 いつでも | say |
+| go0647 | ぎゅー して いいよ？ | 〔charm〕 いつでも | say |
+| go0648 | えへへ、ぼく かわいい？ | 〔charm〕 いつでも | say |
+| go0649 | しっぽ、さわって いいよ | 〔charm〕 いつでも | say |
+| go0650 | ぼくの ほっぺ、ぷにぷに？ | 〔charm〕 いつでも | say |
+| go0651 | みんなが わらうと、ぼくも うれしい | 〔charm〕 いつでも | say |
+| go0652 | ないしょの だいすき、ガウっ | 〔charm〕 いつでも | whisper |
+| go0653 | ぼくの ガウっで げんき だして！ | 〔charm〕 いつでも | say |
+| go0654 | いつも ありがとう ガゥ | 〔charm〕 いつでも | say |
 
 ### まわりに あわせた ひとこと（156）
 
 | id | 文 | 条件 | 形 |
 | --- | --- | --- | --- |
-| go0313 | ガウっ！ おはよう！ | time:morning | shout |
-| go0314 | あさだ ガゥ… ふわぁ | time:morning | say |
-| go0315 | あさごはん、ひとりで よそえるよ | time:morning | say |
-| go0316 | おひさまに ガウっ！ きょうも げんき | time:morning | say |
-| go0317 | ねぐせ、じぶんで なおした！ | time:morning | say |
-| go0318 | はみがき、しゃかしゃか ガウっ | time:morning | say |
-| go0319 | きょうは なにする？ ガウっ！ | time:morning | say |
-| go0320 | あさの たいそう、いち、に、ガウっ！ | time:morning | say |
-| go0321 | おひるね… ガゥ… すやすや… | time:day | think |
-| go0322 | おでかけ しようよ！ ガウっ！ | time:day | say |
-| go0323 | ぽかぽかで、しっぽが ぬくぬく | time:day | say |
-| go0324 | おひるごはん、ぼくが つくる！ | time:day | say |
-| go0325 | なにか つくりたい きぶん！ | time:day | say |
-| go0326 | ゆうやけ、ぼくの しっぽも オレンジ！ | time:evening | say |
-| go0327 | きょうも いっぱい ガウっ！ した | time:evening | say |
-| go0328 | ゆうごはんの じゅんび、てつだうよ | time:evening | say |
-| go0329 | そとが オレンジいろ… きれい ガゥ | time:evening | say |
-| go0330 | おなか ぐーって ガウっ！ | time:evening | say |
-| go0331 | もう かえる じかん だね | time:evening | say |
-| go0332 | よるは ねむい… ガゥ… | time:night | say |
-| go0333 | おふとん、じぶんで しいたよ！ | time:night | say |
-| go0334 | ねる まえに はを みがく！ えらい？ | time:night | say |
-| go0335 | おつきさま、ぼくより おおきい | time:night | say |
-| go0336 | ゆめで おっきく なるんだ | time:night | say |
-| go0337 | おやすみ ガウっ… むにゃ | time:night | say |
-| go0338 | よるの おへや、たんけん！ | time:night | say |
-| go0339 | くらくても こわく ないよ ガウっ | time:night | say |
-| go0340 | ……ガゥ？ まだ よる？ | time:late | whisper |
-| go0341 | むにゃ… ビルより おっきく… ガゥ… | time:late | think |
-| go0342 | よなかの おやつ… だめ？ | time:late | whisper |
-| go0343 | しずかに… ガウっ… しーっ | time:late | whisper |
-| go0344 | ねむねむ ガゥ… | time:late | say |
-| go0345 | はれた！ そとで ガウっ！ | weather:clear | say |
-| go0346 | おひさま だいすき！ | weather:clear | say |
-| go0347 | せんたくもの、たたむの てつだう！ | weather:clear | say |
-| go0348 | いい てんき ガゥ♪ | weather:clear | say |
-| go0349 | くもって きた… ガゥ？ | weather:cloudy | say |
-| go0350 | くもに ガウっ！ …うごかない | weather:cloudy | say |
-| go0351 | くもりは おうちで こうさく！ | weather:cloudy | say |
-| go0352 | あめ… ガウっ！ …やまない | weather:rain | say |
-| go0353 | かさ、ひとりで ひらけるよ | weather:rain | say |
-| go0354 | みずたまりに ガウっ！ ばしゃーん | weather:rain | say |
-| go0355 | あめの ひは つみき しよう | weather:rain | say |
-| go0356 | かみなりに まけない ガウっ！ | weather:rain | shout |
-| go0357 | しずくの おと、たのしい ガゥ | weather:rain | say |
-| go0358 | ゆきに ガウっ！ つめたーい！ | weather:snow | shout |
-| go0359 | ゆきだるま、ひとりで つくれた！ | weather:snow | say |
-| go0360 | ゆきの おしろ つくろう！ | weather:snow | say |
-| go0361 | しっぽで ゆき、ならしたよ | weather:snow | say |
-| go0362 | さむいけど へいき ガゥ | weather:snow | say |
-| go0363 | かぜに ガウっ！ まけないぞ！ | weather:wind | shout |
-| go0364 | しっぽが ゆらゆら〜 | weather:wind | say |
-| go0365 | かぜで たこあげ したい！ | weather:wind | say |
-| go0366 | びゅーびゅー… ガゥ | weather:wind | say |
-| go0367 | さくらの はなびら、キャッチ！ | season:spring | say |
-| go0368 | はるは ぽかぽか ガゥ♪ | season:spring | say |
-| go0369 | たねを まいたら、おっきく なるかな | season:spring | say |
-| go0370 | つくし、みつけた！ | season:spring | say |
-| go0371 | あつい… とける ガゥ… | season:summer | say |
-| go0372 | みずでっぽう、じぶんで つくった！ | season:summer | say |
-| go0373 | すいか、ぼくが きる！ | season:summer | say |
-| go0374 | かぶとむし、つかまえたい！ | season:summer | say |
-| go0375 | なつは せが のびる きせつ？ | season:summer | say |
-| go0376 | どんぐり、ひとりで いっぱい ひろった！ | season:autumn | say |
-| go0377 | おちばに ガウっ！ ざくざく | season:autumn | say |
-| go0378 | あきは おいしい もの いっぱい | season:autumn | say |
-| go0379 | まつぼっくり、かざろう！ | season:autumn | say |
-| go0380 | さむい… でも ガウっ！ | season:winter | say |
-| go0381 | こたつ、スイッチ いれて おいたよ | season:winter | say |
-| go0382 | てぶくろ、じぶんで はめられる | season:winter | say |
-| go0383 | ふゆは ほかほか ごはんが いい | season:winter | say |
-| go0384 | しろい いき、かいじゅうの けむり みたい！ | season:winter | say |
-| go0385 | ことしの めあては、おっきく なること！ | festival:newyear | say |
-| go0386 | おにに ガウっ！ にげて いった！ | festival:setsubun | shout |
-| go0387 | おだいりさま、ぼくも すわりたい | festival:hina | say |
-| go0388 | おべんとうばこ、じぶんで つめたよ | festival:picnic | say |
-| go0389 | こいのぼりより おおきく なるぞ！ | festival:children | say |
-| go0390 | かたつむりさん、ゆっくり ガゥ | festival:hydrangea | say |
-| go0391 | たんざく、『おっきく なれますように』 | festival:tanabata | say |
-| go0392 | はなびに ガウっ！ どどーん！ | festival:fireworks | shout |
-| go0393 | おだんご、じぶんで まるめた！ | festival:moon | say |
-| go0394 | かいじゅうの かそう… いつもと おなじ？ | festival:halloween | say |
-| go0395 | おいも、ひとりで ほれたよ！ | festival:harvest | say |
-| go0396 | サンタさんに、おっきく なる くすり おねがい！ | festival:christmas | say |
-| go0397 | この おへや、ぼくの おしろ！ | room:main | say |
-| go0398 | いつもの ばしょ、おちつく ガゥ | room:main | say |
-| go0399 | アトリエで こうさく する！ | room:study | say |
-| go0400 | ねんどで ビルを つくった！ | room:study | say |
-| go0401 | えのぐ、ひとりで まぜられるよ | room:study | say |
-| go0402 | たかい ところ、おっきく なった きぶん | room:garden | say |
-| go0403 | おはなに ガウっ… やさしく ね | room:garden | say |
-| go0404 | サンルーム、きもち いい ガゥ | room:garden | say |
-| go0405 | ベッドメイク、じぶんで できる！ | near:bed | say |
-| go0406 | ソファの すきま、たんけん！ | near:sofa | say |
-| go0407 | テレビの かいじゅう、ぼくの なかま？ | near:tv | say |
-| go0408 | ピアノ、ガウっ！の おとが する | near:piano | say |
-| go0409 | ほんだな、ひとりで せいりした！ | near:bookshelf | say |
-| go0410 | おもちゃの おかたづけ、とくい！ | near:toybox | say |
-| go0411 | こたつの なか、あったか ガゥ | near:kotatsu | say |
-| go0412 | きんぎょに ガウっ… びっくり させちゃった | near:fishbowl | say |
-| go0413 | おさかなの おうち、そうじ できるよ | near:aquarium | say |
-| go0414 | だんろの まき、くべて いい？ | near:fireplace | say |
-| go0415 | おままごと、ほんものの コックさん みたいに！ | near:kitchen | say |
-| go0416 | おえかき、ビルと ぼく！ | near:desk | say |
-| go0417 | テント、ひとりで たてたよ！ | near:tent | say |
-| go0418 | まどから まちを みはり ガウっ | near:window | say |
-| go0419 | はとどけい、なおせるよ | near:clock | say |
-| go0420 | かんようしょくぶつ、ぼくより おおきい… | near:plant | say |
-| go0421 | くまさんと せくらべ… まけた | near:teddy | say |
-| go0422 | トロフィー、みがいて おいた！ | near:trophy | say |
-| go0423 | きしゃの レール、つなげた！ | near:train | say |
-| go0424 | もくば、ガウっ！と はしれ！ | near:rockinghorse | say |
-| go0425 | オルゴール、ねじまき とくい | near:musicbox | say |
-| go0426 | ふると ゆきが ふる… ガゥ | near:snow_globe | say |
-| go0427 | やまより おおきく なりたいな | near:painting | say |
-| go0428 | ポスターの ぼく、もっと おおきく かいて | near:poster | say |
-| go0429 | どんぐりの デザ、ひとつ ちょうだい | near:acorn_cart | say |
-| go0430 | おなか すいた ガゥ… | state:hungry | say |
-| go0431 | ぐぅー… ガウっ… ちからが でない | state:hungry | say |
-| go0432 | ごはん、じぶんで よそっちゃ だめ？ | state:hungry | say |
-| go0433 | おにく… たべたい ガゥ | state:hungry | say |
-| go0434 | はらぱん！ ガウっ… ねむい | state:full | say |
-| go0435 | もう たべられない ガゥ… | state:full | say |
-| go0436 | いっぱい たべたら おっきく なる？ | state:full | say |
-| go0437 | ガゥー、デザ たべたい！ | state:deza | say |
-| go0438 | プリン、ぷるぷる ガウっ！ | state:deza | say |
-| go0439 | デザは、べつの おなか ガゥ | state:deza | say |
-| go0440 | ガウっ！ たのしい！ | state:happy | shout |
-| go0441 | うれしくて しっぽ ぶんぶん | state:happy | say |
-| go0442 | みんな だいすき ガゥ♪ | state:happy | say |
-| go0443 | しょんぼり… ガゥ… | state:sad | say |
-| go0444 | なでて ほしい ガゥ… | state:sad | say |
-| go0445 | ガウっ… げんき、でない | state:sad | say |
-| go0446 | ただいま ガウっ！ | event:return | shout |
-| go0447 | おうちに ついた！ くつ、そろえたよ | event:return | say |
-| go0448 | おかえりって いって〜 | event:return | say |
-| go0449 | ガウっ！ ぼくたち つよい！ | event:win | shout |
-| go0450 | おっきく なった きぶん！ | event:win | say |
-| go0451 | おてつだい、ひとりで できたよ！ | event:work | say |
-| go0452 | コイン、ちゃんと かぞえた！ | event:work | say |
-| go0453 | この ふく、つよそう？ | event:dress | say |
-| go0454 | ボタン、じぶんで とめたよ | event:dress | say |
-| go0455 | かぐ、はこぶの てつだう！ | event:edit | say |
-| go0456 | もようがえ、ぼく とくい！ | event:edit | say |
-| go0457 | ぱぱ、みて！ ガウっ！ | event:watch | say |
-| go0458 | まま、ひとりで できたよ！ | event:watch | say |
-| go0459 | ガウっ！ | いつでも | shout |
-| go0460 | なんでも ガウっ！ しちゃう | いつでも | say |
-| go0461 | きょうも ガウっと いこう！ | いつでも | say |
-| go0462 | ぼく、なんでも できるよ | いつでも | say |
-| go0463 | わんこ、がちゃん、あそぼ ガゥ | いつでも | say |
-| go0464 | つみき、たかく つめた！ | いつでも | say |
-| go0465 | おっきく なったら、みんなを のせて あげる | いつでも | say |
-| go0466 | しっぽ、ふりふり ガゥ | いつでも | say |
-| go0467 | ぼくの しっぽ、かっこいい？ | いつでも | say |
-| go0468 | ねえ、せくらべ しよう！ | いつでも | say |
+| go0328 | ガウっ！ おはよう！ | time:morning | shout |
+| go0329 | あさだ ガゥ… ふわぁ | time:morning | say |
+| go0330 | あさごはん、ひとりで よそえるよ | time:morning | say |
+| go0331 | おひさまに ガウっ！ きょうも げんき | time:morning | say |
+| go0332 | ねぐせ、じぶんで なおした！ | time:morning | say |
+| go0333 | はみがき、しゃかしゃか ガウっ | time:morning | say |
+| go0334 | きょうは なにする？ ガウっ！ | time:morning | say |
+| go0335 | あさの たいそう、いち、に、ガウっ！ | time:morning | say |
+| go0336 | おひるね… ガゥ… すやすや… | time:day | think |
+| go0337 | おでかけ しようよ！ ガウっ！ | time:day | say |
+| go0338 | ぽかぽかで、しっぽが ぬくぬく | time:day | say |
+| go0339 | おひるごはん、ぼくが つくる！ | time:day | say |
+| go0340 | なにか つくりたい きぶん！ | time:day | say |
+| go0341 | ゆうやけ、ぼくの しっぽも オレンジ！ | time:evening | say |
+| go0342 | きょうも いっぱい ガウっ！ した | time:evening | say |
+| go0343 | ゆうごはんの じゅんび、てつだうよ | time:evening | say |
+| go0344 | そとが オレンジいろ… きれい ガゥ | time:evening | say |
+| go0345 | おなか ぐーって ガウっ！ | time:evening | say |
+| go0346 | もう かえる じかん だね | time:evening | say |
+| go0347 | よるは ねむい… ガゥ… | time:night | say |
+| go0348 | おふとん、じぶんで しいたよ！ | time:night | say |
+| go0349 | ねる まえに はを みがく！ えらい？ | time:night | say |
+| go0350 | おつきさま、ぼくより おおきい | time:night | say |
+| go0351 | ゆめで おっきく なるんだ | time:night | say |
+| go0352 | おやすみ ガウっ… むにゃ | time:night | say |
+| go0353 | よるの おへや、たんけん！ | time:night | say |
+| go0354 | くらくても こわく ないよ ガウっ | time:night | say |
+| go0355 | ……ガゥ？ まだ よる？ | time:late | whisper |
+| go0356 | むにゃ… ビルより おっきく… ガゥ… | time:late | think |
+| go0357 | よなかの おやつ… だめ？ | time:late | whisper |
+| go0358 | しずかに… ガウっ… しーっ | time:late | whisper |
+| go0359 | ねむねむ ガゥ… | time:late | say |
+| go0360 | はれた！ そとで ガウっ！ | weather:clear | say |
+| go0361 | おひさま だいすき！ | weather:clear | say |
+| go0362 | せんたくもの、たたむの てつだう！ | weather:clear | say |
+| go0363 | いい てんき ガゥ♪ | weather:clear | say |
+| go0364 | くもって きた… ガゥ？ | weather:cloudy | say |
+| go0365 | くもに ガウっ！ …うごかない | weather:cloudy | say |
+| go0366 | くもりは おうちで こうさく！ | weather:cloudy | say |
+| go0367 | あめ… ガウっ！ …やまない | weather:rain | say |
+| go0368 | かさ、ひとりで ひらけるよ | weather:rain | say |
+| go0369 | みずたまりに ガウっ！ ばしゃーん | weather:rain | say |
+| go0370 | あめの ひは つみき しよう | weather:rain | say |
+| go0371 | かみなりに まけない ガウっ！ | weather:rain | shout |
+| go0372 | しずくの おと、たのしい ガゥ | weather:rain | say |
+| go0373 | ゆきに ガウっ！ つめたーい！ | weather:snow | shout |
+| go0374 | ゆきだるま、ひとりで つくれた！ | weather:snow | say |
+| go0375 | ゆきの おしろ つくろう！ | weather:snow | say |
+| go0376 | しっぽで ゆき、ならしたよ | weather:snow | say |
+| go0377 | さむいけど へいき ガゥ | weather:snow | say |
+| go0378 | かぜに ガウっ！ まけないぞ！ | weather:wind | shout |
+| go0379 | しっぽが ゆらゆら〜 | weather:wind | say |
+| go0380 | かぜで たこあげ したい！ | weather:wind | say |
+| go0381 | びゅーびゅー… ガゥ | weather:wind | say |
+| go0382 | さくらの はなびら、キャッチ！ | season:spring | say |
+| go0383 | はるは ぽかぽか ガゥ♪ | season:spring | say |
+| go0384 | たねを まいたら、おっきく なるかな | season:spring | say |
+| go0385 | つくし、みつけた！ | season:spring | say |
+| go0386 | あつい… とける ガゥ… | season:summer | say |
+| go0387 | みずでっぽう、じぶんで つくった！ | season:summer | say |
+| go0388 | すいか、ぼくが きる！ | season:summer | say |
+| go0389 | かぶとむし、つかまえたい！ | season:summer | say |
+| go0390 | なつは せが のびる きせつ？ | season:summer | say |
+| go0391 | どんぐり、ひとりで いっぱい ひろった！ | season:autumn | say |
+| go0392 | おちばに ガウっ！ ざくざく | season:autumn | say |
+| go0393 | あきは おいしい もの いっぱい | season:autumn | say |
+| go0394 | まつぼっくり、かざろう！ | season:autumn | say |
+| go0395 | さむい… でも ガウっ！ | season:winter | say |
+| go0396 | こたつ、スイッチ いれて おいたよ | season:winter | say |
+| go0397 | てぶくろ、じぶんで はめられる | season:winter | say |
+| go0398 | ふゆは ほかほか ごはんが いい | season:winter | say |
+| go0399 | しろい いき、かいじゅうの けむり みたい！ | season:winter | say |
+| go0400 | ことしの めあては、おっきく なること！ | festival:newyear | say |
+| go0401 | おにに ガウっ！ にげて いった！ | festival:setsubun | shout |
+| go0402 | おだいりさま、ぼくも すわりたい | festival:hina | say |
+| go0403 | おべんとうばこ、じぶんで つめたよ | festival:picnic | say |
+| go0404 | こいのぼりより おおきく なるぞ！ | festival:children | say |
+| go0405 | かたつむりさん、ゆっくり ガゥ | festival:hydrangea | say |
+| go0406 | たんざく、『おっきく なれますように』 | festival:tanabata | say |
+| go0407 | はなびに ガウっ！ どどーん！ | festival:fireworks | shout |
+| go0408 | おだんご、じぶんで まるめた！ | festival:moon | say |
+| go0409 | かいじゅうの かそう… いつもと おなじ？ | festival:halloween | say |
+| go0410 | おいも、ひとりで ほれたよ！ | festival:harvest | say |
+| go0411 | サンタさんに、おっきく なる くすり おねがい！ | festival:christmas | say |
+| go0412 | この おへや、ぼくの おしろ！ | room:main | say |
+| go0413 | いつもの ばしょ、おちつく ガゥ | room:main | say |
+| go0414 | アトリエで こうさく する！ | room:study | say |
+| go0415 | ねんどで ビルを つくった！ | room:study | say |
+| go0416 | えのぐ、ひとりで まぜられるよ | room:study | say |
+| go0417 | たかい ところ、おっきく なった きぶん | room:garden | say |
+| go0418 | おはなに ガウっ… やさしく ね | room:garden | say |
+| go0419 | サンルーム、きもち いい ガゥ | room:garden | say |
+| go0420 | ベッドメイク、じぶんで できる！ | near:bed | say |
+| go0421 | ソファの すきま、たんけん！ | near:sofa | say |
+| go0422 | テレビの かいじゅう、ぼくの なかま？ | near:tv | say |
+| go0423 | ピアノ、ガウっ！の おとが する | near:piano | say |
+| go0424 | ほんだな、ひとりで せいりした！ | near:bookshelf | say |
+| go0425 | おもちゃの おかたづけ、とくい！ | near:toybox | say |
+| go0426 | こたつの なか、あったか ガゥ | near:kotatsu | say |
+| go0427 | きんぎょに ガウっ… びっくり させちゃった | near:fishbowl | say |
+| go0428 | おさかなの おうち、そうじ できるよ | near:aquarium | say |
+| go0429 | だんろの まき、くべて いい？ | near:fireplace | say |
+| go0430 | おままごと、ほんものの コックさん みたいに！ | near:kitchen | say |
+| go0431 | おえかき、ビルと ぼく！ | near:desk | say |
+| go0432 | テント、ひとりで たてたよ！ | near:tent | say |
+| go0433 | まどから まちを みはり ガウっ | near:window | say |
+| go0434 | はとどけい、なおせるよ | near:clock | say |
+| go0435 | かんようしょくぶつ、ぼくより おおきい… | near:plant | say |
+| go0436 | くまさんと せくらべ… まけた | near:teddy | say |
+| go0437 | トロフィー、みがいて おいた！ | near:trophy | say |
+| go0438 | きしゃの レール、つなげた！ | near:train | say |
+| go0439 | もくば、ガウっ！と はしれ！ | near:rockinghorse | say |
+| go0440 | オルゴール、ねじまき とくい | near:musicbox | say |
+| go0441 | ふると ゆきが ふる… ガゥ | near:snow_globe | say |
+| go0442 | やまより おおきく なりたいな | near:painting | say |
+| go0443 | ポスターの ぼく、もっと おおきく かいて | near:poster | say |
+| go0444 | どんぐりの デザ、ひとつ ちょうだい | near:acorn_cart | say |
+| go0445 | おなか すいた ガゥ… | state:hungry | say |
+| go0446 | ぐぅー… ガウっ… ちからが でない | state:hungry | say |
+| go0447 | ごはん、じぶんで よそっちゃ だめ？ | state:hungry | say |
+| go0448 | おにく… たべたい ガゥ | state:hungry | say |
+| go0449 | はらぱん！ ガウっ… ねむい | state:full | say |
+| go0450 | もう たべられない ガゥ… | state:full | say |
+| go0451 | いっぱい たべたら おっきく なる？ | state:full | say |
+| go0452 | ガゥー、デザ たべたい！ | state:deza | say |
+| go0453 | プリン、ぷるぷる ガウっ！ | state:deza | say |
+| go0454 | デザは、べつの おなか ガゥ | state:deza | say |
+| go0455 | ガウっ！ たのしい！ | state:happy | shout |
+| go0456 | うれしくて しっぽ ぶんぶん | state:happy | say |
+| go0457 | みんな だいすき ガゥ♪ | state:happy | say |
+| go0458 | しょんぼり… ガゥ… | state:sad | say |
+| go0459 | なでて ほしい ガゥ… | state:sad | say |
+| go0460 | ガウっ… げんき、でない | state:sad | say |
+| go0461 | ただいま ガウっ！ | event:return | shout |
+| go0462 | おうちに ついた！ くつ、そろえたよ | event:return | say |
+| go0463 | おかえりって いって〜 | event:return | say |
+| go0464 | ガウっ！ ぼくたち つよい！ | event:win | shout |
+| go0465 | おっきく なった きぶん！ | event:win | say |
+| go0466 | おてつだい、ひとりで できたよ！ | event:work | say |
+| go0467 | コイン、ちゃんと かぞえた！ | event:work | say |
+| go0468 | この ふく、つよそう？ | event:dress | say |
+| go0469 | ボタン、じぶんで とめたよ | event:dress | say |
+| go0470 | かぐ、はこぶの てつだう！ | event:edit | say |
+| go0471 | もようがえ、ぼく とくい！ | event:edit | say |
+| go0472 | ぱぱ、みて！ ガウっ！ | event:watch | say |
+| go0473 | まま、ひとりで できたよ！ | event:watch | say |
+| go0474 | ガウっ！ | いつでも | shout |
+| go0475 | なんでも ガウっ！ しちゃう | いつでも | say |
+| go0476 | きょうも ガウっと いこう！ | いつでも | say |
+| go0477 | ぼく、なんでも できるよ | いつでも | say |
+| go0478 | わんこ、がちゃん、あそぼ ガゥ | いつでも | say |
+| go0479 | つみき、たかく つめた！ | いつでも | say |
+| go0480 | おっきく なったら、みんなを のせて あげる | いつでも | say |
+| go0481 | しっぽ、ふりふり ガゥ | いつでも | say |
+| go0482 | ぼくの しっぽ、かっこいい？ | いつでも | say |
+| go0483 | ねえ、せくらべ しよう！ | いつでも | say |
 
 ### めずらしい ひとこと（金色）（5）
 
 | id | 文 | 条件 | 形 |
 | --- | --- | --- | --- |
-| go0654 | ガゥー……おつきさまも かぞくかな？ | いつでも | say |
-| go0655 | きょう、ちょっとだけ おっきく なった！ | いつでも | say |
-| go0656 | おっきく なっても、ぎゅー して くれる？ | いつでも | say |
-| go0657 | ほしを つないだら、かいじゅうの かたち！ | いつでも | say |
-| go0658 | ぼくの ガウっ、にじいろ だった きが する | いつでも | say |
+| go0705 | ガゥー……おつきさまも かぞくかな？ | いつでも | say |
+| go0706 | きょう、ちょっとだけ おっきく なった！ | いつでも | say |
+| go0707 | おっきく なっても、ぎゅー して くれる？ | いつでも | say |
+| go0708 | ほしを つないだら、かいじゅうの かたち！ | いつでも | say |
+| go0709 | ぼくの ガウっ、にじいろ だった きが する | いつでも | say |
 
 ## ぱぱ
 
@@ -680,26 +731,26 @@
 
 | id | 文 | 条件 | 形 |
 | --- | --- | --- | --- |
-| pa0604 | おかえり！ きょうは どうだった？ | event:return | say |
-| pa0605 | ぱぱと キャッチボール しようか | weather:clear | say |
-| pa0606 | おっと、ぱぱの ひざは まんいん だな | いつでも | say |
-| pa0607 | みんな、げんき いっぱい だね | いつでも | say |
-| pa0608 | よし、たかい たかーい！ | event:watch | say |
-| pa0609 | ねる まえに、えほんを よもうか | time:night | say |
-| pa0610 | あめの ひは、おうちで ゲーム だ | weather:rain | say |
-| pa0611 | ぱぱの ひげ、じょりじょり だぞ〜 | いつでも | say |
-| pa0612 | ごじ、また せが のびたんじゃ ないか？ | いつでも | say |
-| pa0613 | わんこ、おふろ わかしたぞ！ | time:evening | say |
-| pa0614 | がちゃん、だいじょうぶ。ぱぱが いるよ | いつでも | say |
-| pa0615 | きょうの ごはん、ぱぱが つくろうか | time:day | say |
-| pa0616 | はなびの よる、かたぐるま しよう | festival:fireworks | say |
-| pa0617 | ゆきかき、ぱぱに まかせろ | weather:snow | say |
-| pa0618 | みんなで ねると、ベッドが せまいな | time:night | say |
-| pa0619 | きょうも いちにち、おつかれさま | time:evening | say |
-| pa0620 | わすれものは ないかい？ | time:morning | say |
-| pa0621 | さあ、おやすみの じかん だよ | time:night | say |
-| pa0622 | ぱぱも むかし、どんぐり ひろったなあ | season:autumn | say |
-| pa0623 | 3にんが なかよしで、ぱぱは うれしいよ | state:happy | say |
+| pa0655 | おかえり！ きょうは どうだった？ | event:return | say |
+| pa0656 | ぱぱと キャッチボール しようか | weather:clear | say |
+| pa0657 | おっと、ぱぱの ひざは まんいん だな | いつでも | say |
+| pa0658 | みんな、げんき いっぱい だね | いつでも | say |
+| pa0659 | よし、たかい たかーい！ | event:watch | say |
+| pa0660 | ねる まえに、えほんを よもうか | time:night | say |
+| pa0661 | あめの ひは、おうちで ゲーム だ | weather:rain | say |
+| pa0662 | ぱぱの ひげ、じょりじょり だぞ〜 | いつでも | say |
+| pa0663 | ごじ、また せが のびたんじゃ ないか？ | いつでも | say |
+| pa0664 | わんこ、おふろ わかしたぞ！ | time:evening | say |
+| pa0665 | がちゃん、だいじょうぶ。ぱぱが いるよ | いつでも | say |
+| pa0666 | きょうの ごはん、ぱぱが つくろうか | time:day | say |
+| pa0667 | はなびの よる、かたぐるま しよう | festival:fireworks | say |
+| pa0668 | ゆきかき、ぱぱに まかせろ | weather:snow | say |
+| pa0669 | みんなで ねると、ベッドが せまいな | time:night | say |
+| pa0670 | きょうも いちにち、おつかれさま | time:evening | say |
+| pa0671 | わすれものは ないかい？ | time:morning | say |
+| pa0672 | さあ、おやすみの じかん だよ | time:night | say |
+| pa0673 | ぱぱも むかし、どんぐり ひろったなあ | season:autumn | say |
+| pa0674 | 3にんが なかよしで、ぱぱは うれしいよ | state:happy | say |
 
 ## まま
 
@@ -707,28 +758,28 @@
 
 | id | 文 | 条件 | 形 |
 | --- | --- | --- | --- |
-| ma0624 | おかえりなさい。てを あらおうね | event:return | say |
-| ma0625 | わんこ、クンクン しすぎ！ めっ | いつでも | shout |
-| ma0626 | わんこ、また クンクン？ ほどほどに ね | いつでも | say |
-| ma0627 | がちゃん、ままは ここに いるよ | いつでも | say |
-| ma0628 | ごじ、ひとりで できて えらいね | いつでも | say |
-| ma0629 | ごはん できたよ〜 | time:evening | say |
-| ma0630 | デザは ごはんの あとで ね | state:deza | say |
-| ma0631 | はやく ねないと、ゆめの ばすに のりおくれるよ | time:night | say |
-| ma0632 | あら、ねぐせ ついてる | time:morning | say |
-| ma0633 | みんな、ぎゅー してあげる | いつでも | say |
-| ma0634 | さむいから マフラー してね | season:winter | say |
-| ma0635 | あめだから、ながぐつ はこうね | weather:rain | say |
-| ma0636 | きょうの ふく、とっても にあうよ | event:dress | say |
-| ma0637 | おへや、きれいに なったね | event:edit | say |
-| ma0638 | けんかは おしまい。なかなおり しよ | いつでも | say |
-| ma0639 | しーっ、ぱぱが ねてるよ | time:late | whisper |
-| ma0640 | かぜ ひかないように ね | weather:wind | say |
-| ma0641 | おやすみ。いい ゆめ みてね | time:night | say |
-| ma0642 | 3にんとも、だいすきよ | state:happy | say |
-| ma0643 | おてつだい、ありがとう | event:work | say |
+| ma0675 | おかえりなさい。てを あらおうね | event:return | say |
+| ma0676 | わんこ、クンクン しすぎ！ めっ | いつでも | shout |
+| ma0677 | わんこ、また クンクン？ ほどほどに ね | いつでも | say |
+| ma0678 | がちゃん、ままは ここに いるよ | いつでも | say |
+| ma0679 | ごじ、ひとりで できて えらいね | いつでも | say |
+| ma0680 | ごはん できたよ〜 | time:evening | say |
+| ma0681 | デザは ごはんの あとで ね | state:deza | say |
+| ma0682 | はやく ねないと、ゆめの ばすに のりおくれるよ | time:night | say |
+| ma0683 | あら、ねぐせ ついてる | time:morning | say |
+| ma0684 | みんな、ぎゅー してあげる | いつでも | say |
+| ma0685 | さむいから マフラー してね | season:winter | say |
+| ma0686 | あめだから、ながぐつ はこうね | weather:rain | say |
+| ma0687 | きょうの ふく、とっても にあうよ | event:dress | say |
+| ma0688 | おへや、きれいに なったね | event:edit | say |
+| ma0689 | けんかは おしまい。なかなおり しよ | いつでも | say |
+| ma0690 | しーっ、ぱぱが ねてるよ | time:late | whisper |
+| ma0691 | かぜ ひかないように ね | weather:wind | say |
+| ma0692 | おやすみ。いい ゆめ みてね | time:night | say |
+| ma0693 | 3にんとも、だいすきよ | state:happy | say |
+| ma0694 | おてつだい、ありがとう | event:work | say |
 
-## かけあい（171）
+## かけあい（186）
 
 | id | きっかけ・条件 | セリフ |
 | --- | --- | --- |
@@ -740,6 +791,21 @@
 | sly-pudding | state:deza | わんこ「ごじの プリン、ひとくち ちょうだい」 → ごじ「だめ …ガゥ」 → わんこ「ちぇっ。じゃあ じゃんけん！」 → ごじ「ガウっ！ まけないぞ」 |
 | handy-fix | いつでも | がちゃん「この おもちゃ、こわれちゃった…」 → ごじ「ぼくが なおす！ …はい、できた」 → がちゃん「すごーい！ ありがとう♪」 |
 | not-alone | 〔alone〕 いつでも | がちゃん「みんな どこ？ ひとりに しないで〜」 → わんこ「ここに いるよ！」 → ごじ「ガウっ！ ずっと いっしょ」 |
+| alone-come | 〔alone〕 いつでも | がちゃん「ねえねえ、そっちで なに してるの？」 → わんこ「いっしょに やる？ おいでー！」 → がちゃん「やったー♪ いま いくね」 |
+| alone-ok | 〔alone〕 いつでも | がちゃん「ひとり じかんも ちょっと すてき♪」 → ごじ「がちゃん、なに してるの？」 → がちゃん「ないしょの おえかき！ あとで みせるね」 |
+| alone-call | 〔alone〕 いつでも | がちゃん「わんこー、ごじー、あとで あそぼうね！」 → ごじ「ガウっ！ いいよー」 → わんこ「うん！ やくそくだよ」 |
+| ga-drawing | いつでも | がちゃん「みんなの にがおえ、かいたよ♪」 → わんこ「ぼくの しっぽ、ながすぎない？」 → ごじ「ぼく、かっこいい！ ガウっ」 → がちゃん「えへへ、かべに はろうね」 |
+| ga-song | いつでも | がちゃん「あたらしい うた、きいて くれる？」 → ごじ「ききたい！」 → がちゃん「♪ みんな なかよし ぽかぽか〜」 → わんこ「いい うた！ もう いっかい！」 |
+| ga-riddle | いつでも | がちゃん「なぞなぞ！ たべられない パンは？」 → ごじ「…フライパン！ ガウっ」 → がちゃん「せいかーい♪ つぎは わんこの ばん」 → わんこ「うーん、むずかしいのに する！」 |
+| ga-crown | season:spring | がちゃん「おはなの かんむり、できたよ」 → わんこ「がちゃん、おひめさま みたい！」 → ごじ「ぼくにも つくって ガウ」 → がちゃん「いいよ♪ ごじは きいろ ね」 |
+| ga-restaurant | いつでも | がちゃん「おままごとの レストラン、かいてん♪」 → わんこ「おすすめは なんですか？」 → がちゃん「ぴよぴよ オムライス です！」 → ごじ「ふたつ ください ガウっ」 |
+| ga-tidy-shelf | いつでも | がちゃん「ほんを いろの じゅんに ならべたの」 → わんこ「にじ みたい！」 → ごじ「…ぼくの えほん、どこ？ ガゥ」 → がちゃん「あおの ところ だよ♪」 |
+| ga-moon | time:night | がちゃん「どうして おつきさまは ついて くるの？」 → ぱぱ「とおくに あるから、そう みえるんだよ」 → がちゃん「へえー！ ものしり ぱぱ♪」 |
+| ga-origami | いつでも | がちゃん「ごじ、おりがみ おしえて あげる」 → ごじ「ここを おって… ガゥ？」 → がちゃん「そうそう！ じょうず♪」 → ごじ「できた！ かいじゅうの つる！」 |
+| ga-bird-dance | いつでも | がちゃん「ことりの ダンス、みててね♪」 → わんこ「ぱたぱた かわいい！」 → ごじ「ぼくも やる！ ドスドス…」 → がちゃん「ごじのは かいじゅう ダンス だね」 |
+| ga-stars | time:night | がちゃん「まどから おほしさま、みつけた」 → わんこ「あれは ぼくの ほし！」 → ごじ「じゃあ あれは ぼくの！」 → がちゃん「がちゃんは まんなかの ちいさい ほし♪」 |
+| ga-letter | いつでも | がちゃん「ぱぱと ままに おてがみ かくの」 → わんこ「ぼくも かく！ なんて かこう？」 → がちゃん「『いつも ありがとう』って♪」 |
+| ga-brave-bug | いつでも | ごじ「がちゃん、むしさん だよ！」 → がちゃん「…こわく ない。こんにちは、むしさん」 → わんこ「がちゃん、すごい！」 → がちゃん「えへへ、ちょっと どきどき した」 |
 | howl-chorus | いつでも | わんこ「みんなで いくよ！ わうーん！」 → ごじ「ガウーん！」 → がちゃん「ぴよーん！ …あれ？」 → まま「ふふ、みんな げんきね」 |
 | night-guard | time:night | がちゃん「でんき、けさないで…」 → わんこ「ぼくが みはってる！ せいぎの みかた だから」 → ごじ「ぼくも いる ガゥ」 |
 | measure | いつでも | ごじ「ぱぱ、せが のびたか みて！」 → ぱぱ「おっ、ちょっと のびたぞ」 → ごじ「ガウっ！ おっきく なってる！」 |
