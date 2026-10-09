@@ -2928,6 +2928,17 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
     if(['nap','read','sing','peek','water','stumble'].includes(kind))await H.shot(kind);
     await H.dbg('homeAdvance',8);expect(!(await H.dbg('homeActions')).chars.find(c=>c.id===who).activity,'動作がおわらない: '+kind);
   }
+  // UI-110: がちゃんだけの しぐさ（おえかき・おままごと・おかたづけ・おはな）と はじめの ひとこと
+  expect(JSON.stringify(st.gachanKinds)==='["draw","cook","tidy","flower"]','がちゃんだけの しぐさが そろわない: '+JSON.stringify(st.gachanKinds));
+  for(const kind of st.gachanKinds){
+    await H.dbg('homeBubbleFixture');expect(!(await H.dbg('homeAction','wanko',kind)),'わんこが がちゃんだけの しぐさを した: '+kind);
+    const prev=(await H.dbg('homeTalkLog')).at(-1);expect(await H.dbg('homeAction','gachan',kind),'がちゃんの しぐさを 始められない: '+kind);
+    const last=(await H.dbg('homeTalkLog')).at(-1);expect(last&&last.id==='gachan'&&last.line&&last.line!==prev?.line,'がちゃんの しぐさの ひとことが ない: '+kind);
+    for(let n=0;n<80;n++){const c=(await H.dbg('homeActions')).chars.find(c=>c.id==='gachan');if(c.activity?.stage==='act')break;await H.dbg('homeAdvance',.1);}
+    expect((await H.dbg('homeActions')).chars.find(c=>c.id==='gachan').activity?.stage==='act','がちゃんの しぐさが 始まらない: '+kind);
+    await H.dbg('homeAdvance',.8);await H.wait(100);await H.shot('gachan-'+kind);
+    await H.dbg('homeAdvance',8);expect(!(await H.dbg('homeActions')).chars.find(c=>c.id==='gachan').activity,'がちゃんの しぐさが おわらない: '+kind);
+  }
   const after=await H.dbg('saveData');for(const key of ['coins','bag','wardrobe'])expect(JSON.stringify(before[key])===JSON.stringify(after[key]),'動作で持ち物が変わる: '+key);
   await H.dbg('homeLayout',[]);await H.dbg('homeBubbleFixture');expect(!(await H.dbg('homeAction','wanko','read')),'家具がないのに読書する');
   await H.dbg('pause',false);

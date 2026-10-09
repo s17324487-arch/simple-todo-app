@@ -42,6 +42,7 @@ for (const [who, arr] of Object.entries(RARE)) for (const t of arr) { check(t, `
 const talks = TALKS.map((tk) => { const p = parseWhen(tk.when, `talk ${tk.id}`); tk.turns.forEach(([who, t], i) => check(t, `talk ${tk.id}#${i}`)); return { id: tk.id, ...(tk.trigger ? { trigger: tk.trigger } : {}), when: p.when, turns: tk.turns.map(([who, text, kind]) => ({ who, text, kind: kind || "say" })) }; });
 const ids = new Set(); for (const t of talks) { if (ids.has(t.id)) errors.push(`talk id の 重複 ${t.id}`); ids.add(t.id); }
 for (const v of Object.values(VOICE)) for (const x of Object.values(v)) if (x.talk && !ids.has(x.talk)) errors.push(`VOICE の talk ${x.talk} が ない`);
+for (const v of Object.values(VOICE)) for (const x of Object.values(v)) for (const id of [...(x.talks || []), ...(x.come || [])]) if (!ids.has(id)) errors.push(`VOICE の talks ${id} が ない`);
 
 // 数える
 const count = {}; for (const l of lines) { const k = l.who + "/" + l.group; count[k] = (count[k] || 0) + 1; }
