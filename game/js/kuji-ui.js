@@ -24,14 +24,14 @@ const KujiUI = (() => {
 
   function open(s, scene) {
     if (!K.has(s)) return Promise.resolve();
-    const SO = K.BY[s]; // みせ（ひとりの くじの けいひん・ダブルチャンス）
-    K.sync(s); Save.write();
+    K.sync(s); Save.write(); // さきに すすめる（けいひんの セットが いれかわる ことが ある。UI-112）
+    const SO = K.BY[s]; // みせ（なまえ・ダブルチャンス）
     return new Promise((resolve) => {
       const body = U.el("div", { class: "kuji" });
       // みんなの くじ（js/kuji-net.js）: オンラインの ときだけ えらべる。けいひんは ごうかな べつの もの（X()）
       const netOk = () => typeof KujiNet !== "undefined" && KujiNet.available();
       let mode = netOk() && KujiNet.using() ? "net" : "solo", soonT = 0;
-      const X = () => (mode === "net" ? K.NET_BY[s] : SO);
+      const X = () => (mode === "net" ? K.NET_BY[s] : K.BY[s]);
       const paint = () => { const S = X(); body.style.cssText = `--kc:${S.color};--kl:${S.light};--kd:${S.dark}`; body.classList.toggle("deluxe", mode === "net"); };
       paint();
       const modal = UI.modal({ title: `${SO.shop}の いちばんくじ`, body, cls: "full kuji-panel", onClose: () => { view.open = false; view.phase = null; clearTimeout(soonT); if (typeof KujiNet !== "undefined") KujiNet.unwatch(); if (scene && scene.closed !== true && typeof UI !== "undefined") UI.updateHud(); resolve(); } });
@@ -156,6 +156,15 @@ const KujiUI = (() => {
       };
       const showBoard = (parts) => { board.replaceChildren(...parts.filter(Boolean)); board.classList.remove("hidden"); stage.classList.add("hidden"); view.phase = "board"; view.mode = mode; };
 
+      // いれかわる けいひん（UI-112）: いつまで・つぎの セット・きょう はいった ときの しらせ
+      const rotaPart = (L, today) => {
+        const until = K.themeUntil(today), [y, m, d] = until.split("-").map(Number), nd = new Date(Date.UTC(y, m - 1, d + 1)), next = K.themeOf(s, `${nd.getUTCFullYear()}-${nd.getUTCMonth() + 1}-${nd.getUTCDate()}`);
+        const name = (T) => T.title.replace(T.shop + "の ", "");
+        const box = U.el("div", { class: "kuji-news kuji-rota" });
+        if (L.fresh === today) box.append(U.el("div", { class: "kuji-fresh", text: `あたらしい くじ「${name(K.BY[s])}」が はいったよ！` }));
+        box.append(U.el("div", { text: `${m}がつ ${d}にち まで。つぎは「${name(next)}」（2しゅうかん ごとに いれかわる）` }));
+        return box;
+      };
       // ---------- ひとりの くじ の ボード ----------
       const drawBoard = (note = "") => {
         K.sync(s);
@@ -163,6 +172,7 @@ const KujiUI = (() => {
         const parts = [modeBar(), modeHint(), posterPart(`1かい ${K.PRICE}コイン・ハズレ なし・ロット ${L.no}`), statPart(left)];
         if (note) parts.push(U.el("div", { class: "kuji-note", text: note }));
         if (L.news && L.news.day === today && L.news.n > 0) parts.push(U.el("div", { class: "kuji-news", text: `ほかの おきゃくさんも ひいたよ（きのう までに ${L.news.n}まい）` }));
+        parts.push(rotaPart(L, today));
         if (!left) parts.push(U.el("div", { class: "kuji-sold", text: K.pendingOf(s).length ? "うりきれ！ えらんで いない けいひんを えらんでね" : "うりきれ！ あした あたらしい くじが はいるよ" }));
         parts.push(dcResPart());
         // A〜Cしょう・ラストワン

@@ -37,7 +37,7 @@ export async function kujiSmoke({ scenario, expect }) {
   const closeBoard = async (H) => { await H.page.locator('.modal-wrap:not(.out) .close').last().click(); await H.until(() => !document.querySelector('.modal-wrap') && !PokaDebug.kujiUi().open && PokaDebug.idle(), 8000); };
 
   for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario('kuji-' + viewport.width, async (H) => {
-    await H.newGameFast(); await H.dbg('hour', 12); await H.dbg('weather', 'clear'); const c0 = await H.dbg('coins', 150000); await H.dbg('kujiFast', 4);
+    await H.newGameFast(); await H.dbg('kujiTheme', 'lawson', 'law'); await H.dbg('kujiTheme', 'sevenbun', 'sev'); await H.dbg('hour', 12); await H.dbg('weather', 'clear'); const c0 = await H.dbg('coins', 150000); await H.dbg('kujiFast', 4);
     const layout = await H.dbg('townLayout', 'town');
     // 1. ローリソン → たな → ボード
     await enterStore(H, layout, 'lawson'); await H.shot('lawson-store');

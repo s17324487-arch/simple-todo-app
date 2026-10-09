@@ -47,7 +47,7 @@ export async function kujiNetSmoke({ scenario, expect }) {
   for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario("kuji-net-" + viewport.width, async (H) => {
     if (!fake) fake = await (await import("./online-fake.mjs")).startOnlineFake();
     fake.reset();
-    await H.newGameFast(); await H.dbg("hour", 12); await H.dbg("weather", "clear"); await H.dbg("coins", 150000); await H.dbg("kujiFast", 4);
+    await H.newGameFast(); await H.dbg("kujiTheme", "lawson", "law"); await H.dbg("kujiTheme", "sevenbun", "sev"); await H.dbg("hour", 12); await H.dbg("weather", "clear"); await H.dbg("coins", 150000); await H.dbg("kujiFast", 4);
     expect(await H.dbg("onlineServer", fake.conf) === true, "にせの サーバーに つなげない");
     // 0. オンライン
     await H.phone("みんな");

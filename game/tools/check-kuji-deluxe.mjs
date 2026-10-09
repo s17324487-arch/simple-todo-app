@@ -11,6 +11,8 @@ import { readFileSync } from "node:fs";
 import { gameContext } from "./game-context.mjs";
 const R = gameContext();
 const { IchibanKuji: K, KujiArt: A, KujiDeluxeArt: DA, KujiNet: KN, StickerBook: SB, Save: S } = R;
+// いちばんくじの けいひんは 2しゅうかん ごとに いれかわる（UI-112）。ここでは まえからの セットの きかん（2026-10-19〜11-01）に きめる
+R.U.today = () => "2026-10-20";
 R.UI.updateHud = () => {}; R.UI.toast = () => {};
 const read = (p) => readFileSync(new URL("../" + p, import.meta.url), "utf8");
 let n = 0;
@@ -136,7 +138,7 @@ ok(K.source("kj_mlaw_a") === "ネリカスタウンの ローリソンの いち
 
 // ---- 7. がめん・PokaDebug・ことば ----
 const ui = read("js/kuji-ui.js");
-ok(/const X = \(\) => \(mode === "net" \? K\.NET_BY\[s\] : SO\)/.test(ui) && /classList\.toggle\("deluxe", mode === "net"\)/.test(ui) && /boxUrl\(s, mode === "net"\)/.test(ui), "がめん: みんなの くじは ごうかな けいひん・きんいろの ボード・きんの はこ");
+ok(/const X = \(\) => \(mode === "net" \? K\.NET_BY\[s\] : K\.BY\[s\]\)/.test(ui) && /classList\.toggle\("deluxe", mode === "net"\)/.test(ui) && /boxUrl\(s, mode === "net"\)/.test(ui), "がめん: みんなの くじは ごうかな けいひん・きんいろの ボード・きんの はこ");
 for (const t of ["みんなの くじ だけの ごうかな けいひん", "「みんなの くじ」は けいひんが ごうか！", "けいひんは みんなの くじ だけの ごうかな もの！", "みんなの くじの "]) ok(ui.includes(t), "がめんの ことば: " + t);
 const css = read("css/style.css");
 ok(/\.kuji\.deluxe \.kuji-poster\{/.test(css) && /\.kuji-ribbon\{/.test(css) && /\.kuji-modehint\{/.test(css), "CSS: きんいろの ボード・リボン・しらせ");
