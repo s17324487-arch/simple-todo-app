@@ -4507,6 +4507,8 @@ await (await import("./fashion-show-smoke.mjs")).fashionShowSmoke({scenario,expe
 await (await import("./furn-tray-smoke.mjs")).furnTraySmoke({scenario,expect});
 // かべがみ・ゆか 15しゅずつ（UI-90。くわしくは tests/room-styles-smoke.mjs）
 await (await import("./room-styles-smoke.mjs")).roomStylesSmoke({scenario,expect});
+// ドアの いろ（UI-111。くわしくは tests/door-colors-smoke.mjs）
+await (await import("./door-colors-smoke.mjs")).doorColorsSmoke({scenario,expect});
 // フィギュア だいの あたらしい 5しゅ（UI-93。くわしくは tests/figure-stand-more-smoke.mjs）
 await (await import("./figure-stand-more-smoke.mjs")).figureStandMoreSmoke({scenario,expect});
 // しょっきを テーブルに ならべる（UI-103。くわしくは tests/table-ware-smoke.mjs）

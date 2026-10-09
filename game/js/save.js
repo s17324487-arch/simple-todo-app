@@ -140,6 +140,7 @@ const Save = {
       // room みせて いる おへや（js/online-rooms.js: shown みせた とき〔0 は みせて いない〕・id おへや・uid みせた ときの ID）・
       // photo ぷりくら（js/online-photos.js: uid みせた ときの ID・shown { しゃしんの id: みせた とき〔-1 は サーバーから けす まち〕}・sid { しゃしんの id: サーバーの ばんごう〔ランダム〕}・hide かくした しゃしん・hideU かくした 人・rep { ほうこくした しゃしん: りゆう }）
       online: { on: false, agreed: 0, ver: 0, nick: [0, 0], best: {}, sent: {}, sentUid: "", room: { shown: 0, id: "", uid: "" }, photo: { uid: "", shown: {}, sid: {}, hide: [], hideU: [], rep: {} } },
+      doorColors: { out: "wood", room: "wood", toilet: "mint" }, // おうちの ドアの いろ（js/home-door-colors.js・UI-111）
       settings: { bgm: true, se: true, difficulty: "normal", worldZoom: 1 },
     };
   },

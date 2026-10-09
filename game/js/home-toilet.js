@@ -75,24 +75,26 @@ const HomeToilet = {
   },
   front() { return { x: this.TX, y: ROOM.WALL + 30 }; },
   // へやの 絵（おくの かべの もようの 座標: x は かべに そって・y は かべの うえから。HomeDesign.roomSvg の かべの なか）
-  doorSvg(H) {
+  doorSvg(H, color) {
+    // とびらの いろは HomeDoorColors（UI-111。ミントが まえと おなじ）
+    const c = typeof HomeDoorColors !== "undefined" ? HomeDoorColors.color(color || "mint") : { base: "#BFE3D8", light: "#D7F0E8", dark: "${c.dark}" };
     const w = this.W, h = this.H, x0 = this.TX - w / 2, y0 = H - h, L = this.LAMP, lx = w / 2 + L.du, ly = h - L.z;
     const s = `stroke="${INK}" stroke-linejoin="round" stroke-linecap="round"`;
     return `<g class="wc-door" transform="translate(${x0} ${y0})">`
       // きの わく・ミントの とびら・うえと したの パネル（したには かぜの とおる すきま）
       + `<rect x="-6" y="-7" width="${w + 12}" height="${h + 7}" rx="5" fill="#D8BF94" ${s} stroke-width="2.4"/><path d="M-2,-3 H${w + 2}" stroke="#EAD7B1" stroke-width="2"/>`
-      + `<rect x="0" y="0" width="${w}" height="${h}" rx="3" fill="#BFE3D8" ${s} stroke-width="2.6"/>`
-      + `<rect x="7" y="9" width="${w - 14}" height="47" rx="4" fill="#D7F0E8" stroke="#86B5A6" stroke-width="1.6"/>`
-      + `<rect x="7" y="64" width="${w - 14}" height="62" rx="4" fill="#D7F0E8" stroke="#86B5A6" stroke-width="1.6"/>`
-      + `<path d="M13,${h - 30} H${w - 13} M13,${h - 23} H${w - 13} M13,${h - 16} H${w - 13}" stroke="#86B5A6" stroke-width="1.8" stroke-linecap="round"/>`
+      + `<rect x="0" y="0" width="${w}" height="${h}" rx="3" fill="${c.base}" ${s} stroke-width="2.6"/>`
+      + `<rect x="7" y="9" width="${w - 14}" height="47" rx="4" fill="${c.light}" stroke="${c.dark}" stroke-width="1.6"/>`
+      + `<rect x="7" y="64" width="${w - 14}" height="62" rx="4" fill="${c.light}" stroke="${c.dark}" stroke-width="1.6"/>`
+      + `<path d="M13,${h - 30} H${w - 13} M13,${h - 23} H${w - 13} M13,${h - 16} H${w - 13}" stroke="${c.dark}" stroke-width="1.8" stroke-linecap="round"/>`
       // まるい ふだ（トイレの え）
       + `<circle cx="${w / 2}" cy="31" r="13" fill="#FFF8E8" ${s} stroke-width="1.8"/>`
       + `<g transform="translate(${w / 2} 31)"><rect x="-8.5" y="-8.5" width="6" height="9" rx="1.4" fill="#FFFFFF" ${s} stroke-width="1.5"/>`
-      + `<path d="M-3,-1 H8 Q8,5.5 2,6.6 L3,9.5 H-4 L-3,5.8 Q-3,2.5 -3,-1 Z" fill="#FFFFFF" ${s} stroke-width="1.5"/><path d="M-1,1.2 H5.5" stroke="#86B5A6" stroke-width="1.2" stroke-linecap="round"/></g>`
+      + `<path d="M-3,-1 H8 Q8,5.5 2,6.6 L3,9.5 H-4 L-3,5.8 Q-3,2.5 -3,-1 Z" fill="#FFFFFF" ${s} stroke-width="1.5"/><path d="M-1,1.2 H5.5" stroke="${c.dark}" stroke-width="1.2" stroke-linecap="round"/></g>`
       // ランプの まど（あき／つかってる の いろは キャンバスで ぬる）・とって
       + `<rect x="${lx - 5}" y="${ly - 3.5}" width="10" height="7" rx="2.5" fill="#FFFFFF" ${s} stroke-width="1.2"/>`
       + `<path d="M${w - 10},${h - 58} H${w - 19}" ${s} stroke-width="3.4" fill="none"/><circle cx="${w - 10}" cy="${h - 58}" r="3.4" fill="#E0BD66" ${s} stroke-width="1.4"/>`
-      + `<path d="M4,${h - 3} H${w - 4}" stroke="#86B5A6" stroke-width="2" stroke-linecap="round"/>`
+      + `<path d="M4,${h - 3} H${w - 4}" stroke="${c.dark}" stroke-width="2" stroke-linecap="round"/>`
       + `</g>`;
   },
   // ドアの うえの ランプ・あいた ときの くらい ところ（HomeDoors の ふだの あと・かぐと 3人の まえ）

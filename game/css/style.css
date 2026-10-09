@@ -412,6 +412,8 @@ html, body {
 .care-bar .mini .meter { height: 8px; border-width: 2px; margin-top: 2px; }
 .care-bar .mini .lbl { display: flex; justify-content: space-between; }
 .edit-bar { position: absolute; left: 0; right: 0; bottom: 0; background: var(--cream); border-top: 3px solid var(--ink); padding: 8px 10px calc(10px + var(--safe-b)); border-radius: 20px 20px 0 0; }
+.edit-bar .tabs.edit-tabs { gap: 4px; } /* かぐ・かべがみ・ゆか・ドア の 4つが 375 でも 1れつに（UI-111） */
+.edit-bar .tabs.edit-tabs .tab { padding: 6px 7px; font-size: 13px; }
 .edit-bar .tray { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: none; }
 .edit-bar .tray::-webkit-scrollbar { display: none; }
 .edit-bar .card { flex: 0 0 84px; }
