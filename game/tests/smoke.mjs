@@ -2426,7 +2426,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   expect(d.width*d.depth===480*360*2&&(await H.dbg("state")).coins===981654,"2倍の面積または6000コインの支払いが不正");
   expect(JSON.stringify(raw(d.items))===JSON.stringify(legacy.room.items)&&JSON.stringify(d.furn)===JSON.stringify(legacy.furn)&&d.wall===legacy.room.wall&&d.floor===legacy.room.floor,"拡張で家具・壁紙・床が変わった");
   const expandedBg=d.background;await H.wait(500);await H.shot("expanded");
-  await H.houseButton("おへや");expect(await H.page.getByRole("button",{name:"ひろげたよ",exact:true}).isDisabled(),"2回目の拡張が可能");
+  await H.houseButton("おへや");expect(!(await H.page.getByRole("button",{name:"2ばいに ひろげる",exact:true}).count())&&await H.page.getByRole("button",{name:"3ばいに ひろげる",exact:true}).isEnabled(),"2回目の2倍拡張が可能／つぎの3倍が出ない（UI-114）");
   await H.page.locator(".modal-wrap .close").last().click();await H.wait(220);await H.houseButton("もようがえ");
   d=await H.dbg("homeDesign");const stool=d.items.find(it=>it.id==="stool_oak"),start={x:stool.rect.x+stool.rect.w*.5,y:stool.rect.y+stool.rect.h*.2};
   const a=await H.dbg("homePoint",stool.x,stool.y),b=await H.dbg("homePoint",550,690);
@@ -4481,6 +4481,8 @@ await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});
 await (await import("./kuji-rotation-smoke.mjs")).kujiRotationSmoke({scenario,expect});
 // ぬいぐるみ・フィギュアを もつ（UI-113。くわしくは tests/hold-plush-smoke.mjs）
 await (await import("./hold-plush-smoke.mjs")).holdPlushSmoke({scenario,expect});
+// おへやを 3ばい・4ばいに（UI-114。くわしくは tests/room-grow-smoke.mjs）
+await (await import("./room-grow-smoke.mjs")).roomGrowSmoke({scenario,expect});
 // コンビニの ポイントカード（UI-85。くわしくは tests/conbini-card-smoke.mjs）
 await (await import("./conbini-card-smoke.mjs")).conbiniCardSmoke({scenario,expect});
 // コンビニ × ごわがの コラボ けいひん（UI-86。くわしくは tests/conbini-collab-smoke.mjs）

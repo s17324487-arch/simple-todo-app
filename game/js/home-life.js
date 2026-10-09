@@ -275,28 +275,42 @@ const HomeRooms = {
     Save.addCoins(-this.expansionPrice); rs.expanded[id] = true;
     Save.mark(); Save.write(); return true;
   },
+  // 3ばい・4ばい（UI-114。オーナーの 指示 2026-10-09「部屋を10万円で3倍、50万円で4倍」）: 2ばいの つぎに 1だんずつ。rooms.grow[id] = 3／4
+  GROW_PRICE: { 3: 100000, 4: 500000 },
+  level(id) { return HomeDesign.level(id); },
+  // つぎの だんの ねだん（いちばん ひろい ときは 0）
+  nextPrice(id) { const n = this.level(id) + 1; return n === 2 ? this.expansionPrice : this.GROW_PRICE[n] || 0; },
+  grow(id) {
+    const rs = Save.d.rooms, n = this.level(id) + 1, price = this.GROW_PRICE[n];
+    if (id !== rs.active || !this.catalog.some(r => r.id === id) || !rs.owned[id] || !price || Save.d.coins < price) return false;
+    if (!rs.grow || typeof rs.grow !== "object") rs.grow = {};
+    Save.addCoins(-price); rs.grow[id] = n;
+    Save.mark(); Save.write(); return true;
+  },
+  // つぎの だんへ（2ばいは expand・3／4ばいは grow）
+  widen(id) { return this.level(id) === 1 ? this.expand(id) : this.grow(id); },
   open(sc) {
     const body = U.el("div"), m = UI.modal({ title: "おへや", body });
-    const id = Save.d.rooms.active, expanded = Save.d.rooms.expanded[id], price = this.expansionPrice;
+    const id = Save.d.rooms.active, lv = this.level(id), next = lv + 1, price = this.nextPrice(id), top = !price;
     const current = this.catalog.find(r => r.id === id), card = U.el("div", { class: "note room-expansion" });
     card.append(U.el("strong", { text: "いまの おへやを ひろげる" }), U.el("div", { text: current.name }),
-      U.el("div", { text: expanded ? "ひろさ 2ばい（ひろげたよ）" : `ひろさ 1ばい → 2ばい：${price} コイン` }),
-      U.el("div", { text: "かぐの ばしょ・かべがみ・ゆかは そのまま。\nひとつの おへやに 1かいだけ。" }));
-    const expand = UI.btn(expanded ? "ひろげたよ" : "2ばいに ひろげる", async () => {
+      U.el("div", { text: top ? `ひろさ ${lv}ばい（いちばん ひろいよ）` : `ひろさ ${lv}ばい → ${next}ばい：${price} コイン` }),
+      U.el("div", { text: "かぐの ばしょ・かべがみ・ゆかは そのまま。\n2ばい・3ばい・4ばいの じゅんに ひろがるよ。" }));
+    const expand = UI.btn(top ? "ひろげたよ" : `${next}ばいに ひろげる`, async () => {
       if (expand.disabled) return;
       expand.disabled = true;
-      if (!await UI.confirm(`${price} コインで ${current.name}を 2ばいに ひろげる？\nかぐの ばしょは そのままだよ。`)) { expand.disabled = Save.d.coins < price; return; }
-      if (G.scene !== sc || !this.expand(id)) { UI.toast("いまは ひろげられないよ"); expand.disabled = !!Save.d.rooms.expanded[id] || Save.d.coins < price; return; }
-      m.close(); Game.goto("house", { msg: "おへやが 2ばいに ひろがったよ！" });
+      if (!await UI.confirm(`${price} コインで ${current.name}を ${next}ばいに ひろげる？\nかぐの ばしょは そのままだよ。`)) { expand.disabled = Save.d.coins < price; return; }
+      if (G.scene !== sc || this.level(id) !== lv || !this.widen(id)) { UI.toast("いまは ひろげられないよ"); expand.disabled = this.level(id) !== lv || Save.d.coins < price; return; }
+      m.close(); Game.goto("house", { msg: `おへやが ${next}ばいに ひろがったよ！` });
     }, "wide yellow");
-    expand.disabled = !!expanded || Save.d.coins < price;
+    expand.disabled = top || Save.d.coins < price;
     card.append(expand);
-    if (!expanded && Save.d.coins < price) card.append(U.el("div", { text: `あと ${price - Save.d.coins} コイン ためよう。` }));
+    if (!top && Save.d.coins < price) card.append(U.el("div", { text: `あと ${price - Save.d.coins} コイン ためよう。` }));
     body.append(UI.btn("かぐの プリセット",()=>{m.close();RoomPresets.open(sc);},"wide yellow"),card, U.el("strong", { text: "べつの おへや" }));
     for (const r of this.catalog) {
       const own = Save.d.rooms.owned[r.id];
       const card = U.el("div", { class: "note", "data-room": r.id });
-      card.append(U.el("div", { text: r.name + (own ? `（もってる・ひろさ ${Save.d.rooms.expanded[r.id] ? 2 : 1}ばい）` : `：${r.price} コイン${r.wins?`・バトル ${r.wins}かい しょうり`:""}`) }));
+      card.append(U.el("div", { text: r.name + (own ? `（もってる・ひろさ ${this.level(r.id)}ばい）` : `：${r.price} コイン${r.wins?`・バトル ${r.wins}かい しょうり`:""}`) }));
       if(r.id==='yard')card.append(U.el('div',{text:'しばふ・はなだん・テラスの おにわ。テーブル・いす2つ・うえきつき。かぐを おけるよ。'}));
       const b = UI.btn(own ? "このへやへ" : "おへやを かう", async () => {
         if (!own) {

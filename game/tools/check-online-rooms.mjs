@@ -82,7 +82,7 @@ ok(keyRe.test("0") && keyRe.test(String(OR.MAX - 1)) && keyRe.test("99") && !key
 ok(/>= -100 && newData\.val\(\) <= 1000/.test(RM.i.$k.x[".validate"]) && RM.i.$k.x[".validate"] === RM.i.$k.y[".validate"] && /<= 100$/.test(RL.$uid.c[".validate"]), "ルール: ばしょと かずの はんい");
 const gRe = reOf(RM.i.$k.g[".validate"]);
 for (const f of FigureStand.figures()) ok(gRe.test(f + ",," + f) && idRe.test(f), "ルール: フィギュア " + f);
-ok(lenOf(RM.i.$k.g[".validate"]) >= 12 * 41 && /^\^\(s\|e\)\$$/.test(reOf(RM.z[".validate"]).source) && reOf(RM.i.$k.s[".validate"]).source === "^l$", "ルール: フィギュア 12こ・ひろさ・かべの がわ");
+ok(lenOf(RM.i.$k.g[".validate"]) >= 12 * 41 && /^\^\(s\|e\|3\|4\)\$$/.test(reOf(RM.z[".validate"]).source) && OR.Z.every((z) => reOf(RM.z[".validate"]).test(z)) && reOf(RM.i.$k.s[".validate"]).source === "^l$", "ルール: フィギュア 12こ・ひろさ（1〜4ばい。UI-114）・かべの がわ");
 ok(RM.n[".validate"] === rules.players.$uid.n[".validate"] && RM.t[".validate"] === rules.players.$uid.t[".validate"] && RL.$uid.n[".validate"] === RM.n[".validate"], "ルール: なまえ・じこくは おなじ");
 const fake = read("tests/online-fake.mjs");
 ok(fake.includes(`ID_RE = /${idRe.source}/`) && fake.includes('roomlist: { depth: 3, uidAt: 2, read: 2 }') && fake.includes('rooms: { depth: 3, uidAt: 2, read: 3 }') && fake.includes("num(o.x, -100, 1000)") && fake.includes("o.g.length <= 600") && fake.includes("num(v.c, 0, 100)"), "にせの サーバーも ルールと おなじ");

@@ -85,7 +85,8 @@ class HouseScene {
   // 1〜ZMAX ばい。ゆびの まんなかの ところを ゆびの 下に のこしたまま 大きく／小さく する（2本ゆびで うごかす ことも できる）。
   // いちばん 小さく すると ぜんたいが 見える もとの 画面（まんなか）に もどる。
   // さいだいは 3ばい（オーナーの FB 2026-10-02「もう少し上げて」。まえは 2ばい）。1.6ばいを こえると かぐ と へやは こまかい 絵（rasterK）。
-  get ZMAX() { return 3; }
+  // 3ばい・4ばいの おへや（UI-114）は ぜんたいが ちいさく みえる ので 4ばい・5ばいまで
+  get ZMAX() { return ({ x3: 4, x4: 5 })[this.guest ? HomeDesign.guestSize : HomeDesign.sizeKey(Save.d.rooms.active)] || 3; }
   pinchable() { return (!this.mode || this.mode === "edit") && !this.climb && !UI.busy; }
   zoomAt(z, cx, cy, q = null) {
     const s0 = this.s, p = q || { x: (cx - this.ox) / s0, y: (cy - this.oy) / s0 }; // ゆびの 下の 点（へやの 絵の 座標）
@@ -168,7 +169,9 @@ class HouseScene {
     // ドアの いろ（UI-111）も キーに（よその おへやは はじめの いろ）
     const doors = this.guest ? HomeDoorColors.DEFAULT : HomeDoorColors.cur();
     const key = "house-design:" + (this.guest ? "guest" : Save.d.rooms.active) + ":" + r.wall + ":" + r.floor + ":" + size.w + "x" + size.d + ":" + HomeDoorColors.sig(doors), fn = () => yard ? HomeGarden.svg(size) : HomeDesign.roomSvg(r.wall, r.floor, size, doors);
-    this.bgArgs = [key, fn, Math.ceil(b.w * 2), Math.ceil(b.h * 2)];
+    // いつもの 絵は 2（3ばい・4ばいの おへやは 450まん px まで に おさえる。UI-114）
+    const k0 = Math.min(2, Math.sqrt(4.5e6 / (b.w * b.h)));
+    this.bgArgs = [key, fn, Math.ceil(b.w * k0), Math.ceil(b.h * k0)];
     // ズームの ときの こまかい 絵（3。ひろい へやは 900まん px まで に おさえる）
     const k = Math.min(3, Math.sqrt(9e6 / (b.w * b.h)));
     this.bgFine = [key, fn, Math.ceil(b.w * k), Math.ceil(b.h * k)];

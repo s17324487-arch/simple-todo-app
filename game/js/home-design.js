@@ -1,12 +1,20 @@
 // 家具の所持ID・配置座標を変えず、床と高さを斜め上から投影する。
 const HomeDesign = {
-  sizes:{standard:{w:480,d:360},expanded:{w:640,d:540}},
-  // おじゃま（js/online-visit.js）の あいだは よその おへやの ひろさ（"standard"／"expanded"）。じぶんの セーブは みない
+  // ひろさ: 1ばい・2ばい（expanded）・3ばい（x3）・4ばい（x4。UI-114）。めんせきが ちょうど 2・3・4ばい
+  sizes:{standard:{w:480,d:360},expanded:{w:640,d:540},x3:{w:800,d:648},x4:{w:960,d:720}},
+  SIZE_KEYS:["standard","expanded","x3","x4"],
+  // へやの ひろさの だん（1〜4）: 2ばいは rooms.expanded[id]、3・4ばいは その うえで rooms.grow[id]（3／4）
+  level(id,rooms=typeof Save!=="undefined"&&Save.d?.rooms) {
+    if(!rooms||rooms.expanded?.[id]!==true)return 1;
+    const g=rooms.grow?.[id];return g===4?4:g===3?3:2;
+  },
+  sizeKey(id,rooms) {return this.SIZE_KEYS[this.level(id,rooms)-1];},
+  // おじゃま（js/online-visit.js）の あいだは よその おへやの ひろさ（sizes の キー）。じぶんの セーブは みない
   guestSize:null,
   size() {
     if(this.guestSize)return this.sizes[this.guestSize]||this.sizes.standard;
     const rooms=typeof Save!=="undefined"&&Save.d?.rooms;
-    return this.sizes[rooms?.expanded?.[rooms.active]===true?"expanded":"standard"];
+    return this.sizes[rooms?this.sizeKey(rooms.active,rooms):"standard"];
   },
   get W() {return this.size().w;},
   get D() {return this.size().d;},
