@@ -1425,6 +1425,8 @@ html, body {
 .kuji-stat{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:space-between;font-weight:800;font-size:13px}
 .kuji-stat b{font-size:17px}
 .kuji-note,.kuji-news{font-size:12px;font-weight:800;color:#8a7d6a}
+.kuji-rota{display:flex;flex-direction:column;gap:2px;background:var(--kl,#fff7e6);border:2px solid var(--kc,#e0c9a6);border-radius:10px;padding:5px 8px;color:#5b4f40}
+.kuji-rota .kuji-fresh{color:var(--kd,#a0522d);font-size:13px}
 .kuji-sold{font-weight:900;color:#E8453C;text-align:center}
 .kuji-dcres{border:2.5px solid var(--ink);border-radius:12px;padding:6px 8px;background:#F4F1EA;font-size:13px;font-weight:800}
 .kuji-dcres.win{background:#FFF4D6}

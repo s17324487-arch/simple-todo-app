@@ -14,6 +14,8 @@ import { gameContext } from "./game-context.mjs";
 import { startOnlineFake } from "../tests/online-fake.mjs";
 const R = gameContext();
 const { KujiNet: KN, IchibanKuji: K, Online: O, OnlineNet: N, Save: S, PokaDebug: D } = R;
+// いちばんくじの けいひんは 2しゅうかん ごとに いれかわる（UI-112）。ここでは まえからの セットの きかん（2026-10-19〜11-01）に きめる
+R.U.today = () => "2026-10-20";
 R.UI.updateHud = () => {}; R.UI.toast = () => {};
 const read = (p) => readFileSync(new URL("../" + p, import.meta.url), "utf8");
 let n = 0;

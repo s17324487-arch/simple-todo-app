@@ -19,8 +19,8 @@ const ids = (s) => [...s.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
 // ガチャの シールは series が 0〜2 の 18しゅ。コンビニの いちばんくじ（js/ichiban-kuji.js・UI-55）の 12しゅは series が みせの id（くわしくは tools/check-kuji.mjs）。
 // ネリカス でんきの シール うりば（js/kaden-stickers.js・UI-57）の 46しゅは series が "kaden"（くわしくは tools/check-kaden-stickers.mjs）
 const D18 = SB.DESIGNS.filter((d) => typeof d.series === "number");
-ok(D18.length === 18 && new Set(SB.DESIGNS.map((d) => d.id)).size === SB.DESIGNS.length && SB.DESIGNS.length === 18 + 24 + 46 && SB.DESIGNS.every((d) => SB.INDEX[d.id] === d), "シール 18しゅ ＋ いちばんくじの 24しゅ（ひとりの くじ 12・みんなの くじ 12）＋ ネリカス でんきの 46しゅ（id が かさならない）");
-ok(SB.DESIGNS.slice(0, 18).every((d) => typeof d.series === "number") && SB.DESIGNS.slice(18, 42).every((d) => typeof d.series === "string" && d.hint && /いちばんくじ/.test(d.hint)) && SB.DESIGNS.slice(42).every((d) => d.series === "kaden" && /ネリカス でんき/.test(d.hint)), "ガチャの 18しゅが さき・いちばんくじ・ネリカス でんきの シールは あと（ヒントつき）");
+ok(D18.length === 18 && new Set(SB.DESIGNS.map((d) => d.id)).size === SB.DESIGNS.length && SB.DESIGNS.length === 18 + 24 + 14 + 46 && SB.DESIGNS.every((d) => SB.INDEX[d.id] === d), "シール 18しゅ ＋ いちばんくじの 38しゅ（ひとりの くじ 12・いれかわる セット 14・みんなの くじ 12）＋ ネリカス でんきの 46しゅ（id が かさならない）");
+ok(SB.DESIGNS.slice(0, 18).every((d) => typeof d.series === "number") && SB.DESIGNS.slice(18, 56).every((d) => typeof d.series === "string" && d.hint && /いちばんくじ/.test(d.hint)) && SB.DESIGNS.slice(56).every((d) => d.series === "kaden" && /ネリカス でんき/.test(d.hint)), "ガチャの 18しゅが さき・いちばんくじ・ネリカス でんきの シールは あと（ヒントつき）");
 ok(D18.filter((d) => d.rare).map((d) => d.id).join() === "stk_trio,stk_unicorn,stk_parfait" && SB.DESIGNS.filter((d) => d.rare).length === 3, "レアの シール 3しゅ（なかよし 3にん・ユニコーン・にじいろ パフェ）");
 for (let k = 0; k < 3; k++) ok(SB.DESIGNS.filter((d) => d.series === k).length === 6 && SB.DESIGNS.filter((d) => d.series === k && d.rare).length === 1, `シリーズ ${k} は 6しゅ（レア 1）`);
 for (const d of D18) {
@@ -156,7 +156,7 @@ ok(S.d.stickers && typeof S.d.stickers.have === "object" && typeof S.d.stickers.
   ok(R.Smaho.APPS.findIndex((a) => a.id === "stickers") === R.Smaho.APPS.findIndex((a) => a.id === "photos") + 1, "「シール」は「しゃしん」の となり");
   const D = R.PokaDebug;
   S.d = S.fresh(); S.d.coins = 500;
-  ok(D.stickerGive("stk_wanko", 3) && !D.stickerGive("stk_nothing", 1) && D.stickers().have.stk_wanko === 3 && D.stickers().machines.length === 3 && D.stickers().series.every((x) => x.price === 100 && x.sheets.length === 4) && D.stickers().designs.length === 88, "PokaDebug.stickers・stickerGive");
+  ok(D.stickerGive("stk_wanko", 3) && !D.stickerGive("stk_nothing", 1) && D.stickers().have.stk_wanko === 3 && D.stickers().machines.length === 3 && D.stickers().series.every((x) => x.price === 100 && x.sheets.length === 4) && D.stickers().designs.length === 102, "PokaDebug.stickers・stickerGive");
   ok(D.gachaForest().machines.length === 18 && D.gachaForest().machines.every((si) => GA.SERIES[si].forest), "gachaForest() の 台は もりの 18だい だけ");
   // おなじ 絵は キャッシュ（シールちょうは 18しゅ ＋ かみ 6しゅ。ばしょや かずは キーに いれない）
   const src = readFileSync(new URL("../js/sticker-book.js", import.meta.url), "utf8");

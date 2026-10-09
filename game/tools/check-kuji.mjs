@@ -7,6 +7,8 @@ import { gameContext } from "./game-context.mjs";
 
 const R = gameContext();
 const { IchibanKuji: K, KujiArt: A, StickerBook: SB, Save: S } = R;
+// いちばんくじの けいひんは 2しゅうかん ごとに いれかわる（UI-112）。ここでは まえからの セットの きかん（2026-10-19〜11-01）に きめる
+R.U.today = () => "2026-10-20";
 R.UI.updateHud = () => {}; R.UI.toast = () => {};
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
@@ -23,10 +25,10 @@ const sum = (o) => Object.values(o).reduce((a, b) => a + b, 0);
 ok(K.PRICE === 1000 && K.GRADES.join("") === "ABCDEFGHI" && Object.keys(K.PICK).join("") === "DEF", "1かい 1000コイン・賞は A〜I・えらべるのは D〜F");
 ok(JSON.stringify(K.PLAN) === JSON.stringify({ A: [1], B: [1], C: [1], D: [1, 1, 1], E: [2, 2, 2], F: [3, 3, 3], G: [3, 3, 3, 3], H: [5, 5, 5, 5], I: [9, 9, 9] }) && sum(Object.fromEntries(Object.entries(K.PLAN).map(([g, a]) => [g, a.reduce((x, y) => x + y, 0)]))) === 80, "賞の ほんすう（A1 B1 C1 D3 E6 F9 G12 H20 I27 = 80まい）");
 ok(K.KEEP === 10 && K.OTHERS_MAX === 4 && K.CATCHUP === 7 && K.DC_RATE === 0.02, "ほかの おきゃくさん（1にち 0〜4まい・のこり 10まい まで・7にちぶん）・ダブルチャンス 2%");
-ok(K.STORES.join() === "lawson,sevenbun" && K.SERIES.every((x) => x.total === 80) && K.ITEMS.filter((it) => !it.net).length === 50 && K.ITEMS.length === 98, "コンビニ 2つ・どちらも 80まい・ひとりの くじの けいひん 50しゅ（25しゅ ＋ ダブルチャンスしょう × 2）・みんなの くじの けいひん 48しゅ（tools/check-kuji-deluxe.mjs）");
-ok(new Set(K.ITEMS.map((it) => it.id)).size === K.ITEMS.length && K.ITEMS.every((it) => K.INDEX[it.id] === it && /^kj_m?(law|sev)_[a-z0-9]+$/.test(it.id) && it.net === it.id.startsWith("kj_m")), "けいひんの id（かさならない・kj_<みせ>_・みんなの くじは kj_m<みせ>_）");
-for (const X of K.SERIES) {
-  const mine = K.ITEMS.filter((it) => it.store === X.id && !it.net);
+ok(K.STORES.join() === "lawson,sevenbun" && K.SERIES.every((x) => x.total === 80) && K.ITEMS.filter((it) => !it.net && K.THEME_BY[it.theme].base).length === 50 && K.ITEMS.filter((it) => !it.net).length === 100 && K.ITEMS.length === 148, "コンビニ 2つ・どちらも 80まい・ひとりの くじの けいひん 50しゅ（25しゅ ＋ ダブルチャンスしょう × 2）＋ いれかわる セット 50しゅ（tools/check-kuji-rotation.mjs）・みんなの くじの けいひん 48しゅ（tools/check-kuji-deluxe.mjs）");
+ok(new Set(K.ITEMS.map((it) => it.id)).size === K.ITEMS.length && K.ITEMS.every((it) => K.INDEX[it.id] === it && /^kj_m?(law|sev)[0-9]?_[a-z0-9]+$/.test(it.id) && it.net === it.id.startsWith("kj_m")), "けいひんの id（かさならない・kj_<みせ>_・いれかわる セットは kj_<みせ>2_・みんなの くじは kj_m<みせ>_）");
+for (const X of Object.values(K.THEME_BY)) {
+  const mine = K.ITEMS.filter((it) => it.store === X.id && !it.net && it.theme === X.key);
   ok(mine.length === 25 && X.lineup.length === 24 && X.lineup.every((id) => K.INDEX[id].store === X.id) && !X.lineup.includes(X.dcId) && X.lineup.includes(X.lastId), `${X.shop}: 25しゅ（コンプリートは 24しゅ・ダブルチャンスしょうは べつ）`);
   for (const g of K.GRADES) ok(X.ids[g].length === K.PLAN[g].length && X.ids[g].every((id, k) => X.plan[id] === K.PLAN[g][k] && K.INDEX[id].grade === g), `${X.shop} ${g}しょう: しゅるいと ほんすう`);
   ok(["A", "B", "C"].every((g) => K.INDEX[X.ids[g][0]].kind === "plush") && new Set(["A", "B", "C"].map((g) => K.INDEX[X.ids[g][0]].who)).size === 3 && ["goji", "wanko", "gachan"].every((w) => ["A", "B", "C"].some((g) => K.INDEX[X.ids[g][0]].who === w)), `${X.shop}: A〜Cしょうは ごじ・わんこ・がちゃんの ビッグ ぬいぐるみ`);
@@ -52,7 +54,7 @@ for (const it of K.ITEMS) {
     ok(/いちばんくじ/.test(R.ItemDexSources.source("furn", f)) && R.ItemDexSources.source("furn", f).includes(K.BY[it.store].shop), `${it.id}: ずかんの ヒント`);
   } else if (it.kind === "bag") {
     const w = R.ITEM_INDEX[it.id];
-    ok(w && w.slot === "hand" && w.wear === (it.net ? "kuji_dbag" : "kuji_bag") && w.col[0] === it.store && w.col[1] === it.who && w.price === 0 && w.exclusive === "kuji" && typeof R.WEAR[w.wear] === "function" && !R.FURN_INDEX[it.id], `${it.id}: もちもの（エコバッグ・みんなの くじは ポシェット／がまぐち）`);
+    ok(w && w.slot === "hand" && w.wear === (it.net ? "kuji_dbag" : K.THEME_BY[it.theme].base ? "kuji_bag" : "kuji_rbag") && w.col[0] === (it.net || K.THEME_BY[it.theme].base ? it.store : it.theme) && w.col[1] === it.who && w.price === 0 && w.exclusive === "kuji" && typeof R.WEAR[w.wear] === "function" && !R.FURN_INDEX[it.id], `${it.id}: もちもの（エコバッグ・みんなの くじは ポシェット／がまぐち）`);
     ok(/いちばんくじ/.test(R.ItemDexSources.source("wear", w)), `${it.id}: ずかんの ヒント`);
   } else ok(!R.FURN_INDEX[it.id] && !R.ITEM_INDEX[it.id], `${it.id}: 家具・服に はいらない（${it.kind}）`);
 }
@@ -61,12 +63,12 @@ for (const shop of Object.values(R.BUY_SHOPS)) for (const tab of ["head", "face"
   ok(!list.some((i) => i && K.INDEX[i.id]), `おみせ ${shop.name} に いちばんくじの けいひんが ならぶ`);
 }
 // シール 12しゅ（シールちょう）
-for (const X of K.SERIES) {
-  ok(X.stickers.length === 6 && X.stickers.every(([id, name]) => SB.INDEX[id] && SB.INDEX[id].series === X.id && SB.INDEX[id].name === name && !kanji.test(name) && name.length <= 10 && /いちばんくじ/.test(SB.INDEX[id].hint)), `${X.shop}: シール 6しゅが シールちょうに ある（ヒントつき）`);
+for (const X of Object.values(K.THEME_BY)) {
+  ok(X.stickers.length === (X.base ? 6 : 7) && X.stickers.every(([id, name]) => SB.INDEX[id] && SB.INDEX[id].series === X.id && SB.INDEX[id].name === name && !kanji.test(name) && name.length <= 10 && /いちばんくじ/.test(SB.INDEX[id].hint)), `${X.shop}: シール 6しゅが シールちょうに ある（ヒントつき）`);
   for (const id of X.ids.I) { const it = K.INDEX[id]; ok(it.stickers.reduce((a, [, k]) => a + k, 0) === 4 && it.stickers.every(([sid]) => X.stickers.some(([x]) => x === sid)), `${id}: シールが 4まい（その みせの シール）`); }
   ok(X.stickers.every(([sid]) => X.ids.I.some((id) => K.INDEX[id].stickers.some(([x]) => x === sid))), `${X.shop}: 6しゅ ぜんぶが どれかの シートに ある`);
 }
-ok(SB.DESIGNS.filter((d) => /^stk_kj/.test(d.id)).length === 24 && SB.DESIGNS.slice(18, 30).every((d) => /^stk_kj(law|sev)_[a-z]+$/.test(d.id)) && SB.DESIGNS.slice(30, 42).every((d) => /^stk_kjm(law|sev)_[a-z]+$/.test(d.id)), "シールちょうは 18しゅ ＋ いちばんくじの 12しゅ ＋ みんなの くじの 12しゅ（ネリカス でんきの シールは その あと）");
+ok(SB.DESIGNS.filter((d) => /^stk_kj/.test(d.id)).length === 38 && SB.DESIGNS.slice(18, 30).every((d) => /^stk_kj(law|sev)_[a-z]+$/.test(d.id)) && SB.DESIGNS.slice(30, 44).every((d) => /^stk_kj(law|sev)2_[a-z]+$/.test(d.id)) && SB.DESIGNS.slice(44, 56).every((d) => /^stk_kjm(law|sev)_[a-z]+$/.test(d.id)), "シールちょうは 18しゅ ＋ いちばんくじの 12しゅ ＋ みんなの くじの 12しゅ（ネリカス でんきの シールは その あと）");
 
 // ---- 3. ひく（1000コイン・もどさない・はりつけ ひょう・はんけん）----
 fresh(0);

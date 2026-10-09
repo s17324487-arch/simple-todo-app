@@ -19,8 +19,8 @@ const NEW = ["tw_teaset", "tw_cakestand", "tw_fruitbowl", "tw_pitcher", "tw_rice
 ok(TW.NEW.join() === NEW.join(), "あたらしい しょっき 8しゅ " + TW.NEW.join());
 const kujiDish = IchibanKuji.ITEMS.filter((it) => it.kind === "mug" || it.kind === "teacup").map((it) => it.id);
 const cvcDish = ConbiniCollab.ITEMS.filter((it) => it.cat === "cup" || it.cat === "plate").map((it) => it.id);
-ok(kujiDish.length === 6 && cvcDish.length === 16 && TW.DISHES.length === 30 && [...NEW, ...kujiDish, ...cvcDish].every((id) => TW.DISHES.includes(id) && TW.isDish(id) && FURN_INDEX[id].dish === true), `しょっき 30しゅ（あたらしい 8・いちばんくじの マグと ティーカップ ${kujiDish.length}・コンビニの コップと おさら ${cvcDish.length}）`);
-ok(new Set(TW.DISHES).size === 30, "しょっきの id が かさならない");
+ok(kujiDish.length === 12 && cvcDish.length === 16 && TW.DISHES.length === 36 && [...NEW, ...kujiDish, ...cvcDish].every((id) => TW.DISHES.includes(id) && TW.isDish(id) && FURN_INDEX[id].dish === true), `しょっき 36しゅ（あたらしい 8・いちばんくじの マグと ティーカップ ${kujiDish.length}・コンビニの コップと おさら ${cvcDish.length}）`);
+ok(new Set(TW.DISHES).size === 36, "しょっきの id が かさならない");
 ok(TW.PLATES.length === 8 && TW.PLATES.every((id) => FURN_INDEX[id].kind === "wall"), "かべの おさら 8まい（プレート・しましまざら）");
 for (const id of ["teddy", "figstand_step", "table_wood", "kj_law_a", "gacha_friends_0", "aqfig_penguin", "cvc_law_bath_wanko", "nothing"]) ok(!TW.isDish(id), `${id}: しょっきで ない`);
 for (const id of NEW) {

@@ -183,7 +183,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `neri-post.js`（neri-gas.js の あと） | `POST_DESTS`, `POST_ICONS`, `postIcon`, `PostTask`, `PostOffice` |
 | — | `neri-apart.js`（neri-post.js の あと） | `NeriApart` |
 | — | `neri-quests.js`（neri-apart.js の あと） | `NeriQuests` |
-| — | `kuji-art.js` → `kuji-deluxe-art.js` → `ichiban-kuji.js` → `kuji-ui.js`（neri-quests.js の あと。neri-shops.js・sticker-book.js・figure-stand.js・hand-items.js より あと） | `KujiArt` ／ `KujiDeluxeArt` ／ `IchibanKuji` ／ `KujiUI`（ネリカスタウンの コンビニの いちばんくじ・UI-55。`KujiDeluxeArt` は みんなの くじの ごうかな けいひんの 絵・UI-101） |
+| — | `kuji-art.js` → `kuji-deluxe-art.js` → `kuji-rotation.js` → `kuji-rotation-art.js` → `ichiban-kuji.js` → `kuji-ui.js`（neri-quests.js の あと。neri-shops.js・sticker-book.js・figure-stand.js・hand-items.js より あと） | `KujiArt` ／ `KujiDeluxeArt` ／ `IchibanKuji` ／ `KujiUI`（ネリカスタウンの コンビニの いちばんくじ・UI-55。`KujiDeluxeArt` は みんなの くじの ごうかな けいひんの 絵・UI-101） |
 | — | `store-iso-art.js` → `store-iso-props.js` → `store-iso.js`（kuji-ui.js の あと。iso-venue.js・mall-art.js・neri-bikkupo.js〔ボックスせきの 絵〕・dine-seats.js より あと） | `StoreIsoArt` ／ ― ／ `StoreIso`・`StoreScene`（歩いて 入る お店の 斜め上の 館・UI-75。`SCENES.store`） |
 | — | `korokoro-physics.js` / `korokoro-art.js` / `mg-korokoro.js` / `korokoro-town.js` | `KOROKORO_TIERS`, `KOROKORO_RULES`, `KorokoroWorld` ／ `KorokoroArt` ／ `KOROKORO_ORDERS`, `KOROKORO_BONUS`, `KorokoroSound`, `KOROKORO_FACE`, `KorokoroBoard`, `KorokoroTask` ／ `KorokoroTown` |
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
@@ -1557,6 +1557,14 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - がめん（`js/kuji-ui.js`）: `open` の なかで `mode`（"solo" | "net"。`KujiNet.using()`）。ボードの ぶぶんを 関数に わけた（`rowsPart`・`collectPart`・`boardPart`・`actionsPart`・`dcPart`・`couponPart`・`dcResPart`・`posterPart`・`statPart`・`lastPart`。ひとりの くじの DOM は まえと おなじ）。`drawNet`・`netBuy`（`phase` "wait"）・`SRC`（えらぶ もと。みんなの くじは `KujiNet.pick` を まつ）。ボードの うえの `.kuji-modes`（オンラインの とき だけ）。
 - セーブ `Save.d.kuji.net`: `on`（1 = つかう）・`since`・`uid`・`rec { "みせ_ロット_なんまいめ": 1 賞 ＋ 2 ラストワン }`（`IchibanKuji.cleanNet`・400 けん まで・もらい おわった ものから けす）。
 - テスト: `tools/check-kuji-net.mjs`・`tools/rules-emulator.mjs`（本物の エミュレーター。開発者むけ）・スモーク `kuji-net-390/375`。にせの サーバーの `kujiT(t)` で つぎに ひかれる くじの サーバーの じこくを きめる（とおった ときだけ つかう）。PokaDebug: `kujiNet(s)`・`kujiNetMode(on)`・`kujiNetT(s, 賞)`・`kujiUi().mode`。
+
+## いちばんくじの いれかわる けいひん（UI-112・`KUJI_ROTATION`・`js/kuji-rotation.js`・`js/kuji-rotation-art.js`・`KujiRotationArt`）
+- みせごとに けいひんの セットが ならぶ（`IchibanKuji.THEMES[みせ]` = [まえからの SERIES, KUJI_ROTATION の セット]・`THEME_BY[key]`）。ローリソン: てんいんさん（law）⇄ よるの パジャマ パーティー（law2）・せぶんぶん: ほかほか（sev）⇄ フルーツ パーラー（sev2）。
+- いつ: 2026-10-05（げつようび）から 2しゅうかん ごと（`PERIOD` 14・`EPOCH`）。`themeOf(s, day)` が こよみの セット・`themeNow` は PokaDebug.kujiTheme で きめた セットを さきに・`themeUntil(day)` は その きかんの さいごの 日。
+- ロット: `th`（セットの key）を もつ（ふるい セーブの ロットは まえからの セット）。`sync` で きかんの セットと ちがう ロットは、えらんで いない D〜Fしょうが なければ あたらしい セットの ロットに（`no` は つづき・`fresh` に その 日）。ひいた けいひん・クーポン・はんけんは のこる（クーポンは どの セットの ぶんも その みせで つかえる）。
+- `BY[みせ]` は いまの ロットの セット（getter）。みせが あるかの たしかめは `THEMES`（`clean` の なかで ロットを つくらない）。コンプリートは セットごと（`done` の キーは まえからの セットは みせ・あたらしい セットは key）。
+- 絵: `KujiRotationArt` が ぬいぐるみ・クッション・マグ／グラス・スタンド・ちび・クーポン・タペストリー・シールを `KujiArt.PLUSH`・`ART`・`STK` に たす。もちものは `WEAR.kuji_rbag`（col は [key, だれ]）。
+- がめん（`KujiUI.open`）: さきに `sync` して から セットを よむ。ボードに「◯がつ ◯にち まで。つぎは「…」」・はいった 日は「あたらしい くじ「…」が はいったよ！」（`.kuji-rota`）。
 
 ## みんなの くじの ごうかな けいひん（UI-101・`IchibanKuji.DELUXE`・`js/kuji-deluxe-art.js`・`KujiDeluxeArt`）
 

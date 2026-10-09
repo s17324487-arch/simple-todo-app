@@ -17,7 +17,7 @@ const ids = (s) => [...s.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
 
 // ---- 1. シール 46しゅ（30しゅ いじょう）・しゅるいを ぜんぶ ----
 const NEW = SB.DESIGNS.filter((d) => d.series === "kaden");
-ok(NEW.length === 46 && NEW.length >= 30 && SB.DESIGNS.length === 88, "ネリカス でんきの シールは 46しゅ（30しゅ いじょう。ぜんぶで 88しゅ）");
+ok(NEW.length === 46 && NEW.length >= 30 && SB.DESIGNS.length === 102, "ネリカス でんきの シールは 46しゅ（30しゅ いじょう。ぜんぶで 102しゅ）");
 ok(new Set(NEW.map((d) => d.id)).size === NEW.length && NEW.every((d) => SB.INDEX[d.id] === d && typeof KA.FIG[d.id] === "function" && R.StickerArt.FIG[d.id] === KA.FIG[d.id] && /^stk_(mm|dp|sk|fk|tl|y2|mt)_[a-z]+$/.test(d.id)), "id・絵（StickerArt.FIG に はいる）");
 ok(KS.IDS.join() === NEW.map((d) => d.id).join(), "KadenStickers.IDS と シールちょうの じゅんばん");
 const by = (k) => NEW.filter((d) => d.kind === k);
@@ -110,7 +110,7 @@ ok(S.SCHEMA === 2 && S.KEY === "pokapoka-town-save-v1" && Object.keys(S.d.sticke
 {
   const G = SB.grouped();
   ok(G.map((g) => g.k).join() === "gacha,kuji,puku,drop,shaka,flake,tile,mat" && G.reduce((a, g) => a + g.list.length, 0) === SB.DESIGNS.length && new Set(G.flatMap((g) => g.list.map((d) => d.id))).size === SB.DESIGNS.length, "まとまり 8つ（どの シールも 1かい）");
-  ok(G.find((g) => g.k === "gacha").list.length === 18 && G.find((g) => g.k === "kuji").list.length === 24 && G.every((g) => g.name && !kanji.test(g.name) && g.name.length <= 6), "ガチャ 18・くじ 24（ひとりの くじ 12・みんなの くじ 12）・なまえは かな");
+  ok(G.find((g) => g.k === "gacha").list.length === 18 && G.find((g) => g.k === "kuji").list.length === 38 && G.every((g) => g.name && !kanji.test(g.name) && g.name.length <= 6), "ガチャ 18・くじ 38（ひとりの くじ 12・いれかわる セット 14・みんなの くじ 12）・なまえは かな");
 }
 
 // ---- 7. 1F の うりば ----

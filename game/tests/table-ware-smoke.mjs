@@ -35,12 +35,12 @@ export async function tableWareSmoke({ scenario, expect }) {
     await H.dbg('house'); await H.until(() => PokaDebug.state().scene === 'house' && !PokaDebug.state().transitioning, 20000); await H.idle();
     // 2. あたらしい テーブル 4つ（からっぽ → しょっきを ならべる）
     const D = await H.eval(() => TableWare.DISHES), pick = (n, off) => D.slice(off, off + n);
-    expect(D.length === 30, 'しょっきの かず ' + D.length);
+    expect(D.length === 36, 'しょっきの かず ' + D.length);
     const A = [{ id: 'tbl_dining', x: 150, y: 330 }, { id: 'tbl_cafe', x: 360, y: 320 }, { id: 'tbl_chabudai', x: 150, y: 500 }, { id: 'tbl_heart', x: 360, y: 500 }];
     await H.dbg('homeLayout', A); await H.dbg('homeBubbleFixture'); await H.wait(900);
     const empty = await hash(H);
     let w = await H.dbg('tableWare');
-    expect(w.tables.length === 4 && w.tables.every((t) => !t.bare && t.figs.every((x) => x === null)) && w.dishes === 30 && w.newDishes === 8 && w.tableKinds === 9, 'からっぽの テーブル ' + JSON.stringify(w.tables));
+    expect(w.tables.length === 4 && w.tables.every((t) => !t.bare && t.figs.every((x) => x === null)) && w.dishes === 36 && w.newDishes === 8 && w.tableKinds === 9, 'からっぽの テーブル ' + JSON.stringify(w.tables));
     const comfort0 = w.comfort;
     await H.dbg('homeLayout', [{ ...A[0], figs: pick(6, 0) }, { ...A[1], figs: pick(3, 8) }, { ...A[2], figs: pick(4, 11) }, { ...A[3], figs: ['cvc_law_plate_wanko', 'tw_soup', 'cvc_sev_plate_trio'] }]); await H.dbg('homeBubbleFixture'); await H.wait(1500);
     w = await H.dbg('tableWare');

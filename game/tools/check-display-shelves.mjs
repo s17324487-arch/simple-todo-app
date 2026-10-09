@@ -53,7 +53,7 @@ for (const id of DS.IDS) {
 }
 // ---- 2. のせられる もの・のる 大きさ ----
 const figs = FS.figures(), dishes = TW.DISHES;
-ok(figs.length >= 80 && dishes.length === 30, `フィギュア ${figs.length}しゅ・しょっき ${dishes.length}しゅ`);
+ok(figs.length >= 80 && dishes.length === 36, `フィギュア ${figs.length}しゅ・しょっき ${dishes.length}しゅ`);
 for (const id of DS.IDS) {
   const S = FS.STANDS[id], dishOk = id !== "figstand_stage";
   ok(figs.every((x) => FS.accepts(id, x)) && dishes.every((x) => FS.accepts(id, x) === (dishOk || FS.isFigure(x))), `${id}: フィギュア${dishOk ? "と しょっき" : " だけ（マグ・コップは フィギュアでも ある）"} のせられる`);

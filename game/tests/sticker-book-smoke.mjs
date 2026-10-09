@@ -23,7 +23,7 @@ export async function stickerBookSmoke({ scenario, expect }) {
   for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario('sticker-book-' + viewport.width, async (H) => {
     await H.newGameFast(); const c0 = await H.dbg('coins', 3000); await H.dbg('calendar', '2026-10-05'); await H.dbg('hour', 11); await H.dbg('weather', 'clear');
     const st0 = await H.dbg('stickers');
-    expect(st0 && st0.series.map((S) => S.index).join() === '30,31,32' && st0.series.every((S) => S.price === 100) && st0.machines.length === 3 && st0.designs.length === 88 && !Object.keys(st0.have).length, 'シールの シリーズ ' + JSON.stringify(st0).slice(0, 300));
+    expect(st0 && st0.series.map((S) => S.index).join() === '30,31,32' && st0.series.every((S) => S.price === 100) && st0.machines.length === 3 && st0.designs.length === 102 && !Object.keys(st0.have).length, 'シールの シリーズ ' + JSON.stringify(st0).slice(0, 300));
     // 1. 4F の シールの 台（きたの かべ・もりの ひろば）
     await H.dbg('venue', 'arcade', 4); await H.idle(); await arrive(H, 4); await H.wait(700);
     let s = await H.dbg('venueState');
