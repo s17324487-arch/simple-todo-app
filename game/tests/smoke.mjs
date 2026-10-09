@@ -4485,6 +4485,8 @@ await (await import("./hold-plush-smoke.mjs")).holdPlushSmoke({scenario,expect})
 await (await import("./room-grow-smoke.mjs")).roomGrowSmoke({scenario,expect});
 // おうちの 3かい（UI-115。くわしくは tests/home-3f-smoke.mjs）
 await (await import("./home-3f-smoke.mjs")).home3fSmoke({scenario,expect});
+// かべかざり 24しゅ（UI-116。くわしくは tests/wall-decor-smoke.mjs）
+await (await import("./wall-decor-smoke.mjs")).wallDecorSmoke({scenario,expect});
 // コンビニの ポイントカード（UI-85。くわしくは tests/conbini-card-smoke.mjs）
 await (await import("./conbini-card-smoke.mjs")).conbiniCardSmoke({scenario,expect});
 // コンビニ × ごわがの コラボ けいひん（UI-86。くわしくは tests/conbini-collab-smoke.mjs）

@@ -282,6 +282,7 @@ html, body {
 .card .daily-tag { position: absolute; top: 3px; left: 5px; background: var(--orange); color: #fff; font-size: 10px; font-weight: 800; line-height: 1; border-radius: 8px; padding: 3px 5px; pointer-events: none; }
 /* かべがみ・ゆかの なかまの ふだ（js/room-styles.js・UI-90） */
 .card .rs-tag { position: absolute; top: 3px; left: 5px; color: #fff; font-size: 10px; font-weight: 800; line-height: 1; border-radius: 8px; padding: 3px 5px; pointer-events: none; white-space: nowrap; }
+.card .wd-tag { position: absolute; top: 3px; left: 5px; background: #5BA0D0; color: #fff; font-size: 10px; font-weight: 800; line-height: 1; border-radius: 8px; padding: 3px 5px; pointer-events: none; white-space: nowrap; } /* あたらしい かべかざり（UI-116） */
 .card .rs-tag.rs-cute { background: #E8739C; }
 .card .rs-tag.rs-cool { background: #3D4F72; }
 .card .rs-tag.rs-concept { background: #3B9466; }

@@ -1117,6 +1117,8 @@ const FurnCollection = (() => {
     AUTUMN: AUTUMN.map((r) => r[0]), FLOOR: ROT.floor, WALL: ROT.wall, QUIZ: QUIZ.id, DAILY, ROWS: [...AUTUMN, ...FLOOR, ...WALL],
     LAMPS: ["aw_acorn_lamp", "hq_gold_lamp", "hq_wall_sconce", "hq_heart_neon"],
     featured, daysLeft, period, dayNum, wallArt: (id, o) => WALL_ART[id](o),
+    // かべの 家具の さわる どうぐ（js/wall-decor.js も つかう。UI-116）
+    wallKit: { wallTf, wallAt, wallMapper, sayWall, wallSimple, melody, starC },
     // ずかんの ヒント（ひがわりの かぐ だけ。ほかは かぐや・クイズの ヒントの まま）
     source(id) { return DAILY.has(id) ? "かぐやさんに 2にちごとに ならぶ ひがわりの かぐ。" : ""; },
     // いまの ひがわり（PokaDebug.furnDaily）

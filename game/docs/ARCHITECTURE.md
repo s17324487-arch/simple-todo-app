@@ -227,6 +227,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `pet-walk.js`（home-toilet.js の あと・world-zoom.js の まえ） | `PetWalk`（いぬの さんぽ: おさんぽ リードと こいぬ 3びき・UI-49） |
 | — | `table-ware.js`（pet-walk.js の あと・play-records.js の まえ。figure-stand.js・ichiban-kuji.js・conbini-collab.js・kaden-live.js より あと） | `TableWare`（しょっきを テーブルに ならべる: しょっき 30しゅ・テーブル 9しゅ・UI-103） |
 | — | `display-shelves.js`（table-ware.js の つぎ） | `DisplayShelves`（かざりだな 8しゅ: ゆか 6・かべ 2・UI-104） |
+| — | `wall-decor.js`（display-shelves.js の つぎ＝furniture-collection.js〔`wallKit`〕・room-styles.js・table-ware.js の あと） | `WallDecor`（かべかざり 24しゅ・かぐやの「かべかざり」・ぜんぶ さわると うごく。UI-116） |
 | — | `play-goods-art.js` → `play-goods.js`（display-shelves.js の つぎ） | `PlayGoodsArt`・`PlayGoods`（あそびどうぐ・ほん・ドリル 30しゅ・UI-105） |
 | 22 | `debug.js` | `PokaDebug`（これだけは `window.PokaDebug` にも入れてある） |
 
