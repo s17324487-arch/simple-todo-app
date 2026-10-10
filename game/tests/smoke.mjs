@@ -4483,6 +4483,8 @@ await (await import("./kuji-rotation-smoke.mjs")).kujiRotationSmoke({scenario,ex
 await (await import("./hold-plush-smoke.mjs")).holdPlushSmoke({scenario,expect});
 // おへやを 3ばい・4ばいに（UI-114。くわしくは tests/room-grow-smoke.mjs）
 await (await import("./room-grow-smoke.mjs")).roomGrowSmoke({scenario,expect});
+// おうちの 3かい（UI-115。くわしくは tests/home-3f-smoke.mjs）
+await (await import("./home-3f-smoke.mjs")).home3fSmoke({scenario,expect});
 // コンビニの ポイントカード（UI-85。くわしくは tests/conbini-card-smoke.mjs）
 await (await import("./conbini-card-smoke.mjs")).conbiniCardSmoke({scenario,expect});
 // コンビニ × ごわがの コラボ けいひん（UI-86。くわしくは tests/conbini-collab-smoke.mjs）
