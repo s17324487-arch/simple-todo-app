@@ -46,7 +46,7 @@ const Save = {
         wallpapers: { wp_cream: true }, floors: { fl_wood: true },
         nextUid: 6,
       },
-      rooms: { active: "main", owned: { main: true }, stored: {}, expanded: {}, presets: {} },
+      rooms: { active: "main", owned: { main: true }, stored: {}, expanded: {}, grow: {}, presets: {} }, // grow: 3・4ばいに ひろげた へや（UI-114）
       // ② 町の人: なかよし・うけて いる おねがい（3つまで）・おわった 日・物々交換の 回数・その日に もちかけた 人
       folk: { bond: {}, req: [], done: {}, barter: {}, offered: {} },
       conversations: { recent: {}, stories: {} },

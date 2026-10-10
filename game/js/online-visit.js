@@ -40,7 +40,7 @@ const OnlineVisit = {
     const r = p && p.room;
     if (!r || typeof r !== "object" || !Array.isArray(r.items)) return null;
     const own = (o, k) => typeof k === "string" && Object.prototype.hasOwnProperty.call(o, k); // __proto__ などは しらない もの
-    const room = { k: r.k, wall: own(WALL_INDEX, r.wall) ? r.wall : WALLPAPERS[0].id, floor: own(FLOOR_INDEX, r.floor) ? r.floor : FLOORS[0].id, size: r.size === "expanded" ? "expanded" : "standard", n: r.n, t: r.t,
+    const room = { k: r.k, wall: own(WALL_INDEX, r.wall) ? r.wall : WALLPAPERS[0].id, floor: own(FLOOR_INDEX, r.floor) ? r.floor : FLOORS[0].id, size: HomeDesign.SIZE_KEYS.includes(r.size) ? r.size : "standard", n: r.n, t: r.t,
       items: r.items.filter((it) => it && own(FURN_INDEX, it.id) && Number.isFinite(it.x) && Number.isFinite(it.y)).map((it, i) => ({ uid: "v" + i, id: it.id, x: it.x, y: it.y, flip: !!it.flip, ...(it.wallSide === "left" ? { wallSide: "left" } : {}), ...(Array.isArray(it.figs) ? { figs: it.figs.slice() } : {}) })) };
     const mine = !!p.uid && typeof OnlineNet !== "undefined" && p.uid === OnlineNet.uid();
     return { room, uid: String(p.uid || ""), mine, name: r.n ? Online.nickText(r.n) : "", roomName: OnlineRooms.roomName(r.k), back: p.back || { scene: "house", p: {} } };

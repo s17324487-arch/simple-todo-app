@@ -52,7 +52,7 @@
           "k": { ".validate": "newData.isString() && newData.val().length <= 12 && newData.val().matches(/^[a-z]+$/)" },
           "w": { ".validate": "newData.isString() && newData.val().length <= 40 && newData.val().matches(/^[a-z0-9_]+$/)" },
           "f": { ".validate": "newData.isString() && newData.val().length <= 40 && newData.val().matches(/^[a-z0-9_]+$/)" },
-          "z": { ".validate": "newData.isString() && newData.val().matches(/^(s|e)$/)" },
+          "z": { ".validate": "newData.isString() && newData.val().matches(/^(s|e|3|4)$/)" },
           "i": {
             "$k": {
               ".validate": "$k.matches(/^[0-9][0-9]?$/) && newData.hasChildren(['a', 'x', 'y'])",

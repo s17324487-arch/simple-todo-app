@@ -95,7 +95,7 @@ export async function startOnlineFake({ key = ONLINE_FAKE_KEY } = {}) {
     }
     if (kind === "roomlist") return only(v, ["n", "t", "c", "k"], ["n", "t", "c", "k"]) && nickOk(v.n) && timeOk(v.t, now) && num(v.c, 0, 100) && roomKind(v.k);
     if (kind === "rooms") {
-      if (!only(v, ["n", "t", "k", "w", "f", "z", "i"], ["n", "t", "k", "w", "f", "z"]) || !nickOk(v.n) || !timeOk(v.t, now) || !roomKind(v.k) || !id40(v.w) || !id40(v.f) || !["s", "e"].includes(v.z)) return false;
+      if (!only(v, ["n", "t", "k", "w", "f", "z", "i"], ["n", "t", "k", "w", "f", "z"]) || !nickOk(v.n) || !timeOk(v.t, now) || !roomKind(v.k) || !id40(v.w) || !id40(v.f) || !["s", "e", "3", "4"].includes(v.z)) return false;
       if (!("i" in v)) return true;
       return !!v.i && typeof v.i === "object" && Object.entries(v.i).every(([k, o]) => /^[0-9][0-9]?$/.test(k) && itemOk(o));
     }

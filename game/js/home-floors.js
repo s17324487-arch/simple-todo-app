@@ -19,7 +19,7 @@ const HomeFloors = {
   owned() { return !!(Save.d && Save.d.rooms.owned[this.ID]); },
   on() { const a = Save.d.rooms.active; return this.owned() && (a === this.BASE || a === this.ID); },
   upper() { return Save.d.rooms.active === this.ID; },
-  size(id) { return HomeDesign.sizes[Save.d.rooms.expanded[id] === true ? "expanded" : "standard"]; },
+  size(id) { return HomeDesign.sizes[HomeDesign.sizeKey(id, Save.d.rooms)]; },
   // 2かいの 原点（1かいの ゆかの 座標）: おくの かべの うしろ。2かいの ゆかの まえの ふち（y=D2）が かべの うえ（y=0・z=H）に のる
   origin() { const s2 = this.size(this.ID); return { x: 0, y: -s2.d, z: HomeDesign.H + this.LIFT }; },
   off2() { const o = this.origin(); return HomeDesign.project(o.x, o.y, o.z); },
@@ -34,7 +34,7 @@ const HomeFloors = {
     return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
   },
 
-  // ---- かいだんの 絵（1かいの ゆかの 座標で 投影。大きさは 1かいの ひろさ 2しゅ だけ）----
+  // ---- かいだんの 絵（1かいの ゆかの 座標で 投影。大きさは 1かいの ひろさ 4しゅ だけ）----
   stairPoints(D1) {
     const S = this.STAIR, H = HomeDesign.H, yb = D1 - 6, r = (yb - S.top) / S.n, rise = H / S.n;
     return { yb, r, rise, steps: Array.from({ length: S.n }, (_, i) => ({ y: yb - (i + 1) * r, y2: yb - i * r, z: (i + 1) * rise, zb: i * rise })) };
@@ -149,7 +149,8 @@ const HomeFloors = {
     if (!room) return;
     const size = this.size(id), b = HomeDesign.bounds(size);
     const bgKey = "house-design:" + id + ":" + room.wall + ":" + room.floor + ":" + size.w + "x" + size.d + ":" + HomeDoorColors.sig();
-    const jobs = [SvgCache.ensure(bgKey, () => HomeDesign.roomSvg(room.wall, room.floor, size), Math.ceil(b.w * 2), Math.ceil(b.h * 2)), ...room.items.map((it) => sc.furnCanvas(it, true))];
+    const k0 = Math.min(2, Math.sqrt(4.5e6 / (b.w * b.h))); // 3ばい・4ばいの へやは ちいさめの 絵（scene-house.js の buildBg と おなじ）
+    const jobs = [SvgCache.ensure(bgKey, () => HomeDesign.roomSvg(room.wall, room.floor, size), Math.ceil(b.w * k0), Math.ceil(b.h * k0)), ...room.items.map((it) => sc.furnCanvas(it, true))];
     if (id === this.BASE) jobs.push(this.stairsCanvas(true));
     const [bg] = await Promise.all(jobs);
     if (stale()) return;

@@ -9,6 +9,7 @@ const OnlineRooms = {
   MAX: 80,
   LIST: 40,
   ID_RE: /^[a-z0-9_]{1,40}$/,
+  Z: ["s", "e", "3", "4"], // へやの ひろさ（1・2・3・4ばい。HomeDesign.SIZE_KEYS の じゅん。3・4 は UI-114）
   list: null,
   own: (o, k) => typeof k === "string" && Object.prototype.hasOwnProperty.call(o, k),
   st() { return Online.st().room; },
@@ -35,7 +36,7 @@ const OnlineRooms = {
       if (typeof FigureStand !== "undefined" && FigureStand.isHolder(it.id)) { const g = FigureStand.figsOf(it); if (g.some(Boolean)) o.g = g.map((x) => x || "").join(","); } // フィギュア だいの フィギュア・テーブルの しょっき（UI-103）
       items.push(o);
     }
-    return { n: Online.nickCode(), t: { ".sv": "timestamp" }, k: id, w: r.wall, f: r.floor, z: Save.d.rooms.expanded[id] ? "e" : "s", ...(items.length ? { i: items } : {}) };
+    return { n: Online.nickCode(), t: { ".sv": "timestamp" }, k: id, w: r.wall, f: r.floor, z: this.Z[HomeDesign.level(id) - 1], ...(items.length ? { i: items } : {}) };
   },
   // ---- よんだ データ → 見る ための へや（しんじない）----
   decode(v) {
@@ -44,7 +45,7 @@ const OnlineRooms = {
       n: Online.parseNick(v.n), t: Number.isFinite(Number(v.t)) ? Number(v.t) : 0,
       k: typeof v.k === "string" && HomeRooms.catalog.some((r) => r.id === v.k) ? v.k : "main",
       wall: this.own(WALL_INDEX, v.w) ? v.w : WALLPAPERS[0].id, floor: this.own(FLOOR_INDEX, v.f) ? v.f : FLOORS[0].id,
-      size: v.z === "e" ? "expanded" : "standard", items: [],
+      size: HomeDesign.SIZE_KEYS[this.Z.indexOf(v.z)] || "standard", items: [],
     };
     const raw = v.i && typeof v.i === "object" ? Object.values(v.i) : [];
     for (const o of raw.slice(0, 100)) {
