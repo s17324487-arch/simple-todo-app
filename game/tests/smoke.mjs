@@ -4479,6 +4479,8 @@ await (await import("./crane-4f-smoke.mjs")).crane4fSmoke({scenario,expect});
 await (await import("./kuji-smoke.mjs")).kujiSmoke({scenario,expect});
 // いちばんくじの いれかわる けいひん（UI-112。くわしくは tests/kuji-rotation-smoke.mjs）
 await (await import("./kuji-rotation-smoke.mjs")).kujiRotationSmoke({scenario,expect});
+// ぬいぐるみ・フィギュアを もつ（UI-113。くわしくは tests/hold-plush-smoke.mjs）
+await (await import("./hold-plush-smoke.mjs")).holdPlushSmoke({scenario,expect});
 // コンビニの ポイントカード（UI-85。くわしくは tests/conbini-card-smoke.mjs）
 await (await import("./conbini-card-smoke.mjs")).conbiniCardSmoke({scenario,expect});
 // コンビニ × ごわがの コラボ けいひん（UI-86。くわしくは tests/conbini-collab-smoke.mjs）
