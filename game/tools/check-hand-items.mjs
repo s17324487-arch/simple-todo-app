@@ -29,11 +29,11 @@ const IDS = ["wanko", "gachan", "goji"];
 
 // ---- 2. あたらしい しゅるい「もちもの」 ----
 {
-  ok(R.SLOT_ORDER.at(-1) === "hand" && !R.WEAR_SLOT_KEYS.includes("hand"), "SLOT_ORDER（いちばん うえ）に hand・WEAR_SLOT_KEYS（かしだしの いしょう）は かわらない");
+  ok(R.SLOT_ORDER.filter((s) => s !== "charm").at(-1) === "hand" && !R.WEAR_SLOT_KEYS.includes("hand"), "SLOT_ORDER（いちばん うえ。バッグの チャーム〔UI-123〕の まえ）に hand・WEAR_SLOT_KEYS（かしだしの いしょう）は かわらない");
   ok(!("hand" in SLOT_NAMES), "ぱぱ・ままの きがえ（SLOT_NAMES）には いれない");
   const tabs = BUY_SHOPS.clothes.tabs;
   const shelf = BUY_SHOPS.clothes.items("hand").map((w) => w.id);
-  ok(tabs.at(-1)[0] === "hand" && tabs.at(-1)[1] === "もちもの" && HI.ITEMS.every((x) => shelf.includes(x.id)) && shelf.every((id) => ITEM_INDEX[id].slot === "hand"), "ようふくやさんの「もちもの」の たな（7しゅ ぜんぶ・もちもの だけ） " + shelf);
+  ok(tabs.some((t) => t[0] === "hand" && t[1] === "もちもの") && HI.ITEMS.every((x) => shelf.includes(x.id)) && shelf.every((id) => ITEM_INDEX[id].slot === "hand"), "ようふくやさんの「もちもの」の たな（7しゅ ぜんぶ・もちもの だけ） " + shelf);
   const dress = read("js/dressup.js");
   ok(/HandItems\.SLOT, HandItems\.TAB/.test(dress), "きがえの タブに「もちもの」");
   const f = S.fresh(); ok(IDS.every((id) => !("hand" in f.chars[id].outfit)) && S.SCHEMA === 2, "セーブは かわらない（outfit.hand は もった とき だけ）");
