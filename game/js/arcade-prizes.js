@@ -89,6 +89,44 @@ const ArcadePrizes = (() => {
     ],
   };
   for (const who of Object.keys(HERO)) SEASON_HERO[who].forEach((e, i) => HERO[who].push([...e, SEASONS[i][1]]));
+  // ふえた ふつうの ぬいぐるみ（UI-124。オーナーの 指示 2026-10-13「ゲームセンターの景品の種類を追加してほしい。単純に種類を増やしつつ…」）。HERO の 12〜15 ばん（日がわりの なかまに はいる）
+  const MORE_HERO = {
+    wanko: [
+      ["パティシエ", "smile", "idle_01", { head: "chefhat", body: "apron" }, [5, -31, 189, 244]],
+      ["ねこみみ", "love", "idle_02", { head: "catears", neck: "bell" }, [2, 5, 195, 208]],
+      ["マリン", "smile", "walk_01", { head: "beret", body: "marine_stripe" }, [-7, -1, 189, 215]],
+      ["ねむねむ", "sleep", "land_01", { head: "moon_hat", body: "night_pajama" }, [-2, -9, 204, 223]],
+    ],
+    gachan: [
+      ["はなかざり", "smile", "idle_01", { head: "sakura_wreath", body: "mint_dress" }, [38, 30, 123, 183]],
+      ["うさぎさん", "love", "idle_02", { head: "bunnyhood" }, [37, 17, 126, 197]],
+      ["コックさん", "smile", "walk_01", { head: "chefhat", body: "lavender_apron" }, [29, -10, 123, 223]],
+      ["おめかし", "normal", "idle_01", { head: "pearl_bow", neck: "necklace" }, [38, 33, 124, 180]],
+    ],
+    goji: [
+      ["こぐま", "love", "idle_01", { body: "ike_animal_1" }, [2, 17, 199, 200]],
+      ["おまつり", "shout", "idle_02", { head: "hachimaki", body: "festival_happi" }, [-1, 2, 205, 215]],
+      ["ほしぞら", "calm", "land_01", { head: "moon_hat", back: "night_cape" }, [-15, -3, 234, 220]],
+      ["おしゃれ", "normal", "walk_02", { head: "beret", neck: "purple_bow" }, [9, 2, 197, 215]],
+    ],
+  };
+  for (const who of Object.keys(HERO)) for (const e of MORE_HERO[who]) HERO[who].push(e);
+  // レアの ぬいぐるみ（UI-124）: いろちがい（ひやけ・ピンク・にじいろ。からだの いろだけ かえる）と、まえの いちばんくじの ビッグ／とくだい ぬいぐるみ（A〜Cしょう）。
+  // ふだんの 日がわりの なかまには はいらない。3人の ぬいぐるみの 台に ときどき（rareShape）1しゅ まざる
+  const TINT = {
+    tan: { word: "ひやけ", name: (n) => `ひやけ ${n}`, col: { wanko: "#E7C29A", gachan: "#E6AE4C", goji: "#6E6157" } },
+    pink: { word: "ピンク", name: (n) => `ピンクの ${n}`, col: { wanko: "#FFD1E0", gachan: "#FFBCD3", goji: "#E7A3BC" } },
+    rainbow: { word: "にじいろ", name: (n) => `にじいろ ${n}`, col: null },
+  };
+  const RAINBOW = ["#F7A1A1", "#FBC98A", "#FFE88A", "#A9DE96", "#94CBEF", "#C2A6EC"];
+  const TINT_CROP = { wanko: [5, 17, 189, 196], gachan: [38, 36, 123, 177], goji: [2, 17, 199, 200] };
+  // いちばんくじの ぬいぐるみ: [家具の id, だれ, 絵の はば, たかさ]（KujiArt.PLUSH と おなじ。tools/check-arcade-rare.mjs が たしかめる）
+  const KUJI_RARE = [
+    ["kj_law_a", "goji", 120, 130], ["kj_law_b", "wanko", 120, 130], ["kj_law_c", "gachan", 120, 126], ["kj_sev_a", "wanko", 120, 128], ["kj_sev_b", "gachan", 124, 118], ["kj_sev_c", "goji", 120, 130],
+    ["kj_law2_a", "goji", 120, 130], ["kj_law2_b", "wanko", 120, 130], ["kj_law2_c", "gachan", 120, 126], ["kj_sev2_a", "wanko", 120, 128], ["kj_sev2_b", "gachan", 120, 126], ["kj_sev2_c", "goji", 120, 130],
+    ["kj_mlaw_a", "goji", 132, 150], ["kj_mlaw_b", "wanko", 124, 144], ["kj_mlaw_c", "gachan", 120, 134], ["kj_msev_a", "goji", 130, 146], ["kj_msev_b", "wanko", 126, 142], ["kj_msev_c", "gachan", 118, 140],
+    ["kj_mlaw2_a", "goji", 132, 150], ["kj_mlaw2_b", "wanko", 124, 144], ["kj_mlaw2_c", "gachan", 120, 134], ["kj_msev2_a", "goji", 130, 146], ["kj_msev2_b", "wanko", 126, 142], ["kj_msev2_c", "gachan", 118, 140],
+  ];
   const seasonOf = (months) => SEASONS.find(([, m]) => m.join() === months.join()) || null;
   // ミニマスコット（スウィートランドの ちいさな 景品。あたまに キーホルダーの わ）。3人と 町の ちいさな どうぶつ 7しゅ（UI-16）
   const MINI = { wanko: [5, 1, 190, 212], gachan: [39, 21, 122, 192], goji: [1, 8, 200, 209] };
@@ -117,6 +155,19 @@ const ArcadePrizes = (() => {
     ...(se ? { season: months, seasonName: se[0] } : {}),
     desc: se ? `${se[0]}（${months[0]}〜${months[2]}がつ）だけの ${word}の ${NAME[who]}の ぬいぐるみ。Meeときょれじゃ の クレーンの けいひん。` : `${word} かおの ${NAME[who]}の ぬいぐるみ。Meeときょれじゃ の クレーンの けいひん。`,
   }); });
+  // いろちがい（レア）: 3人 × 3しゅ
+  for (const who of Object.keys(HERO)) for (const [tint, T] of Object.entries(TINT)) ITEMS.push({
+    id: `ike_chibi_${who}_${tint}`, name: `${T.name(NAME[who])}の ぬいぐるみ`, spec: { who, face: who === "goji" ? "love" : "smile", pose: "idle_01", outfit: {}, tint }, crop: TINT_CROP[who], size: "chibi", w: 76, h: 76, depth: 40,
+    look: `chibi-${who}-${tint}`, shape: `chibi_${who}_${tint}`, series: `${NAME[who]}の ぬいぐるみ`, word: T.word, rare: true,
+    desc: `めったに でない レアの ${T.name(NAME[who])}の ぬいぐるみ。Meeときょれじゃ の クレーンで ときどき みつかる。`,
+  });
+  // まえの いちばんくじの ぬいぐるみ（レア）: とれると その くじの 家具（kj_…）が もらえる。この 景品じたいは 家具に しない（noFurn）
+  for (const [kid, who, w, h] of KUJI_RARE) ITEMS.push({
+    id: `ike_kuji_${kid}`, name: kid, spec: { who, kuji: kid }, crop: [0, 0, w, h], size: "kuji", w: 76, h: 76, depth: 40,
+    look: `kuji-${kid.replace(/_/g, "-")}`, shape: `kuji_${kid}`, series: "いちばんくじの ぬいぐるみ", rare: true, noFurn: true, prize: kid,
+  });
+  // なまえ・せつめいは くじの 家具から（くじは この あとで よみこむ）
+  for (const it of ITEMS) if (it.size === "kuji") for (const [k, get] of [["name", () => (FURN_INDEX[it.prize] ? FURN_INDEX[it.prize].name : "いちばんくじの ぬいぐるみ")], ["word", () => it.name], ["desc", () => `まえの いちばんくじの ${it.name}。Meeときょれじゃ の クレーンで ときどき みつかる レア。`]]) Object.defineProperty(it, k, { get, enumerable: true });
   const mini = (key, name, spec, crop) => ITEMS.push({
     id: `ike_mini_${key}`, name: `${name}の ミニマスコット`, spec: { ...spec, mini: true }, crop, size: "mini", w: 48, h: 52, depth: 28,
     look: `mini-${key}`, shape: `mini_${key}`, series: "ミニマスコット", word: name,
@@ -150,13 +201,21 @@ const ArcadePrizes = (() => {
   const raw = (it, dir) => {
     const sp = it.spec;
     if (sp.sp) return Art.npcSvg({ sp: sp.sp, emo: sp.emo || "happy", dir });
-    return Chara.svg(sp.who, { pose: sp.pose, face: sp.face, dir, outfit: sp.outfit || {}, color: "soft" });
+    // いちばんくじの ぬいぐるみ: くじの 絵（KujiArt。まえも うしろも おなじ 絵）を 絵の はんいに いれる
+    if (sp.kuji) return typeof KujiArt !== "undefined" ? KujiArt.plush(sp.kuji) : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${it.crop.join(" ")}"></svg>`; // 絵の はんいは くじの 絵と おなじ（0 0 はば たかさ）
+    const s = Chara.svg(sp.who, { pose: sp.pose, face: sp.face, dir, outfit: sp.outfit || {}, color: "soft" });
+    if (!sp.tint) return s;
+    // いろちがい: からだの いろ（PROFILE の fill）を かえる。にじいろは ななめの グラデーション（id は 景品ごとに 1つ）
+    const base = PROFILE[sp.who].fill, T = TINT[sp.tint];
+    if (T.col) return s.split(`fill="${base}"`).join(`fill="${T.col[sp.who]}"`);
+    const gid = `rb_${sp.who}_${dir}`, grad = `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">${RAINBOW.map((c, i) => `<stop offset="${f1((i / (RAINBOW.length - 1)) * 100)}%" stop-color="${c}"/>`).join("")}</linearGradient></defs>`;
+    return s.split(`fill="${base}"`).join(`fill="url(#${gid})"`).replace(/(<svg[^>]*>)/, `$1${grad}`);
   };
   const svg = (id, dir = "down") => {
     const it = INDEX[id]; if (!it) return "";
     const [x, y, w, h] = it.crop;
     let s = raw(it, dir).replace(/viewBox="[^"]*"/, `viewBox="${x} ${y} ${w} ${h}"`).replace(/ width="[\d.]+" height="[\d.]+"/, "");
-    return s.replace(/<\/svg>\s*$/, deco(it, dir) + "</svg>");
+    return it.spec.kuji ? s : s.replace(/<\/svg>\s*$/, deco(it, dir) + "</svg>"); // いちばんくじの ぬいぐるみは くじの タグが ある
   };
   // ほかの SVG の 中に 1つ おく（x y w h に 足もとを そろえて おさめる）
   const nest = (id, x, y, w, h, dir = "down") => svg(id, dir).replace("<svg ", `<svg x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="${f1(h)}" preserveAspectRatio="xMidYMax meet" `);
@@ -173,6 +232,7 @@ const ArcadePrizes = (() => {
 
   const install = () => {
     for (const it of ITEMS) {
+      if (it.noFurn) continue; // いちばんくじの ぬいぐるみは その くじの 家具を わたす
       const f = { id: it.id, name: it.name, price: 0, kind: "floor", w: it.w, h: it.h, depth: it.depth, comfort: it.size === "big" ? 10 : 5, rare: true, interactive: true, exclusive: "ikebukuro", arcadePrize: true, cityItem: { type: "arcadeplush", variant: it.id }, desc: it.desc };
       FURNITURE.push(f); FURN_INDEX[it.id] = f; FURN_ART[it.id] = () => nest(it.id, 0, 0, it.w, it.h);
     }
@@ -182,6 +242,12 @@ const ArcadePrizes = (() => {
   };
   // その日の きせつの ぬいぐるみ（day は "2026-10-3" の かたち・who は 3人）
   const seasonal = (who, day) => { const m = Number(String(day).split("-")[1]); return ITEMS.find((it) => it.season && it.spec.who === who && it.season.includes(m)) || null; };
-  return { NAME, HERO, SEASONS, SEASON_HERO, MINI, MINI_SP, GROUP, FOLK, ITEMS, INDEX, svg, nest, model, install, COIN_DAY_MAX, coinState, coinLeft, group, seasonal };
+  // レアの ぬいぐるみ（UI-124）: 3人の ぬいぐるみの 台（machine）ごとに、5にちに 1にち くらい（日づけと 台で きまる）その子の レアが 1しゅ まざる
+  const RARE_EVERY = 5;
+  const hash = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h >>> 0; };
+  const rarePool = (who) => ITEMS.filter((it) => it.rare && it.spec.who === who);
+  const rareOf = (who, machine, day) => { if (hash(`${machine}:${day}`) % RARE_EVERY) return null; const L = rarePool(who); return L.length ? L[hash(`${who}:${day}:rare`) % L.length] : null; };
+  const prizeOf = (it) => (it && (it.prize || it.id)) || null; // とれた ときに もらう もの（いちばんくじの ぬいぐるみは くじの 家具）
+  return { NAME, HERO, SEASONS, SEASON_HERO, MORE_HERO, MINI, MINI_SP, GROUP, FOLK, TINT, KUJI_RARE, RARE_EVERY, ITEMS, INDEX, svg, nest, model, install, COIN_DAY_MAX, coinState, coinLeft, group, seasonal, rarePool, rareOf, prizeOf };
 })();
 ArcadePrizes.install();

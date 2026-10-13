@@ -3309,7 +3309,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  const s=await H.dbg('venueState'),want={0:'わんこ ぬいぐるみ',2:'ミニマスコット',5:'どうぶつえん',8:'がちゃん ぬいぐるみ',9:'ごじ ぬいぐるみ',10:'ビッグ ぬいぐるみ',11:'みずべの なかま'};
  for(const [i,label] of Object.entries(want)){const f=s.fixtures.find(f=>f.machine===+i);expect(f&&f.label===label&&s.routeCount.find(r=>r.label===label)?.reachable,'1F の 台 '+i+' '+JSON.stringify(f&&f.label));}
  const L={};for(const i of Object.keys(want))L[i]=await H.dbg('arcadeLineup',+i);
- expect(Object.values(L).every(l=>l&&l.day==='2026-10-5')&&[L[0],L[8],L[9]].every(l=>l.names.length===4)&&L[2].names.length===3&&L[5].names.length===1&&L[10].names.length===1&&L[11].names.length===3&&L[5].keep&&!L[0].keep,'きょうの けいひん '+JSON.stringify(Object.values(L).map(l=>l&&l.names)));
+ expect(Object.values(L).every(l=>l&&l.day==='2026-10-5')&&[L[0],L[8],L[9]].every(l=>l.names.length===4+(l.rare?1:0)&&(!l.rare||l.prizes[4]===l.rare))&&!L[0].rare&&L[8].rare==='kj_law_c'&&L[2].names.length===3&&L[5].names.length===1&&L[10].names.length===1&&L[11].names.length===3&&L[5].keep&&!L[0].keep,'きょうの けいひん '+JSON.stringify(Object.values(L).map(l=>l&&l.names)));
  expect(/^わんこの ぬいぐるみ 4しゅ（/.test(L[0].text)&&/^ミニマスコット 3しゅ（/.test(L[2].text)&&/^みずべの なかま 3しゅ（/.test(L[11].text)&&L[10].text===L[10].names[0],'まとめた よびかた '+[L[0].text,L[2].text,L[11].text,L[10].text]);
  const key=await H.eval(()=>ArcadeArt.modelKey(G.scene.fixtures.find(f=>f.machine===10)));expect(key.includes(L[10].prizes[0]),'館の 台の 絵が きょうの けいひんで ない '+key);await H.shot('hall');
  // しらべる: まとめた よびかた・まいにち かわる・どうぶつえんは とれるまで そのまま
@@ -3319,6 +3319,8 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
  expect([L[0],L[8],L[9]].every(l=>l.season&&l.prizes[0]===l.season&&l.note.includes(l.names[0]))&&L[0].names[0]==='ハロウィン わんこの ぬいぐるみ'&&!L[2].season&&!L[2].note,'きせつの ぬいぐるみ '+JSON.stringify([L[0],L[8],L[9]].map(l=>[l.season,l.note])));
  let t=await ask('わんこ ぬいぐるみ');expect(t.includes(L[0].text)&&/まいにち かわる/.test(t)&&t.includes('いまの きせつ だけの「ハロウィン わんこの ぬいぐるみ」も いるよ（9〜11がつ）')&&await fits(),'わんこの 台の せつめい '+t);await H.shot('ask-wanko');
  await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();
+ // レアの 日（UI-124）: 2026-10-5 の がちゃんの 台は まえの いちばんくじの「プリン がちゃん ビッグ ぬいぐるみ」が まざる・せつめいに ひとこと
+ t=await ask('がちゃん ぬいぐるみ');expect(L[8].rareNote.includes('プリン がちゃん ビッグ ぬいぐるみ')&&t.includes(L[8].rareNote)&&await fits(),'がちゃんの 台の レアの せつめい '+t);await H.shot('ask-rare');await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();
  t=await ask('みずべの なかま');expect(t.includes('リングフック・みずべの なかま')&&t.includes(L[11].text)&&await fits(),'みずべの せつめい '+t);await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();
  t=await ask('ビッグ ぬいぐるみ');expect(t.includes(L[10].names[0])&&await fits(),'ビッグの せつめい '+t);await H.page.getByRole('button',{name:'やめる',exact:true}).click();await H.idle();
  t=await ask('どうぶつえん');expect(t.includes('トライポッド・どうぶつえん')&&t.includes(L[5].names[0])&&/とれるまで そのまま/.test(t)&&await fits(),'どうぶつえんの せつめい '+t);await H.shot('ask-zoo');
