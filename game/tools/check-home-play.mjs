@@ -83,9 +83,8 @@ for (const L of lines) {
     ok(!/ぼく|わたし/.test(L.text), `${L.where}: 「ぼく」「わたし」は だれが いうか きまらない「${L.text}」`);
     ok(!(can.includes("wanko") || can.includes("gachan")) || !/ガ[ゥォ]/.test(L.text), `${L.where}: 「ガゥ」は ごじ だけ「${L.text}」`);
   }
-  // 3人の くせ（home-lines.mjs と おなじ）: わんこ・ごじは「ぼく」・がちゃんは じぶんを「がちゃん」と よぶ・「わたし」は つかわない・「ガゥ」は ごじ だけ
-  if (IDS.includes(L.who)) ok(!/わたし/.test(L.text) && (L.who === "goji" || !/ガ[ゥォ]/.test(L.text)) && (L.who !== "gachan" || !/ぼく/.test(L.text)), `${L.where}: ${L.who} の くせ「${L.text}」`);
-  if (L.who === "wanko" || L.who === "goji") ok(!new RegExp(NAME[L.who] + "(は|が|も|の|、)").test(L.text), `${L.where}: じぶんの なまえ「${L.text}」`);
+  // 3人の くせ（home-lines.mjs と おなじ）: 3人は 女の子で、じぶんを なまえで よぶ（わんこ・がちゃん・ごじ。「ぼく」「おれ」「わたし」は つかわない。オーナーの 指示 2026-10-13）・「ガゥ」は ごじ だけ
+  if (IDS.includes(L.who)) ok(!/ぼく|おれ|オレ|わたし|あたし/.test(L.text) && (L.who === "goji" || !/ガ[ゥォ]/.test(L.text)), `${L.where}: ${L.who} の くせ「${L.text}」`);
 }
 ok(lines.length >= 30 * 22, `ことばの かず ${lines.length}`);
 // ---- 4. ならびの かたち（へやの ざひょう。よこ u = x − y・おく v = x + y）----

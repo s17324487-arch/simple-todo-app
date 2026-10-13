@@ -441,7 +441,7 @@ const FashionHall = (() => {
         if (side === "north") {
           const xs = frameXs(), mid = (xs[0] + xs[xs.length - 1] + FRAME.w) / 2;
           label("これまでの ショー", mid, V(ROWS[0] + FRAME.h + 13), 12);
-          label("わたしたちの ショー", mid, V(ROWS[1] - 9), 12);
+          label("3にんの ショー", mid, V(ROWS[1] - 9), 12);
           xs.forEach((x, i) => { g.font = "900 9px 'M PLUS Rounded 1c', sans-serif"; g.fillStyle = "#FFFFFF"; g.fillText(`だい${PAST[i].no}かい`, x + FRAME.w / 2, V(ROWS[0]) + 9); });
           label("ゆうしょうの トロフィー", 19.5 * T, V(254), 13);
         } else {
@@ -567,7 +567,7 @@ const FashionHall = (() => {
         body.append(cv); FashionArt.preloadPhoto(ph, w).then(() => { const g = cv.getContext("2d"); g.scale(px, px); FashionArt.drawPhoto(g, ph, 0, 0, w); });
       }
       Sound.se("ok");
-      await new Promise((res) => UI.modal({ title: "わたしたちの ショー", body, cls: "fs-album-panel", onClose: res }));
+      await new Promise((res) => UI.modal({ title: "3にんの ショー", body, cls: "fs-album-panel", onClose: res }));
     },
     // トロフィーの たな（きろく）
     async trophies() {

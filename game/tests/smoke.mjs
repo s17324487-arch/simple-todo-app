@@ -2067,7 +2067,7 @@ for(const viewport of [{width:390,height:844},{width:375,height:667}])await scen
   for(const watching of [false,true]){
     if(watching)await H.houseButton('みまもる');await H.dbg('homeBubbleFixture');
     for(const [i,kind]of ['say','shout','cry','think','whisper','rare'].entries()){
-      const ids=['wanko','gachan','goji'];await H.dbg('homeSay',ids[i%3],'みんな いっしょが いいな！',kind);await H.dbg('homeSay',ids[(i+1)%3],'ぼくも いっしょ！','say');await H.wait(320);
+      const ids=['wanko','gachan','goji'];await H.dbg('homeSay',ids[i%3],'みんな いっしょが いいな！',kind);await H.dbg('homeSay',ids[(i+1)%3],({wanko:'わんこも',gachan:'がちゃんも',goji:'ごじも'})[ids[(i+1)%3]]+' いっしょ！','say');await H.wait(320);
       const st=await H.dbg('homeBubbleState');expect(st.boxes.some(b=>b.kind===kind),'指定した形が表示されない: '+kind);checkHomeBubbles(st);await H.shot((watching?'watch-':'normal-')+kind);
     }
   }

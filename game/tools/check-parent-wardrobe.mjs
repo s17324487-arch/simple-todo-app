@@ -15,6 +15,11 @@ for(const id of ['papa','mama']){
   assert.equal(shapes.size,P.options[key].length,key+' choices must differ');
  }
 }
+// ぱぱの かみ（オーナーの 指示 2026-10-13「ぱぱの髪型が男性としては変だ」）: みじかい かみは かおの よこに たれない（うしろの かみは みみの うえまで）・みみが みえる。ながい かみ（ボブ・ロング など）は いままでどおり
+{const L=(hair)=>({...P.look('papa'),hair,accessory:'none',equipment:{}}),side=/<rect x="-25" y="-112" width="50" height="48"/,ear=/<ellipse cx="-21" cy="-80"[^>]*\/><ellipse cx="21" cy="-80"/;
+ assert.equal(Save.fresh().parents.papa.hair,'short');
+ for(const h of ['short','sidepart','pixie','curly']){const svg=P.svg('papa',L(h));assert(!side.test(svg)&&ear.test(svg)&&/<rect x="-25" y="-115" width="50" height="32"/.test(svg),'みじかい かみ '+h);}
+ for(const h of ['bob','long','wavy','ponytail','bun','twintail']){const svg=P.svg('papa',L(h));assert(side.test(svg)&&!ear.test(svg),'ながい かみ '+h);}}
 const item=WEAR_ITEMS.find(it=>it.slot==='body');assert(W.equip('mama','body',item.id));
 const saved=SaveBackup.decode(SaveBackup.encode());assert.equal(saved.parents.mama.equipment.body,item.id);assert.equal(saved.coins,987654);assert.equal(saved.parents.papa.outfit,'casual');
 console.log('Parent wardrobe: migration, all 95 owned clothes on both parents, distinct looks, backup and coins OK');

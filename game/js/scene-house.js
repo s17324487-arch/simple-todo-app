@@ -219,7 +219,7 @@ class HouseScene {
   showBar(on) { this.bar.classList.toggle("hidden", !on); this.care.classList.toggle("hidden", !on); this.parentButton.classList.toggle("hidden", !on); }
 
   async intro() {
-    HomeLife.converse(this,[{who:'wanko',text:'ここが ぼくたちの おうち！'},{who:'gachan',text:'ごはんボタンで ごはんを たべよう♪'},{who:'goji',text:'ぼくたちを タップして なでてね！'}]);
+    HomeLife.converse(this,[{who:'wanko',text:'ここが わんこたちの おうち！'},{who:'gachan',text:'ごはんボタンで ごはんを たべよう♪'},{who:'goji',text:'ごじたちを タップして なでてね！'}]);
   }
 
   // ---- ごはん ----
@@ -304,7 +304,7 @@ class HouseScene {
     this.mode = "hide-wait";
     this.showBar(false);
     this.dark = 0;
-    HomeLife.say(this,"wanko","かくれんぼ しよう！ ぼくたちを さがしてね。");await U.wait(1800);
+    HomeLife.say(this,"wanko","かくれんぼ しよう！ わんこたちを さがしてね。");await U.wait(1800);
     this.darkTarget = 0.92;
     await U.wait(700);
     const spots = this.hideSpots();

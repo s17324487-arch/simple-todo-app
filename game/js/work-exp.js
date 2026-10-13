@@ -21,7 +21,7 @@ const WorkExp = {
   FAV_SAY: {
     wanko: "ここは とくいな おてつだい！\nげんきに がんばるよ！ クンクン♪",
     gachan: "ピヨ！ ここは とくいな おてつだい♪\nまかせてね！",
-    goji: "ガゥー！ ここは ぼくの とくいな おてつだい！\nちからを だすよ ガウっ",
+    goji: "ガゥー！ ここは ごじの とくいな おてつだい！\nちからを だすよ ガウっ",
   },
   last: null, // いちばん あとの けっか（PokaDebug・テスト）
   favOf(shop) { return Object.keys(this.FAV).find((id) => this.FAV[id].includes(shop)) || null; },
