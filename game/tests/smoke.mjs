@@ -4533,6 +4533,8 @@ await (await import("./home-play-smoke.mjs")).homePlaySmoke({scenario,expect});
 await (await import("./home-lv-party-smoke.mjs")).homeLvPartySmoke({scenario,expect});
 // かさ・ひがさ（UI-122。くわしくは tests/umbrella-smoke.mjs）
 await (await import("./umbrella-smoke.mjs")).umbrellaSmoke({scenario,expect});
+// バッグ・ポーチの チャーム（UI-123。くわしくは tests/bag-charms-smoke.mjs）
+await (await import("./bag-charms-smoke.mjs")).bagCharmsSmoke({scenario,expect});
 // おうちの かけあいを 倍に（UI-107。ぱぱ・ままとの からみ・3人の かけあい）
 await (await import("./home-talk-family-smoke.mjs")).homeTalkFamilySmoke({scenario,expect});
 // UI-108: おてつだいの おみせ Lv は 50 まで・Lv.6 から コインが すこしずつ ふえる（tests/shop-lv50-smoke.mjs）

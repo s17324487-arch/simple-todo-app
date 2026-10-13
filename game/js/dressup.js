@@ -58,7 +58,7 @@ const DressUp = {
       };
       const drawTabs = () => {
         tabs.innerHTML = "";
-        const T = [...Object.entries(SLOT_NAMES), ...(typeof HandItems !== "undefined" ? [[HandItems.SLOT, HandItems.TAB]] : [])]; tabs.classList.add("wear-tabs"); // もちもの（UI-48・js/hand-items.js）は 3人 だけ。タブは 2だんに おりかえす
+        const T = [...Object.entries(SLOT_NAMES), ...(typeof HandItems !== "undefined" ? [[HandItems.SLOT, HandItems.TAB]] : []), ...(typeof BagCharms !== "undefined" ? [[BagCharms.SLOT, BagCharms.TAB]] : [])]; tabs.classList.add("wear-tabs"); // もちもの（UI-48・js/hand-items.js）は 3人 だけ。タブは 2だんに おりかえす
         if (who === "goji") T.push(["color", "からだのいろ"]);
         if (slot === "color" && who !== "goji") slot = "head";
         for (const [k, label] of T) {
@@ -85,12 +85,13 @@ const DressUp = {
         none.addEventListener("click", () => { c.outfit[slot] = null; if (head) c.outfit.head2 = null; Sound.se("tap"); Save.mark(); drawAll(); });
         grid.append(none);
         // もちものの タブには もって いる ぬいぐるみ・フィギュア（js/hold-plush.js・UI-113）も
-        const holds = typeof HoldPlush !== "undefined" && typeof HandItems !== "undefined" && slot === HandItems.SLOT ? HoldPlush.owned() : [];
+        const holds = typeof HoldPlush !== "undefined" && typeof HandItems !== "undefined" && slot === HandItems.SLOT ? HoldPlush.owned() : typeof BagCharms !== "undefined" && slot === BagCharms.SLOT ? BagCharms.owned() : []; // チャームの タブには もって いる めじるし・ミニフィギュア（js/bag-charms.js・UI-123）
+        if (typeof BagCharms !== "undefined" && slot === BagCharms.SLOT) { BagCharms.fix(); const h = c.outfit.hand && ITEM_INDEX[c.outfit.hand]; grid.prepend(U.el("div", { class: "note head-pair-note", text: h && BagCharms.BAGS[h.wear] ? `${h.name}に つけるよ。` : "バッグや ポーチを もつと つくよ（もちものの タブで えらんでね）。" })); }
         const owned = [...extra.filter((w) => w.slot === slot && !d.wardrobe[w.id]), ...WEAR_ITEMS.filter((w) => w.slot === slot && d.wardrobe[w.id]), ...holds];
         for (const it of owned) {
           const lent = extraIds.has(it.id) && !d.wardrobe[it.id], on = worn(it.id), mk = opts.mark ? opts.mark(it) : "";
           // 1こで 1人（js/wear-stock.js）: 2こ いじょう もって いれば かず、のこりが ない ときは つかって いる 人。かしだしは いくつでも
-          const bd = lent ? null : it.hold ? HoldPlush.badge(it.id, who) : WearStock.badge(it.id, who);
+          const bd = lent || it.charmProxy ? null : it.hold ? HoldPlush.badge(it.id, who) : WearStock.badge(it.id, who);
           const b = U.el("button", { class: "card" + (on ? " on" : "") + (lent ? " lent" : "") + (bd && bd.from ? " busy" : ""),
             html: `${lent ? `<span class="dress-tag">${opts.tag || ""}</span>` : ""}${mk ? `<span class="dress-mark">${mk}</span>` : ""}${bd && bd.n > 1 ? `<span class="cnt">×${bd.n}</span>` : ""}${UI.icon("wear", it.id, 44)}<div>${it.name}</div>${bd && bd.from ? `<small class="dress-who">${bd.text}</small>` : ""}` });
           b.addEventListener("click", async () => {
@@ -107,6 +108,7 @@ const DressUp = {
               }
             } else if (on) c.outfit[slot] = null;
             else if (it.hold) { if (!HoldPlush.take(who, it.id)) return; }
+            else if (it.charmProxy) c.outfit[slot] = it.id; // めじるし・ミニフィギュアの チャームは 3人 みんな つけられる
             else if (lent) c.outfit[slot] = it.id;
             else if (!(await WearStock.ask(who, slot, it))) return;
             Sound.se("pop");

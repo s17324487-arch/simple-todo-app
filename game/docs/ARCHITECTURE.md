@@ -168,6 +168,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `online-visit.js`（online-photos.js の すぐ あと＝HouseScene を つつむ ファイル〔home-doors・home-floors・home-toilet・pet-walk・play-records・gowaga-wish・mee-fitting〕より あと・debug.js の まえ） | `OnlineVisit`（よんだ おへや → この 画面の へや・ことば・もどる ところ・いく）, `VisitScene`（`SCENES.visit`。ほかの 人の おうちに 3人で おじゃま。HouseScene を うけつぐ。E5・UI-97） |
 | — | `kuji-net.js`（online-visit.js の すぐ あと＝IchibanKuji・KujiUI・Online・OnlineNet の あと・debug.js の まえ） | `KujiNet`（みんなの くじ。いちばんくじを オンラインの みんなで おなじ ロットで ひく。`Online.parts` に `kuji`〔けす・ID〕。E5・UI-100） |
 | — | `hold-plush.js`（kuji-net.js の あと・world-zoom.js の まえ＝家具〔くじ・クレーン・ガチャ・figure-stand.js〕と hand-items.js・dressup.js の あと） | `HoldPlush`（ぬいぐるみ・フィギュアを もつ: `ITEM_INDEX` の `hold_<家具>`・`WEAR.hold_plush`・UI-113） |
+| — | `bag-charms.js`（hold-plush.js の すぐ あと＝家具・ガチャの ふく・フィギュアが そろった あと） | `BagCharms`（バッグ・ポーチの チャーム・outfit.charm・`WEAR.bc_charm`・UI-123） |
 | — | `world-zoom.js`（debug.js の まえ） | `WorldZoom` |
 | — | `home-doors.js`（parent-work.js の あと） | `HomeDoors` |
 | — | `home-floors.js`（home-doors.js の あと） | `HomeFloors` |

@@ -510,6 +510,19 @@ const PokaDebug = {
     if(id&&!WearStock.can(id,who))WearStock.add(id,1);
     WearStock.put(who,HandItems.SLOT,id||null);Save.mark();return this.handItems();
   },
+  // バッグ・ポーチの チャーム（UI-123・js/bag-charms.js）: しゅるい・つけられる めじるし／ミニフィギュアの かず・もって いる もの・3人の チャーム・バッグを もって いるか・絵に でて いるか
+  bagCharms() {
+    if(typeof BagCharms==='undefined')return null;
+    const charm=Object.fromEntries(Chara.IDS.map(id=>[id,Save.d.chars[id].outfit.charm||null])),bag=Object.fromEntries(Chara.IDS.map(id=>{const h=ITEM_INDEX[Save.d.chars[id].outfit.hand];return [id,!!(h&&BagCharms.BAGS[h.wear])];}));
+    return {items:BagCharms.ITEMS.map(x=>x.id),proxies:BagCharms.proxies.length,owned:BagCharms.owned().map(x=>x.id),charm,bag,shopTab:BUY_SHOPS.clothes.tabs.some(t=>t[0]===BagCharms.SLOT),
+      drawn:Object.fromEntries(Chara.IDS.map(id=>{const c=Save.d.chars[id];return [id,!!charm[id]&&bag[id]&&/stroke="#9AA0AC"/.test(Chara.svg(id,{outfit:c.outfit,color:c.color}))];}))};
+  },
+  // その 子に チャームを つける（id=null で はずす。あたらしい チャームは もって いなければ 1こ たす）
+  charmSet(who,id) {
+    if(typeof BagCharms==='undefined'||!Save.d.chars[who]||(id&&!BagCharms.isCharm(id)))return null;
+    if(id&&!BagCharms.isProxy(id)){if(!WearStock.can(id,who))WearStock.add(id,1);WearStock.put(who,BagCharms.SLOT,id);}else Save.d.chars[who].outfit.charm=id||null;
+    Save.mark();return this.bagCharms();
+  },
   // その 子に もたせる（id=null で はずす）。もって いなければ 1こ たす
   playHold(who,id) {
     if(typeof PlayGoods==='undefined'||!Save.d.chars[who]||(id&&!PlayGoods.INDEX[id]))return null;
