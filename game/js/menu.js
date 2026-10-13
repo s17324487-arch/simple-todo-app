@@ -40,7 +40,7 @@ const Menu = {
         <div class="nm">${c.name} <span class="lv">Lv.${c.lv}</span> <span class="muted">${CHARA_INFO[id].role}</span></div>
         <div class="stat-row"><span>HP</span>${UI.meter(c.hp, mhp, "hp")}<span>${Math.max(0, c.hp)}/${mhp}</span></div>
         <div class="stat-row"><span>SP</span>${UI.meter(c.sp, msp, "sp")}<span>${c.sp}/${msp}</span></div>
-        <div class="stat-row"><span>けいけん</span>${UI.meter(c.exp, need, "exp")}<span>${need - c.exp}</span></div>
+        <div class="stat-row"><span>けいけん</span>${c.lv >= Stats.LV_MAX ? `${UI.meter(1, 1, "exp")}<span>さいこう</span>` : `${UI.meter(c.exp, need, "exp")}<span>${need - c.exp}</span>`}</div>
         <div class="stat-row"><span>おなか</span>${UI.meter(c.hunger, 100, "hunger")}<span>${Math.round(c.hunger)}</span></div>
         <div class="stat-row"><span>ごきげん</span>${UI.meter(c.mood, 100, "mood")}<span>${Math.round(c.mood)}</span></div>
         <div class="stat-row"><span>なかよし</span>${UI.meter(c.bond, 100, "bond")}<span>${Math.round(c.bond)}</span></div>

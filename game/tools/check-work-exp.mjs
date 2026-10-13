@@ -1,5 +1,5 @@
 // まいにちの いらい・おてつだい・町の人の おねがいで けいけんち（js/work-exp.js・UI-44。オーナーの FB 2026-10-02「日々のクエストやバイトで、少しずつ経験値が増えてレベルがアップするようにして欲しい」）の 検査。
-// ブラウザ なしで: わりあい（おてつだい 2〜8%・いらい ★1〜5・おねがい 5%）・もらう かず（1 いじょう・Lv50 は 0）・3人 みんな・レベルアップ・
+// ブラウザ なしで: わりあい（おてつだい 2〜8%・いらい ★1〜5・おねがい 5%）・もらう かず（1 いじょう・Lv.100 は 0・Lv.51 から だんだん あがりにくく）・3人 みんな・レベルアップ・
 // 「すこしずつ」（どの レベルでも おてつだい 13〜50かいで 1つ）・バトルより すくない・まどの ことば・おみせ／いらい／おねがいに くみこんだ か・セーブは かわらない。
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -32,7 +32,16 @@ ok(X.rate("folk") === 0.05 && X.rate("nope") === 0, "おねがい 5%・しらな
     // すこしずつ: ぜんぶ ○◎ で 13かい いじょう、○◎ なしでも 50かい いないで 1つ
     ok(Math.ceil(Stats.expNeed(lv) / X.amount("wanko", 0.08)) >= 12 && Math.ceil(Stats.expNeed(lv) / X.amount("wanko", 0.02)) <= 51, `Lv${lv}: おてつだいで 1つ あがる かいすう`);
   }
-  d.chars.wanko.lv = 50; ok(X.amount("wanko", 0.08) === 0, "Lv50 は もらわない");
+  // Lv.100 が いちばん うえ（UI-119。まえは 50）。Lv.1〜50 は まえと おなじ・Lv.51 から だんだん あがりにくく
+  ok(Stats.LV_MAX === 100 && Stats.slow(1) === 1 && Stats.slow(50) === 1 && Stats.expNeed(50) === Math.floor(12 * Math.pow(50, 1.7)) && Stats.expNeed(30) === Math.floor(12 * Math.pow(30, 1.7)), "Lv.1〜50 の つぎまでの けいけんちは まえと おなじ");
+  const jobs = (lv) => { d.chars.wanko.lv = lv; return Stats.expNeed(lv) / X.amount("wanko", 0.05); };
+  ok(Math.abs(jobs(10) - jobs(49)) < 1.5, `Lv.50 まで: 1つ あがる かいすうは おなじ ぐらい（${jobs(10).toFixed(1)}・${jobs(49).toFixed(1)}）`);
+  let prev = jobs(50);
+  for (let lv = 51; lv < 100; lv++) { const j = jobs(lv); ok(j > prev, `Lv.${lv}: まえの レベル より 1つ あがる かいすうが おおい（${j.toFixed(1)} > ${prev.toFixed(1)}）`); prev = j; }
+  ok(jobs(99) / jobs(50) > 3 && jobs(99) / jobs(50) < 4, `Lv.99 は Lv.50 の 3〜4ばいの かいすう（${(jobs(99) / jobs(50)).toFixed(2)}）`);
+  ok(Stats.expNeed(99) > Stats.expNeed(98) && Number.isSafeInteger(Stats.expNeed(99)), "Lv.99 の つぎまで");
+  d.chars.wanko.lv = 50; ok(X.amount("wanko", 0.08) > 0, "Lv.50 でも もらえる（まえは さいこう）");
+  d.chars.wanko.lv = 100; ok(X.amount("wanko", 0.08) === 0, "Lv.100 は もらわない");
   ok(X.amount("nobody", 0.08) === 0 && X.amount("gachan", 0) === 0, "しらない 子・0%");
 }
 {
@@ -46,8 +55,12 @@ ok(X.rate("folk") === 0.05 && X.rate("nope") === 0, "おねがい 5%・しらな
   const up = X.give("quest", 3).find((r) => r.id === "goji");
   ok(up.lv === 2 && up.lv0 === 1 && up.ups.length === 1 && up.ups[0].lv === 2 && up.ups[0].diff && X.ups([up]).length === 1, "レベルアップ " + JSON.stringify(up));
   ok(d.chars.goji.lv === 2 && d.chars.goji.hp > 0, "セーブの lv が あがる");
-  d.chars.wanko.lv = 50; const r50 = X.give("folk").find((r) => r.id === "wanko");
-  ok(r50.n === 0 && r50.need === 0 && r50.lv === 50, "Lv50 は 0 で さいこう");
+  d.chars.wanko.lv = 100; const r100 = X.give("folk").find((r) => r.id === "wanko");
+  ok(r100.n === 0 && r100.need === 0 && r100.lv === 100, "Lv.100 は 0 で さいこう");
+  // Lv.99 → 100 で とまる（それより うえに ならない）
+  d.chars.gachan.lv = 99; d.chars.gachan.exp = Stats.expNeed(99) - 1;
+  const ups = Stats.gainExp("gachan", Stats.expNeed(99) * 5);
+  ok(d.chars.gachan.lv === 100 && ups.length === 1 && ups[0].lv === 100 && Stats.gainExp("gachan", 999).length === 0 && d.chars.gachan.lv === 100, "Lv.100 で とまる");
 }
 // バトル 1かいより すくない（いちばん よわい てき）・いらいの ★3 は ふつうの バトルぐらい
 {

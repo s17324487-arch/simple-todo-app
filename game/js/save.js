@@ -296,14 +296,18 @@ const Stats = {
     return Math.max(1, this.base(id, key, c.lv) + this.equip(id, key) + (c.boost[key] || 0));
   },
   get(id, key) { return this.max(id, key); },
-  expNeed(lv) { return Math.floor(12 * Math.pow(lv, 1.7)); },
+  // ごわがの レベルの うえ（UI-119。オーナーの 指示 2026-10-13「ごわがのレベル上限を100にして。だんだん上がりにくくなるようにして。」。まえは 50）
+  // Lv.1〜50 は まえと おなじ。Lv.51 から 1レベル ごとに つぎまでの けいけんちが 2.5% ずつ よけいに ふえる（slow。Lv.99 → 100 は Lv.50 の やく 3.4ばいの かいすう）
+  LV_MAX: 100, SLOW_FROM: 50, SLOW_STEP: 1.025,
+  slow(lv) { return lv <= this.SLOW_FROM ? 1 : Math.pow(this.SLOW_STEP, lv - this.SLOW_FROM); },
+  expNeed(lv) { return Math.floor(12 * Math.pow(lv, 1.7) * this.slow(lv)); },
   // 経験値を足してレベルアップ結果を返す
   gainExp(id, n) {
     const c = Save.d.chars[id];
     const ups = [];
-    if (c.lv >= 50) return ups;
+    if (c.lv >= this.LV_MAX) return ups;
     c.exp += n;
-    while (c.exp >= this.expNeed(c.lv) && c.lv < 50) {
+    while (c.exp >= this.expNeed(c.lv) && c.lv < this.LV_MAX) {
       c.exp -= this.expNeed(c.lv);
       const before = {};
       for (const k of ["hp", "sp", "atk", "def", "spd"]) before[k] = this.max(id, k);
