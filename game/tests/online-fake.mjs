@@ -119,11 +119,12 @@ export async function startOnlineFake({ key = ONLINE_FAKE_KEY } = {}) {
     return true;
   };
   // いちばんくじ（database.rules.json の kuji・kujime と おなじ）。ひとつの かきこみの ばしょごとに .write（そこまでの どれかが とおせば よい）と、かいた ところの .validate
-  const KUJI_STORE = /^(lawson|sevenbun)$/, KUJI_ME = /^(lawson|sevenbun)_l[0-9]{1,6}$/, KUJI_MAX = 80;
+  const KUJI_STORE = /^(lawson|sevenbun)$/, KUJI_ME = /^(lawson|sevenbun)_l[0-9]{1,6}$/, KUJI_MAX = 80, KUJI_EPOCH = 1791730800000, KUJI_PERIOD = 1209600000; // みんなの くじの いれかわり（2026-10-12 0じ〔にほん〕から 14にち）
   const kHas = (v) => v !== null && v !== undefined, kNum = (v) => typeof v === "number";
   const kujiWrite = (k, uid, old, next, now) => {
     const S = k[2], at = (t, ...p) => atIn(t, ["v1", "kuji", S, ...p]);
-    if (k.length === 4 && k[3] === "cur") { const c = at(old, "cur"), nv = at(next, "cur"), base = kHas(c) ? c : 1; return kNum(nv) && nv === base + 1 && at(old, "lots", "l" + base, "n") === KUJI_MAX; }
+    // つぎの ロット: うりきれた・まえの きかん（UI-117。1まいめの じこくが いまの 2しゅうかんの はじまり より まえ）に はじまった
+    if (k.length === 4 && k[3] === "cur") { const c = at(old, "cur"), nv = at(next, "cur"), base = kHas(c) ? c : 1, t0 = at(old, "lots", "l" + base, "d", "k0", "t"); return kNum(nv) && nv === base + 1 && (at(old, "lots", "l" + base, "n") === KUJI_MAX || (kNum(t0) && t0 < now - ((now - KUJI_EPOCH) % KUJI_PERIOD))); }
     if (k.length < 6 || k[3] !== "lots") return false;
     const lot = k[4], n0 = at(old, "lots", lot, "n"), n1 = at(next, "lots", lot, "n"), base = kHas(n0) ? n0 : 0;
     if (k.length === 6 && k[5] === "n") { const c = at(old, "cur"); return lot === "l" + (kHas(c) ? c : 1) && kNum(n1) && n1 === base + 1 && n1 <= KUJI_MAX && !kHas(at(old, "lots", lot, "d", "k" + (n1 - 1))) && at(next, "lots", lot, "d", "k" + (n1 - 1), "u") === uid; }

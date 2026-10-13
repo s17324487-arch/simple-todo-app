@@ -214,7 +214,26 @@ const IchibanKuji = (() => {
   // BY[みせ]: いまの ロットの セット（ロットが まだ ない・セーブが ない ときは まえからの セット）
   const BY = {};
   for (const s of STORES) Object.defineProperty(BY, s, { enumerable: true, get: () => (typeof Save !== "undefined" && Save.d ? THEME_BY[lot(s).th] || THEMES[s][0] : THEMES[s][0]) });
-  const NET_BY = Object.fromEntries(DELUXE.map((S) => [S.id, S]));
+  const NET_BY = Object.fromEntries(DELUXE.map((S) => [S.id, S])); // まえからの みんなの くじの セット（みせごと）
+  // ---- みんなの くじの いれかわる けいひん（UI-117。js/kuji-net-rotation.js）----
+  // ひとりの くじ（EPOCH 2026-10-05）と 1しゅうかん ずらして、2026-10-12 0じ（にほんの じこく）から 14にち ごとに いれかわる（さいしょは あたらしい セット）。
+  // ロットの セットは その ロットの 1まいめの サーバーの じこく（d.k0.t）で きまる ので、どの スマホでも おなじ（js/kuji-net.js の derive）。まだ だれも ひいて いない ロットは いまの じこく。
+  // まえの きかんに はじまった ロットは のこりが あっても つぎの ロットへ すすめられる（game/firebase/database.rules.json の cur が おなじ けいさんで ゆるす）。
+  const NET_ROTA = typeof KUJI_NET_ROTATION !== "undefined" ? KUJI_NET_ROTATION : [];
+  for (const S of DELUXE) S.base = true;
+  const NET_THEMES = Object.fromEntries(STORES.map((s) => [s, [NET_BY[s], ...NET_ROTA.filter((S) => S.id === s)]]));
+  const NET_THEME_BY = Object.fromEntries([...DELUXE, ...NET_ROTA].map((S) => [S.key, S]));
+  const NET_EPOCH = Date.UTC(2026, 9, 11, 15), NET_PERIOD = 14 * 864e5, JST = 9 * 3600e3; // 2026-10-12 0:00（にほん）＝ 2026-10-11 15:00（UTC）
+  const netPeriod = (t) => Math.floor((t - NET_EPOCH) / NET_PERIOD); // 2026-10-12〜25 が 0（あたらしい セット）・それより まえは -1（まえからの セット）
+  const NET_FIX = {}; // PokaDebug.kujiTheme で きめた みんなの くじの セット（テスト用・よみこみなおす まで）
+  const netPick = (s, p) => { const L = NET_THEMES[s], i = p + 1; return L[((i % L.length) + L.length) % L.length]; };
+  // netThemeOf: こよみ だけで きまる セット（「つぎは」）・netThemeAt: テストで きめた セットが あれば それ
+  const netThemeOf = (s, t) => netPick(s, netPeriod(t));
+  const netThemeAt = (s, t) => (NET_FIX[s] && NET_THEME_BY[NET_FIX[s]] ? NET_THEME_BY[NET_FIX[s]] : netThemeOf(s, t));
+  // その じこくの きかんの さいごの 日（にほんの ひづけ "Y-M-D"）
+  const netUntil = (t) => { const d = new Date(NET_EPOCH + (netPeriod(t) + 1) * NET_PERIOD - 1 + JST); return `${d.getUTCFullYear()}-${d.getUTCMonth() + 1}-${d.getUTCDate()}`; };
+  // サーバーの ロット（{ n, d: { k0: { t } } }）の セット
+  const netThemeLot = (s, lot) => { const k0 = lot && lot.d && typeof lot.d === "object" ? lot.d.k0 : null; return netThemeAt(s, k0 && Number.isFinite(k0.t) ? k0.t : API.netNow()); };
 
   // ---- けいひんの いちらん（id: kj_<みせ>_<しっぽ>・みんなの くじは kj_m<みせ>_<しっぽ>）----
   const ITEMS = [], INDEX = {};
@@ -239,10 +258,10 @@ const IchibanKuji = (() => {
   };
   for (const S of SERIES) build(S, false);
   for (const S of ROTA) build(S, false);
-  for (const S of DELUXE) { build(S, true); S.dcId = THEMES[S.id][0].dcId; }
-  const seriesOf = (it) => (it.net ? NET_BY[it.store] : THEME_BY[it.theme]);
-  // Save.d.kuji.done の キー（みんなの くじは net_<みせ>・いれかわる セットは その key）
-  const doneKey = (S) => (S.net ? "net_" + S.id : S.base ? S.id : S.key);
+  for (const S of [...DELUXE, ...NET_ROTA]) { build(S, true); S.dcId = THEMES[S.id][0].dcId; }
+  const seriesOf = (it) => (it.net ? NET_THEME_BY[it.theme] : THEME_BY[it.theme]);
+  // Save.d.kuji.done の キー（みんなの くじは net_<みせ>・いれかわる セットは その key・みんなの くじの いれかわる セットは net_<key>）
+  const doneKey = (S) => (S.net ? "net_" + (S.base ? S.id : S.key) : S.base ? S.id : S.key);
   // いまの きかんの セット（EPOCH から 2しゅうかん ごと）と その きかんの さいごの 日
   const periodNo = (day) => Math.floor((dayNo(day) - dayNo(EPOCH)) / PERIOD) + 1;
   const FIX = {}; // PokaDebug.kujiTheme で きめた セット（テスト用・よみこみなおす まで）
@@ -287,7 +306,7 @@ const IchibanKuji = (() => {
     const keep = []; for (const s of STORES) for (const g of Object.keys(PICK)) { const L = lots[s], n = L ? L.hold[g] || 0 : 0; keep.push(...pending.filter((p) => p[0] === s && p[1] === g && L && p[2] === L.no).slice(0, n)); if (L) { const m = keep.filter((p) => p[0] === s && p[1] === g).length; if (m) L.hold[g] = m; else delete L.hold[g]; } }
     const dc = {}; for (const s of STORES) { const e = obj(d.dc)[s]; if (e && dayStr(e.day) && int(e.n, 0, 9999) > 0) dc[s] = { n: int(e.n, 0, 9999), day: e.day }; }
     const dcLast = {}; for (const s of STORES) { const e = obj(d.dcLast)[s]; if (e && dayStr(e.day)) dcLast[s] = { day: e.day, n: int(e.n, 0, 9999), win: !!e.win, seen: !!e.seen }; }
-    const done = {}; for (const k of [...Object.values(THEME_BY).map(doneKey), ...STORES.map((s) => "net_" + s)]) if (dayStr(obj(d.done)[k])) done[k] = d.done[k];
+    const done = {}; for (const k of [...Object.values(THEME_BY).map(doneKey), ...Object.values(NET_THEME_BY).map(doneKey)]) if (dayStr(obj(d.done)[k])) done[k] = d.done[k];
     return {
       lots, got: counts(d.got, (id) => !!INDEX[id], 99999), draws: int(d.draws, 0, 1e7), spent: int(d.spent, 0, 1e10),
       coupons: counts(d.coupons, (id) => INDEX[id] && INDEX[id].kind === "coupon", 999), used: int(d.used, 0, 1e7),
@@ -317,6 +336,9 @@ const IchibanKuji = (() => {
   const API = {
     PRICE, KEEP, CATCHUP, OTHERS_MAX, DC_RATE, BAG_REFUND, GRADES, PLAN, PICK, GRADE_COL, SERIES, STORES, BY, ITEMS, INDEX, FIG_KINDS,
     DELUXE, NET_BY, seriesOf, // みんなの くじの けいひん（KujiNet・KujiUI の みんなの くじ）
+    NET_ROTA, NET_THEMES, NET_THEME_BY, NET_EPOCH, NET_PERIOD, NET_FIX, netPeriod, netThemeOf, netThemeAt, netThemeLot, netUntil, // みんなの くじの いれかわる けいひん（UI-117）
+    netNow: () => Date.now(), // みんなの くじの いまの じこく（テストで かえる）
+    netThemeNow(s) { return netThemeAt(s, this.netNow()); },
     THEMES, THEME_BY, PERIOD, EPOCH, themeNow, themeOf, themeUntil, doneKey, // いれかわる けいひん（UI-112）
     next: null, // PokaDebug.kujiNext（つぎに ひく 賞）
     dcNext: null, // PokaDebug.kujiDc（つぎの ダブルチャンスの けっか true／false）
@@ -392,9 +414,9 @@ const IchibanKuji = (() => {
       if (done) d.done[doneKey(S)] = U.today();
       return { item: it, first, note, refund, complete: done, sheet };
     },
-    // net: みんなの くじの けいひん
-    complete(s, net = false) { const S = (net ? NET_BY : BY)[s]; return !!S && S.lineup.every((id) => got(id) > 0); },
-    gotCount(s, net = false) { const S = (net ? NET_BY : BY)[s]; return S ? S.lineup.filter((id) => got(id) > 0).length : 0; },
+    // net: みんなの くじの けいひん（T: その セット。ない ときは いまの きかんの セット）
+    complete(s, net = false, T = null) { const S = T || (net ? NET_THEMES[s] && this.netThemeNow(s) : BY[s]); return !!S && S.lineup.every((id) => got(id) > 0); },
+    gotCount(s, net = false, T = null) { const S = T || (net ? NET_THEMES[s] && this.netThemeNow(s) : BY[s]); return S ? S.lineup.filter((id) => got(id) > 0).length : 0; },
     // ひにちを すすめる: うりきれた つぎの 日に あたらしい ロット・ほかの おきゃくさん（さいごに みた 日から さいだい 7にちぶん）・ダブルチャンスの けっか
     sync(s) {
       if (!THEMES[s]) return null;
@@ -432,7 +454,7 @@ const IchibanKuji = (() => {
       Save.write(); return n;
     },
     // ---- クーポン（その コンビニの かいもので 1こ むりょう。みんなの くじの クーポンは 3まい つづり）----
-    coupons(s) { const d = st(); return THEMES[s] ? [...THEMES[s].flatMap((T) => T.ids.H), ...NET_BY[s].ids.H].map((id) => ({ id, item: INDEX[id], n: d.coupons[id] || 0 })).filter((c) => c.n > 0) : []; },
+    coupons(s) { const d = st(); return THEMES[s] ? [...THEMES[s].flatMap((T) => T.ids.H), ...NET_THEMES[s].flatMap((T) => T.ids.H)].map((id) => ({ id, item: INDEX[id], n: d.coupons[id] || 0 })).filter((c) => c.n > 0) : []; },
     couponFor(s, it) {
       if (!THEMES[s] || !it) return null;
       const sold = BUY_SHOPS[s] && BUY_SHOPS[s].items ? BUY_SHOPS[s].items().some((x) => x && x.id === it.id) : false; // タブ（ごはん・おやつ・のみもの。js/conbini-goods.js）を まとめて
@@ -449,8 +471,10 @@ const IchibanKuji = (() => {
     },
     // どこで でるか（ずかんの ヒント）
     // いれかわる セット（UI-112）を いまの ロットに して、よみこみなおす まで その セットに きめる（PokaDebug.kujiTheme・テスト用。えらんで いない D〜Fしょうが ある ときは しない）
+    // みんなの くじの セットを きめる（PokaDebug.kujiTheme の みんなの くじ・テスト用。null で こよみ どおり）
+    setNetTheme(s, key) { if (!NET_THEMES[s]) return false; if (key == null) { delete NET_FIX[s]; return true; } const T = NET_THEME_BY[key]; if (!T || T.id !== s) return false; NET_FIX[s] = key; return true; },
     setTheme(s, key) { const T = THEME_BY[key]; if (!THEMES[s] || !T || T.id !== s || pendingOf(s).length) return false; FIX[s] = key; const d = st(), L = lot(s); if (L.th === key) return true; d.lots[s] = freshLot(s, L.no + 1, key); d.lots[s].fresh = U.today(); return true; },
-    source(id) { const it = INDEX[id]; if (!it) return ""; const S = THEMES[it.store][0], T = THEME_BY[it.theme]; return `ネリカスタウンの ${S.shop}の いちばんくじ${it.net ? "「みんなの くじ」" : T && !T.base ? "（2しゅうかん ごとに いれかわる「" + T.title.replace(S.shop + "の ", "") + "」）" : ""}（${gradeLabel(it.grade)}）で でるよ。`; },
+    source(id) { const it = INDEX[id]; if (!it) return ""; const S = THEMES[it.store][0], T = it.net ? NET_THEME_BY[it.theme] : THEME_BY[it.theme], rot = T && !T.base ? "（2しゅうかん ごとに いれかわる「" + T.title.replace(S.shop + "の ", "") + "」）" : ""; return `ネリカスタウンの ${S.shop}の いちばんくじ${it.net ? "「みんなの くじ」" : ""}${rot}（${gradeLabel(it.grade)}）で でるよ。`; },
   };
 
   // ---- ゲームに いれる ----
@@ -466,19 +490,22 @@ const IchibanKuji = (() => {
       FURN_ART[it.id] = RUG.includes(it.kind) ? (opts = {}) => HomeDesign.model(it.id, opts).full : () => KujiArt.furn(it.id);
     } else if (it.kind === "bag") {
       const rota = !it.net && !THEME_BY[it.theme].base; // いれかわる セットの ポーチ・トート（js/kuji-rotation-art.js）
-      const w = { id: it.id, name: it.name, slot: HandItems.SLOT, wear: it.net ? "kuji_dbag" : rota ? "kuji_rbag" : "kuji_bag", col: [rota ? it.theme : it.store, it.who], price: 0, rare: true, exclusive: "kuji", kujiPrize: it.store, st: it.st, desc: it.desc };
+      const nrota = it.net && !NET_THEME_BY[it.theme].base; // みんなの くじの いれかわる セットの ポシェット・ポーチ（js/kuji-net-rotation-art.js・UI-117）
+      const w = { id: it.id, name: it.name, slot: HandItems.SLOT, wear: nrota ? "kuji_ndbag" : it.net ? "kuji_dbag" : rota ? "kuji_rbag" : "kuji_bag", col: [rota || nrota ? it.theme : it.store, it.who], price: 0, rare: true, exclusive: "kuji", kujiPrize: it.store, st: it.st, desc: it.desc };
       WEAR_ITEMS.push(w); ITEM_INDEX[it.id] = w;
     }
   }
   WEAR.kuji_bag = (ctx) => KujiArt.bag(ctx);
   WEAR.kuji_dbag = (ctx) => KujiDeluxeArt.bag(ctx); // みんなの くじの ポシェット・がまぐち
   WEAR.kuji_rbag = (ctx) => KujiRotationArt.bag(ctx); // いれかわる セットの パジャマ ポーチ・フルーツ トート（UI-112）
+  WEAR.kuji_ndbag = (ctx) => KujiNetRotationArt.bag(ctx); // みんなの くじの いれかわる セットの まほうの ポシェット・たまてばこ ポーチ（UI-117）
   // シール（シールちょう）: コンビニごとに 6しゅ（みんなの くじは べつの 6しゅ）。I しょうの シートは StickerBook.give で てもとに
   for (const S of [...SERIES, ...ROTA]) StickerBook.addDesigns(S.stickers.map(([id, name]) => ({ id, name, series: S.id, hint: `まだ でて いない シールだよ。${S.shop}の いちばんくじ（Iしょう）で でるよ`, art: () => KujiArt.sticker(id) })));
-  for (const S of DELUXE) StickerBook.addDesigns(S.stickers.map(([id, name]) => ({ id, name, series: S.id, hint: `まだ でて いない シールだよ。${S.shop}の いちばんくじ「みんなの くじ」（Iしょう）で でるよ`, art: () => KujiArt.sticker(id) })));
+  for (const S of [...DELUXE, ...NET_ROTA]) StickerBook.addDesigns(S.stickers.map(([id, name]) => ({ id, name, series: S.id, hint: `まだ でて いない シールだよ。${S.shop}の いちばんくじ「みんなの くじ」（Iしょう）で でるよ`, art: () => KujiArt.sticker(id) })));
   // へやの 立体と さわる うごき（ビッグ ぬいぐるみ: ぎゅっ・クッション: ぽふっ・ブランケット: ラグの かたち。みんなの くじの チェア・ざぶとん・きんらんの ラグは js/kuji-deluxe-art.js）
   KujiArt.install(API);
   KujiDeluxeArt.install(API);
+  if (typeof KujiNetRotationArt !== "undefined") KujiNetRotationArt.install(API); // なみの ラグ（UI-117）
   // フィギュア だいに かざれる もの（マグ・アクリル スタンド・ちび ぬいぐるみ）。ずかんの ヒントは js/item-dex-sources.js が API.source を よぶ
   FigureStand.addFigures(ITEMS.filter((it) => it.fig).map((it) => it.id));
 

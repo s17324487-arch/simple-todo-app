@@ -184,7 +184,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `neri-post.js`（neri-gas.js の あと） | `POST_DESTS`, `POST_ICONS`, `postIcon`, `PostTask`, `PostOffice` |
 | — | `neri-apart.js`（neri-post.js の あと） | `NeriApart` |
 | — | `neri-quests.js`（neri-apart.js の あと） | `NeriQuests` |
-| — | `kuji-art.js` → `kuji-deluxe-art.js` → `kuji-rotation.js` → `kuji-rotation-art.js` → `ichiban-kuji.js` → `kuji-ui.js`（neri-quests.js の あと。neri-shops.js・sticker-book.js・figure-stand.js・hand-items.js より あと） | `KujiArt` ／ `KujiDeluxeArt` ／ `IchibanKuji` ／ `KujiUI`（ネリカスタウンの コンビニの いちばんくじ・UI-55。`KujiDeluxeArt` は みんなの くじの ごうかな けいひんの 絵・UI-101） |
+| — | `kuji-art.js` → `kuji-deluxe-art.js` → `kuji-rotation.js` → `kuji-rotation-art.js` → `kuji-net-rotation.js` → `kuji-net-rotation-art.js` → `ichiban-kuji.js` → `kuji-ui.js`（neri-quests.js の あと。neri-shops.js・sticker-book.js・figure-stand.js・hand-items.js より あと） | `KujiArt` ／ `KujiDeluxeArt` ／ `IchibanKuji` ／ `KujiUI`（ネリカスタウンの コンビニの いちばんくじ・UI-55。`KujiDeluxeArt` は みんなの くじの ごうかな けいひんの 絵・UI-101。`KUJI_NET_ROTATION` ／ `KujiNetRotationArt` は みんなの くじの いれかわる セットと その 絵・UI-117） |
 | — | `store-iso-art.js` → `store-iso-props.js` → `store-iso.js`（kuji-ui.js の あと。iso-venue.js・mall-art.js・neri-bikkupo.js〔ボックスせきの 絵〕・dine-seats.js より あと） | `StoreIsoArt` ／ ― ／ `StoreIso`・`StoreScene`（歩いて 入る お店の 斜め上の 館・UI-75。`SCENES.store`） |
 | — | `korokoro-physics.js` / `korokoro-art.js` / `mg-korokoro.js` / `korokoro-town.js` | `KOROKORO_TIERS`, `KOROKORO_RULES`, `KorokoroWorld` ／ `KorokoroArt` ／ `KOROKORO_ORDERS`, `KOROKORO_BONUS`, `KorokoroSound`, `KOROKORO_FACE`, `KorokoroBoard`, `KorokoroTask` ／ `KorokoroTown` |
 | — | `korokoro-score.js`（mg-korokoro.js の あと） | `KOROKORO_SCORE`, `KOROKORO_SCORE_TEAM`, `KOROKORO_SCORE_HOWTO`, `KorokoroScore`, `KorokoroScoreScene`（`SCENES.koroscore`） |
@@ -1567,6 +1567,18 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - `BY[みせ]` は いまの ロットの セット（getter）。みせが あるかの たしかめは `THEMES`（`clean` の なかで ロットを つくらない）。コンプリートは セットごと（`done` の キーは まえからの セットは みせ・あたらしい セットは key）。
 - 絵: `KujiRotationArt` が ぬいぐるみ・クッション・マグ／グラス・スタンド・ちび・クーポン・タペストリー・シールを `KujiArt.PLUSH`・`ART`・`STK` に たす。もちものは `WEAR.kuji_rbag`（col は [key, だれ]）。
 - がめん（`KujiUI.open`）: さきに `sync` して から セットを よむ。ボードに「◯がつ ◯にち まで。つぎは「…」」・はいった 日は「あたらしい くじ「…」が はいったよ！」（`.kuji-rota`）。
+
+## みんなの くじの いれかわる けいひん（UI-117・`KUJI_NET_ROTATION`・`js/kuji-net-rotation.js`・`js/kuji-net-rotation-art.js`・`KujiNetRotationArt`）
+
+オーナーの 指示 2026-10-12「みんなのくじの景品も2週間で入れ替わるようにしてほしい。そのため、景品の追加作成を依頼する。入れ替わりのタイミングは、ひとりの1番くじとずらしてくれ。」
+
+- データ: `KUJI_NET_ROTATION`（`DELUXE` と おなじ 形）。ローリソン `mlaw2`「ローリソンの まほうの おしろ」・せぶんぶん `msev2`「せぶんぶんの りゅうぐうじょう」。`IchibanKuji.NET_ROTA`・`NET_THEMES[みせ]` = [DELUXE の セット（`base: true`）, あたらしい セット]・`NET_THEME_BY[key]`。けいひんは `build` で `ITEMS` に（`net: true`・id `kj_<key>_<しっぽ>`）。
+- いつ: `NET_EPOCH` = 2026-10-12 0じ（にほん。`Date.UTC(2026, 9, 11, 15)`）・`NET_PERIOD` = 14にち（ミリびょう）。ひとりの くじ（`EPOCH` 2026-10-05）と ちょうど 1しゅうかん ずれる。`netPeriod(t)`・`netThemeAt(s, t)`（きかん -1 は まえからの セット・0 は あたらしい セット…）・`netUntil(t)`（にほんの さいごの 日）。`setNetTheme(s, key)`（PokaDebug.kujiNetTheme）で きめた セットを さきに。
+- ロットの セット: `netThemeLot(s, lot)` = ロットの 1まいめ（`d.k0.t`。サーバーの じこく）の きかんの セット・まだ だれも ひいて いない ロットは いま（`netNow()`）。どの スマホも おなじ けいさん なので おなじ けいひん。`KujiNet.derive` の `view.S` が その ロットの セット（`settle`・`choices`・`pick`・ボードは `view.S` を つかう）。
+- すすむ ロット: `KujiNet.stale(v)` = 1まいめが いまより まえの きかん。`load` は うりきれ か stale の とき `cur` を +1 しようと する（ルール: `lots/l{cur}/d/k0/t < now - ((now - NET_EPOCH) % NET_PERIOD)`。`%` は 本物の エミュレーターで たしかめた）。ルールが ふるくて ことわられたら その ロットの まま（ひけるし、うりきれたら いつもどおり すすむ）。`prev` は おわった ロット `{ no, last: "", ended: true }`。
+- コンプリート: `done` の キーは `net_<みせ>`（まえからの セット）・`net_<key>`（あたらしい セット）。`complete(s, true, S)`・`gotCount`。クーポン（H）は どの セットの ぶんも その みせで つかえる。
+- 絵: `KujiNetRotationArt` が とくだい ぬいぐるみ・ラストワン・D／E／G・クーポン・シートを `KujiArt.PLUSH`・`ART`・`STK` に たす（`KujiDeluxeArt.parts` の ぶひんを つかう）。せぶんぶんの なみの ラグは `install(API)` で `FurnModels` を うわがき。もちもの F は `WEAR.kuji_ndbag`（col は [key, だれ]）。
+- がめん: ボードの `.kuji-rota`（`netRotaPart`）: はいった ときは「あたらしい くじ「…」が はいったよ！（まえの ロット N は おわったよ）」・stale の ロットは「この ロットは「…」。つぎの ロットから「…」に なるよ」・いつも「◯がつ ◯にち まで。つぎは「…」（2しゅうかん ごとに いれかわる・ひとりの くじとは 1しゅうかん ずれて いるよ）」。
 
 ## みんなの くじの ごうかな けいひん（UI-101・`IchibanKuji.DELUXE`・`js/kuji-deluxe-art.js`・`KujiDeluxeArt`）
 

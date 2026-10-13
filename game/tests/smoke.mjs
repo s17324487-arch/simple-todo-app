@@ -4547,6 +4547,8 @@ await (await import("./online-visit-smoke.mjs")).onlineVisitSmoke({scenario,expe
 await (await import("./online-photos-smoke.mjs")).onlinePhotosSmoke({scenario,expect});
 // みんなの くじ（E5・UI-100。いちばんくじを オンラインの みんなで おなじ ロットで ひく。くわしくは tests/kuji-net-smoke.mjs）
 await (await import("./kuji-net-smoke.mjs")).kujiNetSmoke({scenario,expect});
+// みんなの くじの いれかわる けいひん（UI-117。くわしくは tests/kuji-net-rotation-smoke.mjs）
+await (await import("./kuji-net-rotation-smoke.mjs")).kujiNetRotationSmoke({scenario,expect});
 
 server.close();
 if(LIST)process.exit(0);

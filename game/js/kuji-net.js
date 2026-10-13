@@ -7,6 +7,8 @@
 // - なんまいめは ルールが きめる（n を 1 ふやす ときだけ その ばんごうの くじを かける）ので、2人が おなじ くじを ひく ことは ない。だれかと かさなったら よみなおして もう いちど。
 //   うりきれた（n が 80）ロットは だれでも つぎへ すすめられる（cur を 1 ふやす）。
 // - けいひんは ひとりの くじ より ごうかな みんなの くじ だけの もの（IchibanKuji.NET_BY・UI-101。賞の ほんすうは おなじ）。
+//   2しゅうかん ごとに セットが いれかわる（UI-117。IchibanKuji.NET_THEMES）。ロットの セットは 1まいめの サーバーの じこくで きまる（view.S・IchibanKuji.netThemeLot）。
+//   まえの きかんに はじまった ロットは、つぎに よんだ 人が つぎの ロットへ すすめる（のこりの くじは なくなる。えらぶ まちの D〜Fしょうは そのまま えらべる）。
 // - でた 賞は みんなが おなじ けいさんで きめる（derive）: その くじの サーバーの じこく と なんまいめ の たね（IchibanKuji.hash・seeded）で、のこりの まい数の おもみ（ひとりの くじと おなじ）。
 //   じこくは サーバーが きめる（ルールで t === now）ので、ひく 人は どの 賞が でるか えらべない。A〜C・G〜Iしょうの しゅるいも おなじ たねで きまる。
 //   D〜Fしょうは ひいた 人が のこりから えらぶ（えらんだ じゅん o の さきの 人から。もう ない しゅるいなら のこりの はじめの もの）。80まいめを ひいた 人に ラストワンしょう。
@@ -32,7 +34,7 @@ const KujiNet = (() => {
   // ---- でた 賞（みんな おなじ けいさん）----
   // lot: サーバーの ロット（{ n, pc, d: { k0: { u, t, p?, o? }, … } }）→ { no, n, draws: [{ k, u, t, g, id, pick, p, o, last, fixed }], left しゅるいごとの のこり, tickets 賞ごとの のこり, total, sold }
   function derive(s, no, lot) {
-    const S = K.NET_BY[s], d = lot && lot.d && typeof lot.d === "object" ? lot.d : {}, T = {}, left = { ...S.plan }, draws = [];
+    const S = K.netThemeLot(s, lot), d = lot && lot.d && typeof lot.d === "object" ? lot.d : {}, T = {}, left = { ...S.plan }, draws = [];
     for (const g of K.GRADES) T[g] = sum(K.PLAN[g]);
     for (let k = 0; k < MAX; k++) {
       const r = d["k" + k];
@@ -56,7 +58,7 @@ const KujiNet = (() => {
       if (!(left[id] > 0)) { id = ids.find((i) => left[i] > 0) || null; x.fixed = true; }
       if (id) { left[id]--; x.id = id; }
     }
-    return { store: s, no, n: draws.length, pc: lot && Number.isInteger(lot.pc) ? lot.pc : 0, draws, left, tickets: T, total: sum(T), sold: draws.length >= MAX };
+    return { store: s, no, S, th: S.key, n: draws.length, pc: lot && Number.isInteger(lot.pc) ? lot.pc : 0, draws, left, tickets: T, total: sum(T), sold: draws.length >= MAX };
   }
   // つぎに ひく くじ（n まいめ）が want しょうに なる じこく（テスト・PokaDebug.kujiNetT）。from から 1ミリびょうずつ
   function timeFor(s, no, lot, want, from = Date.now()) {
@@ -73,15 +75,18 @@ const KujiNet = (() => {
   async function advance(s, no) {
     try { await OnlineNet.patch(`v1/kuji/${s}`, { cur: no + 1 }); return true; } catch (e) { if (denied(e)) return false; throw e; }
   }
-  // いまの ロットを よむ（うりきれて いたら つぎへ）
+  // まえの きかんに はじまった ロット（UI-117。1まいめの じこくの きかんが いまより まえ）
+  const stale = (v) => v.n > 0 && K.netPeriod(v.draws[0].t) < K.netPeriod(K.netNow());
+  // いまの ロットを よむ（うりきれて いたら・まえの きかんの ロットなら つぎへ）
   async function load(s) {
     let cur = await curOf(s), lot = await fetchLot(s, cur), prev = live[s] && live[s].prev;
-    for (let i = 0; i < 3 && derive(s, cur, lot).sold; i++) {
+    for (let i = 0; i < 3; i++) {
       const v = derive(s, cur, lot);
-      prev = { no: cur, last: v.draws[MAX - 1] ? v.draws[MAX - 1].u : "" };
-      await advance(s, cur);
+      if (!v.sold && !stale(v)) break;
+      const was = v.sold ? { no: cur, last: v.draws[MAX - 1] ? v.draws[MAX - 1].u : "" } : { no: cur, last: "", ended: true }; // ended: きかんが おわった（ラストワンしょうは でて いない）
+      await advance(s, cur); // ルールを はりなおす まえは まえの きかんの ロットを すすめられない（その ロットの セットの まま ひける）
       const c2 = await curOf(s); if (c2 === cur) break;
-      cur = c2; lot = await fetchLot(s, cur);
+      prev = was; cur = c2; lot = await fetchLot(s, cur);
     }
     if (live[s] && live[s].cur !== cur && live[s].view) views[s + "_" + live[s].cur] = live[s].view; // まえの ロット（えらぶ まちが ある かも）は のこす
     const L = (live[s] = { cur, lot, view: derive(s, cur, lot), prev });
@@ -91,7 +96,7 @@ const KujiNet = (() => {
   // ---- じぶんの くじ（コイン・けいひん）----
   // rec に ある じぶんの くじ k の けいひんを もらう（まだの ぶんだけ）。もらった ものを かえす
   function settle(s, view, k) {
-    const x = view.draws[k], net = st(), rk = key(s, view.no, k), S = K.NET_BY[s];
+    const x = view.draws[k], net = st(), rk = key(s, view.no, k), S = view.S;
     if (!x || !(rk in net.rec)) return null;
     let flag = net.rec[rk];
     const t = { g: x.g, id: x.id, pick: x.pick && !x.id, no: k + 1, lot: view.no, k, last: x.last };
@@ -136,7 +141,7 @@ const KujiNet = (() => {
   }
   const viewOf = (s, no) => (live[s] && live[s].cur === no ? live[s].view : views[s + "_" + no]);
   // えらべる しゅるい（のこりが ある もの）
-  function choices(s, P) { const v = viewOf(s, P.lot); return v ? K.NET_BY[s].ids[P.g].filter((id) => v.left[id] > 0) : []; }
+  function choices(s, P) { const v = viewOf(s, P.lot); return v ? v.S.ids[P.g].filter((id) => v.left[id] > 0) : []; }
   function leftOf(s, P, id) { const v = viewOf(s, P.lot); return v ? v.left[id] || 0 : 0; }
 
   // ---- ひく ----
@@ -146,7 +151,7 @@ const KujiNet = (() => {
     if (!K.has(s) || !available()) return null;
     const uid = await Online.ensure(); account(uid);
     const net = st(); if (!net.since) net.since = Date.now();
-    let L = live[s] && live[s].view ? live[s] : await load(s), cur = L.cur, k = L.view.n;
+    let L = live[s] && live[s].view && !stale(live[s].view) ? live[s] : await load(s), cur = L.cur, k = L.view.n;
     const mine = [];
     for (let i = 0; i < n && Save.d.coins >= K.PRICE; i++) {
       let ok = false;
@@ -184,10 +189,11 @@ const KujiNet = (() => {
   }
   // D〜Fしょうを えらぶ（のこりの しゅるいから。えらんだ じゅんは pc を 1 ずつ）。かえす: もらった もの・{ taken: true }（だれかが さきに えらんだ）・null
   async function pick(s, P, id) {
-    const S = K.NET_BY[s], uid = OnlineNet.uid(), ix = S.ids[P.g] ? S.ids[P.g].indexOf(id) : -1;
-    if (ix < 0 || !uid) return null;
+    const uid = OnlineNet.uid();
+    if (!uid) return null;
     for (let tries = 0; tries < TRIES; tries++) {
-      const lot = await fetchLot(s, P.lot), v = derive(s, P.lot, lot), x = v.draws[P.k];
+      const lot = await fetchLot(s, P.lot), v = derive(s, P.lot, lot), x = v.draws[P.k], ix = v.S.ids[P.g] ? v.S.ids[P.g].indexOf(id) : -1;
+      if (ix < 0) return null;
       keep(s, P.lot, lot, v);
       if (!x || x.u !== uid || !x.pick) return null;
       if (x.p !== null) return finish(s, v, P.k); // もう えらんで いた（へんじが こなかった）
@@ -283,7 +289,7 @@ const KujiNet = (() => {
   return {
     MAX, TRIES, FEED,
     available, using: () => available() && st().on === 1, st, setMode, account,
-    derive, timeFor, load, reconcile, pending, choices, leftOf, draw, pick, feed, nameOf, watch, unwatch, wipe,
+    derive, timeFor, load, stale, reconcile, pending, choices, leftOf, draw, pick, feed, nameOf, watch, unwatch, wipe,
     view: (s) => (live[s] ? live[s].view : null), cur: (s) => (live[s] ? live[s].cur : 0), prev: (s) => (live[s] ? live[s].prev : null),
     lot: (s) => (live[s] ? live[s].lot : null), state: () => (watcher ? watcher.state : ""), watching: () => (watcher ? watcher.s : null),
     reset() { unwatch(); for (const k of Object.keys(live)) delete live[k]; for (const k of Object.keys(views)) delete views[k]; names.clear(); },

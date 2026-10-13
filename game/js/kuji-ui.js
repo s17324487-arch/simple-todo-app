@@ -31,7 +31,9 @@ const KujiUI = (() => {
       // みんなの くじ（js/kuji-net.js）: オンラインの ときだけ えらべる。けいひんは ごうかな べつの もの（X()）
       const netOk = () => typeof KujiNet !== "undefined" && KujiNet.available();
       let mode = netOk() && KujiNet.using() ? "net" : "solo", soonT = 0;
-      const X = () => (mode === "net" ? K.NET_BY[s] : K.BY[s]);
+      // みんなの くじの セットは いまの ロットの もの（2しゅうかん ごとに いれかわる・UI-117。ロットを よむ まえは いまの きかんの セット）
+      const netSet = () => { const V = typeof KujiNet !== "undefined" ? KujiNet.view(s) : null; return V && V.S ? V.S : K.netThemeNow(s); };
+      const X = () => (mode === "net" ? netSet() : K.BY[s]);
       const paint = () => { const S = X(); body.style.cssText = `--kc:${S.color};--kl:${S.light};--kd:${S.dark}`; body.classList.toggle("deluxe", mode === "net"); };
       paint();
       const modal = UI.modal({ title: `${SO.shop}の いちばんくじ`, body, cls: "full kuji-panel", onClose: () => { view.open = false; view.phase = null; clearTimeout(soonT); if (typeof KujiNet !== "undefined") KujiNet.unwatch(); if (scene && scene.closed !== true && typeof UI !== "undefined") UI.updateHud(); resolve(); } });
@@ -68,7 +70,7 @@ const KujiUI = (() => {
         return bar;
       };
       // ひとりの くじの とき: みんなの くじの けいひんの しらせ
-      const modeHint = () => (netOk() && mode === "solo" ? U.el("div", { class: "kuji-modehint", text: `「みんなの くじ」は けいひんが ごうか！ ${short(K.INDEX[K.NET_BY[s].ids.A[0]])} など` }) : null);
+      const modeHint = () => (netOk() && mode === "solo" ? U.el("div", { class: "kuji-modehint", text: `「みんなの くじ」は けいひんが ごうか！ ${short(K.INDEX[K.netThemeNow(s).ids.A[0]])} など` }) : null);
 
       // ---------- ボード ----------
       const card = (id, cls = "", lefts = K.lot(s).left) => {
@@ -94,7 +96,7 @@ const KujiUI = (() => {
         return rows;
       };
       // あつめた かず
-      const collectPart = () => { const net = mode === "net", n = K.gotCount(s, net), full = X().lineup.length, done = K.complete(s, net); return U.el("div", { class: "kuji-collect" + (done ? " done" : ""), text: done ? `コンプリート！ ${full}しゅ ぜんぶ そろったよ` : `${net ? "みんなの くじの " : ""}あつめた けいひん ${n}／${full}しゅ（ラストワンしょうも いれて）` }); };
+      const collectPart = () => { const net = mode === "net", n = K.gotCount(s, net, X()), full = X().lineup.length, done = K.complete(s, net, X()); return U.el("div", { class: "kuji-collect" + (done ? " done" : ""), text: done ? `コンプリート！ ${full}しゅ ぜんぶ そろったよ` : `${net ? "みんなの くじの " : ""}あつめた けいひん ${n}／${full}しゅ（ラストワンしょうも いれて）` }); };
       // はりつけ ひょう（ひいた じゅんに 賞の もじ。ピンクの わくは じぶん）。log: [[賞, じぶんなら 1], …]
       const boardPart = (log, label) => {
         const bd = U.el("div", { class: "kuji-board", role: "img", "aria-label": `くじけんの はりつけ ひょう ${log.length}まい` });
@@ -186,17 +188,29 @@ const KujiUI = (() => {
         if (K.pendingOf(s).length) choose([], null);
       };
 
+      // みんなの くじの いれかわり（UI-117）: いつまで・つぎの セット（ひとりの くじと 1しゅうかん ずれる）・きかんが かわった ときの しらせ
+      const netRotaPart = (V, prev) => {
+        const now = K.netNow(), cur = K.netThemeAt(s, now), name = (T) => T.title.replace(T.shop + "の ", ""), [, m, d] = K.netUntil(now).split("-").map(Number);
+        const next = K.netThemeOf(s, K.NET_EPOCH + (K.netPeriod(now) + 1) * K.NET_PERIOD);
+        const box = U.el("div", { class: "kuji-news kuji-rota" });
+        if (prev && prev.ended && prev.no === V.no - 1) box.append(U.el("div", { class: "kuji-fresh", text: `あたらしい くじ「${name(V.S)}」が はいったよ！（まえの ロット ${prev.no} は おわったよ）` }));
+        if (V.S !== cur) box.append(U.el("div", { text: `この ロットは「${name(V.S)}」。つぎの ロットから「${name(cur)}」に なるよ` }));
+        box.append(U.el("div", { text: `${m}がつ ${d}にち まで。つぎは「${name(next)}」（2しゅうかん ごとに いれかわる・ひとりの くじとは 1しゅうかん ずれて いるよ）` }));
+        return box;
+      };
       // ---------- みんなの くじ の ボード（js/kuji-net.js・UI-100）----------
       const drawNet = (note = "") => {
         const V = KujiNet.view(s), st = KujiNet.state();
         const status = U.el("div", { class: "kuji-netstat", role: "status", text: Online.STATE_TEXT[st] || Online.STATE_TEXT[""] });
         status.dataset.state = st;
         if (!V) { showBoard([modeBar(), posterPart(`1かい ${K.PRICE}コイン・ハズレ なし・みんなの くじ`), status, U.el("div", { class: "kuji-note", text: st === "denied" ? "みんなの くじを よめなかったよ。「ひとりの くじ」は いつでも ひけるよ" : "みんなの くじを よみこんで いるよ…" })]); return; }
+        paint(); // セットの いろ（ロットを よむと セットが きまる・UI-117）
         const uid = OnlineNet.uid(), mine = V.draws.filter((x) => x.u && x.u === uid).length, pend = KujiNet.pending(s).length, prev = KujiNet.prev(s);
         const parts = [modeBar(), posterPart(`1かい ${K.PRICE}コイン・ハズレ なし・みんなの ロット ${V.no}`), statPart(V.total), status];
         if (note) parts.push(U.el("div", { class: "kuji-note", text: note }));
         parts.push(U.el("div", { class: "kuji-news kuji-netnews", text: `みんなで ${V.n}まい ひいたよ（あなたは ${mine}まい）` }));
-        if (prev && prev.no === V.no - 1) parts.push(U.el("div", { class: "kuji-news", text: `まえの ロット ${prev.no} の ラストワンしょうは ${KujiNet.nameOf(prev.last)}` }));
+        if (prev && prev.no === V.no - 1 && !prev.ended) parts.push(U.el("div", { class: "kuji-news", text: `まえの ロット ${prev.no} の ラストワンしょうは ${KujiNet.nameOf(prev.last)}` }));
+        parts.push(netRotaPart(V, prev));
         if (V.sold) parts.push(U.el("div", { class: "kuji-sold", text: "うりきれ！ つぎの ロットを よういして いるよ" }));
         if (pend) parts.push(U.el("div", { class: "kuji-sold", text: "えらんで いない けいひんが あるよ。さきに えらんでね" }));
         parts.push(dcResPart());

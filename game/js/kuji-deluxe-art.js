@@ -328,5 +328,7 @@ const KujiDeluxeArt = (() => {
   };
   // KujiArt の 絵の いちらんに たす（KujiArt.pic・KujiArt.sticker・へやの 絵が この 絵を よむ）
   Object.assign(A.PLUSH, PLUSH); Object.assign(A.ART, ART); Object.assign(A.STK, STK);
-  return { PLUSH, ART, STK, bag, rugModel, install, LIVE, brocadeFlat, crown, tiara, koban, GOLD, NAVY, RED };
+  // ぶひん（みんなの くじの いれかわる けいひんの 絵 js/kuji-net-rotation-art.js も つかう。UI-117）
+  const parts = { gem, pearl, ringC, ringE, ringR, pouf, medal, sheet6, ticket, flower, koban, hexes, charaImg, keeperImg, GOLD, GOLD_L, GOLD_D, CREAM, RED, RED_L, RED_D, LACQ };
+  return { PLUSH, ART, STK, bag, rugModel, install, LIVE, brocadeFlat, crown, tiara, koban, GOLD, NAVY, RED, parts };
 })();
