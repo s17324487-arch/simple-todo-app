@@ -227,6 +227,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `home-door-colors.js`（home-doors.js の すぐ あと） | `HomeDoorColors`（おうちの ドアの いろ 12・`Save.d.doorColors`・へやの 絵の キーに `sig()`。UI-111） |
 | — | `hand-items.js`（dressup.js の あと・slow-life-prices.js の まえ） | `HandItems`（もちもの: ふうせん・バッグ・`outfit.hand`・UI-48） |
 | — | `umbrella-items.js`（hand-items.js の すぐ あと） | `UmbrellaItems`（かさ・ひがさ 8しゅの もちもの・`WEAR.hi_umbrella`・UI-122） |
+| — | `closet-wear.js`（umbrella-items.js の あと・slow-life-prices.js の まえ＝ねだんは ほかの 服と おなじに なおる） | `ClosetWear`（ようふく 50しゅ・`WEAR.cw_wear`・ようふくやさんの「トレンド」の たな・UI-125） |
 | — | `pet-walk.js`（home-toilet.js の あと・world-zoom.js の まえ） | `PetWalk`（いぬの さんぽ: おさんぽ リードと こいぬ 3びき・UI-49） |
 | — | `table-ware.js`（pet-walk.js の あと・play-records.js の まえ。figure-stand.js・ichiban-kuji.js・conbini-collab.js・kaden-live.js より あと） | `TableWare`（しょっきを テーブルに ならべる: しょっき 30しゅ・テーブル 9しゅ・UI-103） |
 | — | `display-shelves.js`（table-ware.js の つぎ） | `DisplayShelves`（かざりだな 8しゅ: ゆか 6・かべ 2・UI-104） |
