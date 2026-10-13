@@ -49,7 +49,7 @@ class TitleScene {
   async opening() {
     await UI.say([
       { name: "ナレーション", text: "ここは ネリカスタウン。\nのんびりした どうぶつたちが くらす ちいさな まち。" },
-      { who: "wanko", emo: "happy", text: "ワン！ ぼく わんこ！\nきょうから この まちで くらすんだ！" },
+      { who: "wanko", emo: "happy", text: "ワン！ わんこ だよ！\nきょうから この まちで くらすんだ！" },
       { who: "gachan", emo: "love", text: "ぴよっ！ がちゃんだよ。\n3にん いっしょの おうち、たのしみだね！" },
       { who: "goji", emo: "happy", text: "ガオー。……ごじ です。\nふたりと いっしょなら、どこでも へいき。" },
     ]);

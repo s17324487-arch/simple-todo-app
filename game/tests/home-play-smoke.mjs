@@ -18,7 +18,7 @@ export async function homePlaySmoke({ scenario, expect }) {
   for (const viewport of [{ width: 390, height: 844 }, { width: 375, height: 667 }]) await scenario("home-play-" + viewport.width, async (H) => {
     await H.newGameFast(); await H.dbg("hour", 19); await H.dbg("weather", "clear"); await H.wait(400);
     let p = await play(H);
-    expect(p && p.phase === null && p.next >= 45 && p.next <= 100 && p.options.length === 0, "はじめの ようす（さいしょは 45びょう〜1ふん40びょう あと・あそべる ものは まだ ない）" + JSON.stringify(p && { next: p.next, options: p.options }));
+    expect(p && p.phase === null && p.next > 35 && p.next <= 100 && p.options.length === 0, "はじめの ようす（さいしょは 45びょう〜1ふん40びょう あと〔おうちに はいってから すこし へって いる〕・あそべる ものは まだ ない）" + JSON.stringify(p && { next: p.next, options: p.options }));
     await H.dbg("homeBubbleFixture");
     const name = await H.eval(() => Object.fromEntries(["wanko", "gachan", "goji"].map((id) => [id, Save.d.chars[id].name])));
     // 1. なにも もって いない

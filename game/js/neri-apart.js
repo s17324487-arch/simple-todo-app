@@ -262,7 +262,7 @@ const NeriApart = (() => {
           { who: "gachan", emo: "happy", text: "かっこいい〜！" }, { who: "wanko", emo: "happy", text: "わん わん♪ いっしょに うたおう！" }], { mood: 3 });
         else if (f.action === "painting") await once(sc, "painting", f, [
           { name: "ことりの ピッコ", face: faceOf({ sp: "bird" }), text: "ネリカスタウンの 大きい 公園の え。\nふんすいと すべりだいを かいたの。" },
-          { who: "goji", emo: "happy", text: "ガゥ！ ぼくたちも かいて〜！" }, { who: "gachan", emo: "happy", text: "いろが きれいだね。" }], { mood: 3 });
+          { who: "goji", emo: "happy", text: "ガゥ！ ごじたちも かいて〜！" }, { who: "gachan", emo: "happy", text: "いろが きれいだね。" }], { mood: 3 });
       } finally { sc.busy = false; }
       return true;
     },
