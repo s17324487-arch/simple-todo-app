@@ -90,7 +90,8 @@ const KujiNetRotationArt = (() => {
       s += grp(66, 76, 1, gojiTail() + gojiBody() + gojiEars(-40) + gojiMouth(-18));
       s += P("M42,66 C52,74 80,74 90,66 L86,80 C76,86 56,86 46,80 Z", PU, 2) + C(66, 79, 3.4, GOLD, 1.4) + C(66, 79, 1.4, STAR, 0);
       s += gfootGoji(50, 122) + gfootGoji(82, 122) + grp(66, 76, 1, gojiArm(-36, 18, -1) + gojiArm(36, 18, 1)) + orb(66, 102, 14);
-      return s + wizHat(66, 40, 62) + tag(112, 128, GOLD_D);
+      // ぼうしは あたまの うえに のせる（つばを あたまの てっぺん〔y 24〕の すぐ した に）。とんがりが はみ出さない ように ぜんたいを すこし ちいさく して うえを あける
+      return `<g transform="translate(66 140) scale(0.88) translate(-66 -140)">${s + wizHat(66, 31, 62)}</g>` + tag(112, 128, GOLD_D);
     } },
     // ローリソン B: ぎんの かぶとと あおい マントの きしの わんこ（ぎんの むねあて・ハートの たて）
     kj_mlaw2_b: { w: 124, h: 144, draw: () => {
@@ -121,7 +122,7 @@ const KujiNetRotationArt = (() => {
       // まど 3つ（ひだり ごじ・まんなか がちゃん・みぎ わんこ）
       for (const [x, w] of [[46, 28], [71, 28], [96, 28]]) s += P(`M${x},92 V70 C${x},60 ${x + w},60 ${x + w},70 V92 Z`, NIGHT, 2) + dotStar(x + 5, 70, 1.8) + dotStar(x + w - 6, 74, 1.6);
       s += grp(60, 92, 0.42, gojiBody() + gojiEars(-40) + gojiMouth(-18)) + grp(85, 84, 0.42, gachanHead({ smile: true })) + grp(110, 84, 0.42, wankoHead({ smile: true }));
-      s += wizHat(60, 62, 24) + flowerCrown(85, 66, 20) + helm(110, 68, 22);
+      s += wizHat(60, 73, 24) + flowerCrown(85, 66, 20) + helm(110, 68, 22); // ごじの ぼうしは あたまの てっぺん（y 70）に のせる
       s += P("M76,120 V104 C76,96 94,96 94,104 V120 Z", "#8B5A33", 2) + C(90, 110, 1.4, GOLD, 0);
       for (const [x, y, r] of [[8, 20, 3], [38, 22, 2.4], [80, 18, 3.4], [124, 26, 2.4], [164, 18, 3]]) s += star(x, y, r, STAR, 1.2);
       return s + `<path d="${moonD(102, 22, 9)}" fill="${STAR}" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"/>` + tag(158, 120, GOLD_D, -10);

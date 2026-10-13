@@ -161,4 +161,13 @@ await fake.close();
   const dbg = read("js/debug.js");
   ok(/kujiNetTheme\(s,key=null\)/.test(dbg) && /view:v\?\{no:v\.no,th:v\.th,stale:KujiNet\.stale\(v\)/.test(dbg) && /deluxe:\(\(\)=>\{const K=IchibanKuji,X=v&&v\.S\?v\.S:K\.netThemeNow\(s\)/.test(dbg), "PokaDebug.kujiNetTheme・kujiNet の セット");
 }
+// まほうつかい ごじの ぼうしは あたまの うえ（オーナーの FB 2026-10-13「帽子の位置がずれている。頭の上にちゃんと載せて」）
+// ごじの あたまの てっぺん: とくだい ぬいぐるみ（grp 66,76・たかさ 100）は y 24・ラストワンの おしろ（grp 60,92・0.42ばい）は y 70.2
+{
+  const brim = (svg, rx) => { const m = svg.match(new RegExp(`<ellipse cx="[0-9.]+" cy="([0-9.]+)" rx="${rx}" ry="[0-9.]+" fill="#3E2A75"`)); return m ? +m[1] : NaN; };
+  const a = A.plush("kj_mlaw2_a"), ya = brim(a, 31), tip = 140 + (31 - 62 * 0.66 - 4.4 - 140) * 0.88;
+  ok(ya >= 26 && ya <= 36 && /<g transform="translate\(66 140\) scale\(0\.88\) translate\(-66 -140\)">/.test(a) && tip >= 0, `まほうつかい ごじ: ぼうしの つばが あたまの てっぺんに のって いない・とんがりが はみ出す（つば y ${ya}・とんがり ${tip.toFixed(1)}）`);
+  const yl = brim(A.plush("kj_mlaw2_l"), 12);
+  ok(yl >= 71 && yl <= 77, `おしろの ラストワン: ごじの ぼうしが あたまから はなれて いる（つば y ${yl}・てっぺん 70.2）`);
+}
 console.log(`✓ みんなの くじの いれかわる けいひん（UI-117）: ${n} 項目`);
