@@ -949,7 +949,7 @@ const PokaDebug = {
   },
   // その 子を つぎの レベルの あと left の ところに（テスト用）
   nearLevelUp(id = "goji", left = 1) {
-    const c = Save.d.chars[id]; if (!c || c.lv >= 50) return null;
+    const c = Save.d.chars[id]; if (!c || c.lv >= Stats.LV_MAX) return null;
     c.exp = Math.max(0, Stats.expNeed(c.lv) - Math.max(1, left)); Save.mark();
     return { id, lv: c.lv, exp: c.exp, need: Stats.expNeed(c.lv) };
   },
@@ -1289,7 +1289,7 @@ const PokaDebug = {
   shopPrices() {return Object.fromEntries([['wear',WEAR_ITEMS],['furniture',FURNITURE],['wall',WALLPAPERS],['floor',FLOORS],['food',FOODS]].map(([kind,list])=>[kind,list.map(it=>({id:it.id,name:it.name,price:it.price,rare:!!it.rare}))]));},
   coins(n = 1000) { Save.addCoins(n); UI.updateHud(); return Save.d.coins; },
   level(lv = 10) {
-    for (const id of Chara.IDS) { const c = Save.d.chars[id]; c.lv = U.clamp(lv, 1, 50); c.exp = 0; }
+    for (const id of Chara.IDS) { const c = Save.d.chars[id]; c.lv = U.clamp(lv, 1, Stats.LV_MAX); c.exp = 0; }
     Save.healAll();
     return lv;
   },

@@ -3,7 +3,8 @@
 // ・おてつだい 1かい: 2%（○◎ なし）〜 8%（ぜんぶ ○◎）× はたらいた ぶん（とちゅうで やめたら その ぶん）
 // ・いらい（けいじばん）: ★1 7%・★2 10%・★3 13%・★4 16%・★5 19%
 // ・町の人の おねがい: 5%
-// 3人 みんなが もらう（3人は いつも いっしょ）。Lv50 は もらわない。セーブは かわらない（Save.d.chars[だれ].lv・exp を Stats.gainExp で ふやす）。
+// 3人 みんなが もらう（3人は いつも いっしょ）。いちばん うえの レベル（Stats.LV_MAX・100）は もらわない。
+// Lv.51 からは わりあいを Stats.slow で わる（1つ あがるまでの かいすうが だんだん ふえる。UI-119）。セーブは かわらない（Save.d.chars[だれ].lv・exp を Stats.gainExp で ふやす）。
 // 3人には それぞれ とくいな おてつだいが あり、その おみせでは その 子だけ 1.5ばい（UI-68。オーナーの FB 2026-10-03
 // 「3人がそれぞれ得意なお手伝いがあり、経験値の上がり方に差をつけて」）。どの おみせも だれか 1人の とくい。
 const WorkExp = {
@@ -37,8 +38,8 @@ const WorkExp = {
   },
   amount(id, rate) {
     const c = Save.d.chars[id];
-    if (!c || c.lv >= 50 || !(rate > 0)) return 0;
-    return Math.max(1, Math.round(Stats.expNeed(c.lv) * rate));
+    if (!c || c.lv >= Stats.LV_MAX || !(rate > 0)) return 0;
+    return Math.max(1, Math.round((Stats.expNeed(c.lv) * rate) / Stats.slow(c.lv)));
   },
   // 3人に わたす。[{ id, name, n, lv0, lv, exp, need, ups, fav }]。おてつだいは shop の とくいな 子だけ FAV_MUL ばい
   // （ひくい レベルで まるめても ほかの 2人より かならず 1 おおい）
@@ -46,7 +47,7 @@ const WorkExp = {
     const rate = this.rate(kind, v), fav = kind === "shift" ? this.favOf(shop) : null, out = [];
     for (const id of Save.d.order) {
       const c = Save.d.chars[id], lv0 = c.lv, base = this.amount(id, rate), n = id === fav && base ? Math.max(base + 1, this.amount(id, rate * this.FAV_MUL)) : base, ups = n ? Stats.gainExp(id, n) : [];
-      out.push({ id, name: c.name, n, lv0, lv: c.lv, exp: c.exp, need: c.lv >= 50 ? 0 : Stats.expNeed(c.lv), ups, fav: id === fav });
+      out.push({ id, name: c.name, n, lv0, lv: c.lv, exp: c.exp, need: c.lv >= Stats.LV_MAX ? 0 : Stats.expNeed(c.lv), ups, fav: id === fav });
     }
     this.last = { kind, rate, fav, shop, rows: out };
     if (out.some((r) => r.n)) Save.mark();

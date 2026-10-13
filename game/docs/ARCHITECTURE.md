@@ -489,7 +489,8 @@ SVG 文字列 → 画像 → canvas（端末ピクセルの大きさ）に変換
 
 オーナーの FB 2026-10-02「日々のクエストやバイトで、少しずつ経験値が増えてレベルがアップするようにして欲しい」。
 
-- `rate(kind, v)`: `shift`（[ranks, はたらいた ぶん]。2〜8%）・`quest`（★ 1〜5。7〜19%）・`folk`（5%）。`amount(id, rate)` = `Stats.expNeed(lv) × rate`（1 いじょう・Lv50 は 0）。
+- `rate(kind, v)`: `shift`（[ranks, はたらいた ぶん]。2〜8%）・`quest`（★ 1〜5。7〜19%）・`folk`（5%）。`amount(id, rate)` = `Stats.expNeed(lv) × rate ÷ Stats.slow(lv)`（1 いじょう・Lv.100 は 0）。
+- レベルの うえは `Stats.LV_MAX`（100。UI-119 で 50 から）。`Stats.expNeed(lv)` = 12 × lv^1.7 × `slow(lv)`。`slow` は Lv.50 まで 1・Lv.51 から `SLOW_STEP`（1.025）の (lv − 50) じょう。Lv.1〜50 の つぎまでの けいけんちと 1つ あがる かいすうは まえと おなじ・Lv.51 から だんだん ふえる（Lv.99 は Lv.50 の やく 3.4ばい）。バトルの けいけんちは そのまま なので、バトルでも あがりにくく なる。
 - `give(kind, v)` は 3人 みんなに `Stats.gainExp` で わたし、[{ id, name, n, lv0, lv, exp, need, ups }] を かえす（`WorkExp.last` にも のこす）。
 - がめん: `html(rows)`（おてつだいの「きょうの けっか」の ぼう）・`text(rows)`／`toast(rows)`（いらい・おねがい）・`cheer(rows, delay)`（レベルが あがった ときの `jingle_lv`）。
 - よぶ ところ: `ShopScene.results`（`js/minigames.js`）・`NeriQuests.report`（`js/neri-quests.js`）・`TownFolk.finish`（`js/townsfolk.js`）。

@@ -424,7 +424,7 @@ R.Seasonal.override=null;
 try {
   R.Save.reset();
   for (const id of R.Chara.IDS) for (const f of R.FOODS) { R.Save.addBag(f.id, 1); R.Care.feed(id, f.id); }
-  for (const id of R.Chara.IDS) ok(R.Stats.gainExp(id, 999999).length > 0 && R.Save.d.chars[id].lv === 50, `${id}: レベル上限まで上がらない`);
+  for (const id of R.Chara.IDS) ok(R.Stats.gainExp(id, 1e8).length > 0 && R.Save.d.chars[id].lv === R.Stats.LV_MAX && R.Stats.LV_MAX === 100, `${id}: レベル上限まで上がらない`);
   for (const id of Object.keys(R.MAP_DEFS)) for (const c of new R.WorldMap(id).chests) R.Loot.give(c.loot, { chest: true });
 } catch (e) { err("育成/アイテムの処理で例外: " + e.message); }
 // ミニゲーム: 正しく操作すれば 100点、何もしなければ 低い点
