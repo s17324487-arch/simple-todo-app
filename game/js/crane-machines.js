@@ -27,7 +27,11 @@ const CraneMachines = (() => {
     const n = dayNum(day), at = (((n * stepOf(L, k)) % L) + L) % L, out = Array.from({ length: k }, (_, j) => order[(at + j) % L]);
     // きせつの ぬいぐるみ（UI-63・js/arcade-prizes.js の SEASON_HERO）: 3人の ぬいぐるみの 台（d.season）は その きせつの 1しゅが めだま（さいしょ）。のこりは いつもの 日がわり
     const se = d.season && typeof ArcadePrizes !== "undefined" ? ArcadePrizes.seasonal(d.season, day) : null;
-    return se ? [se.shape, ...out.slice(0, k - 1)] : out;
+    const list = se ? [se.shape, ...out.slice(0, k - 1)] : out;
+    // レアの ぬいぐるみ（UI-124）: 3人の 台は ときどき その子の レア（いろちがい・まえの いちばんくじの ぬいぐるみ）が 1しゅ ふえる（でにくい。CraneRound.pick）
+    const rare = d.season && typeof ArcadePrizes !== "undefined" && ArcadePrizes.rareOf ? ArcadePrizes.rareOf(d.season, d.id, day) : null;
+    if (rare) list.push(rare.shape);
+    return list;
   };
   // keep の 台: セーブの 台に まえの 日の けいひんが のこって いれば その日（とれたら つぎから きょうの ならび）
   const keepDay = (d, board, day = today()) => (d && d.keep && d.pool && board && board.id === d.id && board.day && board.day !== day && Array.isArray(board.b) && board.b.length ? board.day : day);
@@ -98,6 +102,11 @@ const CraneMachines = (() => {
     const who = it.spec.who, S = who === "gachan" ? gachanBody() : SHAPES[who](), k = who === "goji" ? 0.52 : 0.6;
     return { ...S, parts: S.parts.map((a) => ({ x: a.x * k, y: a.y * k, z: a.z * k, r: a.r * k, m: a.m })), size: S.size.map((q) => q * k), look: it.look, art: artOf(it, HERO_ART[who], k), prize: it.id };
   };
+  // いちばんくじの ぬいぐるみ（レア・UI-124）: その子の ちいさな ぬいぐるみと おなじ 形（物理）・絵は くじの 絵（たかさは すこし おおきめ）。とれると くじの 家具
+  for (const it of ArcadePrizes.ITEMS) if (it.size === "kuji") SHAPES[it.shape] = () => {
+    const S = SHAPES[`chibi_${it.spec.who}_0`](), [, , w, h] = it.crop, H = S.size[1] * 1.15;
+    return { ...S, look: it.look, art: [0, S.art[1], (w / h) * H, H], prize: it.prize };
+  };
   // ミニマスコット（スウィートランド。まるい かたまり。3人も 町の どうぶつも おなじ 形）
   for (const it of ArcadePrizes.ITEMS) if (it.size === "mini") SHAPES[it.shape] = () => {
     const [, , w, h] = it.crop, H = 7.2;
@@ -111,8 +120,9 @@ const CraneMachines = (() => {
     return { ...S, look: it.look, art: [(x + w / 2 - (rx + rw / 2)) * u, A.y(S) - (y + h / 2 - (ry + rh / 2)) * u, w * u, h * u], prize: it.id };
   };
   const prizePool = (ok) => ArcadePrizes.ITEMS.filter(ok).map((it) => it.shape);
+  const RARE_SHAPES = new Set(ArcadePrizes.ITEMS.filter((it) => it.rare).map((it) => it.shape)); // レアの ぬいぐるみの 形（でにくい）
   // きせつの ぬいぐるみ（it.season）は いつもの 日がわりの なかまに いれない（その きせつだけ lineup が めだまに する）
-  const heroPool = (who) => prizePool((it) => it.size === "chibi" && it.spec.who === who && !it.season);
+  const heroPool = (who) => prizePool((it) => it.size === "chibi" && it.spec.who === who && !it.season && !it.rare);
   // コイン メダル（まるい うすい えんばん: まん中＋まわり 6つ。おもて・うらは まるい 絵）と コインの たからばこ（クッキーの はこと おなじ 形＋リング）
   SHAPES.medal = () => ({ parts: [{ x: 0, y: 0, z: 0, r: 0.95, m: 1 }, ...Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * Math.PI * 2; return { x: Math.cos(a) * 2.05, y: Math.sin(a) * 2.05, z: 0, r: 0.95, m: 1 }; })], stiff: 1, fric: 0.42, look: "medal", slab: [6, 6, 1.9], size: [6, 6, 1.9] });
   SHAPES.chest = () => ({ ...SHAPES.cookie(), look: "chest" });
@@ -473,7 +483,7 @@ const CraneMachines = (() => {
     // バウンドボール（3人の ちいさな ぬいぐるみ 24しゅから 4しゅ）----
     daily(takoDef("tako", "takoyaki"), prizePool((it) => it.size === "mini"), 3),
     daily(barberDef("barber", "barber"), cutPool(), 3),
-    daily(boundDef("bound", "bound"), prizePool((it) => it.size === "chibi" && !it.season), 4),
+    daily(boundDef("bound", "bound"), prizePool((it) => it.size === "chibi" && !it.season && !it.rare), 4),
   ];
 
   // ---- 1かいの あそび ----
@@ -587,7 +597,15 @@ const CraneMachines = (() => {
       this.bodies.push(b); return b;
     }
     // まぜて おく 景品（ぬいぐるみの 表情・ミニマスコット）から 1つ（きまった たねの 乱数）
-    pick(list) { return Array.isArray(list) ? list[Math.floor(this.rand() * list.length) % list.length] : list; }
+    pick(list) {
+      if (!Array.isArray(list)) return list;
+      // レア（UI-124）が まざる ときは でにくく（ほかの 1/3）。まざらない ときは まえと おなじ えらびかた
+      const rare = list.map((sh) => (RARE_SHAPES.has(sh) ? 1 / 3 : 1));
+      if (rare.every((w) => w === 1)) return list[Math.floor(this.rand() * list.length) % list.length];
+      let t = this.rand() * rare.reduce((a, b) => a + b, 0);
+      for (let i = 0; i < list.length; i++) { t -= rare[i]; if (t < 0) return list[i]; }
+      return list[list.length - 1];
+    }
     randQ(upright) {
       const r = this.rand;
       if (upright) return CP.qaxis(0, 1, 0, (r() - 0.5) * 0.9);
