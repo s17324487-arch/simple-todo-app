@@ -4535,6 +4535,8 @@ await (await import("./home-play-smoke.mjs")).homePlaySmoke({scenario,expect});
 await (await import("./home-lv-party-smoke.mjs")).homeLvPartySmoke({scenario,expect});
 // かさ・ひがさ（UI-122。くわしくは tests/umbrella-smoke.mjs）
 await (await import("./umbrella-smoke.mjs")).umbrellaSmoke({scenario,expect});
+// ようふく 50しゅ（UI-125。くわしくは tests/closet-wear-smoke.mjs）
+await (await import("./closet-wear-smoke.mjs")).closetWearSmoke({scenario,expect});
 // バッグ・ポーチの チャーム（UI-123。くわしくは tests/bag-charms-smoke.mjs）
 await (await import("./bag-charms-smoke.mjs")).bagCharmsSmoke({scenario,expect});
 // おうちの かけあいを 倍に（UI-107。ぱぱ・ままとの からみ・3人の かけあい）

@@ -523,6 +523,19 @@ const PokaDebug = {
     if(id&&!BagCharms.isProxy(id)){if(!WearStock.can(id,who))WearStock.add(id,1);WearStock.put(who,BagCharms.SLOT,id);}else Save.d.chars[who].outfit.charm=id||null;
     Save.mark();return this.bagCharms();
   },
+  // ようふく 50しゅ（UI-125・js/closet-wear.js）: しゅるい・ようふくやさんの「トレンド」の たな・「ふく」の たなに まざって いないか・3人の ふく・絵に でて いるか
+  closetWear() {
+    if(typeof ClosetWear==='undefined')return null;
+    const S=BUY_SHOPS.clothes,body=Object.fromEntries(Chara.IDS.map(id=>[id,Save.d.chars[id].outfit.body||null]));
+    return {items:ClosetWear.ITEMS.map(x=>x.id),tab:S.tabs.find(t=>t[0]===ClosetWear.TAB)||null,shelf:S.items(ClosetWear.TAB).map(x=>x.id),mixed:S.items('body').some(x=>x.closet),body,
+      drawn:Object.fromEntries(Chara.IDS.map(id=>{const c=Save.d.chars[id],it=ClosetWear.isCloset(body[id])&&ITEM_INDEX[body[id]];return [id,!!it&&Chara.svg(id,{outfit:c.outfit,color:c.color}).includes(`fill="${it.col[0]}"`)];}))};
+  },
+  // その 子に ようふく 50しゅの 1つを きせる（id=null で はずす。もって いなければ 1こ たす）
+  closetPut(who,id) {
+    if(typeof ClosetWear==='undefined'||!Save.d.chars[who]||(id&&!ClosetWear.isCloset(id)))return null;
+    if(id&&!WearStock.can(id,who))WearStock.add(id,1);
+    WearStock.put(who,'body',id||null);Save.mark();return this.closetWear();
+  },
   // その 子に もたせる（id=null で はずす）。もって いなければ 1こ たす
   playHold(who,id) {
     if(typeof PlayGoods==='undefined'||!Save.d.chars[who]||(id&&!PlayGoods.INDEX[id]))return null;
