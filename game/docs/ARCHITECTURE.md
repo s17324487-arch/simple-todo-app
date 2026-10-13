@@ -160,6 +160,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `play-records.js`（pet-walk.js の あと・world-zoom.js の まえ＝Care・HomeToilet・SCENES.house・Fishing・BattleScene・Menu・GowagaWish の あと） | `PlayRecords`（きろく: 3人の きろく 15しゅ・たべものごとの かず・ずかんの「たべもの」・ようすの「きろく」・UI-71） |
 | — | `home-doze.js`（play-records.js の すぐ あと・online-config.js の まえ＝HouseScene・HomeActions・HomeLife・ParentCare・GowagaWish・HomeToilet・Care・PlayRecords・HomeNav の あと） | `HomeDoze`（おうちの おひるね・UI-99） |
 | — | `home-play-data.js` → `home-play.js`（home-doze.js の すぐ あと＝PlayGoods・HomeDoze の あと） | `HOME_PLAY_DATA`・`HomePlay`（おうちで あそぶ・よむ・しゅくだい・UI-106） |
+| — | `home-lv-party.js`（home-play.js の すぐ あと＝HomePlay.spot・layout・drawables を つかう） | `HomeLvParty`（レベル 10 ごとの おいわいの 会・UI-120） |
 | — | `dine-seats.js`（iso-venue.js の すぐ あと＝chara.js・IsoVenue の あと） | `DineSeats`（ごはんの せき: 館の テーブル・ボックス席で 3人が すわって ちゅうもん。UI-72） |
 | — | `online-config.js` → `online-net.js` → `online.js`（play-records.js の あと・world-zoom.js の まえ＝Smaho・Menu・ShopScene・KorokoroScore・SHOP_GAMES の あと） | `ONLINE_CONFIG`（つなぎさき）, `OnlineNet`（匿名ログイン・Realtime Database の REST と SSE・ネットに つなぐ ゆいいつの ファイル）, `Online`（同意・なまえ・ボード・きろく・すまほの「みんな」・≡ の せってい。E5・UI-94） |
 | — | `online-rooms.js`（online.js の すぐ あと） | `OnlineRooms`（じぶんの おへやを みせる・みんなの おへやの いちらん。`Online.parts` に「おうち」タブ。いちらんの タップで おじゃま〔online-visit.js〕。E5・UI-95） |
@@ -1437,6 +1438,17 @@ district-travel.js は全体地図の後に読み込み、町IDを変えずに�
 - ことば: `ShopUI.detail` は `it.use`（`{ can, ask, yes, say }`）が あれば ふくの「きる」の かわりに つかう（ほかの もちものは まえの まま「きる！」）。
 - ずかん: `ItemDexSources.source` を つつんで その みせ（「ネリカスタウンの コンビニ「…」で かえるよ。」・「Meeときょれじゃ の けいひん カウンターで こうかん できるよ。」）。
 - セーブ: ふくと おなじ（`Save.d.wardrobe`・`outfit.hand`。`SCHEMA` 2）。PokaDebug: `playGoods()`・`playHold(who, id)`。検査は `tools/check-play-goods.mjs`、スモークは `play-goods-390 / 375`。
+
+## レベルの おいわいの 会（UI-120・`js/home-lv-party.js`・`HomeLvParty`）
+
+オーナーの 指示 2026-10-13「レベルが10上がるごとに、3人がおうちで勝手にお祝いの会を開いている様子を実装して」（レベルの うえ 100 は UI-119）。
+
+- まち: `Stats.gainExp` を つつみ、あがった レベルが 10 の ばいすうで `done[だれ]` より うえなら `Save.d.lvParty.pend` に { who, lv } を たす（`done` を その レベルに）。`PokaDebug.level` など じかに かえた ときは たさない。ふるい セーブは `Save.fresh` の `lvParty` で おぎなう（SCHEMA は 2 の まま）。
+- ひらく: じぶんの おうち（`sc.guest` で ない）で へやが しずか（`can`: おひるね・あそぶ・けんか・おトイレ・おねがい・おしごと の まち で ない）なら、はいって 2.5〜4びょう（できない ときは 20びょう ごと）で `start`。`nextGroup` は いちばん ひくい レベルと その レベルの 子 みんな。
+- ながれ: gather（`HomePlay.spot(sc, "circle")`・`layout` の まわりに たつ）→ party（`BEAT` 5.2びょう ごとに `plan` の じゅん: congrats → thanks →〔Lv.100 は max〕→ kanpai〔`record`: まちから けして `log` に〕→ candle → blow → fun 2つ）→ end（ごきげん +10・なかよし +1）→ `stop`。ぱぱ ままが いれば 2つめの あと「おめでとう」。
+- やめる: したの ボタン（`button`）・ドア・かいだん・もようがえ など（`stir`）。kanpai まで いって いなければ まちに のこる（つぎに また ひらく）。会の あいだは `HomeDoze.can`・`HomePlay.can`・ほかからの 3人の `HomeLife.say`・`ParentCare.update`・`GowagaWish.house`・`HomeToilet.calm` を おやすみ。
+- 絵（canvas・SvgCache を つかわない）: `HomePlay.drawables` を つつんで、かべ（z −1500: かべの かぐの つぎ）に ガーランドと たれまく（`banner`: 「わんこ レベル20 おめでとう！」・3人 みんなは「みんな」）、ゆか（スポットの depth）に テーブル・2だんの ケーキ（ろうそくは 10 ごとに 1本・blow で きえて けむり）・おさら・ふうせん 3つ。3人は `HomeActions.visual`／`props` の かわりに ゆらゆら・はねる（`partyJump`）と とんがりぼうし（`HAT` は 足もとからの ばしょ）。
+- PokaDebug: `lvParty()`・`lvPartyQueue(who, lv, next)`・`lvPartyStart()`・`lvPartyNext(sec)`・`gainExp(id, n)`。`homeBubbleFixture` は 会も とめる。検査は `tools/check-home-lv-party.mjs`、スモークは `tests/home-lv-party-smoke.mjs`（`home-lv-party-390/375`）。
 
 ## おうちで あそぶ・よむ・しゅくだい（UI-106・`js/home-play.js`・`HomePlay`）
 

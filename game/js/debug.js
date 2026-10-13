@@ -192,6 +192,9 @@ const PokaDebug = {
       "PokaDebug.playHold('wanko','pg_cards') その 子に もたせる（null で はずす・もって いなければ 1こ たす）",
       "PokaDebug.homeChat(20)                ふだんの かけあいを 20かい えらぶ（id・ぱぱ ままが でる かず。ふたりが いない ときは でない）",
       "PokaDebug.homePlay()                  おうちで あそぶ・よむ・しゅくだい の ようす（あつまる／あそぶ／おわり・しゅるい・もって いる 子・ならび・うごき・会話・3人）",
+      "PokaDebug.lvParty()                   レベルの おいわいの 会の ようす（まち・いわった レベル・あつまる／party／おわり・たれまく・ろうそく・会話・3人）",
+      "PokaDebug.lvPartyQueue('wanko',10,2)  その 子を レベル10 の おいわいの まちに いれる（2びょう あとに ひらく）",
+      "PokaDebug.lvPartyStart() / lvPartyNext(5) いま ひらく ／ 5びょう すすめる（ゲームを とめた ままでも）",
       "PokaDebug.homePlayStart('wanko','pg_cards') その 子が もって いる もので はじめる（id で もたせてから・3つめに びょうを わたすと じぶんたちで はじめる まで）",
       "PokaDebug.homePlayNext(5)             あそびを 5びょう すすめる（ゲームを とめた ままでも）",
       "PokaDebug.homePlayHouse('bk_dino')    おうちに ある（だれも もって いない）もので はじめる（なければ 1こ たす・とりだす 子は 3人の すきで きまる）",
@@ -540,6 +543,31 @@ const PokaDebug = {
     for(let t=0;t<sec;t+=1/30)sc.update(1/30);
     return this.homePlay();
   },
+  // レベルの おいわいの 会（UI-120・js/home-lv-party.js）: まち・いわった レベル・きろく・いまの 会（phase gather／party／end・たれまくの ことば・ろうそく・会話）と 3人を タップする 画面の わく
+  lvParty() {
+    if(typeof HomeLvParty==='undefined')return null;
+    const sc=G.sceneName==='house'?G.scene:null,o=HomeLvParty.state(sc);
+    if(sc){const c0=G.canvas.getBoundingClientRect(),u=G.cssPerUnit;o.kids=o.kids.map(k=>{const c=sc.chars.find(x=>x.id===k.id),r=sc.actorRect(c);return {...k,rect:{x:c0.left+r.x*u,y:c0.top+r.y*u,w:r.w*u,h:r.h*u}};});}
+    return o;
+  },
+  // けいけんちを わたす（Stats.gainExp。あがった レベルの ならびを かえす）
+  gainExp(id,n=1) {if(!Save.d.chars[id])return null;const ups=Stats.gainExp(id,Math.max(0,n|0));return ups.map(u=>u.lv);},
+  // その 子を その レベルの おいわいの まちに いれる（テスト用。レベルは かえない）・next を わたすと ひらく までの びょうを きめる
+  lvPartyQueue(who,lv,next) {
+    if(typeof HomeLvParty==='undefined'||!HomeLvParty.IDS.includes(who))return false;const P=HomeLvParty.save();
+    if(!(lv%HomeLvParty.STEP===0&&lv>=HomeLvParty.STEP&&lv<=Stats.LV_MAX))return false;
+    P.pend.push({who,lv});P.done[who]=Math.max(P.done[who],lv);Save.mark();
+    if(Number.isFinite(next)&&G.sceneName==='house')HomeLvParty.st(G.scene).next=next;
+    return true;
+  },
+  // いま ひらく（へやが しずかで なければ false）
+  lvPartyStart() {return G.sceneName==='house'&&typeof HomeLvParty!=='undefined'&&HomeLvParty.start(G.scene,'debug');},
+  // おいわいを その びょうだけ すすめる（ゲームを とめた まま でも。1/30 びょう ずつ）
+  lvPartyNext(sec=1) {
+    if(G.sceneName!=='house'||typeof HomeLvParty==='undefined')return null;const sc=G.scene;
+    for(let t=0;t<sec;t+=1/30)sc.update(1/30);
+    return this.lvParty();
+  },
   // いぬの さんぽ（UI-49）: リードを もった 子・いまの シーンの こいぬ（ばしょ・もった 子からの きょり・おうちでは どちらの よこか side と タップ できる 点 cx, cy〔見えて いなければ null〕）
   pets() {
     if(typeof PetWalk==='undefined')return null;
@@ -596,7 +624,7 @@ const PokaDebug = {
     const byWho={};for(const l of D.lines)byWho[l.who]=(byWho[l.who]||0)+1;
     return {total:D.lines.length+D.talks.length,lines:D.lines.length,talks:D.talks.length,turns:D.talks.reduce((a,t)=>a+t.turns.length,0),byWho};
   },
-  homeBubbleFixture() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;const sc=G.scene;sc.chars.forEach(c=>HomeActions.cancel(c));sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;sc.actions.next=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});if(typeof HomeDoze!=='undefined'&&sc.update===HouseScene.prototype.update){const D=HomeDoze.st(sc);if(D.phase)HomeDoze.wake(sc,'stir');D.next=3600;}if(typeof HomePlay!=='undefined'&&sc.update===HouseScene.prototype.update){const P=HomePlay.st(sc);if(P.phase)HomePlay.stop(sc,'stir');P.next=3600;}return true;},
+  homeBubbleFixture() {if(G.sceneName!=='house'&&G.sceneName!=='visit')return false;const sc=G.scene;sc.chars.forEach(c=>HomeActions.cancel(c));sc.chars.forEach((c,i)=>Object.assign(c,{x:160+i*80,y:430+(i%2)*35,state:'idle',t:3600,hidden:false}));sc.parents.forEach((p,i)=>Object.assign(p,{x:i?375:90,y:345,state:'idle',target:null,queue:[]}));sc.parentTimer=3600;sc.actions.next=3600;Object.assign(sc.life,{next:3600,queue:[],bubbles:[],quarrel:false});if(typeof HomeDoze!=='undefined'&&sc.update===HouseScene.prototype.update){const D=HomeDoze.st(sc);if(D.phase)HomeDoze.wake(sc,'stir');D.next=3600;}if(typeof HomePlay!=='undefined'&&sc.update===HouseScene.prototype.update){const P=HomePlay.st(sc);if(P.phase)HomePlay.stop(sc,'stir');P.next=3600;}if(typeof HomeLvParty!=='undefined'&&sc.update===HouseScene.prototype.update){const L=HomeLvParty.st(sc);if(L.phase)HomeLvParty.stop(sc,'stir');L.next=3600;}return true;},
   homeBubbleState() {if(G.sceneName!=='house')return null;const sc=G.scene;return {heads:HomeLife.heads(sc),boxes:HomeLife.bubbleLayout(sc,G.ctx),area:{...sc.view,left:8,right:G.W-8},watching:sc.watching};},
   family() {
     if(G.sceneName!=="house")return null;

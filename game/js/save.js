@@ -141,6 +141,8 @@ const Save = {
       // photo ぷりくら（js/online-photos.js: uid みせた ときの ID・shown { しゃしんの id: みせた とき〔-1 は サーバーから けす まち〕}・sid { しゃしんの id: サーバーの ばんごう〔ランダム〕}・hide かくした しゃしん・hideU かくした 人・rep { ほうこくした しゃしん: りゆう }）
       online: { on: false, agreed: 0, ver: 0, nick: [0, 0], best: {}, sent: {}, sentUid: "", room: { shown: 0, id: "", uid: "" }, photo: { uid: "", shown: {}, sid: {}, hide: [], hideU: [], rep: {} } },
       doorColors: { out: "wood", room: "wood", toilet: "mint" }, // おうちの ドアの いろ（js/home-door-colors.js・UI-111）
+      // レベル 10 ごとの おいわいの 会（js/home-lv-party.js・UI-120）: pend まだの 会 [{ who, lv }]・done 3人ごとの いわった（いわう まちに いれた）いちばん うえの レベル・log さいごの 会
+      lvParty: { pend: [], done: { wanko: 0, gachan: 0, goji: 0 }, log: [] },
       settings: { bgm: true, se: true, difficulty: "normal", worldZoom: 1 },
     };
   },
