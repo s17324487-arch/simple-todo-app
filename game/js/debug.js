@@ -504,6 +504,12 @@ const PokaDebug = {
       tabs:Object.fromEntries(Object.keys(PlayGoods.LINEUP).map(s=>[s,BUY_SHOPS[s].tabs.map(t=>t[0])])),held,
       drawn:Object.fromEntries(Chara.IDS.map(id=>{const it=held[id]&&ITEM_INDEX[held[id]],c=Save.d.chars[id];return [id,!!it&&Chara.svg(id,{outfit:c.outfit,color:c.color}).includes(it.col[0])];}))};
   },
+  // もちもの（かさ・ふうせん・バッグ など）を その 子に もたせる（id=null で はずす）。もって いなければ 1こ たす（UI-122）
+  handHold(who,id) {
+    if(!Save.d.chars[who]||(id&&!(ITEM_INDEX[id]&&ITEM_INDEX[id].slot===HandItems.SLOT)))return null;
+    if(id&&!WearStock.can(id,who))WearStock.add(id,1);
+    WearStock.put(who,HandItems.SLOT,id||null);Save.mark();return this.handItems();
+  },
   // その 子に もたせる（id=null で はずす）。もって いなければ 1こ たす
   playHold(who,id) {
     if(typeof PlayGoods==='undefined'||!Save.d.chars[who]||(id&&!PlayGoods.INDEX[id]))return null;
