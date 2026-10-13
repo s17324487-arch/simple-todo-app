@@ -55,6 +55,18 @@ const GowagaWish = {
   AMAE_ASK: { wanko: "ねえねえ、なでなで して〜", gachan: "ねえ… ぎゅって して？", goji: "ごじも だっこ… ガゥ" },
   HUG: { wanko: "ぎゅー！ あったか〜い！", gachan: "えへへ… しあわせ♪", goji: "ごじも ぎゅー ガウっ！" },
   PAT: { wanko: "わふ〜 もっと なでて〜", gachan: "ぴよ♪ きもちいい…", goji: "ガゥ… ねむく なっちゃう" },
+  // だっこ（UI-121。オーナーの FB 2026-10-13「ごじのおうちでのだっこの選択肢がないので追加して。」）: もちあげて ゆらゆら（DAKKO_LEN びょう）
+  DAKKO: { wanko: "わーい！ たかーい！ ワン！", gachan: "ふわっ… たかいね♪", goji: "だっこ うれしい ガウっ！" },
+  DAKKO_LEN: 2.6,
+  // あまえる まどの こたえ（ならびは かえない: 0 ぎゅー・1 なでなで・2 だっこ）
+  HOW: ["hug", "pat", "dakko"],
+  // だっこされて いる 子の からだ（HomeActions.visual の まえに みる）
+  dakkoVisual(c) {
+    const t = c && c.dakko ? G.t - c.dakko : -1;
+    if (t < 0 || t > this.DAKKO_LEN) return null;
+    const up = Math.min(1, t / 0.35, (this.DAKKO_LEN - t) / 0.35), sway = Math.sin(t * 4.2);
+    return { pose: "jump_01", face: "love", dir: "down", x: sway * 3, y: -30 * up - Math.abs(sway) * 3 * up, angle: 0.07 * sway * up, sx: 1, sy: 1, alpha: 1 };
+  },
   AMAE_LINES: { wanko: ["だいすき！ ずっと いっしょ だよ！", "しっぽが とまらない〜"], gachan: ["もうちょっと くっついて いい？", "がちゃん、しあわせ♪"], goji: ["ごじも そばに いる ガウっ", "また いっしょに いこうね"] },
   asking: false,
   st() {
@@ -213,15 +225,17 @@ const GowagaWish = {
       HomeLife.converse(sc, turns);
       await U.wait(turns.length * 1300 + 500);
       if (G.scene !== sc) return false;
-      const i = await UI.ask(`${ids.map((id) => Save.d.chars[id].name).join("・")}が あまえて きた！`, ["ぎゅー！", "なでなで"], { cancel: false, who: x.who, name: this.who(x) });
+      const i = await UI.ask(`${ids.map((id) => Save.d.chars[id].name).join("・")}が あまえて きた！`, ["ぎゅー！", "なでなで", "だっこ"], { cancel: false, who: x.who, name: this.who(x) });
       if (G.scene !== sc) return false;
-      const hug = i !== 1, said = hug ? this.HUG : this.PAT;
-      for (const k of kids) sc.react(k, "love", "heart");
-      HomeLife.converse(sc, ids.map((id) => ({ who: id, text: said[id], meta: { wish: x.id, how: hug ? "hug" : "pat" } })));
+      const how = this.HOW[i] || "hug", said = how === "dakko" ? this.DAKKO : how === "pat" ? this.PAT : this.HUG;
+      // だっこ: 1人ずつ じゅんばんに もちあげる（はじめは おねがいした 子）
+      if (how === "dakko") kids.forEach((k, j) => { HomeActions.cancel(k); k.state = "amae"; k.emo = "love"; k.dakko = G.t + j * 0.9; sc.fx("heart", k); });
+      else for (const k of kids) sc.react(k, "love", "heart");
+      HomeLife.converse(sc, ids.map((id) => ({ who: id, text: said[id], meta: { wish: x.id, how } })));
       Sound.se("fanfare");
       for (const id of Save.d.order) Save.care(id, { mood: 20, bond: id === x.who ? 6 : 4 });
-      w.n = (w.n || 0) + 1; w.log.push({ id: x.id, t: Date.now(), how: hug ? "hug" : "pat" }); while (w.log.length > 40) w.log.shift();
-      if (typeof PlayRecords !== "undefined") { PlayRecords.add(x.who, "done"); for (const k of kids) PlayRecords.add(k.id, hug ? "hug" : "pat"); } // きろく（UI-71）
+      w.n = (w.n || 0) + 1; w.log.push({ id: x.id, t: Date.now(), how }); while (w.log.length > 40) w.log.shift();
+      if (typeof PlayRecords !== "undefined") { PlayRecords.add(x.who, "done"); for (const k of kids) PlayRecords.add(k.id, how); } // きろく（UI-71）
       w.cur = null; w.last = Date.now();
       Save.mark(); Save.write();
       if (sc.updateCare) sc.updateCare();
@@ -310,4 +324,6 @@ GowagaWish.INDEX = Object.fromEntries(GowagaWish.WISHES.map((x) => [x.id, x]));
   WP.enter = async function (...a) { const r = await enter.apply(this, a); if (G.sceneName === "world") GowagaWish.arrive({ map: this.mapId }); return r; };
   const HS = SCENES.house.prototype, up = HS.update;
   HS.update = function (dt) { up.call(this, dt); GowagaWish.house(this, dt); };
+  // だっこ（UI-121）: もちあげて いる あいだの からだ
+  if (typeof HomeActions !== "undefined") { const visual = HomeActions.visual; HomeActions.visual = function (c) { return GowagaWish.dakkoVisual(c) || visual.call(this, c); }; }
 })();

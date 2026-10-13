@@ -33,7 +33,7 @@ const fresh = () => { S.d = S.fresh(); return S.d; };
 // ---- 2. add の きまり ----
 {
   fresh();
-  ok(P.KEYS.length === 15 && new Set(P.KEYS).size === 15, "きろくの キーは 15");
+  ok(P.KEYS.length === 16 && new Set(P.KEYS).size === 16 && P.KEYS.includes("dakko"), "きろくの キーは 16（だっこ・UI-121）");
   ok(P.add("wanko", "pat") === 1 && P.add("wanko", "pat", 3) === 4, "かずを たす");
   ok(P.add("nobody", "pat") === 0 && P.add("wanko", "nope") === 0 && P.get("wanko", "pat") === 4, "しらない 子・しらない キーは かぞえない");
 }
@@ -75,7 +75,7 @@ const fresh = () => { S.d = S.fresh(); return S.d; };
   const gw = read("js/gowaga-wish.js");
   ok(/PlayRecords\.add\(x\.who, "ask"\);[^\n]*\n\s*const i = await UI\.ask\(x\.ask/.test(gw), "おねがい: まどを だす ときに おねがいした");
   ok(/this\.start\(x\.id\);\s*if \(typeof PlayRecords !== "undefined"\) PlayRecords\.add\(x\.who, "yes"\);/.test(gw), "おねがい: いいよ");
-  ok(/PlayRecords\.add\(x\.who, "done"\); for \(const k of kids\) PlayRecords\.add\(k\.id, hug \? "hug" : "pat"\);/.test(gw), "おねがい: かなった・ぎゅー／なでなで（3人）");
+  ok(/PlayRecords\.add\(x\.who, "done"\); for \(const k of kids\) PlayRecords\.add\(k\.id, how\);/.test(gw) && /HOW: \["hug", "pat", "dakko"\]/.test(gw), "おねがい: かなった・ぎゅー／なでなで（3人）");
   ok(/d\.order\.unshift\(id\); if \(typeof PlayRecords !== "undefined"\) PlayRecords\.add\(id, "lead"\);/.test(read("js/menu.js")), "ようすの「せんとうに する」で せんとうに なった");
 }
 

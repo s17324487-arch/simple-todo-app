@@ -37,7 +37,7 @@ export async function gowagaWishSmoke({ scenario, expect }) {
     const said = (await H.dbg('homeTalkLog')).slice(start).filter((x) => x.wish === 'eat_cake');
     expect(said.length >= 4 && said[0].id === 'gachan' && /ありがとう/.test(said[0].text) && ['wanko', 'goji'].every((id) => said.some((x) => x.id === id)), 'おれいの かけあいが ない ' + JSON.stringify(said));
     a = await askBox(H);
-    expect(/あまえて きた/.test(a.text) && a.btns.join() === 'ぎゅー！,なでなで' && a.fit && a.tall, 'あまえる まどが ちがう ' + JSON.stringify(a));
+    expect(/あまえて きた/.test(a.text) && a.btns.join() === 'ぎゅー！,なでなで,だっこ' && a.fit && a.tall, 'あまえる まどが ちがう ' + JSON.stringify(a));
     await H.shot('amae-ask');
     await H.page.getByRole('button', { name: 'ぎゅー！', exact: true }).click(); await H.wait(700);
     w = await H.dbg('wish'); expect(!w.cur && w.n === 1 && w.log.join() === 'eat_cake' && w.amae > 0, 'おれいの あと ' + JSON.stringify(w));

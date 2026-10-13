@@ -29,7 +29,7 @@ export async function playRecordsSmoke({ scenario, expect }) {
       return { rows, faces: t.querySelectorAll('.rec-who svg').length, team: [...b.querySelectorAll('.rec-team-row')].map((e) => e.textContent), over: b.scrollWidth > b.clientWidth + 2, wide: t.getBoundingClientRect().right > b.getBoundingClientRect().right + 1, since: b.querySelector('.rec-since')?.textContent || '' };
     });
     const col = (key, id) => v.rows[key][order.indexOf(id)];
-    expect(v.faces === 3 && col('ate', 'wanko') === 3 && col('ate', 'goji') === 2 && col('fav', 'wanko') === 1 && col('deza', 'goji') === 1 && col('dezaYes', 'goji') === 1 && col('pat', 'gachan') >= 1 && Object.keys(v.rows).length === 15, 'きろくの ひょうが ちがう ' + JSON.stringify(v.rows));
+    expect(v.faces === 3 && col('ate', 'wanko') === 3 && col('ate', 'goji') === 2 && col('fav', 'wanko') === 1 && col('deza', 'goji') === 1 && col('dezaYes', 'goji') === 1 && col('pat', 'gachan') >= 1 && Object.keys(v.rows).length === 16 && v.rows.dakko, 'きろくの ひょうが ちがう ' + JSON.stringify(v.rows));
     expect(!v.over && !v.wide && /から かぞえて いるよ/.test(v.since) && v.team.some((t) => /^ごはんを あげた6かい$/.test(t)), 'きろくの がめんが はみ出す・みんなの きろく ' + JSON.stringify(v));
     await H.shot('records');
     await page.locator('.smaho-close').click(); await H.wait(300); await H.idle();
