@@ -42,6 +42,7 @@ const emuTarget = {
     return r.status;
   },
   async at(path) { const r = await fetch(`${EMU}/${path}.json?ns=${NS}&access_token=owner`); return r.json(); },
+  async seed(path, v) { await fetch(`${EMU}/${path}.json?ns=${NS}&access_token=owner`, { method: "PUT", body: JSON.stringify(v) }); },
   async reset() { await fetch(`${EMU}/.json?ns=${NS}&access_token=owner`, { method: "PUT", body: "null" }); },
 };
 // ---- にせの サーバー ----
@@ -60,6 +61,7 @@ const fakeTarget = {
     return r.status;
   },
   async at(path) { return fake.at(path); },
+  async seed(path, v) { fake.write(path, v); },
   async reset() { fake.reset(); this.users = {}; },
 };
 
@@ -160,6 +162,12 @@ FILL.push(draw("A", 0, "l2"));
 FILL.push({ ...pick("C", 4, 2, 4), why: "うりきれた まえの ロットでも じぶんの くじを えらべる" });
 FILL.push({ see: "v1/kuji/lawson/cur", is: 2 });
 FILL.push(draw("A", 0, "l1", "sevenbun"));
+// みんなの くじの いれかわり（UI-117）: まえの 2しゅうかんに はじまった ロットは のこりが あっても つぎへ すすめられる
+FILL.push(no({ as: "B", m: "PATCH", p: "v1/kuji/sevenbun", b: { cur: 2 } }, "おなじ きかんの ロットは うりきれる まえに すすめられない"));
+FILL.push({ seed: "v1/kuji/sevenbun/lots/l1/d/k0/t", b: 1791730800000 - 1000, why: "1まいめを まえの きかんの じこくに する（オーナー）" });
+FILL.push({ as: "B", m: "PATCH", p: "v1/kuji/sevenbun", b: { cur: 2 }, ok: true, why: "まえの きかんに はじまった ロットは つぎへ すすめられる" });
+FILL.push(no({ as: "B", m: "PATCH", p: "v1/kuji/sevenbun", b: { cur: 3 } }, "だれも ひいて いない ロットは すすめられない"));
+FILL.push({ see: "v1/kuji/sevenbun/cur", is: 2 });
 
 let bad = 0, n = 0;
 const fill = (v, users) => JSON.parse(JSON.stringify(v).replace(/\{([ABC])\}/g, (_, x) => users[x] ? users[x].uid : "?"));
@@ -170,6 +178,7 @@ for (const T of [emuTarget, fakeTarget]) {
 for (const s of [...STEPS, ...FILL]) {
   const got = [];
   for (const T of [emuTarget, fakeTarget]) {
+    if (s.seed) { await T.seed(s.seed, s.b); got.push(true); continue; }
     if (s.see) {
       const v = await T.at(fill(s.see, T.users));
       got.push(s.isKeys ? JSON.stringify(Object.keys(v || {}).sort()) === JSON.stringify(s.isKeys) : JSON.stringify(v) === JSON.stringify(s.is));

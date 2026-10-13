@@ -13,6 +13,8 @@ const R = gameContext();
 const { IchibanKuji: K, KujiArt: A, KujiDeluxeArt: DA, KujiNet: KN, StickerBook: SB, Save: S } = R;
 // いちばんくじの けいひんは 2しゅうかん ごとに いれかわる（UI-112）。ここでは まえからの セットの きかん（2026-10-19〜11-01）に きめる
 R.U.today = () => "2026-10-20";
+// みんなの くじの けいひんも 2しゅうかん ごとに いれかわる（UI-117・tools/check-kuji-net-rotation.mjs）。ここでは まえからの セット（DELUXE）に きめる
+for (const s of R.IchibanKuji.STORES) R.IchibanKuji.setNetTheme(s, R.IchibanKuji.NET_BY[s].key);
 R.UI.updateHud = () => {}; R.UI.toast = () => {};
 const read = (p) => readFileSync(new URL("../" + p, import.meta.url), "utf8");
 let n = 0;
@@ -31,7 +33,7 @@ ok(!/kira|sparkle|twinkle|glitter/i.test(src) && !/<linearGradient|<radialGradie
 
 // ---- 2. データ ----
 ok(K.DELUXE.length === 2 && K.DELUXE.map((X) => X.id).join() === K.STORES.join() && K.STORES.every((s) => K.NET_BY[s] && K.NET_BY[s] !== K.BY[s]), "みんなの くじの けいひんは 2つの コンビニ（ひとりの くじと べつ）");
-const NET = K.ITEMS.filter((it) => it.net), SOLO = K.ITEMS.filter((it) => !it.net);
+const NET = K.ITEMS.filter((it) => it.net && K.NET_THEME_BY[it.theme].base), SOLO = K.ITEMS.filter((it) => !it.net);
 ok(NET.length === 48 && NET.every((it) => /^kj_m(law|sev)_[a-z0-9]+$/.test(it.id) && K.INDEX[it.id] === it) && !NET.some((it) => SOLO.some((x) => x.id === it.id)), "けいひん 48しゅ（24しゅ × 2・id は kj_m<みせ>_）");
 for (const X of K.DELUXE) {
   const O = K.BY[X.id], mine = NET.filter((it) => it.store === X.id);
@@ -133,12 +135,12 @@ for (const s of K.STORES) {
   ok(JSON.stringify(v.left) === JSON.stringify(K.NET_BY[s].plan) && Object.keys(v.left).every((id) => K.INDEX[id].net), `${s}: みんなの くじ（KujiNet.derive）は この けいひん`);
 }
 const kn = read("js/kuji-net.js");
-ok(!/K\.BY\[/.test(kn) && (kn.match(/K\.NET_BY\[s\]/g) || []).length === 4, "kuji-net.js は ひとりの くじの けいひんを つかわない（K.NET_BY）");
+ok(!/K\.BY\[/.test(kn) && !/K\.NET_BY\[/.test(kn) && /const S = K\.netThemeLot\(s, lot\)/.test(kn) && (kn.match(/\bv\.S\.ids|view\.S\b/g) || []).length >= 3, "kuji-net.js は ひとりの くじの けいひんを つかわない（ロットの セット view.S・UI-117）");
 ok(K.source("kj_mlaw_a") === "ネリカスタウンの ローリソンの いちばんくじ「みんなの くじ」（Aしょう）で でるよ。" && K.source("kj_law_a") === "ネリカスタウンの ローリソンの いちばんくじ（Aしょう）で でるよ。", "ずかんの ヒント（みんなの くじ／ひとりの くじ）");
 
 // ---- 7. がめん・PokaDebug・ことば ----
 const ui = read("js/kuji-ui.js");
-ok(/const X = \(\) => \(mode === "net" \? K\.NET_BY\[s\] : K\.BY\[s\]\)/.test(ui) && /classList\.toggle\("deluxe", mode === "net"\)/.test(ui) && /boxUrl\(s, mode === "net"\)/.test(ui), "がめん: みんなの くじは ごうかな けいひん・きんいろの ボード・きんの はこ");
+ok(/const X = \(\) => \(mode === "net" \? netSet\(\) : K\.BY\[s\]\)/.test(ui) && /V && V\.S \? V\.S : K\.netThemeNow\(s\)/.test(ui) && /classList\.toggle\("deluxe", mode === "net"\)/.test(ui) && /boxUrl\(s, mode === "net"\)/.test(ui), "がめん: みんなの くじは ごうかな けいひん・きんいろの ボード・きんの はこ");
 for (const t of ["みんなの くじ だけの ごうかな けいひん", "「みんなの くじ」は けいひんが ごうか！", "けいひんは みんなの くじ だけの ごうかな もの！", "みんなの くじの "]) ok(ui.includes(t), "がめんの ことば: " + t);
 const css = read("css/style.css");
 ok(/\.kuji\.deluxe \.kuji-poster\{/.test(css) && /\.kuji-ribbon\{/.test(css) && /\.kuji-modehint\{/.test(css), "CSS: きんいろの ボード・リボン・しらせ");

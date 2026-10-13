@@ -108,7 +108,7 @@
           ".read": "auth != null",
           ".validate": "$store.matches(/^(lawson|sevenbun)$/)",
           "cur": {
-            ".write": "auth != null && newData.isNumber() && newData.val() === (data.exists() ? data.val() : 1) + 1 && data.parent().child('lots').child('l' + (data.exists() ? data.val() : 1)).child('n').val() === 80"
+            ".write": "auth != null && newData.isNumber() && newData.val() === (data.exists() ? data.val() : 1) + 1 && (data.parent().child('lots').child('l' + (data.exists() ? data.val() : 1)).child('n').val() === 80 || (data.parent().child('lots').child('l' + (data.exists() ? data.val() : 1)).child('d').child('k0').child('t').isNumber() && data.parent().child('lots').child('l' + (data.exists() ? data.val() : 1)).child('d').child('k0').child('t').val() < now - ((now - 1791730800000) % 1209600000)))"
           },
           "lots": {
             "$lot": {
