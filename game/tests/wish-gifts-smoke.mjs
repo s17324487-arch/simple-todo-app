@@ -55,7 +55,11 @@ export async function wishGiftsSmoke({ scenario, expect }) {
     expect((await H.dbg('saveData')).furn.wg_stone_ring === 1, 'いしが 家具に ない');
     // ③ アクセサリー
     await H.wait(1500);
-    await grant('eat_pudding', 'goji', 'pudding', 'ぎゅー！', 'wg_dinopin');
+    // ごじの「だっこ…」には だっこで こたえる（UI-121）
+    const dk0 = (await H.dbg('records')).kids.goji.dakko;
+    await grant('eat_pudding', 'goji', 'pudding', 'だっこ', 'wg_dinopin');
+    const rec = await H.dbg('records'), wl = await H.dbg('wish');
+    expect(rec.kids.goji.dakko === dk0 + 1 && rec.kids.wanko.dakko >= 1 && wl.how.at(-1) === 'dakko' && (await H.dbg('homeTalkLog')).some((x) => x.how === 'dakko' && x.id === 'goji' && /だっこ/.test(x.text)), 'だっこが きろくに ない ' + JSON.stringify({ dk0, goji: rec.kids.goji, how: wl.how }));
     v = await panel(H);
     expect(/ごじから おれい/.test(v.title) && v.name === 'きょうりゅうの ヘアピン' && /おこづかい/.test(v.say) && /きがえ/.test(v.use) && v.inside, 'アクセサリーの カードが ちがう ' + JSON.stringify(v));
     await H.shot('acc');
