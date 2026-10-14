@@ -284,6 +284,12 @@ const PokaDebug = {
     Online.closeAll(); OnlineNet.over = conf ? { ...conf } : null; OnlineNet.auth = null; OnlineNet.pending = null; Online.reg = "";
     return OnlineNet.ready();
   },
+  // LINE れんけい（UI-126）: つなぎさきを テストに（{ lineUrl, lineFriend }・null で もとの js/online-config.js）。つなぐ じゅんびが できたか
+  lineServer(conf = null) { if (typeof LineLink === "undefined") return null; LineLink.over = conf ? { ...conf } : null; LineLink.busy = null; return LineLink.ready(); },
+  // LINE れんけいの ようす（ready・on・同意・ばんごう・つながったか・さいごに おくった とき・おくる ようす）
+  lineLink() { if (typeof LineLink === "undefined") return null; const s = LineLink.st(); return { ready: LineLink.ready(), on: LineLink.on(), agreed: s.agreed > 0, code: s.code, hasSec: !!s.sec, linked: s.linked, sent: s.sent, state: LineLink.state(), friend: LineLink.friendUrl() }; },
+  // いま ようすを おくる（つないだ あと だけ）
+  lineSync() { return typeof LineLink === "undefined" ? null : LineLink.sync(true); },
   // オンラインの ようす（ready つなぎさきが ある・on・同意・なまえ・uid・てもとの いちばん よい きろく・おくった スコア・ボード・みて いる ボード）
   online() {
     if (typeof Online === "undefined") return null;

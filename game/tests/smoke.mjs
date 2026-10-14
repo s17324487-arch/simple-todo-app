@@ -66,6 +66,8 @@ async function scenario(name, fn, { viewport = { width: 390, height: 844 }, time
   // オンライン（E5）: テストは 本番の Firebase（js/online-config.js）に つながない。つなぐのは にせの サーバー（tests/online-fake.mjs）だけ。
   // つなごうと したら とめて、その シナリオを しっぱいに する（同意の まえに つながる ことも ない と わかる）
   await context.route(/^https:\/\/(?:[a-z0-9-]+\.)*(?:firebasedatabase\.app|firebaseio\.com)\/|^https:\/\/(?:identitytoolkit|securetoken)\.googleapis\.com\//, route => { problems.push("本番の Firebase に つなごうと した: " + route.request().url().split("?")[0]); route.abort(); });
+  // LINE れんけい（UI-126）: 本番の GAS・LINE にも つながない（テストは シナリオの page.route で にせの GAS へ。page の route が さきに きく）
+  await context.route(/^https:\/\/(?:script\.google\.com|script\.googleusercontent\.com|api\.line\.me)\//, route => { problems.push("本番の GAS・LINE に つなごうと した: " + route.request().url().split("?")[0]); route.abort(); });
   page.on('crash',()=>problems.push('ブラウザの描画プロセスがクラッシュしました'));
   page.on("pageerror", (e) => problems.push("pageerror: " + e.stack));
   page.on("console", (m) => {
@@ -4537,6 +4539,8 @@ await (await import("./home-lv-party-smoke.mjs")).homeLvPartySmoke({scenario,exp
 await (await import("./umbrella-smoke.mjs")).umbrellaSmoke({scenario,expect});
 // ようふく 50しゅ（UI-125。くわしくは tests/closet-wear-smoke.mjs）
 await (await import("./closet-wear-smoke.mjs")).closetWearSmoke({scenario,expect});
+// LINE れんけい（UI-126。くわしくは tests/line-link-smoke.mjs）
+await (await import("./line-link-smoke.mjs")).lineLinkSmoke({scenario,expect});
 // バッグ・ポーチの チャーム（UI-123。くわしくは tests/bag-charms-smoke.mjs）
 await (await import("./bag-charms-smoke.mjs")).bagCharmsSmoke({scenario,expect});
 // おうちの かけあいを 倍に（UI-107。ぱぱ・ままとの からみ・3人の かけあい）

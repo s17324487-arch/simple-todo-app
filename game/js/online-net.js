@@ -70,6 +70,11 @@ const OnlineNet = {
     if (!res.ok) throw this.err(res.status, (body && body.error && (body.error.message || body.error)) || "http");
     return body;
   },
+  // LINE れんけい（UI-126・js/line-link.js だけが よぶ）: GAS の ウェブアプリへ text/plain の JSON（プリフライト なし）。こたえは JSON。
+  // keepalive: ページを とじる ときも おくりきる
+  gas(url, body, keepalive = false) {
+    return this.http(url, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body), redirect: "follow", ...(keepalive ? { keepalive: true } : {}) });
+  },
   // いま つかえる ID トークン（2ふん いじょう のこって いれば それ・なければ リフレッシュ・アカウントが なければ つくる）。
   // create: false なら つくらない（けす とき。アカウントが なければ code "noaccount"）
   token(force = false, create = true) {
