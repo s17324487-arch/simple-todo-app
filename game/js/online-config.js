@@ -7,4 +7,9 @@ const ONLINE_CONFIG = Object.freeze({
   apiKey: "AIzaSyBjVkAjNzgjMsscgvnWW0hJ-hsIms080Cw",
   databaseURL: "https://nerikas5858-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "nerikas5858",
+  // LINE れんけい（UI-126・js/line-link.js・オーナーの 指示 2026-10-14「③にしたいので許可する。」）。から の あいだは「じゅんびちゅう」。
+  // lineUrl: GAS の ウェブアプリの URL（https://script.google.com/macros/s/…/exec）・lineFriend: LINE 公式アカウントの ともだち ついかの URL（https://lin.ee/…）
+  // どちらも ひみつの 値では ない（チャネル アクセストークンは GAS の スクリプト プロパティだけに おく）。てじゅんは game/line/README.md
+  lineUrl: "",
+  lineFriend: "",
 });

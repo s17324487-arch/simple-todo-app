@@ -21,7 +21,8 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
 const flush = async (k = 8) => { for (let i = 0; i < k; i++) await tick(); };
 
 // ---- 1. つなぎさき ----
-ok(Object.isFrozen(CFG) && JSON.stringify(Object.keys(CFG)) === '["apiKey","databaseURL","projectId"]', "ONLINE_CONFIG は apiKey・databaseURL・projectId だけ（こおらせる）");
+ok(Object.isFrozen(CFG) && JSON.stringify(Object.keys(CFG)) === '["apiKey","databaseURL","projectId","lineUrl","lineFriend"]', "ONLINE_CONFIG は apiKey・databaseURL・projectId と LINE れんけいの lineUrl・lineFriend だけ（こおらせる・UI-126）");
+ok((CFG.lineUrl === "" || R.LineLink.URL_RE.test(CFG.lineUrl)) && (CFG.lineFriend === "" || R.LineLink.FRIEND_RE.test(CFG.lineFriend)), "LINE の つなぎさきは から か GAS の URL・ともだち ついかの URL だけ");
 const empty = !CFG.apiKey && !CFG.databaseURL && !CFG.projectId;
 ok(empty || (/^AIza[\w-]{35}$/.test(CFG.apiKey) && /^https:\/\/[a-z0-9-]+(\.[a-z0-9-]+)?\.(firebaseio\.com|firebasedatabase\.app)$/.test(CFG.databaseURL) && /^[a-z0-9-]{4,40}$/.test(CFG.projectId)), "ONLINE_CONFIG の かたちが ちがう " + JSON.stringify(CFG));
 ok(N.ready() === !empty, "ONLINE_CONFIG が から なら じゅんびちゅう・あれば つながる");

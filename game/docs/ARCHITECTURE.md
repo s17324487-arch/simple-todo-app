@@ -166,6 +166,7 @@ index.html ─ <script> を順に読む（classic script・グローバル共有
 | — | `online-rooms.js`（online.js の すぐ あと） | `OnlineRooms`（じぶんの おへやを みせる・みんなの おへやの いちらん。`Online.parts` に「おうち」タブ。いちらんの タップで おじゃま〔online-visit.js〕。E5・UI-95） |
 | — | `online-photos.js`（online-rooms.js の すぐ あと・purikura.js より あと） | `OnlinePhotos`（みせると きめた ぷりくらを 見せあう・かくす・ほうこく。`Online.parts` に「ぷりくら」タブ。「しゃしん」アプリの「みんなに みせる」。E5・UI-96） |
 | — | `online-visit.js`（online-photos.js の すぐ あと＝HouseScene を つつむ ファイル〔home-doors・home-floors・home-toilet・pet-walk・play-records・gowaga-wish・mee-fitting〕より あと・debug.js の まえ） | `OnlineVisit`（よんだ おへや → この 画面の へや・ことば・もどる ところ・いく）, `VisitScene`（`SCENES.visit`。ほかの 人の おうちに 3人で おじゃま。HouseScene を うけつぐ。E5・UI-97） |
+| — | `line-link.js`（kuji-net.js の あと＝online-net.js・online-config.js・menu.js の あと） | `LineLink`（LINE れんけい・`OnlineNet.gas` で GAS へ・≡ の せってい・UI-126。GAS は `game/line/Code.gs`） |
 | — | `kuji-net.js`（online-visit.js の すぐ あと＝IchibanKuji・KujiUI・Online・OnlineNet の あと・debug.js の まえ） | `KujiNet`（みんなの くじ。いちばんくじを オンラインの みんなで おなじ ロットで ひく。`Online.parts` に `kuji`〔けす・ID〕。E5・UI-100） |
 | — | `hold-plush.js`（kuji-net.js の あと・world-zoom.js の まえ＝家具〔くじ・クレーン・ガチャ・figure-stand.js〕と hand-items.js・dressup.js の あと） | `HoldPlush`（ぬいぐるみ・フィギュアを もつ: `ITEM_INDEX` の `hold_<家具>`・`WEAR.hold_plush`・UI-113） |
 | — | `bag-charms.js`（hold-plush.js の すぐ あと＝家具・ガチャの ふく・フィギュアが そろった あと） | `BagCharms`（バッグ・ポーチの チャーム・outfit.charm・`WEAR.bc_charm`・UI-123） |
