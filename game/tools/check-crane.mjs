@@ -8,6 +8,9 @@ import { gameContext } from "./game-context.mjs";
 const R = gameContext();
 const { CraneMachines: CM, PrizeArcade: PA, CraneArt: CA } = R;
 const RARE = new Set(R.ArcadePrizes.ITEMS.filter((it) => it.rare).map((it) => it.shape)); // レアの ぬいぐるみ（UI-124）の 形: 3人の 台に ときどき 1しゅ ふえる
+// きょうの レア（UI-124）は この 検査では まぜない: 日づけを きめて いない 台（物理・セーブ・ごほうび）の けっかが その日の レアで かわらない ように。
+// レアの でかた・ならび・でにくさは きまった 日で tools/check-arcade-rare.mjs が しらべる（ここの ならびの 検査も きまった 日は そのまま）
+{ const A = R.ArcadePrizes, real = A.rareOf; A.rareOf = (who, machine, day) => (day === CM.today() ? null : real(who, machine, day)); }
 const DAY = "2026-9-30"; // 日がわりの 台は この日の ならびで しらべる（ほかの 台には かんけい ない）
 let n = 0;
 const ok = (c, m) => { assert(c, m); n++; };
