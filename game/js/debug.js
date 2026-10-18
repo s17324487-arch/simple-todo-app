@@ -931,6 +931,8 @@ const PokaDebug = {
     }
   },
 
+  // はじめからの とくべつ スタート（2026-10-18）: きかんを かえる（テスト用・ミリ秒。なしで そのまま）・いま きかんか
+  startBonus(from = null, to = null) { if (from != null && to != null) Save.START_BONUS = { ...Save.START_BONUS, from, to }; return { ...Save.START_BONUS, active: Save.startBonus(), max: Save.COIN_MAX }; },
   newGame({ goji = "soft" } = {}) {
     Save.reset();
     Save.d.chars.goji.color = goji;

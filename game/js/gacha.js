@@ -116,7 +116,7 @@ const Gacha = (() => {
       const it = S.list[k], g = st(), first = !got(it.id), was = complete(si);
       Save.d.coins -= price; g.plays++; g.got[it.id] = got(it.id) + 1;
       let refund = 0, note = "";
-      if (it.kind === "wear") { if (!WearStock.add(it.id, 1)) { refund = DUP; Save.d.coins += DUP; } }
+      if (it.kind === "wear") { if (!WearStock.add(it.id, 1)) { refund = DUP; Save.d.coins = Save.capCoins(Save.d.coins, Save.d.coins + DUP); } }
       else if (it.kind === "furn") Save.d.furn[it.id] = (Save.d.furn[it.id] || 0) + 1;
       else if (this.GIVE[it.kind]) note = this.GIVE[it.kind](it) || "";
       const done = !was && complete(si); if (done) g.done[S.id] = U.today();

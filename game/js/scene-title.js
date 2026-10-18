@@ -34,7 +34,9 @@ class TitleScene {
     this.ui.remove();
     if (fresh) {
       Save.reset();
+      const bonus = Save.applyStartBonus(); // とくべつ スタート（きかんの あいだ だけ）
       await this.opening();
+      if (bonus) await UI.say([{ name: "おしらせ", text: `とくべつ キャンペーン！\nいま はじめた ひとは ${U.fmt(bonus)}コインで スタートだよ。\n（10がつ 20にち までに はじめた ひと だけ）` }]);
       DailyPlay.visit();
       Save.write();
       Game.goto("house", { intro: true }, "circle");
