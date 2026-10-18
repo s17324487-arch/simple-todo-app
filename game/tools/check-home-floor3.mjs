@@ -60,6 +60,21 @@ for (const e2 of [false, true]) for (const e3 of [false, true]) for (const cur o
   }
 }
 
+// ---- 3b. 1かい・2かい・3かいが いっしょに 見える（オーナーの 指示 2026-10-18「3階について、1階と2階と同時に見えるような仕様にせよ。」）----
+for (const e1 of [false, true]) for (const e2 of [false, true]) for (const e3 of [false, true]) for (const cur of ["main", "upstairs", "third"]) {
+  S.d.rooms.expanded = { main: e1, upstairs: e2, third: e3 }; at(cur);
+  const tag = JSON.stringify({ e1, e2, e3, cur }), sc = { s: 1, ox: 0, oy: 0, chars: [], life: {} };
+  ok(F.floors().join() === "main,upstairs,third" && F.others().length === 2 && !F.others().includes(cur), "どの かいでも 3つ 見える " + tag);
+  const P = Object.fromEntries(F.CHAIN.map((id) => [id, F.roomPoly(sc, id)])), FL = Object.fromEntries(F.CHAIN.map((id) => [id, F.floorPoly(sc, id)]));
+  const cx = (ps) => ps.reduce((t, p) => t + p.x, 0) / ps.length, cy = (ps) => ps.reduce((t, p) => t + p.y, 0) / ps.length;
+  ok(cx(P.upstairs) > cx(P.main) && cy(P.upstairs) < cy(P.main) && cx(P.third) > cx(P.upstairs) && cy(P.third) < cy(P.upstairs), "1かい → 2かい → 3かい と みぎ うえへ " + tag);
+  for (const [a, b] of [["main", "upstairs"], ["upstairs", "third"], ["main", "third"]]) ok(apart(P[a], P[b]) && apart(FL[b], P[a]), `${a} と ${b} が かさならない ` + tag);
+  // いる かいが どこでも おなじ ならび（いる かいの 原点 0,0 から みた 1かいの いち が かわる だけ）
+  const o = F.floorAt(sc, cur); ok(Math.abs(o.x) < 1e-9 && Math.abs(o.y) < 1e-9, "いる かいの 原点は sc.ox・oy " + tag);
+  const B = F.union(); for (const id of F.CHAIN) { const b = HD.bounds(F.size(id)), q = F.offOf(id); ok(b.x + q.x >= B.x - 1e-6 && b.y + q.y >= B.y - 1e-6 && b.x + q.x + b.w <= B.x + B.w + 1e-6 && b.y + q.y + b.h <= B.y + B.h + 1e-6, `わくに ${id} が はいる ` + tag); }
+}
+S.d.rooms.expanded = {};
+{ S.d.rooms.owned.third = false; at("main"); ok(F.floors().join() === "main,upstairs", "3かいが なければ 1かい・2かい だけ"); S.d.rooms.owned.third = true; }
 // ---- 4. 2かいの かいだんの ところ（かぐ・みち）----
 {
   S.d.rooms.expanded = {}; at("upstairs");
