@@ -4541,6 +4541,8 @@ await (await import("./umbrella-smoke.mjs")).umbrellaSmoke({scenario,expect});
 await (await import("./closet-wear-smoke.mjs")).closetWearSmoke({scenario,expect});
 // LINE れんけい（UI-126。くわしくは tests/line-link-smoke.mjs）
 await (await import("./line-link-smoke.mjs")).lineLinkSmoke({scenario,expect});
+// コインの じょうげん 300まん・はじめからの とくべつ スタート（2026-10-18。くわしくは tests/start-bonus-smoke.mjs）
+await (await import("./start-bonus-smoke.mjs")).startBonusSmoke({scenario,expect});
 // バッグ・ポーチの チャーム（UI-123。くわしくは tests/bag-charms-smoke.mjs）
 await (await import("./bag-charms-smoke.mjs")).bagCharmsSmoke({scenario,expect});
 // おうちの かけあいを 倍に（UI-107。ぱぱ・ままとの からみ・3人の かけあい）

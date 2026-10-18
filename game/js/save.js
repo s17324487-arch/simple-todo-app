@@ -2,6 +2,11 @@
 const Save = {
   // KEY は変えない（変えると プレイヤーのセーブが消えたように見える）
   KEY: "pokapoka-town-save-v1",
+  // コインの じょうげん（オーナーの 指示 2026-10-18「お金の上限を300万にして」）。ふえる ときだけ おさえる（まえから これより おおい セーブは へらさない）
+  COIN_MAX: 3000000,
+  // はじめからの とくべつ スタート（オーナーの 指示 2026-10-18「今からはじめからスタートしたプレイヤーは、3日間限定で、300万円スタートにして。」）。
+  // にほんの 2026-10-18 0じ 〜 2026-10-21 0じ（3にちかん）に タイトルの「はじめから」「はじめる」で はじめた セーブだけ coins に なる（PokaDebug.newGame は かわらない）
+  START_BONUS: { coins: 3000000, from: Date.UTC(2026, 9, 17, 15), to: Date.UTC(2026, 9, 20, 15) },
   // セーブ形式の番号。形式を変えたら +1 して migrate() に変換を足す
   // 2: 服は 1こで 1人（wardrobe の あたいは もって いる かず。true は 1こ。js/wear-stock.js・UI-31）
   SCHEMA: 2,
@@ -249,8 +254,14 @@ const Save = {
     this.mark();
   },
 
+  // その日が とくべつ スタートの きかんか（now: ミリ秒）
+  startBonus(now = Date.now()) { const b = this.START_BONUS; return now >= b.from && now < b.to ? b.coins : 0; },
+  // はじめたばかりの セーブに とくべつ スタートを つける（つけた コインを かえす。きかんの そとは 0）
+  applyStartBonus(now = Date.now()) { const c = this.startBonus(now); if (!c) return 0; this.d.coins = Math.min(this.COIN_MAX, c); this.d.flags.startBonus = now; this.mark(); return this.d.coins; },
+  // コインを ふやした あとの ねだん（じょうげんで おさえる。まえから じょうげんより おおい ときは そのまま）
+  capCoins(before, after) { return after > before ? Math.min(after, Math.max(before, this.COIN_MAX)) : after; },
   addCoins(n) {
-    this.d.coins = Math.max(0, Math.floor(this.d.coins + n));
+    this.d.coins = this.capCoins(this.d.coins, Math.max(0, Math.floor(this.d.coins + n)));
     if (n > 0) this.d.stats.coinsEarned += n;
     this.mark();
   },

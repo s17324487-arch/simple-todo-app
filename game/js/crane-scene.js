@@ -62,7 +62,7 @@ const PrizeArcade = {
     a.active = null;
     // クレーン チケットで はじめた 1かいは チケットを かえす（js/conbini-card.js・UI-85）
     if (run.ticket && typeof ConbiniCard !== "undefined" && ConbiniCard.giveTicket("crane")) a.refundedTicket = (a.refundedTicket || 0) + 1;
-    else { a.refunded = (a.refunded || 0) + 1; Save.d.coins += this.PRICE; }
+    else { a.refunded = (a.refunded || 0) + 1; Save.d.coins = Save.capCoins(Save.d.coins, Save.d.coins + this.PRICE); }
     Save.write();
   },
   // クレーン チケット（コンビニの ポイントカードの けいひん・js/conbini-card.js・UI-85）: コイン プッシャー いがいの 台で 1かい ただ。のこりの まいすう（つかえない 台は 0）
@@ -151,7 +151,7 @@ const PrizeArcade = {
     if (!run || a.active?.id !== run.id || a.settled === run.id) return false;
     const m = this.machines[run.machine], got = (round && round.got) || [], n = got.length * m.qty;
     for (const p of this.prizesOf(run.machine, round)) {
-      if (p.coins) { const give = Math.max(0, Math.min(p.coins, ArcadePrizes.coinLeft())), c = ArcadePrizes.coinState(); Save.d.coins += give; c.coinToday = (c.coinToday || 0) + give; run.paid = give; run.capped = p.coins - give; }
+      if (p.coins) { const give = Math.max(0, Math.min(p.coins, ArcadePrizes.coinLeft())), c = ArcadePrizes.coinState(); Save.d.coins = Save.capCoins(Save.d.coins, Save.d.coins + give); c.coinToday = (c.coinToday || 0) + give; run.paid = give; run.capped = p.coins - give; }
       else if (FURN_INDEX[p.id]) Save.d.furn[p.id] = (Save.d.furn[p.id] || 0) + p.n; else Save.addBag(p.id, p.n);
     }
     if (n > 0) { a.wins++; a.got[run.machine] = (a.got[run.machine] || 0) + n; }
